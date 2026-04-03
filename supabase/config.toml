@@ -1,0 +1,4 @@
+# Supabase CLI / Edge Functions (optional). Deploy: supabase functions deploy admin-create-user
+
+[functions.admin-create-user]
+verify_jwt = true
