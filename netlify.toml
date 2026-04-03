@@ -1,7 +1,10 @@
 # https://docs.netlify.com/configure-builds/file-based-configuration/
+# If Netlify UI still overrides this, set Build command to: npm ci && npm run build
 [build]
-  command = "npm run build"
+  command = "npm ci && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
+  # Ensure devDependencies (e.g. jimp) install; vite is in dependencies so build always has it
+  NPM_CONFIG_PRODUCTION = "false"

@@ -12,12 +12,15 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "vite": "^5.4.10"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "jimp": "^1.6.0",
-    "vite": "^5.4.10"
+    "jimp": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
