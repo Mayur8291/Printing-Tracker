@@ -1,9 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import MockupStudio from "./MockupStudio";
+import CoordinatorReportPanel from "./CoordinatorReportPanel";
 import { supabase } from "./supabaseClient";
 
-const STAGES = ["new", "printing", "fusing", "ironing", "packing", "pending", "on_hold", "ready"];
+const STAGES = [
+  "new",
+  "approval_pending",
+  "printing",
+  "fusing",
+  "ironing",
+  "packing",
+  "pending",
+  "on_hold",
+  "ready"
+];
 const STAGE_LABEL = {
   new: "New Orders",
+  approval_pending: "Approval Pending",
   printing: "Printing",
   fusing: "Fusing",
   ironing: "Ironing",
@@ -14,6 +27,7 @@ const STAGE_LABEL = {
 };
 const STAGE_ICON = {
   new: "🆕",
+  approval_pending: "📋",
   printing: "🖨️",
   fusing: "🟧",
   ironing: "/icons/ironing.png",
@@ -24,6 +38,7 @@ const STAGE_ICON = {
 };
 const STAGE_OPTION_ICON = {
   new: "🆕",
+  approval_pending: "📋",
   printing: "🖨️",
   fusing: "🟧",
   ironing: "♨️",
@@ -32,6 +47,91 @@ const STAGE_OPTION_ICON = {
   on_hold: "⚠",
   ready: "✅"
 };
+
+/** New jobs stay “new” until 12h after `created_at`, then move to “pending” (see DB trigger + client promotion). */
+const SLA_NEW_TO_PENDING_MS = 12 * 60 * 60 * 1000;
+
+function staticAssetUrl(relPath) {
+  const base = import.meta.env.BASE ?? "/";
+  const b = base.endsWith("/") ? base : `${base}/`;
+  return `${b}${relPath.replace(/^\//, "")}`;
+}
+
+function resolveStatusToneUrl() {
+  try {
+    return new URL(staticAssetUrl("sounds/tone-01.mp3"), window.location.href).href;
+  } catch {
+    return staticAssetUrl("sounds/tone-01.mp3");
+  }
+}
+
+let cachedStatusToneAudio;
+let statusTonePrimed = false;
+/** Status changed while tab hidden — play once when user returns. */
+let pendingStatusTone = false;
+
+/** Call once after a user gesture so autoplay policy allows status tones later. */
+function primeStatusToneFromUserGesture() {
+  if (statusTonePrimed) return;
+  try {
+    if (!cachedStatusToneAudio) {
+      cachedStatusToneAudio = new Audio(resolveStatusToneUrl());
+      cachedStatusToneAudio.preload = "auto";
+    }
+    cachedStatusToneAudio.volume = 0.001;
+    void cachedStatusToneAudio
+      .play()
+      .then(() => {
+        cachedStatusToneAudio.pause();
+        cachedStatusToneAudio.currentTime = 0;
+        cachedStatusToneAudio.volume = 1;
+        statusTonePrimed = true;
+      })
+      .catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+function playOrderStatusChangeTone() {
+  try {
+    const url = resolveStatusToneUrl();
+    const tryPlay = (el) => {
+      if (!el) return Promise.reject(new Error("no audio"));
+      el.volume = 1;
+      el.pause();
+      el.currentTime = 0;
+      return el.play();
+    };
+
+    if (!cachedStatusToneAudio) {
+      cachedStatusToneAudio = new Audio(url);
+      cachedStatusToneAudio.preload = "auto";
+    }
+
+    const p = tryPlay(cachedStatusToneAudio);
+    if (p) {
+      void p.catch(() => {
+        try {
+          const fresh = new Audio(url);
+          fresh.preload = "auto";
+          fresh.volume = 1;
+          void fresh.play().catch(() => {});
+        } catch {
+          /* ignore */
+        }
+      });
+    }
+  } catch {
+    try {
+      const fresh = new Audio(resolveStatusToneUrl());
+      fresh.volume = 1;
+      void fresh.play().catch(() => {});
+    } catch {
+      /* ignore */
+    }
+  }
+}
 
 /** Rounded warning triangle with “!” — red, matches on-hold styling. */
 function OnHoldWarningIcon({ className = "" }) {
@@ -96,17 +196,191 @@ function LiveStatusIcon({ active, size = "md" }) {
   return <LiveMapMarker pulse={false} size={size} />;
 }
 
+/** Keys stored in orders.size_breakdown (jsonb). */
+const ORDER_SIZE_COLUMNS = [
+  { key: "XS", label: "XS" },
+  { key: "S", label: "S" },
+  { key: "M", label: "M" },
+  { key: "L", label: "L" },
+  { key: "XL", label: "XL" },
+  { key: "2XL", label: "2XL" },
+  { key: "3XL", label: "3XL" }
+];
+
+function emptySizesForm() {
+  return Object.fromEntries(ORDER_SIZE_COLUMNS.map(({ key }) => [key, ""]));
+}
+
+function parseSizeQtyInput(raw) {
+  const s = String(raw ?? "").trim();
+  if (!s) return 0;
+  const n = Number.parseInt(s, 10);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+function sumSizeForm(sizes) {
+  return ORDER_SIZE_COLUMNS.reduce((acc, { key }) => acc + parseSizeQtyInput(sizes?.[key]), 0);
+}
+
+/** Build DB object: only positive integer counts. */
+function sizesFormToBreakdown(sizes) {
+  const out = {};
+  for (const { key } of ORDER_SIZE_COLUMNS) {
+    const n = parseSizeQtyInput(sizes?.[key]);
+    if (n > 0) out[key] = n;
+  }
+  return out;
+}
+
+/** Human-readable for table / CSV / live card. */
+function formatSizeBreakdownSummary(breakdown) {
+  if (!breakdown || typeof breakdown !== "object") return "—";
+  const parts = [];
+  for (const { key, label } of ORDER_SIZE_COLUMNS) {
+    const n = Number(breakdown[key]);
+    if (Number.isFinite(n) && n > 0) parts.push(`${label}×${n}`);
+  }
+  return parts.length ? parts.join(", ") : "—";
+}
+
+/** DB timestamptz → value for `<input type="datetime-local" />` (local). */
+function receivedAtToDatetimeLocalValue(iso) {
+  if (iso == null || String(iso).trim() === "") return "";
+  const d = new Date(String(iso));
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function datetimeLocalToIsoOrNull(localStr) {
+  const t = String(localStr ?? "").trim();
+  if (!t) return null;
+  const d = new Date(t);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+function formatReceivedAtDisplay(iso) {
+  if (iso == null || String(iso).trim() === "") return "—";
+  const d = new Date(String(iso));
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
 const emptyOrder = {
+  order_id: "",
   due_date: "",
   owner_name: "",
   customer_name: "",
   coordinator_name: "",
-  qty: "",
+  sizes: emptySizesForm(),
   product_name: "",
   colors: [],
   printing_mtrs: "0.00",
-  remarks: ""
+  remarks: "",
+  is_production_order: false,
+  expected_handover_to_printing: ""
 };
+
+/** HSL (0–360, 0–100, 0–100) → #rrggbb for stable DB + CSV. */
+function hslToHex(h, s, l) {
+  const hue = (((h % 360) + 360) % 360) / 360;
+  const sat = Math.max(0, Math.min(100, s)) / 100;
+  const light = Math.max(0, Math.min(100, l)) / 100;
+
+  let r;
+  let g;
+  let b;
+  if (sat === 0) {
+    r = g = b = light;
+  } else {
+    const hue2rgb = (p, q, t) => {
+      let tt = t;
+      if (tt < 0) tt += 1;
+      if (tt > 1) tt -= 1;
+      if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+      if (tt < 1 / 2) return q;
+      if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+      return p;
+    };
+    const q = light < 0.5 ? light * (1 + sat) : light + sat - light * sat;
+    const p = 2 * light - q;
+    r = hue2rgb(p, q, hue + 1 / 3);
+    g = hue2rgb(p, q, hue);
+    b = hue2rgb(p, q, hue - 1 / 3);
+  }
+  const toHex = (x) =>
+    Math.round(Math.min(255, Math.max(0, x * 255)))
+      .toString(16)
+      .padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toLowerCase();
+}
+
+/** 8×8 swatches: top row greyscale, rows below = lighter → deeper per hue column. */
+const ORDER_COLOR_PALETTE = (() => {
+  const pal = [];
+  for (let c = 0; c < 8; c += 1) {
+    const L = Math.round((c / 7) * 100);
+    pal.push(hslToHex(0, 0, L));
+  }
+  for (let r = 1; r < 8; r += 1) {
+    for (let c = 0; c < 8; c += 1) {
+      const hue = (c * 360) / 8;
+      const sat = 52 + (r % 4) * 10;
+      const light = 84 - (r - 1) * 10;
+      pal.push(hslToHex(hue, Math.min(100, sat), Math.max(12, Math.min(92, light))));
+    }
+  }
+  return pal;
+})();
+
+function normalizeColorKey(c) {
+  return String(c ?? "")
+    .trim()
+    .toLowerCase();
+}
+
+function isCssColorString(c) {
+  const s = String(c ?? "").trim();
+  return /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(s) || /^hsla?\(/i.test(s);
+}
+
+/** Background for swatch: hex/hsl as-is; otherwise try as CSS color keyword (e.g. orange, navy). */
+function swatchBackgroundForColor(c) {
+  const t = String(c ?? "").trim();
+  if (!t) return "#cbd5e1";
+  if (isCssColorString(t)) return t;
+  return t;
+}
+
+function OrderColorsCell({ colors }) {
+  if (!Array.isArray(colors) || !colors.length) return "-";
+  return (
+    <span className="order-colors-cell" role="list" aria-label="Colors">
+      {colors.map((c, i) => (
+        <span
+          key={`${c}-${i}`}
+          className="order-colors-cell__item"
+          role="listitem"
+          title={String(c)}
+        >
+          <span
+            className="order-colors-cell__dot"
+            style={{ backgroundColor: swatchBackgroundForColor(c) }}
+            aria-hidden
+          />
+          <span className="order-colors-cell__sr-only">{String(c)}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 const EDITABLE_FIELD_OPTIONS = [
   { key: "status", label: "Status" },
@@ -114,7 +388,9 @@ const EDITABLE_FIELD_OPTIONS = [
   { key: "due_date", label: "Due Date" },
   { key: "qty", label: "Qty" },
   { key: "coordinator_name", label: "Coordinator" },
-  { key: "printing_mtrs", label: "Printing Mtrs" }
+  { key: "printing_mtrs", label: "Printing Mtrs" },
+  { key: "approved_design_images", label: "Approved design images" },
+  { key: "received_at_printing", label: "Received date/time to printing" }
 ];
 
 const DEFAULT_NEW_USER_PERMISSIONS = {
@@ -124,6 +400,8 @@ const DEFAULT_NEW_USER_PERMISSIONS = {
   can_edit_qty: false,
   can_edit_coordinator_name: false,
   can_edit_printing_mtrs: false,
+  can_edit_approved_design_images: true,
+  can_edit_received_at_printing: false,
   can_create_orders: false
 };
 
@@ -143,6 +421,8 @@ function hydrateDraftFromPermission(p) {
     can_edit_qty: Boolean(p.can_edit_qty),
     can_edit_coordinator_name: Boolean(p.can_edit_coordinator_name),
     can_edit_printing_mtrs: Boolean(p.can_edit_printing_mtrs),
+    can_edit_approved_design_images: p.can_edit_approved_design_images !== false,
+    can_edit_received_at_printing: Boolean(p.can_edit_received_at_printing),
     can_create_orders: Boolean(p.can_create_orders)
   };
 }
@@ -154,11 +434,38 @@ function viewerMayEditOrderField(permissions, field) {
     if (keys.length === 0) return true;
     return permissions.can_edit_status !== false;
   }
+  if (field === "approved_design_images") {
+    return permissions.can_edit_approved_design_images !== false;
+  }
   return Boolean(permissions[`can_edit_${field}`]);
 }
 
 function viewerHasAnyOrderFieldEdit(permissions) {
   return EDITABLE_FIELD_OPTIONS.some((opt) => viewerMayEditOrderField(permissions, opt.key));
+}
+
+function ThemeToggle({ theme, onToggle, className = "theme-toggle-btn" }) {
+  const isDark = theme === "dark";
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={onToggle}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Light mode" : "Dark mode"}
+    >
+      {isDark ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      )}
+    </button>
+  );
 }
 
 function App() {
@@ -185,21 +492,28 @@ function App() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === "undefined") return "light";
+    return window.localStorage.getItem("printing-tracker-theme") === "dark" ? "dark" : "light";
+  });
   const [orderForm, setOrderForm] = useState(emptyOrder);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [designFiles, setDesignFiles] = useState([]);
-  const [colorInput, setColorInput] = useState("");
   const [owners, setOwners] = useState([]);
   const [coordinators, setCoordinators] = useState([]);
   const [newOwnerName, setNewOwnerName] = useState("");
   const [newCoordinatorName, setNewCoordinatorName] = useState("");
   const [showMasterList, setShowMasterList] = useState(false);
+  const [showMockupStudio, setShowMockupStudio] = useState(false);
   const [masterTableMissing, setMasterTableMissing] = useState(false);
   const [viewerProfiles, setViewerProfiles] = useState([]);
   const [viewerPermissions, setViewerPermissions] = useState({});
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  /** none = server order (created_at desc); asc/desc = coordinator name */
+  const [orderSortCoordinator, setOrderSortCoordinator] = useState("none");
   const [ordersTab, setOrdersTab] = useState("active");
   const [statusUpdates, setStatusUpdates] = useState({});
   const [remarksUpdates, setRemarksUpdates] = useState({});
@@ -207,11 +521,70 @@ function App() {
   const [dueDateUpdates, setDueDateUpdates] = useState({});
   const [printingMtrsUpdates, setPrintingMtrsUpdates] = useState({});
   const [coordinatorUpdates, setCoordinatorUpdates] = useState({});
+  const [receivedAtPrintingUpdates, setReceivedAtPrintingUpdates] = useState({});
   const [previewImages, setPreviewImages] = useState([]);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [viewerNameDrafts, setViewerNameDrafts] = useState({});
   const [viewerDepartmentDrafts, setViewerDepartmentDrafts] = useState({});
   const [permissionDrafts, setPermissionDrafts] = useState({});
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const colorPickerRef = useRef(null);
+  const [uploadingPostDesignOrderId, setUploadingPostDesignOrderId] = useState(null);
+  /** Map order id -> last known status (for new→pending tone). */
+  const prevOrderStatusesRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("theme-dark", theme === "dark");
+    try {
+      window.localStorage.setItem("printing-tracker-theme", theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
+
+  const fetchOrders = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoadingOrders(true);
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(
+          "id, order_id, order_date, due_date, owner_name, customer_name, coordinator_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, printing_mtrs, status, remarks, created_at, is_live, is_complete, is_production_order, expected_handover_to_printing, received_at_printing"
+        )
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(error.message);
+        return;
+      }
+      const rows = data ?? [];
+      setOrders(rows);
+      // Select uses statusUpdates[id] ?? order.status — stale keys hide remote changes until full reload.
+      setStatusUpdates(Object.fromEntries(rows.map((o) => [o.id, o.status])));
+      setReceivedAtPrintingUpdates(
+        Object.fromEntries(rows.map((o) => [o.id, receivedAtToDatetimeLocalValue(o.received_at_printing)]))
+      );
+    } catch (e) {
+      console.error(e instanceof Error ? e.message : e);
+    } finally {
+      if (!silent) setLoadingOrders(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!colorPickerOpen) return;
+    function handlePointerDown(e) {
+      if (!colorPickerRef.current?.contains(e.target)) {
+        setColorPickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [colorPickerOpen]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -222,6 +595,10 @@ function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session) setShowPassword(false);
+  }, [session]);
 
   useEffect(() => {
     if (!session?.user) {
@@ -248,14 +625,123 @@ function App() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
-        () => fetchOrders()
+        () => fetchOrders({ silent: true })
       )
       .subscribe();
 
+    const pollMs = 25000;
+    const pollId = setInterval(() => {
+      fetchOrders({ silent: true });
+    }, pollMs);
+
     return () => {
+      clearInterval(pollId);
       supabase.removeChannel(channel);
     };
+  }, [session?.user?.id, fetchOrders]);
+
+  /** Prime Web Audio after login so status-change tones can play (browser autoplay rules). */
+  useEffect(() => {
+    if (!session?.user) return undefined;
+    let done = false;
+    const prime = () => {
+      if (done) return;
+      done = true;
+      window.removeEventListener("pointerdown", prime, true);
+      window.removeEventListener("keydown", prime, true);
+      primeStatusToneFromUserGesture();
+    };
+    window.addEventListener("pointerdown", prime, { capture: true, passive: true });
+    window.addEventListener("keydown", prime, { capture: true, passive: true });
+    return () => {
+      done = true;
+      window.removeEventListener("pointerdown", prime, true);
+      window.removeEventListener("keydown", prime, true);
+    };
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (!session?.user) {
+      prevOrderStatusesRef.current = null;
+      return;
+    }
+    if (!orders.length) {
+      prevOrderStatusesRef.current = null;
+      return;
+    }
+    const prev = prevOrderStatusesRef.current;
+    const nextMap = Object.fromEntries(orders.map((o) => [o.id, o.status]));
+    if (prev && typeof prev === "object" && Object.keys(prev).length) {
+      let anyStatusChanged = false;
+      for (const o of orders) {
+        const was = prev[o.id];
+        if (was !== undefined && was !== o.status) {
+          anyStatusChanged = true;
+          break;
+        }
+      }
+      if (anyStatusChanged) {
+        if (typeof document !== "undefined" && document.visibilityState === "visible") {
+          playOrderStatusChangeTone();
+        } else {
+          pendingStatusTone = true;
+        }
+      }
+    }
+    prevOrderStatusesRef.current = nextMap;
+  }, [session?.user?.id, orders]);
+
+  /** Play deferred status tone when tab becomes visible (hidden-tab throttling). */
+  useEffect(() => {
+    if (!session?.user) return undefined;
+    const flush = () => {
+      if (typeof document === "undefined" || document.visibilityState !== "visible") return;
+      if (!pendingStatusTone) return;
+      pendingStatusTone = false;
+      playOrderStatusChangeTone();
+    };
+    document.addEventListener("visibilitychange", flush);
+    window.addEventListener("focus", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", flush);
+      window.removeEventListener("focus", flush);
+    };
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (!session?.user) return undefined;
+
+    async function promoteStaleNewOrdersToPending() {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, created_at")
+        .eq("status", "new")
+        .eq("is_complete", false);
+      if (error || !data?.length) return;
+      const now = Date.now();
+      for (const row of data) {
+        const createdMs = new Date(row.created_at).getTime();
+        if (Number.isNaN(createdMs) || now - createdMs < SLA_NEW_TO_PENDING_MS) continue;
+        await supabase.from("orders").update({ status: "pending" }).eq("id", row.id).eq("status", "new");
+      }
+      await fetchOrders({ silent: true });
+    }
+
+    const run = () => {
+      promoteStaleNewOrdersToPending().catch((e) => console.error(e));
+    };
+    const t0 = setTimeout(run, 4000);
+    const intervalId = setInterval(run, 120000);
+    const onVis = () => {
+      if (document.visibilityState === "visible") run();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearTimeout(t0);
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [session?.user?.id, fetchOrders]);
 
   useEffect(() => {
     if (!session?.user || !profile?.role) return;
@@ -361,28 +847,6 @@ function App() {
     }
   }
 
-  async function fetchOrders() {
-    setLoadingOrders(true);
-    try {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(
-          "id, order_date, due_date, owner_name, customer_name, coordinator_name, qty, product_name, colors, approved_design_url, printing_mtrs, status, remarks, created_at, is_live, is_complete"
-        )
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error(error.message);
-        return;
-      }
-      setOrders(data ?? []);
-    } catch (e) {
-      console.error(e instanceof Error ? e.message : e);
-    } finally {
-      setLoadingOrders(false);
-    }
-  }
-
   async function fetchMasters() {
     const [{ data: ownersData, error: ownersError }, { data: coordinatorsData, error: coordinatorsError }] =
       await Promise.all([
@@ -458,8 +922,33 @@ function App() {
     return { viewerProfiles: [], viewerPermissions: nextPerms };
   }
 
+  useEffect(() => {
+    if (!session?.user?.id || !profile?.role) return undefined;
+    const uid = session.user.id;
+    const channel = supabase
+      .channel(`profile-order-permissions-self-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profile_order_permissions",
+          filter: `user_id=eq.${uid}`
+        },
+        () => {
+          void fetchViewersAndPermissions();
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, profile?.role]);
+
   async function handleSignIn(e) {
     e.preventDefault();
+    // Still inside the sign-in click gesture — primes Web Audio before any await (autoplay policy).
+    primeStatusToneFromUserGesture();
     setAuthLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) alert(error.message);
@@ -475,14 +964,15 @@ function App() {
     setOrderForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleAddColor() {
-    const value = colorInput.trim();
-    if (!value) return;
+  function togglePaletteColor(hex) {
+    const key = hex.toLowerCase();
     setOrderForm((prev) => {
-      if (prev.colors.includes(value)) return prev;
-      return { ...prev, colors: [...prev.colors, value] };
+      const exists = prev.colors.some((c) => normalizeColorKey(c) === key);
+      if (exists) {
+        return { ...prev, colors: prev.colors.filter((c) => normalizeColorKey(c) !== key) };
+      }
+      return { ...prev, colors: [...prev.colors, hex] };
     });
-    setColorInput("");
   }
 
   function handleRemoveColor(color) {
@@ -495,11 +985,11 @@ function App() {
   async function handleCreateOrder(e) {
     e.preventDefault();
     if (!designFiles.length) {
-      alert("At least one approved design image is required.");
+      alert("At least one mockup image is required.");
       return;
     }
     if (!orderForm.colors.length) {
-      alert("Please add at least one color.");
+      alert("Please pick at least one color from the palette.");
       return;
     }
     if (!orderForm.owner_name) {
@@ -512,6 +1002,19 @@ function App() {
     }
     if (!orderForm.due_date) {
       alert("Please set the due date.");
+      return;
+    }
+    if (orderForm.is_production_order) {
+      const h = String(orderForm.expected_handover_to_printing ?? "").trim();
+      if (!h) {
+        alert("Please set expected product handover to printing (date) for production orders.");
+        return;
+      }
+    }
+    const sizeBreakdown = sizesFormToBreakdown(orderForm.sizes);
+    const qtyTotal = sumSizeForm(orderForm.sizes);
+    if (qtyTotal < 1) {
+      alert("Enter at least one piece in the size quantities (total must be 1 or more).");
       return;
     }
     const uploadedUrls = [];
@@ -538,18 +1041,25 @@ function App() {
 
     const payload = {
       order_date: todayLocalISODate(),
+      order_id: String(orderForm.order_id ?? "").trim() || null,
       due_date: orderForm.due_date,
       owner_name: orderForm.owner_name,
       customer_name: orderForm.customer_name,
       coordinator_name: orderForm.coordinator_name,
-      qty: Number(orderForm.qty),
+      qty: qtyTotal,
+      size_breakdown: sizeBreakdown,
       product_name: orderForm.product_name,
       colors: orderForm.colors,
       approved_design_url: JSON.stringify(uploadedUrls),
+      approved_design_images: null,
       printing_mtrs: printingMtrs,
       status: "new",
       remarks: orderForm.remarks || null,
-      created_by: session.user.id
+      created_by: session.user.id,
+      is_production_order: Boolean(orderForm.is_production_order),
+      expected_handover_to_printing: orderForm.is_production_order
+        ? String(orderForm.expected_handover_to_printing).trim() || null
+        : null
     };
 
     const { error } = await supabase.from("orders").insert(payload);
@@ -559,7 +1069,6 @@ function App() {
     }
     setOrderForm(emptyOrder);
     setDesignFiles([]);
-    setColorInput("");
     setShowCreateForm(false);
     alert("Job card has been saved successfully.");
     window.location.reload();
@@ -707,6 +1216,8 @@ function App() {
         can_edit_qty: Boolean(draft.can_edit_qty),
         can_edit_coordinator_name: Boolean(draft.can_edit_coordinator_name),
         can_edit_printing_mtrs: Boolean(draft.can_edit_printing_mtrs),
+        can_edit_approved_design_images: draft.can_edit_approved_design_images !== false,
+        can_edit_received_at_printing: Boolean(draft.can_edit_received_at_printing),
         can_create_orders: Boolean(draft.can_create_orders),
         updated_at: new Date().toISOString()
       },
@@ -760,35 +1271,49 @@ function App() {
       alert("Please select both From and To dates for export.");
       return;
     }
-    if (filteredOrders.length === 0) {
+    if (sortedFilteredOrders.length === 0) {
       alert("No data available for selected date range.");
       return;
     }
 
     const headers = [
       "Order Date",
+      "Order ID",
       "Due Date",
       "Owner",
       "Customer Name",
       "Coordinator",
       "Qty",
+      "Sizes (XS–3XL)",
       "Product Name",
       "Colors",
+      "Approved design images",
       "Printing Mtrs",
+      "Production order",
+      "Expected Handover to Printing",
+      "Received date & time to printing",
       "Status",
       "Remarks"
     ];
 
-    const rows = filteredOrders.map((order) => [
+    const rows = sortedFilteredOrders.map((order) => [
       formatDateForCsv(order.order_date),
+      order.order_id ?? "",
       formatDateForCsv(order.due_date),
       order.owner_name,
       order.customer_name,
       order.coordinator_name,
       order.qty,
+      formatSizeBreakdownSummary(order.size_breakdown),
       order.product_name,
       Array.isArray(order.colors) ? order.colors.join(" | ") : "",
+      parseDesignUrls(order.approved_design_images).join(" | "),
       order.printing_mtrs,
+      order.is_production_order ? "Yes" : "No",
+      order.is_production_order && order.expected_handover_to_printing
+        ? formatDateForCsv(order.expected_handover_to_printing)
+        : "",
+      order.received_at_printing ? new Date(order.received_at_printing).toISOString() : "",
       STAGE_LABEL[order.status] ?? order.status,
       order.remarks ?? ""
     ]);
@@ -871,88 +1396,6 @@ function App() {
     fetchOrders();
   }
 
-  async function handleViewerUpdate(orderId) {
-    const currentUserPermissions = viewerPermissions[session?.user?.id] ?? {};
-    const role = (profile?.role ?? "").trim().toLowerCase();
-    const canEdit = (field) => {
-      if (field === "coordinator_name" && role === "admin") return false;
-      if (role === "admin") return true;
-      if (role !== "viewer") return false;
-      return viewerMayEditOrderField(currentUserPermissions, field);
-    };
-
-    const nextStatus = statusUpdates[orderId];
-    const nextRemarks = remarksUpdates[orderId];
-    const nextQty = qtyUpdates[orderId];
-    const nextDueDate = dueDateUpdates[orderId];
-    const nextPrintingMtrs = printingMtrsUpdates[orderId];
-    const nextCoordinator = coordinatorUpdates[orderId];
-    const payload = {};
-
-    if (canEdit("status") && nextStatus) payload.status = nextStatus;
-    if (canEdit("remarks") && typeof nextRemarks === "string") {
-      payload.remarks = nextRemarks.trim() || null;
-    }
-    if (canEdit("qty") && nextQty != null && nextQty !== "") payload.qty = Number(nextQty);
-    if (canEdit("due_date") && typeof nextDueDate === "string" && nextDueDate) payload.due_date = nextDueDate;
-    if (canEdit("coordinator_name") && typeof nextCoordinator === "string" && nextCoordinator.trim()) {
-      payload.coordinator_name = nextCoordinator.trim();
-    }
-    if (canEdit("printing_mtrs") && nextPrintingMtrs != null && nextPrintingMtrs !== "") {
-      const n = Number(nextPrintingMtrs);
-      if (!Number.isNaN(n) && n >= 0) payload.printing_mtrs = n;
-    }
-
-    if (!Object.keys(payload).length) return;
-    const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    // Instant UI reflection without waiting for realtime subscription.
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId
-          ? {
-              ...order,
-              status: payload.status ?? order.status,
-              remarks: Object.prototype.hasOwnProperty.call(payload, "remarks")
-                ? payload.remarks
-                : order.remarks,
-              qty: payload.qty ?? order.qty,
-              due_date: payload.due_date ?? order.due_date,
-              coordinator_name: payload.coordinator_name ?? order.coordinator_name,
-              printing_mtrs: Object.prototype.hasOwnProperty.call(payload, "printing_mtrs")
-                ? payload.printing_mtrs
-                : order.printing_mtrs
-            }
-          : order
-      )
-    );
-
-    // Keep local selectors in sync after save.
-    setStatusUpdates((prev) => ({ ...prev, [orderId]: payload.status ?? prev[orderId] }));
-    if (Object.prototype.hasOwnProperty.call(payload, "remarks")) {
-      setRemarksUpdates((prev) => ({ ...prev, [orderId]: payload.remarks ?? "" }));
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "qty")) {
-      setQtyUpdates((prev) => ({ ...prev, [orderId]: String(payload.qty) }));
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "due_date")) {
-      setDueDateUpdates((prev) => ({ ...prev, [orderId]: payload.due_date }));
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "coordinator_name")) {
-      setCoordinatorUpdates((prev) => ({ ...prev, [orderId]: payload.coordinator_name }));
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "printing_mtrs")) {
-      setPrintingMtrsUpdates((prev) => ({ ...prev, [orderId]: String(payload.printing_mtrs) }));
-    }
-
-    // Fallback sync in case realtime event is delayed/disabled.
-    fetchOrders();
-  }
-
   function openPreview(urls, index) {
     setPreviewImages(urls);
     setPreviewIndex(index);
@@ -997,6 +1440,27 @@ function App() {
     );
   }, [ordersInDateRange, ordersTab]);
 
+  const sortedFilteredOrders = useMemo(() => {
+    if (orderSortCoordinator === "none") return filteredOrders;
+    const list = [...filteredOrders];
+    const coordKey = (o) =>
+      String(coordinatorUpdates[o.id] ?? o.coordinator_name ?? "")
+        .trim()
+        .toLowerCase();
+    list.sort((a, b) => {
+      const ka = coordKey(a);
+      const kb = coordKey(b);
+      const emptyA = !ka;
+      const emptyB = !kb;
+      if (emptyA && emptyB) return 0;
+      if (emptyA) return 1;
+      if (emptyB) return -1;
+      const c = ka.localeCompare(kb, undefined, { sensitivity: "base" });
+      return orderSortCoordinator === "asc" ? c : -c;
+    });
+    return list;
+  }, [filteredOrders, orderSortCoordinator, coordinatorUpdates]);
+
   const liveOrders = useMemo(() => {
     const live = orders.filter((o) => o.is_live && !o.is_complete);
     return [...live].sort(
@@ -1004,9 +1468,22 @@ function App() {
     );
   }, [orders]);
 
+  useEffect(() => {
+    if (!session?.user || profileLoading || profileError) return;
+    const role = (profile?.role ?? "").trim().toLowerCase();
+    if (role !== "admin" && ordersTab === "coordinator_report") {
+      setOrdersTab("active");
+    }
+  }, [session?.user?.id, profile?.role, profileLoading, profileError, ordersTab]);
+
   if (!session) {
     return (
       <div className="auth-page">
+        <ThemeToggle
+          theme={theme}
+          onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+          className="theme-toggle-btn theme-toggle-btn--floating"
+        />
         <div className="panel auth-card">
           <h1>Printing Tracker Login</h1>
           <form onSubmit={handleSignIn}>
@@ -1017,13 +1494,44 @@ function App() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="auth-password-field">
+              <input
+                id="auth-password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
+                    />
+                  </svg>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+              </button>
+            </div>
             <button disabled={authLoading}>{authLoading ? "Signing in..." : "Sign in"}</button>
           </form>
         </div>
@@ -1047,6 +1555,166 @@ function App() {
 
   const canUseOrderControls = !profileLoading && !profileError && (isAdmin || isViewer);
 
+  async function persistOrderStatus(order, newStatus) {
+    if (!canCurrentUserEdit("status") || !newStatus) return;
+    if (newStatus === order.status) return;
+
+    const orderId = order.id;
+    const previousStatus = order.status;
+
+    setStatusUpdates((prev) => ({ ...prev, [orderId]: newStatus }));
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+    );
+
+    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
+    if (error) {
+      setStatusUpdates((prev) => ({ ...prev, [orderId]: previousStatus }));
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: previousStatus } : o))
+      );
+      alert(error.message);
+      return;
+    }
+    fetchOrders();
+  }
+
+  async function handleViewerUpdate(orderId) {
+    const nextStatus = statusUpdates[orderId];
+    const nextRemarks = remarksUpdates[orderId];
+    const nextQty = qtyUpdates[orderId];
+    const nextDueDate = dueDateUpdates[orderId];
+    const nextPrintingMtrs = printingMtrsUpdates[orderId];
+    const nextCoordinator = coordinatorUpdates[orderId];
+    const nextReceivedAtLocal = receivedAtPrintingUpdates[orderId];
+    const payload = {};
+
+    if (canCurrentUserEdit("status") && nextStatus) payload.status = nextStatus;
+    if (canCurrentUserEdit("remarks") && typeof nextRemarks === "string") {
+      payload.remarks = nextRemarks.trim() || null;
+    }
+    if (canCurrentUserEdit("qty") && nextQty != null && nextQty !== "") payload.qty = Number(nextQty);
+    if (canCurrentUserEdit("due_date") && typeof nextDueDate === "string" && nextDueDate) {
+      payload.due_date = nextDueDate;
+    }
+    if (canCurrentUserEdit("coordinator_name") && typeof nextCoordinator === "string" && nextCoordinator.trim()) {
+      payload.coordinator_name = nextCoordinator.trim();
+    }
+    if (canCurrentUserEdit("printing_mtrs") && nextPrintingMtrs != null && nextPrintingMtrs !== "") {
+      const n = Number(nextPrintingMtrs);
+      if (!Number.isNaN(n) && n >= 0) payload.printing_mtrs = n;
+    }
+    if (canCurrentUserEdit("received_at_printing")) {
+      const orderRow = orders.find((o) => o.id === orderId);
+      const localVal =
+        nextReceivedAtLocal !== undefined
+          ? nextReceivedAtLocal
+          : receivedAtToDatetimeLocalValue(orderRow?.received_at_printing ?? null);
+      payload.received_at_printing = datetimeLocalToIsoOrNull(localVal);
+    }
+
+    if (!Object.keys(payload).length) return;
+    const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    // Instant UI reflection without waiting for realtime subscription.
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              status: payload.status ?? order.status,
+              remarks: Object.prototype.hasOwnProperty.call(payload, "remarks")
+                ? payload.remarks
+                : order.remarks,
+              qty: payload.qty ?? order.qty,
+              due_date: payload.due_date ?? order.due_date,
+              coordinator_name: payload.coordinator_name ?? order.coordinator_name,
+              printing_mtrs: Object.prototype.hasOwnProperty.call(payload, "printing_mtrs")
+                ? payload.printing_mtrs
+                : order.printing_mtrs,
+              received_at_printing: Object.prototype.hasOwnProperty.call(payload, "received_at_printing")
+                ? payload.received_at_printing
+                : order.received_at_printing
+            }
+          : order
+      )
+    );
+
+    // Keep local selectors in sync after save.
+    setStatusUpdates((prev) => ({ ...prev, [orderId]: payload.status ?? prev[orderId] }));
+    if (Object.prototype.hasOwnProperty.call(payload, "remarks")) {
+      setRemarksUpdates((prev) => ({ ...prev, [orderId]: payload.remarks ?? "" }));
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "qty")) {
+      setQtyUpdates((prev) => ({ ...prev, [orderId]: String(payload.qty) }));
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "due_date")) {
+      setDueDateUpdates((prev) => ({ ...prev, [orderId]: payload.due_date }));
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "coordinator_name")) {
+      setCoordinatorUpdates((prev) => ({ ...prev, [orderId]: payload.coordinator_name }));
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "printing_mtrs")) {
+      setPrintingMtrsUpdates((prev) => ({ ...prev, [orderId]: String(payload.printing_mtrs) }));
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "received_at_printing")) {
+      setReceivedAtPrintingUpdates((prev) => ({
+        ...prev,
+        [orderId]: receivedAtToDatetimeLocalValue(payload.received_at_printing)
+      }));
+    }
+
+    // Fallback sync in case realtime event is delayed/disabled.
+    fetchOrders();
+  }
+
+  async function handleAppendPostApprovedDesignImages(order, fileList) {
+    const files = Array.from(fileList ?? []).filter((f) => f && /^image\//i.test(f.type));
+    if (!files.length) return;
+    if (!session?.user) return;
+    if (!canCurrentUserEdit("approved_design_images")) {
+      alert("You do not have permission to add approved design images.");
+      return;
+    }
+    setUploadingPostDesignOrderId(order.id);
+    try {
+      const existing = parseDesignUrls(order.approved_design_images);
+      const nextUrls = [...existing];
+      for (const file of files) {
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+        const uploadPath = `post-approved/${order.id}/${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("approved-designs")
+          .upload(uploadPath, file, { upsert: false });
+        if (uploadError) {
+          alert(uploadError.message);
+          return;
+        }
+        const { data: publicUrlData } = supabase.storage.from("approved-designs").getPublicUrl(uploadPath);
+        nextUrls.push(publicUrlData.publicUrl);
+      }
+      const serialized = JSON.stringify(nextUrls);
+      const { error } = await supabase
+        .from("orders")
+        .update({ approved_design_images: serialized })
+        .eq("id", order.id);
+      if (error) {
+        alert(error.message);
+        return;
+      }
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, approved_design_images: serialized } : o))
+      );
+      fetchOrders();
+    } finally {
+      setUploadingPostDesignOrderId(null);
+    }
+  }
+
   return (
     <div className="page">
       <header className="topbar panel">
@@ -1069,6 +1737,7 @@ function App() {
               View users
             </button>
           )}
+          <ThemeToggle theme={theme} onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))} />
           <button onClick={handleSignOut}>Logout</button>
         </div>
       </header>
@@ -1112,8 +1781,6 @@ function App() {
           <div className="live-orders-panel" aria-label="Live jobs">
           {liveOrders.map((lo) => {
             const designUrls = parseDesignUrls(lo.approved_design_url);
-            const colorsText =
-              Array.isArray(lo.colors) && lo.colors.length ? lo.colors.join(", ") : "—";
             return (
               <article className="live-order-detail-card" key={lo.id}>
                 <div className="live-order-detail-card__top">
@@ -1131,8 +1798,34 @@ function App() {
                     <dd>{lo.order_date}</dd>
                   </div>
                   <div>
+                    <dt>Order ID</dt>
+                    <dd>{lo.order_id?.trim() ? lo.order_id : "—"}</dd>
+                  </div>
+                  <div>
                     <dt>Due date</dt>
                     <dd>{lo.due_date}</dd>
+                  </div>
+                  <div>
+                    <dt>Production order</dt>
+                    <dd>
+                      {lo.is_production_order ? (
+                        <span className="production-order-pill" title="Production order">
+                          Yes
+                        </span>
+                      ) : (
+                        "No"
+                      )}
+                    </dd>
+                  </div>
+                  {lo.is_production_order ? (
+                    <div>
+                      <dt>Expected Handover to Printing</dt>
+                      <dd>{lo.expected_handover_to_printing ?? "—"}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>Received date &amp; time to printing</dt>
+                    <dd>{formatReceivedAtDisplay(lo.received_at_printing)}</dd>
                   </div>
                   <div>
                     <dt>Owner</dt>
@@ -1145,6 +1838,10 @@ function App() {
                   <div>
                     <dt>Qty</dt>
                     <dd>{lo.qty}</dd>
+                  </div>
+                  <div className="live-order-detail-card__full">
+                    <dt>Sizes</dt>
+                    <dd>{formatSizeBreakdownSummary(lo.size_breakdown)}</dd>
                   </div>
                   <div>
                     <dt>Printing mtrs</dt>
@@ -1160,7 +1857,13 @@ function App() {
                   </div>
                   <div>
                     <dt>Colors</dt>
-                    <dd>{colorsText}</dd>
+                    <dd>
+                      {Array.isArray(lo.colors) && lo.colors.length ? (
+                        <OrderColorsCell colors={lo.colors} />
+                      ) : (
+                        "—"
+                      )}
+                    </dd>
                   </div>
                   <div className="live-order-detail-card__full">
                     <dt>Remarks</dt>
@@ -1169,7 +1872,7 @@ function App() {
                 </dl>
                 {designUrls.length > 0 && (
                   <div className="live-order-detail-card__designs">
-                    <span className="live-order-detail-card__designs-label">Approved design</span>
+                    <span className="live-order-detail-card__designs-label">Mockups</span>
                     <div
                       className={`approved-grid ${designUrls.length > 1 ? "multi" : "single"} live-order-thumb-grid`}
                     >
@@ -1180,7 +1883,7 @@ function App() {
                           key={`${lo.id}-live-design-${index}`}
                           onClick={() => openPreview(designUrls, index)}
                         >
-                          <img src={url} alt={`Design ${index + 1}`} />
+                          <img src={url} alt={`Mockup ${index + 1}`} />
                         </button>
                       ))}
                     </div>
@@ -1199,15 +1902,22 @@ function App() {
         </p>
       )}
 
-      {(isAdmin || viewerCanCreateOrders) && (
+      {session && (
         <div className="create-order-row">
-          <button type="button" onClick={() => setShowCreateForm((prev) => !prev)}>
-            {showCreateForm ? "Close Form" : "Create New Order"}
+          <button type="button" className="btn-mockup" onClick={() => setShowMockupStudio(true)}>
+            Create Mockup
           </button>
-          {isAdmin && (
-            <button type="button" onClick={handleExportCsv}>
-              Export
-            </button>
+          {(isAdmin || viewerCanCreateOrders) && (
+            <>
+              <button type="button" onClick={() => setShowCreateForm((prev) => !prev)}>
+                {showCreateForm ? "Close Form" : "Create New Order"}
+              </button>
+              {isAdmin && (
+                <button type="button" onClick={handleExportCsv}>
+                  Export
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
@@ -1227,6 +1937,17 @@ function App() {
               />
             </div>
             <div className="order-form-cell">
+              <label htmlFor="create-order-external-id">Order ID</label>
+              <input
+                id="create-order-external-id"
+                name="order_id"
+                type="text"
+                placeholder="e.g. shop / PO number"
+                value={orderForm.order_id}
+                onChange={onOrderFormChange}
+              />
+            </div>
+            <div className="order-form-cell">
               <label htmlFor="create-order-due-date">Due date</label>
               <input
                 id="create-order-due-date"
@@ -1236,6 +1957,58 @@ function App() {
                 onChange={onOrderFormChange}
                 required
               />
+            </div>
+            <div className="order-form-cell order-form-span-3 order-form-production-block">
+              <div className="order-form-production-row">
+                <div className="order-form-production-left">
+                  <span className="order-form-label" id="create-production-legend">
+                    Production order
+                  </span>
+                  <div className="order-form-radio-row" role="group" aria-labelledby="create-production-legend">
+                    <label className="order-form-radio-label">
+                      <input
+                        type="radio"
+                        name="is_production_order"
+                        checked={!orderForm.is_production_order}
+                        onChange={() =>
+                          setOrderForm((prev) => ({
+                            ...prev,
+                            is_production_order: false,
+                            expected_handover_to_printing: ""
+                          }))
+                        }
+                      />
+                      No
+                    </label>
+                    <label className="order-form-radio-label">
+                      <input
+                        type="radio"
+                        name="is_production_order"
+                        checked={orderForm.is_production_order}
+                        onChange={() => setOrderForm((prev) => ({ ...prev, is_production_order: true }))}
+                      />
+                      Yes
+                    </label>
+                  </div>
+                </div>
+                {orderForm.is_production_order ? (
+                  <div className="order-form-handover-field">
+                    <label htmlFor="create-order-handover">Expected product handover to printing</label>
+                    <input
+                      id="create-order-handover"
+                      type="date"
+                      value={orderForm.expected_handover_to_printing}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          expected_handover_to_printing: e.target.value
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                ) : null}
+              </div>
             </div>
             <select name="owner_name" value={orderForm.owner_name} onChange={onOrderFormChange} required>
               <option value="">Select Owner</option>
@@ -1260,35 +2033,110 @@ function App() {
                 </option>
               ))}
             </select>
-            <input name="qty" type="number" min="1" placeholder="Qty" value={orderForm.qty} onChange={onOrderFormChange} required />
-            <input
-              name="product_name"
-              placeholder="Product Name"
-              value={orderForm.product_name}
-              onChange={onOrderFormChange}
-              required
-            />
-            <div className="colors-field">
-              <div className="colors-input-row">
+            <div className="order-form-cell order-form-span-3 order-form-product-colors">
+              <div className="order-form-product-block">
                 <input
-                  type="text"
-                  placeholder="Add Color"
-                  value={colorInput}
-                  onChange={(e) => setColorInput(e.target.value)}
+                  id="create-product-name"
+                  name="product_name"
+                  placeholder="Product name"
+                  aria-label="Product name"
+                  value={orderForm.product_name}
+                  onChange={onOrderFormChange}
+                  required
+                  className="order-form-control-tall"
                 />
-                <button type="button" onClick={handleAddColor}>
-                  Add Color
-                </button>
               </div>
-              <div className="color-chips">
-                {orderForm.colors.map((color) => (
-                  <span key={color} className="color-chip">
-                    {color}
-                    <button type="button" onClick={() => handleRemoveColor(color)}>
-                      x
-                    </button>
+              <div className="order-form-colors-block colors-field" ref={colorPickerRef}>
+                <button
+                  type="button"
+                  id="color-picker-trigger"
+                  className={`color-field-trigger ${colorPickerOpen ? "is-open" : ""}`}
+                  aria-label="Colors"
+                  aria-expanded={colorPickerOpen}
+                  aria-haspopup="dialog"
+                  aria-controls="color-picker-popover"
+                  onClick={() => setColorPickerOpen((o) => !o)}
+                >
+                  <span className="color-field-trigger__value">
+                    {orderForm.colors.length === 0 ? (
+                      <span className="color-field-placeholder">Click to choose colors…</span>
+                    ) : (
+                      orderForm.colors.map((c, i) => (
+                        <span
+                          key={`${c}-${i}`}
+                          className="color-field-trigger__dot"
+                          style={
+                            isCssColorString(c)
+                              ? { backgroundColor: c, backgroundImage: "none" }
+                              : undefined
+                          }
+                          title={c}
+                          aria-hidden
+                        />
+                      ))
+                    )}
                   </span>
-                ))}
+                  <span className="color-field-trigger__chevron" aria-hidden>
+                    {colorPickerOpen ? "▲" : "▼"}
+                  </span>
+                </button>
+                {colorPickerOpen ? (
+                  <div id="color-picker-popover" className="color-picker-popover" role="dialog" aria-label="Choose colors">
+                    <p className="order-form-hint colors-field-hint">
+                      Tap swatches to add or remove. ✓ = selected. Pick at least one before save.
+                    </p>
+                    <div className="color-palette" role="group" aria-label="Color swatches">
+                      {ORDER_COLOR_PALETTE.map((hex, swatchIdx) => {
+                        const selected = orderForm.colors.some((c) => normalizeColorKey(c) === hex);
+                        return (
+                          <button
+                            key={`swatch-${swatchIdx}`}
+                            type="button"
+                            className={`color-palette-swatch ${selected ? "is-selected" : ""}`}
+                            style={{ backgroundColor: hex, backgroundImage: "none" }}
+                            aria-label={selected ? `${hex}, selected` : hex}
+                            aria-pressed={selected}
+                            onClick={() => togglePaletteColor(hex)}
+                          >
+                            {selected ? (
+                              <span className="color-palette-check" aria-hidden>
+                                ✓
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {orderForm.colors.length > 0 ? (
+                      <div className="color-chips color-chips--in-panel" aria-label="Selected colors">
+                        {orderForm.colors.map((color, i) => (
+                          <span key={`${color}-${i}`} className="color-chip color-chip--picked">
+                            {isCssColorString(color) ? (
+                              <span
+                                className="color-chip-swatch"
+                                style={{ backgroundColor: color, backgroundImage: "none" }}
+                                aria-hidden
+                              />
+                            ) : null}
+                            <span className="color-chip-code">{color}</span>
+                            <button
+                              type="button"
+                              className="color-chip-remove"
+                              onClick={() => handleRemoveColor(color)}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="color-picker-popover__footer">
+                      <button type="button" className="color-picker-done-btn" onClick={() => setColorPickerOpen(false)}>
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
             <input
@@ -1300,19 +2148,62 @@ function App() {
               value={orderForm.printing_mtrs}
               onChange={onOrderFormChange}
             />
-            <textarea
-              name="remarks"
-              placeholder="Remarks (optional)"
-              value={orderForm.remarks}
-              onChange={onOrderFormChange}
-            />
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => setDesignFiles(Array.from(e.target.files ?? []))}
-              required
-            />
+            <div className="order-form-cell order-form-span-2 order-sizes-remarks-pair">
+              <div className="order-size-compact" aria-labelledby="order-size-heading">
+                <span id="order-size-heading" className="order-size-compact-heading">
+                  Quantities by size
+                </span>
+                <div className="order-size-grid" role="group" aria-label="Pieces per size">
+                  {ORDER_SIZE_COLUMNS.map(({ key, label }) => (
+                    <div key={key} className="order-size-grid-cell">
+                      <span className="order-size-grid-label">{label}</span>
+                      <input
+                        className="order-size-grid-input"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={5}
+                        placeholder="0"
+                        aria-label={`Quantity ${label}`}
+                        value={orderForm.sizes[key] ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, "");
+                          setOrderForm((prev) => ({
+                            ...prev,
+                            sizes: { ...prev.sizes, [key]: v }
+                          }));
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="order-form-hint order-size-total-hint">
+                  Total: <strong>{sumSizeForm(orderForm.sizes)}</strong> (min 1)
+                </p>
+              </div>
+              <div className="order-remarks-in-pair">
+                <label htmlFor="create-order-remarks">Remarks (optional)</label>
+                <textarea
+                  id="create-order-remarks"
+                  name="remarks"
+                  placeholder="Notes for production, shipping, etc."
+                  value={orderForm.remarks}
+                  onChange={onOrderFormChange}
+                />
+              </div>
+            </div>
+            <div className="order-form-cell order-form-cell--full">
+              <label htmlFor="create-order-mockups">Mockups</label>
+              <p className="order-form-hint">Upload the approved design images for this job (one or more files).</p>
+              <input
+                id="create-order-mockups"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setDesignFiles(Array.from(e.target.files ?? []))}
+                required
+              />
+            </div>
             <button type="submit">Save Job</button>
           </form>
         </section>
@@ -1320,7 +2211,15 @@ function App() {
 
       <section className="panel table-panel">
         <div className="table-panel-head">
-          <h2>{ordersTab === "active" ? "All orders" : "Complete orders"}</h2>
+          <h2>
+            {ordersTab === "active"
+              ? "All orders"
+              : ordersTab === "complete"
+                ? "Complete orders"
+                : isAdmin
+                  ? "Coordinator report"
+                  : "All orders"}
+          </h2>
           <div className="orders-tabs" role="tablist" aria-label="Order list view">
             <button
               type="button"
@@ -1340,8 +2239,20 @@ function App() {
             >
               Complete orders
             </button>
+            {isAdmin ? (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={ordersTab === "coordinator_report"}
+                className={ordersTab === "coordinator_report" ? "orders-tab is-active" : "orders-tab"}
+                onClick={() => setOrdersTab("coordinator_report")}
+              >
+                Coordinator report
+              </button>
+            ) : null}
           </div>
         </div>
+        {!(ordersTab === "coordinator_report" && isAdmin) ? (
         <div className="table-filters">
           <label>
             From
@@ -1360,23 +2271,44 @@ function App() {
           >
             Clear
           </button>
+          <label>
+            Sort by coordinator
+            <select
+              value={orderSortCoordinator}
+              onChange={(e) => setOrderSortCoordinator(e.target.value)}
+              aria-label="Sort orders by coordinator name"
+            >
+              <option value="none">Default</option>
+              <option value="asc">A → Z</option>
+              <option value="desc">Z → A</option>
+            </select>
+          </label>
         </div>
+        ) : null}
         {loadingOrders ? (
           <p>Loading orders...</p>
+        ) : ordersTab === "coordinator_report" && isAdmin ? (
+          <CoordinatorReportPanel orders={orders} coordinators={coordinators} />
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Order Date</th>
+                  <th>Order ID</th>
                   <th>Owner</th>
                   <th>Customer Name</th>
                   <th>Coordinator</th>
                   <th>Qty</th>
+                  <th>Sizes</th>
                   <th>Product Name</th>
                   <th>Colors</th>
-                  <th>Approved Design</th>
+                  <th>Mockups</th>
+                  <th>Approved Design Images</th>
                   <th>Due Date</th>
+                  <th>Production</th>
+                  <th>Expected Handover to Printing</th>
+                  <th>Received date &amp; time to printing</th>
                   <th>Printing Mtrs</th>
                   <th>Status</th>
                   <th>Remarks</th>
@@ -1384,9 +2316,10 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => (
+                {sortedFilteredOrders.map((order) => (
                   <tr key={order.id}>
                     <td>{order.order_date}</td>
+                    <td>{order.order_id?.trim() ? order.order_id : "—"}</td>
                     <td>{order.owner_name || "-"}</td>
                     <td>
                       <span className="customer-name-cell">
@@ -1436,8 +2369,11 @@ function App() {
                         order.qty
                       )}
                     </td>
+                    <td className="order-sizes-cell">{formatSizeBreakdownSummary(order.size_breakdown)}</td>
                     <td>{order.product_name}</td>
-                    <td>{Array.isArray(order.colors) && order.colors.length ? order.colors.join(", ") : "-"}</td>
+                    <td>
+                      <OrderColorsCell colors={order.colors} />
+                    </td>
                     <td>
                       {(() => {
                         const urls = parseDesignUrls(order.approved_design_url);
@@ -1451,9 +2387,56 @@ function App() {
                                 onClick={() => openPreview(urls, index)}
                                 key={`${order.id}-${index}`}
                               >
-                                <img src={url} alt={`Approved Design ${index + 1}`} />
+                                <img src={url} alt={`Mockup ${index + 1}`} />
                               </button>
                             ))}
+                          </div>
+                        );
+                      })()}
+                    </td>
+                    <td className="approved-post-design-cell">
+                      {(() => {
+                        const postUrls = parseDesignUrls(order.approved_design_images);
+                        return (
+                          <div className="approved-post-design-wrap">
+                            {postUrls.length > 0 ? (
+                              <div className={`approved-grid ${postUrls.length > 1 ? "multi" : "single"}`}>
+                                {postUrls.map((url, index) => (
+                                  <button
+                                    type="button"
+                                    className="approved-thumb-btn"
+                                    key={`${order.id}-post-${index}`}
+                                    onClick={() => openPreview(postUrls, index)}
+                                  >
+                                    <img src={url} alt={`Approved design ${index + 1}`} />
+                                  </button>
+                                ))}
+                              </div>
+                            ) : null}
+                            {canCurrentUserEdit("approved_design_images") ? (
+                              <>
+                                <input
+                                  id={`post-design-upload-${order.id}`}
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  className="table-inline-file-input"
+                                  disabled={uploadingPostDesignOrderId === order.id}
+                                  onChange={(e) => {
+                                    const fl = e.target.files;
+                                    e.target.value = "";
+                                    handleAppendPostApprovedDesignImages(order, fl);
+                                  }}
+                                />
+                                <label htmlFor={`post-design-upload-${order.id}`} className="table-inline-file-label">
+                                  {uploadingPostDesignOrderId === order.id
+                                    ? "Uploading…"
+                                    : postUrls.length
+                                      ? "Add more"
+                                      : "Add images"}
+                                </label>
+                              </>
+                            ) : null}
                           </div>
                         );
                       })()}
@@ -1472,6 +2455,42 @@ function App() {
                         />
                       ) : (
                         order.due_date
+                      )}
+                    </td>
+                    <td>
+                      {order.is_production_order ? (
+                        <span className="production-order-pill" title="Production order">
+                          Production
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="order-handover-cell">
+                      {order.is_production_order && order.expected_handover_to_printing
+                        ? order.expected_handover_to_printing
+                        : "—"}
+                    </td>
+                    <td className="order-received-at-cell">
+                      {canCurrentUserEdit("received_at_printing") ? (
+                        <input
+                          type="datetime-local"
+                          className="inline-received-at-printing"
+                          value={
+                            receivedAtPrintingUpdates[order.id] !== undefined
+                              ? receivedAtPrintingUpdates[order.id]
+                              : receivedAtToDatetimeLocalValue(order.received_at_printing)
+                          }
+                          onChange={(e) =>
+                            setReceivedAtPrintingUpdates((prev) => ({
+                              ...prev,
+                              [order.id]: e.target.value
+                            }))
+                          }
+                          title="Received date and time to printing"
+                        />
+                      ) : (
+                        formatReceivedAtDisplay(order.received_at_printing)
                       )}
                     </td>
                     <td>
@@ -1501,12 +2520,10 @@ function App() {
                         <select
                           className={`status-select status-${statusUpdates[order.id] ?? order.status}`}
                           value={statusUpdates[order.id] ?? order.status}
-                          onChange={(e) =>
-                            setStatusUpdates((prev) => ({
-                              ...prev,
-                              [order.id]: e.target.value
-                            }))
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            void persistOrderStatus(order, value);
+                          }}
                         >
                           {STAGES.map((stage) => (
                             <option value={stage} key={stage}>
@@ -1600,9 +2617,9 @@ function App() {
                     </td>
                   </tr>
                 ))}
-                {filteredOrders.length === 0 && (
+                {sortedFilteredOrders.length === 0 && (
                   <tr>
-                    <td colSpan="13">
+                    <td colSpan="16">
                       {ordersTab === "complete"
                         ? "No completed orders in the selected date range."
                         : "No orders found for selected date range."}
@@ -1614,6 +2631,7 @@ function App() {
           </div>
         )}
       </section>
+      <MockupStudio open={showMockupStudio} onClose={() => setShowMockupStudio(false)} />
       {previewImages.length > 0 && (
         <div className="image-modal-backdrop" onClick={closePreview}>
           <div className="image-modal" onClick={(e) => e.stopPropagation()}>
@@ -1625,7 +2643,7 @@ function App() {
                 {"<"}
               </button>
             )}
-            <img src={previewImages[previewIndex]} alt="Approved Design Preview" />
+            <img src={previewImages[previewIndex]} alt="Mockup preview" />
             {previewImages.length > 1 && (
               <button className="image-modal-nav next" onClick={nextPreview}>
                 {">"}
@@ -1646,12 +2664,6 @@ function App() {
 
             <div className="viewer-users-section viewer-users-section-top">
               <h4>Viewer users & field access</h4>
-              <p className="master-help">
-                Set <strong>Display name</strong> and <strong>Department</strong> (shown beside role in the header for that
-                user), edit checkboxes, then click the green <strong>Save</strong> button for that row. Changes apply only
-                after Save. Email is shown for reference. <strong>Create new order</strong> lets viewers submit new jobs;
-                they cannot change those jobs after save unless you also tick field access (e.g. Status).
-              </p>
               {viewerProfiles.length ? (
                 <div className="users-access-table-wrap">
                   <table className="users-access-table">
@@ -1800,10 +2812,6 @@ function App() {
             <div className="master-list-grid">
               <div>
                 <h4>Owners</h4>
-                <p className="master-help master-help-tight">
-                  Names shown as stored. Use <strong>Add owner</strong> above to add entries. <strong>Remove</strong> deletes
-                  the master option (existing orders keep their saved owner text).
-                </p>
                 <ul className="master-list-items">
                   {owners.length ? (
                     owners.map((owner) => (
@@ -1829,11 +2837,6 @@ function App() {
               </div>
               <div>
                 <h4>Coordinators</h4>
-                <p className="master-help master-help-tight">
-                  Names shown as stored on each order. <strong>Add coordinator</strong> adds a pick-list option for{" "}
-                  <em>new</em> orders only. <strong>Remove</strong> drops the name from the master list — existing orders
-                  keep their saved coordinator text unchanged (same as owners).
-                </p>
                 <ul className="master-list-items">
                   {coordinators.length ? (
                     coordinators.map((coordinator) => (

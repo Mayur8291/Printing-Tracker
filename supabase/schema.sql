@@ -41,7 +41,7 @@ create table if not exists public.orders (
   approved_design_url text not null,
   due_date date not null,
   printing_mtrs numeric(12, 2) not null check (printing_mtrs >= 0),
-  status text not null check (status in ('new', 'printing', 'fusing', 'ironing', 'packing', 'pending', 'on_hold', 'ready')) default 'new',
+  status text not null check (status in ('new', 'approval_pending', 'printing', 'fusing', 'ironing', 'packing', 'pending', 'on_hold', 'ready')) default 'new',
   remarks text,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now()
@@ -54,10 +54,19 @@ alter table public.orders drop column if exists printing_cost;
 alter table public.orders drop column if exists cost_per_mtr;
 alter table public.orders drop constraint if exists orders_status_check;
 alter table public.orders add constraint orders_status_check
-check (status in ('new', 'printing', 'fusing', 'ironing', 'packing', 'pending', 'on_hold', 'ready'));
+check (status in ('new', 'approval_pending', 'printing', 'fusing', 'ironing', 'packing', 'pending', 'on_hold', 'ready'));
 
 alter table public.orders add column if not exists is_live boolean not null default false;
 alter table public.orders add column if not exists is_complete boolean not null default false;
+alter table public.orders add column if not exists order_id text;
+alter table public.orders add column if not exists approved_design_images text;
+
+/** Per-size piece counts (XS … 3XL). Keys must match ORDER_SIZE_COLUMNS in App.jsx. */
+alter table public.orders add column if not exists size_breakdown jsonb not null default '{}'::jsonb;
+
+alter table public.orders add column if not exists is_production_order boolean not null default false;
+alter table public.orders add column if not exists expected_handover_to_printing date;
+alter table public.orders add column if not exists received_at_printing timestamptz;
 
 drop trigger if exists trg_enforce_max_live_orders on public.orders;
 drop function if exists public.enforce_max_three_live_orders();
@@ -70,6 +79,7 @@ create table if not exists public.profile_order_permissions (
   can_edit_qty boolean not null default false,
   can_edit_coordinator_name boolean not null default false,
   can_edit_printing_mtrs boolean not null default false,
+  can_edit_received_at_printing boolean not null default false,
   updated_at timestamptz not null default now()
 );
 
@@ -78,6 +88,12 @@ alter table public.profile_order_permissions
 
 alter table public.profile_order_permissions
   add column if not exists can_create_orders boolean not null default false;
+
+alter table public.profile_order_permissions
+  add column if not exists can_edit_approved_design_images boolean not null default true;
+
+alter table public.profile_order_permissions
+  add column if not exists can_edit_received_at_printing boolean not null default false;
 
 alter table public.profiles enable row level security;
 alter table public.orders enable row level security;
@@ -362,6 +378,8 @@ declare
   allow_qty boolean := false;
   allow_coordinator_name boolean := false;
   allow_printing_mtrs boolean := false;
+  allow_approved_design_images boolean := true;
+  allow_received_at_printing boolean := false;
   has_field_edit boolean := false;
 begin
   select role into actor_role from public.profiles where id = auth.uid();
@@ -378,8 +396,10 @@ begin
       coalesce(pop.can_edit_due_date, false),
       coalesce(pop.can_edit_qty, false),
       coalesce(pop.can_edit_coordinator_name, false),
-      coalesce(pop.can_edit_printing_mtrs, false)
-    into allow_create, allow_status, allow_remarks, allow_due_date, allow_qty, allow_coordinator_name, allow_printing_mtrs
+      coalesce(pop.can_edit_printing_mtrs, false),
+      coalesce(pop.can_edit_approved_design_images, true),
+      coalesce(pop.can_edit_received_at_printing, false)
+    into allow_create, allow_status, allow_remarks, allow_due_date, allow_qty, allow_coordinator_name, allow_printing_mtrs, allow_approved_design_images, allow_received_at_printing
     from public.profile_order_permissions pop
     where pop.user_id = auth.uid();
 
@@ -391,9 +411,42 @@ begin
       allow_qty := false;
       allow_coordinator_name := false;
       allow_printing_mtrs := false;
+      allow_approved_design_images := true;
+      allow_received_at_printing := false;
     end if;
 
-    has_field_edit := allow_status or allow_remarks or allow_due_date or allow_qty or allow_coordinator_name or allow_printing_mtrs;
+    -- SLA auto-step: new -> pending after 12h, status only (enforced staleness on created_at).
+    if old.status = 'new'
+       and new.status = 'pending'
+       and not old.is_complete
+       and not new.is_complete
+       and old.created_at <= (now() - interval '12 hours')
+       and new.id is not distinct from old.id
+       and new.order_date is not distinct from old.order_date
+       and new.order_id is not distinct from old.order_id
+       and new.owner_name is not distinct from old.owner_name
+       and new.customer_name is not distinct from old.customer_name
+       and new.coordinator_name is not distinct from old.coordinator_name
+       and new.qty is not distinct from old.qty
+       and new.size_breakdown is not distinct from old.size_breakdown
+       and new.product_name is not distinct from old.product_name
+       and new.colors is not distinct from old.colors
+       and new.approved_design_url is not distinct from old.approved_design_url
+       and new.approved_design_images is not distinct from old.approved_design_images
+       and new.due_date is not distinct from old.due_date
+       and new.printing_mtrs is not distinct from old.printing_mtrs
+       and new.remarks is not distinct from old.remarks
+       and new.created_by is not distinct from old.created_by
+       and new.created_at is not distinct from old.created_at
+       and new.is_live is not distinct from old.is_live
+       and new.is_production_order is not distinct from old.is_production_order
+       and new.expected_handover_to_printing is not distinct from old.expected_handover_to_printing
+       and new.received_at_printing is not distinct from old.received_at_printing
+    then
+      return new;
+    end if;
+
+    has_field_edit := allow_status or allow_remarks or allow_due_date or allow_qty or allow_coordinator_name or allow_printing_mtrs or allow_approved_design_images or allow_received_at_printing;
 
     if old.created_by is not distinct from auth.uid()
       and allow_create
@@ -405,6 +458,8 @@ begin
         or new.qty is distinct from old.qty
         or new.coordinator_name is distinct from old.coordinator_name
         or new.printing_mtrs is distinct from old.printing_mtrs
+        or new.approved_design_images is distinct from old.approved_design_images
+        or new.received_at_printing is distinct from old.received_at_printing
       ) then
       raise exception 'Orders you created cannot be edited after saving. Ask an admin to grant field access if you need to update this job.';
     end if;
@@ -440,6 +495,12 @@ begin
     end if;
     if not allow_coordinator_name and new.coordinator_name is distinct from old.coordinator_name then
       raise exception 'Viewer cannot edit coordinator';
+    end if;
+    if not allow_approved_design_images and new.approved_design_images is distinct from old.approved_design_images then
+      raise exception 'Viewer cannot edit approved design images';
+    end if;
+    if not allow_received_at_printing and new.received_at_printing is distinct from old.received_at_printing then
+      raise exception 'Viewer cannot edit received date/time to printing';
     end if;
     return new;
   end if;
@@ -519,6 +580,16 @@ to authenticated
 with check (
   bucket_id = 'approved-designs'
   and public.jwt_viewer_can_create_orders()
+);
+
+drop policy if exists "designs upload post approved path" on storage.objects;
+create policy "designs upload post approved path"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'approved-designs'
+  and name like 'post-approved/%'
 );
 
 insert into public.admin_emails (email)

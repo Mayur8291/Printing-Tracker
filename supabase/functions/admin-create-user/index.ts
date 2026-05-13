@@ -139,6 +139,7 @@ serve(async (req) => {
         can_edit_qty: Boolean(perm.can_edit_qty),
         can_edit_coordinator_name: Boolean(perm.can_edit_coordinator_name),
         can_edit_printing_mtrs: Boolean(perm.can_edit_printing_mtrs),
+        can_edit_received_at_printing: Boolean(perm.can_edit_received_at_printing),
         updated_at: new Date().toISOString()
       },
       { onConflict: "user_id" }
