@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MockupStudio from "./MockupStudio";
 import CoordinatorReportPanel from "./CoordinatorReportPanel";
+import OrderRemarksCell from "./OrderRemarksCell";
 import { supabase } from "./supabaseClient";
 
 const STAGES = [
@@ -84,6 +85,23 @@ function isImageUploadFile(file) {
     return /\.(jpe?g|png|gif|webp|bmp|svg|heic|heif|tiff?)$/i.test(file.name || "");
   }
   return /\.(jpe?g|png|gif|webp|bmp|svg|heic|heif|tiff?)$/i.test(file.name || "");
+}
+
+function serializeApprovedDesignImages(urls) {
+  if (!urls?.length) return null;
+  return JSON.stringify(urls);
+}
+
+function storagePathFromApprovedDesignsPublicUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  const marker = "/storage/v1/object/public/approved-designs/";
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  try {
+    return decodeURIComponent(url.slice(idx + marker.length).split("?")[0]);
+  } catch {
+    return url.slice(idx + marker.length).split("?")[0];
+  }
 }
 
 function staticAssetUrl(relPath) {
@@ -1203,21 +1221,37 @@ function App() {
     fetchMasters();
   }
 
-  function renderLiveOrderDesignSection(orderId, urls, sectionKey, label, altPrefix) {
+  function renderLiveOrderDesignSection(orderId, urls, sectionKey, label, altPrefix, removeOptions) {
     if (!urls.length) return null;
+    const canRemove = Boolean(removeOptions?.canRemove && removeOptions?.onRemove);
     return (
       <div className="live-order-detail-card__designs" key={`${orderId}-${sectionKey}`}>
         <span className="live-order-detail-card__designs-label">{label}</span>
         <div className={`approved-grid ${urls.length > 1 ? "multi" : "single"} live-order-thumb-grid`}>
           {urls.map((url, index) => (
-            <button
-              type="button"
-              className="approved-thumb-btn"
-              key={`${orderId}-live-${sectionKey}-${index}`}
-              onClick={() => openPreview(urls, index)}
-            >
-              <img src={url} alt={`${altPrefix} ${index + 1}`} />
-            </button>
+            <div className="approved-thumb-wrap" key={`${orderId}-live-${sectionKey}-${index}`}>
+              <button
+                type="button"
+                className="approved-thumb-btn"
+                onClick={() => openPreview(urls, index)}
+              >
+                <img src={url} alt={`${altPrefix} ${index + 1}`} />
+              </button>
+              {canRemove ? (
+                <button
+                  type="button"
+                  className="approved-thumb-remove"
+                  aria-label={`Remove ${altPrefix} ${index + 1}`}
+                  disabled={removeOptions.removing}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeOptions.onRemove(url);
+                  }}
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
           ))}
         </div>
       </div>
@@ -1785,6 +1819,93 @@ function App() {
     );
   }
 
+  async function persistApprovedDesignImages(order, nextUrls, setFeedback) {
+    const serialized = serializeApprovedDesignImages(nextUrls);
+    applyApprovedDesignImagesToOrder(order.id, serialized);
+
+    const { data: updatedRows, error } = await supabase
+      .from("orders")
+      .update({ approved_design_images: serialized })
+      .eq("id", order.id)
+      .select("id, approved_design_images");
+
+    if (error) {
+      const msg = error.message || "Could not save on order.";
+      setFeedback?.("error", msg);
+      throw new Error(msg);
+    }
+
+    const updatedRow = Array.isArray(updatedRows) ? updatedRows[0] : null;
+    const savedSerialized =
+      updatedRow?.approved_design_images != null ? updatedRow.approved_design_images : serialized;
+    const savedUrls = parseDesignUrls(savedSerialized);
+
+    if (savedUrls.length < nextUrls.length) {
+      const msg =
+        "Could not save approved design images. Run supabase/schema.sql in Supabase SQL Editor.";
+      setFeedback?.("error", msg);
+      throw new Error(msg);
+    }
+
+    applyApprovedDesignImagesToOrder(order.id, savedSerialized);
+    return { savedSerialized, savedUrls };
+  }
+
+  async function handleRemovePostApprovedDesignImage(order, urlToRemove) {
+    const setFeedback = (status, message) => {
+      setPostDesignUploadFeedback((prev) => ({
+        ...prev,
+        [order.id]: { status, message }
+      }));
+    };
+
+    if (!session?.user) {
+      alert("You must be signed in to remove approved design images.");
+      return;
+    }
+    if (!canCurrentUserEdit("approved_design_images")) {
+      alert("You do not have permission to remove approved design images.");
+      return;
+    }
+
+    const existing = parseDesignUrls(order.approved_design_images);
+    if (!existing.includes(urlToRemove)) return;
+
+    const ok = window.confirm("Remove this approved design image?");
+    if (!ok) return;
+
+    setUploadingPostDesignOrderId(order.id);
+    setFeedback("uploading", "Removing…");
+
+    try {
+      const nextUrls = existing.filter((url) => url !== urlToRemove);
+      const { savedUrls } = await persistApprovedDesignImages(order, nextUrls, setFeedback);
+
+      const storagePath = storagePathFromApprovedDesignsPublicUrl(urlToRemove);
+      if (storagePath) {
+        const { error: storageError } = await supabase.storage
+          .from("approved-designs")
+          .remove([storagePath]);
+        if (storageError) {
+          console.warn("approved design storage delete failed", storageError);
+        }
+      }
+
+      setFeedback(
+        "ok",
+        savedUrls.length
+          ? `${savedUrls.length} image${savedUrls.length === 1 ? "" : "s"} left.`
+          : "Image removed."
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      alert(message || "Could not remove image.");
+      console.error("approved design remove failed", err);
+    } finally {
+      setUploadingPostDesignOrderId(null);
+    }
+  }
+
   function openPostDesignFilePicker(order) {
     if (!order?.id) return;
     if (uploadingPostDesignOrderId === order.id) return;
@@ -1865,38 +1986,7 @@ function App() {
         const { data: publicUrlData } = supabase.storage.from("approved-designs").getPublicUrl(uploadPath);
         nextUrls.push(publicUrlData.publicUrl);
       }
-      const serialized = JSON.stringify(nextUrls);
-      applyApprovedDesignImagesToOrder(order.id, serialized);
-
-      const { data: updatedRows, error } = await supabase
-        .from("orders")
-        .update({ approved_design_images: serialized })
-        .eq("id", order.id)
-        .select("id, approved_design_images");
-
-      if (error) {
-        const msg = error.message || "Could not save on order.";
-        setFeedback("error", msg);
-        alert(msg);
-        console.error("approved design DB save failed", error);
-        return;
-      }
-
-      const updatedRow = Array.isArray(updatedRows) ? updatedRows[0] : null;
-      const savedSerialized =
-        updatedRow?.approved_design_images != null ? updatedRow.approved_design_images : serialized;
-      const savedUrls = parseDesignUrls(savedSerialized);
-
-      if (savedUrls.length < nextUrls.length) {
-        const msg =
-          "Images uploaded but database did not store them. Run supabase/schema.sql in Supabase SQL Editor.";
-        setFeedback("error", msg);
-        alert(msg);
-        console.warn("approved_design_images not persisted", { orderId: order.id, savedUrls, nextUrls });
-        return;
-      }
-
-      applyApprovedDesignImagesToOrder(order.id, savedSerialized);
+      const { savedUrls } = await persistApprovedDesignImages(order, nextUrls, setFeedback);
       setFeedback("ok", `Saved ${savedUrls.length} image${savedUrls.length === 1 ? "" : "s"}.`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -2059,9 +2149,11 @@ function App() {
                       )}
                     </dd>
                   </div>
-                  <div className="live-order-detail-card__full">
+                  <div className="live-order-detail-card__full live-order-detail-card__remarks">
                     <dt>Remarks</dt>
-                    <dd>{lo.remarks?.trim() ? lo.remarks : "—"}</dd>
+                    <dd>
+                      <OrderRemarksCell value={lo.remarks ?? ""} canEdit={false} />
+                    </dd>
                   </div>
                 </dl>
                 {renderLiveOrderDesignSection(lo.id, mockupUrls, "mockups", "Mockups", "Mockup")}
@@ -2070,7 +2162,14 @@ function App() {
                   approvedDesignUrls,
                   "approved",
                   "Approved design images",
-                  "Approved design"
+                  "Approved design",
+                  canCurrentUserEdit("approved_design_images")
+                    ? {
+                        canRemove: true,
+                        removing: uploadingPostDesignOrderId === lo.id,
+                        onRemove: (url) => handleRemovePostApprovedDesignImage(lo, url)
+                      }
+                    : undefined
                 )}
               </article>
             );
@@ -2603,14 +2702,29 @@ function App() {
                             {postUrls.length > 0 ? (
                               <div className={`approved-grid ${postUrls.length > 1 ? "multi" : "single"}`}>
                                 {postUrls.map((url, index) => (
-                                  <button
-                                    type="button"
-                                    className="approved-thumb-btn"
-                                    key={`${order.id}-post-${index}`}
-                                    onClick={() => openPreview(postUrls, index)}
-                                  >
-                                    <img src={url} alt={`Approved design ${index + 1}`} />
-                                  </button>
+                                  <div className="approved-thumb-wrap" key={`${order.id}-post-${index}`}>
+                                    <button
+                                      type="button"
+                                      className="approved-thumb-btn"
+                                      onClick={() => openPreview(postUrls, index)}
+                                    >
+                                      <img src={url} alt={`Approved design ${index + 1}`} />
+                                    </button>
+                                    {canCurrentUserEdit("approved_design_images") ? (
+                                      <button
+                                        type="button"
+                                        className="approved-thumb-remove"
+                                        aria-label={`Remove approved design ${index + 1}`}
+                                        disabled={uploadingPostDesignOrderId === order.id}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          void handleRemovePostApprovedDesignImage(order, url);
+                                        }}
+                                      >
+                                        ×
+                                      </button>
+                                    ) : null}
+                                  </div>
                                 ))}
                               </div>
                             ) : null}
@@ -2734,21 +2848,17 @@ function App() {
                         </select>
                       )}
                     </td>
-                    <td>
-                      {canCurrentUserEdit("remarks") ? (
-                        <textarea
-                          className="inline-remarks"
-                          value={remarksUpdates[order.id] ?? order.remarks ?? ""}
-                          onChange={(e) =>
-                            setRemarksUpdates((prev) => ({
-                              ...prev,
-                              [order.id]: e.target.value
-                            }))
-                          }
-                        />
-                      ) : (
-                        order.remarks ?? "-"
-                      )}
+                    <td className="order-remarks-cell">
+                      <OrderRemarksCell
+                        value={remarksUpdates[order.id] ?? order.remarks ?? ""}
+                        canEdit={canCurrentUserEdit("remarks")}
+                        onChange={(next) =>
+                          setRemarksUpdates((prev) => ({
+                            ...prev,
+                            [order.id]: next
+                          }))
+                        }
+                      />
                     </td>
                     <td className="order-actions-cell">
                       {profileLoading ? (
