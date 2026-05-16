@@ -1432,6 +1432,35 @@ button.color-chip-remove:hover {
   outline-offset: 2px;
 }
 
+button.table-inline-file-label {
+  font-family: inherit;
+}
+
+button.table-inline-file-label:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.post-design-upload-feedback {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.3;
+  max-width: 140px;
+}
+
+.post-design-upload-feedback--ok {
+  color: #15803d;
+}
+
+.post-design-upload-feedback--error {
+  color: #b91c1c;
+}
+
+.post-design-upload-feedback--uploading {
+  color: #1d4ed8;
+}
+
 .table-inline-file-input:disabled + .table-inline-file-label {
   opacity: 0.55;
   cursor: not-allowed;

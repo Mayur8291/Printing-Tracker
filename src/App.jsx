@@ -51,6 +51,41 @@ const STAGE_OPTION_ICON = {
 /** New jobs stay “new” until 12h after `created_at`, then move to “pending” (see DB trigger + client promotion). */
 const SLA_NEW_TO_PENDING_MS = 12 * 60 * 60 * 1000;
 
+function parseDesignUrls(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value !== "string") return [];
+
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    if (typeof parsed === "string" && parsed) return [parsed];
+  } catch (_e) {
+    // fallback to plain text parsing
+  }
+
+  if (trimmed.includes(",")) {
+    return trimmed
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [trimmed];
+}
+
+function isImageUploadFile(file) {
+  if (!file) return false;
+  const type = (file.type || "").toLowerCase();
+  if (type.startsWith("image/")) return true;
+  if (!type || type === "application/octet-stream") {
+    return /\.(jpe?g|png|gif|webp|bmp|svg|heic|heif|tiff?)$/i.test(file.name || "");
+  }
+  return /\.(jpe?g|png|gif|webp|bmp|svg|heic|heif|tiff?)$/i.test(file.name || "");
+}
+
 function staticAssetUrl(relPath) {
   const base = import.meta.env.BASE ?? "/";
   const b = base.endsWith("/") ? base : `${base}/`;
@@ -512,8 +547,8 @@ function App() {
   const [viewerPermissions, setViewerPermissions] = useState({});
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  /** none = server order (created_at desc); asc/desc = coordinator name */
-  const [orderSortCoordinator, setOrderSortCoordinator] = useState("none");
+  /** none = newest first; group = by coordinators catalog; name:… = one coordinator */
+  const [coordinatorSort, setCoordinatorSort] = useState("none");
   const [ordersTab, setOrdersTab] = useState("active");
   const [statusUpdates, setStatusUpdates] = useState({});
   const [remarksUpdates, setRemarksUpdates] = useState({});
@@ -529,7 +564,12 @@ function App() {
   const [permissionDrafts, setPermissionDrafts] = useState({});
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const colorPickerRef = useRef(null);
+  const postDesignFileInputRef = useRef(null);
+  const postDesignUploadTargetRef = useRef(null);
+  const recentApprovedDesignSavesRef = useRef(new Map());
+  const suppressOrdersFetchUntilRef = useRef(0);
   const [uploadingPostDesignOrderId, setUploadingPostDesignOrderId] = useState(null);
+  const [postDesignUploadFeedback, setPostDesignUploadFeedback] = useState({});
   /** Map order id -> last known status (for new→pending tone). */
   const prevOrderStatusesRef = useRef(null);
 
@@ -544,6 +584,9 @@ function App() {
 
   const fetchOrders = useCallback(async (opts) => {
     const silent = opts?.silent === true;
+    if (silent && Date.now() < suppressOrdersFetchUntilRef.current) {
+      return;
+    }
     if (!silent) setLoadingOrders(true);
     try {
       const { data, error } = await supabase
@@ -555,10 +598,30 @@ function App() {
 
       if (error) {
         console.error(error.message);
+        if (error.message?.includes("approved_design_images")) {
+          alert(
+            "Database is missing approved_design_images. Run supabase/schema.sql (or migrations/20260516120000_add_approved_design_images.sql) in Supabase SQL Editor."
+          );
+        }
         return;
       }
       const rows = data ?? [];
-      setOrders(rows);
+      const merged = rows.map((row) => {
+        const pending = recentApprovedDesignSavesRef.current.get(row.id);
+        if (!pending) return row;
+        const serverUrls = parseDesignUrls(row.approved_design_images);
+        const pendingUrls = parseDesignUrls(pending.serialized);
+        if (serverUrls.length >= pendingUrls.length) {
+          recentApprovedDesignSavesRef.current.delete(row.id);
+          return row;
+        }
+        if (Date.now() - pending.at > 120_000) {
+          recentApprovedDesignSavesRef.current.delete(row.id);
+          return row;
+        }
+        return { ...row, approved_design_images: pending.serialized };
+      });
+      setOrders(merged);
       // Select uses statusUpdates[id] ?? order.status — stale keys hide remote changes until full reload.
       setStatusUpdates(Object.fromEntries(rows.map((o) => [o.id, o.status])));
       setReceivedAtPrintingUpdates(
@@ -620,12 +683,21 @@ function App() {
     fetchOrders();
     fetchMasters();
 
-    const channel = supabase
+    const ordersChannel = supabase
       .channel("orders-live")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
         () => fetchOrders({ silent: true })
+      )
+      .subscribe();
+
+    const coordinatorsChannel = supabase
+      .channel("coordinators-master")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "coordinators" },
+        () => fetchMasters()
       )
       .subscribe();
 
@@ -636,7 +708,8 @@ function App() {
 
     return () => {
       clearInterval(pollId);
-      supabase.removeChannel(channel);
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(coordinatorsChannel);
     };
   }, [session?.user?.id, fetchOrders]);
 
@@ -1130,29 +1203,25 @@ function App() {
     fetchMasters();
   }
 
-  function parseDesignUrls(value) {
-    if (!value) return [];
-    if (Array.isArray(value)) return value.filter(Boolean);
-    if (typeof value !== "string") return [];
-
-    const trimmed = value.trim();
-    if (!trimmed) return [];
-
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) return parsed.filter(Boolean);
-      if (typeof parsed === "string" && parsed) return [parsed];
-    } catch (_e) {
-      // fallback to plain text parsing
-    }
-
-    if (trimmed.includes(",")) {
-      return trimmed
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-    }
-    return [trimmed];
+  function renderLiveOrderDesignSection(orderId, urls, sectionKey, label, altPrefix) {
+    if (!urls.length) return null;
+    return (
+      <div className="live-order-detail-card__designs" key={`${orderId}-${sectionKey}`}>
+        <span className="live-order-detail-card__designs-label">{label}</span>
+        <div className={`approved-grid ${urls.length > 1 ? "multi" : "single"} live-order-thumb-grid`}>
+          {urls.map((url, index) => (
+            <button
+              type="button"
+              className="approved-thumb-btn"
+              key={`${orderId}-live-${sectionKey}-${index}`}
+              onClick={() => openPreview(urls, index)}
+            >
+              <img src={url} alt={`${altPrefix} ${index + 1}`} />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   function isInSelectedDateRange(orderDate) {
@@ -1440,26 +1509,62 @@ function App() {
     );
   }, [ordersInDateRange, ordersTab]);
 
-  const sortedFilteredOrders = useMemo(() => {
-    if (orderSortCoordinator === "none") return filteredOrders;
-    const list = [...filteredOrders];
-    const coordKey = (o) =>
-      String(coordinatorUpdates[o.id] ?? o.coordinator_name ?? "")
-        .trim()
-        .toLowerCase();
-    list.sort((a, b) => {
-      const ka = coordKey(a);
-      const kb = coordKey(b);
-      const emptyA = !ka;
-      const emptyB = !kb;
-      if (emptyA && emptyB) return 0;
-      if (emptyA) return 1;
-      if (emptyB) return -1;
-      const c = ka.localeCompare(kb, undefined, { sensitivity: "base" });
-      return orderSortCoordinator === "asc" ? c : -c;
+  const coordinatorCatalogOrder = useMemo(() => {
+    const map = new Map();
+    coordinators.forEach((c, index) => {
+      const name = String(c.name ?? "").trim();
+      if (name) map.set(name.toLowerCase(), index);
     });
-    return list;
-  }, [filteredOrders, orderSortCoordinator, coordinatorUpdates]);
+    return map;
+  }, [coordinators]);
+
+  const effectiveCoordinatorName = useCallback(
+    (order) => String(coordinatorUpdates[order.id] ?? order.coordinator_name ?? "").trim(),
+    [coordinatorUpdates]
+  );
+
+  const sortedFilteredOrders = useMemo(() => {
+    if (coordinatorSort === "none") return filteredOrders;
+
+    if (coordinatorSort === "group") {
+      const list = [...filteredOrders];
+      list.sort((a, b) => {
+        const ka = effectiveCoordinatorName(a).toLowerCase();
+        const kb = effectiveCoordinatorName(b).toLowerCase();
+        const ia = ka ? (coordinatorCatalogOrder.get(ka) ?? 9999) : 10000;
+        const ib = kb ? (coordinatorCatalogOrder.get(kb) ?? 9999) : 10000;
+        if (ia !== ib) return ia - ib;
+        if (!ka && kb) return 1;
+        if (ka && !kb) return -1;
+        if (ka !== kb) return ka.localeCompare(kb, undefined, { sensitivity: "base" });
+        return (
+          new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+        );
+      });
+      return list;
+    }
+
+    if (coordinatorSort.startsWith("name:")) {
+      const target = coordinatorSort.slice(5).trim().toLowerCase();
+      if (!target) return filteredOrders;
+      return filteredOrders.filter(
+        (o) => effectiveCoordinatorName(o).toLowerCase() === target
+      );
+    }
+
+    return filteredOrders;
+  }, [filteredOrders, coordinatorSort, coordinatorCatalogOrder, effectiveCoordinatorName]);
+
+  useEffect(() => {
+    if (!coordinatorSort.startsWith("name:")) return;
+    const target = coordinatorSort.slice(5).trim().toLowerCase();
+    if (!target) {
+      setCoordinatorSort("none");
+      return;
+    }
+    const inCatalog = coordinators.some((c) => String(c.name ?? "").trim().toLowerCase() === target);
+    if (!inCatalog) setCoordinatorSort("none");
+  }, [coordinators, coordinatorSort]);
 
   const liveOrders = useMemo(() => {
     const live = orders.filter((o) => o.is_live && !o.is_complete);
@@ -1672,15 +1777,77 @@ function App() {
     fetchOrders();
   }
 
+  function applyApprovedDesignImagesToOrder(orderId, serialized) {
+    suppressOrdersFetchUntilRef.current = Date.now() + 5000;
+    recentApprovedDesignSavesRef.current.set(orderId, { serialized, at: Date.now() });
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, approved_design_images: serialized } : o))
+    );
+  }
+
+  function openPostDesignFilePicker(order) {
+    if (!order?.id) return;
+    if (uploadingPostDesignOrderId === order.id) return;
+    postDesignUploadTargetRef.current = order.id;
+    postDesignFileInputRef.current?.click();
+  }
+
+  function handlePostDesignFileInputChange(e) {
+    const pickedFiles = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    const orderId = postDesignUploadTargetRef.current;
+    postDesignUploadTargetRef.current = null;
+    if (!pickedFiles.length) {
+      if (orderId) {
+        setPostDesignUploadFeedback((prev) => ({
+          ...prev,
+          [orderId]: { status: "error", message: "No file selected." }
+        }));
+      }
+      return;
+    }
+    if (!orderId) return;
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) {
+      alert("Order not found. Refresh the page and try again.");
+      return;
+    }
+    void handleAppendPostApprovedDesignImages(order, pickedFiles);
+  }
+
   async function handleAppendPostApprovedDesignImages(order, fileList) {
-    const files = Array.from(fileList ?? []).filter((f) => f && /^image\//i.test(f.type));
-    if (!files.length) return;
-    if (!session?.user) return;
+    const picked = Array.isArray(fileList) ? fileList : Array.from(fileList ?? []);
+    const files = picked.filter(isImageUploadFile);
+    const setFeedback = (status, message) => {
+      setPostDesignUploadFeedback((prev) => ({
+        ...prev,
+        [order.id]: { status, message }
+      }));
+    };
+    if (!picked.length) {
+      setFeedback("error", "No file selected.");
+      return;
+    }
+    if (!files.length) {
+      const msg = "Please choose an image file (JPEG, PNG, WebP, HEIC, etc.).";
+      setFeedback("error", msg);
+      alert(msg);
+      return;
+    }
+    if (!session?.user) {
+      const msg = "You must be signed in to upload approved design images.";
+      setFeedback("error", msg);
+      alert(msg);
+      return;
+    }
     if (!canCurrentUserEdit("approved_design_images")) {
-      alert("You do not have permission to add approved design images.");
+      const msg = "You do not have permission to add approved design images.";
+      setFeedback("error", msg);
+      alert(msg);
       return;
     }
     setUploadingPostDesignOrderId(order.id);
+    setFeedback("uploading", "Uploading…");
     try {
       const existing = parseDesignUrls(order.approved_design_images);
       const nextUrls = [...existing];
@@ -1689,8 +1856,9 @@ function App() {
         const uploadPath = `post-approved/${order.id}/${safeName}`;
         const { error: uploadError } = await supabase.storage
           .from("approved-designs")
-          .upload(uploadPath, file, { upsert: false });
+          .upload(uploadPath, file, { upsert: true, contentType: file.type || undefined });
         if (uploadError) {
+          setFeedback("error", uploadError.message);
           alert(uploadError.message);
           return;
         }
@@ -1698,18 +1866,43 @@ function App() {
         nextUrls.push(publicUrlData.publicUrl);
       }
       const serialized = JSON.stringify(nextUrls);
-      const { error } = await supabase
+      applyApprovedDesignImagesToOrder(order.id, serialized);
+
+      const { data: updatedRows, error } = await supabase
         .from("orders")
         .update({ approved_design_images: serialized })
-        .eq("id", order.id);
+        .eq("id", order.id)
+        .select("id, approved_design_images");
+
       if (error) {
-        alert(error.message);
+        const msg = error.message || "Could not save on order.";
+        setFeedback("error", msg);
+        alert(msg);
+        console.error("approved design DB save failed", error);
         return;
       }
-      setOrders((prev) =>
-        prev.map((o) => (o.id === order.id ? { ...o, approved_design_images: serialized } : o))
-      );
-      fetchOrders();
+
+      const updatedRow = Array.isArray(updatedRows) ? updatedRows[0] : null;
+      const savedSerialized =
+        updatedRow?.approved_design_images != null ? updatedRow.approved_design_images : serialized;
+      const savedUrls = parseDesignUrls(savedSerialized);
+
+      if (savedUrls.length < nextUrls.length) {
+        const msg =
+          "Images uploaded but database did not store them. Run supabase/schema.sql in Supabase SQL Editor.";
+        setFeedback("error", msg);
+        alert(msg);
+        console.warn("approved_design_images not persisted", { orderId: order.id, savedUrls, nextUrls });
+        return;
+      }
+
+      applyApprovedDesignImagesToOrder(order.id, savedSerialized);
+      setFeedback("ok", `Saved ${savedUrls.length} image${savedUrls.length === 1 ? "" : "s"}.`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setFeedback("error", message || "Upload failed.");
+      alert(message || "Upload failed. Please try again.");
+      console.error("approved design upload failed", err);
     } finally {
       setUploadingPostDesignOrderId(null);
     }
@@ -1780,7 +1973,8 @@ function App() {
         {liveOrders.length > 0 && (
           <div className="live-orders-panel" aria-label="Live jobs">
           {liveOrders.map((lo) => {
-            const designUrls = parseDesignUrls(lo.approved_design_url);
+            const mockupUrls = parseDesignUrls(lo.approved_design_url);
+            const approvedDesignUrls = parseDesignUrls(lo.approved_design_images);
             return (
               <article className="live-order-detail-card" key={lo.id}>
                 <div className="live-order-detail-card__top">
@@ -1870,24 +2064,13 @@ function App() {
                     <dd>{lo.remarks?.trim() ? lo.remarks : "—"}</dd>
                   </div>
                 </dl>
-                {designUrls.length > 0 && (
-                  <div className="live-order-detail-card__designs">
-                    <span className="live-order-detail-card__designs-label">Mockups</span>
-                    <div
-                      className={`approved-grid ${designUrls.length > 1 ? "multi" : "single"} live-order-thumb-grid`}
-                    >
-                      {designUrls.map((url, index) => (
-                        <button
-                          type="button"
-                          className="approved-thumb-btn"
-                          key={`${lo.id}-live-design-${index}`}
-                          onClick={() => openPreview(designUrls, index)}
-                        >
-                          <img src={url} alt={`Mockup ${index + 1}`} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                {renderLiveOrderDesignSection(lo.id, mockupUrls, "mockups", "Mockups", "Mockup")}
+                {renderLiveOrderDesignSection(
+                  lo.id,
+                  approvedDesignUrls,
+                  "approved",
+                  "Approved design images",
+                  "Approved design"
                 )}
               </article>
             );
@@ -2274,13 +2457,21 @@ function App() {
           <label>
             Sort by coordinator
             <select
-              value={orderSortCoordinator}
-              onChange={(e) => setOrderSortCoordinator(e.target.value)}
-              aria-label="Sort orders by coordinator name"
+              value={coordinatorSort}
+              onChange={(e) => setCoordinatorSort(e.target.value)}
+              aria-label="Sort or filter orders by coordinator"
             >
-              <option value="none">Default</option>
-              <option value="asc">A → Z</option>
-              <option value="desc">Z → A</option>
+              <option value="none">Default (newest first)</option>
+              <option value="group">All coordinators (grouped)</option>
+              {coordinators.length > 0 ? (
+                <optgroup label="Coordinator">
+                  {coordinators.map((coordinator) => (
+                    <option key={coordinator.id} value={`name:${coordinator.name}`}>
+                      {coordinator.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
             </select>
           </label>
         </div>
@@ -2291,6 +2482,16 @@ function App() {
           <CoordinatorReportPanel orders={orders} coordinators={coordinators} />
         ) : (
           <div className="table-wrap">
+            <input
+              ref={postDesignFileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="table-inline-file-input"
+              aria-hidden
+              tabIndex={-1}
+              onChange={handlePostDesignFileInputChange}
+            />
             <table>
               <thead>
                 <tr>
@@ -2415,26 +2616,26 @@ function App() {
                             ) : null}
                             {canCurrentUserEdit("approved_design_images") ? (
                               <>
-                                <input
-                                  id={`post-design-upload-${order.id}`}
-                                  type="file"
-                                  accept="image/*"
-                                  multiple
-                                  className="table-inline-file-input"
+                                <button
+                                  type="button"
+                                  className="table-inline-file-label"
                                   disabled={uploadingPostDesignOrderId === order.id}
-                                  onChange={(e) => {
-                                    const fl = e.target.files;
-                                    e.target.value = "";
-                                    handleAppendPostApprovedDesignImages(order, fl);
-                                  }}
-                                />
-                                <label htmlFor={`post-design-upload-${order.id}`} className="table-inline-file-label">
+                                  onClick={() => openPostDesignFilePicker(order)}
+                                >
                                   {uploadingPostDesignOrderId === order.id
                                     ? "Uploading…"
                                     : postUrls.length
                                       ? "Add more"
                                       : "Add images"}
-                                </label>
+                                </button>
+                                {postDesignUploadFeedback[order.id]?.message ? (
+                                  <span
+                                    className={`post-design-upload-feedback post-design-upload-feedback--${postDesignUploadFeedback[order.id].status}`}
+                                    role="status"
+                                  >
+                                    {postDesignUploadFeedback[order.id].message}
+                                  </span>
+                                ) : null}
                               </>
                             ) : null}
                           </div>
