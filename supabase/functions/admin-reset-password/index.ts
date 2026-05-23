@@ -1,4 +1,4 @@
-// Deploy: supabase functions deploy admin-create-user
+// Deploy: supabase functions deploy admin-reset-password
 // Hosted projects inject SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -80,7 +80,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           error:
-            "Forbidden: only admins can create users. Add your email to admin_emails or set profiles.role to admin."
+            "Forbidden: only admins can reset passwords. Add your email to admin_emails or set profiles.role to admin."
         }),
         {
           status: 403,
@@ -90,95 +90,24 @@ serve(async (req) => {
     }
 
     const body = (await req.json()) as Record<string, unknown>;
-    const email = String(body.email ?? "")
-      .trim()
-      .toLowerCase();
+    const userId = String(body.user_id ?? "").trim();
     const password = String(body.password ?? "");
-    const full_name = String(body.full_name ?? "").trim();
-    const department = String(body.department ?? "").trim();
-    const roleInput = String(body.role ?? "viewer").trim().toLowerCase();
-    const role = roleInput === "admin" ? "admin" : "viewer";
-    const perm = (body.permissions ?? {}) as Record<string, unknown>;
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      throw new Error("Valid email is required");
+    if (!userId) {
+      throw new Error("user_id is required");
     }
     if (!password || password.length < 6) {
       throw new Error("Password must be at least 6 characters");
     }
 
-    // If admin role requested, seed admin_emails BEFORE auth user creation so the
-    // `handle_new_user` DB trigger inserts the profile with role='admin'.
-    if (role === "admin") {
-      const { error: adminEmailErr } = await adminClient
-        .from("admin_emails")
-        .upsert({ email }, { onConflict: "email" });
-      if (adminEmailErr) {
-        throw new Error(`Failed to register admin email: ${adminEmailErr.message}`);
-      }
-    }
-
-    const { data: created, error: createErr } = await adminClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: full_name || email.split("@")[0] }
+    const { error: updateErr } = await adminClient.auth.admin.updateUserById(userId, {
+      password
     });
-
-    if (createErr) {
-      throw new Error(createErr.message);
+    if (updateErr) {
+      throw new Error(updateErr.message);
     }
 
-    const newId = created.user.id;
-
-    const { error: profileUpsertErr } = await adminClient.from("profiles").upsert(
-      {
-        id: newId,
-        email: email.toLowerCase(),
-        full_name: full_name || email.split("@")[0],
-        department: department || null,
-        role
-      },
-      { onConflict: "id" }
-    );
-    if (profileUpsertErr) {
-      throw new Error(profileUpsertErr.message);
-    }
-
-    // Only viewers get per-field permissions; admins have implicit full access.
-    if (role === "viewer") {
-      const allowedTabsRaw = perm.allowed_dashboard_tabs;
-      const allowed_dashboard_tabs =
-        allowedTabsRaw === null || allowedTabsRaw === undefined
-          ? null
-          : Array.isArray(allowedTabsRaw)
-            ? allowedTabsRaw.map((id) => String(id))
-            : null;
-
-      const { error: permUpsertErr } = await adminClient.from("profile_order_permissions").upsert(
-        {
-          user_id: newId,
-          can_edit_status: perm.can_edit_status !== false,
-          can_edit_remarks: Boolean(perm.can_edit_remarks),
-          can_edit_due_date: Boolean(perm.can_edit_due_date),
-          can_edit_qty: Boolean(perm.can_edit_qty),
-          can_edit_coordinator_name: Boolean(perm.can_edit_coordinator_name),
-          can_edit_printing_mtrs: Boolean(perm.can_edit_printing_mtrs),
-          can_edit_approved_design_images: perm.can_edit_approved_design_images !== false,
-          can_edit_received_at_printing: Boolean(perm.can_edit_received_at_printing),
-          can_edit_payment_method: Boolean(perm.can_edit_payment_method),
-          can_create_orders: Boolean(perm.can_create_orders),
-          allowed_dashboard_tabs,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: "user_id" }
-      );
-      if (permUpsertErr) {
-        throw new Error(permUpsertErr.message);
-      }
-    }
-
-    return new Response(JSON.stringify({ ok: true, user_id: newId, email, role }), {
+    return new Response(JSON.stringify({ ok: true, user_id: userId }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });

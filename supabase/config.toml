@@ -1,4 +1,13 @@
-# Supabase CLI / Edge Functions (optional). Deploy: supabase functions deploy admin-create-user
+# Supabase Edge Functions — deploy all admin helpers after changes:
+# npx supabase functions deploy admin-create-user
+# npx supabase functions deploy admin-delete-user
+# npx supabase functions deploy admin-reset-password
 
 [functions.admin-create-user]
+verify_jwt = true
+
+[functions.admin-delete-user]
+verify_jwt = true
+
+[functions.admin-reset-password]
 verify_jwt = true

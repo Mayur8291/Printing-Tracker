@@ -10,13 +10,13 @@
   "theme_color": "#b91c1c",
   "icons": [
     {
-      "src": "/app-icon-rgba.png",
+      "src": "/brand-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/app-icon-rgba.png",
+      "src": "/brand-logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
