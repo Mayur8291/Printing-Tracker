@@ -998,7 +998,7 @@ export default function MockupStudio({ open, onClose }) {
                       setSelectedLayerId={setSelectedLayerId}
                     />
                   ) : (
-                    <div className="mockup-design-placeholder">Choose side above, then click a library thumbnail</div>
+                    <div className="mockup-design-placeholder">No design</div>
                   )}
                 </div>
               </div>
@@ -1006,7 +1006,6 @@ export default function MockupStudio({ open, onClose }) {
 
             <section className="mockup-studio-card mockup-layers-panel-card">
               <h3 className="mockup-studio-card-title">Layers</h3>
-              <p className="mockup-preview-sub">Layers for the garment side selected in placement. Eye hides from preview and export.</p>
               {sideLayers.length === 0 ? (
                 <div className="mockup-library-empty">No layers on this side.</div>
               ) : (
@@ -1082,10 +1081,6 @@ export default function MockupStudio({ open, onClose }) {
                   </div>
                 </div>
               ) : null}
-              <p className="mockup-layer-hint">
-                Drag layer on shirt to move. Corner handle scales. <strong>Ctrl + wheel</strong> on a selected layer resizes.
-                Scroll the mockup area (no Ctrl) to zoom. Pick a layer to edit <strong>tilt</strong>.
-              </p>
             </section>
           </div>
 

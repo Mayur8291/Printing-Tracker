@@ -124,9 +124,6 @@ export default function GlobalSearchBox({
               ))}
             </ul>
           )}
-          <p className="global-search-dropdown-hint">
-            Pick a row to open that area — badges show where it lives (Billing, Dispatch, etc.).
-          </p>
         </div>
       ) : null}
     </div>

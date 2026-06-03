@@ -227,9 +227,6 @@ export default function CreateOutwardChallanModal({ open, onClose, sessionUserId
           ) : null}
 
           <form className="order-form order-form--modal create-oc-form" onSubmit={(e) => e.preventDefault()}>
-            <p className="create-oc-auto-date-note order-form-span-3">
-              Date and time are recorded automatically. A QR code preview opens after save.
-            </p>
             <div className="order-form-cell">
               <label htmlFor="oc-sender">Sender</label>
               <input
@@ -358,12 +355,11 @@ export default function CreateOutwardChallanModal({ open, onClose, sessionUserId
                   type="button"
                   className="create-oc-photo-tap"
                   onClick={() => photoInputRef.current?.click()}
+                  aria-label="Upload packaging photo"
                 >
                   {packagingPreview ? (
                     <img src={packagingPreview} alt="Packaging preview" />
-                  ) : (
-                    <span className="create-oc-photo-hint">Tap to upload packaging photo</span>
-                  )}
+                  ) : null}
                 </button>
                 <input
                   ref={photoInputRef}

@@ -15,6 +15,23 @@ import GlobalSearchBox from "./GlobalSearchBox";
 import { OC_SELECT_FIELDS } from "./outwardChallanUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import {
+  ADMIN_DASHBOARD_TAB,
+  DASHBOARD_SIDEBAR,
+  DASHBOARD_SIDEBAR_FOOTER,
+  DASHBOARD_SIDEBAR_MAIN,
+  DASHBOARD_SIDEBAR_SOON_TAB_IDS
+} from "./dashboardSidebarConfig";
+import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
+import ViewerUserEditModal, { IconUserDelete, IconUserEdit } from "./ViewerUserEditModal";
+import { filterViewerProfiles, viewerIsActive } from "./viewerUserListUtils";
+import AssignmentToastStack from "./AssignmentToastStack";
+import {
+  buildProfileLookupList,
+  createCoordinatorSelectOptions,
+  profileDisplayName
+} from "./coordinatorSelectUtils";
+import { insertOrderAssignmentNotification } from "./orderAssignmentNotificationUtils";
+import {
   DELIVERY_METHODS,
   PAYMENT_METHODS,
   deliveryMethodLabel,
@@ -31,7 +48,12 @@ import {
   serializePaymentProofUrls,
   sortOrdersNewestFirst
 } from "./orderTabUtils";
+import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
 import { supabase } from "./supabaseClient";
+import {
+  buildAdminOrderDraftFromOrder,
+  buildAdminOrderFieldsPayload
+} from "./orderAdminEditUtils";
 import {
   downloadLocalFile,
   uploadOrderCustomerAssets
@@ -492,34 +514,12 @@ const ORDER_HISTORY_EVENT_LABELS = {
   received_at_printing_updated: "Received at printing"
 };
 
-const DASHBOARD_SIDEBAR_MAIN = [
-  { id: "home", label: "Home" },
-  { id: "printing", label: "Printing Orders" },
-  { id: "printing_department", label: "Printing department" },
-  { id: "billing", label: "Billing" },
-  { id: "dispatch", label: "Dispatch" },
-  { id: "regular", label: "Ready Stock Order" },
-  { id: "production_tracker", label: "Production tracker" }
-];
-
-const DASHBOARD_SIDEBAR_FOOTER = [
-  { id: "shared_links", label: "Shared Links" },
-  { id: "contact_book", label: "Contact Book" },
-  { id: "chat", label: "Chat" },
-  { id: "asset_management", label: "Asset Management" },
-  { id: "audit", label: "Audit" }
-];
-
-const DASHBOARD_SIDEBAR_SOON_TAB_IDS = new Set(["regular", "asset_management", "audit"]);
-
-const DASHBOARD_SIDEBAR = [...DASHBOARD_SIDEBAR_MAIN, ...DASHBOARD_SIDEBAR_FOOTER];
-
 const DASHBOARD_TAB_STORAGE_KEY = "printing-tracker-dashboard-tab";
 
 function readStoredDashboardTab() {
   try {
     const stored = sessionStorage.getItem(DASHBOARD_TAB_STORAGE_KEY);
-    if (stored && DASHBOARD_SIDEBAR.some((item) => item.id === stored)) {
+    if (stored && (stored === ADMIN_DASHBOARD_TAB.id || DASHBOARD_SIDEBAR.some((item) => item.id === stored))) {
       return stored;
     }
   } catch {
@@ -529,6 +529,7 @@ function readStoredDashboardTab() {
 }
 
 function resolveDashboardTabForUser(tabId, permissions, isAdmin) {
+  if (tabId === ADMIN_DASHBOARD_TAB.id) return isAdmin ? tabId : "home";
   if (isAdmin || viewerCanAccessDashboardTab(permissions, tabId)) return tabId;
   const fallback = firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, permissions, isAdmin);
   return fallback ?? "home";
@@ -607,47 +608,6 @@ function permissionRowFromDraft(draft) {
       DASHBOARD_SIDEBAR
     )
   };
-}
-
-function SidebarTabPermissionFields({ tabFlags, editFlags, onViewChange, onEditChange, idPrefix }) {
-  return (
-    <div className="viewer-sidebar-tabs">
-      <p className="viewer-sidebar-tabs-title">Dashboard tabs</p>
-      <p className="viewer-sidebar-tabs-hint">View = see tab. Edit = make changes in that tab.</p>
-      <div className="viewer-sidebar-tabs-table">
-        <div className="viewer-sidebar-tabs-table-head" aria-hidden="true">
-          <span>Tab</span>
-          <span>View</span>
-          <span>Edit</span>
-        </div>
-        {DASHBOARD_SIDEBAR.map((item) => {
-          const canView = Boolean(tabFlags?.[item.id]);
-          return (
-            <div className="viewer-sidebar-tabs-row" key={`${idPrefix}-${item.id}`}>
-              <span className="viewer-sidebar-tabs-row-label">{item.label}</span>
-              <label className="viewer-sidebar-tabs-check">
-                <input
-                  type="checkbox"
-                  checked={canView}
-                  onChange={(e) => onViewChange(item.id, e.target.checked)}
-                />
-                <span className="sr-only">View {item.label}</span>
-              </label>
-              <label className={`viewer-sidebar-tabs-check${canView ? "" : " is-disabled"}`}>
-                <input
-                  type="checkbox"
-                  checked={canView && Boolean(editFlags?.[item.id])}
-                  disabled={!canView}
-                  onChange={(e) => onEditChange(item.id, e.target.checked)}
-                />
-                <span className="sr-only">Edit {item.label}</span>
-              </label>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 /** Align with DB: status allowed unless `can_edit_status` is explicitly false. */
@@ -766,6 +726,7 @@ function App() {
   const [orderForm, setOrderForm] = useState(emptyOrder);
   const [orderIdDraft, setOrderIdDraft] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [assignmentToasts, setAssignmentToasts] = useState([]);
   const [repeatOrderPickerOpen, setRepeatOrderPickerOpen] = useState(false);
   const [orderTemplates, setOrderTemplates] = useState([]);
   const [loadingOrderTemplates, setLoadingOrderTemplates] = useState(false);
@@ -782,7 +743,6 @@ function App() {
   const [coordinators, setCoordinators] = useState([]);
   const [newOwnerName, setNewOwnerName] = useState("");
   const [newCoordinatorName, setNewCoordinatorName] = useState("");
-  const [showMasterList, setShowMasterList] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [masterListView, setMasterListView] = useState("list");
   const [showMockupStudio, setShowMockupStudio] = useState(false);
@@ -811,17 +771,27 @@ function App() {
   const [printingMtrsUpdates, setPrintingMtrsUpdates] = useState({});
   const [coordinatorUpdates, setCoordinatorUpdates] = useState({});
   const [receivedAtPrintingUpdates, setReceivedAtPrintingUpdates] = useState({});
+  const [adminOrderDrafts, setAdminOrderDrafts] = useState({});
   const [previewImages, setPreviewImages] = useState([]);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [viewerNameDrafts, setViewerNameDrafts] = useState({});
   const [viewerDepartmentDrafts, setViewerDepartmentDrafts] = useState({});
+  const [viewerJobRoleDrafts, setViewerJobRoleDrafts] = useState({});
+  const [viewerEmployeeIdDrafts, setViewerEmployeeIdDrafts] = useState({});
+  const [viewerActiveDrafts, setViewerActiveDrafts] = useState({});
   const [viewerToneDrafts, setViewerToneDrafts] = useState({});
+  const [viewerListSearch, setViewerListSearch] = useState("");
+  const [viewerListStatusFilter, setViewerListStatusFilter] = useState("all");
+  const [editingViewerId, setEditingViewerId] = useState(null);
   const [permissionDrafts, setPermissionDrafts] = useState({});
+  const [createUserInnerTab, setCreateUserInnerTab] = useState("details");
   const [newUserForm, setNewUserForm] = useState(() => ({
     email: "",
     password: "",
     full_name: "",
     department: "",
+    job_role: "",
+    employee_id: "",
     role: "viewer",
     status_tones_enabled: true,
     permissions: defaultNewUserPermissions()
@@ -1184,7 +1154,7 @@ function App() {
   }, [session?.user?.id, profile?.role]);
 
   useEffect(() => {
-    if (!showMasterList) return;
+    if (dashboardTab !== ADMIN_DASHBOARD_TAB.id) return;
     const next = {};
     viewerProfiles.forEach((v) => {
       next[v.id] = hydrateDraftFromPermission(viewerPermissions[v.id] ?? {});
@@ -1192,7 +1162,7 @@ function App() {
     setPermissionDrafts(next);
     // Intentionally omit viewerPermissions: refetches after partial saves must not wipe other rows' drafts.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showMasterList, viewerProfiles]);
+  }, [dashboardTab, viewerProfiles]);
 
   async function fetchProfile(sessionUser) {
     setProfileLoading(true);
@@ -1335,7 +1305,7 @@ function App() {
         await Promise.all([
           supabase
             .from("profiles")
-            .select("id, full_name, email, department, status_tones_enabled")
+            .select("id, full_name, email, department, job_role, employee_id, is_active, status_tones_enabled")
             .eq("role", "viewer")
             .order("full_name", { ascending: true }),
           supabase.from("profile_order_permissions").select("*")
@@ -1676,6 +1646,16 @@ function App() {
       }
     }
 
+    if (insertedOrder?.id) {
+      await insertOrderAssignmentNotification(supabase, {
+        coordinatorName: payload.coordinator_name,
+        orderId: insertedOrder.id,
+        orderDisplayId: orderIdJoined,
+        assignedByUserId: session.user.id,
+        profileLookup: profileLookupForAssignments
+      });
+    }
+
     const tabWhereCreated = dashboardTab;
     setOrderForm(emptyOrder);
     setOrderIdDraft("");
@@ -1710,6 +1690,15 @@ function App() {
       existingImagePaths: [],
       newImageFiles: []
     };
+  }
+
+  function openCreateOrderForm() {
+    const defaultName = profileDisplayName(profile);
+    setOrderForm((prev) => ({
+      ...prev,
+      coordinator_name: defaultName || prev.coordinator_name
+    }));
+    setShowCreateForm(true);
   }
 
   function openRepeatOrderPicker() {
@@ -2230,17 +2219,34 @@ function App() {
         ? viewerDepartmentDrafts[viewerId]
         : (viewer?.department ?? "");
     const department = String(rawDept).trim();
+    const rawJobRole =
+      viewerJobRoleDrafts[viewerId] !== undefined
+        ? viewerJobRoleDrafts[viewerId]
+        : (viewer?.job_role ?? "");
+    const job_role = String(rawJobRole).trim();
+    const rawEmployeeId =
+      viewerEmployeeIdDrafts[viewerId] !== undefined
+        ? viewerEmployeeIdDrafts[viewerId]
+        : (viewer?.employee_id ?? "");
+    const employee_id = String(rawEmployeeId).trim();
     const draft = permissionDrafts[viewerId] ?? hydrateDraftFromPermission(viewerPermissions[viewerId] ?? {});
     const toneEnabled =
       viewerToneDrafts[viewerId] !== undefined
         ? Boolean(viewerToneDrafts[viewerId])
         : viewer?.status_tones_enabled !== false;
+    const isActive =
+      viewerActiveDrafts[viewerId] !== undefined
+        ? Boolean(viewerActiveDrafts[viewerId])
+        : viewerIsActive(viewer);
 
     const { error: nameErr } = await supabase
       .from("profiles")
       .update({
         full_name: fullName || null,
         department: department || null,
+        job_role: job_role || null,
+        employee_id: employee_id || null,
+        is_active: isActive,
         status_tones_enabled: toneEnabled
       })
       .eq("id", viewerId);
@@ -2272,18 +2278,62 @@ function App() {
       delete next[viewerId];
       return next;
     });
+    setViewerJobRoleDrafts((prev) => {
+      const next = { ...prev };
+      delete next[viewerId];
+      return next;
+    });
+    setViewerEmployeeIdDrafts((prev) => {
+      const next = { ...prev };
+      delete next[viewerId];
+      return next;
+    });
+    setViewerActiveDrafts((prev) => {
+      const next = { ...prev };
+      delete next[viewerId];
+      return next;
+    });
     setViewerToneDrafts((prev) => {
       const next = { ...prev };
       delete next[viewerId];
       return next;
     });
     const refreshed = await fetchViewersAndPermissions();
-    if (showMasterList && refreshed?.viewerPermissions) {
+    if (dashboardTab === ADMIN_DASHBOARD_TAB.id && refreshed?.viewerPermissions) {
       setPermissionDrafts((prev) => ({
         ...prev,
         [viewerId]: hydrateDraftFromPermission(refreshed.viewerPermissions[viewerId] ?? {})
       }));
     }
+    if (editingViewerId === viewerId) {
+      closeViewerEdit();
+    }
+  }
+
+  function openViewerEdit(viewer) {
+    if (!viewer?.id) return;
+    const id = viewer.id;
+    setEditingViewerId(id);
+    setViewerNameDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.full_name ?? "" }));
+    setViewerEmployeeIdDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.employee_id ?? "" }));
+    setViewerDepartmentDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.department ?? "" }));
+    setViewerJobRoleDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.job_role ?? "" }));
+    setViewerToneDrafts((prev) => ({
+      ...prev,
+      [id]: prev[id] !== undefined ? Boolean(prev[id]) : viewer.status_tones_enabled !== false
+    }));
+    setViewerActiveDrafts((prev) => ({
+      ...prev,
+      [id]: prev[id] !== undefined ? Boolean(prev[id]) : viewerIsActive(viewer)
+    }));
+    setPermissionDrafts((prev) => ({
+      ...prev,
+      [id]: prev[id] ?? hydrateDraftFromPermission(viewerPermissions[id] ?? {})
+    }));
+  }
+
+  function closeViewerEdit() {
+    setEditingViewerId(null);
   }
 
   async function handleResetViewerPermissions(userId) {
@@ -2297,7 +2347,7 @@ function App() {
       return;
     }
     const refreshed = await fetchViewersAndPermissions();
-    if (showMasterList && refreshed?.viewerPermissions) {
+    if (dashboardTab === ADMIN_DASHBOARD_TAB.id && refreshed?.viewerPermissions) {
       setPermissionDrafts((prev) => ({
         ...prev,
         [userId]: hydrateDraftFromPermission(refreshed.viewerPermissions[userId] ?? {})
@@ -2313,11 +2363,14 @@ function App() {
   }
 
   function resetNewUserForm() {
+    setCreateUserInnerTab("details");
     setNewUserForm({
       email: "",
       password: "",
       full_name: "",
       department: "",
+      job_role: "",
+      employee_id: "",
       role: "viewer",
       status_tones_enabled: true,
       permissions: defaultNewUserPermissions()
@@ -2333,6 +2386,8 @@ function App() {
     const password = newUserForm.password;
     const fullName = newUserForm.full_name.trim();
     const department = newUserForm.department.trim();
+    const job_role = newUserForm.job_role.trim();
+    const employee_id = newUserForm.employee_id.trim();
     const role = newUserForm.role === "admin" ? "admin" : "viewer";
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -2346,27 +2401,17 @@ function App() {
 
     setCreatingUser(true);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-create-user", {
-        body: {
-          email,
-          password,
-          full_name: fullName,
-          department,
-          role,
-          status_tones_enabled: newUserForm.status_tones_enabled !== false,
-          permissions: role === "viewer" ? permissionRowFromDraft(newUserForm.permissions) : {}
-        }
+      await invokeAdminEdgeFunction("admin-create-user", {
+        email,
+        password,
+        full_name: fullName,
+        department,
+        job_role,
+        employee_id,
+        role,
+        status_tones_enabled: newUserForm.status_tones_enabled !== false,
+        permissions: role === "viewer" ? permissionRowFromDraft(newUserForm.permissions) : {}
       });
-      if (error) {
-        const remoteMsg =
-          (data && typeof data === "object" && "error" in data && data.error) ||
-          error.message ||
-          "Failed to create user";
-        throw new Error(String(remoteMsg));
-      }
-      if (data && typeof data === "object" && "error" in data && data.error) {
-        throw new Error(String(data.error));
-      }
       setCreateUserSuccess(`User ${email} created as ${role}.`);
       resetNewUserForm();
       await fetchViewersAndPermissions();
@@ -2399,19 +2444,10 @@ function App() {
     if (!ok) return;
     setResettingPasswordFor(userId);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-reset-password", {
-        body: { user_id: userId, password: newPassword }
+      await invokeAdminEdgeFunction("admin-reset-password", {
+        user_id: userId,
+        password: newPassword
       });
-      if (error) {
-        const remoteMsg =
-          (data && typeof data === "object" && "error" in data && data.error) ||
-          error.message ||
-          "Failed to reset password";
-        throw new Error(String(remoteMsg));
-      }
-      if (data && typeof data === "object" && "error" in data && data.error) {
-        throw new Error(String(data.error));
-      }
       cancelResetPassword(userId);
       alert("Password updated.");
     } catch (err) {
@@ -2440,24 +2476,11 @@ function App() {
     }
     setRemovingUserId(viewer.id);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
-        body: { user_id: viewer.id }
-      });
-      if (error) {
-        const remoteMsg =
-          (data && typeof data === "object" && "error" in data && data.error) ||
-          error.message ||
-          "Failed to remove user";
-        const hint =
-          /edge function|failed to send a request/i.test(String(remoteMsg))
-            ? "\n\nDeploy the delete function: npx supabase functions deploy admin-delete-user"
-            : "";
-        throw new Error(String(remoteMsg) + hint);
-      }
-      if (data && typeof data === "object" && "error" in data && data.error) {
-        throw new Error(String(data.error));
-      }
+      await invokeAdminEdgeFunction("admin-delete-user", { user_id: viewer.id });
       await fetchViewersAndPermissions();
+      if (editingViewerId === viewer.id) {
+        closeViewerEdit();
+      }
       alert(`User ${targetEmail || viewer.id} removed.`);
     } catch (err) {
       alert(err instanceof Error ? err.message : String(err));
@@ -2711,6 +2734,72 @@ function App() {
     return [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
   }, [coordinators, filteredOrders, coordinatorUpdates]);
 
+  const createFormCoordinatorOptions = useMemo(
+    () =>
+      createCoordinatorSelectOptions({
+        coordinators,
+        viewerProfiles,
+        isAdmin: isAdminUser,
+        currentUserName: profileDisplayName(profile)
+      }),
+    [coordinators, viewerProfiles, isAdminUser, profile?.full_name, profile?.email]
+  );
+
+  const profileLookupForAssignments = useMemo(
+    () => buildProfileLookupList(teamProfiles, viewerProfiles, profile ? [profile] : []),
+    [teamProfiles, viewerProfiles, profile]
+  );
+
+  const pushAssignmentToast = useCallback((row) => {
+    const id = row?.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setAssignmentToasts((prev) => [
+      ...prev,
+      {
+        id,
+        orderDisplayId: row?.order_display_id ?? "",
+        coordinatorName: row?.coordinator_name ?? ""
+      }
+    ]);
+  }, []);
+
+  const dismissAssignmentToast = useCallback((id) => {
+    setAssignmentToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return undefined;
+    const channel = supabase
+      .channel(`order-assignment-notifications-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "order_assignment_notifications",
+          filter: `recipient_user_id=eq.${uid}`
+        },
+        (payload) => {
+          const row = payload.new;
+          if (row && typeof row === "object") pushAssignmentToast(row);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, pushAssignmentToast]);
+
+  useEffect(() => {
+    if (!showCreateForm || profileLoading) return;
+    const defaultName = profileDisplayName(profile);
+    if (!defaultName) return;
+    setOrderForm((prev) => {
+      if (String(prev.coordinator_name ?? "").trim()) return prev;
+      return { ...prev, coordinator_name: defaultName };
+    });
+  }, [showCreateForm, profileLoading, profile?.full_name, profile?.email]);
+
   const sortedFilteredOrders = useMemo(() => {
     const base = filterOrdersBySearch(filteredOrders, ordersSearchQuery);
     const coordName = (o) =>
@@ -2820,6 +2909,38 @@ function App() {
     [session?.user?.id, isAdminUser, viewerPermissions]
   );
 
+  const patchAdminOrderDraft = useCallback((orderId, patch) => {
+    setAdminOrderDrafts((prev) => {
+      const orderRow = orders.find((o) => o.id === orderId);
+      const base = prev[orderId] ?? buildAdminOrderDraftFromOrder(orderRow ?? {});
+      const next = { ...base, ...patch };
+      if (patch.sizes) {
+        next.sizes = { ...base.sizes, ...patch.sizes };
+      }
+      return { ...prev, [orderId]: next };
+    });
+  }, [orders]);
+
+  const filteredViewerProfiles = useMemo(
+    () => filterViewerProfiles(viewerProfiles, viewerListSearch, viewerListStatusFilter),
+    [viewerProfiles, viewerListSearch, viewerListStatusFilter]
+  );
+
+  const viewerListPaginationKey = `${viewerListSearch}|${viewerListStatusFilter}`;
+
+  const {
+    visible: visibleViewerProfiles,
+    total: totalFilteredViewers,
+    page: viewerListPage,
+    setPage: setViewerListPage,
+    pageSize: viewerListPageSize,
+    setPageSize: setViewerListPageSize,
+    totalPages: viewerListTotalPages
+  } = usePagination(filteredViewerProfiles, "admin-viewer-users", viewerListPaginationKey);
+
+  const editingViewer =
+    editingViewerId != null ? viewerProfiles.find((v) => v.id === editingViewerId) ?? null : null;
+
   if (!session) {
     return (
       <div className="auth-page">
@@ -2921,7 +3042,14 @@ function App() {
     isAdmin
   );
   const currentDashboardTabLabel =
-    DASHBOARD_SIDEBAR.find((item) => item.id === dashboardTab)?.label ?? "Menu";
+    dashboardTab === ADMIN_DASHBOARD_TAB.id
+      ? ADMIN_DASHBOARD_TAB.label
+      : DASHBOARD_SIDEBAR.find((item) => item.id === dashboardTab)?.label ?? "Menu";
+
+  function openAdminPanel(view = "list") {
+    setMasterListView(view);
+    selectDashboardTab(ADMIN_DASHBOARD_TAB.id);
+  }
 
   function selectDashboardTab(tabId) {
     setDashboardTab(tabId);
@@ -2951,7 +3079,6 @@ function App() {
 
   const canCurrentUserEdit = (field) => {
     if (!viewOrderTabCanEdit && isViewer) return false;
-    if (field === "coordinator_name" && isAdmin) return false;
     if (isAdmin) return true;
     if (!isViewer) return false;
     return viewerMayEditOrderField(currentUserPermissions, field);
@@ -3020,6 +3147,12 @@ function App() {
       payload.received_at_printing = datetimeLocalToIsoOrNull(localVal);
     }
 
+    if (isAdmin) {
+      const orderRow = orders.find((o) => o.id === orderId);
+      const draft = adminOrderDrafts[orderId] ?? buildAdminOrderDraftFromOrder(orderRow ?? {});
+      Object.assign(payload, buildAdminOrderFieldsPayload(draft));
+    }
+
     if (!Object.keys(payload).length) return;
     const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
     if (error) {
@@ -3045,7 +3178,30 @@ function App() {
                 : order.printing_mtrs,
               received_at_printing: Object.prototype.hasOwnProperty.call(payload, "received_at_printing")
                 ? payload.received_at_printing
-                : order.received_at_printing
+                : order.received_at_printing,
+              order_date: payload.order_date ?? order.order_date,
+              order_id: payload.order_id ?? order.order_id,
+              owner_name: payload.owner_name ?? order.owner_name,
+              customer_name: payload.customer_name ?? order.customer_name,
+              product_name: payload.product_name ?? order.product_name,
+              colors: payload.colors ?? order.colors,
+              size_breakdown: payload.size_breakdown ?? order.size_breakdown,
+              delivery_method: payload.delivery_method ?? order.delivery_method,
+              order_cost: Object.prototype.hasOwnProperty.call(payload, "order_cost")
+                ? payload.order_cost
+                : order.order_cost,
+              printing_cost: Object.prototype.hasOwnProperty.call(payload, "printing_cost")
+                ? payload.printing_cost
+                : order.printing_cost,
+              is_production_order: Object.prototype.hasOwnProperty.call(payload, "is_production_order")
+                ? payload.is_production_order
+                : order.is_production_order,
+              expected_handover_to_printing: Object.prototype.hasOwnProperty.call(
+                payload,
+                "expected_handover_to_printing"
+              )
+                ? payload.expected_handover_to_printing
+                : order.expected_handover_to_printing
             }
           : order
       )
@@ -3064,6 +3220,14 @@ function App() {
     }
     if (Object.prototype.hasOwnProperty.call(payload, "coordinator_name")) {
       setCoordinatorUpdates((prev) => ({ ...prev, [orderId]: payload.coordinator_name }));
+      const orderRow = orders.find((o) => o.id === orderId);
+      void insertOrderAssignmentNotification(supabase, {
+        coordinatorName: payload.coordinator_name,
+        orderId,
+        orderDisplayId: orderRow?.order_id,
+        assignedByUserId: session.user.id,
+        profileLookup: profileLookupForAssignments
+      });
     }
     if (Object.prototype.hasOwnProperty.call(payload, "printing_mtrs")) {
       setPrintingMtrsUpdates((prev) => ({ ...prev, [orderId]: String(payload.printing_mtrs) }));
@@ -3073,6 +3237,13 @@ function App() {
         ...prev,
         [orderId]: receivedAtToDatetimeLocalValue(payload.received_at_printing)
       }));
+    }
+    if (isAdmin) {
+      setAdminOrderDrafts((prev) => {
+        const next = { ...prev };
+        delete next[orderId];
+        return next;
+      });
     }
 
     // Fallback sync in case realtime event is delayed/disabled.
@@ -3379,14 +3550,6 @@ function App() {
     }
   }
 
-  const headerRoleLabel = profileLoading
-    ? "Loading…"
-    : profileError
-      ? "Error"
-      : normalizedRole
-        ? normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1)
-        : "User";
-
   const headerUserName = profileLoading
     ? "Loading…"
     : profileError
@@ -3454,17 +3617,11 @@ function App() {
                   />
                 ))}
                 {isAdmin ? (
-                  <button
-                    type="button"
-                    className="dashboard-sidebar-item dashboard-sidebar-item--admin"
-                    onClick={() => {
-                      setMasterListView("list");
-                      setShowMasterList(true);
-                      setMobileNavOpen(false);
-                    }}
-                  >
-                    <span className="dashboard-sidebar-item-label">Admin Panel</span>
-                  </button>
+                  <DashboardSidebarItem
+                    item={ADMIN_DASHBOARD_TAB}
+                    isActive={dashboardTab === ADMIN_DASHBOARD_TAB.id}
+                    onSelect={selectDashboardTab}
+                  />
                 ) : null}
               </div>
             </div>
@@ -3491,10 +3648,7 @@ function App() {
                     <button
                       type="button"
                       className="topbar-users-btn dashboard-topbar-btn"
-                      onClick={() => {
-                        setMasterListView("list");
-                        setShowMasterList(true);
-                      }}
+                      onClick={() => openAdminPanel("list")}
                     >
                       Edit Users
                     </button>
@@ -3514,9 +3668,6 @@ function App() {
               <div className="dashboard-topbar-row dashboard-topbar-row--secondary">
                 <div className="dashboard-topbar-user-meta">
                   <span className="dashboard-topbar-user-name">{headerUserName}</span>
-                  {!profileLoading && !profileError ? (
-                    <span className="dashboard-topbar-user-role">{headerRoleLabel}</span>
-                  ) : null}
                   {!profileLoading && !profileError && profile?.department?.trim() ? (
                     <span className="dashboard-topbar-user-dept" title="Department">
                       {profile.department.trim()}
@@ -3559,7 +3710,6 @@ function App() {
                   <h2 id="home-status-title" className="home-status-title">
                     Order counts by status
                   </h2>
-                  <p className="home-status-subtitle">Active jobs only</p>
                 </div>
                 <div className="home-status-refresh">
                   <button
@@ -3646,15 +3796,6 @@ function App() {
                 </section>
               ) : null}
 
-              <div className="home-status-footnote" role="note">
-                <span className="home-status-footnote-icon" aria-hidden="true">
-                  i
-                </span>
-                <div className="home-status-footnote-text">
-                  <strong>Counts reflect active jobs only.</strong>
-                  <p>Archived and completed orders are not included.</p>
-                </div>
-              </div>
             </section>
           )}
 
@@ -3672,11 +3813,6 @@ function App() {
           {dashboardTab === "printing" && (
       <section className="panel table-panel dashboard-card">
         <>
-        {isViewer && !viewerCanEditCurrentTab ? (
-          <p className="tab-readonly-notice" role="status">
-            View only — you can browse printing orders but cannot create or edit from this tab.
-          </p>
-        ) : null}
         <div className="table-filters">
           <div className="orders-tabs" role="tablist" aria-label="Order list view">
             <button
@@ -3768,7 +3904,7 @@ function App() {
                     Repeat Order
                   </button>
                   {!showCreateForm && (
-                    <button type="button" onClick={() => setShowCreateForm(true)}>
+                    <button type="button" onClick={openCreateOrderForm}>
                       Create New Order
                     </button>
                   )}
@@ -3799,11 +3935,7 @@ function App() {
                 <span className="orders-processed-filters">
                   {ordersProcessedSummary.filterBits.join(" · ")}
                 </span>
-              ) : (
-                <span className="orders-processed-filters">
-                  {ordersTab === "complete" ? "All completed jobs" : "All pending jobs"}
-                </span>
-              )}
+              ) : null}
             </div>
           </div>
           <div className="table-wrap table-wrap--compact">
@@ -3938,7 +4070,6 @@ function App() {
           <LinkedOrdersTabPanel
             tabTitle="Production Tracker"
             paginationKey="production-tracker"
-            tabDescription="Jobs created with Production order = Yes. Same orders also appear under Printing Orders."
             summaryLabel="Production jobs"
             orders={productionTrackerOrders}
             loadingOrders={loadingOrders}
@@ -3957,7 +4088,7 @@ function App() {
                   ? formatDeliveryDate(order.expected_handover_to_printing)
                   : "—"
             }}
-            emptyMessage="No production orders in the selected date range."
+            emptyMessage="No production orders."
             onViewOrder={openViewOrder}
             renderStageIcon={renderStageIcon}
           />
@@ -4011,6 +4142,594 @@ function App() {
               />
             </section>
           )}
+          {dashboardTab === "admin" && isAdmin && (
+            <section className="panel table-panel dashboard-card dashboard-card--flat">
+              <div className="master-list-panel master-list-modal-wide">
+                <div className="master-list-head">
+                  <h3>Owners, coordinators & viewer users</h3>
+                </div>
+
+                  <div className="master-view-tabs" role="tablist" aria-label="Master view">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={masterListView === "create"}
+                      className={masterListView === "create" ? "master-view-tab is-active" : "master-view-tab"}
+                      onClick={() => {
+                        setMasterListView("create");
+                        setCreateUserError("");
+                        setCreateUserSuccess("");
+                      }}
+                    >
+                      Create user
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={masterListView === "list"}
+                      className={masterListView === "list" ? "master-view-tab is-active" : "master-view-tab"}
+                      onClick={() => setMasterListView("list")}
+                    >
+                      List users and permissions
+                    </button>
+                  </div>
+
+                  {masterListView === "create" && (
+                  <div className="create-user-section">
+                    <div className="create-user-section-head">
+                      <div>
+                        <h4>Create new user</h4>
+                      </div>
+                    </div>
+                    <form className="create-user-form" onSubmit={handleCreateUser}>
+                      <div
+                        className="create-user-inner-tabs"
+                        role="tablist"
+                        aria-label="Create user sections"
+                      >
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={createUserInnerTab === "details"}
+                          className={
+                            createUserInnerTab === "details"
+                              ? "create-user-inner-tab is-active"
+                              : "create-user-inner-tab"
+                          }
+                          onClick={() => setCreateUserInnerTab("details")}
+                        >
+                          User details
+                        </button>
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={createUserInnerTab === "permissions"}
+                          className={
+                            createUserInnerTab === "permissions"
+                              ? "create-user-inner-tab is-active"
+                              : "create-user-inner-tab"
+                          }
+                          onClick={() => setCreateUserInnerTab("permissions")}
+                        >
+                          Permissions &amp; field access
+                        </button>
+                      </div>
+
+                      {createUserInnerTab === "details" ? (
+                        <div className="create-user-tab-panel" role="tabpanel">
+                          <div className="create-user-grid">
+                            <label>
+                              Email
+                              <input
+                                type="email"
+                                autoComplete="off"
+                                placeholder="user@example.com"
+                                value={newUserForm.email}
+                                onChange={(e) =>
+                                  setNewUserForm((prev) => ({ ...prev, email: e.target.value }))
+                                }
+                                required
+                              />
+                            </label>
+                            <label>
+                              Password
+                              <input
+                                type="text"
+                                autoComplete="new-password"
+                                placeholder="Min 6 characters"
+                                value={newUserForm.password}
+                                onChange={(e) =>
+                                  setNewUserForm((prev) => ({ ...prev, password: e.target.value }))
+                                }
+                                required
+                              />
+                            </label>
+                            <label>
+                              Full name
+                              <input
+                                type="text"
+                                placeholder="Display name"
+                                value={newUserForm.full_name}
+                                onChange={(e) =>
+                                  setNewUserForm((prev) => ({ ...prev, full_name: e.target.value }))
+                                }
+                              />
+                            </label>
+                            <label>
+                              Employee ID
+                              <input
+                                type="text"
+                                placeholder="e.g. EMP001"
+                                value={newUserForm.employee_id}
+                                onChange={(e) =>
+                                  setNewUserForm((prev) => ({ ...prev, employee_id: e.target.value }))
+                                }
+                              />
+                            </label>
+                            <label>
+                              Department
+                              <input
+                                type="text"
+                                placeholder="e.g. Stores"
+                                value={newUserForm.department}
+                                onChange={(e) =>
+                                  setNewUserForm((prev) => ({ ...prev, department: e.target.value }))
+                                }
+                              />
+                            </label>
+                            <label>
+                              Job role
+                              <input
+                                type="text"
+                                placeholder="e.g. Store Keeper"
+                                value={newUserForm.job_role}
+                                onChange={(e) =>
+                                  setNewUserForm((prev) => ({ ...prev, job_role: e.target.value }))
+                                }
+                              />
+                            </label>
+                            <label>
+                              System role
+                              <select
+                                value={newUserForm.role}
+                                onChange={(e) =>
+                                  setNewUserForm((prev) => ({ ...prev, role: e.target.value }))
+                                }
+                              >
+                                <option value="viewer">Viewer</option>
+                                <option value="admin">Admin</option>
+                              </select>
+                            </label>
+                          </div>
+                          <label
+                            className="viewer-tone-toggle viewer-tone-toggle--inline"
+                            title="Play status-change tones on this user's dashboard"
+                          >
+                            <input
+                              type="checkbox"
+                              role="switch"
+                              checked={newUserForm.status_tones_enabled !== false}
+                              onChange={(e) =>
+                                setNewUserForm((prev) => ({
+                                  ...prev,
+                                  status_tones_enabled: e.target.checked
+                                }))
+                              }
+                            />
+                            <span className="viewer-tone-toggle-track" aria-hidden="true">
+                              <span className="viewer-tone-toggle-thumb" />
+                            </span>
+                            <span className="viewer-tone-toggle-label">
+                              Status tone {newUserForm.status_tones_enabled !== false ? "ON" : "OFF"}
+                            </span>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="create-user-tab-panel" role="tabpanel">
+                          {newUserForm.role === "viewer" ? (
+                            <div className="create-user-perms">
+                              <p className="create-user-perms-title">Order field access</p>
+                              <div className="viewer-permission-fields user-access-checkboxes">
+                                {EDITABLE_FIELD_OPTIONS.map((option) => {
+                                  const fieldKey = `can_edit_${option.key}`;
+                                  return (
+                                    <label key={fieldKey}>
+                                      <input
+                                        type="checkbox"
+                                        checked={Boolean(newUserForm.permissions[fieldKey])}
+                                        onChange={(e) =>
+                                          updateNewUserPermission(fieldKey, e.target.checked)
+                                        }
+                                      />
+                                      {option.label}
+                                    </label>
+                                  );
+                                })}
+                                <label className="viewer-perm-create-order">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(newUserForm.permissions.can_create_orders)}
+                                    onChange={(e) =>
+                                      updateNewUserPermission("can_create_orders", e.target.checked)
+                                    }
+                                  />
+                                  Create new order
+                                </label>
+                              </div>
+                              <p className="create-user-perms-title">Dashboard tabs</p>
+                              <SidebarTabPermissionFields
+                                idPrefix="new-user"
+                                tabFlags={newUserForm.permissions.sidebar_tabs}
+                                editFlags={newUserForm.permissions.sidebar_edit_tabs}
+                                onViewChange={updateNewUserSidebarTab}
+                                onEditChange={updateNewUserSidebarEditTab}
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+
+                      {createUserError ? <p className="create-user-error">{createUserError}</p> : null}
+                      {createUserSuccess ? (
+                        <p className="create-user-success">{createUserSuccess}</p>
+                      ) : null}
+                      <div className="create-user-actions">
+                        <button type="submit" className="btn-save-green" disabled={creatingUser}>
+                          {creatingUser ? "Creating…" : "Create user"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            resetNewUserForm();
+                            setCreateUserError("");
+                            setCreateUserSuccess("");
+                          }}
+                          disabled={creatingUser}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                  )}
+
+                  {masterListView === "list" && (
+                  <>
+                  <section className="admin-user-mgmt-card viewer-users-section viewer-users-section-top">
+                    <div className="user-mgmt-header">
+                      <div>
+                        <h4 className="admin-user-mgmt-title">User management</h4>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-admin-add btn-admin-add--header"
+                        onClick={() => setMasterListView("create")}
+                      >
+                        + Create user
+                      </button>
+                    </div>
+
+                    <div className="user-mgmt-toolbar">
+                      <label className="user-mgmt-search">
+                        <span className="user-mgmt-search-icon" aria-hidden>
+                          ⌕
+                        </span>
+                        <input
+                          type="search"
+                          placeholder="Search by name, email or ID…"
+                          value={viewerListSearch}
+                          onChange={(e) => setViewerListSearch(e.target.value)}
+                        />
+                      </label>
+                      <label className="user-mgmt-status-filter">
+                        <span className="sr-only">Filter by status</span>
+                        <select
+                          value={viewerListStatusFilter}
+                          onChange={(e) => setViewerListStatusFilter(e.target.value)}
+                        >
+                          <option value="all">All Status</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    {viewerProfiles.length ? (
+                      <>
+                        <div className="users-access-table-wrap users-access-table-wrap--compact">
+                          <table className="users-access-table users-access-table--compact">
+                            <thead>
+                              <tr>
+                                <th>#</th>
+                                <th>User name</th>
+                                <th>Employee ID</th>
+                                <th>Department</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {visibleViewerProfiles.map((viewer, index) => {
+                                const rowNum = (viewerListPage - 1) * viewerListPageSize + index + 1;
+                                const active = viewerIsActive(viewer);
+                                return (
+                                  <tr key={viewer.id}>
+                                    <td className="admin-master-index">{rowNum}</td>
+                                    <td className="user-mgmt-name-cell">
+                                      {viewer.full_name?.trim() || "—"}
+                                    </td>
+                                    <td>{viewer.employee_id?.trim() || "—"}</td>
+                                    <td>{viewer.department?.trim() || "—"}</td>
+                                    <td>{viewer.job_role?.trim() || "—"}</td>
+                                    <td>
+                                      <span
+                                        className={
+                                          active
+                                            ? "user-status-pill user-status-pill--active"
+                                            : "user-status-pill user-status-pill--inactive"
+                                        }
+                                      >
+                                        {active ? "Active" : "Inactive"}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <div className="user-mgmt-icon-actions">
+                                        <button
+                                          type="button"
+                                          className="user-mgmt-icon-btn user-mgmt-icon-btn--edit"
+                                          title="Edit user & permissions"
+                                          aria-label={`Edit ${viewer.full_name || viewer.email}`}
+                                          onClick={() => openViewerEdit(viewer)}
+                                        >
+                                          <IconUserEdit />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                          title="Remove user"
+                                          aria-label={`Remove ${viewer.full_name || viewer.email}`}
+                                          disabled={removingUserId === viewer.id}
+                                          onClick={() => handleRemoveUser(viewer)}
+                                        >
+                                          <IconUserDelete />
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                              {visibleViewerProfiles.length === 0 ? (
+                                <tr>
+                                  <td colSpan={7} className="user-mgmt-empty-row">
+                                    No users match this search or filter.
+                                  </td>
+                                </tr>
+                              ) : null}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="user-mgmt-footer">
+                          <OrdersPagination
+                            page={viewerListPage}
+                            totalPages={viewerListTotalPages}
+                            onPageChange={setViewerListPage}
+                            total={totalFilteredViewers}
+                            pageSize={viewerListPageSize}
+                          />
+                          <OrdersPerPageControl
+                            idPrefix="admin-viewers-per-page"
+                            pageSize={viewerListPageSize}
+                            onPageSizeChange={setViewerListPageSize}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <p className="master-empty">No viewer accounts yet.</p>
+                    )}
+                  </section>
+
+                  {editingViewer ? (
+                    <ViewerUserEditModal
+                      open={Boolean(editingViewer)}
+                      viewer={editingViewer}
+                      nameValue={
+                        viewerNameDrafts[editingViewer.id] !== undefined
+                          ? viewerNameDrafts[editingViewer.id]
+                          : editingViewer.full_name ?? ""
+                      }
+                      employeeIdValue={
+                        viewerEmployeeIdDrafts[editingViewer.id] !== undefined
+                          ? viewerEmployeeIdDrafts[editingViewer.id]
+                          : editingViewer.employee_id ?? ""
+                      }
+                      departmentValue={
+                        viewerDepartmentDrafts[editingViewer.id] !== undefined
+                          ? viewerDepartmentDrafts[editingViewer.id]
+                          : editingViewer.department ?? ""
+                      }
+                      jobRoleValue={
+                        viewerJobRoleDrafts[editingViewer.id] !== undefined
+                          ? viewerJobRoleDrafts[editingViewer.id]
+                          : editingViewer.job_role ?? ""
+                      }
+                      toneEnabled={
+                        viewerToneDrafts[editingViewer.id] !== undefined
+                          ? Boolean(viewerToneDrafts[editingViewer.id])
+                          : editingViewer.status_tones_enabled !== false
+                      }
+                      isActive={
+                        viewerActiveDrafts[editingViewer.id] !== undefined
+                          ? Boolean(viewerActiveDrafts[editingViewer.id])
+                          : viewerIsActive(editingViewer)
+                      }
+                      permissionDraft={
+                        permissionDrafts[editingViewer.id] ??
+                        hydrateDraftFromPermission(viewerPermissions[editingViewer.id] ?? {})
+                      }
+                      onNameChange={(v) =>
+                        setViewerNameDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
+                      }
+                      onEmployeeIdChange={(v) =>
+                        setViewerEmployeeIdDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
+                      }
+                      onDepartmentChange={(v) =>
+                        setViewerDepartmentDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
+                      }
+                      onJobRoleChange={(v) =>
+                        setViewerJobRoleDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
+                      }
+                      onToneChange={(v) =>
+                        setViewerToneDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
+                      }
+                      onActiveChange={(v) =>
+                        setViewerActiveDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
+                      }
+                      onPermissionChange={(fieldKey, checked) =>
+                        updatePermissionDraft(editingViewer.id, fieldKey, checked)
+                      }
+                      onSidebarViewChange={(tabId, checked) =>
+                        updateSidebarTabDraft(editingViewer.id, tabId, checked)
+                      }
+                      onSidebarEditChange={(tabId, checked) =>
+                        updateSidebarEditTabDraft(editingViewer.id, tabId, checked)
+                      }
+                      resetPasswordDraft={resetPasswordDrafts[editingViewer.id]}
+                      onOpenResetPassword={() => openResetPassword(editingViewer.id)}
+                      onResetPasswordDraftChange={(v) =>
+                        setResetPasswordDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
+                      }
+                      onCancelResetPassword={() => cancelResetPassword(editingViewer.id)}
+                      onResetPassword={() => handleResetPassword(editingViewer.id)}
+                      resettingPassword={resettingPasswordFor === editingViewer.id}
+                      onSave={() => handleSaveViewerRow(editingViewer.id)}
+                      onResetPermissions={() => handleResetViewerPermissions(editingViewer.id)}
+                      onRemove={() => handleRemoveUser(editingViewer)}
+                      removing={removingUserId === editingViewer.id}
+                      onClose={closeViewerEdit}
+                    />
+                  ) : null}
+
+                  <section className="admin-user-mgmt-card admin-master-directory-card">
+                    <div className="user-mgmt-header">
+                      <div>
+                        <h4 className="admin-user-mgmt-title">Owners &amp; coordinators</h4>
+                      </div>
+                    </div>
+                    <div className="admin-master-toolbar">
+                      <div className="admin-master-add-inline">
+                        <input
+                          type="text"
+                          className="admin-master-input"
+                          placeholder="Owner name"
+                          value={newOwnerName}
+                          onChange={(e) => setNewOwnerName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddOwner();
+                            }
+                          }}
+                        />
+                        <button type="button" className="btn-admin-add" onClick={handleAddOwner}>
+                          Add owner
+                        </button>
+                      </div>
+                      <div className="admin-master-add-inline">
+                        <input
+                          type="text"
+                          className="admin-master-input"
+                          placeholder="Coordinator name"
+                          value={newCoordinatorName}
+                          onChange={(e) => setNewCoordinatorName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddCoordinator();
+                            }
+                          }}
+                        />
+                        <button type="button" className="btn-admin-add" onClick={handleAddCoordinator}>
+                          Add coordinator
+                        </button>
+                      </div>
+                    </div>
+                    {owners.length || coordinators.length ? (
+                      <div className="users-access-table-wrap users-access-table-wrap--compact users-access-table-wrap--master-scroll">
+                        <table className="users-access-table users-access-table--compact">
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th className="user-mgmt-action-col">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {owners.map((owner, index) => (
+                              <tr key={`owner-${owner.id}`}>
+                                <td className="admin-master-index">{index + 1}</td>
+                                <td className="user-mgmt-name-cell">
+                                  <span className="admin-master-name">{owner.name}</span>
+                                </td>
+                                <td>
+                                  <span className="admin-master-type-pill admin-master-type-pill--owner">
+                                    Owner
+                                  </span>
+                                </td>
+                                <td>
+                                  <div className="user-mgmt-icon-actions">
+                                    <button
+                                      type="button"
+                                      className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                      title="Remove owner"
+                                      aria-label={`Remove owner ${owner.name}`}
+                                      onClick={() => handleDeleteOwner(owner)}
+                                    >
+                                      <IconUserDelete />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                            {coordinators.map((coordinator, index) => (
+                              <tr key={`coord-${coordinator.id}`}>
+                                <td className="admin-master-index">{owners.length + index + 1}</td>
+                                <td className="user-mgmt-name-cell">
+                                  <span className="admin-master-name">{coordinator.name}</span>
+                                </td>
+                                <td>
+                                  <span className="admin-master-type-pill admin-master-type-pill--coordinator">
+                                    Coordinator
+                                  </span>
+                                </td>
+                                <td>
+                                  <div className="user-mgmt-icon-actions">
+                                    <button
+                                      type="button"
+                                      className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                      title="Remove coordinator"
+                                      aria-label={`Remove coordinator ${coordinator.name}`}
+                                      onClick={() => handleDeleteCoordinator(coordinator)}
+                                    >
+                                      <IconUserDelete />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="master-empty">No owners or coordinators yet.</p>
+                    )}
+                  </section>
+                  </>
+                  )}
+              </div>
+            </section>
+          )}
           </div>
         </div>
       </div>
@@ -4054,11 +4773,6 @@ function App() {
                 ×
               </button>
             </div>
-            <p className="repeat-order-lead">
-              Save the fixed parts of an order you know will come in again. Next time it arrives,
-              click <strong>Use</strong> and just tweak the quantity, date, or whatever varies.
-            </p>
-
             <div className="repeat-order-templates">
               <div className="repeat-order-templates-head">
                 <h3>Saved templates</h3>
@@ -4075,9 +4789,7 @@ function App() {
               {loadingOrderTemplates ? (
                 <p className="repeat-order-empty">Loading templates…</p>
               ) : orderTemplates.length === 0 ? (
-                <p className="repeat-order-empty">
-                  No templates yet. Click <strong>+ New template</strong> to save your first one.
-                </p>
+                <p className="repeat-order-empty">No templates yet.</p>
               ) : (
                 <ul className="repeat-order-template-grid">
                   {orderTemplates.map((tpl) => {
@@ -4194,9 +4906,9 @@ function App() {
                       onChange={(e) => updateTemplateDraft({ coordinator_name: e.target.value })}
                     >
                       <option value="">—</option>
-                      {coordinators.map((c) => (
-                        <option key={c.id ?? c.name} value={c.name}>
-                          {c.name}
+                      {createFormCoordinatorOptions.map((opt) => (
+                        <option key={opt.id} value={opt.name}>
+                          {opt.name}
                         </option>
                       ))}
                     </select>
@@ -4253,9 +4965,6 @@ function App() {
                         role="dialog"
                         aria-label="Choose colors"
                       >
-                        <p className="order-form-hint colors-field-hint">
-                          Tap swatches to add or remove. ✓ = selected.
-                        </p>
                         <div className="color-palette" role="group" aria-label="Color swatches">
                           {ORDER_COLOR_PALETTE.map((hex, idx) => {
                             const selected = (templateDraft.colors ?? []).some(
@@ -4468,9 +5177,6 @@ function App() {
 
                 <fieldset className="repeat-order-images">
                   <legend>Reference images</legend>
-                  <p className="repeat-order-images-hint">
-                    Saved with the template. Auto-attached as customer assets when you click Use.
-                  </p>
                   <div className="repeat-order-image-grid">
                     {(templateDraft.existingImagePaths ?? []).map((path) => {
                       const url = templateImagePublicUrl(path);
@@ -4676,9 +5382,6 @@ function App() {
                     </button>
                   ) : null}
                 </div>
-                <p className="order-id-multi-hint">
-                  Numbers only. Use Enter to add. You can paste comma-separated IDs.
-                </p>
               </div>
             </div>
             <div className="order-form-cell">
@@ -4788,9 +5491,6 @@ function App() {
                   <label htmlFor="create-payment-screenshot">
                     Payment proof <span className="order-form-required">(required)</span>
                   </label>
-                  <p className="order-form-hint">
-                    Upload a screenshot or photo of payment proof (receipt, transfer, or PI confirmation).
-                  </p>
                   <input
                     id="create-payment-screenshot"
                     type="file"
@@ -4800,7 +5500,7 @@ function App() {
                     required
                   />
                   {paymentScreenshotFiles.length > 0 ? (
-                    <p className="order-form-hint order-form-file-name">
+                    <p className="order-form-file-name">
                       Selected: {paymentScreenshotFiles.map((f) => f.name).join(", ")}
                     </p>
                   ) : null}
@@ -4841,9 +5541,9 @@ function App() {
             />
             <select name="coordinator_name" value={orderForm.coordinator_name} onChange={onOrderFormChange} required>
               <option value="">Select Coordinator</option>
-              {coordinators.map((coordinator) => (
-                <option key={coordinator.id} value={coordinator.name}>
-                  {coordinator.name}
+              {createFormCoordinatorOptions.map((opt) => (
+                <option key={opt.id} value={opt.name}>
+                  {opt.name}
                 </option>
               ))}
             </select>
@@ -4896,9 +5596,6 @@ function App() {
                 </button>
                 {colorPickerOpen ? (
                   <div id="color-picker-popover" className="color-picker-popover" role="dialog" aria-label="Choose colors">
-                    <p className="order-form-hint colors-field-hint">
-                      Tap swatches to add or remove. ✓ = selected. Pick at least one before save.
-                    </p>
                     <div className="color-palette" role="group" aria-label="Color swatches">
                       {ORDER_COLOR_PALETTE.map((hex, swatchIdx) => {
                         const selected = orderForm.colors.some((c) => normalizeColorKey(c) === hex);
@@ -5089,7 +5786,7 @@ function App() {
                 >
                   Add extra sizes
                 </button>
-                <p className="order-form-hint order-size-total-hint">
+                <p className="order-size-total">
                   Total: <strong>{sumSizeForm(orderForm.sizes, orderForm.extraSizes)}</strong>
                 </p>
               </div>
@@ -5106,9 +5803,6 @@ function App() {
             </div>
             <div className="order-form-cell order-form-cell--full order-form-customer-assets">
               <label htmlFor="create-customer-assets">Asset</label>
-              <p className="order-form-hint order-form-hint--small">
-                Please upload files given by customer.
-              </p>
               <input
                 id="create-customer-assets"
                 type="file"
@@ -5143,13 +5837,9 @@ function App() {
                   ))}
                 </ul>
               ) : null}
-              <p className="order-form-hint order-form-hint--small order-form-asset-retention">
-                Files auto-delete after 48 hours. Optional — job can save without upload.
-              </p>
             </div>
             <div className="order-form-cell order-form-cell--full">
               <label htmlFor="create-order-mockups">Mockups</label>
-              <p className="order-form-hint">Upload the approved design images for this job (one or more files).</p>
               <input
                 id="create-order-mockups"
                 type="file"
@@ -5190,6 +5880,9 @@ function App() {
               viewerMayUpdateOrders={viewerMayUpdateOrders}
               canCurrentUserEdit={canCurrentUserEdit}
               coordinators={coordinators}
+              owners={owners}
+              adminOrderDrafts={adminOrderDrafts}
+              patchAdminOrderDraft={patchAdminOrderDraft}
               statusUpdates={statusUpdates}
               remarksUpdates={remarksUpdates}
               qtyUpdates={qtyUpdates}
@@ -5258,10 +5951,7 @@ function App() {
             ) : orderHistoryLoading ? (
               <p className="order-history-loading">Loading activity…</p>
             ) : orderHistoryEntries.length === 0 ? (
-              <p className="order-history-empty">
-                No activity recorded yet. New actions (uploads, approvals, status changes) will appear here
-                after you run the activity log migration.
-              </p>
+              <p className="order-history-empty">No activity yet.</p>
             ) : (
               <ul className="order-history-timeline">
                 {orderHistoryEntries.map((entry) => (
@@ -5306,457 +5996,6 @@ function App() {
           </div>
         </div>
       )}
-      {showMasterList && (
-        <div className="image-modal-backdrop" onClick={() => setShowMasterList(false)}>
-          <div className="master-list-modal master-list-modal-wide" onClick={(e) => e.stopPropagation()}>
-            <div className="master-list-head">
-              <h3>Owners, coordinators & viewer users</h3>
-              <button type="button" onClick={() => setShowMasterList(false)}>
-                x
-              </button>
-            </div>
-
-            <div className="master-view-tabs" role="tablist" aria-label="Master view">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={masterListView === "create"}
-                className={masterListView === "create" ? "master-view-tab is-active" : "master-view-tab"}
-                onClick={() => {
-                  setMasterListView("create");
-                  setCreateUserError("");
-                  setCreateUserSuccess("");
-                }}
-              >
-                Create user
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={masterListView === "list"}
-                className={masterListView === "list" ? "master-view-tab is-active" : "master-view-tab"}
-                onClick={() => setMasterListView("list")}
-              >
-                List users and permissions
-              </button>
-            </div>
-
-            {masterListView === "create" && (
-            <div className="create-user-section">
-              <h4>Create new user</h4>
-              <form className="create-user-form" onSubmit={handleCreateUser}>
-                <div className="create-user-grid">
-                  <label>
-                    Email
-                    <input
-                      type="email"
-                      autoComplete="off"
-                      placeholder="user@example.com"
-                      value={newUserForm.email}
-                      onChange={(e) => setNewUserForm((prev) => ({ ...prev, email: e.target.value }))}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Password
-                    <input
-                      type="text"
-                      autoComplete="new-password"
-                      placeholder="Min 6 characters"
-                      value={newUserForm.password}
-                      onChange={(e) => setNewUserForm((prev) => ({ ...prev, password: e.target.value }))}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Full name
-                    <input
-                      type="text"
-                      placeholder="Display name"
-                      value={newUserForm.full_name}
-                      onChange={(e) => setNewUserForm((prev) => ({ ...prev, full_name: e.target.value }))}
-                    />
-                  </label>
-                  <label>
-                    Department
-                    <input
-                      type="text"
-                      placeholder="Optional"
-                      value={newUserForm.department}
-                      onChange={(e) => setNewUserForm((prev) => ({ ...prev, department: e.target.value }))}
-                    />
-                  </label>
-                  <label>
-                    Role
-                    <select
-                      value={newUserForm.role}
-                      onChange={(e) => setNewUserForm((prev) => ({ ...prev, role: e.target.value }))}
-                    >
-                      <option value="viewer">Viewer</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </label>
-                </div>
-                <label className="viewer-tone-toggle viewer-tone-toggle--inline" title="Play status-change tones on this user's dashboard">
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    checked={newUserForm.status_tones_enabled !== false}
-                    onChange={(e) =>
-                      setNewUserForm((prev) => ({ ...prev, status_tones_enabled: e.target.checked }))
-                    }
-                  />
-                  <span className="viewer-tone-toggle-track" aria-hidden="true">
-                    <span className="viewer-tone-toggle-thumb" />
-                  </span>
-                  <span className="viewer-tone-toggle-label">
-                    Status tone {newUserForm.status_tones_enabled !== false ? "ON" : "OFF"}
-                  </span>
-                </label>
-                {newUserForm.role === "viewer" && (
-                  <div className="create-user-perms">
-                    <p className="create-user-perms-title">Viewer permissions</p>
-                    <div className="viewer-permission-fields user-access-checkboxes">
-                      {EDITABLE_FIELD_OPTIONS.map((option) => {
-                        const fieldKey = `can_edit_${option.key}`;
-                        return (
-                          <label key={fieldKey}>
-                            <input
-                              type="checkbox"
-                              checked={Boolean(newUserForm.permissions[fieldKey])}
-                              onChange={(e) => updateNewUserPermission(fieldKey, e.target.checked)}
-                            />
-                            {option.label}
-                          </label>
-                        );
-                      })}
-                      <label className="viewer-perm-create-order">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(newUserForm.permissions.can_create_orders)}
-                          onChange={(e) => updateNewUserPermission("can_create_orders", e.target.checked)}
-                        />
-                        Create new order
-                      </label>
-                    </div>
-                    <SidebarTabPermissionFields
-                      idPrefix="new-user"
-                      tabFlags={newUserForm.permissions.sidebar_tabs}
-                      editFlags={newUserForm.permissions.sidebar_edit_tabs}
-                      onViewChange={updateNewUserSidebarTab}
-                      onEditChange={updateNewUserSidebarEditTab}
-                    />
-                  </div>
-                )}
-                {createUserError && <p className="create-user-error">{createUserError}</p>}
-                {createUserSuccess && <p className="create-user-success">{createUserSuccess}</p>}
-                <div className="create-user-actions">
-                  <button type="submit" className="btn-save-green" disabled={creatingUser}>
-                    {creatingUser ? "Creating…" : "Create user"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetNewUserForm();
-                      setCreateUserError("");
-                      setCreateUserSuccess("");
-                    }}
-                    disabled={creatingUser}
-                  >
-                    Clear
-                  </button>
-                </div>
-              </form>
-            </div>
-            )}
-
-            {masterListView === "list" && (
-            <>
-            <div className="viewer-users-section viewer-users-section-top">
-              <h4>Viewer users & field access</h4>
-              {viewerProfiles.length ? (
-                <div className="users-access-table-wrap">
-                  <table className="users-access-table">
-                    <thead>
-                      <tr>
-                        <th>Display name</th>
-                        <th>Department</th>
-                        <th>Email</th>
-                        <th>Order &amp; sidebar access</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {viewerProfiles.map((viewer) => {
-                        const nameValue =
-                          viewerNameDrafts[viewer.id] !== undefined
-                            ? viewerNameDrafts[viewer.id]
-                            : viewer.full_name ?? "";
-                        const departmentValue =
-                          viewerDepartmentDrafts[viewer.id] !== undefined
-                            ? viewerDepartmentDrafts[viewer.id]
-                            : viewer.department ?? "";
-                        const toneEnabled =
-                          viewerToneDrafts[viewer.id] !== undefined
-                            ? Boolean(viewerToneDrafts[viewer.id])
-                            : viewer.status_tones_enabled !== false;
-                        const draft =
-                          permissionDrafts[viewer.id] ??
-                          hydrateDraftFromPermission(viewerPermissions[viewer.id] ?? {});
-                        return (
-                          <tr key={viewer.id}>
-                            <td>
-                              <input
-                                className="user-name-input"
-                                type="text"
-                                placeholder="Display name"
-                                value={nameValue}
-                                onChange={(e) =>
-                                  setViewerNameDrafts((prev) => ({
-                                    ...prev,
-                                    [viewer.id]: e.target.value
-                                  }))
-                                }
-                              />
-                            </td>
-                            <td>
-                              <input
-                                className="user-name-input"
-                                type="text"
-                                placeholder="Department"
-                                value={departmentValue}
-                                onChange={(e) =>
-                                  setViewerDepartmentDrafts((prev) => ({
-                                    ...prev,
-                                    [viewer.id]: e.target.value
-                                  }))
-                                }
-                              />
-                            </td>
-                            <td className="user-email-cell">{viewer.email?.trim() || "—"}</td>
-                            <td>
-                              <label className="viewer-tone-toggle" title="Play status-change tones on this user's dashboard">
-                                <input
-                                  type="checkbox"
-                                  role="switch"
-                                  checked={toneEnabled}
-                                  onChange={(e) =>
-                                    setViewerToneDrafts((prev) => ({
-                                      ...prev,
-                                      [viewer.id]: e.target.checked
-                                    }))
-                                  }
-                                />
-                                <span className="viewer-tone-toggle-track" aria-hidden="true">
-                                  <span className="viewer-tone-toggle-thumb" />
-                                </span>
-                                <span className="viewer-tone-toggle-label">
-                                  Status tone {toneEnabled ? "ON" : "OFF"}
-                                </span>
-                              </label>
-                              <div className="viewer-permission-fields user-access-checkboxes">
-                                {EDITABLE_FIELD_OPTIONS.map((option) => {
-                                  const fieldKey = `can_edit_${option.key}`;
-                                  return (
-                                    <label key={fieldKey}>
-                                      <input
-                                        type="checkbox"
-                                        checked={Boolean(draft[fieldKey])}
-                                        onChange={(e) =>
-                                          updatePermissionDraft(viewer.id, fieldKey, e.target.checked)
-                                        }
-                                      />
-                                      {option.label}
-                                    </label>
-                                  );
-                                })}
-                                <label className="viewer-perm-create-order">
-                                  <input
-                                    type="checkbox"
-                                    checked={Boolean(draft.can_create_orders)}
-                                    onChange={(e) =>
-                                      updatePermissionDraft(viewer.id, "can_create_orders", e.target.checked)
-                                    }
-                                  />
-                                  Create new order
-                                </label>
-                              </div>
-                              <SidebarTabPermissionFields
-                                idPrefix={viewer.id}
-                                tabFlags={draft.sidebar_tabs}
-                                editFlags={draft.sidebar_edit_tabs}
-                                onViewChange={(tabId, checked) =>
-                                  updateSidebarTabDraft(viewer.id, tabId, checked)
-                                }
-                                onEditChange={(tabId, checked) =>
-                                  updateSidebarEditTabDraft(viewer.id, tabId, checked)
-                                }
-                              />
-                            </td>
-                            <td className="user-access-actions">
-                              <button
-                                type="button"
-                                className="btn-save-green"
-                                onClick={() => handleSaveViewerRow(viewer.id)}
-                              >
-                                Save
-                              </button>
-                              <button
-                                type="button"
-                                className="danger-btn"
-                                onClick={() => handleResetViewerPermissions(viewer.id)}
-                              >
-                                Reset permissions
-                              </button>
-                              {resetPasswordDrafts[viewer.id] === undefined ? (
-                                <button
-                                  type="button"
-                                  className="btn-reset-password"
-                                  onClick={() => openResetPassword(viewer.id)}
-                                >
-                                  Reset password
-                                </button>
-                              ) : (
-                                <div className="reset-password-inline">
-                                  <input
-                                    type="text"
-                                    placeholder="New password"
-                                    autoComplete="off"
-                                    value={resetPasswordDrafts[viewer.id]}
-                                    onChange={(e) =>
-                                      setResetPasswordDrafts((prev) => ({
-                                        ...prev,
-                                        [viewer.id]: e.target.value
-                                      }))
-                                    }
-                                  />
-                                  <button
-                                    type="button"
-                                    className="btn-save-green"
-                                    onClick={() => handleResetPassword(viewer.id)}
-                                    disabled={resettingPasswordFor === viewer.id}
-                                  >
-                                    {resettingPasswordFor === viewer.id ? "Saving…" : "Save"}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => cancelResetPassword(viewer.id)}
-                                    disabled={resettingPasswordFor === viewer.id}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              )}
-                              <button
-                                type="button"
-                                className="btn-remove-user"
-                                onClick={() => handleRemoveUser(viewer)}
-                                disabled={removingUserId === viewer.id}
-                              >
-                                {removingUserId === viewer.id ? "Removing…" : "Remove user"}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="master-empty">No viewer accounts yet.</p>
-              )}
-            </div>
-
-            <div className="master-list-divider" />
-
-            <div className="master-list-add-row">
-              <div className="master-box master-box-inline">
-                <h4>Add owner</h4>
-                <div className="master-row">
-                  <input
-                    type="text"
-                    placeholder="Owner name"
-                    value={newOwnerName}
-                    onChange={(e) => setNewOwnerName(e.target.value)}
-                  />
-                  <button type="button" onClick={handleAddOwner}>
-                    Add
-                  </button>
-                </div>
-              </div>
-              <div className="master-box master-box-inline">
-                <h4>Add coordinator</h4>
-                <div className="master-row">
-                  <input
-                    type="text"
-                    placeholder="Coordinator name"
-                    value={newCoordinatorName}
-                    onChange={(e) => setNewCoordinatorName(e.target.value)}
-                  />
-                  <button type="button" onClick={handleAddCoordinator}>
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="master-list-grid">
-              <div>
-                <h4>Owners</h4>
-                <ul className="master-list-items">
-                  {owners.length ? (
-                    owners.map((owner) => (
-                      <li key={owner.id}>
-                        <span>
-                          {owner.name} - Owner
-                        </span>
-                        <div className="master-item-actions">
-                          <button
-                            type="button"
-                            className="danger-btn"
-                            onClick={() => handleDeleteOwner(owner)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </li>
-                    ))
-                  ) : (
-                    <li>No owners added</li>
-                  )}
-                </ul>
-              </div>
-              <div>
-                <h4>Coordinators</h4>
-                <ul className="master-list-items">
-                  {coordinators.length ? (
-                    coordinators.map((coordinator) => (
-                      <li key={coordinator.id}>
-                        <span>
-                          {coordinator.name} - Coordinator
-                        </span>
-                        <div className="master-item-actions">
-                          <button
-                            type="button"
-                            className="danger-btn"
-                            onClick={() => handleDeleteCoordinator(coordinator)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </li>
-                    ))
-                  ) : (
-                    <li>No coordinators added</li>
-                  )}
-                </ul>
-              </div>
-            </div>
-            </>
-            )}
-          </div>
-        </div>
-      )}
       {previewImages.length > 0 && (
         <div
           className="image-modal-backdrop image-modal-backdrop--preview"
@@ -5780,6 +6019,7 @@ function App() {
           </div>
         </div>
       )}
+      <AssignmentToastStack toasts={assignmentToasts} onDismiss={dismissAssignmentToast} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { OrderAdminColorField, OrderAdminSizeFields } from "./OrderAdminDetailFields";
+import { buildAdminOrderDraftFromOrder } from "./orderAdminEditUtils";
 import {
-  EDITABLE_FIELD_OPTIONS,
   POST_DESIGN_REVIEW,
   FORM_STAGES,
   STAGE_LABEL,
@@ -14,6 +15,7 @@ import {
   receivedAtToDatetimeLocalValue
 } from "./orderViewUtils";
 import {
+  DELIVERY_METHODS,
   PAYMENT_METHODS,
   deliveryMethodLabel,
   parsePaymentProofUrls,
@@ -47,6 +49,9 @@ export default function OrderDetailPanel({
   viewerMayUpdateOrders,
   canCurrentUserEdit,
   coordinators,
+  owners = [],
+  adminOrderDrafts,
+  patchAdminOrderDraft,
   statusUpdates,
   remarksUpdates,
   qtyUpdates,
@@ -117,6 +122,12 @@ export default function OrderDetailPanel({
   const canEditPayment = canCurrentUserEdit("payment_method");
   const showPaymentProofUpload =
     canEditPayment && paymentMethodRequiresProof(order.payment_method);
+  const adminDraft =
+    isAdmin && (adminOrderDrafts?.[order.id] ?? buildAdminOrderDraftFromOrder(order));
+
+  function patchAdminDraft(patch) {
+    patchAdminOrderDraft?.(order.id, patch);
+  }
 
   const [customerAssets, setCustomerAssets] = useState([]);
   const [customerAssetsLoading, setCustomerAssetsLoading] = useState(false);
@@ -157,12 +168,61 @@ export default function OrderDetailPanel({
         <section className="order-detail-section order-detail-section--card">
           <h4 className="order-detail-section-title">Order details</h4>
           <div className="order-detail-grid">
-            <DetailField label="Order date">{order.order_date || "—"}</DetailField>
-            <DetailField label="Order number">
-              {renderOrderIdBadges(order.order_id)}
+            <DetailField label="Order date">
+              {isAdmin ? (
+                <input
+                  type="date"
+                  className="order-detail-control"
+                  value={adminDraft.order_date}
+                  onChange={(e) => patchAdminDraft({ order_date: e.target.value })}
+                />
+              ) : (
+                order.order_date || "—"
+              )}
             </DetailField>
-            <DetailField label="Owner">{order.owner_name || "—"}</DetailField>
-            <DetailField label="Customer">{order.customer_name}</DetailField>
+            <DetailField label="Order number">
+              {isAdmin ? (
+                <input
+                  type="text"
+                  className="order-detail-control"
+                  placeholder="e.g. 51169 or 51169, 51170"
+                  value={adminDraft.order_id}
+                  onChange={(e) => patchAdminDraft({ order_id: e.target.value })}
+                />
+              ) : (
+                renderOrderIdBadges(order.order_id)
+              )}
+            </DetailField>
+            <DetailField label="Owner">
+              {isAdmin ? (
+                <select
+                  className="order-detail-control"
+                  value={adminDraft.owner_name}
+                  onChange={(e) => patchAdminDraft({ owner_name: e.target.value })}
+                >
+                  <option value="">—</option>
+                  {owners.map((owner) => (
+                    <option key={owner.id} value={owner.name}>
+                      {owner.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                order.owner_name || "—"
+              )}
+            </DetailField>
+            <DetailField label="Customer">
+              {isAdmin ? (
+                <input
+                  type="text"
+                  className="order-detail-control"
+                  value={adminDraft.customer_name}
+                  onChange={(e) => patchAdminDraft({ customer_name: e.target.value })}
+                />
+              ) : (
+                order.customer_name
+              )}
+            </DetailField>
             <DetailField label="Coordinator">
               {canCurrentUserEdit("coordinator_name") ? (
                 <select
@@ -220,12 +280,34 @@ export default function OrderDetailPanel({
                 order.qty
               )}
             </DetailField>
-            <DetailField label="Sizes">
-              {formatSizeBreakdownSummary(order.size_breakdown) || "—"}
+            <DetailField label="Sizes" wide={isAdmin}>
+              {isAdmin ? (
+                <OrderAdminSizeFields draft={adminDraft} onPatch={patchAdminDraft} />
+              ) : (
+                formatSizeBreakdownSummary(order.size_breakdown) || "—"
+              )}
             </DetailField>
-            <DetailField label="Product">{order.product_name || "—"}</DetailField>
-            <DetailField label="Colors">
-              <OrderColorsCell colors={order.colors} />
+            <DetailField label="Product">
+              {isAdmin ? (
+                <input
+                  type="text"
+                  className="order-detail-control"
+                  value={adminDraft.product_name}
+                  onChange={(e) => patchAdminDraft({ product_name: e.target.value })}
+                />
+              ) : (
+                order.product_name || "—"
+              )}
+            </DetailField>
+            <DetailField label="Colors" wide={isAdmin}>
+              {isAdmin ? (
+                <OrderAdminColorField
+                  colors={adminDraft.colors}
+                  onChange={(colors) => patchAdminDraft({ colors })}
+                />
+              ) : (
+                <OrderColorsCell colors={order.colors} />
+              )}
             </DetailField>
             <DetailField label="Payment">
               {canEditPayment ? (
@@ -299,16 +381,30 @@ export default function OrderDetailPanel({
                 </a>
               </DetailField>
             ) : null}
-            <DetailField label="Delivery">{deliveryMethodLabel(order.delivery_method)}</DetailField>
+            <DetailField label="Delivery">
+              {isAdmin ? (
+                <select
+                  className="order-detail-control"
+                  value={adminDraft.delivery_method}
+                  onChange={(e) => patchAdminDraft({ delivery_method: e.target.value })}
+                >
+                  <option value="">—</option>
+                  {DELIVERY_METHODS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                deliveryMethodLabel(order.delivery_method)
+              )}
+            </DetailField>
           </div>
         </section>
 
         {customerAssetsLoading || customerAssets.length > 0 ? (
           <section className="order-detail-section order-detail-section--card">
             <h4 className="order-detail-section-title">Customer assets</h4>
-            <p className="order-detail-muted order-detail-asset-note">
-              Files from customer at job create. Auto-removed after 48 hours.
-            </p>
             {customerAssetsLoading ? (
               <p className="order-detail-muted">Loading files…</p>
             ) : (
@@ -366,17 +462,6 @@ export default function OrderDetailPanel({
             <div className="order-detail-images-col">
               <p className="order-detail-images-label">Approved design images</p>
               <div className="approved-post-design-wrap order-detail-post-design-wrap">
-                {canReplaceDesigns && postUrls.length > 0 ? (
-                  <p className="post-design-replace-hint">
-                    Remove current image{postUrls.length > 1 ? "s" : ""}, then upload revised design
-                    {postUrls.length > 1 ? "s" : ""} below.
-                  </p>
-                ) : null}
-                {canCurrentUserEdit("approved_design_images") && postUrls.length > 0 && !canReplaceDesigns ? (
-                  <p className="post-design-replace-hint">
-                    You can add more approved design images below without removing existing ones.
-                  </p>
-                ) : null}
                 {postUrls.length > 0 ? (
                   <div className="order-detail-thumb-grid">
                     {postUrls.map((url, index) => (
@@ -535,8 +620,36 @@ export default function OrderDetailPanel({
         <section className="order-detail-section order-detail-section--card">
           <h4 className="order-detail-section-title">Production &amp; printing</h4>
           <div className="order-detail-grid">
-            <DetailField label="Production order">{order.is_production_order ? "Yes" : "No"}</DetailField>
-            {order.is_production_order ? (
+            <DetailField label="Production order">
+              {isAdmin ? (
+                <label className="order-detail-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(adminDraft.is_production_order)}
+                    onChange={(e) =>
+                      patchAdminDraft({ is_production_order: e.target.checked })
+                    }
+                  />
+                  Production order
+                </label>
+              ) : order.is_production_order ? (
+                "Yes"
+              ) : (
+                "No"
+              )}
+            </DetailField>
+            {isAdmin && adminDraft.is_production_order ? (
+              <DetailField label="Expected handover">
+                <input
+                  type="date"
+                  className="order-detail-control"
+                  value={adminDraft.expected_handover_to_printing}
+                  onChange={(e) =>
+                    patchAdminDraft({ expected_handover_to_printing: e.target.value })
+                  }
+                />
+              </DetailField>
+            ) : !isAdmin && order.is_production_order ? (
               <DetailField label="Expected handover">
                 {order.expected_handover_to_printing ?? "—"}
               </DetailField>
@@ -584,14 +697,36 @@ export default function OrderDetailPanel({
               )}
             </DetailField>
             <DetailField label="Order cost">
-              {order.order_cost != null && order.order_cost !== ""
-                ? Number(order.order_cost).toFixed(2)
-                : "—"}
+              {isAdmin ? (
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="order-detail-control order-detail-control--narrow"
+                  value={adminDraft.order_cost}
+                  onChange={(e) => patchAdminDraft({ order_cost: e.target.value })}
+                />
+              ) : order.order_cost != null && order.order_cost !== "" ? (
+                Number(order.order_cost).toFixed(2)
+              ) : (
+                "—"
+              )}
             </DetailField>
             <DetailField label="Printing cost">
-              {order.printing_cost != null && order.printing_cost !== ""
-                ? Number(order.printing_cost).toFixed(2)
-                : "—"}
+              {isAdmin ? (
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="order-detail-control order-detail-control--narrow"
+                  value={adminDraft.printing_cost}
+                  onChange={(e) => patchAdminDraft({ printing_cost: e.target.value })}
+                />
+              ) : order.printing_cost != null && order.printing_cost !== "" ? (
+                Number(order.printing_cost).toFixed(2)
+              ) : (
+                "—"
+              )}
             </DetailField>
           </div>
         </section>
@@ -653,7 +788,7 @@ export default function OrderDetailPanel({
             >
               Order history
             </button>
-            {viewerMayUpdateOrders && (
+            {(viewerMayUpdateOrders || isAdmin) && (
               <button
                 type="button"
                 onClick={() => handleViewerUpdate(order.id)}
@@ -683,9 +818,7 @@ export default function OrderDetailPanel({
               </button>
             )}
           </>
-        ) : (
-          <span className="order-actions-note">View only</span>
-        )}
+        ) : null}
       </div>
     </div>
   );

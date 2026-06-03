@@ -7,7 +7,6 @@ import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPa
  */
 export default function LinkedOrdersTabPanel({
   tabTitle,
-  tabDescription,
   summaryLabel,
   orders,
   loadingOrders,
@@ -56,7 +55,6 @@ export default function LinkedOrdersTabPanel({
 
   return (
     <>
-      <p className="linked-tab-lead">{tabDescription}</p>
       <div className="table-filters linked-tab-filters">
         <label>
           From

@@ -125,17 +125,6 @@ export default function MonthlyArchivePanel({ orders, onPurged, inModal = false 
       }
     >
       {!inModal ? <h3>Monthly cloud archive</h3> : null}
-      <p className="monthly-archive-lead">
-        Download one ZIP per month. Each order gets its own folder (named by Order ID) with mockup
-        uploads, approved design images, and order-details.xlsx (all form fields + order history).
-        Save to your PC or NAS, then optionally purge that month from Supabase to free cloud
-        storage. Monthly backups give more buffer if you forget a week.
-      </p>
-      {showDueBanner ? (
-        <p className="monthly-archive-due" role="status">
-          Monthly archive reminder — download and store last month&apos;s jobs locally.
-        </p>
-      ) : null}
       <div className="monthly-archive-dates">
         <label>
           Month
@@ -161,10 +150,7 @@ export default function MonthlyArchivePanel({ orders, onPurged, inModal = false 
           {periodStart && periodEnd ? `${periodStart} → ${periodEnd}` : ""}
         </span>
       </div>
-      <p className="monthly-archive-meta">
-        {monthOrderCount} job(s) in dashboard for this month · Purge only affects jobs in the
-        downloaded month after you confirm.
-      </p>
+      <p className="monthly-archive-meta">{monthOrderCount} job(s) this month</p>
       {progress ? <p className="monthly-archive-progress">{progress}</p> : null}
       {lastResult ? (
         <p className="monthly-archive-result">

@@ -183,10 +183,6 @@ export default function SharedLinksPanel({ isAdmin, canEdit = false }) {
       <header className="dashboard-panel-head shared-links-head">
         <div>
           <h2 className="dashboard-section-title">Shared Links</h2>
-          <p className="shared-links-lead">
-            Quick access to SharePoint folders, Excel sheets, and other shared resources. Click a
-            link to open it in a new tab.
-          </p>
         </div>
         {mayEdit ? (
           <button type="button" className="shared-links-add-btn" onClick={openCreateForm}>
@@ -194,12 +190,6 @@ export default function SharedLinksPanel({ isAdmin, canEdit = false }) {
           </button>
         ) : null}
       </header>
-
-      {!mayEdit ? (
-        <p className="tab-readonly-notice" role="status">
-          View only — browse and open links. Only admins can add or edit entries here.
-        </p>
-      ) : null}
 
       <div className="shared-links-toolbar">
         <label className="shared-links-search">
@@ -234,11 +224,7 @@ export default function SharedLinksPanel({ isAdmin, canEdit = false }) {
         <p>Loading links…</p>
       ) : visibleLinks.length === 0 ? (
         <p className="shared-links-empty">
-          {links.length === 0
-            ? mayEdit
-              ? "No shared links yet. Click + Add link to add SharePoint, Excel, or other URLs."
-              : "No shared links have been added yet."
-            : "No links match your search."}
+          {links.length === 0 ? "No shared links yet." : "No links match your search."}
         </p>
       ) : (
         <ul className="shared-links-grid">

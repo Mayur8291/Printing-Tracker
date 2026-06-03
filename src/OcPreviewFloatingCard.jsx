@@ -100,7 +100,6 @@ export default function OcPreviewFloatingCard({
           ) : (
             <p className="oc-preview-qr-loading">Loading QR code…</p>
           )}
-          <p className="oc-preview-qr-hint">Scan with phone camera — details show as text (no website link)</p>
         </div>
 
         <dl className="create-oc-label-grid oc-preview-detail-grid">

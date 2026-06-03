@@ -21,9 +21,13 @@ import {
 } from "./orderViewUtils";
 import { supabase } from "./supabaseClient";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
+import CreateInwardEntryModal from "./CreateInwardEntryModal";
 import CreateOutwardChallanModal from "./CreateOutwardChallanModal";
+import InwardEntryList from "./InwardEntryList";
+import InwardEntryPreviewFloatingCard from "./InwardEntryPreviewFloatingCard";
 import OcPreviewFloatingCard from "./OcPreviewFloatingCard";
 import OutwardChallanList from "./OutwardChallanList";
+import { deleteInwardEntry, INWARD_SELECT_FIELDS } from "./inwardEntryUtils";
 import { deleteOutwardChallan, OC_SELECT_FIELDS } from "./outwardChallanUtils";
 
 function formatColorsList(colors) {
@@ -95,12 +99,16 @@ export default function DispatchTabPanel({
   const [expandedId, setExpandedId] = useState(null);
   const [submittingId, setSubmittingId] = useState(null);
   const [draftByOrderId, setDraftByOrderId] = useState({});
-  const [dispatchTab, setDispatchTab] = useState("inward");
+  const [dispatchTab, setDispatchTab] = useState("printing");
   const [searchQuery, setSearchQuery] = useState("");
   const [createOcOpen, setCreateOcOpen] = useState(false);
+  const [createInwardOpen, setCreateInwardOpen] = useState(false);
   const [outwardChallans, setOutwardChallans] = useState([]);
+  const [inwardEntries, setInwardEntries] = useState([]);
   const [loadingChallans, setLoadingChallans] = useState(false);
+  const [loadingInward, setLoadingInward] = useState(false);
   const [previewRecord, setPreviewRecord] = useState(null);
+  const [previewInwardRecord, setPreviewInwardRecord] = useState(null);
 
   const regularStockOrders = useMemo(
     () => (orders ?? []).filter(isRegularStockOrder),
@@ -127,10 +135,12 @@ export default function DispatchTabPanel({
   }, [dispatchTab, regularStockOrders, printingOrders]);
 
   const isProcessedView = dispatchTab === "outward";
+  const isInwardGrnView = dispatchTab === "inward";
+  const isLedgerView = isProcessedView || isInwardGrnView;
 
   const filteredOrders = useMemo(
-    () => (isProcessedView ? tabOrders : filterOrdersBySearch(tabOrders, searchQuery)),
-    [tabOrders, searchQuery, isProcessedView]
+    () => (isLedgerView ? tabOrders : filterOrdersBySearch(tabOrders, searchQuery)),
+    [tabOrders, searchQuery, isLedgerView]
   );
 
   const searchTrimmed = searchQuery.trim();
@@ -169,11 +179,29 @@ export default function DispatchTabPanel({
     setLoadingChallans(false);
   }, []);
 
+  const loadInwardEntries = useCallback(async () => {
+    setLoadingInward(true);
+    const { data, error } = await supabase
+      .from("inward_entries")
+      .select(INWARD_SELECT_FIELDS)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("inward_entries load:", error.message);
+      setInwardEntries([]);
+    } else {
+      setInwardEntries(data ?? []);
+    }
+    setLoadingInward(false);
+  }, []);
+
   useEffect(() => {
     if (dispatchTab === "outward") {
       loadOutwardChallans();
     }
-  }, [dispatchTab, loadOutwardChallans]);
+    if (dispatchTab === "inward") {
+      loadInwardEntries();
+    }
+  }, [dispatchTab, loadOutwardChallans, loadInwardEntries]);
 
   function closeVerifyPanel() {
     setExpandedId(null);
@@ -229,17 +257,39 @@ export default function DispatchTabPanel({
     [isAdmin, previewRecord?.id, closeOcPreview, loadOutwardChallans]
   );
 
+  const openInwardPreview = useCallback((record) => {
+    setPreviewInwardRecord(record);
+  }, []);
+
+  const closeInwardPreview = useCallback(() => {
+    setPreviewInwardRecord(null);
+  }, []);
+
+  const handleDeleteInward = useCallback(
+    async (record) => {
+      if (!isAdmin || !record?.id) return;
+      await deleteInwardEntry(supabase, record);
+      if (previewInwardRecord?.id === record.id) {
+        closeInwardPreview();
+      }
+      await loadInwardEntries();
+    },
+    [isAdmin, previewInwardRecord?.id, closeInwardPreview, loadInwardEntries]
+  );
+
   const totalQty = filteredOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
   const failedCount = filteredOrders.filter((o) => isDispatchVerificationFailed(o)).length;
 
   const filterBits = [DISPATCH_TAB_LABELS[dispatchTab] ?? "Dispatch"];
-  if (!isProcessedView) {
+  if (!isLedgerView) {
     if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
     else if (dateFrom) filterBits.push(`From ${dateFrom}`);
     else if (dateTo) filterBits.push(`To ${dateTo}`);
     if (searchTrimmed) filterBits.push(`Search: “${searchTrimmed}”`);
   } else if (searchTrimmed) {
-    filterBits.push(`OC # filter “${searchTrimmed}”`);
+    filterBits.push(
+      isInwardGrnView ? `Inward filter “${searchTrimmed}”` : `OC # filter “${searchTrimmed}”`
+    );
   }
 
   function renderOrderIdBadges(orderId) {
@@ -369,17 +419,6 @@ export default function DispatchTabPanel({
 
   return (
     <>
-      {!isProcessedView ? (
-        <p className="linked-tab-lead">
-          Check each size qty vs job. All good → Verified &amp; mark as Dispatched (moves to Outward).
-          Mismatch → Dispatch Fail, row RED in Billing and Printing Orders.
-        </p>
-      ) : null}
-      {!isProcessedView && !canEdit ? (
-        <p className="tab-readonly-notice" role="status">
-          View only — you can browse dispatch orders but cannot run verification.
-        </p>
-      ) : null}
       <div className="table-filters linked-tab-filters dispatch-tab-filters">
         <div className="orders-tabs dispatch-orders-tabs" role="tablist" aria-label="Dispatch views">
           <button
@@ -419,7 +458,7 @@ export default function DispatchTabPanel({
             Outward
           </button>
         </div>
-        {!isProcessedView ? (
+        {!isLedgerView ? (
           <>
             <label>
               From
@@ -435,11 +474,17 @@ export default function DispatchTabPanel({
           </>
         ) : null}
         <label className="orders-search-field">
-          {isProcessedView ? "Search by OC number" : "Search"}
+          {isProcessedView ? "Search by OC number" : isInwardGrnView ? "Search inward entries" : "Search"}
           <input
             type="search"
             className="orders-search-input"
-            placeholder={isProcessedView ? "e.g. 4 or OC #4" : "Order #, customer, coordinator…"}
+            placeholder={
+              isProcessedView
+                ? "e.g. 4 or OC #4"
+                : isInwardGrnView
+                  ? "GRN, supplier, product, for whom…"
+                  : "Order #, customer, coordinator…"
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             inputMode={isProcessedView ? "numeric" : undefined}
@@ -450,7 +495,7 @@ export default function DispatchTabPanel({
             Clear search
           </button>
         ) : null}
-        {!isProcessedView ? (
+        {!isLedgerView ? (
           <OrdersPerPageControl
             idPrefix="dispatch-orders-per-page"
             pageSize={pageSize}
@@ -463,6 +508,7 @@ export default function DispatchTabPanel({
             className="dispatch-create-oc-btn"
             disabled={!canEdit}
             title={canEdit ? "Record a new inward entry" : "View only"}
+            onClick={() => setCreateInwardOpen(true)}
           >
             Make Entry
           </button>
@@ -479,6 +525,30 @@ export default function DispatchTabPanel({
           </button>
         ) : null}
       </div>
+      {isInwardGrnView ? (
+        <section
+          className="outward-challans-section dashboard-card"
+          aria-labelledby="inward-entries-heading"
+        >
+          <header className="outward-challans-section-head">
+            <h3 id="inward-entries-heading" className="dashboard-section-title">
+              Inward entries
+            </h3>
+            <p className="outward-challans-section-meta">
+              {loadingInward ? "Loading…" : `${inwardEntries.length} saved`}
+              {searchTrimmed ? ` · filter “${searchTrimmed}”` : ""}
+            </p>
+          </header>
+          <InwardEntryList
+            entries={inwardEntries}
+            loading={loadingInward}
+            searchQuery={searchQuery}
+            onViewRecord={openInwardPreview}
+            canDelete={isAdmin}
+            onDelete={handleDeleteInward}
+          />
+        </section>
+      ) : null}
       {isProcessedView ? (
         <section
           className="outward-challans-section dashboard-card"
@@ -503,10 +573,10 @@ export default function DispatchTabPanel({
           />
         </section>
       ) : null}
-      {!isProcessedView && loadingOrders ? (
+      {!isLedgerView && loadingOrders ? (
         <p>Loading orders…</p>
       ) : null}
-      {!isProcessedView ? (
+      {!isLedgerView ? (
         <>
           <div className="orders-processed-summary" role="status">
             <div className="orders-processed-summary-main">
@@ -879,6 +949,13 @@ export default function DispatchTabPanel({
         canDelete={isAdmin}
         onDelete={handleDeleteOc}
       />
+      <InwardEntryPreviewFloatingCard
+        open={Boolean(previewInwardRecord)}
+        record={previewInwardRecord}
+        onClose={closeInwardPreview}
+        canDelete={isAdmin}
+        onDelete={handleDeleteInward}
+      />
       <CreateOutwardChallanModal
         open={createOcOpen}
         onClose={() => setCreateOcOpen(false)}
@@ -887,6 +964,16 @@ export default function DispatchTabPanel({
           loadOutwardChallans();
           openOcPreview(record);
           setCreateOcOpen(false);
+        }}
+      />
+      <CreateInwardEntryModal
+        open={createInwardOpen}
+        onClose={() => setCreateInwardOpen(false)}
+        sessionUserId={sessionUserId}
+        onCreated={(record) => {
+          loadInwardEntries();
+          openInwardPreview(record);
+          setCreateInwardOpen(false);
         }}
       />
     </>

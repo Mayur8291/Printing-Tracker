@@ -32,23 +32,9 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const {
-      data: { user },
-      error: userErr
-    } = await userClient.auth.getUser();
-    if (userErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    const jwt = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!jwt) {
+      return new Response(JSON.stringify({ error: "Unauthorized: sign in and try again" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
@@ -57,6 +43,18 @@ serve(async (req) => {
     const adminClient = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
+
+    const {
+      data: { user },
+      error: userErr
+    } = await adminClient.auth.getUser(jwt);
+    if (userErr || !user) {
+      const detail = userErr?.message ?? "Invalid or expired session";
+      return new Response(JSON.stringify({ error: `Unauthorized: ${detail}` }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
 
     const { data: prof } = await adminClient
       .from("profiles")

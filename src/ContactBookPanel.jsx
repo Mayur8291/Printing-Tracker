@@ -216,9 +216,6 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
       <header className="contact-book-head">
         <div className="contact-book-head-text">
           <h2 className="dashboard-section-title">Contact Book</h2>
-          <p className="dashboard-section-lead">
-            Team contacts with photo and details. {mayEdit ? "You can add, edit, and delete entries." : "View only."}
-          </p>
         </div>
         {mayEdit && !showForm ? (
           <button type="button" className="contact-book-add-btn" onClick={openCreateForm}>
@@ -253,11 +250,8 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
               {photoPreview ? (
                 <img src={photoPreview} alt="" />
               ) : (
-                <span className="contact-book-photo-tap-hint">
-                  <span className="contact-book-photo-tap-icon" aria-hidden>
-                    📷
-                  </span>
-                  Tap to add photo
+                <span className="contact-book-photo-tap-icon" aria-hidden>
+                  📷
                 </span>
               )}
             </button>
@@ -372,9 +366,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
         {loading ? (
           <p className="contact-book-empty">Loading contacts…</p>
         ) : contacts.length === 0 ? (
-          <p className="contact-book-empty">
-            {mayEdit ? "No contacts yet. Click Add contact to create one." : "No contacts in the book yet."}
-          </p>
+          <p className="contact-book-empty">No contacts yet.</p>
         ) : (
           <>
             <div className="contact-book-toolbar">

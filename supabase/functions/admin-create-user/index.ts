@@ -32,23 +32,9 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const {
-      data: { user },
-      error: userErr
-    } = await userClient.auth.getUser();
-    if (userErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    const jwt = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!jwt) {
+      return new Response(JSON.stringify({ error: "Unauthorized: sign in and try again" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
@@ -57,6 +43,18 @@ serve(async (req) => {
     const adminClient = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
+
+    const {
+      data: { user },
+      error: userErr
+    } = await adminClient.auth.getUser(jwt);
+    if (userErr || !user) {
+      const detail = userErr?.message ?? "Invalid or expired session";
+      return new Response(JSON.stringify({ error: `Unauthorized: ${detail}` }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
 
     const { data: prof } = await adminClient
       .from("profiles")
@@ -96,8 +94,11 @@ serve(async (req) => {
     const password = String(body.password ?? "");
     const full_name = String(body.full_name ?? "").trim();
     const department = String(body.department ?? "").trim();
+    const job_role = String(body.job_role ?? "").trim();
+    const employee_id = String(body.employee_id ?? "").trim();
     const roleInput = String(body.role ?? "viewer").trim().toLowerCase();
     const role = roleInput === "admin" ? "admin" : "viewer";
+    const status_tones_enabled = body.status_tones_enabled === false ? false : true;
     const perm = (body.permissions ?? {}) as Record<string, unknown>;
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -137,7 +138,11 @@ serve(async (req) => {
         email: email.toLowerCase(),
         full_name: full_name || email.split("@")[0],
         department: department || null,
-        role
+        job_role: job_role || null,
+        employee_id: employee_id || null,
+        role,
+        status_tones_enabled,
+        is_active: true
       },
       { onConflict: "id" }
     );
@@ -154,6 +159,13 @@ serve(async (req) => {
           : Array.isArray(allowedTabsRaw)
             ? allowedTabsRaw.map((id) => String(id))
             : null;
+      const editableTabsRaw = perm.editable_dashboard_tabs;
+      const editable_dashboard_tabs =
+        editableTabsRaw === null || editableTabsRaw === undefined
+          ? null
+          : Array.isArray(editableTabsRaw)
+            ? editableTabsRaw.map((id) => String(id))
+            : null;
 
       const { error: permUpsertErr } = await adminClient.from("profile_order_permissions").upsert(
         {
@@ -169,6 +181,7 @@ serve(async (req) => {
           can_edit_payment_method: Boolean(perm.can_edit_payment_method),
           can_create_orders: Boolean(perm.can_create_orders),
           allowed_dashboard_tabs,
+          editable_dashboard_tabs,
           updated_at: new Date().toISOString()
         },
         { onConflict: "user_id" }

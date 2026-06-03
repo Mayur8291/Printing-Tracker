@@ -11,6 +11,9 @@ create table if not exists public.profiles (
 alter table public.profiles add column if not exists email text;
 
 alter table public.profiles add column if not exists department text;
+alter table public.profiles add column if not exists job_role text;
+alter table public.profiles add column if not exists employee_id text;
+alter table public.profiles add column if not exists is_active boolean not null default true;
 
 create table if not exists public.admin_emails (
   email text primary key,
@@ -144,6 +147,9 @@ alter table public.profile_order_permissions
 
 alter table public.profile_order_permissions
   add column if not exists allowed_dashboard_tabs text[] default null;
+
+alter table public.profile_order_permissions
+  add column if not exists editable_dashboard_tabs text[] default null;
 
 alter table public.profile_order_permissions
   add column if not exists can_edit_payment_method boolean not null default false;
@@ -1088,3 +1094,238 @@ where p.id = u.id
     select 1 from public.admin_emails a
     where lower(a.email) = lower(u.email)
   );
+
+-- Repeat-order templates (see migration 20260601120000_add_order_templates.sql).
+create table if not exists public.order_templates (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  owner_name text,
+  customer_name text,
+  coordinator_name text,
+  product_name text,
+  colors text[] not null default array[]::text[],
+  size_breakdown jsonb not null default '{}'::jsonb,
+  printing_mtrs numeric(10, 2) not null default 0,
+  remarks text,
+  is_production_order boolean not null default false,
+  payment_method text,
+  delivery_method text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint order_templates_name_len
+    check (char_length(trim(name)) between 1 and 120)
+);
+
+create index if not exists order_templates_user_id_idx
+  on public.order_templates (user_id, updated_at desc);
+
+alter table public.order_templates enable row level security;
+
+drop policy if exists "order templates read own" on public.order_templates;
+create policy "order templates read own"
+on public.order_templates
+for select to authenticated
+using (auth.uid() = user_id or public.jwt_user_is_admin());
+
+drop policy if exists "order templates insert own" on public.order_templates;
+create policy "order templates insert own"
+on public.order_templates
+for insert to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "order templates update own" on public.order_templates;
+create policy "order templates update own"
+on public.order_templates
+for update to authenticated
+using (auth.uid() = user_id or public.jwt_user_is_admin())
+with check (auth.uid() = user_id or public.jwt_user_is_admin());
+
+drop policy if exists "order templates delete own" on public.order_templates;
+create policy "order templates delete own"
+on public.order_templates
+for delete to authenticated
+using (auth.uid() = user_id or public.jwt_user_is_admin());
+
+create or replace function public.touch_order_templates_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists order_templates_touch_updated_at on public.order_templates;
+create trigger order_templates_touch_updated_at
+before update on public.order_templates
+for each row execute function public.touch_order_templates_updated_at();
+
+-- Optional saved images + production handover date (see migration 20260602120000_extend_order_templates.sql).
+alter table public.order_templates
+  add column if not exists image_paths text[] not null default array[]::text[];
+alter table public.order_templates
+  add column if not exists expected_handover_to_printing date;
+
+insert into storage.buckets (id, name, public)
+values ('order-template-images', 'order-template-images', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "order template images read authenticated" on storage.objects;
+create policy "order template images read authenticated"
+on storage.objects
+for select
+to authenticated
+using (bucket_id = 'order-template-images');
+
+drop policy if exists "order template images insert own" on storage.objects;
+create policy "order template images insert own"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'order-template-images'
+  and (
+    public.jwt_user_is_admin()
+    or (storage.foldername(name))[1] = auth.uid()::text
+  )
+);
+
+drop policy if exists "order template images update own" on storage.objects;
+create policy "order template images update own"
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'order-template-images'
+  and (
+    public.jwt_user_is_admin()
+    or (storage.foldername(name))[1] = auth.uid()::text
+  )
+);
+
+drop policy if exists "order template images delete own" on storage.objects;
+create policy "order template images delete own"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'order-template-images'
+  and (
+    public.jwt_user_is_admin()
+    or (storage.foldername(name))[1] = auth.uid()::text
+  )
+);
+
+-- Per-order commercial values (see migration 20260603120000_add_order_costs.sql).
+alter table public.orders
+  add column if not exists order_cost numeric(12, 2),
+  add column if not exists printing_cost numeric(12, 2);
+
+alter table public.order_templates
+  add column if not exists order_cost numeric(12, 2),
+  add column if not exists printing_cost numeric(12, 2);
+
+-- Order kind: printing vs regular stock (see migration 20260605120000_add_order_kind.sql).
+alter table public.orders
+  add column if not exists order_kind text not null default 'printing'
+  check (order_kind in ('printing', 'regular_stock'));
+
+alter table public.order_templates
+  add column if not exists order_kind text not null default 'printing'
+  check (order_kind in ('printing', 'regular_stock'));
+
+-- Shared resource links (see migration 20260604120000_add_shared_resource_links.sql).
+create table if not exists public.shared_resource_links (
+  id bigint generated always as identity primary key,
+  title text not null,
+  url text not null,
+  description text,
+  category text not null default 'other',
+  sort_order integer not null default 0,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint shared_resource_links_title_len
+    check (char_length(trim(title)) between 1 and 200),
+  constraint shared_resource_links_url_len
+    check (char_length(trim(url)) between 8 and 2048),
+  constraint shared_resource_links_category_check
+    check (category in ('sharepoint', 'excel', 'other'))
+);
+
+create index if not exists shared_resource_links_sort_idx
+  on public.shared_resource_links (sort_order asc, title asc);
+
+alter table public.shared_resource_links enable row level security;
+
+drop policy if exists "shared links read authenticated" on public.shared_resource_links;
+create policy "shared links read authenticated"
+on public.shared_resource_links
+for select to authenticated
+using (true);
+
+drop policy if exists "shared links insert admin" on public.shared_resource_links;
+create policy "shared links insert admin"
+on public.shared_resource_links
+for insert to authenticated
+with check (public.jwt_user_is_admin());
+
+drop policy if exists "shared links update admin" on public.shared_resource_links;
+create policy "shared links update admin"
+on public.shared_resource_links
+for update to authenticated
+using (public.jwt_user_is_admin())
+with check (public.jwt_user_is_admin());
+
+drop policy if exists "shared links delete admin" on public.shared_resource_links;
+create policy "shared links delete admin"
+on public.shared_resource_links
+for delete to authenticated
+using (public.jwt_user_is_admin());
+
+create or replace function public.touch_shared_resource_links_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists shared_resource_links_touch_updated_at on public.shared_resource_links;
+create trigger shared_resource_links_touch_updated_at
+before update on public.shared_resource_links
+for each row execute function public.touch_shared_resource_links_updated_at();
+
+-- Coordinator assignment notifications (see migration 20260612120000_add_order_assignment_notifications.sql).
+create table if not exists public.order_assignment_notifications (
+  id bigint generated always as identity primary key,
+  recipient_user_id uuid not null references public.profiles(id) on delete cascade,
+  order_id bigint not null references public.orders(id) on delete cascade,
+  order_display_id text,
+  coordinator_name text not null,
+  assigned_by_user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists order_assignment_notifications_recipient_created_idx
+  on public.order_assignment_notifications (recipient_user_id, created_at desc);
+
+alter table public.order_assignment_notifications enable row level security;
+
+drop policy if exists "assignment notifications read own" on public.order_assignment_notifications;
+create policy "assignment notifications read own"
+on public.order_assignment_notifications
+for select
+to authenticated
+using (recipient_user_id = auth.uid());
+
+drop policy if exists "assignment notifications insert authenticated" on public.order_assignment_notifications;
+create policy "assignment notifications insert authenticated"
+on public.order_assignment_notifications
+for insert
+to authenticated
+with check (assigned_by_user_id = auth.uid());

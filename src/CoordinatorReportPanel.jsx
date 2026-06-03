@@ -393,7 +393,7 @@ export default function CoordinatorReportPanel({ orders, coordinators = [] }) {
           {pieSlices.length === 0 ? (
             <p className="coordinator-report-empty">
               {totalInRange === 0
-                ? "No orders in this range. Table below lists coordinators (including 0 orders)."
+                ? "No orders in this range."
                 : "No data for pie chart."}
             </p>
           ) : (

@@ -63,9 +63,7 @@ export default function OutwardChallanList({
   if (!filtered.length) {
     return (
       <p className="outward-challan-list-empty">
-        {searchQuery.trim()
-          ? "No outward challan matches this OC number."
-          : "No outward challans yet. Click Create New OC to add one."}
+        {searchQuery.trim() ? "No matches." : "No outward challans yet."}
       </p>
     );
   }

@@ -66,10 +66,6 @@ export default function PrintingDepartmentPanel({
     <>
       <header className="dashboard-panel-head printing-dept-head">
         <h2 className="dashboard-section-title">Printing department</h2>
-        <p className="printing-dept-lead linked-tab-lead">
-          Priority queue: earliest <strong>delivery date</strong> first. Same delivery day → job placed
-          first goes first (24h window by order time).
-        </p>
       </header>
       {loadingOrders ? (
         <p>Loading orders…</p>
@@ -84,7 +80,6 @@ export default function PrintingDepartmentPanel({
               <span className="orders-processed-qty">
                 Total qty: <strong>{totalQty}</strong>
               </span>
-              <span className="orders-processed-filters">Sorted by delivery priority</span>
             </div>
           </div>
           <div className="printing-dept-toolbar">

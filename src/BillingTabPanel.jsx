@@ -119,15 +119,6 @@ export default function BillingTabPanel({
         tabIndex={-1}
         onChange={handleInvoiceFileChange}
       />
-      <p className="linked-tab-lead">
-        All orders in the selected date range. Status shows the live workflow stage (New, Printing, Complete,
-        etc.). Upload an invoice per order when ready.
-      </p>
-      {!canEdit ? (
-        <p className="tab-readonly-notice" role="status">
-          View only — you can browse billing orders but cannot upload or replace invoices.
-        </p>
-      ) : null}
       <div className="table-filters linked-tab-filters">
         <label>
           From

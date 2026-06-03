@@ -381,10 +381,6 @@ export default function TeamChatPanel({
       <header className="dashboard-panel-head team-chat-head">
         <div>
           <h2 className="dashboard-section-title">Chat</h2>
-          <p className="dashboard-section-lead">
-            Message text is kept in the database. Images and PDFs are removed automatically after 24 hours.
-            Use <strong>@</strong> display name, <strong>#</strong> order id.
-          </p>
         </div>
       </header>
 
@@ -399,7 +395,7 @@ export default function TeamChatPanel({
           {loading ? (
             <p className="team-chat-empty">Loading messages…</p>
           ) : messages.length === 0 ? (
-            <p className="team-chat-empty">No messages yet. Say hello to the team.</p>
+            <p className="team-chat-empty">No messages yet.</p>
           ) : (
             messages.map((msg) => {
               const author = msg.author ?? {};
