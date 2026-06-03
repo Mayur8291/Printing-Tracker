@@ -103,27 +103,47 @@ function catalogCoordinatorNames(coordinators) {
   return { names, inCatalog: new Set(names) };
 }
 
-function buildPieRows(orders, startISO, endISO, coordinators) {
+function toMoney(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatMoney(value) {
+  return toMoney(value).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function buildCoordinatorTotals(orders, startISO, endISO, coordinators) {
   const { names: catalogNames, inCatalog } = catalogCoordinatorNames(coordinators);
   const map = new Map();
-  for (const n of catalogNames) map.set(n, 0);
+  for (const n of catalogNames) {
+    map.set(n, { name: n, value: 0, revenue: 0, printingCost: 0 });
+  }
   for (const o of orders) {
     if (!orderInRange(o, startISO, endISO)) continue;
     const c = coordinatorLabel(o);
-    if (!map.has(c)) map.set(c, 0);
-    map.set(c, map.get(c) + 1);
+    if (!map.has(c)) map.set(c, { name: c, value: 0, revenue: 0, printingCost: 0 });
+    const row = map.get(c);
+    row.value += 1;
+    row.revenue += toMoney(o.order_cost);
+    row.printingCost += toMoney(o.printing_cost);
+  }
+  for (const row of map.values()) {
+    row.net = row.revenue - row.printingCost;
   }
   if (catalogNames.length === 0) {
-    return [...map.entries()]
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+    return [...map.values()].sort((a, b) => b.revenue - a.revenue || b.value - a.value);
   }
   const out = [];
-  for (const n of catalogNames) out.push({ name: n, value: map.get(n) ?? 0 });
+  for (const n of catalogNames) {
+    out.push(map.get(n) ?? { name: n, value: 0, revenue: 0, printingCost: 0, net: 0 });
+  }
   const extras = [...map.keys()]
     .filter((n) => !inCatalog.has(n))
     .sort((a, b) => a.localeCompare(b));
-  for (const n of extras) out.push({ name: n, value: map.get(n) ?? 0 });
+  for (const n of extras) out.push(map.get(n));
   return out;
 }
 
@@ -268,11 +288,23 @@ export default function CoordinatorReportPanel({ orders, coordinators = [] }) {
   }, [period, anchorDate, anchorMonth, monthRangeStart, monthRangeEnd]);
 
   const pieData = useMemo(
-    () => buildPieRows(orders, startISO, endISO, coordinators),
+    () => buildCoordinatorTotals(orders, startISO, endISO, coordinators),
     [orders, startISO, endISO, coordinators]
   );
 
   const pieSlices = useMemo(() => pieData.filter((d) => d.value > 0), [pieData]);
+
+  const revenueTotals = useMemo(() => {
+    return pieData.reduce(
+      (acc, row) => {
+        acc.revenue += row.revenue;
+        acc.printingCost += row.printingCost;
+        acc.net += row.net;
+        return acc;
+      },
+      { revenue: 0, printingCost: 0, net: 0 }
+    );
+  }, [pieData]);
 
   const linePack = useMemo(() => {
     if (period === "day") return buildLineRowsDay(orders, anchorDate, coordinators);
@@ -401,24 +433,50 @@ export default function CoordinatorReportPanel({ orders, coordinators = [] }) {
           )}
         </div>
       )}
+      <div className="coordinator-report-revenue-summary" role="status">
+        <div>
+          <span className="coordinator-report-revenue-label">Total revenue</span>
+          <strong>{formatMoney(revenueTotals.revenue)}</strong>
+        </div>
+        <div>
+          <span className="coordinator-report-revenue-label">Printing cost</span>
+          <strong>{formatMoney(revenueTotals.printingCost)}</strong>
+        </div>
+        <div
+          className={`coordinator-report-revenue-net ${revenueTotals.net < 0 ? "is-negative" : ""}`}
+        >
+          <span className="coordinator-report-revenue-label">Net</span>
+          <strong>{formatMoney(revenueTotals.net)}</strong>
+        </div>
+      </div>
       <div className="coordinator-report-table-wrap">
-        <table className="coordinator-report-table">
+        <table className="coordinator-report-table coordinator-report-table--rich">
           <thead>
             <tr>
               <th>Coordinator</th>
               <th>Orders</th>
+              <th>Revenue</th>
+              <th>Printing cost</th>
+              <th>Net</th>
             </tr>
           </thead>
           <tbody>
             {pieData.length === 0 ? (
               <tr>
-                <td colSpan={2}>No coordinators and no orders in this range.</td>
+                <td colSpan={5}>No coordinators and no orders in this range.</td>
               </tr>
             ) : (
               pieData.map((row) => (
                 <tr key={row.name}>
                   <td>{row.name}</td>
                   <td>{row.value}</td>
+                  <td className="coordinator-report-money">{formatMoney(row.revenue)}</td>
+                  <td className="coordinator-report-money">{formatMoney(row.printingCost)}</td>
+                  <td
+                    className={`coordinator-report-money ${row.net < 0 ? "is-negative" : "is-positive"}`}
+                  >
+                    {formatMoney(row.net)}
+                  </td>
                 </tr>
               ))
             )}

@@ -10,6 +10,7 @@ import {
   formatReceivedAtDisplay,
   formatSizeBreakdownSummary,
   parseDesignUrls,
+  splitOrderIds,
   receivedAtToDatetimeLocalValue
 } from "./orderViewUtils";
 import {
@@ -83,6 +84,22 @@ export default function OrderDetailPanel({
   renderStageIcon,
   OrderColorsCell
 }) {
+  function renderOrderIdBadges(orderId) {
+    const ids = splitOrderIds(orderId);
+    if (!ids.length) return "—";
+    if (ids.length === 1) return ids[0];
+    return (
+      <span className="order-id-badges" aria-label="Order IDs">
+        {ids.map((id) => (
+          <span key={id} className="order-id-badge" title={id}>
+            {id}
+          </span>
+        ))}
+      </span>
+    );
+  }
+
+  const orderIdShort = splitOrderIds(order.order_id).join(", ") || "—";
   const postUrls = parseDesignUrls(order.approved_design_images);
   const mockupUrls = parseDesignUrls(order.approved_design_url);
   const reviewStatus = effectivePostDesignReviewStatus(order);
@@ -128,7 +145,7 @@ export default function OrderDetailPanel({
         <div>
           <h3>{order.customer_name}</h3>
           <p className="order-detail-sub">
-            Order {order.order_id?.trim() ? order.order_id : "—"} · Job #{order.id}
+            Order {orderIdShort} · Job #{order.id}
           </p>
         </div>
         <button type="button" className="order-detail-close" onClick={onClose} aria-label="Close">
@@ -142,7 +159,7 @@ export default function OrderDetailPanel({
           <div className="order-detail-grid">
             <DetailField label="Order date">{order.order_date || "—"}</DetailField>
             <DetailField label="Order number">
-              {order.order_id?.trim() ? order.order_id : "—"}
+              {renderOrderIdBadges(order.order_id)}
             </DetailField>
             <DetailField label="Owner">{order.owner_name || "—"}</DetailField>
             <DetailField label="Customer">{order.customer_name}</DetailField>
@@ -565,6 +582,16 @@ export default function OrderDetailPanel({
               ) : (
                 Number(order.printing_mtrs ?? 0).toFixed(2)
               )}
+            </DetailField>
+            <DetailField label="Order cost">
+              {order.order_cost != null && order.order_cost !== ""
+                ? Number(order.order_cost).toFixed(2)
+                : "—"}
+            </DetailField>
+            <DetailField label="Printing cost">
+              {order.printing_cost != null && order.printing_cost !== ""
+                ? Number(order.printing_cost).toFixed(2)
+                : "—"}
             </DetailField>
           </div>
         </section>

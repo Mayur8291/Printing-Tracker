@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MockupStudio from "./MockupStudio";
 import CoordinatorReportPanel from "./CoordinatorReportPanel";
+import ProductRevenuePanel from "./ProductRevenuePanel";
 import OrderDetailPanel from "./OrderDetailPanel";
 import MonthlyArchivePanel from "./MonthlyArchivePanel";
 import LinkedOrdersTabPanel from "./LinkedOrdersTabPanel";
 import TeamChatPanel from "./TeamChatPanel";
 import ContactBookPanel from "./ContactBookPanel";
+import SharedLinksPanel from "./SharedLinksPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
 import DispatchTabPanel from "./DispatchTabPanel";
+import GlobalSearchBox from "./GlobalSearchBox";
+import { OC_SELECT_FIELDS } from "./outwardChallanUtils";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import {
   DELIVERY_METHODS,
   PAYMENT_METHODS,
@@ -34,10 +39,13 @@ import {
 import {
   allowedDashboardTabsFromFlags,
   defaultSidebarTabFlags,
+  editableDashboardTabsFromFlags,
   filterSidebarItemsForViewer,
   firstAllowedDashboardTabId,
+  hydrateSidebarEditTabFlagsFromPermission,
   hydrateSidebarTabFlagsFromPermission,
-  viewerCanAccessDashboardTab
+  viewerCanAccessDashboardTab,
+  viewerCanEditDashboardTab
 } from "./dashboardSidebarPermissions";
 import {
   EDITABLE_FIELD_OPTIONS,
@@ -51,6 +59,7 @@ import {
   formatDeliveryDate,
   formatReceivedAtDisplay,
   formatSizeBreakdownSummary,
+  splitOrderIds,
   mergeDesignUrlLists,
   mergeOrdersPreservingDesignImages,
   parseDesignUrls,
@@ -82,7 +91,7 @@ const STAGE_ICON = {
 const SLA_NEW_TO_PENDING_MS = 12 * 60 * 60 * 1000;
 
 function staticAssetUrl(relPath) {
-  const base = import.meta.env.BASE ?? "/";
+  const base = import.meta.env.BASE_URL ?? "/";
   const b = base.endsWith("/") ? base : `${base}/`;
   return `${b}${relPath.replace(/^\//, "")}`;
 }
@@ -275,6 +284,28 @@ function sizesFormToBreakdown(sizes, extraSizes = []) {
   return out;
 }
 
+/** Inverse of sizesFormToBreakdown: rebuild form rows from a saved order's size_breakdown. */
+function sizeBreakdownToForm(breakdown) {
+  const sizes = emptySizesForm();
+  const extraSizes = [];
+  if (!breakdown || typeof breakdown !== "object") return { sizes, extraSizes };
+  const standardKeys = new Set(ORDER_SIZE_COLUMNS.map((c) => c.key));
+  for (const [key, val] of Object.entries(breakdown)) {
+    const n = parseSizeQtyInput(val);
+    if (n <= 0) continue;
+    if (standardKeys.has(key)) {
+      sizes[key] = String(n);
+    } else {
+      extraSizes.push({
+        id: `extra-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        label: String(key),
+        qty: String(n)
+      });
+    }
+  }
+  return { sizes, extraSizes };
+}
+
 function datetimeLocalToIsoOrNull(localStr) {
   const t = String(localStr ?? "").trim();
   if (!t) return null;
@@ -285,6 +316,8 @@ function datetimeLocalToIsoOrNull(localStr) {
 
 const emptyOrder = {
   order_id: "",
+  order_ids: [],
+  order_kind: "printing",
   due_date: "",
   owner_name: "",
   customer_name: "",
@@ -294,12 +327,56 @@ const emptyOrder = {
   product_name: "",
   colors: [],
   printing_mtrs: "0.00",
+  order_cost: "",
+  printing_cost: "",
   remarks: "",
   is_production_order: false,
   expected_handover_to_printing: "",
   payment_method: "",
   delivery_method: ""
 };
+
+function parseMoneyInput(raw) {
+  const s = String(raw ?? "").trim().replace(",", ".");
+  if (!s) return null;
+  const n = Number.parseFloat(s);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
+}
+
+function normalizeOrderIdToken(raw) {
+  const onlyDigits = String(raw ?? "").replace(/\D/g, "");
+  return onlyDigits.trim();
+}
+
+function parseOrderIdTokens(raw) {
+  const s = String(raw ?? "").trim();
+  if (!s) return [];
+  const parts = s.split(/[\s,;]+/g).map(normalizeOrderIdToken).filter(Boolean);
+  // keep order, dedupe
+  const seen = new Set();
+  const out = [];
+  for (const p of parts) {
+    if (seen.has(p)) continue;
+    seen.add(p);
+    out.push(p);
+  }
+  return out;
+}
+
+function OrderIdBadges({ orderId }) {
+  const ids = splitOrderIds(orderId);
+  if (!ids.length) return "—";
+  if (ids.length === 1) return ids[0];
+  return (
+    <span className="order-id-badges" aria-label="Order IDs">
+      {ids.map((id) => (
+        <span key={id} className="order-id-badge" title={id}>
+          {id}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 /** HSL (0–360, 0–100, 0–100) → #rrggbb for stable DB + CSV. */
 function hslToHex(h, s, l) {
@@ -426,18 +503,16 @@ const DASHBOARD_SIDEBAR_MAIN = [
 ];
 
 const DASHBOARD_SIDEBAR_FOOTER = [
+  { id: "shared_links", label: "Shared Links" },
   { id: "contact_book", label: "Contact Book" },
+  { id: "chat", label: "Chat" },
   { id: "asset_management", label: "Asset Management" },
   { id: "audit", label: "Audit" }
 ];
 
-const DASHBOARD_SIDEBAR_CHAT = { id: "chat", label: "Chat" };
+const DASHBOARD_SIDEBAR_SOON_TAB_IDS = new Set(["regular", "asset_management", "audit"]);
 
-const DASHBOARD_SIDEBAR = [
-  ...DASHBOARD_SIDEBAR_MAIN,
-  ...DASHBOARD_SIDEBAR_FOOTER,
-  DASHBOARD_SIDEBAR_CHAT
-];
+const DASHBOARD_SIDEBAR = [...DASHBOARD_SIDEBAR_MAIN, ...DASHBOARD_SIDEBAR_FOOTER];
 
 const DASHBOARD_TAB_STORAGE_KEY = "printing-tracker-dashboard-tab";
 
@@ -467,9 +542,11 @@ const DEFAULT_NEW_USER_PERMISSIONS = {
 };
 
 function defaultNewUserPermissions() {
+  const viewTabs = defaultSidebarTabFlags(DASHBOARD_SIDEBAR);
   return {
     ...DEFAULT_NEW_USER_PERMISSIONS,
-    sidebar_tabs: defaultSidebarTabFlags(DASHBOARD_SIDEBAR)
+    sidebar_tabs: viewTabs,
+    sidebar_edit_tabs: { ...viewTabs }
   };
 }
 
@@ -479,7 +556,8 @@ function hydrateDraftFromPermission(p) {
     typeof p === "object" &&
     (Object.keys(p).some((k) => k.startsWith("can_edit_")) ||
       Object.prototype.hasOwnProperty.call(p, "can_create_orders") ||
-      Object.prototype.hasOwnProperty.call(p, "allowed_dashboard_tabs"));
+      Object.prototype.hasOwnProperty.call(p, "allowed_dashboard_tabs") ||
+      Object.prototype.hasOwnProperty.call(p, "editable_dashboard_tabs"));
   const orderDefaults = hasStored
     ? {
         can_edit_status: p.can_edit_status !== false,
@@ -494,13 +572,17 @@ function hydrateDraftFromPermission(p) {
         can_create_orders: Boolean(p.can_create_orders)
       }
     : { ...DEFAULT_NEW_USER_PERMISSIONS };
+  const sidebar_tabs = hydrateSidebarTabFlagsFromPermission(p, DASHBOARD_SIDEBAR);
   return {
     ...orderDefaults,
-    sidebar_tabs: hydrateSidebarTabFlagsFromPermission(p, DASHBOARD_SIDEBAR)
+    sidebar_tabs,
+    sidebar_edit_tabs: hydrateSidebarEditTabFlagsFromPermission(p, DASHBOARD_SIDEBAR)
   };
 }
 
 function permissionRowFromDraft(draft) {
+  const sidebarTabs = draft.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR);
+  const sidebarEditTabs = draft.sidebar_edit_tabs ?? { ...sidebarTabs };
   return {
     can_edit_status: draft.can_edit_status !== false,
     can_edit_remarks: Boolean(draft.can_edit_remarks),
@@ -512,11 +594,54 @@ function permissionRowFromDraft(draft) {
     can_edit_received_at_printing: Boolean(draft.can_edit_received_at_printing),
     can_edit_payment_method: Boolean(draft.can_edit_payment_method),
     can_create_orders: Boolean(draft.can_create_orders),
-    allowed_dashboard_tabs: allowedDashboardTabsFromFlags(
-      draft.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR),
+    allowed_dashboard_tabs: allowedDashboardTabsFromFlags(sidebarTabs, DASHBOARD_SIDEBAR),
+    editable_dashboard_tabs: editableDashboardTabsFromFlags(
+      sidebarEditTabs,
+      sidebarTabs,
       DASHBOARD_SIDEBAR
     )
   };
+}
+
+function SidebarTabPermissionFields({ tabFlags, editFlags, onViewChange, onEditChange, idPrefix }) {
+  return (
+    <div className="viewer-sidebar-tabs">
+      <p className="viewer-sidebar-tabs-title">Dashboard tabs</p>
+      <p className="viewer-sidebar-tabs-hint">View = see tab. Edit = make changes in that tab.</p>
+      <div className="viewer-sidebar-tabs-table">
+        <div className="viewer-sidebar-tabs-table-head" aria-hidden="true">
+          <span>Tab</span>
+          <span>View</span>
+          <span>Edit</span>
+        </div>
+        {DASHBOARD_SIDEBAR.map((item) => {
+          const canView = Boolean(tabFlags?.[item.id]);
+          return (
+            <div className="viewer-sidebar-tabs-row" key={`${idPrefix}-${item.id}`}>
+              <span className="viewer-sidebar-tabs-row-label">{item.label}</span>
+              <label className="viewer-sidebar-tabs-check">
+                <input
+                  type="checkbox"
+                  checked={canView}
+                  onChange={(e) => onViewChange(item.id, e.target.checked)}
+                />
+                <span className="sr-only">View {item.label}</span>
+              </label>
+              <label className={`viewer-sidebar-tabs-check${canView ? "" : " is-disabled"}`}>
+                <input
+                  type="checkbox"
+                  checked={canView && Boolean(editFlags?.[item.id])}
+                  disabled={!canView}
+                  onChange={(e) => onEditChange(item.id, e.target.checked)}
+                />
+                <span className="sr-only">Edit {item.label}</span>
+              </label>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 /** Align with DB: status allowed unless `can_edit_status` is explicitly false. */
@@ -534,6 +659,35 @@ function viewerMayEditOrderField(permissions, field) {
 
 function viewerHasAnyOrderFieldEdit(permissions) {
   return EDITABLE_FIELD_OPTIONS.some((opt) => viewerMayEditOrderField(permissions, opt.key));
+}
+
+function DashboardSidebarItem({ item, isActive, onSelect, showSoon }) {
+  return (
+    <button
+      type="button"
+      className={isActive ? "dashboard-sidebar-item is-active" : "dashboard-sidebar-item"}
+      aria-current={isActive ? "page" : undefined}
+      onClick={() => onSelect(item.id)}
+    >
+      <span className="dashboard-sidebar-item-label">{item.label}</span>
+      {showSoon ? <span className="dashboard-sidebar-soon">Soon</span> : null}
+    </button>
+  );
+}
+
+function formatHomeLastUpdated(timestampMs) {
+  const elapsedSec = Math.max(0, Math.floor((Date.now() - timestampMs) / 1000));
+  if (elapsedSec < 45) return "Just now";
+  const elapsedMin = Math.floor(elapsedSec / 60);
+  if (elapsedMin < 60) return elapsedMin === 1 ? "1 min ago" : `${elapsedMin} min ago`;
+  const elapsedHr = Math.floor(elapsedMin / 60);
+  if (elapsedHr < 24) return elapsedHr === 1 ? "1 hr ago" : `${elapsedHr} hr ago`;
+  return new Date(timestampMs).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
 }
 
 function ThemeToggle({ theme, onToggle, className = "theme-toggle-btn" }) {
@@ -582,13 +736,14 @@ function App() {
   const [profileError, setProfileError] = useState(null);
   const isAdminUser = (profile?.role ?? "").trim().toLowerCase() === "admin";
 
+  const statusTonesEnabled = profile?.status_tones_enabled !== false;
   useEffect(() => {
-    muteStatusTones = isAdminUser;
-    if (isAdminUser) {
+    muteStatusTones = !statusTonesEnabled;
+    if (!statusTonesEnabled) {
       pendingStatusTone = false;
       pendingStatusToneReady = false;
     }
-  }, [isAdminUser]);
+  }, [statusTonesEnabled]);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [email, setEmail] = useState("");
@@ -599,8 +754,20 @@ function App() {
     if (typeof window === "undefined") return "light";
     return window.localStorage.getItem("printing-tracker-theme") === "dark" ? "dark" : "light";
   });
+  const [homeRefreshedAt, setHomeRefreshedAt] = useState(() => Date.now());
+  const [homeRefreshTick, setHomeRefreshTick] = useState(0);
+  const [homeRefreshing, setHomeRefreshing] = useState(false);
   const [orderForm, setOrderForm] = useState(emptyOrder);
+  const [orderIdDraft, setOrderIdDraft] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [repeatOrderPickerOpen, setRepeatOrderPickerOpen] = useState(false);
+  const [orderTemplates, setOrderTemplates] = useState([]);
+  const [loadingOrderTemplates, setLoadingOrderTemplates] = useState(false);
+  const [templateEditingId, setTemplateEditingId] = useState(null);
+  const [templateDraft, setTemplateDraft] = useState(null);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateColorPickerOpen, setTemplateColorPickerOpen] = useState(false);
+  const templateColorPickerRef = useRef(null);
   const [designFiles, setDesignFiles] = useState([]);
   const [paymentScreenshotFiles, setPaymentScreenshotFiles] = useState([]);
   const [customerAssetFiles, setCustomerAssetFiles] = useState([]);
@@ -623,7 +790,14 @@ function App() {
   const [orderSortCoordinator, setOrderSortCoordinator] = useState("none");
   const [ordersTab, setOrdersTab] = useState("active");
   const [ordersSearchQuery, setOrdersSearchQuery] = useState("");
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [globalSearchOutwardChallans, setGlobalSearchOutwardChallans] = useState([]);
+  const [globalSearchContacts, setGlobalSearchContacts] = useState([]);
+  const [globalSearchExtrasLoading, setGlobalSearchExtrasLoading] = useState(false);
+  const [pendingDispatchSubview, setPendingDispatchSubview] = useState(null);
+  const [pendingOutwardOcId, setPendingOutwardOcId] = useState(null);
   const [dashboardTab, setDashboardTab] = useState(readStoredDashboardTab);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
   const [remarksUpdates, setRemarksUpdates] = useState({});
   const [qtyUpdates, setQtyUpdates] = useState({});
@@ -635,6 +809,7 @@ function App() {
   const [previewIndex, setPreviewIndex] = useState(0);
   const [viewerNameDrafts, setViewerNameDrafts] = useState({});
   const [viewerDepartmentDrafts, setViewerDepartmentDrafts] = useState({});
+  const [viewerToneDrafts, setViewerToneDrafts] = useState({});
   const [permissionDrafts, setPermissionDrafts] = useState({});
   const [newUserForm, setNewUserForm] = useState(() => ({
     email: "",
@@ -642,6 +817,7 @@ function App() {
     full_name: "",
     department: "",
     role: "viewer",
+    status_tones_enabled: true,
     permissions: defaultNewUserPermissions()
   }));
   const [creatingUser, setCreatingUser] = useState(false);
@@ -663,6 +839,7 @@ function App() {
   const [orderHistoryLoading, setOrderHistoryLoading] = useState(false);
   const [orderHistoryError, setOrderHistoryError] = useState("");
   const [viewOrderTarget, setViewOrderTarget] = useState(null);
+  const [viewOrderFromTab, setViewOrderFromTab] = useState(null);
   /** Map order id -> last known status (for new→pending tone). */
   const prevOrderStatusesRef = useRef(null);
   /** Recent approved-design saves — avoids realtime refetch wiping thumbnails. */
@@ -685,6 +862,19 @@ function App() {
     }
   }, [dashboardTab]);
 
+  useEffect(() => {
+    if (!mobileNavOpen) return undefined;
+    function onKeyDown(event) {
+      if (event.key === "Escape") setMobileNavOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    document.body.classList.add("mobile-nav-open");
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.classList.remove("mobile-nav-open");
+    };
+  }, [mobileNavOpen]);
+
   const fetchOrders = useCallback(async (opts) => {
     const silent = opts?.silent === true;
     if (!silent) setLoadingOrders(true);
@@ -692,13 +882,13 @@ function App() {
       const { data, error } = await supabase
         .from("orders")
         .select(
-          "id, order_id, order_date, due_date, owner_name, customer_name, coordinator_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by"
+          "id, order_id, order_date, due_date, owner_name, customer_name, coordinator_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost"
         )
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error(error.message);
-        return;
+        return false;
       }
       const rows = data ?? [];
       setOrders((prev) =>
@@ -709,12 +899,42 @@ function App() {
       setReceivedAtPrintingUpdates(
         Object.fromEntries(rows.map((o) => [o.id, receivedAtToDatetimeLocalValue(o.received_at_printing)]))
       );
+      return true;
     } catch (e) {
       console.error(e instanceof Error ? e.message : e);
+      return false;
     } finally {
       if (!silent) setLoadingOrders(false);
     }
   }, []);
+
+  const loadGlobalSearchExtras = useCallback(async () => {
+    setGlobalSearchExtrasLoading(true);
+    try {
+      const [ocRes, contactRes] = await Promise.all([
+        supabase
+          .from("outward_challans")
+          .select(OC_SELECT_FIELDS)
+          .order("created_at", { ascending: false })
+          .limit(400),
+        supabase
+          .from("contact_book_entries")
+          .select(
+            "id, name, email, department, designation, contact_number, alternate_contact_number"
+          )
+          .order("name", { ascending: true })
+      ]);
+      if (!ocRes.error) setGlobalSearchOutwardChallans(ocRes.data ?? []);
+      if (!contactRes.error) setGlobalSearchContacts(contactRes.data ?? []);
+    } finally {
+      setGlobalSearchExtrasLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    loadGlobalSearchExtras();
+  }, [session?.user?.id, loadGlobalSearchExtras]);
 
   useEffect(() => {
     if (!colorPickerOpen) return;
@@ -730,6 +950,27 @@ function App() {
       document.removeEventListener("touchstart", handlePointerDown);
     };
   }, [colorPickerOpen]);
+
+  useEffect(() => {
+    if (!templateColorPickerOpen) return;
+    function handlePointerDown(e) {
+      if (!templateColorPickerRef.current?.contains(e.target)) {
+        setTemplateColorPickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [templateColorPickerOpen]);
+
+  useEffect(() => {
+    if (!templateDraft) {
+      setTemplateColorPickerOpen(false);
+    }
+  }, [templateDraft]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -787,7 +1028,7 @@ function App() {
 
   /** Prime Web Audio after login so status-change tones can play (browser autoplay rules). */
   useEffect(() => {
-    if (!session?.user || profileLoading || isAdminUser) return undefined;
+    if (!session?.user || profileLoading) return undefined;
     let done = false;
     const prime = () => {
       if (done) return;
@@ -806,17 +1047,12 @@ function App() {
   }, [session?.user?.id, profileLoading, isAdminUser]);
 
   useEffect(() => {
-    if (!session?.user) {
+    const myUserId = session?.user?.id ?? null;
+    if (!myUserId) {
       prevOrderStatusesRef.current = null;
       return;
     }
     if (profileLoading) return;
-    if (isAdminUser) {
-      prevOrderStatusesRef.current = orders.length
-        ? Object.fromEntries(orders.map((o) => [String(o.id), o.status]))
-        : null;
-      return;
-    }
     if (!orders.length) {
       prevOrderStatusesRef.current = null;
       return;
@@ -826,29 +1062,39 @@ function App() {
     if (prev && typeof prev === "object" && Object.keys(prev).length) {
       let changedToReady = false;
       let anyStatusChanged = false;
+      let skippedNotCreator = 0;
       for (const o of orders) {
         const key = String(o.id);
         const was = prev[key];
-        if (was !== undefined && was !== o.status) {
-          anyStatusChanged = true;
-          if (o.status === "ready") changedToReady = true;
+        if (was === undefined || was === o.status) continue;
+        if (String(o.created_by ?? "") !== String(myUserId)) {
+          skippedNotCreator += 1;
+          continue;
         }
+        anyStatusChanged = true;
+        if (o.status === "ready") changedToReady = true;
       }
       if (anyStatusChanged) {
         if (typeof document !== "undefined" && document.visibilityState === "visible") {
+          console.debug("[tone] status change → playing", { changedToReady, muteStatusTones });
           playOrderStatusChangeTone(changedToReady);
         } else {
+          console.debug("[tone] status change deferred (tab hidden)");
           pendingStatusTone = true;
           pendingStatusToneReady = changedToReady;
         }
+      } else if (skippedNotCreator > 0) {
+        console.debug(
+          `[tone] ${skippedNotCreator} status change(s) skipped — current user is not the creator`
+        );
       }
     }
     prevOrderStatusesRef.current = nextMap;
-  }, [session?.user?.id, orders, profileLoading, isAdminUser]);
+  }, [session?.user?.id, orders, profileLoading]);
 
   /** Play deferred status tone when tab becomes visible (hidden-tab throttling). */
   useEffect(() => {
-    if (!session?.user || isAdminUser) return undefined;
+    if (!session?.user) return undefined;
     const flush = () => {
       if (typeof document === "undefined" || document.visibilityState !== "visible") return;
       if (!pendingStatusTone) return;
@@ -864,18 +1110,22 @@ function App() {
     };
   }, [session?.user?.id, isAdminUser]);
 
-  /** Tone-03 every 5 min while any active order is Ready to Dispatch > 48h. */
+  /** Tone-03 every 5 min while any order created by current user is Ready to Dispatch > 48h. */
   useEffect(() => {
-    if (!session?.user || profileLoading || isAdminUser) return undefined;
+    const myUserId = session?.user?.id ?? null;
+    if (!myUserId || profileLoading) return undefined;
 
     const tick = () => {
       if (typeof document === "undefined" || document.visibilityState !== "visible") return;
-      if (anyOrderReadyOver48h(orders)) playReadyDispatchOverdueTone();
+      const myOrders = orders.filter(
+        (o) => String(o.created_by ?? "") === String(myUserId)
+      );
+      if (anyOrderReadyOver48h(myOrders)) playReadyDispatchOverdueTone();
     };
 
     const id = window.setInterval(tick, READY_OVERDUE_TONE_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [session?.user?.id, orders, profileLoading, isAdminUser]);
+  }, [session?.user?.id, orders, profileLoading]);
 
   useEffect(() => {
     if (!session?.user) return undefined;
@@ -960,7 +1210,7 @@ function App() {
 
       let { data: prof, error: profErr } = await supabase
         .from("profiles")
-        .select("id, full_name, email, role, department")
+        .select("id, full_name, email, role, department, status_tones_enabled")
         .eq("id", sessionUser.id)
         .maybeSingle();
 
@@ -991,7 +1241,7 @@ function App() {
         }
         const again = await supabase
           .from("profiles")
-          .select("id, full_name, email, role, department")
+          .select("id, full_name, email, role, department, status_tones_enabled")
           .eq("id", sessionUser.id)
           .maybeSingle();
         prof = again.data;
@@ -1008,7 +1258,7 @@ function App() {
         if (!upErr) {
           const { data: promoted } = await supabase
             .from("profiles")
-            .select("id, full_name, email, role, department")
+            .select("id, full_name, email, role, department, status_tones_enabled")
             .eq("id", sessionUser.id)
             .maybeSingle();
           if (promoted) prof = promoted;
@@ -1079,7 +1329,7 @@ function App() {
         await Promise.all([
           supabase
             .from("profiles")
-            .select("id, full_name, email, department")
+            .select("id, full_name, email, department, status_tones_enabled")
             .eq("role", "viewer")
             .order("full_name", { ascending: true }),
           supabase.from("profile_order_permissions").select("*")
@@ -1144,6 +1394,33 @@ function App() {
     };
   }, [session?.user?.id, profile?.role]);
 
+  /** Refresh own profile when admin toggles tone (or other profile fields) live. */
+  useEffect(() => {
+    if (!session?.user?.id) return undefined;
+    const uid = session.user.id;
+    const channel = supabase
+      .channel(`profile-self-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${uid}`
+        },
+        (payload) => {
+          const next = payload.new;
+          if (next && typeof next === "object") {
+            setProfile((prev) => (prev ? { ...prev, ...next } : prev));
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id]);
+
   useEffect(() => {
     if (!session?.user?.id || profileLoading) return;
     const role = (profile?.role ?? "").trim().toLowerCase();
@@ -1168,11 +1445,39 @@ function App() {
 
   function onOrderFormChange(e) {
     const { name, value } = e.target;
-    const nextValue = name === "order_id" ? value.replace(/\D/g, "") : value;
-    setOrderForm((prev) => ({ ...prev, [name]: nextValue }));
+    setOrderForm((prev) => ({ ...prev, [name]: value }));
     if (name === "payment_method" && !paymentMethodRequiresProof(value)) {
       setPaymentScreenshotFiles([]);
     }
+  }
+
+  function addOrderIdsFromRaw(raw) {
+    const tokens = parseOrderIdTokens(raw);
+    if (!tokens.length) return;
+    setOrderForm((prev) => {
+      const cur = Array.isArray(prev.order_ids) ? prev.order_ids : [];
+      const seen = new Set(cur);
+      const next = [...cur];
+      for (const t of tokens) {
+        if (seen.has(t)) continue;
+        seen.add(t);
+        next.push(t);
+      }
+      return { ...prev, order_ids: next, order_id: next.join(", ") };
+    });
+  }
+
+  function removeOrderIdToken(token) {
+    setOrderForm((prev) => {
+      const cur = Array.isArray(prev.order_ids) ? prev.order_ids : [];
+      const next = cur.filter((t) => t !== token);
+      return { ...prev, order_ids: next, order_id: next.join(", ") };
+    });
+  }
+
+  function clearAllOrderIds() {
+    setOrderForm((prev) => ({ ...prev, order_ids: [], order_id: "" }));
+    setOrderIdDraft("");
   }
 
   function closeCreateOrderForm() {
@@ -1305,9 +1610,15 @@ function App() {
     const parsedMtrs = Number.parseFloat(rawMtrs);
     const printingMtrs = Number.isFinite(parsedMtrs) && parsedMtrs >= 0 ? parsedMtrs : 0;
 
+    const orderIdJoined =
+      Array.isArray(orderForm.order_ids) && orderForm.order_ids.length
+        ? orderForm.order_ids.join(", ")
+        : String(orderForm.order_id ?? "").trim();
+
     const payload = {
       order_date: todayLocalISODate(),
-      order_id: String(orderForm.order_id ?? "").trim() || null,
+      order_id: orderIdJoined || null,
+      order_kind: orderForm.order_kind || "printing",
       due_date: orderForm.due_date,
       owner_name: orderForm.owner_name,
       customer_name: orderForm.customer_name,
@@ -1319,6 +1630,8 @@ function App() {
       approved_design_url: JSON.stringify(uploadedUrls),
       approved_design_images: null,
       printing_mtrs: printingMtrs,
+      order_cost: parseMoneyInput(orderForm.order_cost),
+      printing_cost: parseMoneyInput(orderForm.printing_cost),
       status: "new",
       remarks: orderForm.remarks || null,
       created_by: session.user.id,
@@ -1360,6 +1673,7 @@ function App() {
 
     const tabWhereCreated = dashboardTab;
     setOrderForm(emptyOrder);
+    setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
     setCustomerAssetFiles([]);
@@ -1368,6 +1682,382 @@ function App() {
     setOrdersTab("active");
     await fetchOrders();
     alert("Job card has been saved successfully.");
+  }
+
+  function blankTemplateDraft() {
+    return {
+      name: "",
+      owner_name: "",
+      customer_name: "",
+      coordinator_name: "",
+      product_name: "",
+      colors: [],
+      sizes: emptySizesForm(),
+      extraSizes: [],
+      printing_mtrs: "0.00",
+      order_cost: "",
+      printing_cost: "",
+      remarks: "",
+      is_production_order: false,
+      expected_handover_to_printing: "",
+      payment_method: "",
+      delivery_method: "",
+      existingImagePaths: [],
+      newImageFiles: []
+    };
+  }
+
+  function openRepeatOrderPicker() {
+    setTemplateEditingId(null);
+    setTemplateDraft(null);
+    setRepeatOrderPickerOpen(true);
+    void fetchOrderTemplates();
+  }
+
+  function closeRepeatOrderPicker() {
+    setRepeatOrderPickerOpen(false);
+    setTemplateEditingId(null);
+    setTemplateDraft(null);
+  }
+
+  async function fetchOrderTemplates() {
+    if (!session?.user?.id) {
+      setOrderTemplates([]);
+      return;
+    }
+    setLoadingOrderTemplates(true);
+    try {
+      const { data, error } = await supabase
+        .from("order_templates")
+        .select(
+          "id, name, owner_name, customer_name, coordinator_name, product_name, colors, size_breakdown, printing_mtrs, order_cost, printing_cost, remarks, is_production_order, expected_handover_to_printing, payment_method, delivery_method, image_paths, updated_at"
+        )
+        .order("updated_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      setOrderTemplates(Array.isArray(data) ? data : []);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoadingOrderTemplates(false);
+    }
+  }
+
+  function startNewTemplate() {
+    setTemplateEditingId("new");
+    setTemplateDraft(blankTemplateDraft());
+  }
+
+  function startEditTemplate(template) {
+    const { sizes, extraSizes } = sizeBreakdownToForm(template.size_breakdown);
+    setTemplateEditingId(template.id);
+    setTemplateDraft({
+      name: template.name ?? "",
+      owner_name: template.owner_name ?? "",
+      customer_name: template.customer_name ?? "",
+      coordinator_name: template.coordinator_name ?? "",
+      product_name: template.product_name ?? "",
+      colors: Array.isArray(template.colors) ? [...template.colors] : [],
+      sizes,
+      extraSizes,
+      printing_mtrs:
+        template.printing_mtrs != null && template.printing_mtrs !== ""
+          ? String(template.printing_mtrs)
+          : "0.00",
+      order_cost:
+        template.order_cost != null && template.order_cost !== ""
+          ? String(template.order_cost)
+          : "",
+      printing_cost:
+        template.printing_cost != null && template.printing_cost !== ""
+          ? String(template.printing_cost)
+          : "",
+      remarks: template.remarks ?? "",
+      is_production_order: Boolean(template.is_production_order),
+      expected_handover_to_printing: template.expected_handover_to_printing ?? "",
+      payment_method: template.payment_method ?? "",
+      delivery_method: template.delivery_method ?? "",
+      existingImagePaths: Array.isArray(template.image_paths)
+        ? [...template.image_paths]
+        : [],
+      newImageFiles: []
+    });
+  }
+
+  function cancelTemplateDraft() {
+    setTemplateEditingId(null);
+    setTemplateDraft(null);
+  }
+
+  function updateTemplateDraft(patch) {
+    setTemplateDraft((prev) => ({ ...(prev ?? blankTemplateDraft()), ...patch }));
+  }
+
+  function updateTemplateDraftSize(key, value) {
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      sizes: { ...(prev?.sizes ?? emptySizesForm()), [key]: value }
+    }));
+  }
+
+  function addTemplateExtraSize() {
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      extraSizes: [...(prev?.extraSizes ?? []), newExtraSizeRow()]
+    }));
+  }
+
+  function updateTemplateExtraSize(id, patch) {
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      extraSizes: (prev?.extraSizes ?? []).map((row) =>
+        row.id === id ? { ...row, ...patch } : row
+      )
+    }));
+  }
+
+  function removeTemplateExtraSize(id) {
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      extraSizes: (prev?.extraSizes ?? []).filter((row) => row.id !== id)
+    }));
+  }
+
+  function toggleTemplatePaletteColor(hex) {
+    const key = hex.toLowerCase();
+    setTemplateDraft((prev) => {
+      const cur = prev?.colors ?? [];
+      const exists = cur.some((c) => normalizeColorKey(c) === key);
+      return {
+        ...(prev ?? blankTemplateDraft()),
+        colors: exists ? cur.filter((c) => normalizeColorKey(c) !== key) : [...cur, hex]
+      };
+    });
+  }
+
+  function removeTemplateColor(color) {
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      colors: (prev?.colors ?? []).filter((c) => c !== color)
+    }));
+  }
+
+  function handleTemplateImageFiles(files) {
+    const incoming = Array.from(files ?? []).filter((f) => f && f.type?.startsWith("image/"));
+    if (!incoming.length) return;
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      newImageFiles: [...(prev?.newImageFiles ?? []), ...incoming]
+    }));
+  }
+
+  function removeTemplateNewImage(index) {
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      newImageFiles: (prev?.newImageFiles ?? []).filter((_, i) => i !== index)
+    }));
+  }
+
+  function removeTemplateExistingImage(path) {
+    setTemplateDraft((prev) => ({
+      ...(prev ?? blankTemplateDraft()),
+      existingImagePaths: (prev?.existingImagePaths ?? []).filter((p) => p !== path)
+    }));
+  }
+
+  function templateImagePublicUrl(path) {
+    if (!path) return null;
+    const { data } = supabase.storage.from("order-template-images").getPublicUrl(path);
+    return data?.publicUrl ?? null;
+  }
+
+  async function handleSaveTemplate(e) {
+    e?.preventDefault?.();
+    const draft = templateDraft;
+    if (!draft) return;
+    const name = draft.name.trim();
+    if (!name) {
+      alert("Give the template a name (e.g. customer + product).");
+      return;
+    }
+    const uid = session?.user?.id;
+    if (!uid) {
+      alert("You must be signed in to save a template.");
+      return;
+    }
+    const colors = Array.isArray(draft.colors) ? draft.colors.filter(Boolean) : [];
+    const size_breakdown = sizesFormToBreakdown(draft.sizes, draft.extraSizes);
+    const mtrsNum = Number.parseFloat(String(draft.printing_mtrs).replace(",", "."));
+    const printing_mtrs = Number.isFinite(mtrsNum) ? mtrsNum : 0;
+    const expectedDate = draft.is_production_order
+      ? String(draft.expected_handover_to_printing ?? "").trim() || null
+      : null;
+    const payload = {
+      name,
+      owner_name: draft.owner_name.trim() || null,
+      customer_name: draft.customer_name.trim() || null,
+      coordinator_name: draft.coordinator_name.trim() || null,
+      product_name: draft.product_name.trim() || null,
+      colors,
+      size_breakdown,
+      printing_mtrs,
+      order_cost: parseMoneyInput(draft.order_cost),
+      printing_cost: parseMoneyInput(draft.printing_cost),
+      remarks: draft.remarks.trim() || null,
+      is_production_order: Boolean(draft.is_production_order),
+      expected_handover_to_printing: expectedDate,
+      payment_method: draft.payment_method || null,
+      delivery_method: draft.delivery_method || null
+    };
+
+    setSavingTemplate(true);
+    try {
+      let templateRow;
+      if (templateEditingId && templateEditingId !== "new") {
+        const { data, error } = await supabase
+          .from("order_templates")
+          .update(payload)
+          .eq("id", templateEditingId)
+          .select("id")
+          .single();
+        if (error) throw new Error(error.message);
+        templateRow = data;
+      } else {
+        const { data, error } = await supabase
+          .from("order_templates")
+          .insert({ ...payload, user_id: uid })
+          .select("id")
+          .single();
+        if (error) throw new Error(error.message);
+        templateRow = data;
+      }
+
+      const templateId = templateRow?.id;
+      const existingPaths = draft.existingImagePaths ?? [];
+      const originalTemplate = orderTemplates.find((t) => t.id === templateEditingId);
+      const originalPaths = Array.isArray(originalTemplate?.image_paths)
+        ? originalTemplate.image_paths
+        : [];
+      const removedPaths = originalPaths.filter((p) => !existingPaths.includes(p));
+      if (removedPaths.length) {
+        await supabase.storage.from("order-template-images").remove(removedPaths);
+      }
+
+      const uploadedPaths = [];
+      for (const file of draft.newImageFiles ?? []) {
+        if (!file) continue;
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+        const path = `${uid}/${templateId}/${safeName}`;
+        const { error: upErr } = await supabase.storage
+          .from("order-template-images")
+          .upload(path, file, { upsert: false });
+        if (upErr) throw new Error(upErr.message);
+        uploadedPaths.push(path);
+      }
+
+      const finalImagePaths = [...existingPaths, ...uploadedPaths];
+      if (
+        finalImagePaths.length !== originalPaths.length ||
+        finalImagePaths.some((p, i) => p !== originalPaths[i])
+      ) {
+        const { error: updErr } = await supabase
+          .from("order_templates")
+          .update({ image_paths: finalImagePaths })
+          .eq("id", templateId);
+        if (updErr) throw new Error(updErr.message);
+      }
+
+      await fetchOrderTemplates();
+      setTemplateEditingId(null);
+      setTemplateDraft(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
+
+  async function handleDeleteTemplate(template) {
+    if (!template?.id) return;
+    if (!window.confirm(`Delete template "${template.name}"? This cannot be undone.`)) return;
+    try {
+      const paths = Array.isArray(template.image_paths) ? template.image_paths : [];
+      if (paths.length) {
+        await supabase.storage.from("order-template-images").remove(paths);
+      }
+      const { error } = await supabase
+        .from("order_templates")
+        .delete()
+        .eq("id", template.id);
+      if (error) throw new Error(error.message);
+      await fetchOrderTemplates();
+      if (templateEditingId === template.id) {
+        setTemplateEditingId(null);
+        setTemplateDraft(null);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function handleUseTemplate(template) {
+    if (!template) return;
+    const { sizes, extraSizes } = sizeBreakdownToForm(template.size_breakdown);
+    setOrderForm({
+      ...emptyOrder,
+      owner_name: template.owner_name ?? "",
+      customer_name: template.customer_name ?? "",
+      coordinator_name: template.coordinator_name ?? "",
+      sizes,
+      extraSizes,
+      product_name: template.product_name ?? "",
+      colors: Array.isArray(template.colors) ? template.colors : [],
+      printing_mtrs:
+        template.printing_mtrs != null && template.printing_mtrs !== ""
+          ? String(template.printing_mtrs)
+          : "0.00",
+      order_cost:
+        template.order_cost != null && template.order_cost !== ""
+          ? String(template.order_cost)
+          : "",
+      printing_cost:
+        template.printing_cost != null && template.printing_cost !== ""
+          ? String(template.printing_cost)
+          : "",
+      remarks: template.remarks ?? "",
+      is_production_order: Boolean(template.is_production_order),
+      expected_handover_to_printing: template.expected_handover_to_printing ?? "",
+      payment_method: template.payment_method ?? "",
+      delivery_method: template.delivery_method ?? ""
+    });
+    setDesignFiles([]);
+    setPaymentScreenshotFiles([]);
+
+    const paths = Array.isArray(template.image_paths) ? template.image_paths : [];
+    if (paths.length) {
+      try {
+        const fetched = await Promise.all(
+          paths.map(async (path) => {
+            const url = templateImagePublicUrl(path);
+            if (!url) return null;
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            const blob = await res.blob();
+            const baseName = path.split("/").pop() || `template-image-${Date.now()}`;
+            return new File([blob], baseName, { type: blob.type || "image/png" });
+          })
+        );
+        setCustomerAssetFiles(fetched.filter(Boolean));
+      } catch {
+        setCustomerAssetFiles([]);
+      }
+    } else {
+      setCustomerAssetFiles([]);
+    }
+
+    setRepeatOrderPickerOpen(false);
+    setTemplateEditingId(null);
+    setTemplateDraft(null);
+    setShowCreateForm(true);
   }
 
   async function handleAddOwner() {
@@ -1460,23 +2150,65 @@ function App() {
   function updateSidebarTabDraft(viewerId, tabId, checked) {
     setPermissionDrafts((prev) => {
       const base = prev[viewerId] ?? hydrateDraftFromPermission(viewerPermissions[viewerId] ?? {});
+      const sidebar_tabs = {
+        ...(base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        [tabId]: checked
+      };
+      const sidebar_edit_tabs = {
+        ...(base.sidebar_edit_tabs ?? base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        [tabId]: checked ? base.sidebar_edit_tabs?.[tabId] !== false : false
+      };
+      if (checked && base.sidebar_edit_tabs?.[tabId] !== false) {
+        sidebar_edit_tabs[tabId] = true;
+      }
+      return {
+        ...prev,
+        [viewerId]: { ...base, sidebar_tabs, sidebar_edit_tabs }
+      };
+    });
+  }
+
+  function updateSidebarEditTabDraft(viewerId, tabId, checked) {
+    setPermissionDrafts((prev) => {
+      const base = prev[viewerId] ?? hydrateDraftFromPermission(viewerPermissions[viewerId] ?? {});
       return {
         ...prev,
         [viewerId]: {
           ...base,
-          sidebar_tabs: { ...(base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)), [tabId]: checked }
+          sidebar_edit_tabs: {
+            ...(base.sidebar_edit_tabs ?? base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+            [tabId]: checked
+          }
         }
       };
     });
   }
 
   function updateNewUserSidebarTab(tabId, checked) {
+    setNewUserForm((prev) => {
+      const sidebar_tabs = {
+        ...(prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        [tabId]: checked
+      };
+      const sidebar_edit_tabs = {
+        ...(prev.permissions.sidebar_edit_tabs ?? prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        [tabId]: checked ? prev.permissions.sidebar_edit_tabs?.[tabId] !== false : false
+      };
+      if (checked) sidebar_edit_tabs[tabId] = true;
+      return {
+        ...prev,
+        permissions: { ...prev.permissions, sidebar_tabs, sidebar_edit_tabs }
+      };
+    });
+  }
+
+  function updateNewUserSidebarEditTab(tabId, checked) {
     setNewUserForm((prev) => ({
       ...prev,
       permissions: {
         ...prev.permissions,
-        sidebar_tabs: {
-          ...(prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        sidebar_edit_tabs: {
+          ...(prev.permissions.sidebar_edit_tabs ?? prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
           [tabId]: checked
         }
       }
@@ -1494,10 +2226,18 @@ function App() {
         : (viewer?.department ?? "");
     const department = String(rawDept).trim();
     const draft = permissionDrafts[viewerId] ?? hydrateDraftFromPermission(viewerPermissions[viewerId] ?? {});
+    const toneEnabled =
+      viewerToneDrafts[viewerId] !== undefined
+        ? Boolean(viewerToneDrafts[viewerId])
+        : viewer?.status_tones_enabled !== false;
 
     const { error: nameErr } = await supabase
       .from("profiles")
-      .update({ full_name: fullName || null, department: department || null })
+      .update({
+        full_name: fullName || null,
+        department: department || null,
+        status_tones_enabled: toneEnabled
+      })
       .eq("id", viewerId);
     if (nameErr) {
       alert(nameErr.message);
@@ -1527,6 +2267,11 @@ function App() {
       delete next[viewerId];
       return next;
     });
+    setViewerToneDrafts((prev) => {
+      const next = { ...prev };
+      delete next[viewerId];
+      return next;
+    });
     const refreshed = await fetchViewersAndPermissions();
     if (showMasterList && refreshed?.viewerPermissions) {
       setPermissionDrafts((prev) => ({
@@ -1538,7 +2283,7 @@ function App() {
 
   async function handleResetViewerPermissions(userId) {
     const ok = window.confirm(
-      "Reset saved permissions for this user? Order field access and sidebar tabs will return to defaults until set again."
+      "Reset saved permissions for this user? Order field access, sidebar view/edit access will return to defaults until set again."
     );
     if (!ok) return;
     const { error } = await supabase.from("profile_order_permissions").delete().eq("user_id", userId);
@@ -1569,6 +2314,7 @@ function App() {
       full_name: "",
       department: "",
       role: "viewer",
+      status_tones_enabled: true,
       permissions: defaultNewUserPermissions()
     });
   }
@@ -1602,6 +2348,7 @@ function App() {
           full_name: fullName,
           department,
           role,
+          status_tones_enabled: newUserForm.status_tones_enabled !== false,
           permissions: role === "viewer" ? permissionRowFromDraft(newUserForm.permissions) : {}
         }
       });
@@ -1836,10 +2583,12 @@ function App() {
 
   function openViewOrder(order) {
     setViewOrderTarget(order);
+    setViewOrderFromTab(dashboardTab);
   }
 
   function closeViewOrder() {
     setViewOrderTarget(null);
+    setViewOrderFromTab(null);
   }
 
   async function refreshOrderHistory() {
@@ -1902,6 +2651,37 @@ function App() {
     [activePipelineOrders]
   );
 
+  const homeLastUpdatedLabel = useMemo(() => {
+    void homeRefreshTick;
+    return formatHomeLastUpdated(homeRefreshedAt);
+  }, [homeRefreshedAt, homeRefreshTick]);
+
+  useEffect(() => {
+    if (dashboardTab !== "home") return undefined;
+    const id = window.setInterval(() => setHomeRefreshTick((t) => t + 1), 30000);
+    return () => window.clearInterval(id);
+  }, [dashboardTab]);
+
+  useEffect(() => {
+    if (session?.user && !loadingOrders) {
+      setHomeRefreshedAt(Date.now());
+    }
+  }, [session?.user?.id, loadingOrders]);
+
+  async function refreshHomeStatus() {
+    if (homeRefreshing) return;
+    setHomeRefreshing(true);
+    try {
+      const ok = await fetchOrders({ silent: true });
+      if (ok) {
+        setHomeRefreshedAt(Date.now());
+        setHomeRefreshTick((t) => t + 1);
+      }
+    } finally {
+      setHomeRefreshing(false);
+    }
+  }
+
   const ordersInDateRange = useMemo(
     () => orders.filter((order) => isInSelectedDateRange(order.order_date)),
     [orders, dateFrom, dateTo]
@@ -1939,6 +2719,17 @@ function App() {
   }, [filteredOrders, ordersSearchQuery, orderSortCoordinator, coordinatorUpdates]);
 
   const ordersSearchTrimmed = ordersSearchQuery.trim();
+
+  const printingPaginationKey = `${ordersTab}|${dateFrom}|${dateTo}|${orderSortCoordinator}|${ordersSearchTrimmed}`;
+  const {
+    visible: printingVisibleOrders,
+    total: printingTotalOrders,
+    page: printingPage,
+    setPage: setPrintingPage,
+    pageSize: printingPageSize,
+    setPageSize: setPrintingPageSize,
+    totalPages: printingTotalPages
+  } = usePagination(sortedFilteredOrders, "printing", printingPaginationKey);
 
   const ordersInDateRangeAll = useMemo(
     () => filterOrdersInDateRange(orders, dateFrom, dateTo),
@@ -2009,10 +2800,20 @@ function App() {
   useEffect(() => {
     if (!session?.user || profileLoading || profileError) return;
     const role = (profile?.role ?? "").trim().toLowerCase();
-    if (role !== "admin" && ordersTab === "coordinator_report") {
+    if (ordersTab === "coordinator_report" || ordersTab === "product_revenue") {
       setOrdersTab("active");
     }
   }, [session?.user?.id, profile?.role, profileLoading, profileError, ordersTab]);
+
+  const canAccessDashboardTabForSearch = useCallback(
+    (tabId) => {
+      if (!session?.user) return false;
+      if (isAdminUser) return true;
+      const perms = viewerPermissions[session.user.id] ?? {};
+      return viewerCanAccessDashboardTab(perms, tabId);
+    },
+    [session?.user?.id, isAdminUser, viewerPermissions]
+  );
 
   if (!session) {
     return (
@@ -2091,22 +2892,60 @@ function App() {
   const isSalesReviewer = userIsSalesReviewer(profile, isAdmin);
   const isViewer = normalizedRole === "viewer";
   const currentUserPermissions = viewerPermissions[session?.user?.id] ?? {};
-  const viewerCanCreateOrders = isViewer && Boolean(currentUserPermissions.can_create_orders);
-  const viewerMayUpdateOrders = isAdmin || (isViewer && viewerHasAnyOrderFieldEdit(currentUserPermissions));
+  const viewerCanCreateOrders =
+    isViewer &&
+    Boolean(currentUserPermissions.can_create_orders) &&
+    viewerCanEditDashboardTab(currentUserPermissions, "printing");
+  const viewerCanEditCurrentTab =
+    isAdmin || viewerCanEditDashboardTab(currentUserPermissions, dashboardTab);
+  const viewOrderTabCanEdit =
+    isAdmin ||
+    (viewOrderFromTab
+      ? viewerCanEditDashboardTab(currentUserPermissions, viewOrderFromTab)
+      : viewerCanEditCurrentTab);
+  const viewerMayUpdateOrders =
+    isAdmin || (isViewer && viewerHasAnyOrderFieldEdit(currentUserPermissions) && viewOrderTabCanEdit);
   const visibleSidebarMain = filterSidebarItemsForViewer(
     DASHBOARD_SIDEBAR_MAIN,
     currentUserPermissions,
     isAdmin
   );
-  const visibleSidebarFooter = filterSidebarItemsForViewer(
+  const visibleSidebarFooterWithChat = filterSidebarItemsForViewer(
     DASHBOARD_SIDEBAR_FOOTER,
     currentUserPermissions,
     isAdmin
   );
-  const viewerCanAccessChat =
-    isAdmin || viewerCanAccessDashboardTab(currentUserPermissions, DASHBOARD_SIDEBAR_CHAT.id);
+  const currentDashboardTabLabel =
+    DASHBOARD_SIDEBAR.find((item) => item.id === dashboardTab)?.label ?? "Menu";
+
+  function selectDashboardTab(tabId) {
+    setDashboardTab(tabId);
+    setMobileNavOpen(false);
+  }
+
+  function clearGlobalSearchNavigation() {
+    setPendingDispatchSubview(null);
+    setPendingOutwardOcId(null);
+  }
+
+  function handleGlobalSearchSelect(item) {
+    if (!item?.tabId) return;
+    selectDashboardTab(item.tabId);
+    if (item.dispatchSubview) {
+      setPendingDispatchSubview(item.dispatchSubview);
+    }
+    if (item.kind === "outward_challan" && item.outwardChallan?.id != null) {
+      setPendingOutwardOcId(item.outwardChallan.id);
+      setPendingDispatchSubview("outward");
+    }
+    if (item.kind === "order" && item.order) {
+      window.setTimeout(() => openViewOrder(item.order), 60);
+    }
+    setGlobalSearchQuery("");
+  }
 
   const canCurrentUserEdit = (field) => {
+    if (!viewOrderTabCanEdit && isViewer) return false;
     if (field === "coordinator_name" && isAdmin) return false;
     if (isAdmin) return true;
     if (!isViewer) return false;
@@ -2535,122 +3374,172 @@ function App() {
     }
   }
 
+  const headerRoleLabel = profileLoading
+    ? "Loading…"
+    : profileError
+      ? "Error"
+      : normalizedRole
+        ? normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1)
+        : "User";
+
+  const headerUserName = profileLoading
+    ? "Loading…"
+    : profileError
+      ? "—"
+      : profile?.full_name?.trim() || profile?.email?.trim() || "User";
+
   return (
-    <div className="page">
-      <header className="topbar panel">
-        <div className="topbar-brand">
-          <img src="/brand-logo.png" alt="" className="topbar-logo" width={40} height={40} />
-          <h1>Master Dashboard</h1>
-        </div>
-        <div className="topbar-actions">
-          <div className="topbar-user-badges">
-            {isAdmin && (
-              <div className="role-chip">
-                {profileLoading ? "Loading…" : profileError ? "Error" : normalizedRole || "—"}
-              </div>
-            )}
-            {!profileLoading && !profileError && profile?.department?.trim() ? (
-              <div className="department-chip" title="Department">
-                {profile.department.trim()}
-              </div>
-            ) : null}
-          </div>
-          {isAdmin && (
-            <>
-              <button
-                type="button"
-                className="topbar-users-btn"
-                onClick={() => {
-                  setMasterListView("list");
-                  setShowMasterList(true);
-                }}
-              >
-                Edit Users
-              </button>
-              <button
-                type="button"
-                className="topbar-archive-btn"
-                onClick={() => setShowArchiveModal(true)}
-              >
-                Archive
-              </button>
-            </>
-          )}
-          <ThemeToggle theme={theme} onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))} />
-          <button className="logout-btn" onClick={handleSignOut}>Logout</button>
-        </div>
-      </header>
-
-      {profileError && (
-        <div className="panel profile-error-banner">
-          <strong>{profileError.startsWith("Cannot reach Supabase") ? "Connection:" : "Account setup:"}</strong>{" "}
-          {profileError}{" "}
-          {!profileError.startsWith("Cannot reach Supabase") && (
-            <>
-              If you are an admin, add your email to <code>admin_emails</code> and run the latest{" "}
-              <code>supabase/schema.sql</code> in Supabase (RLS + profile rules).
-            </>
-          )}
-        </div>
-      )}
-
+    <div className="page app-layout">
       <div className="dashboard-shell">
-        <aside className="dashboard-sidebar" role="navigation" aria-label="Dashboard menu">
+        {mobileNavOpen ? (
+          <button
+            type="button"
+            className="mobile-nav-backdrop"
+            aria-label="Close menu"
+            onClick={() => setMobileNavOpen(false)}
+          />
+        ) : null}
+        <aside
+          className={mobileNavOpen ? "dashboard-sidebar is-mobile-open" : "dashboard-sidebar"}
+          role="navigation"
+          aria-label="Dashboard menu"
+        >
+          <div className="dashboard-sidebar-brand">
+            <img
+              src="/brand-logo.png"
+              alt=""
+              className="dashboard-sidebar-logo"
+              width={32}
+              height={32}
+            />
+            <span className="dashboard-sidebar-brand-text">Scott Dashboard</span>
+          </div>
+          <div className="mobile-nav-drawer-head">
+            <h2 className="mobile-nav-drawer-title">Menu</h2>
+            <button
+              type="button"
+              className="mobile-nav-close"
+              aria-label="Close menu"
+              onClick={() => setMobileNavOpen(false)}
+            >
+              ×
+            </button>
+          </div>
           <nav className="dashboard-sidebar-nav">
             <div className="dashboard-sidebar-main">
               {visibleSidebarMain.map((item) => (
-                <button
+                <DashboardSidebarItem
                   key={item.id}
-                  type="button"
-                  className={
-                    dashboardTab === item.id
-                      ? "dashboard-sidebar-item is-active"
-                      : "dashboard-sidebar-item"
-                  }
-                  aria-current={dashboardTab === item.id ? "page" : undefined}
-                  onClick={() => setDashboardTab(item.id)}
-                >
-                  {item.label}
-                </button>
+                  item={item}
+                  isActive={dashboardTab === item.id}
+                  onSelect={selectDashboardTab}
+                  showSoon={DASHBOARD_SIDEBAR_SOON_TAB_IDS.has(item.id)}
+                />
               ))}
             </div>
             <div className="dashboard-sidebar-footer">
               <div className="dashboard-sidebar-footer-nav">
-                {visibleSidebarFooter.map((item) => (
-                  <button
+                {visibleSidebarFooterWithChat.map((item) => (
+                  <DashboardSidebarItem
                     key={item.id}
-                    type="button"
-                    className={
-                      dashboardTab === item.id
-                        ? "dashboard-sidebar-item is-active"
-                        : "dashboard-sidebar-item"
-                    }
-                    aria-current={dashboardTab === item.id ? "page" : undefined}
-                    onClick={() => setDashboardTab(item.id)}
-                  >
-                    {item.label}
-                  </button>
+                    item={item}
+                    isActive={dashboardTab === item.id}
+                    onSelect={selectDashboardTab}
+                    showSoon={DASHBOARD_SIDEBAR_SOON_TAB_IDS.has(item.id)}
+                  />
                 ))}
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    className="dashboard-sidebar-item dashboard-sidebar-item--admin"
+                    onClick={() => {
+                      setMasterListView("list");
+                      setShowMasterList(true);
+                      setMobileNavOpen(false);
+                    }}
+                  >
+                    <span className="dashboard-sidebar-item-label">Admin Panel</span>
+                  </button>
+                ) : null}
               </div>
-              {viewerCanAccessChat ? (
-                <button
-                  type="button"
-                  className={
-                    dashboardTab === DASHBOARD_SIDEBAR_CHAT.id
-                      ? "dashboard-sidebar-item is-active dashboard-sidebar-item--chat"
-                      : "dashboard-sidebar-item dashboard-sidebar-item--chat"
-                  }
-                  aria-current={dashboardTab === DASHBOARD_SIDEBAR_CHAT.id ? "page" : undefined}
-                  onClick={() => setDashboardTab(DASHBOARD_SIDEBAR_CHAT.id)}
-                >
-                  {DASHBOARD_SIDEBAR_CHAT.label}
-                </button>
-              ) : null}
             </div>
           </nav>
         </aside>
 
-        <div className="dashboard-main">
+        <div className="dashboard-workspace">
+          <header className="dashboard-topbar">
+            <h1 className="dashboard-topbar-title">{currentDashboardTabLabel}</h1>
+            <div className="dashboard-topbar-actions">
+              <div className="dashboard-topbar-row dashboard-topbar-row--primary">
+                <GlobalSearchBox
+                  query={globalSearchQuery}
+                  onQueryChange={setGlobalSearchQuery}
+                  orders={orders}
+                  outwardChallans={globalSearchOutwardChallans}
+                  contacts={globalSearchContacts}
+                  canAccessTab={canAccessDashboardTabForSearch}
+                  onSelect={handleGlobalSearchSelect}
+                  loadingExtras={globalSearchExtrasLoading}
+                />
+                {isAdmin ? (
+                  <>
+                    <button
+                      type="button"
+                      className="topbar-users-btn dashboard-topbar-btn"
+                      onClick={() => {
+                        setMasterListView("list");
+                        setShowMasterList(true);
+                      }}
+                    >
+                      Edit Users
+                    </button>
+                    <button
+                      type="button"
+                      className="topbar-archive-btn dashboard-topbar-btn"
+                      onClick={() => setShowArchiveModal(true)}
+                    >
+                      Archive
+                    </button>
+                  </>
+                ) : null}
+                <button type="button" className="logout-btn dashboard-topbar-btn" onClick={handleSignOut}>
+                  Logout
+                </button>
+              </div>
+              <div className="dashboard-topbar-row dashboard-topbar-row--secondary">
+                <div className="dashboard-topbar-user-meta">
+                  <span className="dashboard-topbar-user-name">{headerUserName}</span>
+                  {!profileLoading && !profileError ? (
+                    <span className="dashboard-topbar-user-role">{headerRoleLabel}</span>
+                  ) : null}
+                  {!profileLoading && !profileError && profile?.department?.trim() ? (
+                    <span className="dashboard-topbar-user-dept" title="Department">
+                      {profile.department.trim()}
+                    </span>
+                  ) : null}
+                  <ThemeToggle
+                    theme={theme}
+                    onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+                  />
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {profileError && (
+            <div className="panel profile-error-banner dashboard-banner">
+              <strong>{profileError.startsWith("Cannot reach Supabase") ? "Connection:" : "Account setup:"}</strong>{" "}
+              {profileError}{" "}
+              {!profileError.startsWith("Cannot reach Supabase") && (
+                <>
+                  If you are an admin, add your email to <code>admin_emails</code> and run the latest{" "}
+                  <code>supabase/schema.sql</code> in Supabase (RLS + profile rules).
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="dashboard-main">
           {isAdmin && masterTableMissing && (
             <p className="panel master-warning master-warning-banner">
               Supabase tables for Owners/Coordinators are missing. Run updated{" "}
@@ -2659,24 +3548,107 @@ function App() {
           )}
 
           {dashboardTab === "home" && (
-            <section className="panel dashboard-home-panel">
-              <header className="dashboard-panel-head">
-                <h2 className="dashboard-section-title">Home</h2>
-                <p className="dashboard-section-lead">Order counts by status (active jobs only).</p>
+            <section className="home-status-panel" aria-labelledby="home-status-title">
+              <header className="home-status-head">
+                <div className="home-status-head-text">
+                  <h2 id="home-status-title" className="home-status-title">
+                    Order counts by status
+                  </h2>
+                  <p className="home-status-subtitle">Active jobs only</p>
+                </div>
+                <div className="home-status-refresh">
+                  <button
+                    type="button"
+                    className={
+                      homeRefreshing
+                        ? "home-status-refresh-btn is-refreshing"
+                        : "home-status-refresh-btn"
+                    }
+                    onClick={() => void refreshHomeStatus()}
+                    disabled={homeRefreshing}
+                    aria-label="Refresh order counts"
+                    aria-busy={homeRefreshing}
+                    title="Refresh order counts"
+                  >
+                    <svg
+                      className="home-status-refresh-icon"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
+                      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+                      <path d="M21 3v6h-6" />
+                    </svg>
+                  </button>
+                  <span className="home-status-updated" aria-live="polite">
+                    {homeRefreshing ? "Refreshing…" : `Last updated: ${homeLastUpdatedLabel}`}
+                  </span>
+                </div>
               </header>
-              <div className="dashboard-metrics dashboard-metrics--home">
-                <section className="stats-grid">
-                  {summary.map((item) => (
-                    <div className={`stat-card stage-${item.key}`} key={item.key}>
-                      <div className="stat-title">
-                        {renderStageIcon(item.key, item.label)}
-                        {item.label}
-                      </div>
-                      <div className="stat-count">{item.count}</div>
-                      <div className="stat-sub">orders</div>
+
+              <div className="home-status-grid">
+                {summary.map((item) => (
+                  <article
+                    className={`home-stat-card home-stat-card--${item.key}`}
+                    key={item.key}
+                    aria-label={`${item.label}: ${item.count} ${item.count === 1 ? "order" : "orders"}`}
+                  >
+                    <div className="home-stat-card__icon-wrap">
+                      {item.key === "new" ? (
+                        <span className="home-stat-card__new-badge">NEW</span>
+                      ) : (
+                        renderStageIcon(item.key, item.label)
+                      )}
                     </div>
-                  ))}
+                    <h3 className="home-stat-card__title">{item.label}</h3>
+                    <p className="home-stat-card__count">{item.count}</p>
+                    <p className="home-stat-card__label">{item.count === 1 ? "order" : "orders"}</p>
+                  </article>
+                ))}
+              </div>
+
+              {isAdmin ? (
+                <section
+                  className="home-printing-report-card"
+                  aria-labelledby="home-printing-report-title"
+                >
+                  <header className="home-printing-report-head">
+                    <h2 id="home-printing-report-title" className="home-printing-report-title">
+                      Report of printing orders
+                    </h2>
+                  </header>
+                  <CoordinatorReportPanel orders={orders} coordinators={coordinators} />
                 </section>
+              ) : null}
+
+              {isAdmin ? (
+                <section
+                  className="home-printing-report-card"
+                  aria-labelledby="home-product-revenue-title"
+                >
+                  <header className="home-printing-report-head">
+                    <h2 id="home-product-revenue-title" className="home-printing-report-title">
+                      Product revenue
+                    </h2>
+                  </header>
+                  <ProductRevenuePanel orders={orders} />
+                </section>
+              ) : null}
+
+              <div className="home-status-footnote" role="note">
+                <span className="home-status-footnote-icon" aria-hidden="true">
+                  i
+                </span>
+                <div className="home-status-footnote-text">
+                  <strong>Counts reflect active jobs only.</strong>
+                  <p>Archived and completed orders are not included.</p>
+                </div>
               </div>
             </section>
           )}
@@ -2695,6 +3667,11 @@ function App() {
           {dashboardTab === "printing" && (
       <section className="panel table-panel dashboard-card">
         <>
+        {isViewer && !viewerCanEditCurrentTab ? (
+          <p className="tab-readonly-notice" role="status">
+            View only — you can browse printing orders but cannot create or edit from this tab.
+          </p>
+        ) : null}
         <div className="table-filters">
           <div className="orders-tabs" role="tablist" aria-label="Order list view">
             <button
@@ -2715,20 +3692,8 @@ function App() {
             >
               Complete orders
             </button>
-            {isAdmin ? (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={ordersTab === "coordinator_report"}
-                className={ordersTab === "coordinator_report" ? "orders-tab is-active" : "orders-tab"}
-                onClick={() => setOrdersTab("coordinator_report")}
-              >
-                Coordinator report
-              </button>
-            ) : null}
           </div>
-          {!(ordersTab === "coordinator_report" && isAdmin) && (
-            <>
+          <>
               <label>
                 From
                 <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
@@ -2776,8 +3741,12 @@ function App() {
                   Clear search
                 </button>
               ) : null}
-            </>
-          )}
+              <OrdersPerPageControl
+                idPrefix="printing-orders-per-page"
+                pageSize={printingPageSize}
+                onPageSizeChange={setPrintingPageSize}
+              />
+          </>
           {session && (
             <div className="create-order-row create-order-row--in-card create-order-row--right">
               <button type="button" className="btn-mockup" onClick={() => setShowMockupStudio(true)}>
@@ -2785,6 +3754,14 @@ function App() {
               </button>
               {(isAdmin || viewerCanCreateOrders) && (
                 <>
+                  <button
+                    type="button"
+                    className="btn-repeat-order"
+                    onClick={openRepeatOrderPicker}
+                    title="Create a new order pre-filled from an existing one"
+                  >
+                    Repeat Order
+                  </button>
                   {!showCreateForm && (
                     <button type="button" onClick={() => setShowCreateForm(true)}>
                       Create New Order
@@ -2802,8 +3779,6 @@ function App() {
         </div>
         {loadingOrders ? (
           <p>Loading orders...</p>
-        ) : ordersTab === "coordinator_report" && isAdmin ? (
-          <CoordinatorReportPanel orders={orders} coordinators={coordinators} />
         ) : (
           <>
           <div className="orders-processed-summary" role="status" aria-live="polite">
@@ -2841,7 +3816,7 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {sortedFilteredOrders.map((order) => (
+                {printingVisibleOrders.map((order) => (
                   <tr key={order.id} className={dispatchRowHighlightClass(order) || undefined}>
                     <td>
                       <button
@@ -2853,7 +3828,7 @@ function App() {
                       </button>
                     </td>
                     <td className="orders-compact-id">
-                      {order.order_id?.trim() ? order.order_id : "—"}
+                      <OrderIdBadges orderId={order.order_id} />
                       {isDispatchVerificationFailed(order) ? (
                         <span className="dispatch-failed-badge">FAIL</span>
                       ) : null}
@@ -2877,7 +3852,7 @@ function App() {
                     <td>{order.qty}</td>
                   </tr>
                 ))}
-                {sortedFilteredOrders.length === 0 && (
+                {printingTotalOrders === 0 && (
                   <tr>
                     <td colSpan={8}>
                       {ordersSearchTrimmed
@@ -2891,6 +3866,13 @@ function App() {
               </tbody>
             </table>
           </div>
+          <OrdersPagination
+            page={printingPage}
+            totalPages={printingTotalPages}
+            onPageChange={setPrintingPage}
+            total={printingTotalOrders}
+            pageSize={printingPageSize}
+          />
           </>
         )}
         </>
@@ -2906,8 +3888,16 @@ function App() {
             </section>
           )}
 
+          {dashboardTab === "shared_links" && (
+            <SharedLinksPanel isAdmin={isAdmin} canEdit={viewerCanEditCurrentTab} />
+          )}
+
           {dashboardTab === "contact_book" && (
-            <ContactBookPanel isAdmin={isAdmin} sessionUserId={session?.user?.id} />
+            <ContactBookPanel
+              isAdmin={isAdmin}
+              canEdit={viewerCanEditCurrentTab}
+              sessionUserId={session?.user?.id}
+            />
           )}
 
           {dashboardTab === "asset_management" && (
@@ -2942,6 +3932,7 @@ function App() {
             <section className="panel table-panel dashboard-card dashboard-card--flat">
           <LinkedOrdersTabPanel
             tabTitle="Production Tracker"
+            paginationKey="production-tracker"
             tabDescription="Jobs created with Production order = Yes. Same orders also appear under Printing Orders."
             summaryLabel="Production jobs"
             orders={productionTrackerOrders}
@@ -2984,6 +3975,7 @@ function App() {
                 onViewOrder={openViewOrder}
                 onInvoiceUpdated={() => fetchOrders({ silent: true })}
                 renderStageIcon={renderStageIcon}
+                canEdit={viewerCanEditCurrentTab}
               />
             </section>
           )}
@@ -3004,13 +3996,550 @@ function App() {
                 onViewOrder={openViewOrder}
                 onVerificationUpdated={() => fetchOrders({ silent: true })}
                 renderStageIcon={renderStageIcon}
+                canEdit={viewerCanEditCurrentTab}
+                isAdmin={isAdmin}
                 sessionUserId={session?.user?.id}
                 teamProfiles={teamProfiles}
+                initialDispatchSubview={pendingDispatchSubview}
+                pendingOutwardOcId={pendingOutwardOcId}
+                onNavigateConsumed={clearGlobalSearchNavigation}
               />
             </section>
           )}
+          </div>
         </div>
       </div>
+
+      <div className="mobile-nav-bar">
+        <span className="mobile-nav-current">{currentDashboardTabLabel}</span>
+        <button
+          type="button"
+          className="mobile-nav-menu-btn"
+          aria-label="Open menu"
+          aria-expanded={mobileNavOpen}
+          onClick={() => setMobileNavOpen(true)}
+        >
+          <span className="mobile-nav-menu-icon" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+        </button>
+      </div>
+      {repeatOrderPickerOpen && (isAdmin || viewerCanCreateOrders) && (
+        <div
+          className="image-modal-backdrop repeat-order-modal-backdrop"
+          onClick={closeRepeatOrderPicker}
+        >
+          <div
+            className="repeat-order-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="repeat-order-modal-title"
+          >
+            <div className="repeat-order-modal-head">
+              <h2 id="repeat-order-modal-title">Repeat order templates</h2>
+              <button
+                type="button"
+                className="order-detail-close"
+                aria-label="Close repeat order"
+                onClick={closeRepeatOrderPicker}
+              >
+                ×
+              </button>
+            </div>
+            <p className="repeat-order-lead">
+              Save the fixed parts of an order you know will come in again. Next time it arrives,
+              click <strong>Use</strong> and just tweak the quantity, date, or whatever varies.
+            </p>
+
+            <div className="repeat-order-templates">
+              <div className="repeat-order-templates-head">
+                <h3>Saved templates</h3>
+                {templateDraft ? null : (
+                  <button
+                    type="button"
+                    className="btn-repeat-order repeat-order-add-btn"
+                    onClick={startNewTemplate}
+                  >
+                    + New template
+                  </button>
+                )}
+              </div>
+              {loadingOrderTemplates ? (
+                <p className="repeat-order-empty">Loading templates…</p>
+              ) : orderTemplates.length === 0 ? (
+                <p className="repeat-order-empty">
+                  No templates yet. Click <strong>+ New template</strong> to save your first one.
+                </p>
+              ) : (
+                <ul className="repeat-order-template-grid">
+                  {orderTemplates.map((tpl) => {
+                    const qty =
+                      tpl.size_breakdown && typeof tpl.size_breakdown === "object"
+                        ? Object.values(tpl.size_breakdown).reduce(
+                            (sum, v) => sum + (Number.parseInt(v, 10) || 0),
+                            0
+                          )
+                        : 0;
+                    const coverPath = Array.isArray(tpl.image_paths) ? tpl.image_paths[0] : null;
+                    const coverUrl = coverPath ? templateImagePublicUrl(coverPath) : null;
+                    const imageCount = Array.isArray(tpl.image_paths) ? tpl.image_paths.length : 0;
+                    return (
+                      <li key={tpl.id} className="repeat-order-template-card">
+                        <div className="repeat-order-template-card-head">
+                          <div className="repeat-order-template-name">{tpl.name}</div>
+                          {imageCount > 1 ? (
+                            <span className="repeat-order-template-image-count">
+                              +{imageCount - 1} more
+                            </span>
+                          ) : null}
+                        </div>
+                        <div
+                          className={`repeat-order-template-card-image ${
+                            coverUrl ? "has-image" : "is-empty"
+                          }`}
+                        >
+                          {coverUrl ? (
+                            <img src={coverUrl} alt={`Reference for ${tpl.name}`} loading="lazy" />
+                          ) : (
+                            <span className="repeat-order-template-image-placeholder">
+                              Reference image
+                            </span>
+                          )}
+                        </div>
+                        <div className="repeat-order-template-meta">
+                          {tpl.customer_name ? <span>{tpl.customer_name}</span> : null}
+                          {tpl.product_name ? <span>{tpl.product_name}</span> : null}
+                          {qty > 0 ? <span>Qty {qty}</span> : null}
+                        </div>
+                        <div className="repeat-order-template-actions">
+                          <button
+                            type="button"
+                            className="btn-repeat-order"
+                            onClick={() => handleUseTemplate(tpl)}
+                          >
+                            Use
+                          </button>
+                          <button
+                            type="button"
+                            className="repeat-order-template-btn"
+                            onClick={() => startEditTemplate(tpl)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="repeat-order-template-btn repeat-order-template-btn--danger"
+                            onClick={() => handleDeleteTemplate(tpl)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {templateDraft ? (
+              <form className="repeat-order-template-form" onSubmit={handleSaveTemplate}>
+                <h3>
+                  {templateEditingId === "new" ? "New template" : "Edit template"}
+                </h3>
+                <div className="repeat-order-form-grid">
+                  <label>
+                    Template name
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Acme weekly cotton tee"
+                      value={templateDraft.name}
+                      onChange={(e) => updateTemplateDraft({ name: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Customer
+                    <input
+                      type="text"
+                      value={templateDraft.customer_name}
+                      onChange={(e) => updateTemplateDraft({ customer_name: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Owner
+                    <select
+                      value={templateDraft.owner_name}
+                      onChange={(e) => updateTemplateDraft({ owner_name: e.target.value })}
+                    >
+                      <option value="">—</option>
+                      {owners.map((o) => (
+                        <option key={o.id ?? o.name} value={o.name}>
+                          {o.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Coordinator
+                    <select
+                      value={templateDraft.coordinator_name}
+                      onChange={(e) => updateTemplateDraft({ coordinator_name: e.target.value })}
+                    >
+                      <option value="">—</option>
+                      {coordinators.map((c) => (
+                        <option key={c.id ?? c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="repeat-order-form-wide">
+                    Product name
+                    <input
+                      type="text"
+                      value={templateDraft.product_name}
+                      onChange={(e) => updateTemplateDraft({ product_name: e.target.value })}
+                    />
+                  </label>
+                  <div
+                    className="repeat-order-form-wide repeat-order-colors-field colors-field"
+                    ref={templateColorPickerRef}
+                  >
+                    <span className="repeat-order-colors-label">Colors</span>
+                    <button
+                      type="button"
+                      className={`color-field-trigger ${templateColorPickerOpen ? "is-open" : ""}`}
+                      aria-label="Colors"
+                      aria-expanded={templateColorPickerOpen}
+                      aria-haspopup="dialog"
+                      aria-controls="template-color-picker-popover"
+                      onClick={() => setTemplateColorPickerOpen((o) => !o)}
+                    >
+                      <span className="color-field-trigger__value">
+                        {(templateDraft.colors ?? []).length === 0 ? (
+                          <span className="color-field-placeholder">Click to choose colors…</span>
+                        ) : (
+                          templateDraft.colors.map((c, i) => (
+                            <span
+                              key={`${c}-${i}`}
+                              className="color-field-trigger__dot"
+                              style={
+                                isCssColorString(c)
+                                  ? { backgroundColor: c, backgroundImage: "none" }
+                                  : undefined
+                              }
+                              title={c}
+                              aria-hidden
+                            />
+                          ))
+                        )}
+                      </span>
+                      <span className="color-field-trigger__chevron" aria-hidden>
+                        {templateColorPickerOpen ? "▲" : "▼"}
+                      </span>
+                    </button>
+                    {templateColorPickerOpen ? (
+                      <div
+                        id="template-color-picker-popover"
+                        className="color-picker-popover"
+                        role="dialog"
+                        aria-label="Choose colors"
+                      >
+                        <p className="order-form-hint colors-field-hint">
+                          Tap swatches to add or remove. ✓ = selected.
+                        </p>
+                        <div className="color-palette" role="group" aria-label="Color swatches">
+                          {ORDER_COLOR_PALETTE.map((hex, idx) => {
+                            const selected = (templateDraft.colors ?? []).some(
+                              (c) => normalizeColorKey(c) === hex
+                            );
+                            return (
+                              <button
+                                key={`tpl-swatch-${idx}`}
+                                type="button"
+                                className={`color-palette-swatch ${selected ? "is-selected" : ""}`}
+                                style={{ backgroundColor: hex, backgroundImage: "none" }}
+                                aria-label={selected ? `${hex}, selected` : hex}
+                                aria-pressed={selected}
+                                onClick={() => toggleTemplatePaletteColor(hex)}
+                              >
+                                {selected ? (
+                                  <span className="color-palette-check" aria-hidden>
+                                    ✓
+                                  </span>
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {(templateDraft.colors ?? []).length > 0 ? (
+                          <div
+                            className="color-chips color-chips--in-panel"
+                            aria-label="Selected colors"
+                          >
+                            {templateDraft.colors.map((color, i) => (
+                              <span
+                                key={`${color}-${i}`}
+                                className="color-chip color-chip--picked"
+                              >
+                                {isCssColorString(color) ? (
+                                  <span
+                                    className="color-chip-swatch"
+                                    style={{ backgroundColor: color, backgroundImage: "none" }}
+                                    aria-hidden
+                                  />
+                                ) : null}
+                                <span className="color-chip-code">{color}</span>
+                                <button
+                                  type="button"
+                                  className="color-chip-remove"
+                                  onClick={() => removeTemplateColor(color)}
+                                  aria-label={`Remove ${color}`}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                        <div className="color-picker-popover__footer">
+                          <button
+                            type="button"
+                            className="color-picker-done-btn"
+                            onClick={() => setTemplateColorPickerOpen(false)}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                  <label>
+                    Printing mtrs
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={templateDraft.printing_mtrs}
+                      onChange={(e) => updateTemplateDraft({ printing_mtrs: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Order cost
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={templateDraft.order_cost}
+                      onChange={(e) => updateTemplateDraft({ order_cost: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Printing cost
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={templateDraft.printing_cost}
+                      onChange={(e) => updateTemplateDraft({ printing_cost: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Payment method
+                    <select
+                      value={templateDraft.payment_method}
+                      onChange={(e) => updateTemplateDraft({ payment_method: e.target.value })}
+                    >
+                      <option value="">—</option>
+                      {PAYMENT_METHODS.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Delivery method
+                    <select
+                      value={templateDraft.delivery_method}
+                      onChange={(e) => updateTemplateDraft({ delivery_method: e.target.value })}
+                    >
+                      <option value="">—</option>
+                      {DELIVERY_METHODS.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="repeat-order-form-check">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(templateDraft.is_production_order)}
+                      onChange={(e) =>
+                        updateTemplateDraft({ is_production_order: e.target.checked })
+                      }
+                    />
+                    Production order
+                  </label>
+                  {templateDraft.is_production_order ? (
+                    <label>
+                      Expected handover to printing
+                      <input
+                        type="date"
+                        value={templateDraft.expected_handover_to_printing ?? ""}
+                        onChange={(e) =>
+                          updateTemplateDraft({ expected_handover_to_printing: e.target.value })
+                        }
+                      />
+                    </label>
+                  ) : null}
+                </div>
+
+                <fieldset className="repeat-order-sizes">
+                  <legend>Default size breakdown (qty per size)</legend>
+                  <div className="repeat-order-sizes-grid">
+                    {ORDER_SIZE_COLUMNS.map(({ key, label }) => (
+                      <label key={key}>
+                        {label}
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={templateDraft.sizes?.[key] ?? ""}
+                          onChange={(e) => updateTemplateDraftSize(key, e.target.value)}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  {(templateDraft.extraSizes ?? []).map((row) => (
+                    <div className="repeat-order-extra-size" key={row.id}>
+                      <input
+                        type="text"
+                        placeholder="Custom size (e.g. 4XL)"
+                        value={row.label}
+                        onChange={(e) =>
+                          updateTemplateExtraSize(row.id, { label: e.target.value })
+                        }
+                      />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Qty"
+                        value={row.qty}
+                        onChange={(e) => updateTemplateExtraSize(row.id, { qty: e.target.value })}
+                      />
+                      <button
+                        type="button"
+                        className="repeat-order-template-btn repeat-order-template-btn--danger"
+                        onClick={() => removeTemplateExtraSize(row.id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="repeat-order-template-btn"
+                    onClick={addTemplateExtraSize}
+                  >
+                    + Add custom size
+                  </button>
+                </fieldset>
+
+                <label className="repeat-order-form-wide repeat-order-form-textarea">
+                  Remarks
+                  <textarea
+                    rows={2}
+                    value={templateDraft.remarks}
+                    onChange={(e) => updateTemplateDraft({ remarks: e.target.value })}
+                  />
+                </label>
+
+                <fieldset className="repeat-order-images">
+                  <legend>Reference images</legend>
+                  <p className="repeat-order-images-hint">
+                    Saved with the template. Auto-attached as customer assets when you click Use.
+                  </p>
+                  <div className="repeat-order-image-grid">
+                    {(templateDraft.existingImagePaths ?? []).map((path) => {
+                      const url = templateImagePublicUrl(path);
+                      return (
+                        <div key={path} className="repeat-order-image-thumb">
+                          {url ? <img src={url} alt="Saved reference" /> : null}
+                          <button
+                            type="button"
+                            className="repeat-order-image-remove"
+                            aria-label="Remove saved image"
+                            onClick={() => removeTemplateExistingImage(path)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
+                    {(templateDraft.newImageFiles ?? []).map((file, idx) => {
+                      const url = URL.createObjectURL(file);
+                      return (
+                        <div
+                          key={`${file.name}-${idx}`}
+                          className="repeat-order-image-thumb repeat-order-image-thumb--pending"
+                        >
+                          <img
+                            src={url}
+                            alt="New reference"
+                            onLoad={() => URL.revokeObjectURL(url)}
+                          />
+                          <span className="repeat-order-image-pending-badge">Pending upload</span>
+                          <button
+                            type="button"
+                            className="repeat-order-image-remove"
+                            aria-label="Remove pending image"
+                            onClick={() => removeTemplateNewImage(idx)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => {
+                      handleTemplateImageFiles(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                </fieldset>
+
+                <div className="repeat-order-form-actions">
+                  <button type="button" onClick={cancelTemplateDraft} disabled={savingTemplate}>
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-repeat-order"
+                    disabled={savingTemplate}
+                  >
+                    {savingTemplate
+                      ? "Saving…"
+                      : templateEditingId === "new"
+                        ? "Save template"
+                        : "Update template"}
+                  </button>
+                </div>
+              </form>
+            ) : null}
+          </div>
+        </div>
+      )}
       {showCreateForm && dashboardTab === "printing" && (isAdmin || viewerCanCreateOrders) && (
         <div
           className="image-modal-backdrop create-order-modal-backdrop"
@@ -3046,18 +4575,106 @@ function App() {
                 value={todayLocalISODate()}
               />
             </div>
-            <div className="order-form-cell">
-              <label htmlFor="create-order-external-id">Order ID</label>
-              <input
-                id="create-order-external-id"
-                name="order_id"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="e.g. 01323"
-                value={orderForm.order_id}
-                onChange={onOrderFormChange}
-              />
+            <div className="order-form-cell order-form-orderid-multi">
+              <label htmlFor="create-order-external-id">Order IDs</label>
+              <div className="order-id-multi">
+                <div className="order-id-multi-field" role="group" aria-label="Order IDs">
+                  {Array.isArray(orderForm.order_ids) && orderForm.order_ids.length ? (
+                    <div className="order-id-multi-chips" aria-label="Selected order ids">
+                      {orderForm.order_ids.map((id) => (
+                        <span key={id} className="order-id-chip">
+                          <span className="order-id-chip-value">{id}</span>
+                          <button
+                            type="button"
+                            className="order-id-chip-remove"
+                            aria-label={`Remove ${id}`}
+                            onClick={() => removeOrderIdToken(id)}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  <input
+                    id="create-order-external-id"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder={
+                      Array.isArray(orderForm.order_ids) && orderForm.order_ids.length
+                        ? "Add another…"
+                        : "Type order id and press Enter (e.g. 01323)"
+                    }
+                    value={orderIdDraft}
+                    onChange={(e) => setOrderIdDraft(e.target.value.replace(/\D/g, ""))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addOrderIdsFromRaw(orderIdDraft);
+                        setOrderIdDraft("");
+                      }
+                      if (e.key === "," || e.key === ";") {
+                        e.preventDefault();
+                        addOrderIdsFromRaw(orderIdDraft);
+                        setOrderIdDraft("");
+                      }
+                      if (e.key === "Backspace" && !orderIdDraft) {
+                        const cur = orderForm.order_ids ?? [];
+                        const last = cur[cur.length - 1];
+                        if (last) removeOrderIdToken(last);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (orderIdDraft.trim()) {
+                        addOrderIdsFromRaw(orderIdDraft);
+                        setOrderIdDraft("");
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const text = e.clipboardData?.getData("text") ?? "";
+                      const digitsOnly = String(text).replace(/\D/g, "");
+                      const tokens = parseOrderIdTokens(text);
+                      if (tokens.length > 1) {
+                        e.preventDefault();
+                        addOrderIdsFromRaw(text);
+                        setOrderIdDraft("");
+                        return;
+                      }
+                      // single token paste: just keep digits in the input
+                      if (digitsOnly !== text) {
+                        e.preventDefault();
+                        setOrderIdDraft(digitsOnly);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="order-id-multi-add"
+                    onClick={() => {
+                      addOrderIdsFromRaw(orderIdDraft);
+                      setOrderIdDraft("");
+                    }}
+                    aria-label="Add order id"
+                    title="Add"
+                  >
+                    +
+                  </button>
+                  {Array.isArray(orderForm.order_ids) && orderForm.order_ids.length ? (
+                    <button
+                      type="button"
+                      className="order-id-multi-clear"
+                      onClick={clearAllOrderIds}
+                      title="Clear all"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+                <p className="order-id-multi-hint">
+                  Numbers only. Use Enter to add. You can paste comma-separated IDs.
+                </p>
+              </div>
             </div>
             <div className="order-form-cell">
               <label htmlFor="create-order-due-date">Delivery Date</label>
@@ -3073,6 +4690,29 @@ function App() {
             <div className="order-form-cell order-form-span-3 order-form-production-block">
               <div className="order-form-production-row">
                 <div className="order-form-production-left">
+                  <span className="order-form-label" id="create-order-kind-legend">
+                    Order type
+                  </span>
+                  <div className="order-form-radio-row" role="group" aria-labelledby="create-order-kind-legend">
+                    <label className="order-form-radio-label">
+                      <input
+                        type="radio"
+                        name="order_kind"
+                        checked={(orderForm.order_kind ?? "printing") === "printing"}
+                        onChange={() => setOrderForm((prev) => ({ ...prev, order_kind: "printing" }))}
+                      />
+                      Printing order
+                    </label>
+                    <label className="order-form-radio-label">
+                      <input
+                        type="radio"
+                        name="order_kind"
+                        checked={(orderForm.order_kind ?? "printing") === "regular_stock"}
+                        onChange={() => setOrderForm((prev) => ({ ...prev, order_kind: "regular_stock" }))}
+                      />
+                      Regular stock
+                    </label>
+                  </div>
                   <span className="order-form-label" id="create-production-legend">
                     Production order
                   </span>
@@ -3317,6 +4957,34 @@ function App() {
               value={orderForm.printing_mtrs}
               onChange={onOrderFormChange}
             />
+            <div className="order-form-cell">
+              <label htmlFor="create-order-order-cost">Order cost</label>
+              <input
+                id="create-order-order-cost"
+                name="order_cost"
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                placeholder="0.00"
+                value={orderForm.order_cost}
+                onChange={onOrderFormChange}
+              />
+            </div>
+            <div className="order-form-cell">
+              <label htmlFor="create-order-printing-cost">Printing cost</label>
+              <input
+                id="create-order-printing-cost"
+                name="printing_cost"
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                placeholder="0.00"
+                value={orderForm.printing_cost}
+                onChange={onOrderFormChange}
+              />
+            </div>
             <div className="order-form-cell order-form-span-2 order-sizes-remarks-pair">
               <div className="order-size-compact" aria-labelledby="order-size-heading">
                 <span id="order-size-heading" className="order-size-compact-heading">
@@ -3724,6 +5392,22 @@ function App() {
                     </select>
                   </label>
                 </div>
+                <label className="viewer-tone-toggle viewer-tone-toggle--inline" title="Play status-change tones on this user's dashboard">
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={newUserForm.status_tones_enabled !== false}
+                    onChange={(e) =>
+                      setNewUserForm((prev) => ({ ...prev, status_tones_enabled: e.target.checked }))
+                    }
+                  />
+                  <span className="viewer-tone-toggle-track" aria-hidden="true">
+                    <span className="viewer-tone-toggle-thumb" />
+                  </span>
+                  <span className="viewer-tone-toggle-label">
+                    Status tone {newUserForm.status_tones_enabled !== false ? "ON" : "OFF"}
+                  </span>
+                </label>
                 {newUserForm.role === "viewer" && (
                   <div className="create-user-perms">
                     <p className="create-user-perms-title">Viewer permissions</p>
@@ -3750,21 +5434,13 @@ function App() {
                         Create new order
                       </label>
                     </div>
-                    <div className="viewer-sidebar-tabs">
-                      <p className="viewer-sidebar-tabs-title">Sidebar tabs</p>
-                      <div className="viewer-sidebar-tabs-grid user-access-checkboxes">
-                        {DASHBOARD_SIDEBAR.map((item) => (
-                          <label key={`new-user-tab-${item.id}`}>
-                            <input
-                              type="checkbox"
-                              checked={Boolean(newUserForm.permissions.sidebar_tabs?.[item.id])}
-                              onChange={(e) => updateNewUserSidebarTab(item.id, e.target.checked)}
-                            />
-                            {item.label}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
+                    <SidebarTabPermissionFields
+                      idPrefix="new-user"
+                      tabFlags={newUserForm.permissions.sidebar_tabs}
+                      editFlags={newUserForm.permissions.sidebar_edit_tabs}
+                      onViewChange={updateNewUserSidebarTab}
+                      onEditChange={updateNewUserSidebarEditTab}
+                    />
                   </div>
                 )}
                 {createUserError && <p className="create-user-error">{createUserError}</p>}
@@ -3815,6 +5491,10 @@ function App() {
                           viewerDepartmentDrafts[viewer.id] !== undefined
                             ? viewerDepartmentDrafts[viewer.id]
                             : viewer.department ?? "";
+                        const toneEnabled =
+                          viewerToneDrafts[viewer.id] !== undefined
+                            ? Boolean(viewerToneDrafts[viewer.id])
+                            : viewer.status_tones_enabled !== false;
                         const draft =
                           permissionDrafts[viewer.id] ??
                           hydrateDraftFromPermission(viewerPermissions[viewer.id] ?? {});
@@ -3850,6 +5530,25 @@ function App() {
                             </td>
                             <td className="user-email-cell">{viewer.email?.trim() || "—"}</td>
                             <td>
+                              <label className="viewer-tone-toggle" title="Play status-change tones on this user's dashboard">
+                                <input
+                                  type="checkbox"
+                                  role="switch"
+                                  checked={toneEnabled}
+                                  onChange={(e) =>
+                                    setViewerToneDrafts((prev) => ({
+                                      ...prev,
+                                      [viewer.id]: e.target.checked
+                                    }))
+                                  }
+                                />
+                                <span className="viewer-tone-toggle-track" aria-hidden="true">
+                                  <span className="viewer-tone-toggle-thumb" />
+                                </span>
+                                <span className="viewer-tone-toggle-label">
+                                  Status tone {toneEnabled ? "ON" : "OFF"}
+                                </span>
+                              </label>
                               <div className="viewer-permission-fields user-access-checkboxes">
                                 {EDITABLE_FIELD_OPTIONS.map((option) => {
                                   const fieldKey = `can_edit_${option.key}`;
@@ -3877,23 +5576,17 @@ function App() {
                                   Create new order
                                 </label>
                               </div>
-                              <div className="viewer-sidebar-tabs">
-                                <p className="viewer-sidebar-tabs-title">Sidebar tabs</p>
-                                <div className="viewer-sidebar-tabs-grid user-access-checkboxes">
-                                  {DASHBOARD_SIDEBAR.map((item) => (
-                                    <label key={`${viewer.id}-tab-${item.id}`}>
-                                      <input
-                                        type="checkbox"
-                                        checked={Boolean(draft.sidebar_tabs?.[item.id])}
-                                        onChange={(e) =>
-                                          updateSidebarTabDraft(viewer.id, item.id, e.target.checked)
-                                        }
-                                      />
-                                      {item.label}
-                                    </label>
-                                  ))}
-                                </div>
-                              </div>
+                              <SidebarTabPermissionFields
+                                idPrefix={viewer.id}
+                                tabFlags={draft.sidebar_tabs}
+                                editFlags={draft.sidebar_edit_tabs}
+                                onViewChange={(tabId, checked) =>
+                                  updateSidebarTabDraft(viewer.id, tabId, checked)
+                                }
+                                onEditChange={(tabId, checked) =>
+                                  updateSidebarEditTabDraft(viewer.id, tabId, checked)
+                                }
+                              />
                             </td>
                             <td className="user-access-actions">
                               <button

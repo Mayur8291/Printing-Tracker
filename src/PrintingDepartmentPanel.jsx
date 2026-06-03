@@ -4,7 +4,8 @@ import {
   sortOrdersByPrintingPriority
 } from "./orderTabUtils";
 import { dispatchRowHighlightClass } from "./orderTabUtils";
-import { formatDeliveryDate, STAGE_LABEL } from "./orderViewUtils";
+import { formatDeliveryDate, splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 
 function formatOrderPlacedAt(iso) {
   if (!iso) return "—";
@@ -32,8 +33,34 @@ export default function PrintingDepartmentPanel({
   onViewOrder,
   renderStageIcon
 }) {
+  function renderOrderIdBadges(orderId) {
+    const ids = splitOrderIds(orderId);
+    if (!ids.length) return "—";
+    if (ids.length === 1) return ids[0];
+    return (
+      <span className="order-id-badges" aria-label="Order IDs">
+        {ids.map((id) => (
+          <span key={id} className="order-id-badge" title={id}>
+            {id}
+          </span>
+        ))}
+      </span>
+    );
+  }
   const queue = sortOrdersByPrintingPriority(filterPrintingDepartmentOrders(orders));
   const totalQty = queue.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
+
+  const {
+    visible: visibleQueue,
+    total: totalQueue,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages
+  } = usePagination(queue, "printing-department", `${queue.length}`);
+
+  const pageStartIndex = (page - 1) * pageSize;
 
   return (
     <>
@@ -60,6 +87,13 @@ export default function PrintingDepartmentPanel({
               <span className="orders-processed-filters">Sorted by delivery priority</span>
             </div>
           </div>
+          <div className="printing-dept-toolbar">
+            <OrdersPerPageControl
+              idPrefix="printing-dept-orders-per-page"
+              pageSize={pageSize}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
           <div className="table-wrap table-wrap--compact">
             <table className="orders-table-compact printing-dept-table">
               <thead>
@@ -76,7 +110,8 @@ export default function PrintingDepartmentPanel({
                 </tr>
               </thead>
               <tbody>
-                {queue.map((order, index) => {
+                {visibleQueue.map((order, index) => {
+                  const absoluteIndex = pageStartIndex + index;
                   const urgency = printingPriorityUrgency(order.due_date);
                   const urgencyLabel = URGENCY_LABEL[urgency];
                   return (
@@ -88,7 +123,7 @@ export default function PrintingDepartmentPanel({
                       }
                     >
                       <td className="printing-dept-priority">
-                        <span className="printing-dept-rank">#{index + 1}</span>
+                        <span className="printing-dept-rank">#{absoluteIndex + 1}</span>
                         {urgencyLabel ? (
                           <span className={`printing-dept-urgency printing-dept-urgency--${urgency}`}>
                             {urgencyLabel}
@@ -105,7 +140,7 @@ export default function PrintingDepartmentPanel({
                         </button>
                       </td>
                       <td className="orders-compact-id">
-                        {order.order_id?.trim() ? order.order_id : "—"}
+                        {renderOrderIdBadges(order.order_id)}
                       </td>
                       <td className="orders-compact-customer">
                         {order.customer_name?.trim() ? order.customer_name : "—"}
@@ -127,7 +162,7 @@ export default function PrintingDepartmentPanel({
                     </tr>
                   );
                 })}
-                {queue.length === 0 && (
+                {totalQueue === 0 && (
                   <tr>
                     <td colSpan={9}>No printing department jobs in the queue.</td>
                   </tr>
@@ -135,6 +170,13 @@ export default function PrintingDepartmentPanel({
               </tbody>
             </table>
           </div>
+          <OrdersPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            total={totalQueue}
+            pageSize={pageSize}
+          />
         </>
       )}
     </>

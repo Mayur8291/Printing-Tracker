@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   deliveryMethodLabel,
   DISPATCH_ISSUE_TYPES,
@@ -16,9 +16,15 @@ import {
   formatDeliveryDate,
   formatSizeBreakdownSummary,
   getDispatchSizeRows,
+  splitOrderIds,
   STAGE_LABEL
 } from "./orderViewUtils";
 import { supabase } from "./supabaseClient";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
+import CreateOutwardChallanModal from "./CreateOutwardChallanModal";
+import OcPreviewFloatingCard from "./OcPreviewFloatingCard";
+import OutwardChallanList from "./OutwardChallanList";
+import { deleteOutwardChallan, OC_SELECT_FIELDS } from "./outwardChallanUtils";
 
 function formatColorsList(colors) {
   if (!Array.isArray(colors) || !colors.length) return "—";
@@ -56,6 +62,17 @@ function allSizesVerified(sizeRows, sizeVerified) {
   return sizeRows.every((row) => Boolean(sizeVerified[row.key]));
 }
 
+const DISPATCH_TAB_LABELS = {
+  printing: "Printing order",
+  regular_stock: "Regular stock",
+  inward: "Inward (Regular stock)",
+  outward: "Outward (Regular stock)"
+};
+
+function isRegularStockOrder(order) {
+  return (order.order_kind ?? "printing") === "regular_stock";
+}
+
 export default function DispatchTabPanel({
   orders,
   loadingOrders,
@@ -67,30 +84,67 @@ export default function DispatchTabPanel({
   onViewOrder,
   onVerificationUpdated,
   renderStageIcon,
+  canEdit = true,
+  isAdmin = false,
   sessionUserId,
-  teamProfiles
+  teamProfiles,
+  initialDispatchSubview = null,
+  pendingOutwardOcId = null,
+  onNavigateConsumed
 }) {
   const [expandedId, setExpandedId] = useState(null);
   const [submittingId, setSubmittingId] = useState(null);
   const [draftByOrderId, setDraftByOrderId] = useState({});
-  const [dispatchListTab, setDispatchListTab] = useState("active");
+  const [dispatchTab, setDispatchTab] = useState("inward");
   const [searchQuery, setSearchQuery] = useState("");
+  const [createOcOpen, setCreateOcOpen] = useState(false);
+  const [outwardChallans, setOutwardChallans] = useState([]);
+  const [loadingChallans, setLoadingChallans] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState(null);
 
-  const tabOrders = useMemo(
-    () =>
-      dispatchListTab === "processed"
-        ? filterDispatchProcessedOrders(orders)
-        : filterDispatchActiveOrders(orders),
-    [orders, dispatchListTab]
+  const regularStockOrders = useMemo(
+    () => (orders ?? []).filter(isRegularStockOrder),
+    [orders]
   );
 
-  const visibleOrders = useMemo(
-    () => filterOrdersBySearch(tabOrders, searchQuery),
-    [tabOrders, searchQuery]
+  const printingOrders = useMemo(
+    () => (orders ?? []).filter((o) => !isRegularStockOrder(o)),
+    [orders]
   );
 
-  const isProcessedView = dispatchListTab === "processed";
+  const tabOrders = useMemo(() => {
+    switch (dispatchTab) {
+      case "inward":
+        return filterDispatchActiveOrders(regularStockOrders);
+      case "outward":
+        return filterDispatchProcessedOrders(regularStockOrders);
+      case "regular_stock":
+        return regularStockOrders;
+      case "printing":
+      default:
+        return filterDispatchActiveOrders(printingOrders);
+    }
+  }, [dispatchTab, regularStockOrders, printingOrders]);
+
+  const isProcessedView = dispatchTab === "outward";
+
+  const filteredOrders = useMemo(
+    () => (isProcessedView ? tabOrders : filterOrdersBySearch(tabOrders, searchQuery)),
+    [tabOrders, searchQuery, isProcessedView]
+  );
+
   const searchTrimmed = searchQuery.trim();
+  const paginationKey = `${dispatchTab}|${dateFrom}|${dateTo}|${searchTrimmed}`;
+
+  const {
+    visible: visibleOrders,
+    total: totalFiltered,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages
+  } = usePagination(filteredOrders, "dispatch", paginationKey);
 
   const profileById = useMemo(() => {
     const map = new Map();
@@ -100,13 +154,108 @@ export default function DispatchTabPanel({
     return map;
   }, [teamProfiles]);
 
-  const totalQty = visibleOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
-  const failedCount = visibleOrders.filter((o) => isDispatchVerificationFailed(o)).length;
-  const filterBits = [isProcessedView ? "Processed dispatch" : "Pending dispatch"];
-  if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
-  else if (dateFrom) filterBits.push(`From ${dateFrom}`);
-  else if (dateTo) filterBits.push(`To ${dateTo}`);
-  if (searchTrimmed) filterBits.push(`Search: “${searchTrimmed}”`);
+  const loadOutwardChallans = useCallback(async () => {
+    setLoadingChallans(true);
+    const { data, error } = await supabase
+      .from("outward_challans")
+      .select(OC_SELECT_FIELDS)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("outward_challans load:", error.message);
+      setOutwardChallans([]);
+    } else {
+      setOutwardChallans(data ?? []);
+    }
+    setLoadingChallans(false);
+  }, []);
+
+  useEffect(() => {
+    if (dispatchTab === "outward") {
+      loadOutwardChallans();
+    }
+  }, [dispatchTab, loadOutwardChallans]);
+
+  function closeVerifyPanel() {
+    setExpandedId(null);
+  }
+
+  useEffect(() => {
+    if (!initialDispatchSubview) return;
+    setDispatchTab(initialDispatchSubview);
+    closeVerifyPanel();
+    if (pendingOutwardOcId == null) {
+      onNavigateConsumed?.();
+    }
+  }, [initialDispatchSubview, pendingOutwardOcId, onNavigateConsumed]);
+
+  useEffect(() => {
+    if (pendingOutwardOcId == null) return;
+    setDispatchTab("outward");
+    const openPending = async () => {
+      const local = outwardChallans.find((c) => c.id === pendingOutwardOcId);
+      if (local) {
+        setPreviewRecord(local);
+        onNavigateConsumed?.();
+        return;
+      }
+      const { data, error } = await supabase
+        .from("outward_challans")
+        .select(OC_SELECT_FIELDS)
+        .eq("id", pendingOutwardOcId)
+        .maybeSingle();
+      if (!error && data) setPreviewRecord(data);
+      onNavigateConsumed?.();
+    };
+    openPending();
+  }, [pendingOutwardOcId, outwardChallans, onNavigateConsumed]);
+
+  const openOcPreview = useCallback((record) => {
+    setPreviewRecord(record);
+  }, []);
+
+  const closeOcPreview = useCallback(() => {
+    setPreviewRecord(null);
+  }, []);
+
+  const handleDeleteOc = useCallback(
+    async (record) => {
+      if (!isAdmin || !record?.id) return;
+      await deleteOutwardChallan(supabase, record);
+      if (previewRecord?.id === record.id) {
+        closeOcPreview();
+      }
+      await loadOutwardChallans();
+    },
+    [isAdmin, previewRecord?.id, closeOcPreview, loadOutwardChallans]
+  );
+
+  const totalQty = filteredOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
+  const failedCount = filteredOrders.filter((o) => isDispatchVerificationFailed(o)).length;
+
+  const filterBits = [DISPATCH_TAB_LABELS[dispatchTab] ?? "Dispatch"];
+  if (!isProcessedView) {
+    if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
+    else if (dateFrom) filterBits.push(`From ${dateFrom}`);
+    else if (dateTo) filterBits.push(`To ${dateTo}`);
+    if (searchTrimmed) filterBits.push(`Search: “${searchTrimmed}”`);
+  } else if (searchTrimmed) {
+    filterBits.push(`OC # filter “${searchTrimmed}”`);
+  }
+
+  function renderOrderIdBadges(orderId) {
+    const ids = splitOrderIds(orderId);
+    if (!ids.length) return "—";
+    if (ids.length === 1) return ids[0];
+    return (
+      <span className="order-id-badges" aria-label="Order IDs">
+        {ids.map((id) => (
+          <span key={id} className="order-id-badge" title={id}>
+            {id}
+          </span>
+        ))}
+      </span>
+    );
+  }
 
   function getDraft(order) {
     const sizeRows = getDispatchSizeRows(order.size_breakdown);
@@ -144,10 +293,6 @@ export default function DispatchTabPanel({
         }
       };
     });
-  }
-
-  function closeVerifyPanel() {
-    setExpandedId(null);
   }
 
   async function saveVerification(order, pass) {
@@ -207,7 +352,7 @@ export default function DispatchTabPanel({
       });
       closeVerifyPanel();
       if (allOk) {
-        setDispatchListTab("processed");
+        setDispatchTab("outward");
       }
       await onVerificationUpdated?.();
     } catch (err) {
@@ -217,58 +362,87 @@ export default function DispatchTabPanel({
     }
   }
 
+  function switchDispatchTab(nextTab) {
+    setDispatchTab(nextTab);
+    closeVerifyPanel();
+  }
+
   return (
     <>
-      <p className="linked-tab-lead">
-        Check each size qty vs job. All good → Verified &amp; mark as Dispatched (moves to Processed
-        orders). Mismatch → Dispatch Fail, row RED in Billing and Printing Orders.
-      </p>
+      {!isProcessedView ? (
+        <p className="linked-tab-lead">
+          Check each size qty vs job. All good → Verified &amp; mark as Dispatched (moves to Outward).
+          Mismatch → Dispatch Fail, row RED in Billing and Printing Orders.
+        </p>
+      ) : null}
+      {!isProcessedView && !canEdit ? (
+        <p className="tab-readonly-notice" role="status">
+          View only — you can browse dispatch orders but cannot run verification.
+        </p>
+      ) : null}
       <div className="table-filters linked-tab-filters dispatch-tab-filters">
-        <div className="orders-tabs dispatch-orders-tabs" role="tablist" aria-label="Dispatch list">
+        <div className="orders-tabs dispatch-orders-tabs" role="tablist" aria-label="Dispatch views">
           <button
             type="button"
             role="tab"
-            aria-selected={dispatchListTab === "active"}
-            className={dispatchListTab === "active" ? "orders-tab is-active" : "orders-tab"}
-            onClick={() => {
-              setDispatchListTab("active");
-              closeVerifyPanel();
-            }}
+            aria-selected={dispatchTab === "printing"}
+            className={dispatchTab === "printing" ? "orders-tab is-active" : "orders-tab"}
+            onClick={() => switchDispatchTab("printing")}
           >
-            Pending dispatch
+            Printing order
           </button>
           <button
             type="button"
             role="tab"
-            aria-selected={dispatchListTab === "processed"}
-            className={dispatchListTab === "processed" ? "orders-tab is-active" : "orders-tab"}
-            onClick={() => {
-              setDispatchListTab("processed");
-              closeVerifyPanel();
-            }}
+            aria-selected={dispatchTab === "regular_stock"}
+            className={dispatchTab === "regular_stock" ? "orders-tab is-active" : "orders-tab"}
+            onClick={() => switchDispatchTab("regular_stock")}
           >
-            Processed orders
+            Regular stock
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={dispatchTab === "inward"}
+            className={dispatchTab === "inward" ? "orders-tab is-active" : "orders-tab"}
+            onClick={() => switchDispatchTab("inward")}
+          >
+            Inward
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={dispatchTab === "outward"}
+            className={dispatchTab === "outward" ? "orders-tab is-active" : "orders-tab"}
+            onClick={() => switchDispatchTab("outward")}
+          >
+            Outward
           </button>
         </div>
-        <label>
-          From
-          <input type="date" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)} />
-        </label>
-        <label>
-          To
-          <input type="date" value={dateTo} onChange={(e) => onDateToChange(e.target.value)} />
-        </label>
-        <button type="button" onClick={onClearDates}>
-          Clear dates
-        </button>
+        {!isProcessedView ? (
+          <>
+            <label>
+              From
+              <input type="date" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)} />
+            </label>
+            <label>
+              To
+              <input type="date" value={dateTo} onChange={(e) => onDateToChange(e.target.value)} />
+            </label>
+            <button type="button" onClick={onClearDates}>
+              Clear dates
+            </button>
+          </>
+        ) : null}
         <label className="orders-search-field">
-          Search
+          {isProcessedView ? "Search by OC number" : "Search"}
           <input
             type="search"
             className="orders-search-input"
-            placeholder="Order #, customer, coordinator…"
+            placeholder={isProcessedView ? "e.g. 4 or OC #4" : "Order #, customer, coordinator…"}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            inputMode={isProcessedView ? "numeric" : undefined}
           />
         </label>
         {searchTrimmed ? (
@@ -276,23 +450,76 @@ export default function DispatchTabPanel({
             Clear search
           </button>
         ) : null}
+        {!isProcessedView ? (
+          <OrdersPerPageControl
+            idPrefix="dispatch-orders-per-page"
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
+          />
+        ) : null}
+        {dispatchTab === "inward" ? (
+          <button
+            type="button"
+            className="dispatch-create-oc-btn"
+            disabled={!canEdit}
+            title={canEdit ? "Record a new inward entry" : "View only"}
+          >
+            Make Entry
+          </button>
+        ) : null}
+        {dispatchTab === "outward" ? (
+          <button
+            type="button"
+            className="dispatch-create-oc-btn"
+            disabled={!canEdit}
+            title={canEdit ? "Create a new outward challan" : "View only"}
+            onClick={() => setCreateOcOpen(true)}
+          >
+            Create New OC
+          </button>
+        ) : null}
       </div>
-      {loadingOrders ? (
+      {isProcessedView ? (
+        <section
+          className="outward-challans-section dashboard-card"
+          aria-labelledby="outward-challans-heading"
+        >
+          <header className="outward-challans-section-head">
+            <h3 id="outward-challans-heading" className="dashboard-section-title">
+              Outward challans
+            </h3>
+            <p className="outward-challans-section-meta">
+              {loadingChallans ? "Loading…" : `${outwardChallans.length} saved`}
+              {searchTrimmed ? ` · OC # filter “${searchTrimmed}”` : ""}
+            </p>
+          </header>
+          <OutwardChallanList
+            challans={outwardChallans}
+            loading={loadingChallans}
+            searchQuery={searchQuery}
+            onViewRecord={openOcPreview}
+            canDelete={isAdmin}
+            onDelete={handleDeleteOc}
+          />
+        </section>
+      ) : null}
+      {!isProcessedView && loadingOrders ? (
         <p>Loading orders…</p>
-      ) : (
+      ) : null}
+      {!isProcessedView ? (
         <>
           <div className="orders-processed-summary" role="status">
             <div className="orders-processed-summary-main">
               <span className="orders-processed-label">
-                {isProcessedView ? "Processed" : "Pending"}
+                {DISPATCH_TAB_LABELS[dispatchTab] ?? "Dispatch"}
               </span>
-              <span className="orders-processed-count">{visibleOrders.length}</span>
+              <span className="orders-processed-count">{totalFiltered}</span>
             </div>
             <div className="orders-processed-summary-meta">
               <span className="orders-processed-qty">
                 Total qty: <strong>{totalQty}</strong>
               </span>
-              {!isProcessedView && failedCount > 0 ? (
+              {failedCount > 0 ? (
                 <span className="dispatch-failed-summary">
                   Failed verify: <strong>{failedCount}</strong>
                 </span>
@@ -310,7 +537,7 @@ export default function DispatchTabPanel({
                   <th>Product name</th>
                   <th>Status</th>
                   <th>Delivery</th>
-                  <th>{isProcessedView ? "Dispatched at" : "Verify"}</th>
+                  <th>{dispatchTab === "regular_stock" ? "Dispatch" : "Verify"}</th>
                   <th>Qty</th>
                 </tr>
               </thead>
@@ -323,6 +550,7 @@ export default function DispatchTabPanel({
                   const allOk = sizesOk && draft.productNameOk && draft.colorsOk;
                   const showIssueSelect = !allOk;
                   const rowClass = dispatchRowHighlightClass(order);
+                  const isDispatched = order.status === DISPATCHED_STATUS;
 
                   return (
                     <Fragment key={order.id}>
@@ -344,7 +572,7 @@ export default function DispatchTabPanel({
                           </button>
                         </td>
                         <td className="orders-compact-id">
-                          {order.order_id?.trim() ? order.order_id : "—"}
+                          {renderOrderIdBadges(order.order_id)}
                           {failed ? (
                             <span className="dispatch-failed-badge" title="Verification failed">
                               FAIL
@@ -367,7 +595,7 @@ export default function DispatchTabPanel({
                         </td>
                         <td>{deliveryMethodLabel(order.delivery_method)}</td>
                         <td>
-                          {isProcessedView ? (
+                          {isDispatched ? (
                             <span className="dispatch-processed-at">
                               {order.dispatch_verified_at
                                 ? new Date(order.dispatch_verified_at).toLocaleString()
@@ -382,32 +610,34 @@ export default function DispatchTabPanel({
                                     : "Verification failed"}
                                 </p>
                               ) : null}
-                              <div className="dispatch-verify-cell-actions">
-                                {failed ? (
+                              {canEdit ? (
+                                <div className="dispatch-verify-cell-actions">
+                                  {failed ? (
+                                    <button
+                                      type="button"
+                                      className="btn-dispatch-verify-again"
+                                      onClick={() => openVerifyPanel(order)}
+                                    >
+                                      Verify again
+                                    </button>
+                                  ) : null}
                                   <button
                                     type="button"
-                                    className="btn-dispatch-verify-again"
-                                    onClick={() => openVerifyPanel(order)}
+                                    className={`btn-dispatch-verify${expanded ? " btn-dispatch-verify--open" : ""}`}
+                                    onClick={() =>
+                                      expanded ? closeVerifyPanel() : openVerifyPanel(order)
+                                    }
                                   >
-                                    Verify again
+                                    {expanded ? "Close" : failed ? "Re-open" : "Verify"}
                                   </button>
-                                ) : null}
-                                <button
-                                  type="button"
-                                  className={`btn-dispatch-verify${expanded ? " btn-dispatch-verify--open" : ""}`}
-                                  onClick={() =>
-                                    expanded ? closeVerifyPanel() : openVerifyPanel(order)
-                                  }
-                                >
-                                  {expanded ? "Close" : failed ? "Re-open" : "Verify"}
-                                </button>
-                              </div>
+                                </div>
+                              ) : null}
                             </div>
                           )}
                         </td>
                         <td>{order.qty}</td>
                       </tr>
-                      {!isProcessedView && expanded ? (
+                      {expanded && !isDispatched ? (
                         <tr className="dispatch-verify-row">
                           <td colSpan={8}>
                             <div className="dispatch-verify-panel">
@@ -449,7 +679,7 @@ export default function DispatchTabPanel({
                                 </dl>
                               </div>
 
-                              <fieldset className="dispatch-verify-sizes">
+                              <fieldset className="dispatch-verify-sizes" disabled={!canEdit}>
                                 <legend>Count pieces per size (tick when qty match)</legend>
                                 {draft.sizeRows.length === 0 ? (
                                   <p className="dispatch-verify-empty-sizes">
@@ -470,6 +700,7 @@ export default function DispatchTabPanel({
                                             <input
                                               type="checkbox"
                                               checked={checked}
+                                              disabled={!canEdit}
                                               onChange={(e) => {
                                                 const sizeVerified = {
                                                   ...draft.sizeVerified,
@@ -505,12 +736,13 @@ export default function DispatchTabPanel({
                                 )}
                               </fieldset>
 
-                              <fieldset className="dispatch-verify-checks">
+                              <fieldset className="dispatch-verify-checks" disabled={!canEdit}>
                                 <legend>Product &amp; colors</legend>
                                 <label className="dispatch-verify-check">
                                   <input
                                     type="checkbox"
                                     checked={draft.productNameOk}
+                                    disabled={!canEdit}
                                     onChange={(e) => {
                                       const productNameOk = e.target.checked;
                                       const allOkNext =
@@ -534,6 +766,7 @@ export default function DispatchTabPanel({
                                   <input
                                     type="checkbox"
                                     checked={draft.colorsOk}
+                                    disabled={!canEdit}
                                     onChange={(e) => {
                                       const colorsOk = e.target.checked;
                                       const allOkNext =
@@ -560,6 +793,7 @@ export default function DispatchTabPanel({
                                   Mismatch type
                                   <select
                                     value={draft.issueType}
+                                    disabled={!canEdit}
                                     onChange={(e) =>
                                       setDraft(order.id, { issueType: e.target.value })
                                     }
@@ -574,40 +808,42 @@ export default function DispatchTabPanel({
                                 </label>
                               ) : null}
 
-                              <div className="dispatch-verify-actions">
-                                {allOk ? (
-                                  <button
-                                    type="button"
-                                    className="btn-dispatch-pass"
-                                    disabled={submittingId === order.id}
-                                    onClick={() => saveVerification(order, true)}
-                                  >
-                                    {submittingId === order.id
-                                      ? "Saving…"
-                                      : "Verified & mark as dispatch"}
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className="btn-dispatch-submit"
-                                    disabled={submittingId === order.id}
-                                    onClick={() => saveVerification(order, false)}
-                                  >
-                                    {submittingId === order.id
-                                      ? "Saving…"
-                                      : "Submit — Dispatch Fail"}
-                                  </button>
-                                )}
-                                {order.dispatch_verified_at ? (
-                                  <span className="dispatch-verify-meta">
-                                    Last verified{" "}
-                                    {new Date(order.dispatch_verified_at).toLocaleString()}
-                                    {failed && order.dispatch_issue_type
-                                      ? ` · ${dispatchIssueLabel(order.dispatch_issue_type)}`
-                                      : ""}
-                                  </span>
-                                ) : null}
-                              </div>
+                              {canEdit ? (
+                                <div className="dispatch-verify-actions">
+                                  {allOk ? (
+                                    <button
+                                      type="button"
+                                      className="btn-dispatch-pass"
+                                      disabled={submittingId === order.id}
+                                      onClick={() => saveVerification(order, true)}
+                                    >
+                                      {submittingId === order.id
+                                        ? "Saving…"
+                                        : "Verified & mark as dispatch"}
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="btn-dispatch-submit"
+                                      disabled={submittingId === order.id}
+                                      onClick={() => saveVerification(order, false)}
+                                    >
+                                      {submittingId === order.id
+                                        ? "Saving…"
+                                        : "Submit — Dispatch Fail"}
+                                    </button>
+                                  )}
+                                  {order.dispatch_verified_at ? (
+                                    <span className="dispatch-verify-meta">
+                                      Last verified{" "}
+                                      {new Date(order.dispatch_verified_at).toLocaleString()}
+                                      {failed && order.dispatch_issue_type
+                                        ? ` · ${dispatchIssueLabel(order.dispatch_issue_type)}`
+                                        : ""}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              ) : null}
                             </div>
                           </td>
                         </tr>
@@ -620,17 +856,39 @@ export default function DispatchTabPanel({
                     <td colSpan={8}>
                       {searchTrimmed
                         ? "No orders match your search."
-                        : isProcessedView
-                          ? "No processed dispatch orders in the selected date range."
-                          : "No pending dispatch orders in the selected date range."}
+                        : `No orders in ${DISPATCH_TAB_LABELS[dispatchTab] ?? "this view"} for the selected date range.`}
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+          <OrdersPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            total={totalFiltered}
+            pageSize={pageSize}
+          />
         </>
-      )}
+      ) : null}
+      <OcPreviewFloatingCard
+        open={Boolean(previewRecord)}
+        record={previewRecord}
+        onClose={closeOcPreview}
+        canDelete={isAdmin}
+        onDelete={handleDeleteOc}
+      />
+      <CreateOutwardChallanModal
+        open={createOcOpen}
+        onClose={() => setCreateOcOpen(false)}
+        sessionUserId={sessionUserId}
+        onCreated={(record) => {
+          loadOutwardChallans();
+          openOcPreview(record);
+          setCreateOcOpen(false);
+        }}
+      />
     </>
   );
 }

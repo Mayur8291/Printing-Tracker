@@ -5,8 +5,9 @@ import {
   isDispatchVerificationFailed,
   paymentMethodLabel
 } from "./orderTabUtils";
-import { formatDeliveryDate, STAGE_LABEL } from "./orderViewUtils";
+import { formatDeliveryDate, splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
 import { supabase } from "./supabaseClient";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 
 export default function BillingTabPanel({
   orders,
@@ -18,19 +19,44 @@ export default function BillingTabPanel({
   onClearDates,
   onViewOrder,
   onInvoiceUpdated,
-  renderStageIcon
+  renderStageIcon,
+  canEdit = true
 }) {
+  function renderOrderIdBadges(orderId) {
+    const ids = splitOrderIds(orderId);
+    if (!ids.length) return "—";
+    if (ids.length === 1) return ids[0];
+    return (
+      <span className="order-id-badges" aria-label="Order IDs">
+        {ids.map((id) => (
+          <span key={id} className="order-id-badge" title={id}>
+            {id}
+          </span>
+        ))}
+      </span>
+    );
+  }
   const fileInputRef = useRef(null);
   const pendingOrderIdRef = useRef(null);
   const [uploadingInvoiceFor, setUploadingInvoiceFor] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const visibleOrders = useMemo(
+  const filteredOrders = useMemo(
     () => filterOrdersBySearch(orders, searchQuery),
     [orders, searchQuery]
   );
+  const paginationKey = `${dateFrom}|${dateTo}|${searchQuery.trim()}`;
+  const {
+    visible: visibleOrders,
+    total: totalFiltered,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages
+  } = usePagination(filteredOrders, "billing", paginationKey);
 
-  const totalQty = visibleOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
+  const totalQty = filteredOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
   const filterBits = ["Billing", "All orders"];
   if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
   else if (dateFrom) filterBits.push(`From ${dateFrom}`);
@@ -97,6 +123,11 @@ export default function BillingTabPanel({
         All orders in the selected date range. Status shows the live workflow stage (New, Printing, Complete,
         etc.). Upload an invoice per order when ready.
       </p>
+      {!canEdit ? (
+        <p className="tab-readonly-notice" role="status">
+          View only — you can browse billing orders but cannot upload or replace invoices.
+        </p>
+      ) : null}
       <div className="table-filters linked-tab-filters">
         <label>
           From
@@ -124,6 +155,11 @@ export default function BillingTabPanel({
             Clear search
           </button>
         ) : null}
+        <OrdersPerPageControl
+          idPrefix="billing-orders-per-page"
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
       </div>
       {loadingOrders ? (
         <p>Loading orders…</p>
@@ -132,7 +168,7 @@ export default function BillingTabPanel({
           <div className="orders-processed-summary" role="status">
             <div className="orders-processed-summary-main">
               <span className="orders-processed-label">Billing</span>
-              <span className="orders-processed-count">{visibleOrders.length}</span>
+              <span className="orders-processed-count">{totalFiltered}</span>
             </div>
             <div className="orders-processed-summary-meta">
               <span className="orders-processed-qty">
@@ -172,7 +208,7 @@ export default function BillingTabPanel({
                         </button>
                       </td>
                       <td className="orders-compact-id">
-                        {order.order_id?.trim() ? order.order_id : "—"}
+                        {renderOrderIdBadges(order.order_id)}
                         {isDispatchVerificationFailed(order) ? (
                           <span className="dispatch-failed-badge">FAIL</span>
                         ) : null}
@@ -205,16 +241,18 @@ export default function BillingTabPanel({
                             >
                               View invoice
                             </a>
-                            <button
-                              type="button"
-                              className="btn-upload-invoice"
-                              disabled={uploading}
-                              onClick={() => openInvoicePicker(order.id)}
-                            >
-                              {uploading ? "Uploading…" : "Replace"}
-                            </button>
+                            {canEdit ? (
+                              <button
+                                type="button"
+                                className="btn-upload-invoice"
+                                disabled={uploading}
+                                onClick={() => openInvoicePicker(order.id)}
+                              >
+                                {uploading ? "Uploading…" : "Replace"}
+                              </button>
+                            ) : null}
                           </div>
-                        ) : (
+                        ) : canEdit ? (
                           <button
                             type="button"
                             className="btn-upload-invoice"
@@ -223,6 +261,8 @@ export default function BillingTabPanel({
                           >
                             {uploading ? "Uploading…" : "Upload invoice"}
                           </button>
+                        ) : (
+                          <span className="tab-readonly-inline">—</span>
                         )}
                       </td>
                       <td>{order.qty}</td>
@@ -241,6 +281,13 @@ export default function BillingTabPanel({
               </tbody>
             </table>
           </div>
+          <OrdersPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            total={totalFiltered}
+            pageSize={pageSize}
+          />
         </>
       )}
     </>

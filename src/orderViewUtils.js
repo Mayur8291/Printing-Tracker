@@ -61,6 +61,24 @@ export const ORDER_SIZE_COLUMNS = [
   { key: "3XL", label: "3XL" }
 ];
 
+export function splitOrderIds(orderIdValue) {
+  const raw = String(orderIdValue ?? "").trim();
+  if (!raw) return [];
+  const parts = raw
+    .split(/[,\n;]+/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  // keep order, dedupe
+  const seen = new Set();
+  const out = [];
+  for (const p of parts) {
+    if (seen.has(p)) continue;
+    seen.add(p);
+    out.push(p);
+  }
+  return out;
+}
+
 export const EDITABLE_FIELD_OPTIONS = [
   { key: "status", label: "Status" },
   { key: "remarks", label: "Remarks" },

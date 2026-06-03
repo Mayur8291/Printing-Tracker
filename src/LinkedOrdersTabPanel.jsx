@@ -1,5 +1,6 @@
 import { dispatchRowHighlightClass } from "./orderTabUtils";
-import { formatDeliveryDate, STAGE_LABEL } from "./orderViewUtils";
+import { formatDeliveryDate, splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 
 /**
  * Shared list UI for Production Tracker, Billing, and Dispatch tabs.
@@ -18,13 +19,40 @@ export default function LinkedOrdersTabPanel({
   extraColumn,
   emptyMessage,
   onViewOrder,
-  renderStageIcon
+  renderStageIcon,
+  paginationKey: paginationKeyProp
 }) {
-  const totalQty = orders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
+  function renderOrderIdBadges(orderId) {
+    const ids = splitOrderIds(orderId);
+    if (!ids.length) return "—";
+    if (ids.length === 1) return ids[0];
+    return (
+      <span className="order-id-badges" aria-label="Order IDs">
+        {ids.map((id) => (
+          <span key={id} className="order-id-badge" title={id}>
+            {id}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const totalQty = safeOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
   const filterBits = [tabTitle];
   if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
   else if (dateFrom) filterBits.push(`From ${dateFrom}`);
   else if (dateTo) filterBits.push(`To ${dateTo}`);
+
+  const storageKey = paginationKeyProp || `linked-${tabTitle || "list"}`;
+  const {
+    visible: visibleOrders,
+    total: totalFiltered,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages
+  } = usePagination(safeOrders, storageKey, `${dateFrom}|${dateTo}`);
 
   return (
     <>
@@ -41,6 +69,11 @@ export default function LinkedOrdersTabPanel({
         <button type="button" onClick={onClearDates}>
           Clear
         </button>
+        <OrdersPerPageControl
+          idPrefix={`${storageKey}-orders-per-page`}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
       </div>
       {loadingOrders ? (
         <p>Loading orders…</p>
@@ -49,7 +82,7 @@ export default function LinkedOrdersTabPanel({
           <div className="orders-processed-summary" role="status">
             <div className="orders-processed-summary-main">
               <span className="orders-processed-label">{summaryLabel}</span>
-              <span className="orders-processed-count">{orders.length}</span>
+              <span className="orders-processed-count">{totalFiltered}</span>
             </div>
             <div className="orders-processed-summary-meta">
               <span className="orders-processed-qty">
@@ -74,7 +107,7 @@ export default function LinkedOrdersTabPanel({
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {visibleOrders.map((order) => (
                   <tr key={order.id} className={dispatchRowHighlightClass(order) || undefined}>
                     <td>
                       <button
@@ -86,7 +119,7 @@ export default function LinkedOrdersTabPanel({
                       </button>
                     </td>
                     <td className="orders-compact-id">
-                      {order.order_id?.trim() ? order.order_id : "—"}
+                      {renderOrderIdBadges(order.order_id)}
                     </td>
                     <td className="orders-compact-customer">
                       {order.customer_name?.trim() ? order.customer_name : "—"}
@@ -110,7 +143,7 @@ export default function LinkedOrdersTabPanel({
                     <td>{order.qty}</td>
                   </tr>
                 ))}
-                {orders.length === 0 && (
+                {totalFiltered === 0 && (
                   <tr>
                     <td colSpan={extraColumn ? 9 : 8}>{emptyMessage}</td>
                   </tr>
@@ -118,6 +151,13 @@ export default function LinkedOrdersTabPanel({
               </tbody>
             </table>
           </div>
+          <OrdersPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            total={totalFiltered}
+            pageSize={pageSize}
+          />
         </>
       )}
     </>

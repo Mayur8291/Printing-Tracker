@@ -30,7 +30,8 @@ function ContactDetailRow({ label, value, href }) {
   );
 }
 
-export default function ContactBookPanel({ isAdmin, sessionUserId }) {
+export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUserId }) {
+  const mayEdit = isAdmin || canEdit;
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -130,7 +131,7 @@ export default function ContactBookPanel({ isAdmin, sessionUserId }) {
 
   async function handleSave(e) {
     e.preventDefault();
-    if (!isAdmin) return;
+    if (!mayEdit) return;
     if (!form.name.trim()) {
       setError("Name is required");
       return;
@@ -190,7 +191,7 @@ export default function ContactBookPanel({ isAdmin, sessionUserId }) {
   }
 
   async function handleDelete(entry) {
-    if (!isAdmin || !entry?.id) return;
+    if (!mayEdit || !entry?.id) return;
     if (!window.confirm(`Delete ${entry.name} from Contact Book? This cannot be undone.`)) return;
 
     setSaving(true);
@@ -216,10 +217,10 @@ export default function ContactBookPanel({ isAdmin, sessionUserId }) {
         <div className="contact-book-head-text">
           <h2 className="dashboard-section-title">Contact Book</h2>
           <p className="dashboard-section-lead">
-            Team contacts with photo and details. {isAdmin ? "You can add, edit, and delete entries." : "View only."}
+            Team contacts with photo and details. {mayEdit ? "You can add, edit, and delete entries." : "View only."}
           </p>
         </div>
-        {isAdmin && !showForm ? (
+        {mayEdit && !showForm ? (
           <button type="button" className="contact-book-add-btn" onClick={openCreateForm}>
             + Add contact
           </button>
@@ -232,7 +233,7 @@ export default function ContactBookPanel({ isAdmin, sessionUserId }) {
         </p>
       ) : null}
 
-      {showForm && isAdmin ? (
+      {showForm && mayEdit ? (
         <form className="contact-book-form" onSubmit={handleSave}>
           <div className="contact-book-form-header">
             <h3>{editingId ? "Edit contact" : "New contact"}</h3>
@@ -372,7 +373,7 @@ export default function ContactBookPanel({ isAdmin, sessionUserId }) {
           <p className="contact-book-empty">Loading contacts…</p>
         ) : contacts.length === 0 ? (
           <p className="contact-book-empty">
-            {isAdmin ? "No contacts yet. Click Add contact to create one." : "No contacts in the book yet."}
+            {mayEdit ? "No contacts yet. Click Add contact to create one." : "No contacts in the book yet."}
           </p>
         ) : (
           <>
@@ -455,7 +456,7 @@ export default function ContactBookPanel({ isAdmin, sessionUserId }) {
                       <ContactDetailRow label="Date of birth" value={dobDisplay} />
                       <ContactDetailRow label="Address" value={entry.address} />
                     </dl>
-                    {isAdmin ? (
+                    {mayEdit ? (
                       <div className="contact-book-card-actions">
                         <button
                           type="button"
