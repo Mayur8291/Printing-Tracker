@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ./node_modules/vite/bin/vite.js",
+    "dev:staging": "node ./node_modules/vite/bin/vite.js --mode staging",
     "build": "node ./node_modules/vite/bin/vite.js build",
     "icons:transparent": "node scripts/make-app-icon-transparent.mjs",
     "preview": "node ./node_modules/vite/bin/vite.js preview",

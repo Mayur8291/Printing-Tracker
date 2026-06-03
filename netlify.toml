@@ -1,4 +1,5 @@
 # https://docs.netlify.com/configure-builds/file-based-configuration/
+# Environments: docs/ENVIRONMENTS.md
 # If Netlify UI still overrides this, set Build command to: npm ci && npm run build
 [build]
   command = "npm ci && npm run build"
@@ -8,3 +9,14 @@
   NODE_VERSION = "20"
   # Ensure devDependencies (e.g. jimp) install; vite is in dependencies so build always has it
   NPM_CONFIG_PRODUCTION = "false"
+
+# Production = main branch. Staging = develop (enable branch deploys in Netlify UI).
+[context.production]
+  branch = "main"
+
+[context.staging]
+  branch = "develop"
+
+# Branch deploys for other branches use deploy-preview / branch-deploy contexts in UI.
+[context.branch-deploy]
+  command = "npm ci && npm run build"

@@ -17,7 +17,7 @@ Built with **React + Vite** on the frontend and **Supabase** (PostgreSQL, Auth, 
 | **Production tracker** | Jobs marked as production orders, with handover-to-printing dates. |
 | **Mockup Studio** | In-app mockup creation from the Printing Orders tab. |
 | **Repeat Order** | Save **order templates** (customer, product, colors, sizes, costs, reference images, production handover). Reuse with one click  tweak qty/date and save. Card grid shows template reference images. |
-| **Status workflow** | `new` ù printing stages ù complete; activity log per order; optional **status-change tones** (per user, creator-only). |
+| **Status workflow** | `new` ? printing stages ? complete; activity log per order; optional **status-change tones** (per user, creator-only). |
 | **Pagination** | Configurable orders per page on list tabs (saved per tab in the browser). |
 
 ### Billing & dispatch
@@ -97,11 +97,18 @@ Requires **Node.js 20+**.
 
 ### 2. Environment variables
 
-Copy `.env.example` to `.env` and set:
+**Staging + production:** see **[docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)** (branches, Netlify, Supabase).
+
+For local dev, use **staging** keys only:
+
+```bash
+cp .env.development.example .env.development
+# Edit with your staging Supabase URL and anon key
+```
 
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_URL=https://your-staging-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-staging-anon-key
 ```
 
 ### 3. Database
@@ -193,8 +200,9 @@ Tab visibility and edit rights are configurable per viewer in the admin panel.
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Development server |
-| `npm run build` | Production build ù `dist/` |
+| `npm run dev` | Development server (`.env.development` ? staging) |
+| `npm run dev:staging` | Dev server with Vite `staging` mode (`.env.staging`) |
+| `npm run build` | Production build ? `dist/` |
 | `npm run preview` | Preview production build |
 | `npm run deploy:admin-create-user` | Deploy Supabase edge function |
 | `npm run icons:transparent` | Regenerate transparent app icon assets |
