@@ -48,6 +48,110 @@ const SORT_OPTIONS = [
   { id: "qty", label: "Quantity" }
 ];
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formatRangeLabel(dateFrom, dateTo) {
+  if (dateFrom && dateTo) return `${dateFrom} → ${dateTo}`;
+  if (dateFrom) return `From ${dateFrom}`;
+  if (dateTo) return `To ${dateTo}`;
+  return "All dates";
+}
+
+function openProductRevenueInNewTab({ rows, totals, dateFrom, dateTo, sortBy }) {
+  const sortLabel = SORT_OPTIONS.find((o) => o.id === sortBy)?.label ?? sortBy;
+  const generatedAt = new Date().toLocaleString();
+
+  const bodyRows =
+    rows.length === 0
+      ? `<tr><td colspan="8">No products in this date range.</td></tr>`
+      : rows
+          .map(
+            (r, i) => `<tr>
+      <td>${i + 1}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td class="num">${r.orders}</td>
+      <td class="num">${r.qty}</td>
+      <td class="num">${escapeHtml(formatMoney(r.revenue))}</td>
+      <td class="num">${escapeHtml(formatMoney(r.printingCost))}</td>
+      <td class="num ${r.net < 0 ? "neg" : "pos"}">${escapeHtml(formatMoney(r.net))}</td>
+      <td class="num">${escapeHtml(formatMoney(r.avgRevenue))}</td>
+    </tr>`
+          )
+          .join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product revenue — Scott Dashboard</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 24px; color: #0f172a; background: #f8fafc; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    .meta { margin: 0 0 20px; color: #64748b; font-size: 14px; line-height: 1.5; }
+    .summary { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding: 14px 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
+    .summary div { min-width: 100px; }
+    .summary span { display: block; font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.04em; }
+    .summary strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+    .wrap { overflow: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #eff6ff; color: #1e3a8a; position: sticky; top: 0; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pos { color: #047857; }
+    .neg { color: #b91c1c; }
+    @media print { body { margin: 12px; background: #fff; } .wrap { border: none; } }
+  </style>
+</head>
+<body>
+  <h1>Product revenue</h1>
+  <p class="meta">Date range: <strong>${escapeHtml(formatRangeLabel(dateFrom, dateTo))}</strong> · Sort: <strong>${escapeHtml(sortLabel)}</strong> · Generated ${escapeHtml(generatedAt)}</p>
+  <div class="summary">
+    <div><span>Products</span><strong>${rows.length}</strong></div>
+    <div><span>Orders</span><strong>${totals.orders}</strong></div>
+    <div><span>Total qty</span><strong>${totals.qty}</strong></div>
+    <div><span>Revenue</span><strong>${escapeHtml(formatMoney(totals.revenue))}</strong></div>
+    <div><span>Printing cost</span><strong>${escapeHtml(formatMoney(totals.printingCost))}</strong></div>
+    <div><span>Net</span><strong>${escapeHtml(formatMoney(totals.net))}</strong></div>
+  </div>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product</th>
+          <th>Orders</th>
+          <th>Qty</th>
+          <th>Revenue</th>
+          <th>Printing cost</th>
+          <th>Net</th>
+          <th>Avg / order</th>
+        </tr>
+      </thead>
+      <tbody>${bodyRows}</tbody>
+    </table>
+  </div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const tab = window.open(url, "_blank", "noopener,noreferrer");
+  if (!tab) {
+    URL.revokeObjectURL(url);
+    alert("Pop-up blocked. Allow pop-ups for this site to open the full list.");
+    return;
+  }
+  tab.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export default function ProductRevenuePanel({ orders }) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -229,49 +333,68 @@ export default function ProductRevenuePanel({ orders }) {
         </div>
       ) : null}
 
-      <div className="product-revenue-table-wrap">
-        <table className="product-revenue-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Product</th>
-              <th>Orders</th>
-              <th>Qty</th>
-              <th>Revenue</th>
-              <th>Printing cost</th>
-              <th>Net</th>
-              <th>Avg / order</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
+      <section className="product-revenue-table-section" aria-labelledby="product-revenue-table-heading">
+        <div className="product-revenue-table-head">
+          <h3 id="product-revenue-table-heading" className="product-revenue-table-title">
+            Product list
+            <span className="product-revenue-table-count"> ({rows.length})</span>
+          </h3>
+          <button
+            type="button"
+            className="product-revenue-open-tab-btn"
+            onClick={() =>
+              openProductRevenueInNewTab({ rows, totals, dateFrom, dateTo, sortBy })
+            }
+            disabled={rows.length === 0}
+            title="Open full product list with current filters in a new tab"
+          >
+            Open in new tab
+          </button>
+        </div>
+        <div className="product-revenue-table-wrap product-revenue-table-wrap--compact">
+          <table className="product-revenue-table product-revenue-table--compact">
+            <thead>
               <tr>
-                <td colSpan={8}>
-                  No orders in this date range have an Order cost recorded yet. Set the values in
-                  the Create / Edit order form for them to appear here.
-                </td>
+                <th>#</th>
+                <th>Product</th>
+                <th>Orders</th>
+                <th>Qty</th>
+                <th>Revenue</th>
+                <th>Printing cost</th>
+                <th>Net</th>
+                <th>Avg / order</th>
               </tr>
-            ) : (
-              rows.map((r, i) => (
-                <tr key={r.name}>
-                  <td>{i + 1}</td>
-                  <td className="product-revenue-name">{r.name}</td>
-                  <td>{r.orders}</td>
-                  <td>{r.qty}</td>
-                  <td className="product-revenue-money">{formatMoney(r.revenue)}</td>
-                  <td className="product-revenue-money">{formatMoney(r.printingCost)}</td>
-                  <td
-                    className={`product-revenue-money ${r.net < 0 ? "is-negative" : "is-positive"}`}
-                  >
-                    {formatMoney(r.net)}
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={8}>
+                    No orders in this date range have an Order cost recorded yet. Set the values in
+                    the Create / Edit order form for them to appear here.
                   </td>
-                  <td className="product-revenue-money">{formatMoney(r.avgRevenue)}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                rows.map((r, i) => (
+                  <tr key={r.name}>
+                    <td>{i + 1}</td>
+                    <td className="product-revenue-name">{r.name}</td>
+                    <td>{r.orders}</td>
+                    <td>{r.qty}</td>
+                    <td className="product-revenue-money">{formatMoney(r.revenue)}</td>
+                    <td className="product-revenue-money">{formatMoney(r.printingCost)}</td>
+                    <td
+                      className={`product-revenue-money ${r.net < 0 ? "is-negative" : "is-positive"}`}
+                    >
+                      {formatMoney(r.net)}
+                    </td>
+                    <td className="product-revenue-money">{formatMoney(r.avgRevenue)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

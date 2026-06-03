@@ -528,6 +528,12 @@ function readStoredDashboardTab() {
   return "home";
 }
 
+function resolveDashboardTabForUser(tabId, permissions, isAdmin) {
+  if (isAdmin || viewerCanAccessDashboardTab(permissions, tabId)) return tabId;
+  const fallback = firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, permissions, isAdmin);
+  return fallback ?? "home";
+}
+
 const DEFAULT_NEW_USER_PERMISSIONS = {
   can_edit_status: true,
   can_edit_remarks: false,
@@ -1424,11 +1430,10 @@ function App() {
   useEffect(() => {
     if (!session?.user?.id || profileLoading) return;
     const role = (profile?.role ?? "").trim().toLowerCase();
-    if (role === "admin") return;
+    const isAdminRole = role === "admin";
     const perms = viewerPermissions[session.user.id] ?? {};
-    if (viewerCanAccessDashboardTab(perms, dashboardTab)) return;
-    const next = firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, perms, false);
-    if (next) setDashboardTab(next);
+    const resolved = resolveDashboardTabForUser(dashboardTab, perms, isAdminRole);
+    if (resolved !== dashboardTab) setDashboardTab(resolved);
   }, [session?.user?.id, profile?.role, profileLoading, viewerPermissions, dashboardTab]);
 
   async function handleSignIn(e) {

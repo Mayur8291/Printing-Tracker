@@ -16,6 +16,10 @@ export function hydrateSidebarTabFlagsFromPermission(permissionRow, sidebarItems
     return defaultSidebarTabFlags(sidebarItems);
   }
   const set = new Set(Array.isArray(allowed) ? allowed : []);
+  // Older permission rows may omit "home" — always show Home when other tabs are allowed.
+  if (allowed != null && set.size > 0 && ids.includes("home")) {
+    set.add("home");
+  }
   return Object.fromEntries(ids.map((id) => [id, set.has(id)]));
 }
 

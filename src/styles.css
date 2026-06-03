@@ -132,11 +132,6 @@ button,
   min-height: 100dvh;
 }
 
-.page.app-layout {
-  padding: 0;
-  min-height: 100dvh;
-}
-
 .panel {
   background: #ffffff;
   border: 1px solid #d8e4ff;
@@ -10080,91 +10075,6 @@ html.theme-dark .home-printing-report-card {
 
 html.theme-dark .home-printing-report-head {
   border-bottom-color: var(--content-surface-border);
-}
-
-html.theme-dark .home-printing-report-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
-html.theme-dark .home-printing-report-head {
-  border-bottom-color: var(--content-surface-border);
-}
-
-html.theme-dark .home-status-footnote {
-  background: rgba(30, 58, 138, 0.35);
-  border-color: #1e40af;
-}
-
-html.theme-dark .home-status-footnote-text strong {
-  color: #bfdbfe;
-}
-
-html.theme-dark .home-status-footnote-text p {
-  color: #93c5fd;
-}
-
-html.theme-dark .home-status-subtitle,
-html.theme-dark .home-status-updated,
-html.theme-dark .home-stat-card__label {
-  color: #94a3b8;
-}
-
-html.theme-dark .home-status-refresh-btn {
-  background: var(--content-surface);
-  border-color: var(--content-surface-border);
-  color: #cbd5e1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-html.theme-dark .home-status-refresh-btn:hover:not(:disabled) {
-  background: #334155;
-  border-color: #475569;
-  color: #f1f5f9;
-}
-
-html.theme-dark .home-stat-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
-html.theme-dark .home-stat-card--new {
-  --home-stat-icon-bg: rgba(37, 99, 235, 0.2);
-}
-
-html.theme-dark .home-stat-card--approval_pending {
-  --home-stat-icon-bg: rgba(234, 179, 8, 0.18);
-}
-
-html.theme-dark .home-stat-card--in_production {
-  --home-stat-icon-bg: rgba(168, 85, 247, 0.2);
-}
-
-html.theme-dark .home-stat-card--printing {
-  --home-stat-icon-bg: rgba(20, 184, 166, 0.2);
-}
-
-html.theme-dark .home-stat-card--fusing {
-  --home-stat-icon-bg: rgba(249, 115, 22, 0.2);
-}
-
-html.theme-dark .home-stat-card--ironing {
-  --home-stat-icon-bg: rgba(245, 158, 11, 0.2);
-}
-
-html.theme-dark .home-stat-card--packing {
-  --home-stat-icon-bg: rgba(139, 92, 246, 0.2);
-}
-
-html.theme-dark .home-stat-card--pending,
-html.theme-dark .home-stat-card--on_hold {
-  --home-stat-icon-bg: rgba(239, 68, 68, 0.2);
-}
-
-html.theme-dark .home-stat-card--ready {
-  --home-stat-icon-bg: rgba(34, 197, 94, 0.2);
-}
-
-html.theme-dark .home-stat-card--sent_to_dispatch {
-  --home-stat-icon-bg: rgba(14, 165, 233, 0.2);
 }
 
 html.theme-dark .home-status-footnote {
