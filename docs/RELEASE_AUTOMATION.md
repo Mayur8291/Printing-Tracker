@@ -1,0 +1,87 @@
+# One-click release (staging → production)
+
+Admin panel → **Test & deploy** → **Release to production** triggers a GitHub Action that:
+
+1. Merges `develop` into `main` and pushes
+2. Runs `supabase db push` on the **production** project
+3. Deploys edge functions to production
+4. Optionally POSTs a Netlify production build hook
+
+Netlify also rebuilds when `main` updates if the site is linked to GitHub.
+
+---
+
+## One-time setup
+
+### 1. GitHub — add workflow file to `main`
+
+Commit `.github/workflows/promote-to-production.yml` (merge via PR or push to `main` once).
+
+In the repo: **Settings → Actions → General → Workflow permissions** → enable **Read and write** for GitHub Actions.
+
+### 2. GitHub — repository secrets
+
+**Settings → Secrets and variables → Actions → New repository secret**
+
+| Secret | Value |
+|--------|--------|
+| `SUPABASE_ACCESS_TOKEN` | [Supabase account token](https://supabase.com/dashboard/account/tokens) |
+| `SUPABASE_PROD_PROJECT_REF` | `levwrmvqdntngeasrtnb` |
+| `NETLIFY_PRODUCTION_BUILD_HOOK` | *(optional)* Netlify → Site → Build & deploy → Build hooks → production hook URL |
+
+### 3. GitHub — personal access token for the edge function
+
+Create a fine-grained or classic PAT with:
+
+- Repository: `Printing-Tracker`
+- Permissions: **Actions: Read and write**, **Contents: Read and write** (if classic: `repo` + `workflow`)
+
+### 4. Supabase — deploy edge function + secret
+
+The app calls the function on **whichever Supabase project your build uses** (staging when `npm run dev`, production on the live site).
+
+**Production** (required for live admin + real releases):
+
+```bash
+cd "/Users/mayurmule/Downloads/Scott Dashboard"
+npx supabase link --project-ref levwrmvqdntngeasrtnb
+npx supabase secrets set GITHUB_PROMOTE_TOKEN=ghp_YOUR_TOKEN_HERE
+npx supabase functions deploy admin-promote-production
+```
+
+**Staging** (required if you test the button locally with `.env.development`):
+
+```bash
+npx supabase link --project-ref scvojtvgnkmbupvyslmb
+npx supabase secrets set GITHUB_PROMOTE_TOKEN=ghp_YOUR_TOKEN_HERE
+npx supabase functions deploy admin-promote-production
+```
+
+Optional: `npx supabase secrets set GITHUB_REPO=Mayur8291/Printing-Tracker`
+
+Deploy the workflow file to GitHub **before** the button works.
+
+**Error “Failed to send a request to the Edge Function”** = function missing on that Supabase project — run deploy steps above for the project ref shown in Admin (e.g. `scvojtvgnkmbupvyslmb` = staging).
+
+---
+
+## Daily use
+
+1. Develop on `develop` + staging Supabase (local `.env.development`).
+2. Push to `origin develop` and test.
+3. Admin → **Test & deploy** → **Release to production** → confirm.
+4. Watch progress: link opens GitHub Actions run.
+5. Verify live site after workflow is green.
+
+---
+
+## If the button errors
+
+| Message | Fix |
+|---------|-----|
+| `GITHUB_PROMOTE_TOKEN` not configured | Step 4 above |
+| `403 Forbidden` | User must be admin |
+| GitHub `404` on workflow | Workflow file not on `main` yet |
+| Merge conflict in Actions | Resolve `develop` vs `main` locally, push, retry |
+
+Manual fallback: `docs/ENVIRONMENTS.md` git merge steps.

@@ -25,6 +25,8 @@ import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
 import ViewerUserEditModal, { IconUserDelete, IconUserEdit } from "./ViewerUserEditModal";
 import { filterViewerProfiles, viewerIsActive } from "./viewerUserListUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
+import AdminDeployPanel from "./AdminDeployPanel";
+import { getDeployEnvironment } from "./deployEnvironmentUtils";
 import {
   buildProfileLookupList,
   createCoordinatorSelectOptions,
@@ -1698,6 +1700,21 @@ function App() {
       ...prev,
       coordinator_name: defaultName || prev.coordinator_name
     }));
+    setShowCreateForm(true);
+  }
+
+  function openCreateProductionJobSheet() {
+    const defaultName = profileDisplayName(profile);
+    setOrderForm({
+      ...emptyOrder,
+      coordinator_name: defaultName || "",
+      is_production_order: true,
+      order_kind: "printing"
+    });
+    setOrderIdDraft("");
+    setDesignFiles([]);
+    setPaymentScreenshotFiles([]);
+    setCustomerAssetFiles([]);
     setShowCreateForm(true);
   }
 
@@ -3695,6 +3712,14 @@ function App() {
             </div>
           )}
 
+          {import.meta.env.DEV && getDeployEnvironment().isProduction ? (
+            <div className="panel dashboard-env-danger-banner dashboard-banner" role="alert">
+              <strong>Live database connected.</strong> This dev server is using production Supabase — changes here
+              affect the hosted live app. Stop and use <code>npm run dev</code> (needs{" "}
+              <code>.env.development</code>) or <code>npm run dev:staging</code> (needs <code>.env.staging</code>).
+            </div>
+          ) : null}
+
           <div className="dashboard-main">
           {isAdmin && masterTableMissing && (
             <p className="panel master-warning master-warning-banner">
@@ -4091,6 +4116,8 @@ function App() {
             emptyMessage="No production orders."
             onViewOrder={openViewOrder}
             renderStageIcon={renderStageIcon}
+            canCreateJobSheet={isAdmin || viewerCanCreateOrders}
+            onCreateJobSheet={openCreateProductionJobSheet}
           />
             </section>
           )}
@@ -4172,7 +4199,25 @@ function App() {
                     >
                       List users and permissions
                     </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={masterListView === "deploy"}
+                      className={masterListView === "deploy" ? "master-view-tab is-active" : "master-view-tab"}
+                      onClick={() => setMasterListView("deploy")}
+                    >
+                      Test &amp; deploy
+                    </button>
                   </div>
+
+                  {masterListView === "deploy" && (
+                    <section className="admin-user-mgmt-card admin-deploy-card">
+                      <div className="user-mgmt-header">
+                        <h4 className="admin-user-mgmt-title">Test &amp; deploy</h4>
+                      </div>
+                      <AdminDeployPanel />
+                    </section>
+                  )}
 
                   {masterListView === "create" && (
                   <div className="create-user-section">
@@ -5251,7 +5296,9 @@ function App() {
           </div>
         </div>
       )}
-      {showCreateForm && dashboardTab === "printing" && (isAdmin || viewerCanCreateOrders) && (
+      {showCreateForm &&
+        (dashboardTab === "printing" || dashboardTab === "production_tracker") &&
+        (isAdmin || viewerCanCreateOrders) && (
         <div
           className="image-modal-backdrop create-order-modal-backdrop"
           onClick={closeCreateOrderForm}
@@ -5264,7 +5311,13 @@ function App() {
             aria-labelledby="create-order-modal-title"
           >
             <div className="create-order-modal-head">
-              <h2 id="create-order-modal-title">{isAdmin ? "Create New Order (Master Admin)" : "Create New Order"}</h2>
+              <h2 id="create-order-modal-title">
+                {dashboardTab === "production_tracker"
+                  ? "Create Job sheet"
+                  : isAdmin
+                    ? "Create New Order (Master Admin)"
+                    : "Create New Order"}
+              </h2>
               <button
                 type="button"
                 className="order-detail-close create-order-modal-close"

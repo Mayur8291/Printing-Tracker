@@ -19,7 +19,9 @@ export default function LinkedOrdersTabPanel({
   emptyMessage,
   onViewOrder,
   renderStageIcon,
-  paginationKey: paginationKeyProp
+  paginationKey: paginationKeyProp,
+  onCreateJobSheet,
+  canCreateJobSheet = false
 }) {
   function renderOrderIdBadges(orderId) {
     const ids = splitOrderIds(orderId);
@@ -67,6 +69,11 @@ export default function LinkedOrdersTabPanel({
         <button type="button" onClick={onClearDates}>
           Clear
         </button>
+        {canCreateJobSheet && onCreateJobSheet ? (
+          <button type="button" className="btn-create-job-sheet" onClick={onCreateJobSheet}>
+            Create Job sheet
+          </button>
+        ) : null}
         <OrdersPerPageControl
           idPrefix={`${storageKey}-orders-per-page`}
           pageSize={pageSize}

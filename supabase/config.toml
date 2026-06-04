@@ -2,6 +2,7 @@
 # npx supabase functions deploy admin-create-user
 # npx supabase functions deploy admin-delete-user
 # npx supabase functions deploy admin-reset-password
+# npx supabase functions deploy admin-promote-production
 
 [functions.admin-create-user]
 verify_jwt = true
@@ -10,4 +11,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.admin-reset-password]
+verify_jwt = true
+
+[functions.admin-promote-production]
 verify_jwt = true

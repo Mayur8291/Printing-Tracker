@@ -14,9 +14,10 @@ Two isolated stacks so you can build and test without touching live data.
 ## Daily workflow
 
 1. **Feature work:** branch from `develop`, open PR into `develop`.
-2. **Local run:** `npm run dev` (uses `.env.development` → staging Supabase).
+2. **Local run:** `npm run dev` (uses `.env.development` → staging Supabase).  
+   **`npm run dev:staging`** needs a real **`.env.staging`** file (not `.env.development`). Without it, Vite falls back to **`.env` = production**.
 3. **Shared preview:** push to `develop` → Netlify staging URL (after branch deploys + env vars).
-4. **Release:** merge `develop` → `main` → Netlify production build (prod Supabase env vars).
+4. **Release:** Admin → **Test & deploy** → **Release staging → production** (automated), or merge `develop` → `main` manually. See [RELEASE_AUTOMATION.md](./RELEASE_AUTOMATION.md).
 
 ```bash
 git checkout develop
@@ -26,7 +27,7 @@ npm install
 npm run dev
 ```
 
-Schema changes: apply migrations to **staging** first (`supabase link` to staging ref, `supabase db push`), test, then repeat on **production**. See [supabase/README-staging.md](../supabase/README-staging.md).
+Schema changes: apply migrations to **staging** first (`supabase link` to staging ref, then push). **First-time staging:** run `schema.sql` in SQL Editor, then `migration repair` — see [supabase/README-staging.md](../supabase/README-staging.md) (do not run bare `db push` on an empty project).
 
 ---
 

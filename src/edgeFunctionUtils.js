@@ -28,8 +28,15 @@ export async function messageFromFunctionInvoke(error, response) {
   }
 
   const msg = error.message || String(error);
+  if (/failed to send a request to the edge function/i.test(msg)) {
+    return (
+      "Edge function not reachable (often not deployed on this Supabase project). " +
+      "An admin must run: npx supabase link --project-ref YOUR_PROJECT_REF && " +
+      "npx supabase functions deploy admin-promote-production. See docs/RELEASE_AUTOMATION.md."
+    );
+  }
   if (/edge function returned a non-2xx/i.test(msg)) {
-    return "Request failed. Sign out, sign in again, then retry. If it still fails, ask an admin to redeploy admin-create-user.";
+    return "Request failed. Sign out, sign in again, then retry. If it still fails, ask an admin to redeploy the function.";
   }
   return msg;
 }
