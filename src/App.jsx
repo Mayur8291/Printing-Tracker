@@ -26,7 +26,7 @@ import ViewerUserEditModal, { IconUserDelete, IconUserEdit } from "./ViewerUserE
 import { filterViewerProfiles, viewerIsActive } from "./viewerUserListUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
 import AdminDeployPanel from "./AdminDeployPanel";
-import { getDeployEnvironment } from "./deployEnvironmentUtils";
+import { getDeployEnvironment, shouldShowAdminDeployTools } from "./deployEnvironmentUtils";
 import {
   buildProfileLookupList,
   createCoordinatorSelectOptions,
@@ -728,6 +728,8 @@ function App() {
   const [orderForm, setOrderForm] = useState(emptyOrder);
   const [orderIdDraft, setOrderIdDraft] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  /** "printing" = full create-order form; "job_sheet" = production job sheet (placeholder until dedicated fields). */
+  const [createFormMode, setCreateFormMode] = useState("printing");
   const [assignmentToasts, setAssignmentToasts] = useState([]);
   const [repeatOrderPickerOpen, setRepeatOrderPickerOpen] = useState(false);
   const [orderTemplates, setOrderTemplates] = useState([]);
@@ -973,6 +975,11 @@ function App() {
     }
     fetchProfile(session.user);
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (shouldShowAdminDeployTools()) return;
+    setMasterListView((current) => (current === "deploy" ? "list" : current));
+  }, []);
 
   useEffect(() => {
     if (!session?.user) {
@@ -1459,6 +1466,9 @@ function App() {
 
   function closeCreateOrderForm() {
     setShowCreateForm(false);
+    setCreateFormMode("printing");
+    setOrderForm(emptyOrder);
+    setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
     setCustomerAssetFiles([]);
@@ -1696,21 +1706,21 @@ function App() {
 
   function openCreateOrderForm() {
     const defaultName = profileDisplayName(profile);
+    setCreateFormMode("printing");
     setOrderForm((prev) => ({
-      ...prev,
+      ...emptyOrder,
       coordinator_name: defaultName || prev.coordinator_name
     }));
+    setOrderIdDraft("");
+    setDesignFiles([]);
+    setPaymentScreenshotFiles([]);
+    setCustomerAssetFiles([]);
     setShowCreateForm(true);
   }
 
   function openCreateProductionJobSheet() {
-    const defaultName = profileDisplayName(profile);
-    setOrderForm({
-      ...emptyOrder,
-      coordinator_name: defaultName || "",
-      is_production_order: true,
-      order_kind: "printing"
-    });
+    setCreateFormMode("job_sheet");
+    setOrderForm(emptyOrder);
     setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
@@ -2068,6 +2078,7 @@ function App() {
     setRepeatOrderPickerOpen(false);
     setTemplateEditingId(null);
     setTemplateDraft(null);
+    setCreateFormMode("printing");
     setShowCreateForm(true);
   }
 
@@ -3032,6 +3043,7 @@ function App() {
 
   const normalizedRole = (profile?.role ?? "").trim().toLowerCase();
   const isAdmin = isAdminUser;
+  const showAdminDeployTools = shouldShowAdminDeployTools();
   const isSalesReviewer = userIsSalesReviewer(profile, isAdmin);
   const isViewer = normalizedRole === "viewer";
   const currentUserPermissions = viewerPermissions[session?.user?.id] ?? {};
@@ -4199,18 +4211,20 @@ function App() {
                     >
                       List users and permissions
                     </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={masterListView === "deploy"}
-                      className={masterListView === "deploy" ? "master-view-tab is-active" : "master-view-tab"}
-                      onClick={() => setMasterListView("deploy")}
-                    >
-                      Test &amp; deploy
-                    </button>
+                    {showAdminDeployTools && (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={masterListView === "deploy"}
+                        className={masterListView === "deploy" ? "master-view-tab is-active" : "master-view-tab"}
+                        onClick={() => setMasterListView("deploy")}
+                      >
+                        Test &amp; deploy
+                      </button>
+                    )}
                   </div>
 
-                  {masterListView === "deploy" && (
+                  {showAdminDeployTools && masterListView === "deploy" && (
                     <section className="admin-user-mgmt-card admin-deploy-card">
                       <div className="user-mgmt-header">
                         <h4 className="admin-user-mgmt-title">Test &amp; deploy</h4>
@@ -5312,7 +5326,7 @@ function App() {
           >
             <div className="create-order-modal-head">
               <h2 id="create-order-modal-title">
-                {dashboardTab === "production_tracker"
+                {createFormMode === "job_sheet"
                   ? "Create Job sheet"
                   : isAdmin
                     ? "Create New Order (Master Admin)"
@@ -5328,6 +5342,20 @@ function App() {
               </button>
             </div>
             <div className="create-order-modal-body">
+              {createFormMode === "job_sheet" ? (
+                <div className="job-sheet-create-placeholder dashboard-placeholder">
+                  <h3>Job sheet form</h3>
+                  <p>
+                    Production job sheet fields will go here. This form is separate from printing order
+                    details and is not ready yet.
+                  </p>
+                  <div className="job-sheet-create-placeholder-actions">
+                    <button type="button" className="order-form-cancel-btn" onClick={closeCreateOrderForm}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              ) : (
               <form className="order-form order-form--modal" onSubmit={handleCreateOrder}>
             <div className="order-form-cell">
               <label htmlFor="create-order-date">Order date</label>
@@ -5913,6 +5941,7 @@ function App() {
               </button>
             </div>
           </form>
+              )}
             </div>
           </div>
         </div>

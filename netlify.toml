@@ -14,8 +14,20 @@
 [context.production]
   branch = "main"
 
+[context.production.environment]
+  VITE_APP_ENV = "production"
+
 [context.staging]
   branch = "develop"
+
+[context.staging.environment]
+  VITE_APP_ENV = "staging"
+
+[context.branch-deploy.environment]
+  VITE_APP_ENV = "staging"
+
+[context.deploy-preview.environment]
+  VITE_APP_ENV = "staging"
 
 # Branch deploys for other branches use deploy-preview / branch-deploy contexts in UI.
 [context.branch-deploy]

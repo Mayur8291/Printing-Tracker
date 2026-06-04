@@ -85,8 +85,11 @@ Repo: [Mayur8291/Printing-Tracker](https://github.com/Mayur8291/Printing-Tracker
 
    | Variable | Production (`main`) | Staging (`develop` / context `staging`) |
    |----------|-------------------|----------------------------------------|
+   | `VITE_APP_ENV` | `production` (hides Admin → Test & deploy on live site) | `staging` |
    | `VITE_SUPABASE_URL` | `https://levwrmvqdntngeasrtnb.supabase.co` | `https://YOUR_STAGING_REF.supabase.co` |
    | `VITE_SUPABASE_ANON_KEY` | prod anon key | staging anon key |
+
+   `netlify.toml` sets `VITE_APP_ENV` per context; you can mirror it in the dashboard if UI vars override the file.
 
    Use **Scopes**: Production vs **Branch deploys** / deploy context **staging** so prod keys never apply to `develop` builds.
 

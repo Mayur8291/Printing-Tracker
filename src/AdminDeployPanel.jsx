@@ -100,7 +100,8 @@ export default function AdminDeployPanel() {
         <h5 className="admin-deploy-release-title">Production release</h5>
         <p className="admin-deploy-release-desc">
           One click merges <code>develop</code> → <code>main</code>, updates live database, deploys functions,
-          and rebuilds the site. No terminal commands.
+          and rebuilds the site. Only works after you <strong>commit and push</strong> your work to{" "}
+          <code>origin develop</code> — local-only changes are not included.
         </p>
         <button
           type="button"

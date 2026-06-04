@@ -8714,6 +8714,15 @@ html.theme-dark button.btn-create-job-sheet {
   border-color: #22c55e;
 }
 
+.job-sheet-create-placeholder {
+  margin: 0;
+  min-height: 220px;
+}
+
+.job-sheet-create-placeholder-actions {
+  margin-top: 20px;
+}
+
 button.btn-repeat-order {
   background: linear-gradient(180deg, #fef9c3 0%, #fde68a 100%);
   border: 1px solid #facc15;

@@ -48,6 +48,38 @@ export function getDeployEnvironment() {
   return { kind: "staging", ref, label: "Staging / test database", isProduction: false };
 }
 
+/** True when the app is opened on the live production Netlify URL (not branch/preview). */
+export function isProductionSiteHost(hostname) {
+  const host = String(hostname ?? "").trim().toLowerCase();
+  if (!host) return false;
+  let prodHost = "printingtracker.netlify.app";
+  try {
+    prodHost = new URL(getProductionSiteUrl()).hostname.toLowerCase();
+  } catch {
+    /* use default */
+  }
+  return host === prodHost;
+}
+
+/**
+ * Admin → Test & deploy: staging branch deploy + local dev only.
+ * Hidden on live production site and when local dev points at production DB.
+ */
+export function shouldShowAdminDeployTools() {
+  const appEnv = String(import.meta.env.VITE_APP_ENV ?? "").trim().toLowerCase();
+  if (appEnv === "production") return false;
+
+  if (typeof window !== "undefined" && isProductionSiteHost(window.location.hostname)) {
+    return false;
+  }
+
+  if (import.meta.env.DEV) {
+    return !getDeployEnvironment().isProduction;
+  }
+
+  return true;
+}
+
 export function hasCustomStagingSiteUrl() {
   return Boolean(String(import.meta.env.VITE_STAGING_SITE_URL ?? "").trim());
 }

@@ -68,8 +68,10 @@ Deploy the workflow file to GitHub **before** the button works.
 ## Daily use
 
 1. Develop on `develop` + staging Supabase (local `.env.development`).
-2. Push to `origin develop` and test.
+2. **Commit and push** to `origin develop` and test (staging Netlify rebuilds from this push).
 3. Admin → **Test & deploy** → **Release to production** → confirm.
+
+The release button does **not** upload files from your laptop. It only merges whatever is already on GitHub `develop`. If the live site is missing a feature you see in `npm run dev`, you almost certainly forgot to push `develop` (or you are looking at production before releasing).
 4. Watch progress: link opens GitHub Actions run.
 5. Verify live site after workflow is green.
 

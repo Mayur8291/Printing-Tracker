@@ -109,9 +109,13 @@ serve(async (req) => {
 
     if (!ghRes.ok) {
       const text = await ghRes.text();
+      const hint404 =
+        ghRes.status === 404
+          ? " Ensure .github/workflows/promote-to-production.yml exists on GitHub main and the PAT can access this repo."
+          : "";
       return new Response(
         JSON.stringify({
-          error: `GitHub workflow trigger failed (${ghRes.status}): ${text.slice(0, 400)}`
+          error: `GitHub workflow trigger failed (${ghRes.status}): ${text.slice(0, 400)}${hint404}`
         }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
