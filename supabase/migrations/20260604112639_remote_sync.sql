@@ -1,0 +1,1 @@
+-- Placeholder: migration recorded on production (applied outside repo). No-op for history sync.

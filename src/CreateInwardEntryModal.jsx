@@ -2,50 +2,63 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "./supabaseClient";
 import {
   emptyInwardEntryForm,
+  formatInwardEntryDateLabel,
+  INWARD_DEPARTMENT_OPTIONS,
   INWARD_PACKAGE_BUCKET,
   INWARD_SELECT_FIELDS,
+  isInwardIndividualDepartment,
   validateInwardPackagePhoto
 } from "./inwardEntryUtils";
-import { OrderAdminSizeFields } from "./OrderAdminDetailFields";
-import { emptySizesForm, sizesFormToBreakdown } from "./orderAdminEditUtils";
 
 function trimField(value) {
   return String(value ?? "").trim();
 }
 
+function revokeBlobUrl(url) {
+  if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+}
+
 export default function CreateInwardEntryModal({ open, onClose, sessionUserId, onCreated }) {
-  const [form, setForm] = useState(emptyInwardEntryForm);
-  const [sizes, setSizes] = useState(emptySizesForm);
-  const [extraSizes, setExtraSizes] = useState([]);
+  const [form, setForm] = useState(() => emptyInwardEntryForm());
+  const [billFile, setBillFile] = useState(null);
+  const [billPreview, setBillPreview] = useState("");
   const [packageFile, setPackageFile] = useState(null);
   const [packagePreview, setPackagePreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const photoInputRef = useRef(null);
+  const billInputRef = useRef(null);
+  const packageInputRef = useRef(null);
 
   useEffect(() => {
     if (!open) return undefined;
     setForm(emptyInwardEntryForm());
-    setSizes(emptySizesForm());
-    setExtraSizes([]);
+    setBillFile(null);
+    setBillPreview("");
     setPackageFile(null);
     setPackagePreview("");
     setSubmitting(false);
     setError("");
     return () => {
-      if (packagePreview.startsWith("blob:")) {
-        URL.revokeObjectURL(packagePreview);
-      }
+      revokeBlobUrl(billPreview);
+      revokeBlobUrl(packagePreview);
     };
   }, [open]);
 
   if (!open) return null;
 
   function updateField(key, value) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "department" && !isInwardIndividualDepartment(value)) {
+        next.individual_name = "";
+      }
+      return next;
+    });
   }
 
-  function onPackagePick(e) {
+  const showIndividualName = isInwardIndividualDepartment(form.department);
+
+  function onPhotoPick(kind, e) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -55,28 +68,34 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
       return;
     }
     setError("");
-    setPackageFile(file);
-    setPackagePreview((prev) => {
-      if (prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
+    const previewUrl = URL.createObjectURL(file);
+    if (kind === "bill") {
+      setBillFile(file);
+      setBillPreview((prev) => {
+        revokeBlobUrl(prev);
+        return previewUrl;
+      });
+    } else {
+      setPackageFile(file);
+      setPackagePreview((prev) => {
+        revokeBlobUrl(prev);
+        return previewUrl;
+      });
+    }
   }
 
   function validateForm() {
-    if (!trimField(form.grn_no)) return "GRN NO. is required.";
-    if (!trimField(form.for_whom)) return "For whom is required.";
-    if (!trimField(form.supplier)) return "Supplier is required.";
-    if (!trimField(form.product_material)) return "Product / Material name is required.";
-    if (!trimField(form.qty_received)) return "Qty received is required.";
-    if (!trimField(form.bora_carton_unit)) return "Bora / Carton unit is required.";
-    if (!trimField(form.location_rack)) return "Location / Rack stored is required.";
-    if (!trimField(form.received_by)) return "Received by is required.";
+    if (!trimField(form.product_material)) return "Product / Material is required.";
+    if (!trimField(form.department)) return "Department is required.";
+    if (showIndividualName && !trimField(form.individual_name)) {
+      return "Individual name is required.";
+    }
     return null;
   }
 
-  async function uploadPackagePhoto(entryId, file) {
+  async function uploadInwardPhoto(entryId, file, kind) {
     const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
-    const path = `${entryId}/package.${ext.replace(/[^a-z0-9]/gi, "") || "jpg"}`;
+    const path = `${entryId}/${kind}.${ext.replace(/[^a-z0-9]/gi, "") || "jpg"}`;
     const { error: uploadErr } = await supabase.storage
       .from(INWARD_PACKAGE_BUCKET)
       .upload(path, file, { upsert: true, contentType: file.type || undefined });
@@ -94,22 +113,12 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
     setSubmitting(true);
     setError("");
     try {
-      const sizeBreakdown = sizesFormToBreakdown(sizes, extraSizes);
-      const hasSizes = Object.keys(sizeBreakdown).length > 0;
       const { data: inserted, error: insertErr } = await supabase
         .from("inward_entries")
         .insert({
-          grn_no: trimField(form.grn_no),
-          for_whom: trimField(form.for_whom),
-          supplier: trimField(form.supplier),
-          invoice_no: trimField(form.invoice_no),
           product_material: trimField(form.product_material),
-          qty_received: trimField(form.qty_received),
-          bora_carton_unit: trimField(form.bora_carton_unit),
-          location_rack: trimField(form.location_rack),
-          received_by: trimField(form.received_by),
-          remark: trimField(form.remark),
-          ...(hasSizes ? { size_breakdown: sizeBreakdown } : {}),
+          department: trimField(form.department),
+          individual_name: showIndividualName ? trimField(form.individual_name) : "",
           created_by: sessionUserId ?? null
         })
         .select(INWARD_SELECT_FIELDS)
@@ -117,7 +126,9 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
 
       if (insertErr) {
         throw new Error(
-          insertErr.message.includes("inward_entries")
+          insertErr.message.includes("inward_entries") ||
+            insertErr.message.includes("department") ||
+            insertErr.message.includes("bill_photo_path")
             ? `${insertErr.message}\n\nRun the latest Supabase migration (inward_entries) if this persists.`
             : insertErr.message
         );
@@ -128,21 +139,27 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
         );
       }
 
-      let packagePath = null;
+      const photoUpdate = {};
+      if (billFile) {
+        photoUpdate.bill_photo_path = await uploadInwardPhoto(inserted.id, billFile, "bill");
+      }
       if (packageFile) {
-        packagePath = await uploadPackagePhoto(inserted.id, packageFile);
+        photoUpdate.package_photo_path = await uploadInwardPhoto(inserted.id, packageFile, "package");
+      }
+
+      let saved = inserted;
+      if (Object.keys(photoUpdate).length) {
         const { data: updated, error: updateErr } = await supabase
           .from("inward_entries")
-          .update({ package_photo_path: packagePath })
+          .update(photoUpdate)
           .eq("id", inserted.id)
           .select(INWARD_SELECT_FIELDS)
           .maybeSingle();
         if (updateErr) throw new Error(updateErr.message);
-        onCreated?.(updated ?? { ...inserted, package_photo_path: packagePath });
-      } else {
-        onCreated?.(inserted);
+        saved = updated ?? { ...inserted, ...photoUpdate };
       }
 
+      onCreated?.(saved);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -154,14 +171,14 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
   return (
     <div className="image-modal-backdrop create-order-modal-backdrop" onClick={onClose}>
       <div
-        className="create-order-modal create-oc-modal"
+        className="create-order-modal create-oc-modal create-inward-modal--compact"
         onClick={(ev) => ev.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-inward-modal-title"
       >
         <div className="create-order-modal-head">
-          <h2 id="create-inward-modal-title">Inward entry</h2>
+          <h2 id="create-inward-modal-title">Make entry</h2>
           <button
             type="button"
             className="order-detail-close create-order-modal-close"
@@ -178,143 +195,110 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
             </p>
           ) : null}
 
-          <form className="order-form order-form--modal create-oc-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="order-form order-form--modal create-oc-form create-inward-form" onSubmit={(e) => e.preventDefault()}>
             <div className="order-form-cell">
-              <label htmlFor="inward-grn">GRN NO.</label>
+              <label htmlFor="inward-date">Date</label>
               <input
-                id="inward-grn"
+                id="inward-date"
                 type="text"
-                value={form.grn_no}
-                onChange={(e) => updateField("grn_no", e.target.value)}
-                required
+                readOnly
+                className="order-form-readonly-input"
+                value={formatInwardEntryDateLabel(form.entry_date)}
+                aria-readonly="true"
               />
             </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-for-whom">For whom</label>
-              <input
-                id="inward-for-whom"
-                type="text"
-                value={form.for_whom}
-                onChange={(e) => updateField("for_whom", e.target.value)}
-                required
-              />
-            </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-supplier">Supplier</label>
-              <input
-                id="inward-supplier"
-                type="text"
-                value={form.supplier}
-                onChange={(e) => updateField("supplier", e.target.value)}
-                required
-              />
-            </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-invoice">Invoice No.</label>
-              <input
-                id="inward-invoice"
-                type="text"
-                value={form.invoice_no}
-                onChange={(e) => updateField("invoice_no", e.target.value)}
-              />
-            </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-product">Product / Material name</label>
+            <div className="order-form-cell order-form-span-2">
+              <label htmlFor="inward-product">Product / Material</label>
               <input
                 id="inward-product"
                 type="text"
                 value={form.product_material}
                 onChange={(e) => updateField("product_material", e.target.value)}
+                placeholder="Product / material name"
                 required
               />
             </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-qty">Qty received</label>
-              <input
-                id="inward-qty"
-                type="text"
-                inputMode="decimal"
-                value={form.qty_received}
-                onChange={(e) => updateField("qty_received", e.target.value)}
+            <div className="order-form-cell order-form-span-2">
+              <label htmlFor="inward-department">Department</label>
+              <select
+                id="inward-department"
+                value={form.department}
+                onChange={(e) => updateField("department", e.target.value)}
                 required
-              />
+              >
+                <option value="">Select department</option>
+                {INWARD_DEPARTMENT_OPTIONS.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-bora">Bora / Carton unit</label>
-              <input
-                id="inward-bora"
-                type="text"
-                value={form.bora_carton_unit}
-                onChange={(e) => updateField("bora_carton_unit", e.target.value)}
-                required
-              />
-            </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-location">Location / Rack stored</label>
-              <input
-                id="inward-location"
-                type="text"
-                value={form.location_rack}
-                onChange={(e) => updateField("location_rack", e.target.value)}
-                required
-              />
-            </div>
-            <div className="order-form-cell">
-              <label htmlFor="inward-received-by">Received by</label>
-              <input
-                id="inward-received-by"
-                type="text"
-                value={form.received_by}
-                onChange={(e) => updateField("received_by", e.target.value)}
-                required
-              />
-            </div>
-            <div className="order-form-cell order-form-span-3">
-              <label htmlFor="inward-remark">Remark</label>
-              <input
-                id="inward-remark"
-                type="text"
-                value={form.remark}
-                onChange={(e) => updateField("remark", e.target.value)}
-              />
-            </div>
-            <div className="order-form-cell order-form-span-3 create-oc-photo-sizes-cell">
-              <div className="create-oc-photo-sizes-row">
-                <div className="create-oc-photo-block">
-                  <span className="create-oc-field-label">Upload package</span>
+            {showIndividualName ? (
+              <div className="order-form-cell order-form-span-2 create-inward-individual-cell">
+                <label htmlFor="inward-individual-name">Individual name</label>
+                <input
+                  id="inward-individual-name"
+                  type="text"
+                  value={form.individual_name}
+                  onChange={(e) => updateField("individual_name", e.target.value)}
+                  placeholder="Enter individual name"
+                  required
+                />
+              </div>
+            ) : null}
+            <div className="order-form-cell order-form-span-3 create-inward-photos-cell">
+              <span className="create-oc-field-label">Bill &amp; package photos</span>
+              <div className="create-inward-photos-row">
+                <div className="create-inward-photo-block">
+                  <span className="create-inward-photo-label">Bill</span>
                   <div className="create-oc-photo-row">
                     <button
                       type="button"
-                      className="create-oc-photo-tap"
-                  onClick={() => photoInputRef.current?.click()}
-                  aria-label="Upload package photo"
-                >
-                  {packagePreview ? (
-                    <img src={packagePreview} alt="Package preview" />
-                  ) : null}
-                </button>
+                      className="create-oc-photo-tap create-inward-photo-tap"
+                      onClick={() => billInputRef.current?.click()}
+                      aria-label="Upload bill image"
+                    >
+                      {billPreview ? (
+                        <img src={billPreview} alt="Bill preview" />
+                      ) : (
+                        <span className="create-inward-bill-placeholder">Tap to upload bill</span>
+                      )}
+                    </button>
                     <input
-                      ref={photoInputRef}
+                      ref={billInputRef}
                       type="file"
                       accept="image/jpeg,image/png,image/webp,image/gif"
                       className="create-oc-photo-input"
-                      onChange={onPackagePick}
+                      onChange={(e) => onPhotoPick("bill", e)}
                       tabIndex={-1}
                       aria-hidden
                     />
                   </div>
                 </div>
-                <div className="create-oc-sizes-block">
-                  <div className="order-size-compact create-inward-sizes" aria-labelledby="inward-sizes-heading">
-                    <span id="inward-sizes-heading" className="order-size-compact-heading create-oc-field-label">
-                      Sizes <span className="create-inward-sizes-optional">(optional)</span>
-                    </span>
-                    <OrderAdminSizeFields
-                      draft={{ sizes, extraSizes }}
-                      onPatch={(patch) => {
-                        if (patch.sizes) setSizes(patch.sizes);
-                        if (patch.extraSizes) setExtraSizes(patch.extraSizes);
-                      }}
+                <div className="create-inward-photo-block">
+                  <span className="create-inward-photo-label">Package</span>
+                  <div className="create-oc-photo-row">
+                    <button
+                      type="button"
+                      className="create-oc-photo-tap create-inward-photo-tap"
+                      onClick={() => packageInputRef.current?.click()}
+                      aria-label="Upload package photo"
+                    >
+                      {packagePreview ? (
+                        <img src={packagePreview} alt="Package preview" />
+                      ) : (
+                        <span className="create-inward-bill-placeholder">Tap to upload package</span>
+                      )}
+                    </button>
+                    <input
+                      ref={packageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="create-oc-photo-input"
+                      onChange={(e) => onPhotoPick("package", e)}
+                      tabIndex={-1}
+                      aria-hidden
                     />
                   </div>
                 </div>

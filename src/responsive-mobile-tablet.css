@@ -327,7 +327,16 @@ body.mobile-nav-open {
   }
 
   .dashboard-sidebar-item.is-active {
-    box-shadow: inset 3px 0 0 #dc2626;
+    box-shadow: inset 3px 0 0 var(--sidebar-active-icon);
+  }
+
+  .dashboard-sidebar-brand-sub,
+  .dashboard-sidebar-section-label {
+    color: var(--sidebar-section-label);
+  }
+
+  .dashboard-sidebar-user {
+    padding-bottom: 8px;
   }
 
   .dashboard-home-panel,
@@ -623,8 +632,8 @@ body.mobile-nav-open {
   }
 
   html.theme-dark .dashboard-sidebar {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
     box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45);
   }
 

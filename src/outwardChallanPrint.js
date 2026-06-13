@@ -1,9 +1,9 @@
 import {
-  buildOcLabelRows,
-  OC_PRINT_LABEL_STYLES,
-  renderOcBrandHeaderHtml
-} from "./outwardChallanUtils";
-import { buildOcQrValue, renderOcQrDataUrl } from "./outwardChallanQr";
+  buildOcBarcodeCaptionLine,
+  buildOcBarcodeValue
+} from "./outwardChallanBarcode";
+import { buildOcLabelRows, renderOcBrandHeaderHtml } from "./outwardChallanUtils";
+import { renderCode128BarcodeSvg } from "./inwardGrnBarcode";
 
 function escapeHtml(value) {
   return String(value)
@@ -13,7 +13,90 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
-async function buildOcPrintLabelHtml(record, qrDataUrl) {
+const OUTWARD_OC_LABEL_STYLES = `
+  @page {
+    size: 4in 6in;
+    margin: 0.1in;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    width: 4in;
+    min-height: 6in;
+    margin: 0;
+    padding: 0.1in;
+    font-family: Helvetica, Arial, sans-serif;
+    color: #0f172a;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .oc-label-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 6px;
+  }
+  .oc-label-brand img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .oc-label-brand-name {
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .oc-label-title {
+    margin: 0 0 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    text-align: center;
+  }
+  .barcode {
+    text-align: center;
+    margin: 4px 0;
+  }
+  .barcode svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 3.5in;
+    height: auto;
+  }
+  .oc-barcode-caption {
+    margin: 4px 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0;
+  }
+  th {
+    text-align: left;
+    padding: 2px 6px 2px 0;
+    color: #64748b;
+    font-size: 7px;
+    font-weight: 600;
+    vertical-align: top;
+    width: 38%;
+  }
+  td {
+    padding: 2px 0;
+    font-size: 7.5px;
+    font-weight: 600;
+    vertical-align: top;
+    word-break: break-word;
+  }
+`;
+
+async function buildOcPrintLabelHtml(record) {
   const rows = buildOcLabelRows(record);
   const detailsHtml = rows
     .map(
@@ -22,26 +105,26 @@ async function buildOcPrintLabelHtml(record, qrDataUrl) {
     )
     .join("");
   const brandHtml = renderOcBrandHeaderHtml();
-  const ocId = escapeHtml(String(record.id ?? ""));
-  const qrImg = qrDataUrl
-    ? `<img class="oc-print-qr" src="${qrDataUrl}" alt="OC QR code" width="200" height="200" />`
-    : "";
-  return `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>OC label #${ocId}</title>
-    <style>${OC_PRINT_LABEL_STYLES}
-      .oc-print-qr{display:block;margin:0 auto 8px}
-    </style></head>
+  const barcodeValue = buildOcBarcodeValue(record);
+  const barcodeSvg = renderCode128BarcodeSvg(barcodeValue);
+  const caption = escapeHtml(buildOcBarcodeCaptionLine(record));
+  const barcodeBlock = barcodeSvg
+    ? `<div class="barcode">${barcodeSvg}<p class="oc-barcode-caption">${caption}</p></div>`
+    : `<p class="oc-barcode-caption">${caption}</p>`;
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${caption}</title>
+    <style>${OUTWARD_OC_LABEL_STYLES}</style></head>
     <body>
       ${brandHtml}
-      <p class="oc-print-subtitle">Outward challan</p>
-      <div class="barcode">${qrImg}</div>
+      <p class="oc-label-title">Outward challan</p>
+      ${barcodeBlock}
       <table>${detailsHtml}</table>
       <script>window.onload=function(){window.focus();window.print()}</script>
     </body></html>`;
 }
 
 export async function openOutwardChallanPrintWindow(record) {
-  const qrDataUrl = await renderOcQrDataUrl(buildOcQrValue(record));
-  const html = await buildOcPrintLabelHtml(record, qrDataUrl);
+  const html = await buildOcPrintLabelHtml(record);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const blobUrl = URL.createObjectURL(blob);
   const printWin = window.open(blobUrl, "_blank");

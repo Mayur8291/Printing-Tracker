@@ -19,13 +19,26 @@ import {
   DASHBOARD_SIDEBAR,
   DASHBOARD_SIDEBAR_FOOTER,
   DASHBOARD_SIDEBAR_MAIN,
+  DASHBOARD_SIDEBAR_MAIN_SECTIONS,
   DASHBOARD_SIDEBAR_SOON_TAB_IDS
 } from "./dashboardSidebarConfig";
+import { DashboardSidebarIcon } from "./dashboardSidebarIcons";
 import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
 import ViewerUserEditModal, { IconUserDelete, IconUserEdit } from "./ViewerUserEditModal";
 import { filterViewerProfiles, viewerIsActive } from "./viewerUserListUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
 import AdminDeployPanel from "./AdminDeployPanel";
+import CreateJobSheetForm from "./CreateJobSheetForm";
+import DistributorTabPanel from "./DistributorTabPanel";
+import InventoryTabPanel from "./InventoryTabPanel";
+import {
+  computeNextJobSheetOrderId,
+  emptyJobSheetForm,
+  jobSheetSizesToBreakdown,
+  parseJobSheetRate,
+  parseJobSheetSizeQty,
+  sumJobSheetSizes
+} from "./jobSheetUtils";
 import { getDeployEnvironment, shouldShowAdminDeployTools } from "./deployEnvironmentUtils";
 import {
   buildProfileLookupList,
@@ -629,6 +642,15 @@ function viewerHasAnyOrderFieldEdit(permissions) {
   return EDITABLE_FIELD_OPTIONS.some((opt) => viewerMayEditOrderField(permissions, opt.key));
 }
 
+function userDisplayInitials(name, email) {
+  const source = (name || email || "U").trim();
+  const parts = source.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
+  }
+  return source.slice(0, 2).toUpperCase();
+}
+
 function DashboardSidebarItem({ item, isActive, onSelect, showSoon }) {
   return (
     <button
@@ -637,7 +659,10 @@ function DashboardSidebarItem({ item, isActive, onSelect, showSoon }) {
       aria-current={isActive ? "page" : undefined}
       onClick={() => onSelect(item.id)}
     >
-      <span className="dashboard-sidebar-item-label">{item.label}</span>
+      <span className="dashboard-sidebar-item-leading">
+        <DashboardSidebarIcon tabId={item.id} />
+        <span className="dashboard-sidebar-item-label">{item.label}</span>
+      </span>
       {showSoon ? <span className="dashboard-sidebar-soon">Soon</span> : null}
     </button>
   );
@@ -747,10 +772,15 @@ function App() {
   const [coordinators, setCoordinators] = useState([]);
   const [newOwnerName, setNewOwnerName] = useState("");
   const [newCoordinatorName, setNewCoordinatorName] = useState("");
+  const [salesIncharges, setSalesIncharges] = useState([]);
+  const [newSalesInchargeName, setNewSalesInchargeName] = useState("");
+  const [jobSheetForm, setJobSheetForm] = useState(() => emptyJobSheetForm());
+  const [savingJobSheet, setSavingJobSheet] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [masterListView, setMasterListView] = useState("list");
   const [showMockupStudio, setShowMockupStudio] = useState(false);
   const [masterTableMissing, setMasterTableMissing] = useState(false);
+  const [salesInchargeTableMissing, setSalesInchargeTableMissing] = useState(false);
   const [teamProfiles, setTeamProfiles] = useState([]);
   const [viewerProfiles, setViewerProfiles] = useState([]);
   const [viewerPermissions, setViewerPermissions] = useState({});
@@ -862,7 +892,7 @@ function App() {
       const { data, error } = await supabase
         .from("orders")
         .select(
-          "id, order_id, order_date, due_date, owner_name, customer_name, coordinator_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost"
+          "id, order_id, order_date, due_date, owner_name, customer_name, coordinator_name, sales_incharge_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost, size_type, rate_per_piece, brand, fabric_type, branding, branding_type, gsm, atta"
         )
         .order("created_at", { ascending: false });
 
@@ -1262,15 +1292,26 @@ function App() {
   }
 
   async function fetchMasters() {
-    const [{ data: ownersData, error: ownersError }, { data: coordinatorsData, error: coordinatorsError }] =
-      await Promise.all([
-        supabase.from("owners").select("id, name").order("name", { ascending: true }),
-        supabase.from("coordinators").select("id, name").order("name", { ascending: true })
-      ]);
+    setMasterTableMissing(false);
+    setSalesInchargeTableMissing(false);
+
+    const [
+      { data: ownersData, error: ownersError },
+      { data: coordinatorsData, error: coordinatorsError },
+      { data: salesInchargesData, error: salesInchargesError }
+    ] = await Promise.all([
+      supabase.from("owners").select("id, name").order("name", { ascending: true }),
+      supabase.from("coordinators").select("id, name").order("name", { ascending: true }),
+      supabase.from("sales_incharges").select("id, name").order("name", { ascending: true })
+    ]);
+
+    const tableMissing = (msg) =>
+      String(msg ?? "").includes("Could not find the table") ||
+      String(msg ?? "").includes("schema cache");
 
     if (ownersError) {
       console.error(ownersError.message);
-      if (ownersError.message?.includes("Could not find the table")) {
+      if (tableMissing(ownersError.message)) {
         setMasterTableMissing(true);
       }
     } else {
@@ -1279,11 +1320,21 @@ function App() {
 
     if (coordinatorsError) {
       console.error(coordinatorsError.message);
-      if (coordinatorsError.message?.includes("Could not find the table")) {
+      if (tableMissing(coordinatorsError.message)) {
         setMasterTableMissing(true);
       }
     } else {
       setCoordinators(coordinatorsData ?? []);
+    }
+
+    if (salesInchargesError) {
+      console.error(salesInchargesError.message);
+      if (tableMissing(salesInchargesError.message)) {
+        setSalesInchargeTableMissing(true);
+        setSalesIncharges([]);
+      }
+    } else {
+      setSalesIncharges(salesInchargesData ?? []);
     }
   }
 
@@ -1468,6 +1519,8 @@ function App() {
     setShowCreateForm(false);
     setCreateFormMode("printing");
     setOrderForm(emptyOrder);
+    setJobSheetForm(emptyJobSheetForm());
+    setSavingJobSheet(false);
     setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
@@ -1718,14 +1771,132 @@ function App() {
     setShowCreateForm(true);
   }
 
-  function openCreateProductionJobSheet() {
+  async function openCreateProductionJobSheet() {
     setCreateFormMode("job_sheet");
     setOrderForm(emptyOrder);
     setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
     setCustomerAssetFiles([]);
+
+    const today = todayLocalISODate();
+    let nextOrderId = computeNextJobSheetOrderId([]);
+    const { data: existingRows, error: idError } = await supabase
+      .from("orders")
+      .select("order_id")
+      .eq("is_production_order", true);
+    if (!idError && existingRows?.length) {
+      nextOrderId = computeNextJobSheetOrderId(existingRows.map((r) => r.order_id));
+    }
+
+    setJobSheetForm({
+      ...emptyJobSheetForm(),
+      order_id: nextOrderId,
+      order_date: today
+    });
     setShowCreateForm(true);
+  }
+
+  async function handleCreateJobSheet(e) {
+    e.preventDefault();
+    if (!jobSheetForm.sales_incharge_name) {
+      alert("Please select sales incharge.");
+      return;
+    }
+    if (!jobSheetForm.customer_name.trim()) {
+      alert("Please enter customer name.");
+      return;
+    }
+    if (!jobSheetForm.size_type) {
+      alert("Please select size type.");
+      return;
+    }
+    if (!jobSheetForm.product_name.trim()) {
+      alert("Please enter product name.");
+      return;
+    }
+    if (!jobSheetForm.delivery_required_on) {
+      alert("Please set delivery required on date.");
+      return;
+    }
+    for (const row of jobSheetForm.extraSizes ?? []) {
+      const label = String(row?.label ?? "").trim().toUpperCase();
+      const n = parseJobSheetSizeQty(row?.qty);
+      if (n > 0 && !label) {
+        alert("Enter a size name for each additional size that has a quantity.");
+        return;
+      }
+    }
+
+    const sizeBreakdown = jobSheetSizesToBreakdown(jobSheetForm.sizes, jobSheetForm.extraSizes);
+    const fromSizes = sumJobSheetSizes(jobSheetForm.sizes, jobSheetForm.extraSizes);
+    const manualQty = parseJobSheetSizeQty(jobSheetForm.total_quantity);
+    const qty = manualQty > 0 ? manualQty : fromSizes;
+    if (qty <= 0) {
+      alert("Please enter total quantity or quantities in at least one size.");
+      return;
+    }
+
+    const colorText = String(jobSheetForm.color ?? "").trim();
+    const payload = {
+      order_date: jobSheetForm.order_date || todayLocalISODate(),
+      order_id: jobSheetForm.order_id,
+      is_production_order: true,
+      status: "new",
+      customer_name: jobSheetForm.customer_name.trim(),
+      sales_incharge_name: jobSheetForm.sales_incharge_name,
+      coordinator_name: jobSheetForm.sales_incharge_name,
+      owner_name: "",
+      size_type: jobSheetForm.size_type,
+      rate_per_piece: parseJobSheetRate(jobSheetForm.rate_per_piece),
+      qty,
+      size_breakdown: sizeBreakdown,
+      product_name: jobSheetForm.product_name.trim(),
+      brand: String(jobSheetForm.brand ?? "").trim() || null,
+      colors: colorText ? [colorText] : [],
+      fabric_type: String(jobSheetForm.fabric_type ?? "").trim() || null,
+      branding: jobSheetForm.branding === "yes",
+      branding_type:
+        jobSheetForm.branding === "yes"
+          ? String(jobSheetForm.branding_type ?? "").trim() || null
+          : null,
+      gsm: String(jobSheetForm.gsm ?? "").trim() || null,
+      atta: jobSheetForm.atta === "yes",
+      remarks: String(jobSheetForm.comments ?? "").trim() || null,
+      due_date: jobSheetForm.delivery_required_on,
+      approved_design_url: "[]",
+      printing_mtrs: 0,
+      created_by: session.user.id
+    };
+
+    setSavingJobSheet(true);
+    const { data: insertedOrder, error } = await supabase
+      .from("orders")
+      .insert(payload)
+      .select("id")
+      .single();
+    setSavingJobSheet(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    if (insertedOrder?.id) {
+      await insertOrderAssignmentNotification(supabase, {
+        coordinatorName: payload.coordinator_name,
+        orderId: insertedOrder.id,
+        orderDisplayId: payload.order_id,
+        assignedByUserId: session.user.id,
+        profileLookup: profileLookupForAssignments
+      });
+    }
+
+    closeCreateOrderForm();
+    setDashboardTab("production_tracker");
+    setOrdersTab("active");
+    await fetchOrders();
+    alert("Job sheet saved successfully.");
   }
 
   function openRepeatOrderPicker() {
@@ -2131,6 +2302,36 @@ function App() {
     const ok = window.confirm(`Remove coordinator "${coordinator.name}"?`);
     if (!ok) return;
     const { error } = await supabase.from("coordinators").delete().eq("id", coordinator.id);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    fetchMasters();
+  }
+
+  async function handleAddSalesIncharge() {
+    const name = newSalesInchargeName.trim();
+    if (!name) return;
+    const { error } = await supabase.from("sales_incharges").insert({ name });
+    if (error) {
+      if (error.message?.includes("Could not find the table")) {
+        setMasterTableMissing(true);
+        alert(
+          "Sales incharges table is missing. Run supabase/migrations/20260613120000_add_job_sheet_fields.sql on your project."
+        );
+      } else {
+        alert(error.message);
+      }
+      return;
+    }
+    setNewSalesInchargeName("");
+    fetchMasters();
+  }
+
+  async function handleDeleteSalesIncharge(row) {
+    const ok = window.confirm(`Remove sales incharge "${row.name}"?`);
+    if (!ok) return;
+    const { error } = await supabase.from("sales_incharges").delete().eq("id", row.id);
     if (error) {
       alert(error.message);
       return;
@@ -3070,6 +3271,11 @@ function App() {
     currentUserPermissions,
     isAdmin
   );
+  const visibleSidebarMainById = new Map(visibleSidebarMain.map((item) => [item.id, item]));
+  const visibleSidebarMainBySection = DASHBOARD_SIDEBAR_MAIN_SECTIONS.map((section) => ({
+    label: section.label,
+    items: section.ids.map((id) => visibleSidebarMainById.get(id)).filter(Boolean)
+  })).filter((section) => section.items.length > 0);
   const currentDashboardTabLabel =
     dashboardTab === ADMIN_DASHBOARD_TAB.id
       ? ADMIN_DASHBOARD_TAB.label
@@ -3584,6 +3790,9 @@ function App() {
     : profileError
       ? "—"
       : profile?.full_name?.trim() || profile?.email?.trim() || "User";
+  const headerUserInitials = profileLoading
+    ? "…"
+    : userDisplayInitials(profile?.full_name, profile?.email);
 
   return (
     <div className="page app-layout">
@@ -3609,7 +3818,10 @@ function App() {
               width={32}
               height={32}
             />
-            <span className="dashboard-sidebar-brand-text">Scott Dashboard</span>
+            <div className="dashboard-sidebar-brand-copy">
+              <span className="dashboard-sidebar-brand-text">Scott Dashboard</span>
+              <span className="dashboard-sidebar-brand-sub">Operations workspace</span>
+            </div>
           </div>
           <div className="mobile-nav-drawer-head">
             <h2 className="mobile-nav-drawer-title">Menu</h2>
@@ -3624,17 +3836,23 @@ function App() {
           </div>
           <nav className="dashboard-sidebar-nav">
             <div className="dashboard-sidebar-main">
-              {visibleSidebarMain.map((item) => (
-                <DashboardSidebarItem
-                  key={item.id}
-                  item={item}
-                  isActive={dashboardTab === item.id}
-                  onSelect={selectDashboardTab}
-                  showSoon={DASHBOARD_SIDEBAR_SOON_TAB_IDS.has(item.id)}
-                />
+              {visibleSidebarMainBySection.map((section) => (
+                <div key={section.label} className="dashboard-sidebar-section">
+                  <span className="dashboard-sidebar-section-label">{section.label}</span>
+                  {section.items.map((item) => (
+                    <DashboardSidebarItem
+                      key={item.id}
+                      item={item}
+                      isActive={dashboardTab === item.id}
+                      onSelect={selectDashboardTab}
+                      showSoon={DASHBOARD_SIDEBAR_SOON_TAB_IDS.has(item.id)}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
             <div className="dashboard-sidebar-footer">
+              <span className="dashboard-sidebar-section-label">Tools</span>
               <div className="dashboard-sidebar-footer-nav">
                 {visibleSidebarFooterWithChat.map((item) => (
                   <DashboardSidebarItem
@@ -3653,13 +3871,34 @@ function App() {
                   />
                 ) : null}
               </div>
+              <div className="dashboard-sidebar-user">
+                <div className="dashboard-sidebar-user-avatar" aria-hidden="true">
+                  {headerUserInitials}
+                </div>
+                <div className="dashboard-sidebar-user-meta">
+                  <span className="dashboard-sidebar-user-name">{headerUserName}</span>
+                  {!profileLoading && !profileError && profile?.department?.trim() ? (
+                    <span className="dashboard-sidebar-user-dept" title="Department">
+                      {profile.department.trim()}
+                    </span>
+                  ) : null}
+                </div>
+                <ThemeToggle
+                  theme={theme}
+                  onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+                  className="theme-toggle-btn theme-toggle-btn--sidebar"
+                />
+              </div>
             </div>
           </nav>
         </aside>
 
         <div className="dashboard-workspace">
           <header className="dashboard-topbar">
-            <h1 className="dashboard-topbar-title">{currentDashboardTabLabel}</h1>
+            <div className="dashboard-topbar-context">
+              <span className="dashboard-topbar-eyebrow">Dashboard</span>
+              <h1 className="dashboard-topbar-title">{currentDashboardTabLabel}</h1>
+            </div>
             <div className="dashboard-topbar-actions">
               <div className="dashboard-topbar-row dashboard-topbar-row--primary">
                 <GlobalSearchBox
@@ -3676,7 +3915,7 @@ function App() {
                   <>
                     <button
                       type="button"
-                      className="topbar-users-btn dashboard-topbar-btn"
+                      className="topbar-users-btn dashboard-topbar-btn dashboard-topbar-btn--primary"
                       onClick={() => openAdminPanel("list")}
                     >
                       Edit Users
@@ -3693,20 +3932,6 @@ function App() {
                 <button type="button" className="logout-btn dashboard-topbar-btn" onClick={handleSignOut}>
                   Logout
                 </button>
-              </div>
-              <div className="dashboard-topbar-row dashboard-topbar-row--secondary">
-                <div className="dashboard-topbar-user-meta">
-                  <span className="dashboard-topbar-user-name">{headerUserName}</span>
-                  {!profileLoading && !profileError && profile?.department?.trim() ? (
-                    <span className="dashboard-topbar-user-dept" title="Department">
-                      {profile.department.trim()}
-                    </span>
-                  ) : null}
-                  <ThemeToggle
-                    theme={theme}
-                    onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-                  />
-                </div>
               </div>
             </div>
           </header>
@@ -3735,8 +3960,16 @@ function App() {
           <div className="dashboard-main">
           {isAdmin && masterTableMissing && (
             <p className="panel master-warning master-warning-banner">
-              Supabase tables for Owners/Coordinators are missing. Run updated{" "}
-              <code>supabase/schema.sql</code>.
+              Supabase tables for <strong>owners</strong> or <strong>coordinators</strong> are missing. Run{" "}
+              <code>supabase/migrations/20260613140000_repair_master_directory_tables.sql</code> in the SQL
+              Editor (or <code>supabase db push</code>).
+            </p>
+          )}
+          {isAdmin && salesInchargeTableMissing && !masterTableMissing && (
+            <p className="panel master-warning master-warning-banner">
+              <strong>Sales incharges</strong> table is missing (job sheet dropdown). Run{" "}
+              <code>supabase/migrations/20260613140000_repair_master_directory_tables.sql</code> in the SQL
+              Editor, then refresh.
             </p>
           )}
 
@@ -4092,6 +4325,14 @@ function App() {
             </section>
           )}
 
+          {dashboardTab === "distributor" && (
+            <DistributorTabPanel
+              canEdit={viewerCanEditCurrentTab}
+              isAdmin={isAdmin}
+              sessionUserId={session?.user?.id}
+            />
+          )}
+
           {dashboardTab === "chat" && session?.user && (
             <TeamChatPanel
               sessionUserId={session.user.id}
@@ -4180,6 +4421,9 @@ function App() {
                 onNavigateConsumed={clearGlobalSearchNavigation}
               />
             </section>
+          )}
+          {dashboardTab === "inventory" && (
+            <InventoryTabPanel session={session} />
           )}
           {dashboardTab === "admin" && isAdmin && (
             <section className="panel table-panel dashboard-card dashboard-card--flat">
@@ -4438,6 +4682,7 @@ function App() {
                         </button>
                         <button
                           type="button"
+                          className="btn-admin-secondary"
                           onClick={() => {
                             resetNewUserForm();
                             setCreateUserError("");
@@ -4672,7 +4917,7 @@ function App() {
                   <section className="admin-user-mgmt-card admin-master-directory-card">
                     <div className="user-mgmt-header">
                       <div>
-                        <h4 className="admin-user-mgmt-title">Owners &amp; coordinators</h4>
+                        <h4 className="admin-user-mgmt-title">Owners, coordinators &amp; sales incharges</h4>
                       </div>
                     </div>
                     <div className="admin-master-toolbar">
@@ -4712,8 +4957,26 @@ function App() {
                           Add coordinator
                         </button>
                       </div>
+                      <div className="admin-master-add-inline">
+                        <input
+                          type="text"
+                          className="admin-master-input"
+                          placeholder="Sales incharge name"
+                          value={newSalesInchargeName}
+                          onChange={(e) => setNewSalesInchargeName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddSalesIncharge();
+                            }
+                          }}
+                        />
+                        <button type="button" className="btn-admin-add" onClick={handleAddSalesIncharge}>
+                          Add sales incharge
+                        </button>
+                      </div>
                     </div>
-                    {owners.length || coordinators.length ? (
+                    {owners.length || coordinators.length || salesIncharges.length ? (
                       <div className="users-access-table-wrap users-access-table-wrap--compact users-access-table-wrap--master-scroll">
                         <table className="users-access-table users-access-table--compact">
                           <thead>
@@ -4777,11 +5040,39 @@ function App() {
                                 </td>
                               </tr>
                             ))}
+                            {salesIncharges.map((row, index) => (
+                              <tr key={`sales-${row.id}`}>
+                                <td className="admin-master-index">
+                                  {owners.length + coordinators.length + index + 1}
+                                </td>
+                                <td className="user-mgmt-name-cell">
+                                  <span className="admin-master-name">{row.name}</span>
+                                </td>
+                                <td>
+                                  <span className="admin-master-type-pill admin-master-type-pill--sales">
+                                    Sales incharge
+                                  </span>
+                                </td>
+                                <td>
+                                  <div className="user-mgmt-icon-actions">
+                                    <button
+                                      type="button"
+                                      className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                      title="Remove sales incharge"
+                                      aria-label={`Remove sales incharge ${row.name}`}
+                                      onClick={() => handleDeleteSalesIncharge(row)}
+                                    >
+                                      <IconUserDelete />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
                     ) : (
-                      <p className="master-empty">No owners or coordinators yet.</p>
+                      <p className="master-empty">No owners, coordinators, or sales incharges yet.</p>
                     )}
                   </section>
                   </>
@@ -5343,18 +5634,14 @@ function App() {
             </div>
             <div className="create-order-modal-body">
               {createFormMode === "job_sheet" ? (
-                <div className="job-sheet-create-placeholder dashboard-placeholder">
-                  <h3>Job sheet form</h3>
-                  <p>
-                    Production job sheet fields will go here. This form is separate from printing order
-                    details and is not ready yet.
-                  </p>
-                  <div className="job-sheet-create-placeholder-actions">
-                    <button type="button" className="order-form-cancel-btn" onClick={closeCreateOrderForm}>
-                      Close
-                    </button>
-                  </div>
-                </div>
+                <CreateJobSheetForm
+                  form={jobSheetForm}
+                  onChange={setJobSheetForm}
+                  salesIncharges={salesIncharges}
+                  saving={savingJobSheet}
+                  onSubmit={handleCreateJobSheet}
+                  onCancel={closeCreateOrderForm}
+                />
               ) : (
               <form className="order-form order-form--modal" onSubmit={handleCreateOrder}>
             <div className="order-form-cell">

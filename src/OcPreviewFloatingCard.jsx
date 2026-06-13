@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import OcLabelBrandHeader from "./OcLabelBrandHeader";
+import {
+  buildOcBarcodeCaptionLine,
+  buildOcBarcodeValue
+} from "./outwardChallanBarcode";
 import { printOutwardChallanLabel } from "./outwardChallanPrint";
-import { buildOcQrValue, renderOcQrDataUrl } from "./outwardChallanQr";
 import { buildOcLabelRows, packagingPhotoPublicUrl } from "./outwardChallanUtils";
+import { renderCode128BarcodeSvg } from "./inwardGrnBarcode";
 
 export default function OcPreviewFloatingCard({
   open,
@@ -11,33 +15,19 @@ export default function OcPreviewFloatingCard({
   canDelete = false,
   onDelete
 }) {
-  const [qrUrl, setQrUrl] = useState("");
   const [printing, setPrinting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (!open || !record) {
-      setQrUrl("");
-      return;
-    }
-    let cancelled = false;
-    const text = buildOcQrValue(record);
-    renderOcQrDataUrl(text)
-      .then((url) => {
-        if (!cancelled) setQrUrl(url);
-      })
-      .catch(() => {
-        if (!cancelled) setQrUrl("");
-      });
-    return () => {
-      cancelled = true;
-    };
+  const barcodeSvg = useMemo(() => {
+    if (!open || !record) return "";
+    return renderCode128BarcodeSvg(buildOcBarcodeValue(record));
   }, [open, record]);
 
   if (!open || !record) return null;
 
   const rows = buildOcLabelRows(record);
   const packagingUrl = packagingPhotoPublicUrl(record.packaging_photo_path);
+  const barcodeCaption = buildOcBarcodeCaptionLine(record);
 
   async function handlePrint() {
     setPrinting(true);
@@ -94,11 +84,17 @@ export default function OcPreviewFloatingCard({
           Outward challan
         </h2>
 
-        <div className="oc-preview-qr-block">
-          {qrUrl ? (
-            <img className="oc-preview-qr-img" src={qrUrl} alt="OC QR code" width={220} height={220} />
+        <div className="oc-preview-qr-block oc-preview-barcode-block">
+          {barcodeSvg ? (
+            <>
+              <div
+                className="oc-preview-barcode-svg"
+                dangerouslySetInnerHTML={{ __html: barcodeSvg }}
+              />
+              <p className="oc-preview-barcode-caption">{barcodeCaption}</p>
+            </>
           ) : (
-            <p className="oc-preview-qr-loading">Loading QR code…</p>
+            <p className="oc-preview-qr-loading">Loading barcode…</p>
           )}
         </div>
 

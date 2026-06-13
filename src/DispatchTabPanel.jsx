@@ -25,9 +25,14 @@ import CreateInwardEntryModal from "./CreateInwardEntryModal";
 import CreateOutwardChallanModal from "./CreateOutwardChallanModal";
 import InwardEntryList from "./InwardEntryList";
 import InwardEntryPreviewFloatingCard from "./InwardEntryPreviewFloatingCard";
+import InwardGrnEntryModal from "./InwardGrnEntryModal";
 import OcPreviewFloatingCard from "./OcPreviewFloatingCard";
 import OutwardChallanList from "./OutwardChallanList";
-import { deleteInwardEntry, INWARD_SELECT_FIELDS } from "./inwardEntryUtils";
+import {
+  deleteInwardEntry,
+  INWARD_ENTRY_WITH_GRNS_SELECT,
+  INWARD_SELECT_FIELDS
+} from "./inwardEntryUtils";
 import { deleteOutwardChallan, OC_SELECT_FIELDS } from "./outwardChallanUtils";
 
 function formatColorsList(colors) {
@@ -109,6 +114,7 @@ export default function DispatchTabPanel({
   const [loadingInward, setLoadingInward] = useState(false);
   const [previewRecord, setPreviewRecord] = useState(null);
   const [previewInwardRecord, setPreviewInwardRecord] = useState(null);
+  const [grnEntryRecord, setGrnEntryRecord] = useState(null);
 
   const regularStockOrders = useMemo(
     () => (orders ?? []).filter(isRegularStockOrder),
@@ -181,10 +187,18 @@ export default function DispatchTabPanel({
 
   const loadInwardEntries = useCallback(async () => {
     setLoadingInward(true);
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("inward_entries")
-      .select(INWARD_SELECT_FIELDS)
+      .select(INWARD_ENTRY_WITH_GRNS_SELECT)
       .order("created_at", { ascending: false });
+    if (error?.message?.includes("inward_grn_entries")) {
+      const fallback = await supabase
+        .from("inward_entries")
+        .select(INWARD_SELECT_FIELDS)
+        .order("created_at", { ascending: false });
+      data = fallback.data;
+      error = fallback.error;
+    }
     if (error) {
       console.error("inward_entries load:", error.message);
       setInwardEntries([]);
@@ -263,6 +277,14 @@ export default function DispatchTabPanel({
 
   const closeInwardPreview = useCallback(() => {
     setPreviewInwardRecord(null);
+  }, []);
+
+  const openGrnEntry = useCallback((record) => {
+    setGrnEntryRecord(record);
+  }, []);
+
+  const closeGrnEntry = useCallback(() => {
+    setGrnEntryRecord(null);
   }, []);
 
   const handleDeleteInward = useCallback(
@@ -482,7 +504,7 @@ export default function DispatchTabPanel({
               isProcessedView
                 ? "e.g. 4 or OC #4"
                 : isInwardGrnView
-                  ? "GRN, supplier, product, for whom…"
+                  ? "Product, department, GRN…"
                   : "Order #, customer, coordinator…"
             }
             value={searchQuery}
@@ -544,6 +566,8 @@ export default function DispatchTabPanel({
             loading={loadingInward}
             searchQuery={searchQuery}
             onViewRecord={openInwardPreview}
+            onGrnEntry={openGrnEntry}
+            canEdit={canEdit}
             canDelete={isAdmin}
             onDelete={handleDeleteInward}
           />
@@ -970,10 +994,26 @@ export default function DispatchTabPanel({
         open={createInwardOpen}
         onClose={() => setCreateInwardOpen(false)}
         sessionUserId={sessionUserId}
-        onCreated={(record) => {
+        onCreated={() => {
           loadInwardEntries();
-          openInwardPreview(record);
           setCreateInwardOpen(false);
+        }}
+      />
+      <InwardGrnEntryModal
+        open={Boolean(grnEntryRecord)}
+        inwardRecord={grnEntryRecord}
+        sessionUserId={sessionUserId}
+        onClose={closeGrnEntry}
+        onSaved={async (record) => {
+          await loadInwardEntries();
+          if (previewInwardRecord?.id === record?.id) {
+            const { data } = await supabase
+              .from("inward_entries")
+              .select(INWARD_ENTRY_WITH_GRNS_SELECT)
+              .eq("id", record.id)
+              .maybeSingle();
+            if (data) setPreviewInwardRecord(data);
+          }
         }}
       />
     </>

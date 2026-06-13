@@ -9,7 +9,7 @@ import {
   sanitizePhoneDigits,
   validateOcPackagingPhoto
 } from "./outwardChallanUtils";
-import { buildOcQrValue } from "./outwardChallanQr";
+import { buildOcBarcodeValue } from "./outwardChallanBarcode";
 
 function trimField(value) {
   return String(value ?? "").trim();
@@ -105,7 +105,7 @@ export default function CreateOutwardChallanModal({ open, onClose, sessionUserId
     return path;
   }
 
-  async function handleSaveAndGenerateQr() {
+  async function handleSaveAndGenerateBarcode() {
     if (submitting) return;
     const validationError = validateForm();
     if (validationError) {
@@ -150,12 +150,11 @@ export default function CreateOutwardChallanModal({ open, onClose, sessionUserId
         );
       }
 
-      const rowForQr = formToRowPayload(inserted.id, inserted.created_at);
-      const qrValue = buildOcQrValue(rowForQr);
+      const rowForBarcode = formToRowPayload(inserted.id, inserted.created_at);
+      const barcodeValue = buildOcBarcodeValue(rowForBarcode);
       const barcodePayload = {
-        ...buildOutwardChallanBarcodePayload(rowForQr),
-        qr_value: qrValue,
-        scan_value: qrValue
+        ...buildOutwardChallanBarcodePayload(rowForBarcode),
+        scan_value: barcodeValue
       };
 
       let packagingPath = null;
@@ -166,7 +165,7 @@ export default function CreateOutwardChallanModal({ open, onClose, sessionUserId
       const { data: updated, error: updateErr } = await supabase
         .from("outward_challans")
         .update({
-          barcode_value: qrValue,
+          barcode_value: barcodeValue,
           barcode_payload: barcodePayload,
           ...(packagingPath ? { packaging_photo_path: packagingPath } : {})
         })
@@ -184,8 +183,8 @@ export default function CreateOutwardChallanModal({ open, onClose, sessionUserId
 
       const saved = updated ?? {
         ...inserted,
-        ...rowForQr,
-        barcode_value: qrValue,
+        ...rowForBarcode,
+        barcode_value: barcodeValue,
         barcode_payload: barcodePayload,
         packaging_photo_path: packagingPath ?? inserted.packaging_photo_path
       };
@@ -378,9 +377,9 @@ export default function CreateOutwardChallanModal({ open, onClose, sessionUserId
                 type="button"
                 className="create-oc-generate-btn"
                 disabled={submitting}
-                onClick={() => handleSaveAndGenerateQr()}
+                onClick={() => handleSaveAndGenerateBarcode()}
               >
-                {submitting ? "Saving…" : "Save & generate QR"}
+                {submitting ? "Saving…" : "Save & generate barcode"}
               </button>
             </div>
           </form>

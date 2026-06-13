@@ -4,8 +4,21 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "printing_department", label: "Printing department" },
   { id: "billing", label: "Billing" },
   { id: "dispatch", label: "Dispatch" },
+  { id: "inventory", label: "Inventory" },
   { id: "regular", label: "Ready Stock Order" },
-  { id: "production_tracker", label: "Production tracker" }
+  { id: "production_tracker", label: "Production tracker" },
+  { id: "distributor", label: "Distributor" }
+];
+
+export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
+  {
+    label: "Workspace",
+    ids: ["home", "printing", "printing_department", "billing", "dispatch"]
+  },
+  {
+    label: "Inventory",
+    ids: ["inventory", "regular", "production_tracker", "distributor"]
+  }
 ];
 
 export const DASHBOARD_SIDEBAR_FOOTER = [

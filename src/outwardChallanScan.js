@@ -16,7 +16,7 @@ export function parseOcIdFromScan(raw) {
 export async function fetchOutwardChallanByScan(client, rawScan) {
   const scan = String(rawScan ?? "").trim();
   if (!scan) {
-    return { record: null, error: "No QR code scanned." };
+    return { record: null, error: "No barcode scanned." };
   }
 
   const ocId = parseOcIdFromQrText(scan);
@@ -56,6 +56,6 @@ export async function fetchOutwardChallanByScan(client, rawScan) {
 
   return {
     record: null,
-    error: "No outward challan found for this QR code."
+    error: "No outward challan found for this barcode."
   };
 }

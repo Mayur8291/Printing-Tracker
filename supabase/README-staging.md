@@ -25,7 +25,55 @@ To switch back to production later:
 npx supabase link --project-ref levwrmvqdntngeasrtnb
 ```
 
+### ⚠️ CLI link does NOT change your app or live site
+
+| Tool | What it controls |
+|------|------------------|
+| `supabase link` + `db push` | **Database** for that project ref only |
+| `.env` / `.env.development` | **Local app** (`npm run dev`) |
+| **Netlify env vars** | **Hosted** production vs staging URLs |
+
+If `.env` still has `levwrmvqdntngeasrtnb`, every `npm run dev` hits **production** even when CLI is linked to staging.
+
+**Fix local dev:**
+
+```bash
+cp .env.development.example .env.development
+# Edit .env.development — paste STAGING url + anon key only
+npm run dev
+```
+
+Keep production keys in Netlify **Production** scope only — not in `.env.development`.
+
+**Verify which DB the app uses:** open browser devtools → Network → any Supabase request → host should be `YOUR_STAGING_REF.supabase.co`, not `levwrmvqdntngeasrtnb`.
+
 ## 3. Apply database schema
+
+**New empty project (staging):** migrations only *alter* tables like `orders`; they do not create the base schema. `db push` alone will fail with `relation "public.orders" does not exist`.
+
+### 3a. Fresh staging (recommended)
+
+1. Open **staging** project → **SQL Editor** → New query.
+2. Paste and run the full file `supabase/schema.sql` from this repo (wait until it finishes).
+3. Back in the repo (linked to **staging** ref), mark migrations as already applied:
+
+```bash
+cd "/Users/mayurmule/Downloads/Scott Dashboard"
+npx supabase migration repair --status applied \
+  20260504120000 20260513120000 20260513180000 20260513200000 20260516120000 20260517120000 \
+  20260520120000 20260520180000 20260521120000 20260521130000 20260521140000 20260521150000 \
+  20260522120000 20260523120000 20260524120000 20260525120000 20260525130000 20260525140000 \
+  20260526120000 20260526130000 20260526140000 20260526150000 20260526160000 20260526170000 \
+  20260527120000 20260528120000 20260528140000 20260528150000 20260528160000 20260528170000 \
+  20260528180000 20260528190000 20260528200000 20260529120000 20260530120000 20260601120000 \
+  20260602120000 20260603120000 20260604120000 20260605120000 20260606120000 20260606130000 \
+  20260606140000 20260606150000 20260607120000 20260608120000 20260609120000 20260610120000 \
+  20260611120000 20260612120000
+```
+
+4. Confirm: `npx supabase migration list` — remote should show all **applied**.
+
+### 3b. Production or DB that already has tables
 
 ```bash
 npx supabase db push
@@ -36,8 +84,6 @@ If remote has drift:
 ```bash
 npx supabase db push --include-all
 ```
-
-Fresh project alternative: run `supabase/schema.sql` in SQL Editor, then mark migrations or use push as above.
 
 ## 4. Storage & RLS
 
@@ -58,13 +104,23 @@ Set function secrets in dashboard if your project uses them (match production on
 ## 6. Auth & test users
 
 - Create test users in **Authentication** (or use in-app admin after first admin exists).
-- Promote admin in SQL Editor:
+- Promote admin in SQL Editor (**two steps** — direct `set role = 'admin'` is blocked by `enforce_profile_update_scope`):
 
 ```sql
-update public.profiles
+-- 1) Allow this email to become admin
+insert into public.admin_emails (email)
+values ('devadmin@scott.com')
+on conflict (email) do nothing;
+
+-- 2) Promote (must be viewer → admin; use email or UUID, not email in id column)
+update public.profiles p
 set role = 'admin'
-where id = 'USER_UUID_HERE';
+from auth.users u
+where p.id = u.id
+  and lower(u.email) = lower('devadmin@scott.com');
 ```
+
+Or log out / log in after step 1 only — new signups get `admin` automatically if their email is in `admin_emails`.
 
 Use **fake / test data only** on staging.
 
@@ -87,4 +143,4 @@ Use **fake / test data only** on staging.
 | | Production | Staging |
 |---|------------|---------|
 | Ref | `levwrmvqdntngeasrtnb` | *(your new ref)* |
-| URL | `https://levwrmvqdntngeasrtnb.supabase.co` | `https://<staging-ref>.supabase.co` |
+| URL | `https://levwrmvqdntngeasrtnb.supabase.co` | `https://scvojtvgnkmbupvyslmb.supabase.co` |

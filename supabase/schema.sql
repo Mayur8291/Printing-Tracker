@@ -32,6 +32,12 @@ create table if not exists public.coordinators (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.sales_incharges (
+  id bigint generated always as identity primary key,
+  name text not null unique,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.orders (
   id bigint generated always as identity primary key,
   order_date date not null,
@@ -82,6 +88,15 @@ alter table public.orders add column if not exists size_breakdown jsonb not null
 
 alter table public.orders add column if not exists is_production_order boolean not null default false;
 alter table public.orders add column if not exists expected_handover_to_printing date;
+alter table public.orders add column if not exists sales_incharge_name text;
+alter table public.orders add column if not exists size_type text;
+alter table public.orders add column if not exists rate_per_piece numeric(12, 2) check (rate_per_piece is null or rate_per_piece >= 0);
+alter table public.orders add column if not exists brand text;
+alter table public.orders add column if not exists fabric_type text;
+alter table public.orders add column if not exists branding boolean;
+alter table public.orders add column if not exists branding_type text;
+alter table public.orders add column if not exists gsm text;
+alter table public.orders add column if not exists atta boolean;
 alter table public.orders add column if not exists received_at_printing timestamptz;
 
 alter table public.orders add column if not exists payment_method text;
@@ -158,6 +173,7 @@ alter table public.profiles enable row level security;
 alter table public.orders enable row level security;
 alter table public.owners enable row level security;
 alter table public.coordinators enable row level security;
+alter table public.sales_incharges enable row level security;
 alter table public.profile_order_permissions enable row level security;
 
 alter table public.admin_emails enable row level security;
@@ -382,6 +398,31 @@ with check (
 drop policy if exists "coordinators delete admin only" on public.coordinators;
 create policy "coordinators delete admin only"
 on public.coordinators
+for delete
+to authenticated
+using (
+  public.jwt_user_is_admin()
+);
+
+drop policy if exists "sales_incharges readable by authenticated users" on public.sales_incharges;
+create policy "sales_incharges readable by authenticated users"
+on public.sales_incharges
+for select
+to authenticated
+using (true);
+
+drop policy if exists "sales_incharges insert admin only" on public.sales_incharges;
+create policy "sales_incharges insert admin only"
+on public.sales_incharges
+for insert
+to authenticated
+with check (
+  public.jwt_user_is_admin()
+);
+
+drop policy if exists "sales_incharges delete admin only" on public.sales_incharges;
+create policy "sales_incharges delete admin only"
+on public.sales_incharges
 for delete
 to authenticated
 using (

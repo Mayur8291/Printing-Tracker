@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { formatInwardEntryCreatedAt } from "./inwardEntryUtils";
+import {
+  formatInwardDepartmentDisplay,
+  formatInwardEntryListDate,
+  formatInwardGrnListSummary,
+  formatInwardPhotoUploadStatus,
+  getInwardGrnEntries,
+  inwardHasGrnDetails
+} from "./inwardEntryUtils";
 
 function cell(value) {
   const t = String(value ?? "").trim();
@@ -11,11 +18,13 @@ function matchesInwardSearch(record, query) {
   if (!q) return true;
   const haystack = [
     record?.id,
-    record?.grn_no,
+    ...getInwardGrnEntries(record).map((grn) => grn.grn_no),
+    record?.product_material,
+    record?.department,
+    record?.individual_name,
     record?.for_whom,
     record?.supplier,
     record?.invoice_no,
-    record?.product_material,
     record?.received_by,
     record?.location_rack
   ]
@@ -29,6 +38,8 @@ export default function InwardEntryList({
   loading,
   searchQuery,
   onViewRecord,
+  onGrnEntry,
+  canEdit = false,
   canDelete = false,
   onDelete
 }) {
@@ -41,7 +52,10 @@ export default function InwardEntryList({
 
   async function handleDelete(record) {
     if (!canDelete || !onDelete || deletingId != null) return;
-    const label = `GRN ${cell(record.grn_no)} (entry #${record.id})`;
+    const grnSummary = formatInwardGrnListSummary(record);
+    const label = inwardHasGrnDetails(record)
+      ? `${grnSummary} (entry #${record.id})`
+      : `entry #${record.id}`;
     if (!window.confirm(`Delete ${label} from Inward entries?\n\nThis cannot be undone.`)) {
       return;
     }
@@ -69,58 +83,68 @@ export default function InwardEntryList({
 
   return (
     <div className="table-wrap table-wrap--compact outward-challan-list-wrap">
-      <table className="orders-table-compact outward-challans-table">
+      <table className="orders-table-compact outward-challans-table inward-entries-table">
         <thead>
           <tr>
-            <th>Date & time</th>
-            <th>GRN NO.</th>
-            <th>For whom</th>
-            <th>Supplier</th>
-            <th>Invoice No.</th>
+            <th>Date</th>
             <th>Product / Material</th>
-            <th>Qty received</th>
-            <th>Bora / Carton</th>
-            <th>Location / Rack</th>
-            <th>Received by</th>
+            <th>Department</th>
+            <th>Photos</th>
+            <th>GRN</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {filtered.map((record) => (
-            <tr key={record.id}>
-              <td className="outward-challan-created">{formatInwardEntryCreatedAt(record)}</td>
-              <td>{cell(record.grn_no)}</td>
-              <td>{cell(record.for_whom)}</td>
-              <td>{cell(record.supplier)}</td>
-              <td>{cell(record.invoice_no)}</td>
-              <td>{cell(record.product_material)}</td>
-              <td>{cell(record.qty_received)}</td>
-              <td>{cell(record.bora_carton_unit)}</td>
-              <td>{cell(record.location_rack)}</td>
-              <td>{cell(record.received_by)}</td>
-              <td>
-                <div className="outward-challan-actions">
-                  <button
-                    type="button"
-                    className="outward-challan-view-btn"
-                    onClick={() => onViewRecord?.(record)}
-                  >
-                    View
-                  </button>
-                  {canDelete ? (
+          {filtered.map((record) => {
+            const hasGrn = inwardHasGrnDetails(record);
+            return (
+              <tr key={record.id}>
+                <td className="outward-challan-created">{formatInwardEntryListDate(record)}</td>
+                <td>{cell(record.product_material)}</td>
+                <td>{formatInwardDepartmentDisplay(record)}</td>
+                <td>{formatInwardPhotoUploadStatus(record)}</td>
+                <td>
+                  {hasGrn ? (
+                    <span className="inward-grn-badge inward-grn-badge--done">
+                      {formatInwardGrnListSummary(record)}
+                    </span>
+                  ) : (
+                    <span className="inward-grn-badge inward-grn-badge--pending">Pending</span>
+                  )}
+                </td>
+                <td>
+                  <div className="outward-challan-actions">
                     <button
                       type="button"
-                      className="outward-challan-delete-btn"
-                      disabled={deletingId === record.id}
-                      onClick={() => handleDelete(record)}
+                      className="outward-challan-view-btn"
+                      onClick={() => onViewRecord?.(record)}
                     >
-                      {deletingId === record.id ? "Deleting…" : "Delete"}
+                      View
                     </button>
-                  ) : null}
-                </div>
-              </td>
-            </tr>
-          ))}
+                    {canEdit ? (
+                      <button
+                        type="button"
+                        className="inward-grn-entry-btn"
+                        onClick={() => onGrnEntry?.(record)}
+                      >
+                        GRN Entry
+                      </button>
+                    ) : null}
+                    {canDelete ? (
+                      <button
+                        type="button"
+                        className="outward-challan-delete-btn"
+                        disabled={deletingId === record.id}
+                        onClick={() => handleDelete(record)}
+                      >
+                        {deletingId === record.id ? "Deleting…" : "Delete"}
+                      </button>
+                    ) : null}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
