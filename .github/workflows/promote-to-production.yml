@@ -34,9 +34,10 @@ jobs:
           git push origin main
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@v2
         with:
-          version: latest
+          # Pin version — "latest" can fail with GitHub API gateway timeouts in CI
+          version: 2.105.0
 
       - name: Apply database migrations (production)
         env:
