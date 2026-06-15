@@ -127,7 +127,7 @@ serve(async (req) => {
       JSON.stringify({
         ok: true,
         message:
-          "Production release started. GitHub is merging develop → main, applying migrations, and deploying functions.",
+          "Production release started. GitHub is merging develop → main, applying migrations, deploying functions, then deploying the live site.",
         actions_url: actionsUrl
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

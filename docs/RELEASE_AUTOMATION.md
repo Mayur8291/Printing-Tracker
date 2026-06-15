@@ -2,11 +2,10 @@
 
 Admin panel → **Test & deploy** → **Release to production** triggers a GitHub Action that:
 
-1. Merges `develop` into `main` and pushes (automated merge commit)
+1. Merges `develop` into `main` and pushes (commit includes `[skip netlify]` so Netlify does **not** auto-build mid-workflow)
 2. Runs `supabase db push` on the **production** project
 3. Deploys edge functions to production
-4. **Builds** the Vite app with production Supabase keys
-5. **Deploys** `dist/` to Netlify production (CLI or build hook)
+4. **Deploys** production frontend **once at the end** — Netlify build hook *(recommended)* or CI build + Netlify CLI
 
 **Important:** Promote only ships what is already **committed and pushed to `develop` on GitHub**. Local uncommitted files are not included — run `git push origin develop` before Release.
 
@@ -29,11 +28,11 @@ In the repo: **Settings → Actions → General → Workflow permissions** → e
 | `SUPABASE_ACCESS_TOKEN` | [Supabase account token](https://supabase.com/dashboard/account/tokens) |
 | `SUPABASE_PROD_PROJECT_REF` | `levwrmvqdntngeasrtnb` |
 | `SUPABASE_DB_PASSWORD` | Production database password (Supabase → Project Settings → Database) |
-| `VITE_SUPABASE_URL` | `https://levwrmvqdntngeasrtnb.supabase.co` (production — used when building in promote workflow) |
-| `VITE_SUPABASE_ANON_KEY` | Production anon/publishable key |
-| `NETLIFY_AUTH_TOKEN` | [Netlify personal access token](https://app.netlify.com/user/applications) — **recommended for deploy** |
-| `NETLIFY_SITE_ID` | Netlify → Site settings → General → Site ID — **use with token above** |
-| `NETLIFY_PRODUCTION_BUILD_HOOK` | *(fallback)* Netlify → Build & deploy → Build hooks → production hook URL |
+| `VITE_SUPABASE_URL` | *(optional)* Production URL — only needed for CI build + Netlify CLI deploy |
+| `VITE_SUPABASE_ANON_KEY` | *(optional)* Production anon key — only needed for CI build + Netlify CLI deploy |
+| `NETLIFY_AUTH_TOKEN` | [Netlify personal access token](https://app.netlify.com/user/applications) — for CI build + CLI deploy |
+| `NETLIFY_SITE_ID` | Netlify → Site settings → General → Site ID — use with token above |
+| `NETLIFY_PRODUCTION_BUILD_HOOK` | **Recommended minimum** — Netlify → Build & deploy → Build hooks → production hook URL. Workflow triggers this **after** merge + DB + functions |
 
 ### 3. GitHub — personal access token for the edge function
 
@@ -94,4 +93,5 @@ The release button does **not** upload files from your laptop. It only merges wh
 | `Remote migration versions not found` on db push | Prod has history entries not in repo. Commit placeholder files under `supabase/migrations/20260604112625_remote_sync.sql` (etc.) or let `scripts/supabase-prod-db-push.sh` auto-repair orphans, then re-run promote |
 | `Failed to resolve latest Supabase CLI release` | Workflow pins CLI version in `.github/workflows/promote-to-production.yml` — bump `version:` if needed; do not use `latest` in CI |
 | `pipefail: invalid option name` on db push | `scripts/supabase-prod-db-push.sh` must use Unix (LF) line endings — CRLF breaks bash on GitHub runners |
-| Promote green but live site unchanged | Add `NETLIFY_AUTH_TOKEN` + `NETLIFY_SITE_ID`, or `NETLIFY_PRODUCTION_BUILD_HOOK`. Also `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` for the build step. Push changes to `develop` before Release — local-only edits are not promoted |
+| Promote fails on `VITE_SUPABASE_URL` / build step | Either add `NETLIFY_PRODUCTION_BUILD_HOOK` *(no VITE secrets needed)* or add all four: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID` |
+| Promote green but live site unchanged / wrong order | Merge commit uses `[skip netlify]` so Netlify waits for the workflow’s final deploy step. Ensure `NETLIFY_PRODUCTION_BUILD_HOOK` is set. Push changes to `develop` before Release |
