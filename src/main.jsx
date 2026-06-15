@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles.css";
 import "./responsive-mobile-tablet.css";
+import "./responsive-desktop.css";
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

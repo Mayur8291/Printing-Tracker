@@ -3014,6 +3014,25 @@ button.btn-upload-invoice:disabled {
   background: #f1f5f9 !important;
   color: #334155 !important;
   cursor: default;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+html.theme-dark .order-form-readonly-input {
+  background: var(--search-bg) !important;
+  color: var(--search-text) !important;
+  border-color: var(--search-border);
+}
+
+.dealer-report-form-cell .order-form-readonly-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
 .btn-mark-complete {
@@ -7151,10 +7170,12 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
 
 .create-user-section {
   margin-top: 0;
-  padding: 12px 14px;
+  padding: 12px 14px 16px;
   background: #f5f7ff;
   border: 1px solid #dbe7ff;
   border-radius: 12px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .create-user-section-head {
@@ -7348,7 +7369,9 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  box-shadow: none;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-user-mgmt-card.viewer-users-section-top {
@@ -11611,7 +11634,7 @@ html.theme-dark .create-user-section {
   background: var(--content-surface);
   border-color: var(--content-surface-border);
   color: #c9d1d9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
 }
 
 html.theme-dark .create-user-section h4,
@@ -12975,6 +12998,19 @@ html.theme-dark .coordinator-report-field {
   color: var(--dark-text-body);
 }
 
+html.theme-dark .coordinator-report-field input,
+html.theme-dark .dealer-progress-year input {
+  background: var(--search-bg);
+  border: 1px solid var(--search-border);
+  color: var(--search-text);
+}
+
+html.theme-dark .order-form-readonly-input {
+  background: var(--search-bg) !important;
+  color: var(--search-text) !important;
+  border-color: var(--search-border);
+}
+
 html.theme-dark .coordinator-report-summary {
   color: var(--dark-text-muted);
 }
@@ -12989,9 +13025,9 @@ html.theme-dark .coordinator-report-table th {
   color: var(--dark-text-muted);
 }
 
-/* Distributor → Dealer Report */
+/* Distributor → Dealer Report (base; desktop inset in responsive-desktop.css) */
 .distributor-panel-head {
-  padding: 18px 22px 0;
+  padding: 0 0 12px;
 }
 
 .distributor-panel-title {
@@ -13002,11 +13038,11 @@ html.theme-dark .coordinator-report-table th {
 }
 
 .distributor-subtabs {
-  margin: 12px 22px 0;
+  margin: 0 0 16px;
 }
 
 .dealer-report-panel {
-  padding: 16px 22px 22px;
+  padding: 0;
 }
 
 .dealer-report-layout {
@@ -13021,6 +13057,13 @@ html.theme-dark .coordinator-report-table th {
   border-radius: 12px;
   background: #fff;
   padding: 16px 18px 18px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.distributor-panel .dealer-report-form-card,
+.distributor-panel .dealer-report-chart-card {
+  background: transparent;
 }
 
 .dealer-report-form-head h3 {
@@ -13040,9 +13083,17 @@ html.theme-dark .coordinator-report-table th {
 
 .dealer-report-form-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 14px;
   margin-bottom: 14px;
+  align-items: start;
+}
+
+.dealer-report-form-cell .order-form-readonly-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-family: inherit;
 }
 
 .dealer-report-dealer-grid {
@@ -13110,6 +13161,33 @@ html.theme-dark .coordinator-report-table th {
 .dealer-report-table-wrap {
   margin-top: 14px;
   overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dealer-target-progress {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--content-surface-border, #e2e8f0);
+}
+
+.dealer-target-progress .coordinator-report-table-wrap {
+  width: 100%;
+  max-width: 100%;
+}
+
+.dealer-target-table th:not(:first-child),
+.dealer-target-table td:not(:first-child) {
+  text-align: right;
+}
+
+.dealer-target-table th:first-child,
+.dealer-target-table td:first-child {
+  text-align: left;
+}
+
+.dealer-cards-panel {
+  padding: 0;
 }
 
 .dealer-report-table th,
@@ -13382,12 +13460,6 @@ html.theme-dark .coordinator-report-table th {
   font-family: inherit;
 }
 
-.dealer-target-progress {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--content-surface-border, #e2e8f0);
-}
-
 .dealer-target-progress-head h4 {
   margin: 0 0 4px;
   font-size: 15px;
@@ -13440,10 +13512,6 @@ html.theme-dark .coordinator-report-table th {
 
 .dealer-target-met td {
   background: rgba(16, 185, 129, 0.08);
-}
-
-.dealer-cards-panel {
-  padding: 4px 0 8px;
 }
 
 .dealer-cards-head {
@@ -13747,8 +13815,14 @@ html.theme-dark .dealer-report-form-head h3 {
 
 html.theme-dark .dealer-report-form-card,
 html.theme-dark .dealer-report-chart-card {
-  background: #0f172a;
-  border-color: #334155;
+  background: var(--content-surface);
+  border-color: var(--content-surface-border);
+}
+
+html.theme-dark .distributor-panel .dealer-report-form-card,
+html.theme-dark .distributor-panel .dealer-report-chart-card {
+  background: transparent;
+  border-color: var(--content-surface-border);
 }
 
 html.theme-dark .dealer-report-chart-block {
@@ -13974,12 +14048,6 @@ html.theme-dark .inventory-placeholder {
 html.theme-dark .distributor-panel,
 html.theme-dark .dealer-report-panel {
   color: #c9d1d9;
-}
-
-html.theme-dark .dealer-report-form-card,
-html.theme-dark .dealer-report-chart-card {
-  background: var(--content-surface);
-  border-color: var(--content-surface-border);
 }
 
 html.theme-dark .outward-challans-section.dashboard-card {

@@ -87,9 +87,10 @@ html.theme-dark .inventory-dashboard {
 
 
 .inventory-dashboard .page {
-  padding: 24px;
-  max-width: 1600px;
+  padding: 20px 24px 24px;
+  max-width: none;
   width: 100%;
+  box-sizing: border-box;
 }
 .inventory-dashboard .page-header {
   display: flex;
@@ -1001,6 +1002,22 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
 }
 
 /* Dashboard layout + internal sub-navigation */
+.inventory-panel.dashboard-card--flat {
+  padding: 0;
+  overflow: visible;
+}
+
+.inventory-panel .inventory-dashboard {
+  min-height: 0;
+}
+
+.inventory-panel .inventory-dashboard .page {
+  padding: 20px 24px 24px;
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .inventory-dashboard-layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
@@ -1131,10 +1148,6 @@ html.theme-dark .inventory-dashboard .toast {
   background: var(--bg-elevated);
   color: var(--text);
   border: 1px solid var(--border);
-}
-
-.inventory-dashboard .page {
-  padding: 20px 20px 24px;
 }
 
 @media (max-width: 1100px) {
