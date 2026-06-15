@@ -1,5 +1,5 @@
-# One-click release: merge develop → main, apply prod migrations, deploy edge functions.
-# Triggered from Admin → Test & deploy → "Release to production" (edge function) or manually in GitHub Actions.
+# One-click release: merge develop → main, migrate prod DB, deploy functions + Netlify site.
+# Triggered from Admin → Test & deploy → "Release to production" or manually in GitHub Actions.
 
 name: Promote to production
 
@@ -24,19 +24,22 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge develop into main and push
+        id: merge
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin develop main
+          echo "develop=$(git rev-parse origin/develop)" >> "$GITHUB_OUTPUT"
+          echo "main_before=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
           git checkout main
           git pull origin main
           git merge origin/develop --no-edit -m "chore: promote develop to production [automated]"
           git push origin main
+          echo "main_after=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
         with:
-          # Pin version — "latest" can fail with GitHub API gateway timeouts in CI
           version: 2.105.0
 
       - name: Apply database migrations (production)
@@ -65,12 +68,43 @@ jobs:
           supabase functions deploy admin-reset-password
           supabase functions deploy admin-promote-production
 
-      - name: Trigger Netlify production build (optional)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Build production frontend
         env:
+          VITE_APP_ENV: production
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::error::Set GitHub secrets VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (production Supabase keys) for frontend build."
+            exit 1
+          fi
+          npm ci
+          npm run build
+
+      - name: Deploy production site to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_PRODUCTION_BUILD_HOOK }}
         run: |
-          if [ -z "$NETLIFY_BUILD_HOOK" ]; then
-            echo "NETLIFY_PRODUCTION_BUILD_HOOK not set — Netlify may still build from GitHub push."
+          DEPLOY_MSG="Promote develop (${{ steps.merge.outputs.develop }}) → main (${{ steps.merge.outputs.main_after }})"
+          if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ]; then
+            echo "Deploying dist/ to Netlify production via CLI..."
+            npx --yes netlify-cli@23.1.4 deploy --prod --dir=dist --message="$DEPLOY_MSG"
+            echo "Netlify production deploy complete."
             exit 0
           fi
-          curl -fsS -X POST "$NETLIFY_BUILD_HOOK"
+          if [ -n "$NETLIFY_BUILD_HOOK" ]; then
+            echo "NETLIFY_AUTH_TOKEN/SITE_ID not set — triggering Netlify build hook..."
+            curl -fsS -X POST -d "{}" "$NETLIFY_BUILD_HOOK"
+            echo "Netlify build hook triggered (site will build from main on Netlify)."
+            exit 0
+          fi
+          echo "::error::Production deploy not configured. Add GitHub secrets NETLIFY_AUTH_TOKEN + NETLIFY_SITE_ID (recommended), or NETLIFY_PRODUCTION_BUILD_HOOK."
+          exit 1
