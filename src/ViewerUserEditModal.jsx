@@ -55,6 +55,17 @@ export default function ViewerUserEditModal({
 
         <div className="viewer-edit-modal-body">
           <div className="create-user-grid viewer-edit-profile-grid">
+            <label className="viewer-edit-email-field">
+              Email
+              <input
+                type="email"
+                className="user-name-input order-form-readonly-input"
+                value={viewer.email ?? ""}
+                readOnly
+                tabIndex={-1}
+                aria-readonly="true"
+              />
+            </label>
             <label>
               Display name
               <input

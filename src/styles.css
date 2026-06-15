@@ -1109,7 +1109,16 @@ html.theme-dark .order-id-multi-field {
 }
 
 .outward-challan-list-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.outward-challans-table {
+  width: max-content;
+  min-width: 100%;
 }
 
 .outward-challans-table th,
@@ -1118,6 +1127,12 @@ html.theme-dark .order-id-multi-field {
   max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.outward-challans-table th:last-child,
+.outward-challans-table td:last-child {
+  max-width: none;
+  overflow: visible;
 }
 
 .outward-challans-table td {
@@ -1712,7 +1727,16 @@ html.theme-dark .oc-preview-delete-btn {
 }
 
 .outward-challan-list-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.outward-challans-table {
+  width: max-content;
+  min-width: 100%;
 }
 
 .outward-challans-table th,
@@ -1721,6 +1745,12 @@ html.theme-dark .oc-preview-delete-btn {
   max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.outward-challans-table th:last-child,
+.outward-challans-table td:last-child {
+  max-width: none;
+  overflow: visible;
 }
 
 .outward-challans-table td {
@@ -5951,6 +5981,27 @@ html.theme-dark .orders-pagination-btn:hover:not(:disabled) {
   border-bottom: 1px solid #e2e8f0;
 }
 
+.viewer-sidebar-tabs-head-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.viewer-sidebar-tabs-head-text {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.viewer-sidebar-tabs-check--head {
+  margin: 0;
+}
+
 .viewer-sidebar-tabs-row {
   border-bottom: 1px solid #e2e8f0;
   background: #ffffff;
@@ -8356,6 +8407,14 @@ html.theme-dark .btn-admin-deploy-secondary:hover {
   margin-bottom: 8px;
 }
 
+.viewer-edit-email-field {
+  grid-column: 1 / -1;
+}
+
+.viewer-edit-email-field input {
+  cursor: default;
+}
+
 .viewer-edit-perms-block {
   margin-top: 8px;
 }
@@ -8527,6 +8586,11 @@ table {
 
 .table-wrap--compact table.orders-table-compact {
   min-width: 0;
+}
+
+.table-wrap--compact table.orders-table-compact.outward-challans-table {
+  width: max-content;
+  min-width: 100%;
 }
 
 .orders-table-compact th,
@@ -12162,6 +12226,11 @@ html.theme-dark .table-panel .table-wrap--compact {
   border-radius: 8px;
   overflow: hidden;
   background: var(--content-surface);
+}
+
+html.theme-dark .table-panel .table-wrap--compact.outward-challan-list-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 html.theme-dark .orders-table-compact th {

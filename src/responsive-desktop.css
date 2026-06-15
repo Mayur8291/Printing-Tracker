@@ -535,6 +535,26 @@
     overflow-x: auto;
   }
 
+  /* Dispatch outward/inward OC tables — scroll wide rows inside card */
+  .outward-challans-section {
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .outward-challan-list-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .outward-challan-list-wrap .outward-challans-table {
+    width: max-content;
+    min-width: 100%;
+  }
+
   /* Admin + table panels: nested cards stay inside outer card */
   .dashboard-main > .panel.table-panel.dashboard-card--flat {
     overflow: visible;
