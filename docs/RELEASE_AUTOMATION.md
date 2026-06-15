@@ -87,5 +87,6 @@ The release button does **not** upload files from your laptop. It only merges wh
 | Merge conflict in Actions | Resolve `develop` vs `main` locally, push, retry |
 | `Remote migration versions not found` on db push | Prod has history entries not in repo. Commit placeholder files under `supabase/migrations/20260604112625_remote_sync.sql` (etc.) or let `scripts/supabase-prod-db-push.sh` auto-repair orphans, then re-run promote |
 | `Failed to resolve latest Supabase CLI release` | Workflow pins CLI version in `.github/workflows/promote-to-production.yml` — bump `version:` if needed; do not use `latest` in CI |
+| `pipefail: invalid option name` on db push | `scripts/supabase-prod-db-push.sh` must use Unix (LF) line endings — CRLF breaks bash on GitHub runners |
 
 Manual fallback: `docs/ENVIRONMENTS.md` git merge steps.
