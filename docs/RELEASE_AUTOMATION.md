@@ -27,6 +27,7 @@ In the repo: **Settings → Actions → General → Workflow permissions** → e
 |--------|--------|
 | `SUPABASE_ACCESS_TOKEN` | [Supabase account token](https://supabase.com/dashboard/account/tokens) |
 | `SUPABASE_PROD_PROJECT_REF` | `levwrmvqdntngeasrtnb` |
+| `SUPABASE_DB_PASSWORD` | Production database password (Supabase → Project Settings → Database) |
 | `NETLIFY_PRODUCTION_BUILD_HOOK` | *(optional)* Netlify → Site → Build & deploy → Build hooks → production hook URL |
 
 ### 3. GitHub — personal access token for the edge function
