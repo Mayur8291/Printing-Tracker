@@ -16,12 +16,38 @@ concurrency:
 jobs:
   promote:
     runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_PRODUCTION_BUILD_HOOK }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve production deploy mode
+        id: deploy
+        run: |
+          if [ -n "$NETLIFY_BUILD_HOOK" ]; then
+            echo "mode=hook" >> "$GITHUB_OUTPUT"
+            echo "skip_netlify=true" >> "$GITHUB_OUTPUT"
+            echo "Deploy mode: Netlify build hook (after merge + DB + functions)."
+            exit 0
+          fi
+          if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ] && [ -n "$VITE_SUPABASE_URL" ] && [ -n "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "mode=cli" >> "$GITHUB_OUTPUT"
+            echo "skip_netlify=true" >> "$GITHUB_OUTPUT"
+            echo "Deploy mode: CI build + Netlify CLI (after merge + DB + functions)."
+            exit 0
+          fi
+          echo "mode=github" >> "$GITHUB_OUTPUT"
+          echo "skip_netlify=false" >> "$GITHUB_OUTPUT"
+          echo "Deploy mode: Netlify GitHub integration (auto-build on main push)."
+          echo "::notice::Optional: add GitHub secret NETLIFY_PRODUCTION_BUILD_HOOK for deploy after DB migrations instead of on push."
 
       - name: Merge develop into main and push
         id: merge
@@ -33,8 +59,11 @@ jobs:
           echo "main_before=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
           git checkout main
           git pull origin main
-          # [skip netlify] stops Netlify auto-build on this push — deploy runs once at end of this workflow.
-          git merge origin/develop --no-edit -m "chore: promote develop to production [automated] [skip netlify]"
+          MERGE_MSG="chore: promote develop to production [automated]"
+          if [ "${{ steps.deploy.outputs.skip_netlify }}" = "true" ]; then
+            MERGE_MSG="$MERGE_MSG [skip netlify]"
+          fi
+          git merge origin/develop --no-edit -m "$MERGE_MSG"
           git push origin main
           git fetch origin main
           git reset --hard origin/main
@@ -73,20 +102,11 @@ jobs:
           supabase functions deploy admin-promote-production
 
       - name: Deploy production site to Netlify
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_PRODUCTION_BUILD_HOOK }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: |
           DEPLOY_MSG="Promote develop (${{ steps.merge.outputs.develop }}) → main (${{ steps.merge.outputs.main_after }})"
-          HAS_CI_BUILD_SECRETS=false
-          if [ -n "$VITE_SUPABASE_URL" ] && [ -n "$VITE_SUPABASE_ANON_KEY" ]; then
-            HAS_CI_BUILD_SECRETS=true
-          fi
+          MODE="${{ steps.deploy.outputs.mode }}"
 
-          if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ] && [ "$HAS_CI_BUILD_SECRETS" = true ]; then
+          if [ "$MODE" = "cli" ]; then
             echo "Building frontend in CI and deploying dist/ via Netlify CLI..."
             npm ci
             VITE_APP_ENV=production npm run build
@@ -95,14 +115,12 @@ jobs:
             exit 0
           fi
 
-          if [ -n "$NETLIFY_BUILD_HOOK" ]; then
-            echo "Triggering Netlify production build hook (Netlify builds main with site env vars)..."
+          if [ "$MODE" = "hook" ]; then
+            echo "Triggering Netlify production build hook..."
             curl -fsS -X POST -d "{}" "$NETLIFY_BUILD_HOOK"
-            echo "Netlify build hook triggered. Production will build from main commit ${{ steps.merge.outputs.main_after }}."
+            echo "Netlify build hook triggered for main commit ${{ steps.merge.outputs.main_after }}."
             exit 0
           fi
 
-          echo "::error::Production deploy not configured."
-          echo "Add NETLIFY_PRODUCTION_BUILD_HOOK (easiest — Netlify already has VITE_* env vars),"
-          echo "or NETLIFY_AUTH_TOKEN + NETLIFY_SITE_ID + VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY for CI build + CLI deploy."
-          exit 1
+          echo "No Netlify hook/CLI secrets — production site should rebuild from the main push via Netlify GitHub integration."
+          echo "Check Netlify → Deploys for a new production build on commit ${{ steps.merge.outputs.main_after }}."
