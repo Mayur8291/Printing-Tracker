@@ -9,6 +9,8 @@ import {
   isInwardIndividualDepartment,
   validateInwardPackagePhoto
 } from "./inwardEntryUtils";
+import { insertInwardEntryTagNotifications } from "./inwardEntryNotificationUtils";
+import InwardUserTagPicker from "./InwardUserTagPicker";
 
 function trimField(value) {
   return String(value ?? "").trim();
@@ -24,6 +26,7 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
   const [billPreview, setBillPreview] = useState("");
   const [packageFile, setPackageFile] = useState(null);
   const [packagePreview, setPackagePreview] = useState("");
+  const [taggedUserIds, setTaggedUserIds] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const billInputRef = useRef(null);
@@ -36,6 +39,7 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
     setBillPreview("");
     setPackageFile(null);
     setPackagePreview("");
+    setTaggedUserIds([]);
     setSubmitting(false);
     setError("");
     return () => {
@@ -159,6 +163,17 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
         saved = updated ?? { ...inserted, ...photoUpdate };
       }
 
+      if (taggedUserIds.length && sessionUserId) {
+        await insertInwardEntryTagNotifications(supabase, {
+          inwardEntryId: saved.id,
+          taggedUserIds,
+          taggedByUserId: sessionUserId,
+          productMaterial: saved.product_material,
+          department: saved.department,
+          grnNo: saved.grn_no
+        });
+      }
+
       onCreated?.(saved);
       onClose();
     } catch (err) {
@@ -247,6 +262,13 @@ export default function CreateInwardEntryModal({ open, onClose, sessionUserId, o
                 />
               </div>
             ) : null}
+            <div className="order-form-cell order-form-span-3 create-inward-tag-cell">
+              <InwardUserTagPicker
+                selectedIds={taggedUserIds}
+                onChange={setTaggedUserIds}
+                excludeUserId={sessionUserId}
+              />
+            </div>
             <div className="order-form-cell order-form-span-3 create-inward-photos-cell">
               <span className="create-oc-field-label">Bill &amp; package photos</span>
               <div className="create-inward-photos-row">

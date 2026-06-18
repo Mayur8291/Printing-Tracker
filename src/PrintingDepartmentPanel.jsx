@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   filterPrintingDepartmentOrders,
   printingPriorityUrgency,
@@ -6,6 +7,8 @@ import {
 import { dispatchRowHighlightClass } from "./orderTabUtils";
 import { formatDeliveryDate, splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
+import PrintingDeptInventoryPanel from "./PrintingDeptInventoryPanel";
+import PrintingUtilizationPanel from "./PrintingUtilizationPanel";
 
 function formatOrderPlacedAt(iso) {
   if (!iso) return "—";
@@ -31,8 +34,22 @@ export default function PrintingDepartmentPanel({
   orders,
   loadingOrders,
   onViewOrder,
-  renderStageIcon
+  renderStageIcon,
+  sessionUserId,
+  canEdit = false,
+  isAdmin = false,
+  teamProfiles = [],
+  initialSubview = null,
+  onNavigateConsumed
 }) {
+  const [subTab, setSubTab] = useState("queue");
+
+  useEffect(() => {
+    if (!initialSubview) return;
+    setSubTab(initialSubview);
+    onNavigateConsumed?.();
+  }, [initialSubview, onNavigateConsumed]);
+
   function renderOrderIdBadges(orderId) {
     const ids = splitOrderIds(orderId);
     if (!ids.length) return "—";
@@ -67,7 +84,47 @@ export default function PrintingDepartmentPanel({
       <header className="dashboard-panel-head printing-dept-head">
         <h2 className="dashboard-section-title">Printing department</h2>
       </header>
-      {loadingOrders ? (
+
+      <div className="orders-tabs printing-dept-tabs" role="tablist" aria-label="Printing department views">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={subTab === "queue"}
+          className={subTab === "queue" ? "orders-tab is-active" : "orders-tab"}
+          onClick={() => setSubTab("queue")}
+        >
+          Queue
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={subTab === "inventory"}
+          className={subTab === "inventory" ? "orders-tab is-active" : "orders-tab"}
+          onClick={() => setSubTab("inventory")}
+        >
+          Inventory
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={subTab === "utilization"}
+          className={subTab === "utilization" ? "orders-tab is-active" : "orders-tab"}
+          onClick={() => setSubTab("utilization")}
+        >
+          Printing Utilization
+        </button>
+      </div>
+
+      {subTab === "inventory" ? (
+        <PrintingDeptInventoryPanel
+          sessionUserId={sessionUserId}
+          canEdit={canEdit}
+          isAdmin={isAdmin}
+          teamProfiles={teamProfiles}
+        />
+      ) : subTab === "utilization" ? (
+        <PrintingUtilizationPanel sessionUserId={sessionUserId} canEdit={canEdit} isAdmin={isAdmin} />
+      ) : loadingOrders ? (
         <p>Loading orders…</p>
       ) : (
         <>

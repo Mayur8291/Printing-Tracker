@@ -99,6 +99,7 @@ export default function DispatchTabPanel({
   teamProfiles,
   initialDispatchSubview = null,
   pendingOutwardOcId = null,
+  pendingInwardEntryId = null,
   onNavigateConsumed
 }) {
   const [expandedId, setExpandedId] = useState(null);
@@ -225,10 +226,10 @@ export default function DispatchTabPanel({
     if (!initialDispatchSubview) return;
     setDispatchTab(initialDispatchSubview);
     closeVerifyPanel();
-    if (pendingOutwardOcId == null) {
+    if (pendingOutwardOcId == null && pendingInwardEntryId == null) {
       onNavigateConsumed?.();
     }
-  }, [initialDispatchSubview, pendingOutwardOcId, onNavigateConsumed]);
+  }, [initialDispatchSubview, pendingOutwardOcId, pendingInwardEntryId, onNavigateConsumed]);
 
   useEffect(() => {
     if (pendingOutwardOcId == null) return;
@@ -250,6 +251,27 @@ export default function DispatchTabPanel({
     };
     openPending();
   }, [pendingOutwardOcId, outwardChallans, onNavigateConsumed]);
+
+  useEffect(() => {
+    if (pendingInwardEntryId == null) return;
+    setDispatchTab("inward");
+    const openPending = async () => {
+      const local = inwardEntries.find((entry) => entry.id === pendingInwardEntryId);
+      if (local) {
+        setPreviewInwardRecord(local);
+        onNavigateConsumed?.();
+        return;
+      }
+      const { data, error } = await supabase
+        .from("inward_entries")
+        .select(INWARD_ENTRY_WITH_GRNS_SELECT)
+        .eq("id", pendingInwardEntryId)
+        .maybeSingle();
+      if (!error && data) setPreviewInwardRecord(data);
+      onNavigateConsumed?.();
+    };
+    void openPending();
+  }, [pendingInwardEntryId, inwardEntries, onNavigateConsumed]);
 
   const openOcPreview = useCallback((record) => {
     setPreviewRecord(record);

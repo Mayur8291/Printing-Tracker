@@ -101,9 +101,12 @@ html.theme-dark .inventory-dashboard {
 }
 .inventory-dashboard .page-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
 .inventory-dashboard .page-subtitle { font-size: 13px; color: var(--text-muted); margin: 2px 0 0; }
-.inventory-dashboard .page-actions { display: flex; gap: 6px; align-items: center; }
+.inventory-dashboard .page-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.inventory-dashboard .printing-dept-page-actions { gap: 8px; }
 
 /* ===== Buttons ===== */
+/* Higher specificity than global `button { }` in styles.css */
+.inventory-dashboard button.btn,
 .inventory-dashboard .btn {
   display: inline-flex;
   align-items: center;
@@ -116,30 +119,67 @@ html.theme-dark .inventory-dashboard {
   background: var(--bg-elevated);
   color: var(--text);
   white-space: nowrap;
-  transition: background 0.08s;
+  box-shadow: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.08s, border-color 0.08s, color 0.08s, filter 0.08s;
 }
+.inventory-dashboard button.btn:hover,
 .inventory-dashboard .btn:hover { background: var(--bg-hover); }
+.inventory-dashboard button.btn.primary,
 .inventory-dashboard .btn.primary {
   background: var(--text);
   color: var(--bg-elevated);
   border-color: var(--text);
 }
+.inventory-dashboard button.btn.primary:hover,
 .inventory-dashboard .btn.primary:hover { filter: brightness(0.92); }
+html.theme-dark .inventory-dashboard button.btn.primary:hover,
 html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.88); }
 
-
-
+.inventory-dashboard button.btn.accent,
 .inventory-dashboard .btn.accent {
   background: var(--accent);
   color: white;
   border-color: var(--accent);
 }
+.inventory-dashboard button.btn.accent:hover,
 .inventory-dashboard .btn.accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.inventory-dashboard button.btn.ghost,
 .inventory-dashboard .btn.ghost { border-color: transparent; background: transparent; color: var(--text-muted); }
+.inventory-dashboard button.btn.ghost:hover,
 .inventory-dashboard .btn.ghost:hover { background: var(--bg-hover); color: var(--text); }
+.inventory-dashboard button.btn.sm,
 .inventory-dashboard .btn.sm { padding: 3px 8px; font-size: 12px; }
-.inventory-dashboard .btn.danger { color: var(--danger); border-color: var(--border-strong); }
+.inventory-dashboard button.btn.danger,
+.inventory-dashboard .btn.danger { color: var(--danger); border-color: var(--border-strong); background: var(--bg-elevated); }
+.inventory-dashboard button.btn.danger:hover,
 .inventory-dashboard .btn.danger:hover { background: var(--danger-soft); }
+
+/* Printing dept header actions — match orders toolbar blues, keep threshold neutral */
+.inventory-dashboard .printing-dept-page-actions button.btn {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+.inventory-dashboard .printing-dept-page-actions button.btn.btn-export,
+.inventory-dashboard .printing-dept-page-actions button.btn.primary {
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  border: 1px solid #2563eb;
+  color: #fff;
+  box-shadow: none;
+}
+.inventory-dashboard .printing-dept-page-actions button.btn.btn-export:hover:not(:disabled),
+.inventory-dashboard .printing-dept-page-actions button.btn.primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: #1d4ed8;
+  filter: none;
+}
+.inventory-dashboard .printing-dept-page-actions button.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
 /* ===== Cards ===== */
 .inventory-dashboard .card {
@@ -671,6 +711,16 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
   align-items: center;
   background: var(--bg-subtle);
 }
+.inventory-dashboard .modal-footer button.btn {
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.inventory-dashboard .modal-footer button.btn.primary {
+  background: var(--text);
+  color: var(--bg-elevated);
+  border-color: var(--text);
+}
 
 /* ===== Form ===== */
 .inventory-dashboard .field { margin-bottom: 14px; }
@@ -851,6 +901,7 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
   margin-top: 1px;
   color: var(--text-faint);
 }
+.inventory-dashboard button.icon-btn,
 .inventory-dashboard .icon-btn {
   display: inline-flex;
   align-items: center;
@@ -862,7 +913,11 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
   background: transparent;
   color: var(--text-muted);
   padding: 0;
+  box-shadow: none;
+  cursor: pointer;
+  font-family: inherit;
 }
+.inventory-dashboard button.icon-btn:hover,
 .inventory-dashboard .icon-btn:hover {
   background: var(--bg-hover);
   color: var(--text);

@@ -27,6 +27,9 @@ import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
 import ViewerUserEditModal, { IconUserDelete, IconUserEdit } from "./ViewerUserEditModal";
 import { filterViewerProfiles, viewerIsActive } from "./viewerUserListUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
+import NotificationBellButton from "./NotificationBellButton";
+import NotificationsPanel from "./NotificationsPanel";
+import { NOTIFICATIONS_DASHBOARD_TAB } from "./notificationsUtils";
 import AdminDeployPanel from "./AdminDeployPanel";
 import CreateJobSheetForm from "./CreateJobSheetForm";
 import DistributorTabPanel from "./DistributorTabPanel";
@@ -545,6 +548,7 @@ function readStoredDashboardTab() {
 
 function resolveDashboardTabForUser(tabId, permissions, isAdmin) {
   if (tabId === ADMIN_DASHBOARD_TAB.id) return isAdmin ? tabId : "home";
+  if (tabId === NOTIFICATIONS_DASHBOARD_TAB.id) return tabId;
   if (isAdmin || viewerCanAccessDashboardTab(permissions, tabId)) return tabId;
   const fallback = firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, permissions, isAdmin);
   return fallback ?? "home";
@@ -796,6 +800,8 @@ function App() {
   const [globalSearchExtrasLoading, setGlobalSearchExtrasLoading] = useState(false);
   const [pendingDispatchSubview, setPendingDispatchSubview] = useState(null);
   const [pendingOutwardOcId, setPendingOutwardOcId] = useState(null);
+  const [pendingInwardEntryId, setPendingInwardEntryId] = useState(null);
+  const [pendingPrintingSubview, setPendingPrintingSubview] = useState(null);
   const [dashboardTab, setDashboardTab] = useState(readStoredDashboardTab);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
@@ -2843,6 +2849,43 @@ function App() {
     setViewOrderFromTab(dashboardTab);
   }
 
+  async function handleNotificationAssignmentOpen(item) {
+    if (!item?.order_id) return;
+    let order = orders.find((o) => o.id === item.order_id);
+    if (!order) {
+      const { data } = await supabase.from("orders").select("*").eq("id", item.order_id).maybeSingle();
+      order = data ?? null;
+    }
+    if (!order) return;
+    selectDashboardTab("printing");
+    window.setTimeout(() => openViewOrder(order), 60);
+  }
+
+  async function handleNotificationInwardOpen(item) {
+    if (!item?.inward_entry_id) return;
+    selectDashboardTab("dispatch");
+    setPendingDispatchSubview("inward");
+    setPendingInwardEntryId(item.inward_entry_id);
+  }
+
+  function handleNotificationPrintingInventoryOpen() {
+    selectDashboardTab("printing_department");
+    setPendingPrintingSubview("inventory");
+  }
+
+  function handleOpenDashboardNotification(item) {
+    if (!item) return;
+    if (item.kind === "inward") {
+      void handleNotificationInwardOpen(item);
+      return;
+    }
+    if (item.kind === "printing_inventory") {
+      handleNotificationPrintingInventoryOpen();
+      return;
+    }
+    void handleNotificationAssignmentOpen(item);
+  }
+
   function closeViewOrder() {
     setViewOrderTarget(null);
     setViewOrderFromTab(null);
@@ -2985,8 +3028,40 @@ function App() {
       ...prev,
       {
         id,
+        kind: "assignment",
+        orderId: row?.order_id,
         orderDisplayId: row?.order_display_id ?? "",
         coordinatorName: row?.coordinator_name ?? ""
+      }
+    ]);
+  }, []);
+
+  const pushInwardToast = useCallback((row) => {
+    const id = row?.id != null ? `inward-${row.id}` : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setAssignmentToasts((prev) => [
+      ...prev,
+      {
+        id,
+        kind: "inward",
+        inwardEntryId: row?.inward_entry_id,
+        productMaterial: row?.product_material ?? "",
+        department: row?.department ?? "",
+        grnNo: row?.grn_no ?? ""
+      }
+    ]);
+  }, []);
+
+  const pushPrintingInventoryToast = useCallback((row) => {
+    const id = row?.id != null ? `printing-inv-${row.id}` : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setAssignmentToasts((prev) => [
+      ...prev,
+      {
+        id,
+        kind: "printing_inventory",
+        materialKey: row?.material_key ?? "",
+        materialLabel: row?.material_label ?? "",
+        currentStock: row?.current_stock,
+        thresholdQty: row?.threshold_qty
       }
     ]);
   }, []);
@@ -2994,6 +3069,20 @@ function App() {
   const dismissAssignmentToast = useCallback((id) => {
     setAssignmentToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  function handleAssignmentToastActivate(toast) {
+    if (!toast) return;
+    dismissAssignmentToast(toast.id);
+    if (toast.kind === "inward") {
+      void handleNotificationInwardOpen({ inward_entry_id: toast.inwardEntryId });
+      return;
+    }
+    if (toast.kind === "printing_inventory") {
+      handleNotificationPrintingInventoryOpen();
+      return;
+    }
+    void handleNotificationAssignmentOpen({ order_id: toast.orderId });
+  }
 
   useEffect(() => {
     const uid = session?.user?.id;
@@ -3010,7 +3099,12 @@ function App() {
         },
         (payload) => {
           const row = payload.new;
-          if (row && typeof row === "object") pushAssignmentToast(row);
+          if (row && typeof row === "object") {
+            pushAssignmentToast(row);
+            if (!muteStatusTones) {
+              playTone(TONE_DEFAULT_STATUS);
+            }
+          }
         }
       )
       .subscribe();
@@ -3018,6 +3112,62 @@ function App() {
       supabase.removeChannel(channel);
     };
   }, [session?.user?.id, pushAssignmentToast]);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return undefined;
+    const channel = supabase
+      .channel(`inward-entry-notifications-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "inward_entry_notifications",
+          filter: `recipient_user_id=eq.${uid}`
+        },
+        (payload) => {
+          const row = payload.new;
+          if (!row || typeof row !== "object") return;
+          pushInwardToast(row);
+          if (!muteStatusTones) {
+            playTone(TONE_DEFAULT_STATUS);
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, pushInwardToast]);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return undefined;
+    const channel = supabase
+      .channel(`printing-dept-inventory-notifications-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "printing_dept_inventory_notifications",
+          filter: `recipient_user_id=eq.${uid}`
+        },
+        (payload) => {
+          const row = payload.new;
+          if (!row || typeof row !== "object") return;
+          pushPrintingInventoryToast(row);
+          if (!muteStatusTones) {
+            playTone(TONE_DEFAULT_STATUS);
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, pushPrintingInventoryToast]);
 
   useEffect(() => {
     if (!showCreateForm || profileLoading) return;
@@ -3279,7 +3429,9 @@ function App() {
   const currentDashboardTabLabel =
     dashboardTab === ADMIN_DASHBOARD_TAB.id
       ? ADMIN_DASHBOARD_TAB.label
-      : DASHBOARD_SIDEBAR.find((item) => item.id === dashboardTab)?.label ?? "Menu";
+      : dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id
+        ? NOTIFICATIONS_DASHBOARD_TAB.label
+        : DASHBOARD_SIDEBAR.find((item) => item.id === dashboardTab)?.label ?? "Menu";
 
   function openAdminPanel(view = "list") {
     setMasterListView(view);
@@ -3294,6 +3446,7 @@ function App() {
   function clearGlobalSearchNavigation() {
     setPendingDispatchSubview(null);
     setPendingOutwardOcId(null);
+    setPendingInwardEntryId(null);
   }
 
   function handleGlobalSearchSelect(item) {
@@ -3883,11 +4036,18 @@ function App() {
                     </span>
                   ) : null}
                 </div>
-                <ThemeToggle
-                  theme={theme}
-                  onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-                  className="theme-toggle-btn theme-toggle-btn--sidebar"
-                />
+                <div className="dashboard-sidebar-user-actions">
+                  <NotificationBellButton
+                    userId={session?.user?.id}
+                    active={dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id}
+                    onOpen={() => selectDashboardTab(NOTIFICATIONS_DASHBOARD_TAB.id)}
+                  />
+                  <ThemeToggle
+                    theme={theme}
+                    onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+                    className="theme-toggle-btn theme-toggle-btn--sidebar"
+                  />
+                </div>
               </div>
             </div>
           </nav>
@@ -4076,6 +4236,12 @@ function App() {
                 loadingOrders={loadingOrders}
                 onViewOrder={openViewOrder}
                 renderStageIcon={renderStageIcon}
+                sessionUserId={session?.user?.id}
+                canEdit={viewerCanEditCurrentTab}
+                isAdmin={isAdmin}
+                teamProfiles={teamProfiles}
+                initialSubview={pendingPrintingSubview}
+                onNavigateConsumed={() => setPendingPrintingSubview(null)}
               />
             </section>
           )}
@@ -4333,6 +4499,13 @@ function App() {
             />
           )}
 
+          {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (
+            <NotificationsPanel
+              userId={session.user.id}
+              onOpenNotification={handleOpenDashboardNotification}
+            />
+          )}
+
           {dashboardTab === "chat" && session?.user && (
             <TeamChatPanel
               sessionUserId={session.user.id}
@@ -4418,6 +4591,7 @@ function App() {
                 teamProfiles={teamProfiles}
                 initialDispatchSubview={pendingDispatchSubview}
                 pendingOutwardOcId={pendingOutwardOcId}
+                pendingInwardEntryId={pendingInwardEntryId}
                 onNavigateConsumed={clearGlobalSearchNavigation}
               />
             </section>
@@ -6249,6 +6423,7 @@ function App() {
               viewerMayUpdateOrders={viewerMayUpdateOrders}
               canCurrentUserEdit={canCurrentUserEdit}
               coordinators={coordinators}
+              viewerProfiles={viewerProfiles}
               owners={owners}
               adminOrderDrafts={adminOrderDrafts}
               patchAdminOrderDraft={patchAdminOrderDraft}
@@ -6388,7 +6563,11 @@ function App() {
           </div>
         </div>
       )}
-      <AssignmentToastStack toasts={assignmentToasts} onDismiss={dismissAssignmentToast} />
+      <AssignmentToastStack
+        toasts={assignmentToasts}
+        onDismiss={dismissAssignmentToast}
+        onActivate={handleAssignmentToastActivate}
+      />
     </div>
   );
 }

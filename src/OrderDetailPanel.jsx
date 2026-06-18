@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { OrderAdminColorField, OrderAdminSizeFields } from "./OrderAdminDetailFields";
+import { createCoordinatorSelectOptions } from "./coordinatorSelectUtils";
 import { buildAdminOrderDraftFromOrder } from "./orderAdminEditUtils";
 import {
   POST_DESIGN_REVIEW,
@@ -49,6 +50,7 @@ export default function OrderDetailPanel({
   viewerMayUpdateOrders,
   canCurrentUserEdit,
   coordinators,
+  viewerProfiles = [],
   owners = [],
   adminOrderDrafts,
   patchAdminOrderDraft,
@@ -124,6 +126,18 @@ export default function OrderDetailPanel({
     canEditPayment && paymentMethodRequiresProof(order.payment_method);
   const adminDraft =
     isAdmin && (adminOrderDrafts?.[order.id] ?? buildAdminOrderDraftFromOrder(order));
+
+  const coordinatorValue = coordinatorUpdates[order.id] ?? order.coordinator_name ?? "";
+  const coordinatorSelectOptions = useMemo(
+    () =>
+      createCoordinatorSelectOptions({
+        coordinators,
+        viewerProfiles,
+        isAdmin,
+        currentUserName: coordinatorValue
+      }),
+    [coordinators, viewerProfiles, isAdmin, coordinatorValue]
+  );
 
   function patchAdminDraft(patch) {
     patchAdminOrderDraft?.(order.id, patch);
@@ -227,7 +241,7 @@ export default function OrderDetailPanel({
               {canCurrentUserEdit("coordinator_name") ? (
                 <select
                   className="order-detail-control"
-                  value={coordinatorUpdates[order.id] ?? order.coordinator_name}
+                  value={coordinatorValue}
                   onChange={(e) =>
                     setCoordinatorUpdates((prev) => ({
                       ...prev,
@@ -235,9 +249,10 @@ export default function OrderDetailPanel({
                     }))
                   }
                 >
-                  {coordinators.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      {c.name}
+                  <option value="">—</option>
+                  {coordinatorSelectOptions.map((opt) => (
+                    <option key={opt.id} value={opt.name}>
+                      {opt.name}
                     </option>
                   ))}
                 </select>

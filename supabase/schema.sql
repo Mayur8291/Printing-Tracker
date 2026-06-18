@@ -1370,3 +1370,24 @@ on public.order_assignment_notifications
 for insert
 to authenticated
 with check (assigned_by_user_id = auth.uid());
+
+-- Inward entry user tags + notifications (see migration 20260623120000_add_inward_entry_tags_notifications.sql).
+create table if not exists public.inward_entry_tags (
+  id bigint generated always as identity primary key,
+  inward_entry_id bigint not null references public.inward_entries(id) on delete cascade,
+  tagged_user_id uuid not null references public.profiles(id) on delete cascade,
+  tagged_by_user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (inward_entry_id, tagged_user_id)
+);
+
+create table if not exists public.inward_entry_notifications (
+  id bigint generated always as identity primary key,
+  recipient_user_id uuid not null references public.profiles(id) on delete cascade,
+  inward_entry_id bigint not null references public.inward_entries(id) on delete cascade,
+  product_material text not null default '',
+  department text not null default '',
+  grn_no text not null default '',
+  tagged_by_user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
