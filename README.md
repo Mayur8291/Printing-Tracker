@@ -316,7 +316,7 @@ Tab visibility and edit rights are configurable per viewer in the admin panel.
 
 | Function | Purpose |
 |----------|---------|
-| `admin-create-user` | Create auth user + profile from Admin panel |
+| `admin-create-user` | Create auth user + profile from Admin panel; if Auth already has the email but `profiles` is missing, links the profile instead of failing |
 | `admin-delete-user` | Remove user |
 | `admin-reset-password` | Send password reset |
 | `admin-promote-production` | Trigger GitHub Action to release staging → production |

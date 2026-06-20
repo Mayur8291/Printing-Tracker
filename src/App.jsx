@@ -2703,7 +2703,7 @@ function App() {
 
     setCreatingUser(true);
     try {
-      await invokeAdminEdgeFunction("admin-create-user", {
+      const result = await invokeAdminEdgeFunction("admin-create-user", {
         email,
         password,
         full_name: fullName,
@@ -2714,7 +2714,15 @@ function App() {
         status_tones_enabled: newUserForm.status_tones_enabled !== false,
         permissions: role === "viewer" ? permissionRowFromDraft(newUserForm.permissions) : {}
       });
-      setCreateUserSuccess(`User ${email} created as ${role}.`);
+      if (result?.recovered) {
+        setCreateUserSuccess(
+          `Recovered ${email}: linked missing profile and set password. User should now appear in the list.`
+        );
+      } else if (result?.updated) {
+        setCreateUserSuccess(`Updated existing user ${email} (password and profile refreshed).`);
+      } else {
+        setCreateUserSuccess(`User ${email} created as ${role}.`);
+      }
       resetNewUserForm();
       await fetchViewersAndPermissions();
     } catch (err) {

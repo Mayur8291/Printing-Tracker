@@ -130,3 +130,43 @@ Examples (committed, no secrets): `.env.example`, `.env.development.example`, `.
 
 - Supabase MCP (`user-supabase_scott1`) is linked to the **production** project above.
 - Creating a second Supabase project requires the dashboard (billing/org); duplicate schema via `supabase db push` on the new ref.
+
+---
+
+## Troubleshooting: user in Auth but not in Admin user list
+
+**Symptom:** Admin → **List users** shows “No viewer accounts yet” (or no row for that email), but **Create user** fails with “A user with this email address has already been registered”.
+
+**Why:**
+
+1. **Orphaned Auth row** — `auth.users` exists without a matching `public.profiles` row (e.g. create succeeded in Auth then profile upsert failed, or user was created before the `handle_new_user` trigger existed).
+2. **Wrong environment** — user was created on **staging** Supabase while admin is on **production** (or vice versa). Auth is per-project; lists only show profiles in the project you are connected to. See `npm run dev:staging` note: without `.env.staging`, local dev can fall back to production `.env`.
+3. **Admin account** — profile exists with `role = 'admin'`. The user list only loads `role = 'viewer'` rows, so admins never appear there.
+
+**Fix (app):** After deploying the latest `admin-create-user` edge function, submit **Create user** again with the same email and a new password. The function detects the existing Auth user, upserts the missing profile (or refreshes an existing viewer profile), and sets the password.
+
+**Fix (manual SQL on the correct Supabase project):** In Dashboard → SQL Editor, find the auth user id, then insert the profile if missing:
+
+```sql
+-- Replace with the stuck email
+select id, email from auth.users where lower(email) = lower('user@example.com');
+
+insert into public.profiles (id, email, full_name, role, is_active)
+values (
+  '<uuid-from-auth-users>',
+  lower('user@example.com'),
+  'Display Name',
+  'viewer',
+  true
+)
+on conflict (id) do update set
+  email = excluded.email,
+  is_active = true;
+```
+
+Then refresh **List users** in Admin. Redeploy edge function after code changes:
+
+```bash
+npx supabase link --project-ref levwrmvqdntngeasrtnb   # production
+npx supabase functions deploy admin-create-user
+```

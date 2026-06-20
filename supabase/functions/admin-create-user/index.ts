@@ -2,13 +2,118 @@
 // Hosted projects inject SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient, type SupabaseClient, type User } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
+
+type AdminClient = SupabaseClient;
+
+function isEmailAlreadyRegistered(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("already been registered") ||
+    m.includes("already registered") ||
+    m.includes("user already exists") ||
+    m.includes("email address is already")
+  );
+}
+
+async function findAuthUserByEmail(adminClient: AdminClient, email: string): Promise<User | null> {
+  const { data: prof } = await adminClient.from("profiles").select("id").ilike("email", email).maybeSingle();
+  if (prof?.id) {
+    const { data, error } = await adminClient.auth.admin.getUserById(prof.id);
+    if (!error && data?.user) return data.user;
+  }
+
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    const found = data.users.find((user) => (user.email ?? "").trim().toLowerCase() === email);
+    if (found) return found;
+    if (data.users.length < 1000) break;
+  }
+
+  return null;
+}
+
+async function upsertProfileAndPermissions(
+  adminClient: AdminClient,
+  userId: string,
+  params: {
+    email: string;
+    full_name: string;
+    department: string;
+    job_role: string;
+    employee_id: string;
+    role: "admin" | "viewer";
+    status_tones_enabled: boolean;
+    perm: Record<string, unknown>;
+  }
+) {
+  const { email, full_name, department, job_role, employee_id, role, status_tones_enabled, perm } = params;
+
+  const { error: profileUpsertErr } = await adminClient.from("profiles").upsert(
+    {
+      id: userId,
+      email: email.toLowerCase(),
+      full_name: full_name || email.split("@")[0],
+      department: department || null,
+      job_role: job_role || null,
+      employee_id: employee_id || null,
+      role,
+      status_tones_enabled,
+      is_active: true
+    },
+    { onConflict: "id" }
+  );
+  if (profileUpsertErr) {
+    throw new Error(profileUpsertErr.message);
+  }
+
+  if (role === "viewer") {
+    const allowedTabsRaw = perm.allowed_dashboard_tabs;
+    const allowed_dashboard_tabs =
+      allowedTabsRaw === null || allowedTabsRaw === undefined
+        ? null
+        : Array.isArray(allowedTabsRaw)
+          ? allowedTabsRaw.map((id) => String(id))
+          : null;
+    const editableTabsRaw = perm.editable_dashboard_tabs;
+    const editable_dashboard_tabs =
+      editableTabsRaw === null || editableTabsRaw === undefined
+        ? null
+        : Array.isArray(editableTabsRaw)
+          ? editableTabsRaw.map((id) => String(id))
+          : null;
+
+    const { error: permUpsertErr } = await adminClient.from("profile_order_permissions").upsert(
+      {
+        user_id: userId,
+        can_edit_status: perm.can_edit_status !== false,
+        can_edit_remarks: Boolean(perm.can_edit_remarks),
+        can_edit_due_date: Boolean(perm.can_edit_due_date),
+        can_edit_qty: Boolean(perm.can_edit_qty),
+        can_edit_coordinator_name: Boolean(perm.can_edit_coordinator_name),
+        can_edit_printing_mtrs: Boolean(perm.can_edit_printing_mtrs),
+        can_edit_approved_design_images: perm.can_edit_approved_design_images !== false,
+        can_edit_received_at_printing: Boolean(perm.can_edit_received_at_printing),
+        can_edit_payment_method: Boolean(perm.can_edit_payment_method),
+        can_create_orders: Boolean(perm.can_create_orders),
+        allowed_dashboard_tabs,
+        editable_dashboard_tabs,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "user_id" }
+    );
+    if (permUpsertErr) {
+      throw new Error(permUpsertErr.message);
+    }
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -119,6 +224,10 @@ serve(async (req) => {
       }
     }
 
+    let newId: string;
+    let recovered = false;
+    let updated = false;
+
     const { data: created, error: createErr } = await adminClient.auth.admin.createUser({
       email,
       password,
@@ -127,74 +236,65 @@ serve(async (req) => {
     });
 
     if (createErr) {
-      throw new Error(createErr.message);
-    }
-
-    const newId = created.user.id;
-
-    const { error: profileUpsertErr } = await adminClient.from("profiles").upsert(
-      {
-        id: newId,
-        email: email.toLowerCase(),
-        full_name: full_name || email.split("@")[0],
-        department: department || null,
-        job_role: job_role || null,
-        employee_id: employee_id || null,
-        role,
-        status_tones_enabled,
-        is_active: true
-      },
-      { onConflict: "id" }
-    );
-    if (profileUpsertErr) {
-      throw new Error(profileUpsertErr.message);
-    }
-
-    // Only viewers get per-field permissions; admins have implicit full access.
-    if (role === "viewer") {
-      const allowedTabsRaw = perm.allowed_dashboard_tabs;
-      const allowed_dashboard_tabs =
-        allowedTabsRaw === null || allowedTabsRaw === undefined
-          ? null
-          : Array.isArray(allowedTabsRaw)
-            ? allowedTabsRaw.map((id) => String(id))
-            : null;
-      const editableTabsRaw = perm.editable_dashboard_tabs;
-      const editable_dashboard_tabs =
-        editableTabsRaw === null || editableTabsRaw === undefined
-          ? null
-          : Array.isArray(editableTabsRaw)
-            ? editableTabsRaw.map((id) => String(id))
-            : null;
-
-      const { error: permUpsertErr } = await adminClient.from("profile_order_permissions").upsert(
-        {
-          user_id: newId,
-          can_edit_status: perm.can_edit_status !== false,
-          can_edit_remarks: Boolean(perm.can_edit_remarks),
-          can_edit_due_date: Boolean(perm.can_edit_due_date),
-          can_edit_qty: Boolean(perm.can_edit_qty),
-          can_edit_coordinator_name: Boolean(perm.can_edit_coordinator_name),
-          can_edit_printing_mtrs: Boolean(perm.can_edit_printing_mtrs),
-          can_edit_approved_design_images: perm.can_edit_approved_design_images !== false,
-          can_edit_received_at_printing: Boolean(perm.can_edit_received_at_printing),
-          can_edit_payment_method: Boolean(perm.can_edit_payment_method),
-          can_create_orders: Boolean(perm.can_create_orders),
-          allowed_dashboard_tabs,
-          editable_dashboard_tabs,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: "user_id" }
-      );
-      if (permUpsertErr) {
-        throw new Error(permUpsertErr.message);
+      if (!isEmailAlreadyRegistered(createErr.message)) {
+        throw new Error(createErr.message);
       }
+
+      const existing = await findAuthUserByEmail(adminClient, email);
+      if (!existing) {
+        throw new Error(
+          "A user with this email is already registered in Auth but could not be loaded. " +
+            "Confirm you are on the correct environment (production vs staging), then retry or repair via SQL."
+        );
+      }
+
+      newId = existing.id;
+
+      const { data: existingProf } = await adminClient
+        .from("profiles")
+        .select("id, role")
+        .eq("id", newId)
+        .maybeSingle();
+
+      if (existingProf?.role === "admin" && role === "viewer") {
+        throw new Error(
+          "This email is already registered as an admin account. Admin accounts are not listed under viewer users."
+        );
+      }
+
+      const { error: updateErr } = await adminClient.auth.admin.updateUserById(newId, {
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: full_name || email.split("@")[0] }
+      });
+      if (updateErr) {
+        throw new Error(`Existing auth user found but password update failed: ${updateErr.message}`);
+      }
+
+      recovered = !existingProf;
+      updated = Boolean(existingProf);
+    } else {
+      newId = created.user.id;
     }
 
-    return new Response(JSON.stringify({ ok: true, user_id: newId, email, role }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    await upsertProfileAndPermissions(adminClient, newId, {
+      email,
+      full_name,
+      department,
+      job_role,
+      employee_id,
+      role,
+      status_tones_enabled,
+      perm
     });
+
+    return new Response(
+      JSON.stringify({ ok: true, user_id: newId, email, role, recovered, updated }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      }
+    );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return new Response(JSON.stringify({ error: msg }), {
