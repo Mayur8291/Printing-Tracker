@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import InventoryIcon from "./inventory/InventoryIcon";
 import {
   fetchPrintingDeptThresholds,
+  formatQtyWithUnit,
   inventoryItemsFromState,
   PRINTING_DEPT_MATERIALS,
   savePrintingDeptThresholds
@@ -104,7 +105,7 @@ export default function PrintingDeptThresholdModal({ open, onClose, state, sessi
                     <tr key={item.key}>
                       <td>{item.label}</td>
                       <td className="right mono">
-                        {Number(item.quantity).toLocaleString()} {item.unit}
+                        {formatQtyWithUnit(item.quantity, item.unit)}
                       </td>
                       <td className="right">
                         <input
@@ -115,7 +116,9 @@ export default function PrintingDeptThresholdModal({ open, onClose, state, sessi
                           value={drafts[item.key] ?? "0"}
                           onChange={(e) => setDrafts((prev) => ({ ...prev, [item.key]: e.target.value }))}
                         />
-                        <span className="printing-dept-threshold-unit">{item.unit}</span>
+                        {item.unit ? (
+                          <span className="printing-dept-threshold-unit">{item.unit}</span>
+                        ) : null}
                       </td>
                     </tr>
                   ))}

@@ -6,6 +6,13 @@ import {
 } from "./orderTabUtils";
 import { dispatchRowHighlightClass } from "./orderTabUtils";
 import { formatDeliveryDate, splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
+import StickerOrderIdBadge from "./StickerOrderIdBadge";
+import {
+  formatStickerQtyDisplay,
+  formatStickerSizeDisplay,
+  isStickerOrder,
+  stageLabelForOrder
+} from "./stickerOrderUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import PrintingDeptInventoryPanel from "./PrintingDeptInventoryPanel";
 import PrintingUtilizationPanel from "./PrintingUtilizationPanel";
@@ -40,7 +47,8 @@ export default function PrintingDepartmentPanel({
   isAdmin = false,
   teamProfiles = [],
   initialSubview = null,
-  onNavigateConsumed
+  onNavigateConsumed,
+  embedded = false
 }) {
   const [subTab, setSubTab] = useState("queue");
 
@@ -81,11 +89,13 @@ export default function PrintingDepartmentPanel({
 
   return (
     <>
+      {!embedded ? (
       <header className="dashboard-panel-head printing-dept-head">
-        <h2 className="dashboard-section-title">Printing department</h2>
+        <h2 className="dashboard-section-title">Print Queue</h2>
       </header>
+      ) : null}
 
-      <div className="orders-tabs printing-dept-tabs" role="tablist" aria-label="Printing department views">
+      <div className={`orders-tabs printing-dept-tabs${embedded ? " printing-dept-tabs--embedded" : ""}`} role="tablist" aria-label="Print Queue views">
         <button
           type="button"
           role="tab"
@@ -192,25 +202,35 @@ export default function PrintingDepartmentPanel({
                         </button>
                       </td>
                       <td className="orders-compact-id">
-                        {renderOrderIdBadges(order.order_id)}
+                        {isStickerOrder(order) ? (
+                          <StickerOrderIdBadge />
+                        ) : (
+                          renderOrderIdBadges(order.order_id)
+                        )}
                       </td>
                       <td className="orders-compact-customer">
                         {order.customer_name?.trim() ? order.customer_name : "—"}
                       </td>
                       <td className="orders-compact-product">
-                        {order.product_name?.trim() ? order.product_name : "—"}
+                        {isStickerOrder(order)
+                          ? formatStickerSizeDisplay(order.product_name)
+                          : order.product_name?.trim()
+                            ? order.product_name
+                            : "—"}
                       </td>
                       <td>
                         <span
                           className={`status-pill status-pill--compact status-${order.status ?? "new"}`}
                         >
-                          {renderStageIcon?.(order.status, STAGE_LABEL[order.status])}{" "}
-                          {STAGE_LABEL[order.status] ?? order.status ?? "—"}
+                          {renderStageIcon?.(order.status, stageLabelForOrder(order, order.status))}{" "}
+                          {stageLabelForOrder(order, order.status)}
                         </span>
                       </td>
                       <td className="printing-dept-due">{formatDeliveryDate(order.due_date)}</td>
                       <td className="printing-dept-placed">{formatOrderPlacedAt(order.created_at)}</td>
-                      <td>{order.qty}</td>
+                      <td>
+                        {isStickerOrder(order) ? formatStickerQtyDisplay(order.qty) : order.qty}
+                      </td>
                     </tr>
                   );
                 })}

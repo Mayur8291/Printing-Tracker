@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { DASHBOARD_SIDEBAR } from "./dashboardSidebarConfig";
+import { DASHBOARD_SIDEBAR, DASHBOARD_TAB_PARENT } from "./dashboardSidebarConfig";
 
 export default function SidebarTabPermissionFields({
   tabFlags,
@@ -80,7 +80,10 @@ export default function SidebarTabPermissionFields({
         {DASHBOARD_SIDEBAR.map((item) => {
           const canView = Boolean(tabFlags?.[item.id]);
           return (
-            <div className="viewer-sidebar-tabs-row" key={`${idPrefix}-${item.id}`}>
+            <div
+              className={`viewer-sidebar-tabs-row${DASHBOARD_TAB_PARENT[item.id] ? " viewer-sidebar-tabs-row--nested" : ""}`}
+              key={`${idPrefix}-${item.id}`}
+            >
               <span className="viewer-sidebar-tabs-row-label">{item.label}</span>
               <label className="viewer-sidebar-tabs-check">
                 <input

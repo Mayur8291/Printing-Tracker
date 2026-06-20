@@ -121,7 +121,7 @@ function buildOrderHits(order, canAccessTab) {
   if (canAccessTab("printing_department") && filterPrintingDepartmentOrders([order]).length) {
     hits.push({
       tabId: "printing_department",
-      areaLabel: "Printing department",
+      areaLabel: "Print Queue",
       contextLine: `Floor queue · ${statusLabel}`,
       badgeTone: "printing-dept"
     });

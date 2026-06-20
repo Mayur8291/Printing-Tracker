@@ -20,7 +20,9 @@ import {
   DASHBOARD_SIDEBAR_FOOTER,
   DASHBOARD_SIDEBAR_MAIN,
   DASHBOARD_SIDEBAR_MAIN_SECTIONS,
-  DASHBOARD_SIDEBAR_SOON_TAB_IDS
+  DASHBOARD_SIDEBAR_SOON_TAB_IDS,
+  dashboardTabLabel,
+  PRINTING_QUEUE_SUBTAB
 } from "./dashboardSidebarConfig";
 import { DashboardSidebarIcon } from "./dashboardSidebarIcons";
 import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
@@ -30,8 +32,22 @@ import AssignmentToastStack from "./AssignmentToastStack";
 import NotificationBellButton from "./NotificationBellButton";
 import NotificationsPanel from "./NotificationsPanel";
 import { NOTIFICATIONS_DASHBOARD_TAB } from "./notificationsUtils";
-import AdminDeployPanel from "./AdminDeployPanel";
+import MacStyleColorPicker from "./MacStyleColorPicker";
+import {
+  isCssColorString,
+  swatchBackgroundForColor
+} from "./orderColorUtils";
 import CreateJobSheetForm from "./CreateJobSheetForm";
+import CreateStickerOrderForm from "./CreateStickerOrderForm";
+import StickerOrderIdBadge from "./StickerOrderIdBadge";
+import {
+  emptyStickerOrderForm,
+  formatStickerQtyDisplay,
+  formatStickerSizeDisplay,
+  isAllowedStickerAsset,
+  isStickerOrder,
+  stageLabelForOrder
+} from "./stickerOrderUtils";
 import DistributorTabPanel from "./DistributorTabPanel";
 import InventoryTabPanel from "./InventoryTabPanel";
 import {
@@ -418,77 +434,6 @@ function OrderIdBadges({ orderId }) {
   );
 }
 
-/** HSL (0–360, 0–100, 0–100) → #rrggbb for stable DB + CSV. */
-function hslToHex(h, s, l) {
-  const hue = (((h % 360) + 360) % 360) / 360;
-  const sat = Math.max(0, Math.min(100, s)) / 100;
-  const light = Math.max(0, Math.min(100, l)) / 100;
-
-  let r;
-  let g;
-  let b;
-  if (sat === 0) {
-    r = g = b = light;
-  } else {
-    const hue2rgb = (p, q, t) => {
-      let tt = t;
-      if (tt < 0) tt += 1;
-      if (tt > 1) tt -= 1;
-      if (tt < 1 / 6) return p + (q - p) * 6 * tt;
-      if (tt < 1 / 2) return q;
-      if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
-      return p;
-    };
-    const q = light < 0.5 ? light * (1 + sat) : light + sat - light * sat;
-    const p = 2 * light - q;
-    r = hue2rgb(p, q, hue + 1 / 3);
-    g = hue2rgb(p, q, hue);
-    b = hue2rgb(p, q, hue - 1 / 3);
-  }
-  const toHex = (x) =>
-    Math.round(Math.min(255, Math.max(0, x * 255)))
-      .toString(16)
-      .padStart(2, "0");
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toLowerCase();
-}
-
-/** 8×8 swatches: top row greyscale, rows below = lighter → deeper per hue column. */
-const ORDER_COLOR_PALETTE = (() => {
-  const pal = [];
-  for (let c = 0; c < 8; c += 1) {
-    const L = Math.round((c / 7) * 100);
-    pal.push(hslToHex(0, 0, L));
-  }
-  for (let r = 1; r < 8; r += 1) {
-    for (let c = 0; c < 8; c += 1) {
-      const hue = (c * 360) / 8;
-      const sat = 52 + (r % 4) * 10;
-      const light = 84 - (r - 1) * 10;
-      pal.push(hslToHex(hue, Math.min(100, sat), Math.max(12, Math.min(92, light))));
-    }
-  }
-  return pal;
-})();
-
-function normalizeColorKey(c) {
-  return String(c ?? "")
-    .trim()
-    .toLowerCase();
-}
-
-function isCssColorString(c) {
-  const s = String(c ?? "").trim();
-  return /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(s) || /^hsla?\(/i.test(s);
-}
-
-/** Background for swatch: hex/hsl as-is; otherwise try as CSS color keyword (e.g. orange, navy). */
-function swatchBackgroundForColor(c) {
-  const t = String(c ?? "").trim();
-  if (!t) return "#cbd5e1";
-  if (isCssColorString(t)) return t;
-  return t;
-}
-
 function OrderColorsCell({ colors }) {
   if (!Array.isArray(colors) || !colors.length) return "-";
   return (
@@ -534,9 +479,24 @@ const ORDER_HISTORY_EVENT_LABELS = {
 
 const DASHBOARD_TAB_STORAGE_KEY = "printing-tracker-dashboard-tab";
 
+const PRINTING_ORDERS_TAB_STORAGE_KEY = "printing-orders-tab";
+
+function readStoredOrdersTab() {
+  try {
+    const dash = sessionStorage.getItem(DASHBOARD_TAB_STORAGE_KEY);
+    if (dash === "printing_department") return "print_queue";
+    const sub = sessionStorage.getItem(PRINTING_ORDERS_TAB_STORAGE_KEY);
+    if (sub === "active" || sub === "complete" || sub === "print_queue") return sub;
+  } catch {
+    /* ignore */
+  }
+  return "active";
+}
+
 function readStoredDashboardTab() {
   try {
     const stored = sessionStorage.getItem(DASHBOARD_TAB_STORAGE_KEY);
+    if (stored === "printing_department") return "printing";
     if (stored && (stored === ADMIN_DASHBOARD_TAB.id || DASHBOARD_SIDEBAR.some((item) => item.id === stored))) {
       return stored;
     }
@@ -549,6 +509,12 @@ function readStoredDashboardTab() {
 function resolveDashboardTabForUser(tabId, permissions, isAdmin) {
   if (tabId === ADMIN_DASHBOARD_TAB.id) return isAdmin ? tabId : "home";
   if (tabId === NOTIFICATIONS_DASHBOARD_TAB.id) return tabId;
+  if (tabId === "printing_department") {
+    if (isAdmin || viewerCanAccessDashboardTab(permissions, "printing_department")) {
+      return "printing";
+    }
+    return firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, permissions, isAdmin) ?? "home";
+  }
   if (isAdmin || viewerCanAccessDashboardTab(permissions, tabId)) return tabId;
   const fallback = firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, permissions, isAdmin);
   return fallback ?? "home";
@@ -771,6 +737,8 @@ function App() {
   const [designFiles, setDesignFiles] = useState([]);
   const [paymentScreenshotFiles, setPaymentScreenshotFiles] = useState([]);
   const [customerAssetFiles, setCustomerAssetFiles] = useState([]);
+  const [stickerOrderForm, setStickerOrderForm] = useState(emptyStickerOrderForm);
+  const [savingStickerOrder, setSavingStickerOrder] = useState(false);
   const [uploadingPaymentProofOrderId, setUploadingPaymentProofOrderId] = useState(null);
   const [owners, setOwners] = useState([]);
   const [coordinators, setCoordinators] = useState([]);
@@ -792,7 +760,7 @@ function App() {
   const [dateTo, setDateTo] = useState("");
   /** none = server order (created_at desc); asc/desc = coordinator name */
   const [orderSortCoordinator, setOrderSortCoordinator] = useState("none");
-  const [ordersTab, setOrdersTab] = useState("active");
+  const [ordersTab, setOrdersTab] = useState(readStoredOrdersTab);
   const [ordersSearchQuery, setOrdersSearchQuery] = useState("");
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [globalSearchOutwardChallans, setGlobalSearchOutwardChallans] = useState([]);
@@ -879,6 +847,14 @@ function App() {
   }, [dashboardTab]);
 
   useEffect(() => {
+    try {
+      sessionStorage.setItem(PRINTING_ORDERS_TAB_STORAGE_KEY, ordersTab);
+    } catch {
+      /* ignore */
+    }
+  }, [ordersTab]);
+
+  useEffect(() => {
     if (!mobileNavOpen) return undefined;
     function onKeyDown(event) {
       if (event.key === "Escape") setMobileNavOpen(false);
@@ -898,7 +874,7 @@ function App() {
       const { data, error } = await supabase
         .from("orders")
         .select(
-          "id, order_id, order_date, due_date, owner_name, customer_name, coordinator_name, sales_incharge_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost, size_type, rate_per_piece, brand, fabric_type, branding, branding_type, gsm, atta"
+          "id, order_id, order_kind, order_date, due_date, owner_name, customer_name, coordinator_name, sales_incharge_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost, size_type, rate_per_piece, brand, fabric_type, branding, branding_type, gsm, atta"
         )
         .order("created_at", { ascending: false });
 
@@ -1472,6 +1448,20 @@ function App() {
     if (resolved !== dashboardTab) setDashboardTab(resolved);
   }, [session?.user?.id, profile?.role, profileLoading, viewerPermissions, dashboardTab]);
 
+  useEffect(() => {
+    if (!session?.user?.id || profileLoading) return;
+    const role = (profile?.role ?? "").trim().toLowerCase();
+    const isAdminRole = role === "admin";
+    const perms = viewerPermissions[session.user.id] ?? {};
+    if (
+      ordersTab === "print_queue" &&
+      !isAdminRole &&
+      !viewerCanAccessDashboardTab(perms, "printing_department")
+    ) {
+      setOrdersTab("active");
+    }
+  }, [session?.user?.id, profile?.role, profileLoading, viewerPermissions, ordersTab]);
+
   async function handleSignIn(e) {
     e.preventDefault();
     setAuthLoading(true);
@@ -1525,6 +1515,8 @@ function App() {
     setShowCreateForm(false);
     setCreateFormMode("printing");
     setOrderForm(emptyOrder);
+    setStickerOrderForm(emptyStickerOrderForm());
+    setSavingStickerOrder(false);
     setJobSheetForm(emptyJobSheetForm());
     setSavingJobSheet(false);
     setOrderIdDraft("");
@@ -1542,24 +1534,6 @@ function App() {
 
   function removeCustomerAssetFile(index) {
     setCustomerAssetFiles((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function togglePaletteColor(hex) {
-    const key = hex.toLowerCase();
-    setOrderForm((prev) => {
-      const exists = prev.colors.some((c) => normalizeColorKey(c) === key);
-      if (exists) {
-        return { ...prev, colors: prev.colors.filter((c) => normalizeColorKey(c) !== key) };
-      }
-      return { ...prev, colors: [...prev.colors, hex] };
-    });
-  }
-
-  function handleRemoveColor(color) {
-    setOrderForm((prev) => ({
-      ...prev,
-      colors: prev.colors.filter((item) => item !== color)
-    }));
   }
 
   async function handleCreateOrder(e) {
@@ -1740,6 +1714,110 @@ function App() {
     alert("Job card has been saved successfully.");
   }
 
+  async function handleCreateStickerOrder(e) {
+    e.preventDefault();
+    const customer = String(stickerOrderForm.customer_name ?? "").trim();
+    if (!customer) {
+      alert("Please enter customer name.");
+      return;
+    }
+    if (!stickerOrderForm.due_date) {
+      alert("Please set the delivery date.");
+      return;
+    }
+    if (customerAssetFiles.length === 0) {
+      alert("Please upload at least one asset.");
+      return;
+    }
+    for (const file of customerAssetFiles) {
+      if (!isAllowedStickerAsset(file)) {
+        alert(`File type not allowed: ${file.name}. Use PNG, PDF, JPEG, AI, CDR, or PSD.`);
+        return;
+      }
+    }
+
+    const qtyRaw = String(stickerOrderForm.qty ?? "").trim();
+    const qtyParsed = qtyRaw === "" ? 0 : Number.parseInt(qtyRaw, 10);
+    const qty = Number.isFinite(qtyParsed) && qtyParsed >= 0 ? qtyParsed : 0;
+    const sizeText = String(stickerOrderForm.size ?? "").trim();
+    const coordinatorName = profileDisplayName(profile) || "—";
+
+    setSavingStickerOrder(true);
+    try {
+      const payload = {
+        order_date: todayLocalISODate(),
+        order_id: null,
+        order_kind: "sticker",
+        due_date: stickerOrderForm.due_date,
+        owner_name: "",
+        customer_name: customer,
+        coordinator_name: coordinatorName,
+        qty,
+        size_breakdown: {},
+        product_name: sizeText || "Applicable",
+        colors: [],
+        approved_design_url: "[]",
+        approved_design_images: null,
+        printing_mtrs: 0,
+        status: "pending",
+        remarks: null,
+        created_by: session.user.id,
+        is_production_order: false,
+        expected_handover_to_printing: null,
+        payment_method: null,
+        payment_screenshot_url: null,
+        delivery_method: null
+      };
+
+      const { data: insertedOrder, error } = await supabase
+        .from("orders")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      if (customerAssetFiles.length > 0 && insertedOrder?.id) {
+        try {
+          await uploadOrderCustomerAssets(
+            supabase,
+            insertedOrder.id,
+            customerAssetFiles,
+            session.user.id
+          );
+        } catch (assetErr) {
+          alert(
+            `Sticker order saved, but asset upload failed: ${
+              assetErr instanceof Error ? assetErr.message : String(assetErr)
+            }`
+          );
+        }
+      }
+
+      if (insertedOrder?.id) {
+        await insertOrderAssignmentNotification(supabase, {
+          coordinatorName,
+          orderId: insertedOrder.id,
+          orderDisplayId: "Sticker order",
+          assignedByUserId: session.user.id,
+          profileLookup: profileLookupForAssignments
+        });
+      }
+
+      setStickerOrderForm(emptyStickerOrderForm());
+      setCustomerAssetFiles([]);
+      setShowCreateForm(false);
+      setCreateFormMode("printing");
+      setOrdersTab("active");
+      await fetchOrders();
+      alert("Sticker order saved successfully.");
+    } finally {
+      setSavingStickerOrder(false);
+    }
+  }
+
   function blankTemplateDraft() {
     return {
       name: "",
@@ -1773,6 +1851,13 @@ function App() {
     setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
+    setCustomerAssetFiles([]);
+    setShowCreateForm(true);
+  }
+
+  function openCreateStickerOrderForm() {
+    setCreateFormMode("sticker");
+    setStickerOrderForm(emptyStickerOrderForm());
     setCustomerAssetFiles([]);
     setShowCreateForm(true);
   }
@@ -2017,25 +2102,6 @@ function App() {
     setTemplateDraft((prev) => ({
       ...(prev ?? blankTemplateDraft()),
       extraSizes: (prev?.extraSizes ?? []).filter((row) => row.id !== id)
-    }));
-  }
-
-  function toggleTemplatePaletteColor(hex) {
-    const key = hex.toLowerCase();
-    setTemplateDraft((prev) => {
-      const cur = prev?.colors ?? [];
-      const exists = cur.some((c) => normalizeColorKey(c) === key);
-      return {
-        ...(prev ?? blankTemplateDraft()),
-        colors: exists ? cur.filter((c) => normalizeColorKey(c) !== key) : [...cur, hex]
-      };
-    });
-  }
-
-  function removeTemplateColor(color) {
-    setTemplateDraft((prev) => ({
-      ...(prev ?? blankTemplateDraft()),
-      colors: (prev?.colors ?? []).filter((c) => c !== color)
     }));
   }
 
@@ -2869,7 +2935,8 @@ function App() {
   }
 
   function handleNotificationPrintingInventoryOpen() {
-    selectDashboardTab("printing_department");
+    selectDashboardTab("printing");
+    setOrdersTab("print_queue");
     setPendingPrintingSubview("inventory");
   }
 
@@ -2988,6 +3055,7 @@ function App() {
   );
 
   const filteredOrders = useMemo(() => {
+    if (ordersTab === "print_queue") return [];
     return ordersInDateRange.filter((o) =>
       ordersTab === "complete" ? o.is_complete : !o.is_complete
     );
@@ -3404,6 +3472,10 @@ function App() {
     viewerCanEditDashboardTab(currentUserPermissions, "printing");
   const viewerCanEditCurrentTab =
     isAdmin || viewerCanEditDashboardTab(currentUserPermissions, dashboardTab);
+  const canAccessPrintQueue =
+    isAdmin || viewerCanAccessDashboardTab(currentUserPermissions, "printing_department");
+  const canEditPrintQueue =
+    isAdmin || viewerCanEditDashboardTab(currentUserPermissions, "printing_department");
   const viewOrderTabCanEdit =
     isAdmin ||
     (viewOrderFromTab
@@ -3431,7 +3503,7 @@ function App() {
       ? ADMIN_DASHBOARD_TAB.label
       : dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id
         ? NOTIFICATIONS_DASHBOARD_TAB.label
-        : DASHBOARD_SIDEBAR.find((item) => item.id === dashboardTab)?.label ?? "Menu";
+        : dashboardTabLabel(dashboardTab);
 
   function openAdminPanel(view = "list") {
     setMasterListView(view);
@@ -3439,6 +3511,15 @@ function App() {
   }
 
   function selectDashboardTab(tabId) {
+    if (tabId === "printing_department") {
+      setDashboardTab("printing");
+      setOrdersTab("print_queue");
+      setMobileNavOpen(false);
+      return;
+    }
+    if (tabId === "printing" && dashboardTab !== "printing") {
+      setOrdersTab("active");
+    }
     setDashboardTab(tabId);
     setMobileNavOpen(false);
   }
@@ -3451,7 +3532,12 @@ function App() {
 
   function handleGlobalSearchSelect(item) {
     if (!item?.tabId) return;
-    selectDashboardTab(item.tabId);
+    if (item.tabId === "printing_department") {
+      setDashboardTab("printing");
+      setOrdersTab("print_queue");
+    } else {
+      selectDashboardTab(item.tabId);
+    }
     if (item.dispatchSubview) {
       setPendingDispatchSubview(item.dispatchSubview);
     }
@@ -4229,28 +4315,11 @@ function App() {
             </section>
           )}
 
-          {dashboardTab === "printing_department" && (
-            <section className="panel table-panel dashboard-card dashboard-card--flat">
-              <PrintingDepartmentPanel
-                orders={orders}
-                loadingOrders={loadingOrders}
-                onViewOrder={openViewOrder}
-                renderStageIcon={renderStageIcon}
-                sessionUserId={session?.user?.id}
-                canEdit={viewerCanEditCurrentTab}
-                isAdmin={isAdmin}
-                teamProfiles={teamProfiles}
-                initialSubview={pendingPrintingSubview}
-                onNavigateConsumed={() => setPendingPrintingSubview(null)}
-              />
-            </section>
-          )}
-
           {dashboardTab === "printing" && (
-      <section className="panel table-panel dashboard-card">
+      <section className={`panel table-panel dashboard-card${ordersTab === "print_queue" ? " dashboard-card--flat" : ""}`}>
         <>
         <div className="table-filters">
-          <div className="orders-tabs" role="tablist" aria-label="Order list view">
+          <div className="orders-tabs" role="tablist" aria-label="Printing orders views">
             <button
               type="button"
               role="tab"
@@ -4269,7 +4338,19 @@ function App() {
             >
               Complete orders
             </button>
+            {canAccessPrintQueue ? (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={ordersTab === "print_queue"}
+                className={ordersTab === "print_queue" ? "orders-tab is-active" : "orders-tab"}
+                onClick={() => setOrdersTab("print_queue")}
+              >
+                {PRINTING_QUEUE_SUBTAB.label}
+              </button>
+            ) : null}
           </div>
+          {ordersTab !== "print_queue" ? (
           <>
               <label>
                 From
@@ -4323,8 +4404,7 @@ function App() {
                 pageSize={printingPageSize}
                 onPageSizeChange={setPrintingPageSize}
               />
-          </>
-          {session && (
+              {session ? (
             <div className="create-order-row create-order-row--in-card create-order-row--right">
               <button type="button" className="btn-mockup" onClick={() => setShowMockupStudio(true)}>
                 Create Mockup
@@ -4340,9 +4420,18 @@ function App() {
                     Repeat Order
                   </button>
                   {!showCreateForm && (
-                    <button type="button" onClick={openCreateOrderForm}>
-                      Create New Order
-                    </button>
+                    <>
+                      <button type="button" onClick={openCreateOrderForm}>
+                        Create New Order
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-sticker-order"
+                        onClick={openCreateStickerOrderForm}
+                      >
+                        Place Sticker Order
+                      </button>
+                    </>
                   )}
                   {isAdmin && (
                     <button type="button" onClick={handleExportCsv}>
@@ -4352,9 +4441,25 @@ function App() {
                 </>
               )}
             </div>
-          )}
+              ) : null}
+          </>
+          ) : null}
         </div>
-        {loadingOrders ? (
+        {ordersTab === "print_queue" ? (
+          <PrintingDepartmentPanel
+            orders={orders}
+            loadingOrders={loadingOrders}
+            onViewOrder={openViewOrder}
+            renderStageIcon={renderStageIcon}
+            sessionUserId={session?.user?.id}
+            canEdit={canEditPrintQueue}
+            isAdmin={isAdmin}
+            teamProfiles={teamProfiles}
+            initialSubview={pendingPrintingSubview}
+            onNavigateConsumed={() => setPendingPrintingSubview(null)}
+            embedded
+          />
+        ) : loadingOrders ? (
           <p>Loading orders...</p>
         ) : (
           <>
@@ -4401,7 +4506,11 @@ function App() {
                       </button>
                     </td>
                     <td className="orders-compact-id">
-                      <OrderIdBadges orderId={order.order_id} />
+                      {isStickerOrder(order) ? (
+                        <StickerOrderIdBadge />
+                      ) : (
+                        <OrderIdBadges orderId={order.order_id} />
+                      )}
                       {isDispatchVerificationFailed(order) ? (
                         <span className="dispatch-failed-badge">FAIL</span>
                       ) : null}
@@ -4410,19 +4519,25 @@ function App() {
                       {order.customer_name?.trim() ? order.customer_name : "—"}
                     </td>
                     <td className="orders-compact-product">
-                      {order.product_name?.trim() ? order.product_name : "—"}
+                      {isStickerOrder(order)
+                        ? formatStickerSizeDisplay(order.product_name)
+                        : order.product_name?.trim()
+                          ? order.product_name
+                          : "—"}
                     </td>
                     <td>
                       <span
                         className={`status-pill status-pill--compact status-${order.status ?? "new"}`}
                       >
-                        {renderStageIcon(order.status, STAGE_LABEL[order.status])}{" "}
-                        {STAGE_LABEL[order.status] ?? order.status ?? "—"}
+                        {renderStageIcon(order.status, stageLabelForOrder(order, order.status))}{" "}
+                        {stageLabelForOrder(order, order.status)}
                       </span>
                     </td>
                     <td>{order.coordinator_name || "—"}</td>
                     <td>{formatDeliveryDate(order.due_date)}</td>
-                    <td>{order.qty}</td>
+                    <td>
+                      {isStickerOrder(order) ? formatStickerQtyDisplay(order.qty) : order.qty}
+                    </td>
                   </tr>
                 ))}
                 {printingTotalOrders === 0 && (
@@ -5483,76 +5598,15 @@ function App() {
                       </span>
                     </button>
                     {templateColorPickerOpen ? (
-                      <div
-                        id="template-color-picker-popover"
-                        className="color-picker-popover"
-                        role="dialog"
-                        aria-label="Choose colors"
-                      >
-                        <div className="color-palette" role="group" aria-label="Color swatches">
-                          {ORDER_COLOR_PALETTE.map((hex, idx) => {
-                            const selected = (templateDraft.colors ?? []).some(
-                              (c) => normalizeColorKey(c) === hex
-                            );
-                            return (
-                              <button
-                                key={`tpl-swatch-${idx}`}
-                                type="button"
-                                className={`color-palette-swatch ${selected ? "is-selected" : ""}`}
-                                style={{ backgroundColor: hex, backgroundImage: "none" }}
-                                aria-label={selected ? `${hex}, selected` : hex}
-                                aria-pressed={selected}
-                                onClick={() => toggleTemplatePaletteColor(hex)}
-                              >
-                                {selected ? (
-                                  <span className="color-palette-check" aria-hidden>
-                                    ✓
-                                  </span>
-                                ) : null}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {(templateDraft.colors ?? []).length > 0 ? (
-                          <div
-                            className="color-chips color-chips--in-panel"
-                            aria-label="Selected colors"
-                          >
-                            {templateDraft.colors.map((color, i) => (
-                              <span
-                                key={`${color}-${i}`}
-                                className="color-chip color-chip--picked"
-                              >
-                                {isCssColorString(color) ? (
-                                  <span
-                                    className="color-chip-swatch"
-                                    style={{ backgroundColor: color, backgroundImage: "none" }}
-                                    aria-hidden
-                                  />
-                                ) : null}
-                                <span className="color-chip-code">{color}</span>
-                                <button
-                                  type="button"
-                                  className="color-chip-remove"
-                                  onClick={() => removeTemplateColor(color)}
-                                  aria-label={`Remove ${color}`}
-                                >
-                                  ×
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
-                        <div className="color-picker-popover__footer">
-                          <button
-                            type="button"
-                            className="color-picker-done-btn"
-                            onClick={() => setTemplateColorPickerOpen(false)}
-                          >
-                            Done
-                          </button>
-                        </div>
-                      </div>
+                      <MacStyleColorPicker
+                        popoverId="template-color-picker-popover"
+                        open={templateColorPickerOpen}
+                        colors={templateDraft.colors ?? []}
+                        onChange={(nextColors) =>
+                          updateTemplateDraft({ colors: nextColors })
+                        }
+                        onClose={() => setTemplateColorPickerOpen(false)}
+                      />
                     ) : null}
                   </div>
                   <label>
@@ -5793,9 +5847,13 @@ function App() {
               <h2 id="create-order-modal-title">
                 {createFormMode === "job_sheet"
                   ? "Create Job sheet"
-                  : isAdmin
-                    ? "Create New Order (Master Admin)"
-                    : "Create New Order"}
+                  : createFormMode === "sticker"
+                    ? isAdmin
+                      ? "Place Sticker Order (Master Admin)"
+                      : "Place Sticker Order"
+                    : isAdmin
+                      ? "Create New Order (Master Admin)"
+                      : "Create New Order"}
               </h2>
               <button
                 type="button"
@@ -5814,6 +5872,18 @@ function App() {
                   salesIncharges={salesIncharges}
                   saving={savingJobSheet}
                   onSubmit={handleCreateJobSheet}
+                  onCancel={closeCreateOrderForm}
+                />
+              ) : createFormMode === "sticker" ? (
+                <CreateStickerOrderForm
+                  form={stickerOrderForm}
+                  onChange={setStickerOrderForm}
+                  orderDate={todayLocalISODate()}
+                  customerAssetFiles={customerAssetFiles}
+                  onCustomerAssetsSelected={onCustomerAssetsSelected}
+                  removeCustomerAssetFile={removeCustomerAssetFile}
+                  saving={savingStickerOrder}
+                  onSubmit={handleCreateStickerOrder}
                   onCancel={closeCreateOrderForm}
                 />
               ) : (
@@ -5940,29 +6010,6 @@ function App() {
             <div className="order-form-cell order-form-span-3 order-form-production-block">
               <div className="order-form-production-row">
                 <div className="order-form-production-left">
-                  <span className="order-form-label" id="create-order-kind-legend">
-                    Order type
-                  </span>
-                  <div className="order-form-radio-row" role="group" aria-labelledby="create-order-kind-legend">
-                    <label className="order-form-radio-label">
-                      <input
-                        type="radio"
-                        name="order_kind"
-                        checked={(orderForm.order_kind ?? "printing") === "printing"}
-                        onChange={() => setOrderForm((prev) => ({ ...prev, order_kind: "printing" }))}
-                      />
-                      Printing order
-                    </label>
-                    <label className="order-form-radio-label">
-                      <input
-                        type="radio"
-                        name="order_kind"
-                        checked={(orderForm.order_kind ?? "printing") === "regular_stock"}
-                        onChange={() => setOrderForm((prev) => ({ ...prev, order_kind: "regular_stock" }))}
-                      />
-                      Regular stock
-                    </label>
-                  </div>
                   <span className="order-form-label" id="create-production-legend">
                     Production order
                   </span>
@@ -6137,58 +6184,15 @@ function App() {
                   </span>
                 </button>
                 {colorPickerOpen ? (
-                  <div id="color-picker-popover" className="color-picker-popover" role="dialog" aria-label="Choose colors">
-                    <div className="color-palette" role="group" aria-label="Color swatches">
-                      {ORDER_COLOR_PALETTE.map((hex, swatchIdx) => {
-                        const selected = orderForm.colors.some((c) => normalizeColorKey(c) === hex);
-                        return (
-                          <button
-                            key={`swatch-${swatchIdx}`}
-                            type="button"
-                            className={`color-palette-swatch ${selected ? "is-selected" : ""}`}
-                            style={{ backgroundColor: hex, backgroundImage: "none" }}
-                            aria-label={selected ? `${hex}, selected` : hex}
-                            aria-pressed={selected}
-                            onClick={() => togglePaletteColor(hex)}
-                          >
-                            {selected ? (
-                              <span className="color-palette-check" aria-hidden>
-                                ✓
-                              </span>
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {orderForm.colors.length > 0 ? (
-                      <div className="color-chips color-chips--in-panel" aria-label="Selected colors">
-                        {orderForm.colors.map((color, i) => (
-                          <span key={`${color}-${i}`} className="color-chip color-chip--picked">
-                            {isCssColorString(color) ? (
-                              <span
-                                className="color-chip-swatch"
-                                style={{ backgroundColor: color, backgroundImage: "none" }}
-                                aria-hidden
-                              />
-                            ) : null}
-                            <span className="color-chip-code">{color}</span>
-                            <button
-                              type="button"
-                              className="color-chip-remove"
-                              onClick={() => handleRemoveColor(color)}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                    <div className="color-picker-popover__footer">
-                      <button type="button" className="color-picker-done-btn" onClick={() => setColorPickerOpen(false)}>
-                        Done
-                      </button>
-                    </div>
-                  </div>
+                  <MacStyleColorPicker
+                    popoverId="color-picker-popover"
+                    open={colorPickerOpen}
+                    colors={orderForm.colors}
+                    onChange={(nextColors) =>
+                      setOrderForm((prev) => ({ ...prev, colors: nextColors }))
+                    }
+                    onClose={() => setColorPickerOpen(false)}
+                  />
                 ) : null}
               </div>
             </div>

@@ -147,7 +147,7 @@ export default function DealerCardsPanel() {
         </div>
         <div className="dealer-cards-filters">
           <label className="coordinator-report-field dealer-progress-year">
-            <span className="coordinator-report-label">Year</span>
+            <span className="coordinator-report-label">Fiscal year</span>
             <input
               type="number"
               min={2020}

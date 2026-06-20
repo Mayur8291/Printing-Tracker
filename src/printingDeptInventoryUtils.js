@@ -1,11 +1,11 @@
 import { supabase } from "./supabaseClient";
 
 export const PRINTING_DEPT_MATERIALS = [
-  { key: "ink_cyan", label: "Cyan (C)", column: "ink_cyan", unit: "L", color: "#0891b2", group: "Ink" },
-  { key: "ink_magenta", label: "Magenta (M)", column: "ink_magenta", unit: "L", color: "#db2777", group: "Ink" },
-  { key: "ink_yellow", label: "Yellow (Y)", column: "ink_yellow", unit: "L", color: "#ca8a04", group: "Ink" },
-  { key: "ink_black", label: "Black (K)", column: "ink_black", unit: "L", color: "#1e293b", group: "Ink" },
-  { key: "ink_white", label: "White (W)", column: "ink_white", unit: "L", color: "#e2e8f0", group: "Ink" },
+  { key: "ink_cyan", label: "Cyan (C)", column: "ink_cyan", unit: "", color: "#0891b2", group: "Ink" },
+  { key: "ink_magenta", label: "Magenta (M)", column: "ink_magenta", unit: "", color: "#db2777", group: "Ink" },
+  { key: "ink_yellow", label: "Yellow (Y)", column: "ink_yellow", unit: "", color: "#ca8a04", group: "Ink" },
+  { key: "ink_black", label: "Black (K)", column: "ink_black", unit: "", color: "#1e293b", group: "Ink" },
+  { key: "ink_white", label: "White (W)", column: "ink_white", unit: "", color: "#e2e8f0", group: "Ink" },
   { key: "roll_count", label: "Rolls", column: "roll_count", unit: "rolls", color: "#6366f1", group: "Materials" },
   { key: "powder_kg", label: "Powder", column: "powder_kg", unit: "kg", color: "#a16207", group: "Materials" },
   {
@@ -36,6 +36,33 @@ export function materialLabel(materialKey) {
 
 export function materialUnit(materialKey) {
   return MATERIAL_BY_KEY[materialKey]?.unit ?? "";
+}
+
+export function formatQtyWithUnit(value, unit, maxFractionDigits = 2) {
+  const qty = Number(value).toLocaleString(undefined, { maximumFractionDigits: maxFractionDigits });
+  const u = String(unit ?? "").trim();
+  return u ? `${qty} ${u}` : qty;
+}
+
+export async function refillPrintingDeptMaterialsBulk({ entries, userId, note = "" }) {
+  const valid = (entries ?? []).filter((entry) => {
+    const amount = Number(entry.quantity);
+    return entry.materialKey && Number.isFinite(amount) && amount > 0;
+  });
+  if (!valid.length) {
+    throw new Error("Enter at least one amount to refill.");
+  }
+  const results = [];
+  for (const entry of valid) {
+    const result = await refillPrintingDeptMaterial({
+      materialKey: entry.materialKey,
+      quantityAdded: entry.quantity,
+      userId,
+      note
+    });
+    results.push(result);
+  }
+  return results;
 }
 
 export function inventoryItemsFromState(state) {
@@ -250,7 +277,10 @@ async function recordPrintingDeptMovement({ materialKey, quantity, userId, note 
   const current = Number(state[material.column] ?? 0);
   const after = movementType === "refill" ? current + amount : current - amount;
   if (after < 0) {
-    throw new Error(`Not enough ${material.label} in stock. Available: ${current} ${material.unit}.`);
+    const stockLabel = material.unit
+      ? `${current} ${material.unit}`
+      : String(current);
+    throw new Error(`Not enough ${material.label} in stock. Available: ${stockLabel}.`);
   }
 
   const { error: updateErr } = await supabase

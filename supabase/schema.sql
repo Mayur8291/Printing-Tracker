@@ -1271,11 +1271,11 @@ alter table public.order_templates
 -- Order kind: printing vs regular stock (see migration 20260605120000_add_order_kind.sql).
 alter table public.orders
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker'));
 
 alter table public.order_templates
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker'));
 
 -- Shared resource links (see migration 20260604120000_add_shared_resource_links.sql).
 create table if not exists public.shared_resource_links (

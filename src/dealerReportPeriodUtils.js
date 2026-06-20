@@ -2,8 +2,7 @@ import {
   computeDealerColumnTotals,
   formatDateRangeLabel,
   normalizeDateRange,
-  todayLocalISODate,
-  toISODateLocal
+  todayLocalISODate
 } from "./dealerReportUtils";
 
 export const DEALER_PROGRESS_VIEWS = [
@@ -13,30 +12,49 @@ export const DEALER_PROGRESS_VIEWS = [
 ];
 
 const QUARTER_NAMES = ["Q1", "Q2", "Q3", "Q4"];
+const QUARTER_MONTH_LABELS = ["Apr–Jun", "Jul–Sep", "Oct–Dec", "Jan–Mar"];
+
+/** Fiscal year starts in April. Q4 is Jan–Mar of the following calendar year. */
+export function fiscalYearFromISODate(isoDate) {
+  const y = Number(String(isoDate ?? "").slice(0, 4));
+  const m = Number(String(isoDate ?? "").slice(5, 7));
+  if (!Number.isFinite(y) || y < 2000) return new Date().getFullYear();
+  if (!Number.isFinite(m) || m < 1 || m > 12) return y;
+  return m >= 4 ? y : y - 1;
+}
 
 export function yearFromISODate(isoDate) {
-  const y = Number(String(isoDate ?? "").slice(0, 4));
-  return Number.isFinite(y) && y > 2000 ? y : new Date().getFullYear();
+  return fiscalYearFromISODate(isoDate);
 }
 
 export function quarterFromISODate(isoDate) {
   const m = Number(String(isoDate ?? "").slice(5, 7));
   if (!Number.isFinite(m) || m < 1 || m > 12) return 1;
-  return Math.ceil(m / 3);
+  if (m >= 4 && m <= 6) return 1;
+  if (m >= 7 && m <= 9) return 2;
+  if (m >= 10 && m <= 12) return 3;
+  return 4;
 }
 
-export function quarterRange(year, quarter) {
+export function quarterRange(fiscalYear, quarter) {
   const q = Math.min(4, Math.max(1, Number(quarter) || 1));
-  const y = Number(year) || new Date().getFullYear();
-  const startMonth = (q - 1) * 3;
-  const start = new Date(y, startMonth, 1);
-  const end = new Date(y, startMonth + 3, 0);
-  return { from: toISODateLocal(start), to: toISODateLocal(end), quarter: q, year: y };
+  const fy = Number(fiscalYear) || fiscalYearFromISODate(todayLocalISODate());
+  if (q === 1) {
+    return { from: `${fy}-04-01`, to: `${fy}-06-30`, quarter: q, year: fy };
+  }
+  if (q === 2) {
+    return { from: `${fy}-07-01`, to: `${fy}-09-30`, quarter: q, year: fy };
+  }
+  if (q === 3) {
+    return { from: `${fy}-10-01`, to: `${fy}-12-31`, quarter: q, year: fy };
+  }
+  const nextYear = fy + 1;
+  return { from: `${nextYear}-01-01`, to: `${nextYear}-03-31`, quarter: q, year: fy };
 }
 
-export function yearRange(year) {
-  const y = Number(year) || new Date().getFullYear();
-  return { from: `${y}-01-01`, to: `${y}-12-31`, year: y };
+export function yearRange(fiscalYear) {
+  const fy = Number(fiscalYear) || fiscalYearFromISODate(todayLocalISODate());
+  return { from: `${fy}-04-01`, to: `${fy + 1}-03-31`, year: fy };
 }
 
 export function capRangeToToday(fromISO, toISO) {
@@ -46,11 +64,13 @@ export function capRangeToToday(fromISO, toISO) {
 }
 
 export function formatQuarterLabel(year, quarter) {
-  return `${QUARTER_NAMES[(quarter || 1) - 1]} ${year}`;
+  const q = Math.min(4, Math.max(1, Number(quarter) || 1));
+  return `${QUARTER_NAMES[q - 1]} ${year} (${QUARTER_MONTH_LABELS[q - 1]})`;
 }
 
 export function formatYearLabel(year) {
-  return String(year ?? new Date().getFullYear());
+  const fy = Number(year) || fiscalYearFromISODate(todayLocalISODate());
+  return `FY ${fy} (Apr ${fy} – Mar ${fy + 1})`;
 }
 
 export function periodTargetFromAnnual(annualTarget, view) {
@@ -135,14 +155,14 @@ export function progressViewMeta(view) {
     return {
       title: "Quarterly monitoring",
       targetColumn: "Quarterly target",
-      targetHint: "Annual target ÷ 4",
-      achievedHint: "Sum of daily entries in selected quarter"
+      targetHint: "Annual target ÷ 4 · Apr–Jun, Jul–Sep, Oct–Dec, Jan–Mar",
+      achievedHint: "Sum of daily entries in selected fiscal quarter"
     };
   }
   return {
     title: "Annual progress (YTD)",
     targetColumn: "Annual target",
-    targetHint: "Full-year target",
-    achievedHint: "Sum of daily entries year-to-date"
+    targetHint: "Full fiscal-year target (Apr–Mar)",
+    achievedHint: "Sum of daily entries in fiscal year to date"
   };
 }

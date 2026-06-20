@@ -1,0 +1,189 @@
+.mac-color-picker {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(340px, calc(100vw - 24px));
+  padding: 10px 12px 12px;
+  border-radius: 14px;
+  background: #3a3a3c;
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: #f5f5f7;
+  box-sizing: border-box;
+}
+
+/* Reset global blue `button` styles from styles.css */
+.mac-color-picker button {
+  background-image: none !important;
+  box-shadow: none;
+  font-family: inherit;
+}
+
+.mac-color-picker__pointer {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 14px;
+  height: 14px;
+  background: #3a3a3c;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mac-color-picker__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  margin-bottom: 10px;
+}
+
+.mac-color-picker__title {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.mac-color-picker__header .mac-color-picker__icon-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mac-color-picker__icon-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #d1d1d6;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.mac-color-picker__icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff;
+}
+
+.mac-color-picker__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.mac-color-picker__grid {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+}
+
+.mac-color-picker__swatch {
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+  min-height: 22px;
+  aspect-ratio: 1;
+  border: none !important;
+  border-radius: 3px;
+  padding: 0 !important;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  background-image: none !important;
+  color: transparent;
+}
+
+.mac-color-picker__swatch:hover {
+  transform: scale(1.06);
+  z-index: 1;
+}
+
+.mac-color-picker__swatch.is-selected {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 0 0 2px #fff;
+}
+
+.mac-color-picker__footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mac-color-picker__preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.mac-color-picker__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mac-color-picker__preset {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  background-image: none !important;
+}
+
+.mac-color-picker__preset.is-selected-order {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 0 0 2px #fff;
+}
+
+.mac-color-picker__preset--add {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #d1d1d6;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mac-color-picker__preset--add:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+.order-form-colors-block.colors-field {
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .mac-color-picker {
+    left: 0;
+    transform: none;
+    width: 100%;
+  }
+
+  .mac-color-picker__pointer {
+    left: 24px;
+    transform: rotate(45deg);
+  }
+}

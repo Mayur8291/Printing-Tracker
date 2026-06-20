@@ -641,7 +641,7 @@ export default function DealerReportPanel({ canEdit = false, isAdmin = false, se
                   </div>
                 </div>
                 <label className="coordinator-report-field dealer-progress-year">
-                  <span className="coordinator-report-label">Year</span>
+                  <span className="coordinator-report-label">Fiscal year</span>
                   <input
                     type="number"
                     min={2020}

@@ -67,6 +67,25 @@ export function viewerCanEditDashboardTab(permissions, tabId) {
   return editable.includes(tabId);
 }
 
+export function prepareVisibleMainSidebarItems(items, permissions, isAdmin) {
+  return items
+    .map((item) => {
+      const visibleChildren = (item.children ?? []).filter(
+        (child) => isAdmin || viewerCanAccessDashboardTab(permissions, child.id)
+      );
+      const showParent =
+        isAdmin ||
+        viewerCanAccessDashboardTab(permissions, item.id) ||
+        visibleChildren.length > 0;
+      if (!showParent) return null;
+      return {
+        ...item,
+        children: visibleChildren.length ? visibleChildren : undefined
+      };
+    })
+    .filter(Boolean);
+}
+
 export function filterSidebarItemsForViewer(items, permissions, isAdmin) {
   if (isAdmin) return items;
   return items.filter((item) => viewerCanAccessDashboardTab(permissions, item.id));
@@ -74,5 +93,8 @@ export function filterSidebarItemsForViewer(items, permissions, isAdmin) {
 
 export function firstAllowedDashboardTabId(sidebarItems, permissions, isAdmin) {
   const visible = filterSidebarItemsForViewer(sidebarItems, permissions, isAdmin);
-  return visible[0]?.id ?? null;
+  const navigable = visible.filter((item) => item.id !== "printing_department");
+  if (navigable.length) return navigable[0].id;
+  if (visible.some((item) => item.id === "printing_department")) return "printing";
+  return null;
 }

@@ -12,10 +12,12 @@ import {
   issuePrintingDeptMaterial,
   materialLabel,
   materialUnit,
+  formatQtyWithUnit,
   MATERIAL_SHORT_CODE,
   notifyPrintingLowStockIfNeeded,
   PRINTING_UTILIZATION_MATERIAL_KEYS,
-  refillPrintingDeptMaterial
+  refillPrintingDeptMaterial,
+  refillPrintingDeptMaterialsBulk
 } from "./printingDeptInventoryUtils";
 import "./inventory/inventory.css";
 
@@ -113,7 +115,7 @@ export default function PrintingDeptInventoryPanel({
     }
   }
 
-  async function handleMovementSubmit({ materialKey, quantity, note, mode }) {
+  async function handleMovementSubmit({ materialKey, quantity, note, mode, bulkRefills }) {
     if (!canEdit || !sessionUserId) {
       throw new Error("You do not have permission to update printing inventory.");
     }
@@ -130,6 +132,20 @@ export default function PrintingDeptInventoryPanel({
         newStock: result.quantityAfter,
         userId: sessionUserId
       });
+    } else if (bulkRefills?.length) {
+      const results = await refillPrintingDeptMaterialsBulk({
+        entries: bulkRefills,
+        userId: sessionUserId,
+        note
+      });
+      for (const result of results) {
+        await notifyPrintingLowStockIfNeeded({
+          materialKey: result.materialKey,
+          previousStock: result.previousStock,
+          newStock: result.quantityAfter,
+          userId: sessionUserId
+        });
+      }
     } else {
       const result = await refillPrintingDeptMaterial({
         materialKey,
@@ -207,7 +223,8 @@ export default function PrintingDeptInventoryPanel({
                   <div className="printing-dept-ink-swatch" style={{ background: item.color }} aria-hidden />
                   <p className="kpi-label">{item.label}</p>
                   <p className="kpi-value">
-                    {formatQty(item.quantity)} <span className="printing-dept-unit">{item.unit}</span>
+                    {formatQty(item.quantity)}
+                    {item.unit ? <span className="printing-dept-unit">{item.unit}</span> : null}
                   </p>
                   {lowStock ? <p className="printing-dept-low-badge">Low stock</p> : null}
                   {renderStockActions(item)}
@@ -223,7 +240,8 @@ export default function PrintingDeptInventoryPanel({
                 <div className={`kpi${lowStock ? " printing-dept-kpi--low" : ""}`} key={item.key}>
                   <p className="kpi-label">{item.label}</p>
                   <p className="kpi-value">
-                    {formatQty(item.quantity)} <span className="printing-dept-unit">{item.unit}</span>
+                    {formatQty(item.quantity)}
+                    {item.unit ? <span className="printing-dept-unit">{item.unit}</span> : null}
                   </p>
                   {lowStock ? <p className="printing-dept-low-badge">Low stock</p> : null}
                   {renderStockActions(item, PRINTING_UTILIZATION_MATERIAL_KEYS.has(item.key))}
@@ -312,10 +330,10 @@ export default function PrintingDeptInventoryPanel({
                                         <td>{shortCode}</td>
                                         <td className={`right mono ${isIssue ? "printing-dept-qty-down" : "printing-dept-qty-up"}`}>
                                           {isIssue ? "−" : "+"}
-                                          {formatQty(row.quantity_added)} {materialUnit(row.material_key)}
+                                          {formatQtyWithUnit(row.quantity_added, materialUnit(row.material_key))}
                                         </td>
                                         <td className="right mono">
-                                          {formatQty(row.quantity_after)} {materialUnit(row.material_key)}
+                                          {formatQtyWithUnit(row.quantity_after, materialUnit(row.material_key))}
                                         </td>
                                         <td>{performerName(row.refilled_by)}</td>
                                         <td>{row.note?.trim() ? row.note : "—"}</td>

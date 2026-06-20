@@ -29,6 +29,15 @@ import {
   fetchOrderCustomerAssets,
   formatCustomerAssetExpiry
 } from "./orderCustomerAssets";
+import StickerOrderIdBadge from "./StickerOrderIdBadge";
+import {
+  formatStickerQtyDisplay,
+  formatStickerSizeDisplay,
+  isStickerOrder,
+  STICKER_STAGES,
+  STICKER_STAGE_LABEL,
+  stageLabelForOrder
+} from "./stickerOrderUtils";
 
 function DetailField({ label, children, wide }) {
   return (
@@ -126,6 +135,9 @@ export default function OrderDetailPanel({
     canEditPayment && paymentMethodRequiresProof(order.payment_method);
   const adminDraft =
     isAdmin && (adminOrderDrafts?.[order.id] ?? buildAdminOrderDraftFromOrder(order));
+  const sticker = isStickerOrder(order);
+  const statusOptionStages = sticker && !isAdmin ? STICKER_STAGES : FORM_STAGES;
+  const statusDisplayLabel = stageLabelForOrder(order, order.status);
 
   const coordinatorValue = coordinatorUpdates[order.id] ?? order.coordinator_name ?? "";
   const coordinatorSelectOptions = useMemo(
@@ -170,7 +182,15 @@ export default function OrderDetailPanel({
         <div>
           <h3>{order.customer_name}</h3>
           <p className="order-detail-sub">
-            Order {orderIdShort} · Job #{order.id}
+            {sticker ? (
+              <>
+                Sticker order · Job #{order.id}
+              </>
+            ) : (
+              <>
+                Order {orderIdShort} · Job #{order.id}
+              </>
+            )}
           </p>
         </div>
         <button type="button" className="order-detail-close" onClick={onClose} aria-label="Close">
@@ -195,7 +215,9 @@ export default function OrderDetailPanel({
               )}
             </DetailField>
             <DetailField label="Order number">
-              {isAdmin ? (
+              {sticker ? (
+                <StickerOrderIdBadge />
+              ) : isAdmin ? (
                 <input
                   type="text"
                   className="order-detail-control"
@@ -207,6 +229,7 @@ export default function OrderDetailPanel({
                 renderOrderIdBadges(order.order_id)
               )}
             </DetailField>
+            {!sticker ? (
             <DetailField label="Owner">
               {isAdmin ? (
                 <select
@@ -225,6 +248,7 @@ export default function OrderDetailPanel({
                 order.owner_name || "—"
               )}
             </DetailField>
+            ) : null}
             <DetailField label="Customer">
               {isAdmin ? (
                 <input
@@ -291,10 +315,31 @@ export default function OrderDetailPanel({
                     }))
                   }
                 />
+              ) : sticker ? (
+                formatStickerQtyDisplay(order.qty)
               ) : (
                 order.qty
               )}
             </DetailField>
+            {sticker ? (
+              <DetailField label="Size">
+                {isAdmin ? (
+                  <input
+                    type="text"
+                    className="order-detail-control"
+                    value={adminDraft.product_name === "Applicable" ? "" : adminDraft.product_name}
+                    onChange={(e) =>
+                      patchAdminDraft({
+                        product_name: e.target.value.trim() || "Applicable"
+                      })
+                    }
+                  />
+                ) : (
+                  formatStickerSizeDisplay(order.product_name)
+                )}
+              </DetailField>
+            ) : (
+              <>
             <DetailField label="Sizes" wide={isAdmin}>
               {isAdmin ? (
                 <OrderAdminSizeFields draft={adminDraft} onPatch={patchAdminDraft} />
@@ -414,12 +459,16 @@ export default function OrderDetailPanel({
                 deliveryMethodLabel(order.delivery_method)
               )}
             </DetailField>
+              </>
+            )}
           </div>
         </section>
 
-        {customerAssetsLoading || customerAssets.length > 0 ? (
+        {(sticker || customerAssetsLoading || customerAssets.length > 0) ? (
           <section className="order-detail-section order-detail-section--card">
-            <h4 className="order-detail-section-title">Customer assets</h4>
+            <h4 className="order-detail-section-title">
+              {sticker ? "Uploaded assets" : "Customer assets"}
+            </h4>
             {customerAssetsLoading ? (
               <p className="order-detail-muted">Loading files…</p>
             ) : (
@@ -451,6 +500,7 @@ export default function OrderDetailPanel({
           </section>
         ) : null}
 
+        {!sticker ? (
         <section className="order-detail-section order-detail-section--card order-detail-images-section">
           <h4 className="order-detail-section-title">Designs</h4>
           <div className="order-detail-images-row">
@@ -631,10 +681,15 @@ export default function OrderDetailPanel({
             </div>
           </div>
         </section>
+        ) : null}
 
         <section className="order-detail-section order-detail-section--card">
-          <h4 className="order-detail-section-title">Production &amp; printing</h4>
+          <h4 className="order-detail-section-title">
+            {sticker ? "Printing" : "Production & printing"}
+          </h4>
           <div className="order-detail-grid">
+            {!sticker ? (
+              <>
             <DetailField label="Production order">
               {isAdmin ? (
                 <label className="order-detail-checkbox-label">
@@ -671,6 +726,9 @@ export default function OrderDetailPanel({
             ) : (
               <div className="order-detail-field order-detail-field--spacer" aria-hidden />
             )}
+              </>
+            ) : null}
+            {!sticker ? (
             <DetailField label="Received at printing">
               {canCurrentUserEdit("received_at_printing") ? (
                 <input
@@ -692,6 +750,7 @@ export default function OrderDetailPanel({
                 formatReceivedAtDisplay(order.received_at_printing)
               )}
             </DetailField>
+            ) : null}
             <DetailField label="Printing metres">
               {canCurrentUserEdit("printing_mtrs") ? (
                 <input
@@ -711,6 +770,8 @@ export default function OrderDetailPanel({
                 Number(order.printing_mtrs ?? 0).toFixed(2)
               )}
             </DetailField>
+            {!sticker ? (
+              <>
             <DetailField label="Order cost">
               {isAdmin ? (
                 <input
@@ -743,6 +804,8 @@ export default function OrderDetailPanel({
                 "—"
               )}
             </DetailField>
+              </>
+            ) : null}
           </div>
         </section>
 
@@ -750,8 +813,8 @@ export default function OrderDetailPanel({
           <h4 className="order-detail-section-title">Status &amp; remarks</h4>
           <div className="order-detail-status-block">
             <span className={`status-pill status-${order.status}`}>
-              {renderStageIcon(order.status, STAGE_LABEL[order.status])}{" "}
-              {STAGE_LABEL[order.status]}
+              {renderStageIcon(order.status, statusDisplayLabel)}{" "}
+              {statusDisplayLabel}
             </span>
             {canUseOrderControls && canCurrentUserEdit("status") && (
               <select
@@ -761,9 +824,12 @@ export default function OrderDetailPanel({
                   void persistOrderStatus(order, e.target.value);
                 }}
               >
-                {FORM_STAGES.map((stage) => (
+                {statusOptionStages.map((stage) => (
                   <option value={stage} key={stage}>
-                    {STAGE_OPTION_ICON[stage]} {STAGE_LABEL[stage]}
+                    {STAGE_OPTION_ICON[stage]}{" "}
+                    {sticker
+                      ? STICKER_STAGE_LABEL[stage] ?? STAGE_LABEL[stage]
+                      : STAGE_LABEL[stage]}
                   </option>
                 ))}
               </select>
