@@ -52,6 +52,14 @@ if grep -q "migration repair --status reverted" "$log" 2>/dev/null; then
   fi
 fi
 
+if grep -q "Rerun the command with --include-all flag" "$log" 2>/dev/null; then
+  echo "Out-of-order local migrations detected — retrying with --include-all..."
+  if supabase db push --include-all; then
+    echo "Database migrations applied (include-all)."
+    exit 0
+  fi
+fi
+
 echo "supabase db push failed (exit ${status}):"
 cat "$log"
 exit 1

@@ -91,6 +91,7 @@ The release button does **not** upload files from your laptop. It only merges wh
 | GitHub `404` on workflow | Workflow file not on `main` yet |
 | Merge conflict in Actions | Resolve `develop` vs `main` locally, push, retry |
 | `Remote migration versions not found` on db push | Prod has history entries not in repo. Commit placeholder files under `supabase/migrations/20260604112625_remote_sync.sql` (etc.) or let `scripts/supabase-prod-db-push.sh` auto-repair orphans, then re-run promote |
+| `Found local migration files to be inserted before the last migration` on db push | Repo has placeholder/out-of-order migrations (e.g. `20260613075551_remote_sync.sql`) that prod history skipped. `scripts/supabase-prod-db-push.sh` retries with `supabase db push --include-all`; re-run promote after that script is on `main` |
 | `Failed to resolve latest Supabase CLI release` | Workflow pins CLI version in `.github/workflows/promote-to-production.yml` — bump `version:` if needed; do not use `latest` in CI |
 | `pipefail: invalid option name` on db push | `scripts/supabase-prod-db-push.sh` must use Unix (LF) line endings — CRLF breaks bash on GitHub runners |
 | Promote fails at Deploy production site to Netlify | **Old runs:** missing `NETLIFY_PRODUCTION_BUILD_HOOK` or CLI secrets. **Current workflow:** succeeds without Netlify secrets — Netlify auto-builds from `main` push. For deploy *after* DB migrations, add `NETLIFY_PRODUCTION_BUILD_HOOK` in GitHub → Settings → Secrets |
