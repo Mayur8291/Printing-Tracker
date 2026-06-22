@@ -4,6 +4,7 @@
 [build]
   command = "npm ci && npm run build"
   publish = "dist"
+  ignore = "bash scripts/netlify-ignore-build.sh"
 
 [build.environment]
   NODE_VERSION = "20"
