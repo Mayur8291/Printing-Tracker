@@ -86,6 +86,11 @@ import {
 import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
 import { supabase } from "./supabaseClient";
 import {
+  isMissingPostgrestTableError,
+  isSchemaCacheError,
+  waitForSchemaCacheRetry
+} from "./supabaseErrorUtils";
+import {
   buildAdminOrderDraftFromOrder,
   buildAdminOrderFieldsPayload
 } from "./orderAdminEditUtils";
@@ -1186,9 +1191,9 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardTab, viewerProfiles]);
 
-  async function fetchProfile(sessionUser) {
+  async function fetchProfile(sessionUser, attempt = 0) {
     setProfileLoading(true);
-    setProfileError(null);
+    if (attempt === 0) setProfileError(null);
 
     const networkHint =
       "Cannot reach Supabase. Check your internet connection, VPN or firewall, and that VITE_SUPABASE_URL in .env is your project URL (https://….supabase.co). Open that URL in the browser or Supabase dashboard to confirm the project is running.";
@@ -1213,9 +1218,17 @@ function App() {
         .maybeSingle();
 
       if (profErr) {
+        if (isSchemaCacheError(profErr.message) && attempt < 4) {
+          await waitForSchemaCacheRetry(attempt);
+          return fetchProfile(sessionUser, attempt + 1);
+        }
         const msg = profErr.message || "";
         setProfileError(
-          /failed to fetch|network|socket|load failed/i.test(msg) ? networkHint : profErr.message
+          isSchemaCacheError(msg)
+            ? "Database schema is reloading. Wait a few seconds and refresh the page."
+            : /failed to fetch|network|socket|load failed/i.test(msg)
+              ? networkHint
+              : profErr.message
         );
         setProfile(null);
         return;
@@ -1274,9 +1287,11 @@ function App() {
     }
   }
 
-  async function fetchMasters() {
-    setMasterTableMissing(false);
-    setSalesInchargeTableMissing(false);
+  async function fetchMasters(attempt = 0) {
+    if (attempt === 0) {
+      setMasterTableMissing(false);
+      setSalesInchargeTableMissing(false);
+    }
 
     const [
       { data: ownersData, error: ownersError },
@@ -1288,13 +1303,17 @@ function App() {
       supabase.from("sales_incharges").select("id, name").order("name", { ascending: true })
     ]);
 
-    const tableMissing = (msg) =>
-      String(msg ?? "").includes("Could not find the table") ||
-      String(msg ?? "").includes("schema cache");
+    const schemaCacheFailure = [ownersError, coordinatorsError, salesInchargesError].some((err) =>
+      isSchemaCacheError(err?.message)
+    );
+    if (schemaCacheFailure && attempt < 4) {
+      await waitForSchemaCacheRetry(attempt);
+      return fetchMasters(attempt + 1);
+    }
 
     if (ownersError) {
       console.error(ownersError.message);
-      if (tableMissing(ownersError.message)) {
+      if (isMissingPostgrestTableError(ownersError.message)) {
         setMasterTableMissing(true);
       }
     } else {
@@ -1303,7 +1322,7 @@ function App() {
 
     if (coordinatorsError) {
       console.error(coordinatorsError.message);
-      if (tableMissing(coordinatorsError.message)) {
+      if (isMissingPostgrestTableError(coordinatorsError.message)) {
         setMasterTableMissing(true);
       }
     } else {
@@ -1312,7 +1331,7 @@ function App() {
 
     if (salesInchargesError) {
       console.error(salesInchargesError.message);
-      if (tableMissing(salesInchargesError.message)) {
+      if (isMissingPostgrestTableError(salesInchargesError.message)) {
         setSalesInchargeTableMissing(true);
         setSalesIncharges([]);
       }
@@ -2331,7 +2350,7 @@ function App() {
     if (!name) return;
     const { error } = await supabase.from("owners").insert({ name });
     if (error) {
-      if (error.message?.includes("Could not find the table")) {
+      if (error.message?.includes("Could not find the table") && !isSchemaCacheError(error.message)) {
         setMasterTableMissing(true);
         alert("Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first.");
       } else {
@@ -2359,7 +2378,7 @@ function App() {
     if (!name) return;
     const { error } = await supabase.from("coordinators").insert({ name });
     if (error) {
-      if (error.message?.includes("Could not find the table")) {
+      if (error.message?.includes("Could not find the table") && !isSchemaCacheError(error.message)) {
         setMasterTableMissing(true);
         alert("Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first.");
       } else {
@@ -2387,7 +2406,7 @@ function App() {
     if (!name) return;
     const { error } = await supabase.from("sales_incharges").insert({ name });
     if (error) {
-      if (error.message?.includes("Could not find the table")) {
+      if (error.message?.includes("Could not find the table") && !isSchemaCacheError(error.message)) {
         setMasterTableMissing(true);
         alert(
           "Sales incharges table is missing. Run supabase/migrations/20260613120000_add_job_sheet_fields.sql on your project."
