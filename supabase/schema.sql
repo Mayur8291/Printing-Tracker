@@ -816,8 +816,9 @@ as $$
     p.role
   from public.profiles p
   where nullif(trim(p.full_name), '') is not null
+     or nullif(trim(p.email), '') is not null
      or p.role = 'admin'
-  order by lower(coalesce(nullif(trim(p.full_name), ''), 'admin'));
+  order by lower(coalesce(nullif(trim(p.full_name), ''), nullif(trim(p.email), ''), 'user'));
 $$;
 
 revoke all on function public.list_team_chat_directory() from public;

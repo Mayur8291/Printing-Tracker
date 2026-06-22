@@ -18,7 +18,10 @@ function isEmailAlreadyRegistered(message: string): boolean {
     m.includes("already been registered") ||
     m.includes("already registered") ||
     m.includes("user already exists") ||
-    m.includes("email address is already")
+    m.includes("email address is already") ||
+    m.includes("email already") ||
+    m.includes("already in use") ||
+    m.includes("duplicate") && m.includes("email")
   );
 }
 
@@ -252,13 +255,15 @@ serve(async (req) => {
 
       const { data: existingProf } = await adminClient
         .from("profiles")
-        .select("id, role")
+        .select("id, role, is_active")
         .eq("id", newId)
         .maybeSingle();
 
-      if (existingProf?.role === "admin" && role === "viewer") {
+      const existingRole = String(existingProf?.role ?? "").trim().toLowerCase();
+      if (existingRole === "admin" && role === "viewer") {
         throw new Error(
-          "This email is already registered as an admin account. Admin accounts are not listed under viewer users."
+          "This email is already an admin account (not shown in the viewer user list). " +
+            "Remove the email from admin_emails in Supabase if they should be a viewer, or sign in as that admin."
         );
       }
 
@@ -273,6 +278,9 @@ serve(async (req) => {
 
       recovered = !existingProf;
       updated = Boolean(existingProf);
+      if (existingProf && existingProf.is_active === false) {
+        recovered = true;
+      }
     } else {
       newId = created.user.id;
     }

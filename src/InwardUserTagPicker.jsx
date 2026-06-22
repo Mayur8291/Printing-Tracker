@@ -8,8 +8,9 @@ const SUGGESTION_LIMIT = 8;
 function userLabel(profile) {
   const name = profileDisplayName(profile);
   const email = String(profile?.email ?? "").trim();
-  if (name && email && name !== email) return name;
-  return name || email || "User";
+  const inactive = !viewerIsActive(profile) ? " (inactive)" : "";
+  if (name && email && name !== email) return `${name}${inactive}`;
+  return `${name || email || "User"}${inactive}`;
 }
 
 function userSubLabel(profile) {
@@ -50,7 +51,7 @@ export default function InwardUserTagPicker({ selectedIds, onChange, excludeUser
         console.error("Inward tag users:", error.message);
         setUsers([]);
       } else {
-        setUsers((data ?? []).filter((row) => viewerIsActive(row)));
+        setUsers(data ?? []);
       }
       setLoading(false);
     }

@@ -2726,7 +2726,14 @@ function App() {
       resetNewUserForm();
       await fetchViewersAndPermissions();
     } catch (err) {
-      setCreateUserError(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/already|in use|registered/i.test(msg)) {
+        setCreateUserError(
+          `${msg}\n\nIf this user should appear in the viewer list, submit Create user again with the same email and a new password — the server will link the missing profile. Ensure you are on production (not staging).`
+        );
+      } else {
+        setCreateUserError(msg);
+      }
     } finally {
       setCreatingUser(false);
     }
