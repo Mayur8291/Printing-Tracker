@@ -43,8 +43,8 @@ export default function InwardUserTagPicker({ selectedIds, onChange, excludeUser
       setLoading(true);
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, department, job_role, employee_id, is_active, role")
-        .eq("role", "viewer")
+        .select("id, full_name, email, department, job_role, employee_id, is_active, role, status_tones_enabled")
+        .in("role", ["viewer", "admin"])
         .order("full_name", { ascending: true });
       if (cancelled) return;
       if (error) {

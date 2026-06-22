@@ -8,7 +8,7 @@ export function profileDisplayName(profile) {
 
 /**
  * Coordinator dropdown options for create-order (and similar forms).
- * Admins: active viewer profiles + coordinators master list (deduped by name).
+ * Admins: active viewer + admin profiles + coordinators master list (deduped by name).
  * Others: coordinators master + ensure current user appears if missing.
  */
 export function createCoordinatorSelectOptions({
@@ -27,9 +27,9 @@ export function createCoordinatorSelectOptions({
   };
 
   if (isAdmin) {
-    for (const viewer of viewerProfiles) {
-      if (!viewerIsActive(viewer)) continue;
-      add(viewer.full_name, `viewer-${viewer.id}`);
+    for (const userProfile of viewerProfiles) {
+      if (!viewerIsActive(userProfile)) continue;
+      add(userProfile.full_name, `profile-${userProfile.id}`);
     }
   }
 

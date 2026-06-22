@@ -27,7 +27,7 @@ import {
 import { DashboardSidebarIcon } from "./dashboardSidebarIcons";
 import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
 import ViewerUserEditModal, { IconUserDelete, IconUserEdit } from "./ViewerUserEditModal";
-import { filterViewerProfiles, viewerIsActive } from "./viewerUserListUtils";
+import { filterViewerProfiles, formatProfileAccessLabel, profileAccessRole, viewerIsActive } from "./viewerUserListUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
 import NotificationBellButton from "./NotificationBellButton";
 import NotificationsPanel from "./NotificationsPanel";
@@ -796,6 +796,7 @@ function App() {
   const [viewerToneDrafts, setViewerToneDrafts] = useState({});
   const [viewerListSearch, setViewerListSearch] = useState("");
   const [viewerListStatusFilter, setViewerListStatusFilter] = useState("all");
+  const [viewerListAccessFilter, setViewerListAccessFilter] = useState("all");
   const [editingViewerId, setEditingViewerId] = useState(null);
   const [permissionDrafts, setPermissionDrafts] = useState({});
   const [createUserInnerTab, setCreateUserInnerTab] = useState("details");
@@ -1367,8 +1368,8 @@ function App() {
         await Promise.all([
           supabase
             .from("profiles")
-            .select("id, full_name, email, department, job_role, employee_id, is_active, status_tones_enabled")
-            .eq("role", "viewer")
+            .select("id, full_name, email, department, job_role, employee_id, is_active, role, status_tones_enabled")
+            .in("role", ["viewer", "admin"])
             .order("full_name", { ascending: true }),
           supabase.from("profile_order_permissions").select("*")
         ]);
@@ -2576,17 +2577,19 @@ function App() {
       return;
     }
 
-    const { error: permErr } = await supabase.from("profile_order_permissions").upsert(
-      {
-        user_id: viewerId,
-        ...permissionRowFromDraft(draft),
-        updated_at: new Date().toISOString()
-      },
-      { onConflict: "user_id" }
-    );
-    if (permErr) {
-      alert(permErr.message);
-      return;
+    if (profileAccessRole(viewer) !== "admin") {
+      const { error: permErr } = await supabase.from("profile_order_permissions").upsert(
+        {
+          user_id: viewerId,
+          ...permissionRowFromDraft(draft),
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "user_id" }
+      );
+      if (permErr) {
+        alert(permErr.message);
+        return;
+      }
     }
 
     setViewerNameDrafts((prev) => {
@@ -3404,11 +3407,17 @@ function App() {
   }, [orders]);
 
   const filteredViewerProfiles = useMemo(
-    () => filterViewerProfiles(viewerProfiles, viewerListSearch, viewerListStatusFilter),
-    [viewerProfiles, viewerListSearch, viewerListStatusFilter]
+    () =>
+      filterViewerProfiles(
+        viewerProfiles,
+        viewerListSearch,
+        viewerListStatusFilter,
+        viewerListAccessFilter
+      ),
+    [viewerProfiles, viewerListSearch, viewerListStatusFilter, viewerListAccessFilter]
   );
 
-  const viewerListPaginationKey = `${viewerListSearch}|${viewerListStatusFilter}`;
+  const viewerListPaginationKey = `${viewerListSearch}|${viewerListStatusFilter}|${viewerListAccessFilter}`;
 
   const {
     visible: visibleViewerProfiles,
@@ -5060,6 +5069,17 @@ function App() {
                           <option value="inactive">Inactive</option>
                         </select>
                       </label>
+                      <label className="user-mgmt-status-filter">
+                        <span className="sr-only">Filter by access</span>
+                        <select
+                          value={viewerListAccessFilter}
+                          onChange={(e) => setViewerListAccessFilter(e.target.value)}
+                        >
+                          <option value="all">All access</option>
+                          <option value="admin">Admin only</option>
+                          <option value="viewer">Viewer only</option>
+                        </select>
+                      </label>
                     </div>
 
                     {viewerProfiles.length ? (
@@ -5072,7 +5092,8 @@ function App() {
                                 <th>User name</th>
                                 <th>Employee ID</th>
                                 <th>Department</th>
-                                <th>Role</th>
+                                <th>Job title</th>
+                                <th>Access</th>
                                 <th>Status</th>
                                 <th>Action</th>
                               </tr>
@@ -5081,15 +5102,30 @@ function App() {
                               {visibleViewerProfiles.map((viewer, index) => {
                                 const rowNum = (viewerListPage - 1) * viewerListPageSize + index + 1;
                                 const active = viewerIsActive(viewer);
+                                const isAdminAccount = profileAccessRole(viewer) === "admin";
                                 return (
                                   <tr key={viewer.id}>
                                     <td className="admin-master-index">{rowNum}</td>
                                     <td className="user-mgmt-name-cell">
-                                      {viewer.full_name?.trim() || "—"}
+                                      <span>{viewer.full_name?.trim() || "—"}</span>
+                                      {viewer.email?.trim() ? (
+                                        <span className="user-mgmt-email-sub">{viewer.email.trim()}</span>
+                                      ) : null}
                                     </td>
                                     <td>{viewer.employee_id?.trim() || "—"}</td>
                                     <td>{viewer.department?.trim() || "—"}</td>
                                     <td>{viewer.job_role?.trim() || "—"}</td>
+                                    <td>
+                                      <span
+                                        className={
+                                          isAdminAccount
+                                            ? "user-access-pill user-access-pill--admin"
+                                            : "user-access-pill user-access-pill--viewer"
+                                        }
+                                      >
+                                        {formatProfileAccessLabel(viewer)}
+                                      </span>
+                                    </td>
                                     <td>
                                       <span
                                         className={
@@ -5129,7 +5165,7 @@ function App() {
                               })}
                               {visibleViewerProfiles.length === 0 ? (
                                 <tr>
-                                  <td colSpan={7} className="user-mgmt-empty-row">
+                                  <td colSpan={8} className="user-mgmt-empty-row">
                                     No users match this search or filter.
                                   </td>
                                 </tr>
@@ -5153,7 +5189,7 @@ function App() {
                         </div>
                       </>
                     ) : (
-                      <p className="master-empty">No viewer accounts yet.</p>
+                      <p className="master-empty">No users yet.</p>
                     )}
                   </section>
 
@@ -5234,6 +5270,7 @@ function App() {
                       onResetPermissions={() => handleResetViewerPermissions(editingViewer.id)}
                       onRemove={() => handleRemoveUser(editingViewer)}
                       removing={removingUserId === editingViewer.id}
+                      isAdminAccount={profileAccessRole(editingViewer) === "admin"}
                       onClose={closeViewerEdit}
                     />
                   ) : null}

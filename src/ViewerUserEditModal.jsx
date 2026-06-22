@@ -29,6 +29,7 @@ export default function ViewerUserEditModal({
   onResetPermissions,
   onRemove,
   removing,
+  isAdminAccount = false,
   onClose
 }) {
   if (!open || !viewer) return null;
@@ -130,6 +131,12 @@ export default function ViewerUserEditModal({
             </span>
           </label>
 
+          {isAdminAccount ? (
+            <p className="viewer-edit-admin-note">
+              This account has <strong>Admin</strong> access — full dashboard access. Order and sidebar
+              permission toggles apply to viewer accounts only.
+            </p>
+          ) : (
           <div className="user-access-perms-block viewer-edit-perms-block">
             <p className="create-user-perms-title">Order &amp; sidebar access</p>
             <div className="viewer-permission-fields user-access-checkboxes">
@@ -163,15 +170,18 @@ export default function ViewerUserEditModal({
               onEditChange={onSidebarEditChange}
             />
           </div>
+          )}
         </div>
 
         <div className="viewer-edit-modal-footer">
           <button type="button" className="btn-save-green" onClick={onSave}>
             Save
           </button>
-          <button type="button" className="danger-btn" onClick={onResetPermissions}>
-            Reset permissions
-          </button>
+          {!isAdminAccount ? (
+            <button type="button" className="danger-btn" onClick={onResetPermissions}>
+              Reset permissions
+            </button>
+          ) : null}
           {!showResetInline ? (
             <button type="button" className="btn-reset-password" onClick={onOpenResetPassword}>
               Reset password
