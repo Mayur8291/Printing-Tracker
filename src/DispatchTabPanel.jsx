@@ -25,7 +25,7 @@ import CreateInwardEntryModal from "./CreateInwardEntryModal";
 import CreateOutwardChallanModal from "./CreateOutwardChallanModal";
 import InwardEntryList from "./InwardEntryList";
 import InwardEntryPreviewFloatingCard from "./InwardEntryPreviewFloatingCard";
-import InwardGrnEntryModal from "./InwardGrnEntryModal";
+import InwardGrnEntryPage from "./InwardGrnEntryPage";
 import OcPreviewFloatingCard from "./OcPreviewFloatingCard";
 import OutwardChallanList from "./OutwardChallanList";
 import {
@@ -143,7 +143,8 @@ export default function DispatchTabPanel({
 
   const isProcessedView = dispatchTab === "outward";
   const isInwardGrnView = dispatchTab === "inward";
-  const isLedgerView = isProcessedView || isInwardGrnView;
+  const isInwardGrnFullView = isInwardGrnView && Boolean(grnEntryRecord);
+  const isLedgerView = isProcessedView || (isInwardGrnView && !isInwardGrnFullView);
 
   const filteredOrders = useMemo(
     () => (isLedgerView ? tabOrders : filterOrdersBySearch(tabOrders, searchQuery)),
@@ -459,6 +460,9 @@ export default function DispatchTabPanel({
   function switchDispatchTab(nextTab) {
     setDispatchTab(nextTab);
     closeVerifyPanel();
+    if (nextTab !== "inward") {
+      closeGrnEntry();
+    }
   }
 
   return (
@@ -546,7 +550,7 @@ export default function DispatchTabPanel({
             onPageSizeChange={setPageSize}
           />
         ) : null}
-        {dispatchTab === "inward" ? (
+        {dispatchTab === "inward" && !isInwardGrnFullView ? (
           <button
             type="button"
             className="dispatch-create-oc-btn"
@@ -569,7 +573,25 @@ export default function DispatchTabPanel({
           </button>
         ) : null}
       </div>
-      {isInwardGrnView ? (
+      {isInwardGrnFullView ? (
+        <InwardGrnEntryPage
+          inwardRecord={grnEntryRecord}
+          sessionUserId={sessionUserId}
+          canEdit={canEdit}
+          onBack={closeGrnEntry}
+          onSaved={async (record) => {
+            await loadInwardEntries();
+            if (previewInwardRecord?.id === record?.id) {
+              const { data } = await supabase
+                .from("inward_entries")
+                .select(INWARD_ENTRY_WITH_GRNS_SELECT)
+                .eq("id", record.id)
+                .maybeSingle();
+              if (data) setPreviewInwardRecord(data);
+            }
+          }}
+        />
+      ) : isInwardGrnView ? (
         <section
           className="outward-challans-section dashboard-card"
           aria-labelledby="inward-entries-heading"
@@ -1019,23 +1041,6 @@ export default function DispatchTabPanel({
         onCreated={() => {
           loadInwardEntries();
           setCreateInwardOpen(false);
-        }}
-      />
-      <InwardGrnEntryModal
-        open={Boolean(grnEntryRecord)}
-        inwardRecord={grnEntryRecord}
-        sessionUserId={sessionUserId}
-        onClose={closeGrnEntry}
-        onSaved={async (record) => {
-          await loadInwardEntries();
-          if (previewInwardRecord?.id === record?.id) {
-            const { data } = await supabase
-              .from("inward_entries")
-              .select(INWARD_ENTRY_WITH_GRNS_SELECT)
-              .eq("id", record.id)
-              .maybeSingle();
-            if (data) setPreviewInwardRecord(data);
-          }
         }}
       />
     </>

@@ -9,7 +9,7 @@ export const INWARD_SELECT_FIELDS =
   "id, grn_no, for_whom, supplier, invoice_no, product_material, department, individual_name, qty_received, bora_carton_unit, location_rack, received_by, remark, bill_photo_path, package_photo_path, size_breakdown, created_at, created_by";
 
 export const INWARD_GRN_SELECT_FIELDS =
-  "id, inward_entry_id, grn_no, for_whom, supplier, invoice_no, qty_received, bora_carton_unit, location_rack, received_by, remark, size_breakdown, created_at, created_by";
+  "id, inward_entry_id, grn_no, for_whom, supplier, invoice_no, qty_received, bora_carton_unit, location_rack, received_by, remark, size_breakdown, grn_entry_detail, created_at, created_by";
 
 export const INWARD_ENTRY_WITH_GRNS_SELECT = `${INWARD_SELECT_FIELDS}, inward_grn_entries(${INWARD_GRN_SELECT_FIELDS})`;
 
@@ -94,8 +94,16 @@ export function inwardGrnFormFromRecord(record) {
   };
 }
 
-export function inwardGrnToInsertPayload(form, sizeBreakdown, inwardEntryId, sessionUserId) {
+export function inwardGrnToInsertPayload(
+  form,
+  sizeBreakdown,
+  inwardEntryId,
+  sessionUserId,
+  grnEntryDetail = null
+) {
   const hasSizes = sizeBreakdown && Object.keys(sizeBreakdown).length > 0;
+  const hasDetail =
+    grnEntryDetail && typeof grnEntryDetail === "object" && !Array.isArray(grnEntryDetail);
   return {
     inward_entry_id: inwardEntryId,
     grn_no: trimField(form.grn_no),
@@ -108,6 +116,7 @@ export function inwardGrnToInsertPayload(form, sizeBreakdown, inwardEntryId, ses
     received_by: trimField(form.received_by),
     remark: trimField(form.remark),
     ...(hasSizes ? { size_breakdown: sizeBreakdown } : {}),
+    ...(hasDetail ? { grn_entry_detail: grnEntryDetail } : {}),
     created_by: sessionUserId ?? null
   };
 }

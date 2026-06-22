@@ -1391,3 +1391,25 @@ create table if not exists public.inward_entry_notifications (
   tagged_by_user_id uuid not null references public.profiles(id) on delete cascade,
   created_at timestamptz not null default now()
 );
+
+-- Inward GRN entries (see migration 20260619120000_add_inward_grn_entries.sql).
+create table if not exists public.inward_grn_entries (
+  id bigint generated always as identity primary key,
+  inward_entry_id bigint not null references public.inward_entries(id) on delete cascade,
+  grn_no text not null default '',
+  for_whom text not null default '',
+  supplier text not null default '',
+  invoice_no text not null default '',
+  qty_received text not null default '',
+  bora_carton_unit text not null default '',
+  location_rack text not null default '',
+  received_by text not null default '',
+  remark text not null default '',
+  size_breakdown jsonb,
+  grn_entry_detail jsonb,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+comment on column public.inward_grn_entries.grn_entry_detail is
+  'Structured GRN form: type (apparel|fabric), header extras, boras[], fabrics[].';
