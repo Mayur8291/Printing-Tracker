@@ -1,9 +1,25 @@
-import { dispatchRowHighlightClass } from "./orderTabUtils";
-import { formatDeliveryDate, splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
-import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import OrdersListFilters from "./components/orders/OrdersListFilters";
+import OrdersListSummary from "./components/orders/OrdersListSummary";
+import OrderIdBadges from "./components/orders/OrderIdBadges";
+import OrderStatusBadge from "./components/orders/OrderStatusBadge";
+import { orderListRowClassName } from "./components/orders/orderTableUtils";
+import OrderViewActionCell from "./components/orders/OrderViewActionCell";
+import { formatDeliveryDate, STAGE_LABEL } from "./orderViewUtils";
+import { OrdersPagination, usePagination } from "./orderPagination";
+import { cn } from "@/lib/utils";
 
 /**
- * Shared list UI for Production Tracker, Billing, and Dispatch tabs.
+ * Shared list UI for Production Tracker and similar linked-order tabs.
  */
 export default function LinkedOrdersTabPanel({
   tabTitle,
@@ -23,20 +39,6 @@ export default function LinkedOrdersTabPanel({
   onCreateJobSheet,
   canCreateJobSheet = false
 }) {
-  function renderOrderIdBadges(orderId) {
-    const ids = splitOrderIds(orderId);
-    if (!ids.length) return "—";
-    if (ids.length === 1) return ids[0];
-    return (
-      <span className="order-id-badges" aria-label="Order IDs">
-        {ids.map((id) => (
-          <span key={id} className="order-id-badge" title={id}>
-            {id}
-          </span>
-        ))}
-      </span>
-    );
-  }
   const safeOrders = Array.isArray(orders) ? orders : [];
   const totalQty = safeOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
   const filterBits = [tabTitle];
@@ -55,106 +57,99 @@ export default function LinkedOrdersTabPanel({
     totalPages
   } = usePagination(safeOrders, storageKey, `${dateFrom}|${dateTo}`);
 
+  const colSpan = extraColumn ? 9 : 8;
+
   return (
-    <>
-      <div className="table-filters linked-tab-filters">
-        <label>
-          From
-          <input type="date" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)} />
-        </label>
-        <label>
-          To
-          <input type="date" value={dateTo} onChange={(e) => onDateToChange(e.target.value)} />
-        </label>
-        <button type="button" onClick={onClearDates}>
-          Clear
-        </button>
-        {canCreateJobSheet && onCreateJobSheet ? (
-          <button type="button" className="btn-create-job-sheet" onClick={onCreateJobSheet}>
-            Create Job sheet
-          </button>
-        ) : null}
-        <OrdersPerPageControl
-          idPrefix={`${storageKey}-orders-per-page`}
-          pageSize={pageSize}
-          onPageSizeChange={setPageSize}
-        />
-      </div>
+    <div className="space-y-4">
+      <OrdersListFilters
+        idPrefix={storageKey}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={onDateFromChange}
+        onDateToChange={onDateToChange}
+        onClearDates={onClearDates}
+        clearDatesLabel="Clear"
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+        extraActions={
+          canCreateJobSheet && onCreateJobSheet ? (
+            <Button type="button" variant="outline" size="sm" onClick={onCreateJobSheet}>
+              Create Job sheet
+            </Button>
+          ) : null
+        }
+      />
       {loadingOrders ? (
-        <p>Loading orders…</p>
+        <div className="space-y-3">
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
       ) : (
         <>
-          <div className="orders-processed-summary" role="status">
-            <div className="orders-processed-summary-main">
-              <span className="orders-processed-label">{summaryLabel}</span>
-              <span className="orders-processed-count">{totalFiltered}</span>
-            </div>
-            <div className="orders-processed-summary-meta">
-              <span className="orders-processed-qty">
-                Total qty: <strong>{totalQty}</strong>
-              </span>
-              <span className="orders-processed-filters">{filterBits.join(" · ")}</span>
-            </div>
-          </div>
-          <div className="table-wrap table-wrap--compact">
-            <table className="orders-table-compact">
-              <thead>
-                <tr>
-                  <th />
-                  <th>Order number</th>
-                  <th>Customer</th>
-                  <th>Product name</th>
-                  <th>Status</th>
-                  <th>Coordinator</th>
-                  <th>Delivery date</th>
-                  {extraColumn ? <th>{extraColumn.header}</th> : null}
-                  <th>Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleOrders.map((order) => (
-                  <tr key={order.id} className={dispatchRowHighlightClass(order) || undefined}>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn-view-order"
-                        onClick={() => onViewOrder(order)}
-                      >
-                        View order
-                      </button>
-                    </td>
-                    <td className="orders-compact-id">
-                      {renderOrderIdBadges(order.order_id)}
-                    </td>
-                    <td className="orders-compact-customer">
-                      {order.customer_name?.trim() ? order.customer_name : "—"}
-                    </td>
-                    <td className="orders-compact-product">
-                      {order.product_name?.trim() ? order.product_name : "—"}
-                    </td>
-                    <td>
-                      <span
-                        className={`status-pill status-pill--compact status-${order.status ?? "new"}`}
-                      >
-                        {renderStageIcon?.(order.status, STAGE_LABEL[order.status])}{" "}
-                        {STAGE_LABEL[order.status] ?? order.status ?? "—"}
-                      </span>
-                    </td>
-                    <td>{order.coordinator_name || "—"}</td>
-                    <td>{formatDeliveryDate(order.due_date)}</td>
-                    {extraColumn ? (
-                      <td>{extraColumn.render(order)}</td>
-                    ) : null}
-                    <td>{order.qty}</td>
-                  </tr>
-                ))}
+          <OrdersListSummary
+            label={summaryLabel}
+            count={totalFiltered}
+            totalQty={totalQty}
+            filterBits={filterBits}
+          />
+          <div className="rounded-xl border bg-card shadow-sm">
+            <Table data-orders-table>
+              <TableHeader>
+                <TableRow>
+                      <TableHead className="w-[7rem]" />
+                  <TableHead>Order number</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Product name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Coordinator</TableHead>
+                  <TableHead>Delivery date</TableHead>
+                  {extraColumn ? <TableHead>{extraColumn.header}</TableHead> : null}
+                  <TableHead className="text-right">Qty</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleOrders.map((order) => {
+                  const statusLabel = STAGE_LABEL[order.status] ?? order.status ?? "—";
+                  return (
+                    <TableRow
+                      key={order.clientKey ?? order.id}
+                      className={cn(orderListRowClassName(order), order._isPending && "opacity-70")}
+                    >
+                      <TableCell>
+                        <OrderViewActionCell order={order} onViewOrder={onViewOrder} />
+                      </TableCell>
+                      <TableCell>
+                        <OrderIdBadges orderId={order.order_id} />
+                      </TableCell>
+                      <TableCell className="max-w-[12rem] truncate">
+                        {order.customer_name?.trim() ? order.customer_name : "—"}
+                      </TableCell>
+                      <TableCell className="max-w-[12rem] truncate">
+                        {order.product_name?.trim() ? order.product_name : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <OrderStatusBadge
+                          status={order.status}
+                          label={statusLabel}
+                          icon={renderStageIcon?.(order.status, statusLabel)}
+                        />
+                      </TableCell>
+                      <TableCell>{order.coordinator_name || "—"}</TableCell>
+                      <TableCell>{formatDeliveryDate(order.due_date)}</TableCell>
+                      {extraColumn ? <TableCell>{extraColumn.render(order)}</TableCell> : null}
+                      <TableCell className="text-right tabular-nums">{order.qty}</TableCell>
+                    </TableRow>
+                  );
+                })}
                 {totalFiltered === 0 && (
-                  <tr>
-                    <td colSpan={extraColumn ? 9 : 8}>{emptyMessage}</td>
-                  </tr>
+                  <TableRow>
+                    <TableCell colSpan={colSpan} className="h-24 text-center text-muted-foreground">
+                      {emptyMessage}
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
           <OrdersPagination
             page={page}
@@ -165,6 +160,6 @@ export default function LinkedOrdersTabPanel({
           />
         </>
       )}
-    </>
+    </div>
   );
 }

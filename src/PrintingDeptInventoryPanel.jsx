@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import InventoryIcon from "./inventory/InventoryIcon";
+import { AlertTriangle, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import RefillPrintingInventoryModal from "./RefillPrintingInventoryModal";
 import PrintingDeptThresholdModal from "./PrintingDeptThresholdModal";
 import {
@@ -168,13 +169,13 @@ export default function PrintingDeptInventoryPanel({
     return (
       <div className="printing-dept-stock-actions">
         {allowIssue ? (
-          <button type="button" className="btn sm danger" onClick={() => openMovement("issue", item.key)}>
+          <Button type="button" variant="destructive" size="sm" onClick={() => openMovement("issue", item.key)}>
             Use
-          </button>
+          </Button>
         ) : null}
-        <button type="button" className="btn sm printing-dept-refill-link" onClick={() => openMovement("refill", item.key)}>
+        <Button type="button" variant="outline" size="sm" onClick={() => openMovement("refill", item.key)}>
           Refill
-        </button>
+        </Button>
       </div>
     );
   }
@@ -192,14 +193,14 @@ export default function PrintingDeptInventoryPanel({
           {canEdit || isAdmin ? (
             <div className="page-actions printing-dept-page-actions">
               {isAdmin ? (
-                <button type="button" className="btn" onClick={() => setThresholdModalOpen(true)}>
-                  <InventoryIcon name="warn" size={13} /> Thresholds
-                </button>
+                <Button type="button" variant="outline" onClick={() => setThresholdModalOpen(true)}>
+                  <AlertTriangle className="size-3.5" /> Thresholds
+                </Button>
               ) : null}
               {canEdit ? (
-                <button type="button" className="btn primary" onClick={() => openMovement("refill", "")}>
-                  <InventoryIcon name="plus" size={13} /> Refill
-                </button>
+                <Button type="button" onClick={() => openMovement("refill", "")}>
+                  <Plus className="size-3.5" /> Refill
+                </Button>
               ) : null}
             </div>
           ) : null}

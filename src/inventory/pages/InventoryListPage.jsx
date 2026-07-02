@@ -1,26 +1,49 @@
-import { useState } from "react";
+import { Fragment, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import SizeDots from "../components/SizeDots";
-import InventoryIcon from "../InventoryIcon";
+import ColorSwatch from "../components/ColorSwatch";
+import SkuMetricInput from "../components/SkuMetricInput";
 import { useInventory } from "../InventoryDataContext";
-import { statusOf } from "../inventoryUtils";
+import { ExpandToggle, PageHeader, SortIndicator, StockStatusBadge } from "../inventoryUiUtils";
+import { formatInr, statusOf } from "../inventoryUtils";
+import { apparelMatchesQuery, groupSkusByParent, mergeEmptyStyleParents, skuMatchesQuery } from "../inventorySkuGrouping";
 
-function SortIcon({ col, sortBy, sortDir }) {
-  if (sortBy !== col) return <InventoryIcon name="chev_ud" size={10} stroke={1.8} className="sort-ind" />;
+const INV_HEAD = "h-11 whitespace-nowrap px-4 text-xs font-medium text-muted-foreground";
+const INV_CELL = "px-4 py-3 align-middle";
+const INV_METRIC_CELL = "min-w-[6.5rem] px-4 py-3 text-right align-middle";
+const INV_ACTIONS_CELL = "min-w-[9rem] px-4 py-3 text-right align-middle";
+
+function StockBar({ pct, kind }) {
   return (
-    <InventoryIcon name={sortDir === "asc" ? "chev_u" : "chev_d"} size={10} stroke={1.8} className="sort-ind" />
+    <div className="mb-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+      <div
+        className={cn(
+          "h-full rounded-full transition-all",
+          kind === "danger" ? "bg-red-500" : kind === "warning" ? "bg-amber-500" : "bg-emerald-500"
+        )}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
   );
 }
 
-function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust, Th, suppliers, settings }) {
+function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, Th, suppliers, settings }) {
   const supplierOf = (id) => suppliers.find((s) => s.id === id);
 
   return (
-    <table className="t">
-      <thead>
-        <tr>
-          <th className="col-checkbox">
-            <input type="checkbox" aria-label="select all" />
-          </th>
+    <Table>
+      <TableHeader className="sticky top-0 z-10 bg-card">
+        <TableRow>
+          <TableHead className={cn(INV_HEAD, "w-12")}>
+            <Checkbox aria-label="select all" />
+          </TableHead>
           <Th col="id">SKU</Th>
           <Th col="name">{kind === "fabrics" ? "Fabric" : "Trim"}</Th>
           {kind === "fabrics" ? (
@@ -39,164 +62,342 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
           <Th col="stock" right>
             On hand
           </Th>
-          <th>Stock level</th>
-          <Th col="cost" right>
-            Unit cost
-          </Th>
-          <Th col="value" right>
-            Value
-          </Th>
-          <th>Warehouse</th>
-          <th>Supplier</th>
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => {
-          const st = statusOf(r, settings);
-          const pct = Math.min(100, Math.round((r.stock / Math.max(r.reorder * 2, 1)) * 100));
-          const barCls = st.kind === "danger" ? "danger" : st.kind === "warning" ? "warn" : "";
-          return (
-            <tr key={r.id} onClick={() => openSku(r)} className={selected.has(r.id) ? "selected" : ""}>
-              <td className="col-checkbox" onClick={(e) => e.stopPropagation()}>
-                <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSel(r.id)} />
-              </td>
-              <td className="mono">{r.id}</td>
-              <td>
-                <div className="cell-name">
-                  <strong>{r.name}</strong>
-                  <small>{r.composition || r.size}</small>
-                </div>
-              </td>
-              {kind === "fabrics" ? (
-                <>
-                  <td className="num">{r.gsm}</td>
-                  <td className="num">{r.width}</td>
-                </>
-              ) : (
-                <td>
-                  {r.type} · {r.size}
-                </td>
-              )}
-              <td>
-                <span className="cell-with-swatch">
-                  <span className="swatch" style={{ background: r.hex }} />
-                  {r.color}
-                </span>
-              </td>
-              <td className="num">
-                <b>{r.stock.toLocaleString()}</b> <span style={{ color: "var(--text-faint)" }}>{r.unit}</span>
-              </td>
-              <td>
-                <span className={`stock-bar ${barCls}`}>
-                  <span style={{ width: `${pct}%` }} />
-                </span>
-                <span className={`badge ${st.kind}`} style={{ verticalAlign: "middle" }}>
-                  <span className="dot" />
-                  {st.label}
-                </span>
-              </td>
-              <td className="num">${r.cost.toFixed(2)}</td>
-              <td className="num">${(r.stock * r.cost).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-              <td className="mono" style={{ fontSize: 11.5 }}>
-                {r.wh} <span style={{ color: "var(--text-faint)" }}>· {r.bin}</span>
-              </td>
-              <td>{supplierOf(r.supplier)?.name}</td>
-              <td onClick={(e) => e.stopPropagation()}>
-                <button type="button" className="icon-btn" onClick={() => openAdjust(r)} title="Adjust stock">
-                  <InventoryIcon name="edit" size={13} />
-                </button>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-}
-
-function ApparelTable({ rows, selected, toggleSel, openSku, openAdjust, Th, settings }) {
-  return (
-    <table className="t">
-      <thead>
-        <tr>
-          <th className="col-checkbox">
-            <input type="checkbox" aria-label="select all" />
-          </th>
-          <Th col="id">SKU</Th>
-          <Th col="name">Style</Th>
-          <Th col="category">Category</Th>
-          <Th col="season">Season</Th>
-          <Th col="color">Colorway</Th>
-          <th>Size distribution</th>
-          <Th col="stock" right>
-            Total units
-          </Th>
-          <th>Status</th>
+          <TableHead className={INV_HEAD}>Stock level</TableHead>
           <Th col="cost" right>
             Unit cost
           </Th>
           <Th col="retail" right>
-            Retail
+            Sale price
+          </Th>
+          <Th col="reorder" right>
+            Reorder
+          </Th>
+          <Th col="doc" right>
+            DOC
+          </Th>
+          <Th col="drr" right>
+            DRR
+          </Th>
+          <Th col="value" right>
+            Value
+          </Th>
+          <TableHead className={INV_HEAD}>Warehouse</TableHead>
+          <TableHead className={INV_HEAD}>Supplier</TableHead>
+          <TableHead className={cn(INV_HEAD, INV_ACTIONS_CELL)} />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((r) => {
+          const st = statusOf(r, settings);
+          const pct = Math.min(100, Math.round((r.stock / Math.max(r.reorder * 2, 1)) * 100));
+          return (
+            <TableRow key={r.id} onClick={() => openSku(r)} className={cn("cursor-pointer", selected.has(r.id) && "bg-muted/50")}>
+              <TableCell className={cn(INV_CELL, "w-12")} onClick={(e) => e.stopPropagation()}>
+                <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} />
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "font-mono text-xs")}>{r.id}</TableCell>
+              <TableCell className={cn(INV_CELL, "min-w-[12rem]")}>
+                <div className="font-medium">{r.name}</div>
+                <div className="text-xs text-muted-foreground">{r.composition || r.size}</div>
+              </TableCell>
+              {kind === "fabrics" ? (
+                <>
+                  <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>{r.gsm}</TableCell>
+                  <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>{r.width}</TableCell>
+                </>
+              ) : (
+                <TableCell className={INV_CELL}>
+                  {r.type} · {r.size}
+                </TableCell>
+              )}
+              <TableCell className={cn(INV_CELL, "min-w-[8rem]")}>
+                <span className="inline-flex items-center gap-2">
+                  <ColorSwatch color={r.color} hex={r.hex} />
+                  {r.color}
+                </span>
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+                <strong>{r.stock.toLocaleString()}</strong>{" "}
+                <span className="text-muted-foreground">{r.unit}</span>
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "min-w-[8rem]")}>
+                <StockBar pct={pct} kind={st.kind} />
+                <StockStatusBadge status={st} />
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
+                {formatInr(r.cost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
+                {formatInr(r.retail, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </TableCell>
+              <TableCell className={INV_METRIC_CELL}>
+                <SkuMetricInput sku={r} field="reorder" value={r.reorder} />
+              </TableCell>
+              <TableCell className={INV_METRIC_CELL}>
+                <SkuMetricInput sku={r} field="doc" value={r.doc} step="0.01" />
+              </TableCell>
+              <TableCell className={INV_METRIC_CELL}>
+                <SkuMetricInput sku={r} field="drr" value={r.drr} step="0.01" />
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
+                {formatInr(r.stock * r.cost, { maximumFractionDigits: 0 })}
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "font-mono text-xs")}>
+                {r.wh} <span className="text-muted-foreground">· {r.bin}</span>
+              </TableCell>
+              <TableCell className={INV_CELL}>{supplierOf(r.supplier)?.name || "—"}</TableCell>
+              <TableCell className={INV_ACTIONS_CELL} onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => openAdjust(r)} title="Adjust stock">
+                    Adjust
+                  </Button>
+                  {onDelete ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => onDelete(r)}
+                      disabled={deletingSkuId === r._uuid}
+                      title="Delete discontinued SKU"
+                    >
+                      Delete
+                    </Button>
+                  ) : null}
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
+}
+
+function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, settings, indent }) {
+  const st = statusOf(r, settings);
+  return (
+    <TableRow key={r.id} onClick={() => openSku(r)} className={cn("cursor-pointer", selected.has(r.id) && "bg-muted/50")}>
+      <TableCell className={cn(INV_CELL, "w-12")} onClick={(e) => e.stopPropagation()}>
+        <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} />
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "font-mono text-xs", indent && "pl-10")}>{r.id}</TableCell>
+      <TableCell className={cn(INV_CELL, "min-w-[12rem] font-medium", indent && "pl-6")}>
+        {indent ? r.color || r.name : r.name}
+      </TableCell>
+      <TableCell className={INV_CELL}>
+        <Badge variant="secondary">{r.category}</Badge>
+      </TableCell>
+      <TableCell className={INV_CELL}>{r.season}</TableCell>
+      <TableCell className={cn(INV_CELL, "min-w-[8rem]")}>
+        <span className="inline-flex items-center gap-2">
+          <ColorSwatch color={r.color} hex={r.hex} />
+          {r.color}
+        </span>
+      </TableCell>
+      <TableCell className={INV_CELL}>
+        <SizeDots sizes={r.sizes} />
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+        <strong>{r.totalStock.toLocaleString()}</strong>
+      </TableCell>
+      <TableCell className={INV_CELL}>
+        <StockStatusBadge status={st} />
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
+        {formatInr(r.cost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
+        {formatInr(r.retail, { maximumFractionDigits: 0 })}
+      </TableCell>
+      <TableCell className={INV_METRIC_CELL}>
+        <SkuMetricInput sku={r} field="reorder" value={r.reorder} />
+      </TableCell>
+      <TableCell className={INV_METRIC_CELL}>
+        <SkuMetricInput sku={r} field="doc" value={r.doc} step="0.01" />
+      </TableCell>
+      <TableCell className={INV_METRIC_CELL}>
+        <SkuMetricInput sku={r} field="drr" value={r.drr} step="0.01" />
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
+        {formatInr(r.totalStock * r.cost, { maximumFractionDigits: 0 })}
+      </TableCell>
+      <TableCell className={INV_ACTIONS_CELL} onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={() => openAdjust(r)} title="Adjust stock">
+            Adjust
+          </Button>
+          {onDelete ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDelete(r)}
+              disabled={deletingSkuId === r._uuid}
+              title="Delete discontinued SKU"
+            >
+              Delete
+            </Button>
+          ) : null}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function ApparelTable({ rows, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, Th, settings, query, supplierOf, styleParents }) {
+  const [collapsed, setCollapsed] = useState(() => new Set());
+
+  const { groups, standalone } = useMemo(() => groupSkusByParent(rows), [rows]);
+
+  const allGroups = useMemo(
+    () => mergeEmptyStyleParents(groups, styleParents, "apparel"),
+    [groups, styleParents]
+  );
+
+  const visibleGroups = useMemo(
+    () => allGroups.filter((g) => apparelMatchesQuery(g, query, supplierOf)),
+    [allGroups, query, supplierOf]
+  );
+
+  const visibleStandalone = useMemo(() => {
+    if (!query) return standalone;
+    const q = query.toLowerCase();
+    return standalone.filter((r) => skuMatchesQuery(r, q, supplierOf));
+  }, [standalone, query, supplierOf]);
+
+  const toggleGroup = (id) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const isExpanded = (id) => query.length > 0 || !collapsed.has(id);
+
+  return (
+    <Table>
+      <TableHeader className="sticky top-0 z-10 bg-card">
+        <TableRow>
+          <TableHead className={cn(INV_HEAD, "w-12")}>
+            <Checkbox aria-label="select all" />
+          </TableHead>
+          <Th col="id">SKU</Th>
+          <Th col="name">Style / variant</Th>
+          <Th col="category">Category</Th>
+          <Th col="season">Season</Th>
+          <Th col="color">Colorway</Th>
+          <TableHead className={INV_HEAD}>Size distribution</TableHead>
+          <Th col="stock" right>
+            Total units
+          </Th>
+          <TableHead className={INV_HEAD}>Status</TableHead>
+          <Th col="cost" right>
+            Unit cost
+          </Th>
+          <Th col="retail" right>
+            Sale price
+          </Th>
+          <Th col="reorder" right>
+            Reorder
+          </Th>
+          <Th col="doc" right>
+            DOC
+          </Th>
+          <Th col="drr" right>
+            DRR
           </Th>
           <Th col="value" right>
             Inventory value
           </Th>
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => {
-          const st = statusOf(r, settings);
+          <TableHead className={cn(INV_HEAD, INV_ACTIONS_CELL)} />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {visibleGroups.map((group) => {
+          const open = isExpanded(group.id);
           return (
-            <tr key={r.id} onClick={() => openSku(r)} className={selected.has(r.id) ? "selected" : ""}>
-              <td className="col-checkbox" onClick={(e) => e.stopPropagation()}>
-                <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSel(r.id)} />
-              </td>
-              <td className="mono">{r.id}</td>
-              <td>
-                <strong>{r.name}</strong>
-              </td>
-              <td>
-                <span className="badge neutral">{r.category}</span>
-              </td>
-              <td>{r.season}</td>
-              <td>
-                <span className="cell-with-swatch">
-                  <span className="swatch" style={{ background: r.hex }} />
-                  {r.color}
-                </span>
-              </td>
-              <td>
-                <SizeDots sizes={r.sizes} />
-              </td>
-              <td className="num">
-                <b>{r.totalStock.toLocaleString()}</b>
-              </td>
-              <td>
-                <span className={`badge ${st.kind}`}>
-                  <span className="dot" />
-                  {st.label}
-                </span>
-              </td>
-              <td className="num">${r.cost.toFixed(2)}</td>
-              <td className="num">${r.retail}</td>
-              <td className="num">${(r.totalStock * r.cost).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-              <td onClick={(e) => e.stopPropagation()}>
-                <button type="button" className="icon-btn" onClick={() => openAdjust(r)} title="Adjust stock">
-                  <InventoryIcon name="edit" size={13} />
-                </button>
-              </td>
-            </tr>
+            <Fragment key={`group-${group.id}`}>
+              <TableRow className="bg-muted/30 hover:bg-muted/50">
+                <TableCell className={INV_CELL} onClick={(e) => e.stopPropagation()} />
+                <TableCell className={cn(INV_CELL, "min-w-[16rem]")} colSpan={2}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 text-left font-medium"
+                    onClick={() => toggleGroup(group.id)}
+                  >
+                    {open ? <ExpandToggle open /> : <ExpandToggle open={false} />}
+                    <span className="font-mono text-xs text-muted-foreground">{group.parentSkuCode}</span>
+                    <span>{group.styleName}</span>
+                    <Badge variant="outline" className="ml-1 font-normal">
+                      {group.variantCount} variant{group.variantCount === 1 ? "" : "s"}
+                    </Badge>
+                  </button>
+                </TableCell>
+                <TableCell className={INV_CELL} colSpan={4} />
+                <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+                  <strong>{group.totalStock.toLocaleString()}</strong>
+                </TableCell>
+                <TableCell className={INV_CELL} />
+                <TableCell className={INV_CELL} colSpan={5} />
+                <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
+                  {formatInr(group.totalValue, { maximumFractionDigits: 0 })}
+                </TableCell>
+                <TableCell className={INV_CELL} />
+              </TableRow>
+              {open
+                ? group.children.map((r) => (
+                    <ApparelSkuRow
+                      key={r.id}
+                      r={r}
+                      selected={selected}
+                      toggleSel={toggleSel}
+                      openSku={openSku}
+                      openAdjust={openAdjust}
+                      onDelete={onDelete}
+                      deletingSkuId={deletingSkuId}
+                      settings={settings}
+                      indent
+                    />
+                  ))
+                : null}
+            </Fragment>
           );
         })}
-      </tbody>
-    </table>
+        {visibleStandalone.map((r) => (
+          <ApparelSkuRow
+            key={r.id}
+            r={r}
+            selected={selected}
+            toggleSel={toggleSel}
+            openSku={openSku}
+            openAdjust={openAdjust}
+            onDelete={onDelete}
+            deletingSkuId={deletingSkuId}
+            settings={settings}
+          />
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
-export default function InventoryListPage({ kind, setKind, openSku, openAdjust, openCreatePO, openNewSku }) {
-  const { fabrics, trims, apparel, suppliers, warehouses, settings } = useInventory();
+export default function InventoryListPage({
+  kind,
+  setKind,
+  openSku,
+  openAdjust,
+  openCreatePO,
+  openNewSku,
+  openImportSkus,
+  openSkuManagement,
+  onDeleteSku,
+  deletingSkuId
+}) {
+  const { fabrics, trims, apparel, suppliers, warehouses, settings, styleParents } = useInventory();
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("id");
   const [sortDir, setSortDir] = useState("asc");
@@ -249,15 +450,19 @@ export default function InventoryListPage({ kind, setKind, openSku, openAdjust, 
     }
   };
 
-  const Th = ({ col, children, right, w }) => (
-    <th
-      className={`sortable${sortBy === col ? " sorted" : ""}${right ? " right" : ""}`}
+  const Th = ({ col, children, right }) => (
+    <TableHead
+      className={cn(
+        INV_HEAD,
+        "cursor-pointer select-none",
+        right && "text-right",
+        sortBy === col && "text-foreground"
+      )}
       onClick={() => toggleSort(col)}
-      style={w ? { width: w } : null}
     >
       {children}
-      <SortIcon col={col} sortBy={sortBy} sortDir={sortDir} />
-    </th>
+      <SortIndicator col={col} sortBy={sortBy} sortDir={sortDir} />
+    </TableHead>
   );
 
   const toggleSel = (id) => {
@@ -277,145 +482,177 @@ export default function InventoryListPage({ kind, setKind, openSku, openAdjust, 
 
   const statusLabels = { success: "In stock", warning: "Low", danger: "Critical" };
 
+  const cycleWarehouse = () => {
+    const opts = ["all", ...warehouses.map((w) => w.id)];
+    const idx = opts.indexOf(warehouseFilter);
+    setWarehouseFilter(opts[(idx + 1) % opts.length]);
+  };
+
+  const cycleStatus = () => {
+    const opts = ["all", "success", "warning", "danger"];
+    const idx = opts.indexOf(statusFilter);
+    setStatusFilter(opts[(idx + 1) % opts.length]);
+  };
+
   return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Inventory</h1>
-          <p className="page-subtitle">All raw materials and finished goods, real-time across warehouses.</p>
-        </div>
-        <div className="page-actions">
-          <button type="button" className="btn" onClick={() => openAdjust(null)}>
-            <InventoryIcon name="edit" size={13} /> Adjust stock
-          </button>
-          <button type="button" className="btn" onClick={() => openCreatePO()}>
-            <InventoryIcon name="cart" size={13} /> Create PO
-          </button>
-          <button type="button" className="btn primary" onClick={() => openNewSku(kind)}>
-            <InventoryIcon name="plus" size={13} /> New {kind === "apparel" ? "style" : kind === "trims" ? "trim" : "fabric"}
-          </button>
-        </div>
-      </div>
+    <div className="flex h-full min-h-0 flex-col space-y-6">
+      <PageHeader
+        title="Inventory"
+        subtitle="All raw materials and finished goods, real-time across warehouses."
+        actions={
+          <>
+            <Button type="button" variant="outline" size="sm" onClick={() => openAdjust(null)}>
+              Adjust stock
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => openCreatePO()}>
+              Create PO
+            </Button>
+            {kind === "apparel" && openImportSkus ? (
+              <Button type="button" variant="outline" size="sm" onClick={openImportSkus}>
+                Import SKUs
+              </Button>
+            ) : null}
+            <Button type="button" size="sm" onClick={() => openNewSku(kind)}>
+              New {kind === "apparel" ? "style" : kind === "trims" ? "trim" : "fabric"}
+            </Button>
+          </>
+        }
+      />
 
-      <div className="card">
-        <div className="table-toolbar">
-          <div className="table-tabs">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
+      <Card className="flex min-h-0 flex-1 flex-col border shadow-sm">
+        <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+          <div className="flex shrink-0 flex-col gap-4 border-b bg-muted/30 p-4 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-6 lg:gap-y-3">
+            <Tabs value={kind} onValueChange={setKind} className="shrink-0">
+              <TabsList>
+                {tabs.map((t) => (
+                  <TabsTrigger key={t.id} value={t.id} className="gap-1.5">
+                    {t.label}
+                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
+                      {t.count}
+                    </Badge>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+
+            <div className="relative w-full lg:w-60 lg:shrink-0">
+              <Input placeholder={`Search ${kind}…`} value={query} onChange={(e) => setQuery(e.target.value)} className="h-9" />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
                 type="button"
-                className={`table-tab${kind === t.id ? " active" : ""}`}
-                onClick={() => setKind(t.id)}
+                variant={warehouseFilter !== "all" ? "secondary" : "outline"}
+                size="sm"
+                onClick={cycleWarehouse}
+                title="Click to cycle warehouses"
               >
-                {t.label}
-                <span className="tab-count">{t.count}</span>
-              </button>
-            ))}
+                Warehouse
+                {warehouseFilter !== "all" && (
+                  <Badge variant="outline" className="ml-2 font-normal">
+                    {warehouses.find((w) => w.id === warehouseFilter)?.name}
+                  </Badge>
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant={statusFilter !== "all" ? "secondary" : "outline"}
+                size="sm"
+                onClick={cycleStatus}
+                title="Click to cycle status"
+              >
+                Status
+                {statusFilter !== "all" && (
+                  <Badge variant="outline" className="ml-2 font-normal">
+                    {statusLabels[statusFilter]}
+                  </Badge>
+                )}
+              </Button>
+
+              {(warehouseFilter !== "all" || statusFilter !== "all" || query) && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setQuery("");
+                    setWarehouseFilter("all");
+                    setStatusFilter("all");
+                  }}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 lg:ml-auto">
+              <span className="text-xs text-muted-foreground">
+                {sorted.length.toLocaleString()} of {rows.length.toLocaleString()}
+                {selected.size > 0 && ` · ${selected.size} selected`}
+              </span>
+              {openSkuManagement ? (
+                <Button type="button" variant="outline" size="sm" onClick={openSkuManagement}>
+                  SKU management
+                </Button>
+              ) : null}
+              <Button type="button" variant="ghost" size="sm">
+                Export
+              </Button>
+            </div>
           </div>
 
-          <div className="search-input">
-            <InventoryIcon name="search" size={12} stroke={1.8} />
-            <input placeholder={`Search ${kind}…`} value={query} onChange={(e) => setQuery(e.target.value)} />
+          <div className="min-h-0 flex-1 overflow-auto p-3">
+            <div className="min-w-[72rem] overflow-hidden rounded-md border">
+              {kind === "apparel" ? (
+                <ApparelTable
+                  rows={sorted}
+                  selected={selected}
+                  toggleSel={toggleSel}
+                  openSku={openSku}
+                  openAdjust={openAdjust}
+                  onDelete={onDeleteSku}
+                  deletingSkuId={deletingSkuId}
+                  Th={Th}
+                  settings={settings}
+                  query={query}
+                  supplierOf={supplierOf}
+                  styleParents={styleParents}
+                />
+              ) : (
+                <FabricTrimTable
+                  kind={kind}
+                  rows={sorted}
+                  selected={selected}
+                  toggleSel={toggleSel}
+                  openSku={openSku}
+                  openAdjust={openAdjust}
+                  onDelete={onDeleteSku}
+                  deletingSkuId={deletingSkuId}
+                  Th={Th}
+                  suppliers={suppliers}
+                  settings={settings}
+                />
+              )}
+            </div>
           </div>
 
-          <button
-            type="button"
-            className={`filter-chip${warehouseFilter !== "all" ? " active" : ""}`}
-            onClick={() => {
-              const opts = ["all", ...warehouses.map((w) => w.id)];
-              const idx = opts.indexOf(warehouseFilter);
-              setWarehouseFilter(opts[(idx + 1) % opts.length]);
-            }}
-            title="Click to cycle warehouses"
-          >
-            <InventoryIcon name="building" size={11} />
-            Warehouse
-            {warehouseFilter !== "all" && (
-              <span className="chip-value">{warehouses.find((w) => w.id === warehouseFilter)?.name}</span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            className={`filter-chip${statusFilter !== "all" ? " active" : ""}`}
-            onClick={() => {
-              const opts = ["all", "success", "warning", "danger"];
-              const idx = opts.indexOf(statusFilter);
-              setStatusFilter(opts[(idx + 1) % opts.length]);
-            }}
-            title="Click to cycle status"
-          >
-            <InventoryIcon name="filter" size={11} />
-            Status
-            {statusFilter !== "all" && <span className="chip-value">{statusLabels[statusFilter]}</span>}
-          </button>
-
-          {(warehouseFilter !== "all" || statusFilter !== "all" || query) && (
-            <button
-              type="button"
-              className="btn ghost sm"
-              onClick={() => {
-                setQuery("");
-                setWarehouseFilter("all");
-                setStatusFilter("all");
-              }}
-            >
-              Clear
-            </button>
-          )}
-
-          <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {sorted.length.toLocaleString()} of {rows.length.toLocaleString()}
-              {selected.size > 0 && ` · ${selected.size} selected`}
+          <div className="flex shrink-0 items-center justify-between border-t px-4 py-3 text-xs text-muted-foreground">
+            <span>
+              Showing 1–{sorted.length} of {rows.length}
             </span>
-            <button type="button" className="btn ghost sm">
-              <InventoryIcon name="download" size={12} /> Export
-            </button>
+            <div className="flex items-center gap-1">
+              <Button type="button" variant="ghost" size="sm" disabled>
+                Prev
+              </Button>
+              <span className="px-2">Page 1 of 1</span>
+              <Button type="button" variant="ghost" size="sm" disabled>
+                Next
+              </Button>
+            </div>
           </div>
-        </div>
-
-        <div className="table-wrap">
-          {kind === "apparel" ? (
-            <ApparelTable
-              rows={sorted}
-              selected={selected}
-              toggleSel={toggleSel}
-              openSku={openSku}
-              openAdjust={openAdjust}
-              Th={Th}
-              settings={settings}
-            />
-          ) : (
-            <FabricTrimTable
-              kind={kind}
-              rows={sorted}
-              selected={selected}
-              toggleSel={toggleSel}
-              openSku={openSku}
-              openAdjust={openAdjust}
-              Th={Th}
-              suppliers={suppliers}
-              settings={settings}
-            />
-          )}
-        </div>
-
-        <div className="table-footer">
-          <span>
-            Showing 1–{sorted.length} of {rows.length}
-          </span>
-          <div className="pager">
-            <button type="button" className="btn ghost sm" disabled>
-              <InventoryIcon name="chev_l" size={12} />
-            </button>
-            <span style={{ padding: "0 6px" }}>Page 1 of 1</span>
-            <button type="button" className="btn ghost sm" disabled>
-              <InventoryIcon name="chev_r" size={12} />
-            </button>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

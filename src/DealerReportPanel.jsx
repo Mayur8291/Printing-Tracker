@@ -9,6 +9,7 @@ import {
   YAxis
 } from "recharts";
 import { supabase } from "./supabaseClient";
+import { DatePicker } from "@/components/ui/date-picker";
 import { exportDealerReportExcel, fetchEntriesForPeriodRange } from "./dealerReportExport";
 import {
   buildDealerPeriodProgress,
@@ -555,13 +556,12 @@ export default function DealerReportPanel({ canEdit = false, isAdmin = false, se
               </div>
               <div className="dealer-report-form-cell">
                 <label htmlFor="dealer-report-date">Date</label>
-                <input
+                <DatePicker
                   id="dealer-report-date"
-                  type="date"
                   value={form.report_date}
-                  max={todayLocalISODate()}
+                  maxDate={todayLocalISODate()}
                   disabled={!canEdit}
-                  onChange={(e) => onReportDateChange(e.target.value)}
+                  onChange={onReportDateChange}
                   required
                 />
                 <p className="dealer-report-date-hint">{formatReportDateHeading(form.report_date)}</p>
@@ -742,21 +742,23 @@ export default function DealerReportPanel({ canEdit = false, isAdmin = false, se
                 <div className="coordinator-report-range-fields">
                   <label className="coordinator-report-field">
                     <span className="dealer-report-range-sublabel">From</span>
-                    <input
-                      type="date"
+                    <DatePicker
+                      id="dealer-week-from"
                       value={weekFromDate}
-                      max={weekToDate}
-                      onChange={(e) => onWeekFromChange(e.target.value)}
+                      maxDate={weekToDate}
+                      onChange={onWeekFromChange}
+                      className="min-w-[10.5rem]"
                     />
                   </label>
                   <label className="coordinator-report-field">
                     <span className="dealer-report-range-sublabel">To</span>
-                    <input
-                      type="date"
+                    <DatePicker
+                      id="dealer-week-to"
                       value={weekToDate}
-                      min={weekFromDate}
-                      max={todayLocalISODate()}
-                      onChange={(e) => onWeekToChange(e.target.value)}
+                      minDate={weekFromDate}
+                      maxDate={todayLocalISODate()}
+                      onChange={onWeekToChange}
+                      className="min-w-[10.5rem]"
                     />
                   </label>
                 </div>

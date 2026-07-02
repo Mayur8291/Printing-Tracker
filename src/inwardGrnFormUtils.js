@@ -4,6 +4,7 @@ export const GRN_SIZE_KEYS = ["S", "M", "L", "XL", "XXL"];
 
 export const GRN_TYPE_APPAREL = "apparel";
 export const GRN_TYPE_FABRIC = "fabric";
+export const GRN_TYPE_OTHER = "other";
 
 function trimField(value) {
   return String(value ?? "").trim();
@@ -48,12 +49,17 @@ export function emptyGrnHeader() {
   };
 }
 
+export function emptyGrnOtherFields() {
+  return { productName: "", transportName: "" };
+}
+
 export function emptyGrnFormState(type = GRN_TYPE_APPAREL) {
   return {
     type,
     header: emptyGrnHeader(),
     boras: [emptyGrnBora()],
-    fabrics: [emptyGrnFabricLine()]
+    fabrics: [emptyGrnFabricLine()],
+    other: emptyGrnOtherFields()
   };
 }
 
@@ -107,12 +113,19 @@ export function computeGrnTotals(state) {
 
 export function buildGrnStatChips(state, totals) {
   const dash = (value) => (trimField(value) ? value : "—");
-  const isApparel = state.type === GRN_TYPE_APPAREL;
-  if (isApparel) {
+  if (state.type === GRN_TYPE_APPAREL) {
     return [
       { label: "Total Boras", value: String(totals.totalBoras), unit: "" },
       { label: "Total Products", value: String(totals.totalProducts), unit: "" },
       { label: "Total Pieces", value: String(totals.grandPieces), unit: "pcs" },
+      { label: "Storage", value: dash(state.header?.location), unit: "" }
+    ];
+  }
+  if (state.type === GRN_TYPE_OTHER) {
+    return [
+      { label: "Product", value: dash(state.other?.productName), unit: "" },
+      { label: "Transport", value: dash(state.other?.transportName), unit: "" },
+      { label: "Sender", value: dash(state.header?.supplier), unit: "" },
       { label: "Storage", value: dash(state.header?.location), unit: "" }
     ];
   }
@@ -164,13 +177,22 @@ export function serializeGrnDetail(state) {
       rolls: trimField(row.rolls),
       kgs: trimField(row.kgs),
       lot: trimField(row.lot)
-    }))
+    })),
+    other: {
+      productName: trimField(state.other?.productName),
+      transportName: trimField(state.other?.transportName)
+    }
   };
 }
 
 export function deserializeGrnDetail(detail) {
   if (!detail || typeof detail !== "object") return null;
-  const type = detail.type === GRN_TYPE_FABRIC ? GRN_TYPE_FABRIC : GRN_TYPE_APPAREL;
+  const type =
+    detail.type === GRN_TYPE_FABRIC
+      ? GRN_TYPE_FABRIC
+      : detail.type === GRN_TYPE_OTHER
+        ? GRN_TYPE_OTHER
+        : GRN_TYPE_APPAREL;
   const headerExtra = detail.header ?? {};
   const boras = Array.isArray(detail.boras) && detail.boras.length
     ? detail.boras.map((bora, index) => ({
@@ -200,6 +222,7 @@ export function deserializeGrnDetail(detail) {
         lot: row.lot ?? ""
       }))
     : [emptyGrnFabricLine()];
+  const otherRaw = detail.other ?? {};
   return {
     type,
     headerPatch: {
@@ -209,7 +232,11 @@ export function deserializeGrnDetail(detail) {
       remark: headerExtra.remark ?? ""
     },
     boras,
-    fabrics
+    fabrics,
+    other: {
+      productName: otherRaw.productName ?? "",
+      transportName: otherRaw.transportName ?? ""
+    }
   };
 }
 
@@ -231,6 +258,7 @@ export function grnFormStateFromRecord(record) {
     base.header = { ...base.header, ...detail.headerPatch };
     base.boras = detail.boras;
     base.fabrics = detail.fabrics;
+    base.other = detail.other;
   }
   return base;
 }
@@ -238,16 +266,22 @@ export function grnFormStateFromRecord(record) {
 export function validateGrnForm(state) {
   const header = state.header ?? {};
   if (!trimField(header.grnNo)) return "GRN NO. is required.";
-  if (!trimField(header.forWhom)) return "For whom is required.";
-  if (!trimField(header.supplier)) return "Supplier is required.";
+  if (!trimField(header.supplier)) {
+    return state.type === GRN_TYPE_OTHER ? "Sender name is required." : "Supplier is required.";
+  }
   if (!trimField(header.location)) return "Storage location is required.";
   if (!trimField(header.receivedBy)) return "Received by is required.";
 
   const totals = computeGrnTotals(state);
   if (state.type === GRN_TYPE_APPAREL) {
     if (totals.grandPieces <= 0) return "Enter at least one piece qty in apparel lines.";
-  } else if (totals.totalRolls <= 0 && totals.totalKgs <= 0) {
-    return "Enter rolls or weight for at least one fabric line.";
+  } else if (state.type === GRN_TYPE_FABRIC) {
+    if (totals.totalRolls <= 0 && totals.totalKgs <= 0) {
+      return "Enter rolls or weight for at least one fabric line.";
+    }
+  } else if (state.type === GRN_TYPE_OTHER) {
+    if (!trimField(state.other?.productName)) return "Product name is required.";
+    if (!trimField(state.other?.transportName)) return "Transport name is required.";
   }
   return null;
 }
@@ -256,10 +290,17 @@ export function inwardGrnToInsertPayloadFromState(state, inwardEntryId, sessionU
   const totals = computeGrnTotals(state);
   const header = state.header ?? {};
   const isApparel = state.type === GRN_TYPE_APPAREL;
-  const qtyReceived = isApparel ? String(totals.grandPieces) : totals.totalKgsDisplay;
+  const isFabric = state.type === GRN_TYPE_FABRIC;
+  const qtyReceived = isApparel
+    ? String(totals.grandPieces)
+    : isFabric
+      ? totals.totalKgsDisplay
+      : "1";
   const boraCartonUnit = isApparel
     ? String(totals.totalBoras)
-    : String(totals.fabricLines);
+    : isFabric
+      ? String(totals.fabricLines)
+      : "1";
   const sizeBreakdown = isApparel ? aggregateGrnSizeBreakdown(totals.sizeTotals) : null;
 
   return {
@@ -267,7 +308,7 @@ export function inwardGrnToInsertPayloadFromState(state, inwardEntryId, sessionU
     grn_no: trimField(header.grnNo),
     for_whom: trimField(header.forWhom),
     supplier: trimField(header.supplier),
-    invoice_no: trimField(header.invoiceNo),
+    invoice_no: state.type === GRN_TYPE_OTHER ? "" : trimField(header.invoiceNo),
     qty_received: qtyReceived,
     bora_carton_unit: boraCartonUnit,
     location_rack: trimField(header.location),

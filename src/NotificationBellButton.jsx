@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { Bell } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   countUnreadNotifications,
   fetchUserNotifications,
@@ -6,16 +10,6 @@ import {
   subscribeUserNotifications,
   writeNotificationsSeenAt
 } from "./notificationsUtils";
-
-function BellIcon() {
-  return (
-    <svg className="notification-bell-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <rect x="10.5" y="2" width="3" height="2.25" rx="1.125" />
-      <path d="M12 5.75C9.15 5.75 7 7.55 6.75 10.25V14.5L4.5 16.25V16.75H19.5V16.25L17.25 14.5V10.25C17 7.55 14.85 5.75 12 5.75Z" />
-      <path d="M12 21.5c.97 0 1.75-.78 1.75-1.75H10.25c0 .97.78 1.75 1.75 1.75z" />
-    </svg>
-  );
-}
 
 export default function NotificationBellButton({ userId, active, onOpen }) {
   const [items, setItems] = useState([]);
@@ -70,21 +64,24 @@ export default function NotificationBellButton({ userId, active, onOpen }) {
   if (!userId) return null;
 
   return (
-    <div className="notification-bell-wrap">
-      <button
-        type="button"
-        className="notification-bell-btn theme-toggle-btn theme-toggle-btn--sidebar"
-        aria-label={unreadCount ? `Notifications, ${unreadCount} unread` : "Notifications"}
-        title="Notifications"
-        onClick={handleClick}
-      >
-        <BellIcon />
-        {unreadCount > 0 ? (
-          <span className="notification-bell-badge" aria-hidden>
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        ) : null}
-      </button>
-    </div>
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className={cn("relative size-8 shrink-0 text-sidebar-foreground", active && "bg-sidebar-accent")}
+      aria-label={unreadCount ? `Notifications, ${unreadCount} unread` : "Notifications"}
+      title="Notifications"
+      onClick={handleClick}
+    >
+      <Bell className="size-4" />
+      {unreadCount > 0 ? (
+        <Badge
+          variant="destructive"
+          className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]"
+        >
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </Badge>
+      ) : null}
+    </Button>
   );
 }

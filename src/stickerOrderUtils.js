@@ -17,6 +17,20 @@ export function isStickerOrder(order) {
   return (order?.order_kind ?? "printing") === "sticker";
 }
 
+export function isSamplingOrder(order) {
+  return (order?.order_kind ?? "printing") === "sampling";
+}
+
+export function isCompactPrintingOrder(order) {
+  return isStickerOrder(order) || isSamplingOrder(order);
+}
+
+export function compactPrintingOrderLabel(order) {
+  if (isStickerOrder(order)) return "Sticker order";
+  if (isSamplingOrder(order)) return "Sampling order";
+  return null;
+}
+
 export function isAllowedStickerAsset(file) {
   if (!file?.name) return false;
   const ext = String(file.name).split(".").pop()?.toLowerCase();
@@ -40,7 +54,7 @@ export function stickerStageLabel(status) {
 }
 
 export function stageLabelForOrder(order, status) {
-  if (isStickerOrder(order)) {
+  if (isCompactPrintingOrder(order)) {
     return STICKER_STAGE_LABEL[status] ?? STAGE_LABEL[status] ?? status ?? "—";
   }
   return STAGE_LABEL[status] ?? status ?? "—";
@@ -49,6 +63,8 @@ export function stageLabelForOrder(order, status) {
 export function stickerStatusOptions(isAdmin) {
   return isAdmin ? null : STICKER_STAGES;
 }
+
+export const compactPrintingStatusOptions = stickerStatusOptions;
 
 export const emptyStickerOrderForm = () => ({
   customer_name: "",

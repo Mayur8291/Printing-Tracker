@@ -1,5 +1,425 @@
 # Changelog
 
+## 2026-06-25 — Production tracker: Pets uses standard size grid
+
+- **Issue:** Pets gender lost normal XXS–8XL quantity inputs.
+- **Fix:** When gender is **Pets**, size grid uses standard alpha columns (XXS–8XL) with qty inputs like before; product type and size type dropdowns hidden. Additional sizes still available.
+- **Files:** `jobSheetUtils.js`, `CreateJobSheetForm.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Production tracker: fixed product type list
+
+- **Fix:** Product type dropdown now uses fixed list: Denim Pant, Hoodies, Jacket, Polo, Round Neck, Shirt, Shorts, Skirts, Trackpant, V Neck (filtered by gender). Kids Polos maps to Polo; trackpants normalize to Trackpant. Pets gender skips product type.
+- **Files:** `jobSheetSizeTypeConfig.js`, `CreateJobSheetForm.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md, README.md.
+
+## 2026-06-25 — Production tracker: gender + product type dropdowns
+
+- **Issue:** Job sheet only had size type; no separate gender or product type fields.
+- **Fix:** Added **Gender** (Kids / Women / Men / Pets) and **Product type** (Shorts, Polo, Hoodies, etc.) dropdowns before size type. Options filter by selection; size type list narrows to matching style from size set helper. Saved on `orders.gender` and `orders.product_type`.
+- **Migration:** `20260709120000_add_job_sheet_gender_product_type.sql`
+- **Files:** `CreateJobSheetForm.jsx`, `jobSheetSizeTypeConfig.js`, `jobSheetUtils.js`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md, README.md, schema.sql.
+
+## 2026-06-25 — Production tracker: size types from size set helper sheet
+
+- **Issue:** Job sheet size type dropdown used generic options (Alpha/Numeric/Free/Custom) with no per-style size templates.
+- **Reason:** `JOB_SHEET_SIZE_TYPES` was hard-coded placeholders; Excel **size set helper** defines 25 product styles with template numbers/labels beside each size (not quantities).
+- **Fix:** New `jobSheetSizeTypeConfig.js` with all styles from the sheet (Kids Shorts, Men Polo, Kids Polos age ranges, etc.). Selecting size type loads the correct column set; headers show **size · template** (e.g. `M · 32`, `XXS · 0-2 Yrs`). Quantity inputs stay separate below each header.
+- **Files:** `jobSheetSizeTypeConfig.js` (new), `jobSheetUtils.js`, `CreateJobSheetForm.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md, README.md.
+
+## 2026-06-25 — SKU management: parent/sub SKUs save to inventory
+
+- **Issue:** Adding parent or sub SKU in SKU management did not show up in the main inventory list.
+- **Reason:** Parent-only rows live in `inventory_style_parents` (not stock records). Sub SKU flow opened a separate modal without calling `createSku` inline, and empty parents were omitted from the apparel grouped table.
+- **Fix:** **Add sub SKU** now opens `AddSubSkuDialog` that calls `createSku` and writes to `inventory_skus`. After **Add parent SKU**, first sub SKU dialog opens automatically. Apparel list merges empty parent styles so new groups appear before variants exist.
+- **Files:** `AddSubSkuDialog.jsx` (new), `SkuManagementModal.jsx`, `InventoryListPage.jsx`, `InventoryDashboard.jsx`, `inventorySkuGrouping.js`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Inventory: SKU management panel
+
+- **Issue:** No dedicated UI to browse parent styles, view sub SKUs, or add parent/sub SKUs outside the create-style flow.
+- **Fix:** **SKU management** button on inventory list toolbar opens a dialog with parent SKU list (left), sub SKU table on parent click (right), **Add parent SKU** inline form, and **Add sub SKU** opens create modal locked to selected parent.
+- **Files:** `SkuManagementModal.jsx` (new), `InventoryListPage.jsx`, `InventoryDashboard.jsx`, `InventoryDataContext.jsx` (`createStyleParent`), `NewSkuModal.jsx` (`initialParent`), `inventorySkuGrouping.js`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Inventory tables: true shadcn styling + inline DOC/DRR
+
+- **Issue:** Inventory list still looked legacy — blue gradient table headers, blue cell borders, static DOC/DRR numbers.
+- **Reason:** Global `styles.css` rules targeted all `th`/`td` (blue gradient headers). Shadcn `Table` had no isolation marker.
+- **Fix:** `data-shadcn-table` on shadcn Table + CSS isolation in `index.css` and scoped legacy rules in `styles.css`. Reorder/DOC/DRR columns use shadcn `Input` (`SkuMetricInput`) with save on blur. Toolbar/card use shadcn tokens.
+- **Files:** `table.jsx`, `index.css`, `styles.css`, `InventoryListPage.jsx`, `SkuMetricInput.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Inventory UI: remove Lucide icons
+
+- **Issue:** Inventory module still used Lucide icons in nav, tables, modals — not aligned with shadcn-only UI policy.
+- **Fix:** Removed all `lucide-react` imports under `src/inventory/`; buttons use text labels, shadcn `Alert`/`Badge`/`MovementTypeBadge`, and text sort/expand indicators.
+- **Files:** All inventory pages, modals, `InventorySubNav.jsx`, `inventoryUiUtils.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Inventory: parent SKU groups, pricing, DOC & DRR
+
+- **Issue:** SKUs were flat list only; no parent/sub style grouping; pricing limited to apparel retail; no DOC/DRR fields.
+- **Fix:** New `inventory_style_parents` table; SKUs link via `parent_style_id`. Create apparel style: choose **new parent** or **existing parent** + sub SKU code. Per-SKU **unit cost + sale price** for all kinds. **Reorder**, **DOC** (days of cover), **DRR** (daily run rate) on create and in SKU drawer. Apparel list groups variants under expandable parent rows.
+- **Migration:** `20260708120000_inventory_sku_parent_pricing_doc_drr.sql`
+- **Files:** `inventoryDbUtils.js`, `InventoryDataContext.jsx`, `NewSkuModal.jsx`, `InventoryListPage.jsx`, `SkuDrawer.jsx`, `inventorySkuGrouping.js`, migration.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md.
+
+## 2026-06-25 — Live sync: printing product picker ↔ inventory SKUs
+
+- **Issue:** New inventory SKUs did not appear in Create printing order product list until page reload.
+- **Fix:** Supabase Realtime on `inventory_skus`; debounced silent refetch updates printing product picker and inventory tab when SKUs are added/updated/deleted.
+- **Migration:** `20260707120000_inventory_skus_realtime.sql` (add table to `supabase_realtime` publication).
+- **Files:** `App.jsx`, `InventoryDataContext.jsx`, migration.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Fix printing product picker missing SKUs
+
+- **Issue:** Product name dropdown did not show all inventory SKUs.
+- **Reason:** Single Supabase query capped at default row limit; shadcn `Select` viewport height matched trigger (one row visible, poor scroll).
+- **Fix:** Paginated fetch for all SKUs; searchable scrollable Popover combobox with SKU code + name + color; global Select viewport scroll fix.
+- **Files:** `PrintingOrderProductField.jsx`, `inventoryProductPickerUtils.js`, `select.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Printing order product picker from inventory
+
+- **Issue:** Create printing order used free-text product name; colors picked manually.
+- **Fix:** Product name is shadcn select from inventory SKUs (Apparel, Fabrics, Trims groups) plus **Custom** for manual entry. Picking inventory product auto-fills Colors from SKU hex/name.
+- **Files:** `PrintingOrderProductField.jsx`, `inventoryProductPickerUtils.js`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Keep production block after job sheet save
+
+- **Issue:** After saving job sheet from create printing order form, production section reset (Production = No, handover cleared) — no confirmation.
+- **Reason:** `handleCreateJobSheet` cleared `is_production_order` and handover on success.
+- **Fix:** Keep Production order Yes/No and handover date visible; show green shadcn **Job sheet created** alert with order #; hide Create job sheet button after success; final printing order still saves as printing-only when job sheet already created.
+- **Files:** `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Admin empty dropdown: add & use inline
+
+- **Issue:** Master-list dropdowns (owners, coordinators, sales incharges, inventory suppliers/warehouses) were empty with no way to add an entry in place.
+- **Reason:** Admin had to leave the form and use Admin Panel master toolbar separately.
+- **Fix:** New shadcn `MasterListSelectField` — when options are empty and user is admin, shows name input + **Add & use**; saves to DB, refreshes list, auto-selects. Wired to create order (owner/coordinator), job sheet (sales incharge), order detail, repeat template, inventory SKU/PO modals.
+- **Files:** `MasterListSelectField.jsx`, `App.jsx`, `OrderDetailPanel.jsx`, `CreateJobSheetForm.jsx`, `InventoryDataContext.jsx`, `inventoryMasterQuickAdd.js`, `NewSkuModal.jsx`, `CreatePOModal.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Create job sheet from printing order form (handover row)
+
+- **Issue:** User wanted **Create job sheet** beside the handover date in Create New Order (Production order = Yes), not in the order list rows.
+- **Reason:** Prior change put the button on each list row; correct UX is inline on the production handover field while creating a printing order.
+- **Fix:** shadcn **Create job sheet** button next to handover `DatePicker`. Opens job sheet form pre-filled from current printing form. On save: job sheet → Production Tracker; printing form resets to **Production order: No** so saved printing order is regular only. Row-level list buttons removed.
+- **Files:** `App.jsx`, `jobSheetUtils.js`, `OrderViewActionCell.jsx`, `styles.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — shadcn-only UI standard + blank-screen gate
+
+- **Policy:** All new and migrated UI must use shadcn components only (no legacy buttons/inputs/modals).
+- **Pre-build gate:** Before finalizing UI work — run `npm run build`, verify imports in changed files, check dev terminal for HMR/JSX errors, confirm app loads (no blank screen).
+- **Files:** `.cursor/rules/shadcn-ui-only.mdc`, `docs/DEBUGGING.md`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-06-25 — Fix blank screen after View Order Dialog change
+
+- **Issue:** App showed blank white screen on load.
+- **Reason:** `CreateOrderModal` import was accidentally removed from `App.jsx` when adding shadcn `Dialog` for View Order; React crashed with `ReferenceError: CreateOrderModal is not defined`.
+- **Fix:** Restored `import CreateOrderModal from "./components/orders/CreateOrderModal"`.
+- **Files:** `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — View order modal shadcn UI
+
+- **Issue:** View order modal had mismatched legacy buttons (purple Mark complete, red Delete, plain Save) and form controls that did not match shadcn dark theme.
+- **Reason:** `OrderDetailPanel` still used legacy CSS classes (`btn-mark-complete`, `danger-btn`, `order-detail-control`, `status-pill`) inside old modal shell.
+- **Fix:** Migrated panel to shadcn `Button`, `Input`, `Select`, `Textarea`, `Checkbox`, `Badge`, `OrderStatusBadge`, and `DatePicker`. Wrapped modal in shadcn `Dialog`. Footer actions use proper variants: outline / default / secondary / destructive.
+- **Files:** `OrderDetailPanel.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Prevent duplicate order saves + pending row loader
+
+- **Issue:** Orders sometimes saved multiple times on double-submit; form stayed open during long uploads; no in-list feedback while saving.
+- **Reason:** Regular create-order handler had no submit lock or `saving` state; async upload+insert allowed repeated clicks. Other forms closed only after save finished.
+- **Fix:** Global `orderSubmitLockRef` blocks concurrent submits across all order forms. After validation, form closes immediately, optimistic pending row appears at top of Printing / Production Tracker lists with shadcn `Loader2` spinner instead of “View order”; pending clears after insert + refresh. Added `savingOrder` on main create form submit button.
+- **Files:** `App.jsx`, `OrderViewActionCell.jsx`, `orderPendingUtils.js`, `LinkedOrdersTabPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Global search dropdown scroll
+
+- **Issue:** Global search results list would not scroll; wheel moved the dashboard behind the dropdown instead.
+- **Reason:** `ScrollArea` with only `max-h-72` never got a fixed height (Radix viewport stayed full content height). Dropdown also lived inside `overflow-hidden` shell without portal, so wheel events bubbled to `[data-dashboard-scroll]`.
+- **Fix:** Render results in shadcn `PopoverContent` (portals to body). Replaced `ScrollArea` with native `overflow-y-auto max-h-72` and `overscroll-contain`; stop wheel propagation at list edges. Header set `overflow-visible`.
+- **Files:** `GlobalSearchBox.jsx`, `DashboardShell.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Printing, Billing, Production Tracker shadcn UI
+
+- **Issue:** Printing, Billing, and Production Tracker still showed legacy blue summary bar, bordered tables, status pills, and native tab buttons.
+- **Reason:** Those panels used old CSS classes (`orders-processed-summary`, `orders-table-compact`, `status-pill`, `orders-tab`) inside `.legacy-ui`; global `table`/`th`/`td` rules overrode shadcn styling.
+- **Fix:** Migrated all three areas to shadcn `Card` summary, `Table`, `Badge`, `Tabs`, `Button`, `Skeleton`. Shared components: `OrdersListSummary`, `OrderStatusBadge`, `OrderIdBadges`, `orderTableUtils`. Added `data-orders-table` CSS isolation from legacy global table rules.
+- **Files:** `BillingTabPanel.jsx`, `LinkedOrdersTabPanel.jsx`, `PrintingDepartmentPanel.jsx`, `App.jsx`, new order components under `components/orders/`, `index.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Admin edit user modal shadcn UI
+
+- **Issue:** Edit user access modal had broken layout — huge misaligned checkboxes and floating labels in Order & sidebar access.
+- **Reason:** Modal lived inside `.legacy-ui`; global rule styled all `input` as full-width `h-9` text fields, including native checkboxes. Legacy CSS grid fought shadcn components.
+- **Fix:** Rebuilt `ViewerUserEditModal` with shadcn `Dialog`, `Input`, `Label`, `Select`, `Switch`, `Button`. Extracted `OrderFieldPermissionFields` with shadcn `Checkbox` grid. Refreshed `SidebarTabPermissionFields` with Tailwind table layout. Create-user permissions in `App.jsx` use same component. Legacy input rule excludes checkbox/radio/file types.
+- **Files:** `ViewerUserEditModal.jsx`, `OrderFieldPermissionFields.jsx`, `SidebarTabPermissionFields.jsx`, `App.jsx`, `index.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Calendar date hover highlight
+
+- **Issue:** Hovering calendar dates did not show the rounded highlight box like shadcn reference.
+- **Reason:** Calendar override CSS reset cell/button backgrounds without hover rules; day button missed explicit `hover:bg-accent` and used wrong `rdp-day` class key.
+- **Fix:** Restored shadcn day-button hover/focus/selected classes; CSS adds `hover` accent background on `button[data-day]`; `today` cell no longer forced transparent; DatePicker calendar uses `rounded-md border shadow-sm` per shadcn demo.
+- **Files:** `calendar.jsx`, `date-picker.jsx`, `index.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Fix calendar size (global table CSS)
+
+- **Issue:** Calendar still huge with bordered cells — not matching compact shadcn reference.
+- **Reason:** Global `styles.css` rules `table { min-width: 1120px }` and `th, td { border; padding: 8px }` applied to react-day-picker's `table.rdp-month_grid`, blowing up the popover to full dashboard width.
+- **Fix:** Scoped dashboard table rules to exclude `.rdp-month_grid` / `.rdp-weekday` / `.rdp-day`. Added calendar-specific resets in `index.css` (14rem / 2rem cells). Day buttons fixed to `h-8 w-8` without `w-full`.
+- **Files:** `styles.css`, `index.css`, `calendar.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Fix calendar overlap / detached caption
+
+- **Issue:** Calendar popover huge; month/year caption floated away from grid and overlapped action buttons.
+- **Reason:** `react-day-picker` nav is `position: absolute` across full `.rdp-months` width — when months container expanded, prev/next/caption split apart. Legacy CSS could also inflate dropdown `select` elements.
+- **Fix:** Restored official shadcn `Calendar` with fixed month width (`7 × --cell-size`), `w-fit` months container, `navLayout` default overlay, `DatePicker` popover `z-[200]` + `className="rounded-lg border"`. CSS isolates calendar dropdown selects and popper stacking.
+- **Files:** `calendar.jsx`, `date-picker.jsx`, `index.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Compact shadcn calendar everywhere
+
+- **Issue:** Date picker calendar grid was huge — cells stretched across full dashboard width instead of compact shadcn popover.
+- **Reason:** Calendar month/week used `w-full` + `flex-1` without fixed cell width, so popover expanded to viewport; legacy global button min-heights could also inflate day cells.
+- **Fix:** Calendar uses fixed `--cell-size: 2rem` and `w-fit` grid; `DatePicker` compact format (`MMM d, yyyy`), dropdown caption, `minDate`/`maxDate` support. CSS isolates `[data-slot="calendar"]` from legacy styles. Replaced remaining native `type="date"` inputs with `DatePicker` in order detail, dealer report, contact book, inward GRN, and order templates.
+- **Files:** `calendar.jsx`, `date-picker.jsx`, `index.css`, `OrderDetailPanel.jsx`, `DealerReportPanel.jsx`, `ContactBookPanel.jsx`, `InwardGrnEntryPage.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Fix dashboard scroll (shadcn shell, pass 2)
+
+- **Issue:** Scroll still stuck after first fix — inventory table and other tabs would not scroll.
+- **Reason:** Flex chain broken at multiple points: `App.jsx` inner wrapper missing `min-h-0`; `InventoryDashboard` fragment broke flex; Radix `ScrollArea` used without height (expands to full content); `h-full` chain unreliable without `html/body/#root` height lock.
+- **Fix:** Shell uses explicit `h-svh` on provider; scroll region tagged `[data-dashboard-scroll]`. Full flex chain with `min-h-0` from shell → inventory panel → list table (`overflow-y-auto`). Replaced broken `ScrollArea` with native overflow on inventory table. `html/body/#root` height + overflow lock so inner regions scroll.
+- **Files:** `DashboardShell.jsx`, `App.jsx`, `InventoryTabPanel.jsx`, `InventoryDataContext.jsx`, `InventoryDashboard.jsx`, `InventorySubNav.jsx`, `InventoryListPage.jsx`, `index.css`, `responsive-desktop.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Fix dashboard scroll (shadcn shell)
+
+- **Issue:** Could not scroll anywhere — inventory table and other tabs clipped with no scrollbar.
+- **Reason:** Desktop CSS locks `.page.app-layout` to `100dvh` + `overflow: hidden` (old layout scrolled inside `.dashboard-main`). After shadcn `SidebarProvider` / `SidebarInset` migration, no inner region had `overflow-y: auto` or a bounded flex height chain.
+- **Fix:** `DashboardShell` — provider/inset use `h-full min-h-0 overflow-hidden`; main content area gets `flex-1 overflow-y-auto` (full-bleed tabs scroll inside their panel). `App.jsx` page wrapper is flex column `h-svh`. Inventory + asset panels use `flex-1 min-h-0` instead of fixed `calc(100vh…)` heights. Desktop CSS targets shadcn sidebar wrapper.
+- **Files:** `DashboardShell.jsx`, `App.jsx`, `InventoryTabPanel.jsx`, `InventoryDashboard.jsx`, `AssetManagementPanel.jsx`, `responsive-desktop.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Team chat shadcn UI
+
+- **Issue:** Team chat used legacy panel CSS, native buttons/textarea, and emoji popover styling inconsistent with shadcn migration.
+- **Fix:** Rebuilt `TeamChatPanel` with shadcn `Card`, `ScrollArea`, `PersonAvatar`, `Textarea`, `Button`, `Badge`, `Popover`, `Alert`, `Separator`. Message bubbles with own/other styling; Lucide toolbar icons. Team directory RPC + fallback query include `avatar_path`.
+- **Migration:** `20260706130000_team_chat_directory_avatars.sql` (drops + recreates RPC — Postgres cannot change return type with `CREATE OR REPLACE` alone).
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Fix skewed avatars
+
+- **Issue:** Profile photos in admin user table (and contact cards) looked stretched or oval.
+- **Reason:** `AvatarImage` lacked `object-cover`; table cells and legacy 72×72 contact photo box squashed non-square containers.
+- **Fix:** Shadcn avatar uses `object-cover` + `aspect-square`; fixed-width avatar table column; contact card photo wrapper no longer forces rectangle clip over round avatar.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Admin action button icon size
+
+- **Issue:** Edit/delete icons in admin user & master directory tables looked too small inside their buttons.
+- **Reason:** Legacy CSS forced 28×28px buttons with 15×15px SVGs.
+- **Fix:** Replaced with shadcn `Button` (`size="icon"`, 36px) + Lucide `Pencil`/`Trash2` at 18px. Removed overly tight admin CSS overrides.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Fix blank admin panel
+
+- **Issue:** Admin tab showed blank screen on open.
+- **Reason:** `OrdersPerPageControl` used in admin user list footer but removed from `App.jsx` imports during pagination refactor — runtime `ReferenceError` crashed the panel.
+- **Fix:** Restored `OrdersPerPageControl` import in `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Profile & contact avatars (shadcn)
+
+- **Issue:** Contacts had photo upload but legacy image UI; dashboard users had no avatar field or picker.
+- **Fix:** Added `profiles.avatar_path` + `profile-avatars` storage bucket. Shared `PersonAvatar`, `AvatarUploadField`, and `avatarUtils`. Contact Book uses shadcn avatars for cards and upload. Admin user create/edit and sidebar footer show profile photos with initials fallback.
+- **Migration:** `supabase/migrations/20260706120000_add_profile_avatars.sql`
+- **Files:** `src/avatarUtils.js`, `src/components/ui/person-avatar.jsx`, `avatar-upload-field.jsx`, `ContactBookPanel.jsx`, `ViewerUserEditModal.jsx`, `App.jsx`, sidebar layout, `supabase/schema.sql`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Broad shadcn UI migration (orders, printing, reports)
+
+- **Issue:** Many screens still used legacy HTML buttons, native date inputs, and `modal-backdrop` panels while shadcn components were installed but unused in key flows.
+- **Fix:** Rolled shadcn across high-traffic areas using installed components (`Button`, `Input`, `Label`, `Select`, `Textarea`, `Checkbox`, `Dialog`, `Table`, `Alert`, `DatePicker`, `Calendar`, `Popover`).
+- **New shared:** `OrdersListFilters.jsx` — date range, search, per-page for order tabs.
+- **Migrated:** Order pagination; printing orders filters + create actions (`App.jsx`); job sheet & sticker/sampling forms; billing/dispatch/linked order filters; product revenue toolbar; coordinator report toolbar; printing dept inventory/utilization modals & actions; admin sidebar tab permissions (`Checkbox`).
+- **Still legacy (next pass):** `App.jsx` inline create-order printing form, `OrderDetailPanel`, `ViewerUserEditModal`, inward/GRN modals, `ContactBookPanel`, `MockupStudio`, `dropdown-menu` / `Switch` not yet wired.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Shadcn Calendar date pickers
+
+- **Issue:** Create order and inventory forms used native `<input type="date">` — inconsistent with shadcn UI and poor month/year navigation.
+- **Fix:** Added shadcn `Calendar`, `Popover`, and `DatePicker` wrapper (`mode="single"`, `captionLayout="dropdown"`, `className="rounded-lg border"` per reference). Replaced date inputs in create order modal, job sheet, sticker/sampling forms, and inventory PO modal.
+- **Dependencies:** `react-day-picker`, `date-fns`, `@radix-ui/react-popover`.
+- **Files:** `src/components/ui/calendar.jsx`, `popover.jsx`, `date-picker.jsx`, `src/App.jsx`, `src/CreateJobSheetForm.jsx`, `src/CreateStickerOrderForm.jsx`, `src/inventory/modals/CreatePOModal.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Create order Save/Cancel button styles
+
+- **Issue:** Custom `formCancel` / `formSave` variants used heavy solid dark fills instead of standard shadcn button styling.
+- **Fix:** Cancel uses shadcn `variant="destructive"` (standard destructive token). Save uses new outline `success` variant — green border/text, transparent background (not solid).
+- **Files:** `src/components/ui/button.jsx`, `src/App.jsx`, `src/CreateJobSheetForm.jsx`, `src/CreateStickerOrderForm.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Create order modal shadcn UI
+
+- **Issue:** Create New Order modal used legacy backdrop/panel CSS; bare `select`/`input` elements broke the 3-column grid; mixed heights, blue accents, and misaligned footer buttons in dark mode.
+- **Fix:** Replaced custom modal with shadcn `Dialog` (`CreateOrderModal.jsx`). Main printing form, job sheet, and sticker/sampling forms use unified `.create-order-form` grid with shadcn input/select/textarea tokens. Wrapped orphan Owner/Customer/Coordinator/Printing Mtrs fields in labeled cells. Save/Cancel use shadcn `Button` (right-aligned).
+- **Files:** `src/components/orders/CreateOrderModal.jsx` (new), `src/App.jsx`, `src/CreateJobSheetForm.jsx`, `src/CreateStickerOrderForm.jsx`, `src/index.css`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Sidebar brand logo slow spin
+
+- **Feature:** Dashboard sidebar brand logo rotates slowly (14s per revolution) with `transform-origin: center` so spin pivots on the image midpoint. Respects `prefers-reduced-motion`.
+- **Files:** `tailwind.config.js`, `src/components/layout/DashboardAppSidebar.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Home status cards spacing (shadcn grid)
+
+- **Issue:** 11 status cards used `auto-fill` / 6-column legacy grid → uneven gaps (8+3 rows) and misaligned header vs card grid.
+- **Fix:** New `HomeStatusPanel` with shadcn `Card` + responsive grid (`2→3→4→5→6` columns, max 6 on xl) for balanced 6+5 layout; consistent `gap-3`; header title and refresh row aligned with grid width.
+- **Files:** `src/components/home/HomeStatusPanel.jsx` (new), `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Topbar and home dashboard alignment
+
+- **Topbar:** Replaced fixed `h-14` header with flexible two-row layout on narrow viewports — search + Archive/Logout stay on one row with proper padding; no overlap with bottom border.
+- **Search:** `GlobalSearchBox` accepts `className`; flexes in toolbar with `shrink-0` action buttons.
+- **Home status grid:** `auto-fill` minmax grid for even card spacing; equal card heights; consistent section gaps.
+- **Report toolbar:** Coordinator report filter segments use shadcn-neutral borders/spacing (no blue active gradient).
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Sidebar logo alignment when collapsed
+
+- **Issue:** Collapsing the sidebar to icon mode squished the brand logo — header kept `p-4` padding while rail width is only 48px.
+- **Fix:** Rebuilt sidebar header with shadcn `SidebarMenuButton size="lg"` brand pattern; logo in fixed `aspect-square size-8` container with `object-contain` and `shrink-0`. Text hides in icon mode via `group-data-[collapsible=icon]:hidden`.
+- **Footer:** Hide notification/theme controls when collapsed; center avatar; hide "Soon" badges in icon mode.
+- **Topbar:** Tighter header alignment (`shrink-0` on trigger/actions, separator hidden on very small widths).
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Neutral zinc dark theme + sidebar tab icons
+
+- **Theme:** Switched design tokens from blue/slate palette to standard shadcn **zinc** (black/gray only in dark mode). Updated `components.json` `baseColor` to `zinc`.
+- **Dark mode:** `--primary` is white-on-black; borders/inputs/muted use gray steps; no blue ring or accent colors.
+- **Legacy admin panel:** Neutral overrides for create-user form, master view tabs, and status-tone toggle (removed indigo/blue active states).
+- **Sidebar:** Restored Lucide icons beside each tab (shadcn default icon library). Inventory sub-nav icons restored too.
+- **Shell:** Main content area uses `bg-background` (pure black in dark) instead of tinted muted blue.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Fix shadcn CSS conflicts, dark mode, sidebar icons
+
+- **Issue:** Legacy `styles.css` applied blue gradient to all native `<button>` elements, removed focus rings globally, and `html.theme-dark body` overrode shadcn dark tokens — shadcn Button/Input looked broken or mismatched.
+- **Fix:** Scoped global button styles and focus/box-shadow resets to `.legacy-ui` only; added `index.css` overrides so `body` uses shadcn `--background` / `--foreground` in light and dark; synced legacy CSS vars to shadcn tokens under `html.dark`.
+- **Sidebar tokens:** Light mode sidebar now uses standard shadcn light sidebar palette (was incorrectly dark in light mode).
+- **Sidebar nav:** Removed Lucide icon imports from `DashboardAppSidebar` and `InventorySubNav` — text-only shadcn `SidebarMenuButton` / `Button` items.
+- **Shell controls:** `ThemeToggleButton` and `NotificationBellButton` now shadcn `Button` + `Badge` (no legacy gradient buttons in sidebar footer).
+- **SidebarTrigger:** Replaced Lucide `PanelLeft` with text toggle in shadcn sidebar component.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Global search + legacy shadcn bridge
+
+- **GlobalSearchBox:** Rewrote with shadcn `Input`, `Badge`, `ScrollArea`, Lucide `Search` icon — dropdown uses popover tokens.
+- **Legacy bridge:** Expanded `src/index.css` `.legacy-ui` overrides so panels, tables, inputs, buttons, modals, and banners use shadcn design tokens (colors, borders, shadows) until each tab is fully migrated.
+- **App banners:** Profile error, dev production warning, and master-table warnings now use shadcn `Alert` instead of `.panel` divs.
+- **Tab scoping:** Inventory tab removed from `.legacy-ui` wrapper (full shadcn module); `fullBleed` shell for inventory + asset management.
+- **Build fix:** `InventoryDashboard.jsx` return wrapped in fragment after layout refactor.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Inventory module full shadcn migration
+
+- **UI rewrite:** Migrated all inventory pages, modals, and drawer from legacy `inventory.css` class names to shadcn/ui + Tailwind + Lucide icons.
+- **Pages:** `InventoryOverview`, `InventoryListPage`, `InventoryAlertsPage`, `InventoryMovementsPage`, `InventoryPurchaseOrdersPage`, `InventorySuppliersPage`, `InventoryWarehousesPage` — Card/Table/Tabs/Badge patterns, shared `PageHeader` and status badges via `inventoryUiUtils.jsx`.
+- **Modals/drawer:** `SkuDrawer` (Sheet), `AdjustStockModal`, `CreatePOModal`, `NewSkuModal`, `ImportSkusModal`, `NewSupplierModal`, `NewWarehouseModal`, `InventoryThresholdSettingsModal` — Dialog/Sheet with Input, Label, Select, Checkbox, Textarea.
+- **Dashboard:** Toast stack in `InventoryDashboard.jsx` now Tailwind-styled with Lucide check icon.
+- **Bug fix:** `CreatePOModal` PO number draft used undefined `POS` — now uses `pos.length` from context.
+- **Preserved:** All business logic, hooks, callbacks, and data context unchanged.
+- **Files:** `src/inventory/inventoryUiUtils.jsx` (new), all inventory pages/modals above, `InventoryDashboard.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Asset Management full shadcn rewrite
+
+- **UI Rewrite:** Replaced `src/AssetManagementPanel.jsx` inline `css()`/`SCOPED_CSS` prototype styling with full shadcn/Tailwind layout and components.
+- **Navigation/Layout:** Added shadcn-style sidebar nav (`bg-sidebar` + ghost/default `Button` inside `ScrollArea`), required root layout (`h-[calc(100vh-3.5rem)]`), and new header with search + scan/new actions.
+- **Screens:** Migrated dashboard stats, assets table, detail page, add asset form, label settings, audit log, and scanner to `Card`, `Table`, `Badge`, `Select`, `Alert`, `Separator`, `Textarea`, and `Dialog`.
+- **Behavior preserved:** Kept all asset business logic intact (state flow, user fetch from Supabase, assign/check-in/out, save asset, label preview/print, auto-tag generation, filters, admin settings).
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-28 — Shadcn UI foundation + dashboard shell redesign
+
+- **Foundation:** Added Tailwind CSS 3, PostCSS, and shadcn/ui (`components.json`, `src/index.css` design tokens, `@/` path alias in Vite). Installed core shadcn components: button, card, input, label, badge, select, table, tabs, dialog, sidebar, sheet, avatar, scroll-area, dropdown-menu, tooltip, separator.
+- **Login:** Replaced legacy auth card with shadcn `LoginPage` (Card + Input + Button).
+- **Dashboard shell:** Replaced custom `dashboard-sidebar` / topbar markup with shadcn `SidebarProvider` + `DashboardAppSidebar` + `DashboardShell` (collapsible sidebar, sticky header, SidebarTrigger). Dark mode syncs both `theme-dark` and shadcn `dark` class on `<html>`.
+- **Asset Management:** Header actions migrated to shadcn Button/Input; layout uses Tailwind utility classes for full-bleed within the new shell.
+- **Note:** Tab content (orders, inventory, billing, etc.) still uses existing CSS — migrate module-by-module next.
+- **Files:** `package.json`, `vite.config.js`, `tailwind.config.js`, `postcss.config.js`, `components.json`, `jsconfig.json`, `src/index.css`, `src/lib/utils.js`, `src/components/ui/*`, `src/components/layout/*`, `src/components/auth/LoginPage.jsx`, `src/App.jsx`, `src/main.jsx`, `src/AssetManagementPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Asset Management: admin label layout settings
+
+- **Feature:** Admins get **Label settings** in the Asset Management sidebar (ADMIN section). Configure four label slots: above barcode line 1 & 2, below barcode line 1 & 2. Each slot maps to an asset field (name, tag, category, serial, manufacturer, location, assignee, category·serial, or hidden).
+- **Print:** `assetLabelPrint.js` now renders labels from saved settings instead of hardcoded name/meta/tag/location. Barcode still always encodes the asset tag (CODE128).
+- **Persistence:** Settings saved in browser `localStorage` (`scott-asset-label-settings`) via `src/assetLabelSettings.js`; live preview on settings page and Add asset form; **Print sample label** uses current draft before save.
+- **Files:** `src/assetLabelSettings.js` (new), `src/assetLabelPrint.js`, `src/AssetManagementPanel.jsx`, `src/App.jsx` (`isAdmin` prop).
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Asset Management: auto tags, user assignment, sidebar Soon removed
+
+- **Removed:** `laptop.jpg` placeholder image on asset detail header.
+- **Auto tag IDs:** Manual tag suffix input removed. New assets get sequential tags (`IT-00001`, `IT-00002`, …) via `generateNextAssetTag()` in `src/assetTagUtils.js`; preview shows read-only auto-generated ID.
+- **User assignment:** Assignee picker loads active users from `profiles` (`viewer` + `admin` roles — same pool as admin-created users). Add-asset **Assigned to** is a dropdown; unassigned assets on detail show **Assign asset** UI; check-out modal assigns a selected user; check-in clears assignment and marks asset Available.
+- **Sidebar:** Removed **Soon** badge from Asset Management tab (`asset_management` dropped from `DASHBOARD_SIDEBAR_SOON_TAB_IDS`).
+- **Files:** `src/AssetManagementPanel.jsx`, `src/assetTagUtils.js` (new), `src/dashboardSidebarConfig.js`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Asset Management: scannable 4×6 cm labels + location field
+
+- **Feature (barcode):** Replaced decorative barcode stripes with real **CODE128** barcodes via `jsbarcode` (same stack as inward GRN labels). Preview on Add asset and Asset detail; **Print label** opens a print window sized **4 cm × 6 cm** with scannable bars, asset tag, name, serial, category, and location.
+- **Files (new):** `src/assetLabelBarcode.js`, `src/assetLabelPrint.js`.
+- **Change (location):** Renamed form field **Home location** → **Location**. Dropdown options are now only **Ground floor** and **4th floor IT room** (default: Ground floor). Detail specs and assignment panel read live `detail.location`.
+- **Files:** `src/AssetManagementPanel.jsx`, `src/assetLabelBarcode.js`, `src/assetLabelPrint.js`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Asset Management: working Add form + functional filters
+
+- **Fix (add asset):** "Save asset" now actually creates the asset. The Add form is fully controlled via a `form` state object; on save it builds an asset (status derived from whether "Assigned to" is set) and prepends it to a new `rawAssets` state list, then resets the form and bumps the tag suffix. Previously the inputs were uncontrolled (`defaultValue`) and Save merely navigated, so nothing persisted. Category/Home location are now `<select>` dropdowns.
+- **Fix (filters):** Filter chips were static with no handlers. They now drive an `activeFilter` state and filter the table (`filteredAssets`). Removed the **Available** and **Laptops** chips; remaining `All assets` / `Checked out` / `Maintenance` work as status filters. Subtitle and dashboard stat cards/subtitle now show live counts.
+- **Note:** Asset data is in-component React state only — it is **not** persisted to a backend yet, so it resets on refresh/tab change.
+- **Files:** `src/AssetManagementPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Asset Management tab starts blank (no demo data)
+
+- **Change:** Removed all seeded demo data from `AssetManagementPanel` so the tab opens empty until wired to a backend. Emptied `RAW_ASSETS`, `STATS` values (now `0`), `CATEGORIES`, `STATUS_DIST`, `ACTIVITY`, `ATTENTION`, `HISTORY`, and `AUDIT`; removed the unused `activityMeta` helper.
+- **Empty states:** Added an `emptyHint()` renderer with contextual messages on Dashboard (categories/activity/needs-attention), Assets table, and Audit log. Dynamic counts replace hardcoded text ("Needs attention" badge, "N types", assets subtitle). Scanner result sheet now shows an idle "Awaiting scan" state instead of a fake matched asset.
+- **Guards:** `selectedTag` defaults to `null`; `detail` is null-safe and `specs` short-circuits to `[]` when no asset is selected, preventing crashes with empty data.
+- **Files:** `src/AssetManagementPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-06-25 — Asset Management tab (Tracer Asset Manager UI)
+
+- **Feature:** The dashboard `asset_management` tab now renders a full Asset Manager UI (`AssetManagementPanel`) replacing the "Coming soon" placeholder. Native React port of the `Tracer Asset Manager.html` prototype.
+- **Screens:** Dashboard (stat cards, assets-by-category bars, status distribution, recent activity, needs-attention), Assets table (filter chips + rows), Asset detail (specs, assignment, history timeline, barcode), Add asset (form + live tag preview), Audit log table, Mobile scanner mockup, and a check-in/out slide-over modal.
+- **Data:** Presentational/mock only — no backend wiring yet. Internal state machine drives screen/selectedTag/modal/charger/tagSuffix.
+- **Styling:** Original inline CSS preserved via a `css()` string→object helper; hover/focus/keyframes provided through a scoped `<style>` under `.asset-mgmt-root`; IBM Plex Sans/Mono pulled from Google Fonts. Panel fills the tab via `height: calc(100vh - 132px)`.
+- **Files:** `src/AssetManagementPanel.jsx` (new), `src/App.jsx` (import + tab render).
+- **Documentation updated:** CHANGELOG.md.
+
 ## 2026-06-22 — GRN inward full-page entry
 
 - **Feature:** Dispatch > Inward GRN entry now opens as full-page view (`InwardGrnEntryPage`) instead of modal.

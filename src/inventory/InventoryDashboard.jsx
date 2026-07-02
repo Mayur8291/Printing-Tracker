@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import InventoryIcon from "./InventoryIcon";
 import { useInventory } from "./InventoryDataContext";
 import InventorySubNav from "./InventorySubNav";
 import AdjustStockModal from "./modals/AdjustStockModal";
 import CreatePOModal from "./modals/CreatePOModal";
 import NewSkuModal from "./modals/NewSkuModal";
+import ImportSkusModal from "./modals/ImportSkusModal";
+import NewSupplierModal from "./modals/NewSupplierModal";
+import NewWarehouseModal from "./modals/NewWarehouseModal";
+import SkuManagementModal from "./modals/SkuManagementModal";
 import SkuDrawer from "./modals/SkuDrawer";
 import InventoryAlertsPage from "./pages/InventoryAlertsPage";
 import InventoryListPage from "./pages/InventoryListPage";
@@ -13,10 +16,14 @@ import InventoryOverview from "./pages/InventoryOverview";
 import InventoryPurchaseOrdersPage from "./pages/InventoryPurchaseOrdersPage";
 import InventorySuppliersPage from "./pages/InventorySuppliersPage";
 import InventoryWarehousesPage from "./pages/InventoryWarehousesPage";
-import { findSku } from "./inventoryUtils";
+import { findSku, formatInr } from "./inventoryUtils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function InventoryDashboard() {
-  const { loading, error, alerts, skus, suppliers, createSku, adjustStock, refresh } = useInventory();
+  const { loading, error, alerts, skus, suppliers, createSku, importSkus, adjustStock, removeSku, createSupplier, createWarehouse, refresh } = useInventory();
   const [active, setActive] = useState("overview");
   const [kind, setKind] = useState("fabrics");
   const [drawerSku, setDrawerSku] = useState(null);
@@ -25,7 +32,13 @@ export default function InventoryDashboard() {
   const [poOpen, setPoOpen] = useState(false);
   const [poInitialSku, setPoInitialSku] = useState(null);
   const [newSkuOpen, setNewSkuOpen] = useState(false);
+  const [importSkusOpen, setImportSkusOpen] = useState(false);
   const [newSkuKind, setNewSkuKind] = useState("fabric");
+  const [newSkuInitialParent, setNewSkuInitialParent] = useState(null);
+  const [skuMgmtOpen, setSkuMgmtOpen] = useState(false);
+  const [supplierOpen, setSupplierOpen] = useState(false);
+  const [warehouseOpen, setWarehouseOpen] = useState(false);
+  const [deletingSkuId, setDeletingSkuId] = useState(null);
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -35,6 +48,11 @@ export default function InventoryDashboard() {
         setAdjustOpen(false);
         setPoOpen(false);
         setNewSkuOpen(false);
+        setNewSkuInitialParent(null);
+        setSkuMgmtOpen(false);
+        setImportSkusOpen(false);
+        setSupplierOpen(false);
+        setWarehouseOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -61,9 +79,10 @@ export default function InventoryDashboard() {
     setAdjustOpen(true);
   };
 
-  const openNewSku = (k) => {
+  const openNewSku = (k, parent = null) => {
     const map = { fabrics: "fabric", trims: "trim", apparel: "apparel" };
     setNewSkuKind(map[k] || k || "fabric");
+    setNewSkuInitialParent(parent);
     setNewSkuOpen(true);
   };
 
@@ -80,9 +99,9 @@ export default function InventoryDashboard() {
         type: data.type,
         qty: data.qty,
         reason: data.reason || "",
-        reference: data.ref || "",
-        fromWh: data.fromWh || sku.wh,
-        toWh: data.toWh || sku.wh
+        reference: data.note || data.ref || "",
+        fromWh: data.type === "OUT" ? data.wh || sku.wh : sku.wh,
+        toWh: data.type === "IN" ? data.wh || sku.wh : data.type === "TRANSFER" ? data.wh || sku.wh : sku.wh
       });
       setAdjustOpen(false);
       toast(
@@ -97,7 +116,7 @@ export default function InventoryDashboard() {
     const sup = suppliers.find((s) => s.id === data.supplier);
     setPoOpen(false);
     toast(
-      `PO sent to ${sup?.name || "supplier"} · ${data.totalQty.toLocaleString()} units · $${data.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+      `PO sent to ${sup?.name || "supplier"} · ${data.totalQty.toLocaleString()} units · ${formatInr(data.total, { maximumFractionDigits: 0 })}`
     );
   };
 
@@ -105,10 +124,76 @@ export default function InventoryDashboard() {
     try {
       await createSku(skuKind, record);
       setNewSkuOpen(false);
+      setNewSkuInitialParent(null);
       toast(`Created ${record.id} — ${record.name}${record.color ? ` · ${record.color}` : ""}`);
       setActive(skuKind === "fabric" ? "fabrics" : skuKind === "trim" ? "trims" : "apparel");
     } catch (err) {
       toast(err?.message || "Could not create SKU.");
+    }
+  };
+
+  const handleSkuMgmtCreated = (created) => {
+    const tab = created.kind === "fabric" ? "fabrics" : created.kind === "trim" ? "trims" : "apparel";
+    setActive(tab);
+    setKind(tab);
+    toast(`Added ${created.id} to inventory${created.color ? ` · ${created.color}` : ""}`);
+  };
+
+  const handleNewSupplierSubmit = async (record) => {
+    try {
+      await createSupplier(record);
+      setSupplierOpen(false);
+      toast(`Added supplier ${record.name} · ${record.id}`);
+    } catch (err) {
+      toast(err?.message || "Could not add supplier.");
+    }
+  };
+
+  const handleNewWarehouseSubmit = async (record) => {
+    try {
+      await createWarehouse(record);
+      setWarehouseOpen(false);
+      toast(`Added warehouse ${record.name} · ${record.id}`);
+    } catch (err) {
+      toast(err?.message || "Could not add warehouse.");
+    }
+  };
+
+  const handleImportSkus = async (records, opts) => {
+    try {
+      const result = await importSkus("apparel", records, opts);
+      setImportSkusOpen(false);
+      setActive("apparel");
+      toast(`Imported ${result.imported.toLocaleString()} apparel SKUs (supplier left blank).`);
+    } catch (err) {
+      toast(err?.message || "Could not import SKUs.");
+      throw err;
+    }
+  };
+
+  const handleDeleteSku = async (sku) => {
+    if (!sku?._uuid) {
+      toast("SKU not found in database.");
+      return;
+    }
+    const stockLabel =
+      sku.kind === "apparel"
+        ? `${(sku.totalStock ?? 0).toLocaleString()} units on hand`
+        : `${(sku.stock ?? 0).toLocaleString()} ${sku.unit || "pc"} on hand`;
+    const ok = window.confirm(
+      `Delete ${sku.id} — ${sku.name}?\n\nUse this for discontinued or non-working SKUs. Stock history for this item will be removed.\n\n${stockLabel}\n\nThis cannot be undone.`
+    );
+    if (!ok) return;
+
+    setDeletingSkuId(sku._uuid);
+    try {
+      await removeSku(sku._uuid);
+      if (drawerSku?._uuid === sku._uuid) setDrawerSku(null);
+      toast(`Deleted ${sku.id} — ${sku.name}`);
+    } catch (err) {
+      toast(err?.message || "Could not delete SKU.");
+    } finally {
+      setDeletingSkuId(null);
     }
   };
 
@@ -125,6 +210,10 @@ export default function InventoryDashboard() {
           openAdjust={openAdjust}
           openCreatePO={openCreatePO}
           openNewSku={openNewSku}
+          openImportSkus={() => setImportSkusOpen(true)}
+          openSkuManagement={() => setSkuMgmtOpen(true)}
+          onDeleteSku={handleDeleteSku}
+          deletingSkuId={deletingSkuId}
         />
       );
     }
@@ -141,9 +230,9 @@ export default function InventoryDashboard() {
       case "pos":
         return <InventoryPurchaseOrdersPage openCreatePO={openCreatePO} />;
       case "suppliers":
-        return <InventorySuppliersPage />;
+        return <InventorySuppliersPage onAddSupplier={() => setSupplierOpen(true)} />;
       case "warehouses":
-        return <InventoryWarehousesPage />;
+        return <InventoryWarehousesPage onAddWarehouse={() => setWarehouseOpen(true)} />;
       default:
         return <InventoryOverview setActive={setActive} openSku={setDrawerSku} openNewSku={openNewSku} openCreatePO={openCreatePO} />;
     }
@@ -151,31 +240,39 @@ export default function InventoryDashboard() {
 
   if (loading) {
     return (
-      <div className="inventory-dashboard">
-        <div className="inv-loading-state">Loading inventory…</div>
+      <div className="flex min-h-[480px] flex-col gap-4 rounded-lg border bg-card p-6 shadow-sm">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72" />
+        <div className="grid gap-3 md:grid-cols-3">
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="inventory-dashboard">
-        <div className="inv-error-state">
-          <p>{error}</p>
-          <button type="button" className="btn primary" onClick={refresh}>
+      <Card className="border-destructive/30">
+        <CardContent className="flex flex-col items-start gap-4 p-6">
+          <p className="text-sm text-destructive">{error}</p>
+          <Button type="button" variant="outline" onClick={refresh}>
             Retry
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="inventory-dashboard">
-      <div className="inventory-dashboard-layout">
-        <InventorySubNav active={active} onNavigate={setActive} alertCount={alerts.length} />
-        <div className="inventory-dashboard-main">{renderPage()}</div>
+    <div className="flex h-full min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border bg-card shadow-sm">
+      <InventorySubNav active={active} onNavigate={setActive} alertCount={alerts.length} />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">{renderPage()}</div>
       </div>
+    </div>
 
       <SkuDrawer
         sku={drawerSku}
@@ -188,6 +285,8 @@ export default function InventoryDashboard() {
           setDrawerSku(null);
           openCreatePO(s);
         }}
+        onDelete={handleDeleteSku}
+        deleting={deletingSkuId === drawerSku?._uuid}
       />
 
       {adjustOpen && <AdjustStockModal sku={adjustSku} onClose={() => setAdjustOpen(false)} onSubmit={handleAdjustSubmit} />}
@@ -195,13 +294,55 @@ export default function InventoryDashboard() {
       {poOpen && <CreatePOModal initialSku={poInitialSku} onClose={() => setPoOpen(false)} onSubmit={handlePOSubmit} />}
 
       {newSkuOpen && (
-        <NewSkuModal initialKind={newSkuKind} onClose={() => setNewSkuOpen(false)} onSubmit={handleNewSkuSubmit} />
+        <NewSkuModal
+          initialKind={newSkuKind}
+          initialParent={newSkuInitialParent}
+          onClose={() => {
+            setNewSkuOpen(false);
+            setNewSkuInitialParent(null);
+          }}
+          onSubmit={handleNewSkuSubmit}
+        />
       )}
 
-      <div className="toast-stack">
+      {skuMgmtOpen && (
+        <SkuManagementModal
+          tabKind={kind}
+          onClose={() => setSkuMgmtOpen(false)}
+          onSkuCreated={handleSkuMgmtCreated}
+          openSku={(sku) => {
+            setSkuMgmtOpen(false);
+            setDrawerSku(sku);
+          }}
+        />
+      )}
+
+      {importSkusOpen && (
+        <ImportSkusModal
+          onClose={() => setImportSkusOpen(false)}
+          onImport={handleImportSkus}
+          existingSkuCodes={skus.map((s) => s.id)}
+        />
+      )}
+
+      {supplierOpen && (
+        <NewSupplierModal onClose={() => setSupplierOpen(false)} onSubmit={handleNewSupplierSubmit} />
+      )}
+
+      {warehouseOpen && (
+        <NewWarehouseModal onClose={() => setWarehouseOpen(false)} onSubmit={handleNewWarehouseSubmit} />
+      )}
+
+      <div className="pointer-events-none fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
         {toasts.map((t) => (
-          <div className="toast" key={t.id}>
-            <InventoryIcon name="check" size={14} stroke={2} />
+          <div
+            key={t.id}
+            className={cn(
+              "pointer-events-auto flex items-center gap-2 rounded-lg border bg-background px-4 py-3 text-sm shadow-lg",
+              "animate-in slide-in-from-bottom-2 fade-in duration-300"
+            )}
+          >
+            <span className="shrink-0 font-medium text-emerald-600" aria-hidden>✓</span>
             {t.msg}
           </div>
         ))}

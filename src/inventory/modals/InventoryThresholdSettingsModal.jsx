@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
-import InventoryIcon from "../InventoryIcon";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useInventory } from "../InventoryDataContext";
+import { EmptyHint } from "../inventoryUiUtils";
 
 export default function InventoryThresholdSettingsModal({ onClose }) {
   const { settings, skus, updateAlertSettings, saveSkuReorder, refresh } = useInventory();
@@ -70,121 +83,111 @@ export default function InventoryThresholdSettingsModal({ onClose }) {
   };
 
   return (
-    <div className="modal-backdrop open" onClick={onClose}>
-      <div className="modal wide" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <h3 className="modal-title">Alert & reorder thresholds</h3>
-            <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
-              Alerts only appear for SKUs you add. Set a reorder point per SKU; the app compares on-hand stock to that
-              number.
-            </p>
-          </div>
-          <button type="button" className="icon-btn" onClick={onClose}>
-            <InventoryIcon name="x" size={14} />
-          </button>
-        </div>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Alert & reorder thresholds</DialogTitle>
+          <DialogDescription>
+            Alerts only appear for SKUs you add. Set a reorder point per SKU; the app compares on-hand stock to that number.
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="modal-body">
-          <div className="field-row" style={{ marginBottom: 20 }}>
-            <div className="field">
-              <label>Critical level (% of reorder point)</label>
-              <input
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Critical level (% of reorder point)</Label>
+              <Input
                 type="number"
                 min={1}
                 max={100}
                 value={criticalPct}
                 onChange={(e) => setCriticalPct(Number(e.target.value))}
               />
-              <div className="field-hint">
+              <p className="text-xs text-muted-foreground">
                 Stock below this % of reorder point = critical (e.g. 50% means half of reorder qty).
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Label>Options</Label>
+              <div className="flex items-center gap-2">
+                <Checkbox id="low-enabled" checked={lowEnabled} onCheckedChange={(v) => setLowEnabled(!!v)} />
+                <label htmlFor="low-enabled" className="text-sm leading-none">
+                  Show low-stock warnings when below reorder point
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox id="oos-critical" checked={oosCritical} onCheckedChange={(v) => setOosCritical(!!v)} />
+                <label htmlFor="oos-critical" className="text-sm leading-none">
+                  Treat out of stock (0) as critical
+                </label>
               </div>
             </div>
-            <div className="field">
-              <label>Options</label>
-              <label className="inv-threshold-check">
-                <input type="checkbox" checked={lowEnabled} onChange={(e) => setLowEnabled(e.target.checked)} />
-                Show low-stock warnings when below reorder point
-              </label>
-              <label className="inv-threshold-check">
-                <input type="checkbox" checked={oosCritical} onChange={(e) => setOosCritical(e.target.checked)} />
-                Treat out of stock (0) as critical
-              </label>
-            </div>
           </div>
 
-          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-            <button type="button" className="btn primary" disabled={saving} onClick={saveGlobal}>
-              Save global rules
-            </button>
-          </div>
+          <Button type="button" disabled={saving} onClick={saveGlobal}>
+            Save global rules
+          </Button>
 
-          <h4 style={{ marginBottom: 8 }}>Per-SKU reorder points</h4>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
-            SKUs with reorder point 0 are ignored in alerts until you set a value.
-          </p>
+          <div>
+            <h4 className="mb-1 text-sm font-medium">Per-SKU reorder points</h4>
+            <p className="mb-3 text-xs text-muted-foreground">SKUs with reorder point 0 are ignored in alerts until you set a value.</p>
 
-          {skus.length === 0 ? (
-            <div className="inv-empty-hint">No SKUs yet. Add fabrics, trims, or apparel first.</div>
-          ) : (
-            <div className="table-wrap" style={{ maxHeight: 320, overflow: "auto" }}>
-              <table className="t">
-                <thead>
-                  <tr>
-                    <th>SKU</th>
-                    <th>Name</th>
-                    <th className="right">On hand</th>
-                    <th className="right">Reorder at</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {skus.map((sku) => {
-                    const onHand = sku.stock ?? sku.totalStock ?? 0;
-                    return (
-                      <tr key={sku._uuid}>
-                        <td className="mono">{sku.id}</td>
-                        <td>{sku.name}</td>
-                        <td className="num">
-                          {onHand.toLocaleString()} {sku.unit || "pc"}
-                        </td>
-                        <td className="num">
-                          <input
-                            type="number"
-                            min={0}
-                            className="inv-threshold-input"
-                            value={skuDrafts[sku._uuid] ?? "0"}
-                            onChange={(e) =>
-                              setSkuDrafts((d) => ({ ...d, [sku._uuid]: e.target.value }))
-                            }
-                          />
-                        </td>
-                        <td>
-                          <button type="button" className="btn sm" onClick={() => saveSkuRow(sku)}>
-                            Save
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+            {skus.length === 0 ? (
+              <EmptyHint>No SKUs yet. Add fabrics, trims, or apparel first.</EmptyHint>
+            ) : (
+              <ScrollArea className="max-h-80 rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>SKU</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="text-right">On hand</TableHead>
+                      <TableHead className="text-right">Reorder at</TableHead>
+                      <TableHead />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {skus.map((sku) => {
+                      const onHand = sku.stock ?? sku.totalStock ?? 0;
+                      return (
+                        <TableRow key={sku._uuid}>
+                          <TableCell className="font-mono text-xs">{sku.id}</TableCell>
+                          <TableCell>{sku.name}</TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {onHand.toLocaleString()} {sku.unit || "pc"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Input
+                              type="number"
+                              min={0}
+                              className="ml-auto h-8 w-24 text-right"
+                              value={skuDrafts[sku._uuid] ?? "0"}
+                              onChange={(e) => setSkuDrafts((d) => ({ ...d, [sku._uuid]: e.target.value }))}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Button type="button" variant="outline" size="sm" onClick={() => saveSkuRow(sku)}>
+                              Save
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            )}
 
-          {skus.length > 0 && (
-            <div style={{ marginTop: 12 }}>
-              <button type="button" className="btn" disabled={saving} onClick={saveAllSkus}>
+            {skus.length > 0 && (
+              <Button type="button" variant="outline" className="mt-3" disabled={saving} onClick={saveAllSkus}>
                 Save all SKU reorder points
-              </button>
-            </div>
-          )}
+              </Button>
+            )}
+          </div>
 
-          {message && (
-            <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)" }}>{message}</p>
-          )}
+          {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -8,11 +8,35 @@
 
 @media (min-width: 1081px) {
   .page.app-layout {
+    display: flex;
+    flex-direction: column;
     height: 100dvh;
     max-height: 100dvh;
     min-height: 100dvh;
     overflow: hidden;
     max-width: 100vw;
+  }
+
+  /* shadcn sidebar shell: fill locked viewport; main column scrolls inside */
+  .page.app-layout > .group\/sidebar-wrapper {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .page.app-layout [data-dashboard-scroll][data-scroll-mode="main"] {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .inventory-panel.dashboard-card--flat {
+    padding: 0;
+    overflow: hidden;
+    min-height: 0;
+    flex: 1 1 auto;
   }
 
   .dashboard-shell {

@@ -40,3 +40,44 @@ Multiple GRN rows per inward entry. Labels print per GRN row.
 |-----------|--------|
 | `20260619120000_add_inward_grn_entries.sql` | Create table, RLS, legacy data move |
 | `20260630120000_add_grn_entry_detail.sql` | Add `grn_entry_detail` jsonb |
+
+## Inventory
+
+### `inventory_style_parents`
+
+Parent style / SKU group (one row per style family).
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `parent_sku_code` | text | Unique parent code (e.g. `STY-1`) |
+| `style_name` | text | Display style name |
+| `kind` | text | `fabric`, `trim`, or `apparel` |
+| `created_by` | uuid | Auth user |
+| `created_at` | timestamptz | Insert time |
+
+### `inventory_skus`
+
+Master SKU records. Sub SKUs (colorways / variants) link to a parent via `parent_style_id`.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `sku_code` | text | Unique sub SKU code |
+| `kind` | text | `fabric`, `trim`, or `apparel` |
+| `name` | text | Style or material name |
+| `parent_style_id` | uuid | FK → `inventory_style_parents.id` (nullable) |
+| `unit_cost` | numeric | Cost per unit |
+| `retail_price` | numeric | Sale price (all kinds) |
+| `reorder_point` | numeric | Low-stock threshold |
+| `doc` | numeric | Days of cover |
+| `drr` | numeric | Daily run rate |
+| `stock_qty` | numeric | On-hand quantity |
+| `extra` | jsonb | Kind-specific fields (sizes, GSM, etc.) |
+
+### Migrations (inventory)
+
+| Migration | Change |
+|-----------|--------|
+| `20260620120000_add_inventory_tables.sql` | Core inventory tables |
+| `20260708120000_inventory_sku_parent_pricing_doc_drr.sql` | Parent styles, `doc`, `drr`, `parent_style_id` |

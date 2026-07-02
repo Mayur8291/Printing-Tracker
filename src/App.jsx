@@ -7,6 +7,21 @@ import MonthlyArchivePanel from "./MonthlyArchivePanel";
 import LinkedOrdersTabPanel from "./LinkedOrdersTabPanel";
 import TeamChatPanel from "./TeamChatPanel";
 import ContactBookPanel from "./ContactBookPanel";
+import AssetManagementPanel from "./AssetManagementPanel";
+import HomeStatusPanel from "./components/home/HomeStatusPanel";
+import { Dialog, DialogContent } from "./components/ui/dialog";
+import CreateOrderModal from "./components/orders/CreateOrderModal";
+import PrintingOrderProductField from "./components/orders/PrintingOrderProductField";
+import MasterListSelectField from "./components/admin/MasterListSelectField";
+import { fetchInventoryProductsForPicker } from "./inventory/inventoryProductPickerUtils";
+import LoginPage from "./components/auth/LoginPage";
+import DashboardShell from "./components/layout/DashboardShell";
+import ThemeToggleButton from "./components/layout/ThemeToggleButton";
+import { Button } from "./components/ui/button";
+import { DatePicker } from "./components/ui/date-picker";
+import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { cn } from "./lib/utils";
 import SharedLinksPanel from "./SharedLinksPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
@@ -14,6 +29,30 @@ import DispatchTabPanel from "./DispatchTabPanel";
 import GlobalSearchBox from "./GlobalSearchBox";
 import { OC_SELECT_FIELDS } from "./outwardChallanUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
+import OrdersListFilters from "./components/orders/OrdersListFilters";
+import OrdersListSummary from "./components/orders/OrdersListSummary";
+import OrderIdBadges from "./components/orders/OrderIdBadges";
+import OrderStatusBadge from "./components/orders/OrderStatusBadge";
+import { orderListRowClassName } from "./components/orders/orderTableUtils";
+import { Label } from "./components/ui/label";
+import { Badge } from "./components/ui/badge";
+import { Skeleton } from "./components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "./components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "./components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "./components/ui/select";
 import {
   ADMIN_DASHBOARD_TAB,
   DASHBOARD_SIDEBAR,
@@ -26,7 +65,15 @@ import {
 } from "./dashboardSidebarConfig";
 import { DashboardSidebarIcon } from "./dashboardSidebarIcons";
 import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
-import ViewerUserEditModal, { IconUserDelete, IconUserEdit } from "./ViewerUserEditModal";
+import OrderFieldPermissionFields from "./OrderFieldPermissionFields";
+import OrderViewActionCell from "./components/orders/OrderViewActionCell";
+import {
+  createPendingPrintingOrder,
+  createPendingProductionOrder,
+  mergePendingOrders
+} from "./orderPendingUtils";
+import ViewerUserEditModal from "./ViewerUserEditModal";
+import { Pencil, Trash2 } from "lucide-react";
 import { filterViewerProfiles, formatProfileAccessLabel, profileAccessRole, viewerIsActive } from "./viewerUserListUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
 import NotificationBellButton from "./NotificationBellButton";
@@ -40,11 +87,19 @@ import {
 import CreateJobSheetForm from "./CreateJobSheetForm";
 import CreateStickerOrderForm from "./CreateStickerOrderForm";
 import StickerOrderIdBadge from "./StickerOrderIdBadge";
+import SamplingOrderIdBadge from "./SamplingOrderIdBadge";
+import {
+  computeNextSamplingOrderId,
+  emptySamplingOrderForm,
+  formatSamplingOrderIdDisplay,
+  samplingSizeToBreakdown
+} from "./samplingOrderUtils";
 import {
   emptyStickerOrderForm,
   formatStickerQtyDisplay,
   formatStickerSizeDisplay,
   isAllowedStickerAsset,
+  isSamplingOrder,
   isStickerOrder,
   stageLabelForOrder
 } from "./stickerOrderUtils";
@@ -53,6 +108,8 @@ import InventoryTabPanel from "./InventoryTabPanel";
 import {
   computeNextJobSheetOrderId,
   emptyJobSheetForm,
+  jobSheetFormFromOrder,
+  jobSheetFormFromPrintingOrderForm,
   jobSheetSizesToBreakdown,
   parseJobSheetRate,
   parseJobSheetSizeQty,
@@ -71,7 +128,6 @@ import {
   PAYMENT_METHODS,
   deliveryMethodLabel,
   filterBillingOrders,
-  dispatchRowHighlightClass,
   filterDispatchOrders,
   filterOrdersBySearch,
   isDispatchVerificationFailed,
@@ -84,7 +140,10 @@ import {
   sortOrdersNewestFirst
 } from "./orderTabUtils";
 import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
-import { supabase } from "./supabaseClient";
+import { profileAvatarPublicUrl, uploadProfileAvatar } from "./avatarUtils";
+import { PersonAvatar } from "./components/ui/person-avatar";
+import { AvatarUploadField } from "./components/ui/avatar-upload-field";
+import { activeSupabaseRef, supabase } from "./supabaseClient";
 import {
   isMissingPostgrestTableError,
   isSchemaCacheError,
@@ -121,7 +180,6 @@ import {
   formatDeliveryDate,
   formatReceivedAtDisplay,
   formatSizeBreakdownSummary,
-  splitOrderIds,
   mergeDesignUrlLists,
   mergeOrdersPreservingDesignImages,
   parseDesignUrls,
@@ -425,21 +483,6 @@ function parseOrderIdTokens(raw) {
   return out;
 }
 
-function OrderIdBadges({ orderId }) {
-  const ids = splitOrderIds(orderId);
-  if (!ids.length) return "—";
-  if (ids.length === 1) return ids[0];
-  return (
-    <span className="order-id-badges" aria-label="Order IDs">
-      {ids.map((id) => (
-        <span key={id} className="order-id-badge" title={id}>
-          {id}
-        </span>
-      ))}
-    </span>
-  );
-}
-
 function OrderColorsCell({ colors }) {
   if (!Array.isArray(colors) || !colors.length) return "-";
   return (
@@ -659,30 +702,6 @@ function formatHomeLastUpdated(timestampMs) {
   });
 }
 
-function ThemeToggle({ theme, onToggle, className = "theme-toggle-btn" }) {
-  const isDark = theme === "dark";
-  return (
-    <button
-      type="button"
-      className={className}
-      onClick={onToggle}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Light mode" : "Dark mode"}
-    >
-      {isDark ? (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-        </svg>
-      ) : (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-        </svg>
-      )}
-    </button>
-  );
-}
-
 function App() {
   function renderStageIcon(stage, altLabel) {
     if (stage === "on_hold") {
@@ -744,7 +763,10 @@ function App() {
   const [paymentScreenshotFiles, setPaymentScreenshotFiles] = useState([]);
   const [customerAssetFiles, setCustomerAssetFiles] = useState([]);
   const [stickerOrderForm, setStickerOrderForm] = useState(emptyStickerOrderForm);
+  const [samplingOrderForm, setSamplingOrderForm] = useState(emptySamplingOrderForm);
+  const [samplingMockupFiles, setSamplingMockupFiles] = useState([]);
   const [savingStickerOrder, setSavingStickerOrder] = useState(false);
+  const [savingSamplingOrder, setSavingSamplingOrder] = useState(false);
   const [uploadingPaymentProofOrderId, setUploadingPaymentProofOrderId] = useState(null);
   const [owners, setOwners] = useState([]);
   const [coordinators, setCoordinators] = useState([]);
@@ -752,8 +774,17 @@ function App() {
   const [newCoordinatorName, setNewCoordinatorName] = useState("");
   const [salesIncharges, setSalesIncharges] = useState([]);
   const [newSalesInchargeName, setNewSalesInchargeName] = useState("");
+  const [inventoryProducts, setInventoryProducts] = useState([]);
+  const [loadingInventoryProducts, setLoadingInventoryProducts] = useState(false);
   const [jobSheetForm, setJobSheetForm] = useState(() => emptyJobSheetForm());
   const [savingJobSheet, setSavingJobSheet] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const orderSubmitLockRef = useRef(false);
+  const jobSheetFromPrintingFormRef = useRef(false);
+  const inventoryProductsRefreshTimerRef = useRef(null);
+  /** Set when job sheet saved from create printing order form — keeps production UI + success message. */
+  const [printingFormJobSheetStatus, setPrintingFormJobSheetStatus] = useState(null);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [masterListView, setMasterListView] = useState("list");
   const [showMockupStudio, setShowMockupStudio] = useState(false);
@@ -814,6 +845,11 @@ function App() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [createUserError, setCreateUserError] = useState("");
   const [createUserSuccess, setCreateUserSuccess] = useState("");
+  const [newUserAvatarFile, setNewUserAvatarFile] = useState(null);
+  const [newUserAvatarPreview, setNewUserAvatarPreview] = useState("");
+  const [editingViewerAvatarFile, setEditingViewerAvatarFile] = useState(null);
+  const [editingViewerAvatarPreview, setEditingViewerAvatarPreview] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
   /** Map of viewer.id -> draft new password (string) or undefined when picker closed. */
   const [resetPasswordDrafts, setResetPasswordDrafts] = useState({});
   const [resettingPasswordFor, setResettingPasswordFor] = useState(null);
@@ -838,6 +874,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("theme-dark", theme === "dark");
+    document.documentElement.classList.toggle("dark", theme === "dark");
     try {
       window.localStorage.setItem("printing-tracker-theme", theme);
     } catch {
@@ -881,7 +918,7 @@ function App() {
       const { data, error } = await supabase
         .from("orders")
         .select(
-          "id, order_id, order_kind, order_date, due_date, owner_name, customer_name, coordinator_name, sales_incharge_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost, size_type, rate_per_piece, brand, fabric_type, branding, branding_type, gsm, atta"
+          "id, order_id, order_kind, order_date, due_date, owner_name, customer_name, coordinator_name, sales_incharge_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost, size_type, gender, product_type, rate_per_piece, brand, fabric_type, branding, branding_type, gsm, atta"
         )
         .order("created_at", { ascending: false });
 
@@ -1005,12 +1042,13 @@ function App() {
       setOrders([]);
       setOwners([]);
       setCoordinators([]);
+      setInventoryProducts([]);
       return;
     }
     fetchOrders();
     fetchMasters();
 
-    const channel = supabase
+    const ordersChannel = supabase
       .channel("orders-live")
       .on(
         "postgres_changes",
@@ -1026,7 +1064,7 @@ function App() {
 
     return () => {
       clearInterval(pollId);
-      supabase.removeChannel(channel);
+      supabase.removeChannel(ordersChannel);
     };
   }, [session?.user?.id, fetchOrders]);
 
@@ -1214,7 +1252,7 @@ function App() {
 
       let { data: prof, error: profErr } = await supabase
         .from("profiles")
-        .select("id, full_name, email, role, department, status_tones_enabled")
+        .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
         .eq("id", sessionUser.id)
         .maybeSingle();
 
@@ -1253,7 +1291,7 @@ function App() {
         }
         const again = await supabase
           .from("profiles")
-          .select("id, full_name, email, role, department, status_tones_enabled")
+          .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
           .eq("id", sessionUser.id)
           .maybeSingle();
         prof = again.data;
@@ -1270,7 +1308,7 @@ function App() {
         if (!upErr) {
           const { data: promoted } = await supabase
             .from("profiles")
-            .select("id, full_name, email, role, department, status_tones_enabled")
+            .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
             .eq("id", sessionUser.id)
             .maybeSingle();
           if (promoted) prof = promoted;
@@ -1341,6 +1379,62 @@ function App() {
     }
   }
 
+  const fetchInventoryProducts = useCallback(async ({ silent = false } = {}) => {
+    if (!session?.user) {
+      setInventoryProducts([]);
+      return;
+    }
+    if (!silent) setLoadingInventoryProducts(true);
+    try {
+      const rows = await fetchInventoryProductsForPicker(supabase);
+      setInventoryProducts(rows);
+    } catch (err) {
+      console.error("Inventory products:", err instanceof Error ? err.message : err);
+      if (!silent) setInventoryProducts([]);
+    } finally {
+      if (!silent) setLoadingInventoryProducts(false);
+    }
+  }, [session?.user?.id]);
+
+  const scheduleInventoryProductsRefresh = useCallback(() => {
+    if (inventoryProductsRefreshTimerRef.current) {
+      clearTimeout(inventoryProductsRefreshTimerRef.current);
+    }
+    inventoryProductsRefreshTimerRef.current = window.setTimeout(() => {
+      inventoryProductsRefreshTimerRef.current = null;
+      void fetchInventoryProducts({ silent: true });
+    }, 400);
+  }, [fetchInventoryProducts]);
+
+  useEffect(() => {
+    if (!session?.user) return undefined;
+
+    const inventorySkusChannel = supabase
+      .channel("inventory-skus-live")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "inventory_skus" },
+        () => scheduleInventoryProductsRefresh()
+      )
+      .subscribe();
+
+    return () => {
+      if (inventoryProductsRefreshTimerRef.current) {
+        clearTimeout(inventoryProductsRefreshTimerRef.current);
+        inventoryProductsRefreshTimerRef.current = null;
+      }
+      supabase.removeChannel(inventorySkusChannel);
+    };
+  }, [session?.user?.id, scheduleInventoryProductsRefresh]);
+
+  useEffect(() => {
+    if (!session?.user) {
+      setInventoryProducts([]);
+      return;
+    }
+    void fetchInventoryProducts();
+  }, [session?.user?.id, fetchInventoryProducts]);
+
   async function fetchTeamProfiles() {
     const { data: rpcData, error: rpcError } = await supabase.rpc("list_team_chat_directory");
     if (!rpcError && rpcData?.length) {
@@ -1352,7 +1446,7 @@ function App() {
     }
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, email, department, role")
+      .select("id, full_name, email, department, role, avatar_path")
       .order("full_name", { ascending: true });
     if (error) {
       console.error("Team profiles:", error.message);
@@ -1368,7 +1462,7 @@ function App() {
         await Promise.all([
           supabase
             .from("profiles")
-            .select("id, full_name, email, department, job_role, employee_id, is_active, role, status_tones_enabled")
+            .select("id, full_name, email, department, job_role, employee_id, is_active, role, status_tones_enabled, avatar_path")
             .in("role", ["viewer", "admin"])
             .order("full_name", { ascending: true }),
           supabase.from("profile_order_permissions").select("*")
@@ -1532,18 +1626,64 @@ function App() {
     setOrderIdDraft("");
   }
 
-  function closeCreateOrderForm() {
-    setShowCreateForm(false);
-    setCreateFormMode("printing");
+  function resetCreateOrderFormFields() {
     setOrderForm(emptyOrder);
     setStickerOrderForm(emptyStickerOrderForm());
-    setSavingStickerOrder(false);
+    setSamplingOrderForm(emptySamplingOrderForm());
     setJobSheetForm(emptyJobSheetForm());
-    setSavingJobSheet(false);
+    setPrintingFormJobSheetStatus(null);
     setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
     setCustomerAssetFiles([]);
+    setSamplingMockupFiles([]);
+  }
+
+  function removePendingOrder(clientKey) {
+    if (!clientKey) return;
+    setPendingOrders((prev) => prev.filter((row) => row.clientKey !== clientKey));
+  }
+
+  function closeCreateOrderForm() {
+    jobSheetFromPrintingFormRef.current = false;
+    setShowCreateForm(false);
+    setCreateFormMode("printing");
+    resetCreateOrderFormFields();
+  }
+
+  function cancelJobSheetForm() {
+    if (jobSheetFromPrintingFormRef.current) {
+      jobSheetFromPrintingFormRef.current = false;
+      setCreateFormMode("printing");
+      setJobSheetForm(emptyJobSheetForm());
+      return;
+    }
+    closeCreateOrderForm();
+  }
+
+  async function openCreateJobSheetFromPrintingForm() {
+    if (printingFormJobSheetStatus?.jobSheetOrderId) return;
+
+    const handover = String(orderForm.expected_handover_to_printing ?? "").trim();
+    if (!handover) {
+      alert("Please set expected product handover to printing date first.");
+      return;
+    }
+
+    jobSheetFromPrintingFormRef.current = true;
+
+    const today = todayLocalISODate();
+    let nextOrderId = computeNextJobSheetOrderId([]);
+    const { data: existingRows, error: idError } = await supabase
+      .from("orders")
+      .select("order_id")
+      .eq("is_production_order", true);
+    if (!idError && existingRows?.length) {
+      nextOrderId = computeNextJobSheetOrderId(existingRows.map((r) => r.order_id));
+    }
+
+    setJobSheetForm(jobSheetFormFromPrintingOrderForm(orderForm, { nextOrderId, orderDate: today }));
+    setCreateFormMode("job_sheet");
   }
 
   function onCustomerAssetsSelected(e) {
@@ -1557,8 +1697,20 @@ function App() {
     setCustomerAssetFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function onSamplingMockupsSelected(e) {
+    const picked = Array.from(e.target.files ?? []);
+    if (!picked.length) return;
+    setSamplingMockupFiles((prev) => [...prev, ...picked]);
+    e.target.value = "";
+  }
+
+  function removeSamplingMockupFile(index) {
+    setSamplingMockupFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleCreateOrder(e) {
     e.preventDefault();
+    if (orderSubmitLockRef.current) return;
     if (!designFiles.length) {
       alert("At least one mockup image is required.");
       return;
@@ -1591,7 +1743,7 @@ function App() {
       alert("Please upload at least one payment proof image for the selected payment method.");
       return;
     }
-    if (orderForm.is_production_order) {
+    if (orderForm.is_production_order && !printingFormJobSheetStatus?.jobSheetOrderId) {
       const h = String(orderForm.expected_handover_to_printing ?? "").trim();
       if (!h) {
         alert("Please set expected product handover to printing (date) for production orders.");
@@ -1606,137 +1758,166 @@ function App() {
         return;
       }
     }
-    const sizeBreakdown = sizesFormToBreakdown(orderForm.sizes, orderForm.extraSizes);
-    const qtyTotal = sumSizeForm(orderForm.sizes, orderForm.extraSizes);
-    const uploadedUrls = [];
-    for (const file of designFiles) {
-      const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
-      const uploadPath = `${session.user.id}/${safeName}`;
-      const { error: uploadError } = await supabase.storage
-        .from("approved-designs")
-        .upload(uploadPath, file, { upsert: false });
 
-      if (uploadError) {
-        alert(uploadError.message);
-        return;
-      }
-      const { data: publicUrlData } = supabase.storage
-        .from("approved-designs")
-        .getPublicUrl(uploadPath);
-      uploadedUrls.push(publicUrlData.publicUrl);
-    }
+    const formSnapshot = { ...orderForm };
+    const jobSheetStatusSnapshot = printingFormJobSheetStatus;
+    const designFilesSnapshot = [...designFiles];
+    const paymentFilesSnapshot = [...paymentScreenshotFiles];
+    const customerAssetsSnapshot = [...customerAssetFiles];
+    const sizeBreakdown = sizesFormToBreakdown(formSnapshot.sizes, formSnapshot.extraSizes);
+    const qtyTotal = sumSizeForm(formSnapshot.sizes, formSnapshot.extraSizes);
+    const orderIdJoined =
+      Array.isArray(formSnapshot.order_ids) && formSnapshot.order_ids.length
+        ? formSnapshot.order_ids.join(", ")
+        : String(formSnapshot.order_id ?? "").trim();
 
-    let paymentScreenshotUrl = null;
-    if (paymentMethodRequiresProof(orderForm.payment_method) && paymentScreenshotFiles.length > 0) {
-      const proofUrls = [];
-      for (const file of paymentScreenshotFiles) {
+    orderSubmitLockRef.current = true;
+    setSavingOrder(true);
+
+    const pendingRow = createPendingPrintingOrder({
+      orderId: orderIdJoined,
+      customerName: formSnapshot.customer_name,
+      productName: formSnapshot.product_name,
+      coordinatorName: formSnapshot.coordinator_name,
+      dueDate: formSnapshot.due_date,
+      qty: qtyTotal,
+      status: "new",
+      orderKind: formSnapshot.order_kind || "printing"
+    });
+    const { clientKey } = pendingRow;
+
+    setPendingOrders((prev) => [pendingRow, ...prev]);
+    resetCreateOrderFormFields();
+    setShowCreateForm(false);
+    setCreateFormMode("printing");
+    setOrdersTab("active");
+
+    try {
+      const uploadedUrls = [];
+      for (const file of designFilesSnapshot) {
         const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
-        const paymentPath = `${session.user.id}/${safeName}`;
-        const { error: paymentUploadError } = await supabase.storage
-          .from("payment-screenshots")
-          .upload(paymentPath, file, { upsert: false });
-        if (paymentUploadError) {
-          alert(paymentUploadError.message);
+        const uploadPath = `${session.user.id}/${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("approved-designs")
+          .upload(uploadPath, file, { upsert: false });
+
+        if (uploadError) {
+          alert(uploadError.message);
           return;
         }
-        const { data: paymentUrlData } = supabase.storage
-          .from("payment-screenshots")
-          .getPublicUrl(paymentPath);
-        proofUrls.push(paymentUrlData.publicUrl);
+        const { data: publicUrlData } = supabase.storage
+          .from("approved-designs")
+          .getPublicUrl(uploadPath);
+        uploadedUrls.push(publicUrlData.publicUrl);
       }
-      paymentScreenshotUrl = serializePaymentProofUrls(proofUrls);
-    }
 
-    const rawMtrs = String(orderForm.printing_mtrs ?? "").trim().replace(",", ".");
-    const parsedMtrs = Number.parseFloat(rawMtrs);
-    const printingMtrs = Number.isFinite(parsedMtrs) && parsedMtrs >= 0 ? parsedMtrs : 0;
-
-    const orderIdJoined =
-      Array.isArray(orderForm.order_ids) && orderForm.order_ids.length
-        ? orderForm.order_ids.join(", ")
-        : String(orderForm.order_id ?? "").trim();
-
-    const payload = {
-      order_date: todayLocalISODate(),
-      order_id: orderIdJoined || null,
-      order_kind: orderForm.order_kind || "printing",
-      due_date: orderForm.due_date,
-      owner_name: orderForm.owner_name,
-      customer_name: orderForm.customer_name,
-      coordinator_name: orderForm.coordinator_name,
-      qty: qtyTotal,
-      size_breakdown: sizeBreakdown,
-      product_name: orderForm.product_name,
-      colors: orderForm.colors,
-      approved_design_url: JSON.stringify(uploadedUrls),
-      approved_design_images: null,
-      printing_mtrs: printingMtrs,
-      order_cost: parseMoneyInput(orderForm.order_cost),
-      printing_cost: parseMoneyInput(orderForm.printing_cost),
-      status: "new",
-      remarks: orderForm.remarks || null,
-      created_by: session.user.id,
-      is_production_order: Boolean(orderForm.is_production_order),
-      expected_handover_to_printing: orderForm.is_production_order
-        ? String(orderForm.expected_handover_to_printing).trim() || null
-        : null,
-      payment_method: orderForm.payment_method,
-      payment_screenshot_url: paymentScreenshotUrl,
-      delivery_method: orderForm.delivery_method
-    };
-
-    const { data: insertedOrder, error } = await supabase
-      .from("orders")
-      .insert(payload)
-      .select("id")
-      .single();
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    if (customerAssetFiles.length > 0 && insertedOrder?.id) {
-      try {
-        await uploadOrderCustomerAssets(
-          supabase,
-          insertedOrder.id,
-          customerAssetFiles,
-          session.user.id
-        );
-      } catch (assetErr) {
-        alert(
-          `Job saved, but customer file upload failed: ${
-            assetErr instanceof Error ? assetErr.message : String(assetErr)
-          }`
-        );
+      let paymentScreenshotUrl = null;
+      if (paymentMethodRequiresProof(formSnapshot.payment_method) && paymentFilesSnapshot.length > 0) {
+        const proofUrls = [];
+        for (const file of paymentFilesSnapshot) {
+          const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+          const paymentPath = `${session.user.id}/${safeName}`;
+          const { error: paymentUploadError } = await supabase.storage
+            .from("payment-screenshots")
+            .upload(paymentPath, file, { upsert: false });
+          if (paymentUploadError) {
+            alert(paymentUploadError.message);
+            return;
+          }
+          const { data: paymentUrlData } = supabase.storage
+            .from("payment-screenshots")
+            .getPublicUrl(paymentPath);
+          proofUrls.push(paymentUrlData.publicUrl);
+        }
+        paymentScreenshotUrl = serializePaymentProofUrls(proofUrls);
       }
-    }
 
-    if (insertedOrder?.id) {
-      await insertOrderAssignmentNotification(supabase, {
-        coordinatorName: payload.coordinator_name,
-        orderId: insertedOrder.id,
-        orderDisplayId: orderIdJoined,
-        assignedByUserId: session.user.id,
-        profileLookup: profileLookupForAssignments
-      });
-    }
+      const rawMtrs = String(formSnapshot.printing_mtrs ?? "").trim().replace(",", ".");
+      const parsedMtrs = Number.parseFloat(rawMtrs);
+      const printingMtrs = Number.isFinite(parsedMtrs) && parsedMtrs >= 0 ? parsedMtrs : 0;
 
-    const tabWhereCreated = dashboardTab;
-    setOrderForm(emptyOrder);
-    setOrderIdDraft("");
-    setDesignFiles([]);
-    setPaymentScreenshotFiles([]);
-    setCustomerAssetFiles([]);
-    setShowCreateForm(false);
-    setDashboardTab(tabWhereCreated);
-    setOrdersTab("active");
-    await fetchOrders();
-    alert("Job card has been saved successfully.");
+      const printingOnlyAfterJobSheet = Boolean(jobSheetStatusSnapshot?.jobSheetOrderId);
+      const payload = {
+        order_date: todayLocalISODate(),
+        order_id: orderIdJoined || null,
+        order_kind: formSnapshot.order_kind || "printing",
+        due_date: formSnapshot.due_date,
+        owner_name: formSnapshot.owner_name,
+        customer_name: formSnapshot.customer_name,
+        coordinator_name: formSnapshot.coordinator_name,
+        qty: qtyTotal,
+        size_breakdown: sizeBreakdown,
+        product_name: formSnapshot.product_name,
+        colors: formSnapshot.colors,
+        approved_design_url: JSON.stringify(uploadedUrls),
+        approved_design_images: null,
+        printing_mtrs: printingMtrs,
+        order_cost: parseMoneyInput(formSnapshot.order_cost),
+        printing_cost: parseMoneyInput(formSnapshot.printing_cost),
+        status: "new",
+        remarks: formSnapshot.remarks || null,
+        created_by: session.user.id,
+        is_production_order: printingOnlyAfterJobSheet
+          ? false
+          : Boolean(formSnapshot.is_production_order),
+        expected_handover_to_printing: printingOnlyAfterJobSheet
+          ? null
+          : formSnapshot.is_production_order
+            ? String(formSnapshot.expected_handover_to_printing).trim() || null
+            : null,
+        payment_method: formSnapshot.payment_method,
+        payment_screenshot_url: paymentScreenshotUrl,
+        delivery_method: formSnapshot.delivery_method
+      };
+
+      const { data: insertedOrder, error } = await supabase
+        .from("orders")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      if (customerAssetsSnapshot.length > 0 && insertedOrder?.id) {
+        try {
+          await uploadOrderCustomerAssets(
+            supabase,
+            insertedOrder.id,
+            customerAssetsSnapshot,
+            session.user.id
+          );
+        } catch (assetErr) {
+          alert(
+            `Job saved, but customer file upload failed: ${
+              assetErr instanceof Error ? assetErr.message : String(assetErr)
+            }`
+          );
+        }
+      }
+
+      if (insertedOrder?.id) {
+        await insertOrderAssignmentNotification(supabase, {
+          coordinatorName: payload.coordinator_name,
+          orderId: insertedOrder.id,
+          orderDisplayId: orderIdJoined,
+          assignedByUserId: session.user.id,
+          profileLookup: profileLookupForAssignments
+        });
+      }
+
+      await fetchOrders({ silent: true });
+    } finally {
+      removePendingOrder(clientKey);
+      orderSubmitLockRef.current = false;
+      setSavingOrder(false);
+    }
   }
 
   async function handleCreateStickerOrder(e) {
     e.preventDefault();
+    if (orderSubmitLockRef.current) return;
     const customer = String(stickerOrderForm.customer_name ?? "").trim();
     if (!customer) {
       alert("Please enter customer name.");
@@ -1757,19 +1938,40 @@ function App() {
       }
     }
 
-    const qtyRaw = String(stickerOrderForm.qty ?? "").trim();
+    const formSnapshot = { ...stickerOrderForm };
+    const customerAssetsSnapshot = [...customerAssetFiles];
+    const qtyRaw = String(formSnapshot.qty ?? "").trim();
     const qtyParsed = qtyRaw === "" ? 0 : Number.parseInt(qtyRaw, 10);
     const qty = Number.isFinite(qtyParsed) && qtyParsed >= 0 ? qtyParsed : 0;
-    const sizeText = String(stickerOrderForm.size ?? "").trim();
+    const sizeText = String(formSnapshot.size ?? "").trim();
     const coordinatorName = profileDisplayName(profile) || "—";
 
+    orderSubmitLockRef.current = true;
     setSavingStickerOrder(true);
+
+    const pendingRow = createPendingPrintingOrder({
+      customerName: customer,
+      productName: sizeText || "Applicable",
+      coordinatorName,
+      dueDate: formSnapshot.due_date,
+      qty,
+      status: "pending",
+      orderKind: "sticker"
+    });
+    const { clientKey } = pendingRow;
+
+    setPendingOrders((prev) => [pendingRow, ...prev]);
+    resetCreateOrderFormFields();
+    setShowCreateForm(false);
+    setCreateFormMode("printing");
+    setOrdersTab("active");
+
     try {
       const payload = {
         order_date: todayLocalISODate(),
         order_id: null,
         order_kind: "sticker",
-        due_date: stickerOrderForm.due_date,
+        due_date: formSnapshot.due_date,
         owner_name: "",
         customer_name: customer,
         coordinator_name: coordinatorName,
@@ -1800,12 +2002,12 @@ function App() {
         return;
       }
 
-      if (customerAssetFiles.length > 0 && insertedOrder?.id) {
+      if (customerAssetsSnapshot.length > 0 && insertedOrder?.id) {
         try {
           await uploadOrderCustomerAssets(
             supabase,
             insertedOrder.id,
-            customerAssetFiles,
+            customerAssetsSnapshot,
             session.user.id
           );
         } catch (assetErr) {
@@ -1827,15 +2029,177 @@ function App() {
         });
       }
 
-      setStickerOrderForm(emptyStickerOrderForm());
-      setCustomerAssetFiles([]);
-      setShowCreateForm(false);
-      setCreateFormMode("printing");
-      setOrdersTab("active");
-      await fetchOrders();
-      alert("Sticker order saved successfully.");
+      await fetchOrders({ silent: true });
     } finally {
+      removePendingOrder(clientKey);
+      orderSubmitLockRef.current = false;
       setSavingStickerOrder(false);
+    }
+  }
+
+  async function handleCreateSamplingOrder(e) {
+    e.preventDefault();
+    if (orderSubmitLockRef.current) return;
+    const customer = String(samplingOrderForm.customer_name ?? "").trim();
+    const productName = String(samplingOrderForm.product_name ?? "").trim();
+    if (!customer) {
+      alert("Please enter customer name.");
+      return;
+    }
+    if (!productName) {
+      alert("Please enter product name.");
+      return;
+    }
+    if (!samplingOrderForm.due_date) {
+      alert("Please set the delivery date.");
+      return;
+    }
+    if (samplingMockupFiles.length === 0) {
+      alert("Please upload at least one mockup image.");
+      return;
+    }
+    if (customerAssetFiles.length === 0) {
+      alert("Please upload at least one asset.");
+      return;
+    }
+    for (const file of customerAssetFiles) {
+      if (!isAllowedStickerAsset(file)) {
+        alert(`File type not allowed: ${file.name}. Use PNG, PDF, JPEG, AI, CDR, or PSD.`);
+        return;
+      }
+    }
+
+    const formSnapshot = { ...samplingOrderForm };
+    const mockupFilesSnapshot = [...samplingMockupFiles];
+    const customerAssetsSnapshot = [...customerAssetFiles];
+    const qtyRaw = String(formSnapshot.qty ?? "").trim();
+    const qtyParsed = qtyRaw === "" ? 0 : Number.parseInt(qtyRaw, 10);
+    const qty = Number.isFinite(qtyParsed) && qtyParsed >= 0 ? qtyParsed : 0;
+    const sizeText = String(formSnapshot.size ?? "").trim();
+    const coordinatorName = profileDisplayName(profile) || "—";
+    const samplingOrderId =
+      String(formSnapshot.order_id ?? "").trim() || computeNextSamplingOrderId([]);
+
+    orderSubmitLockRef.current = true;
+    setSavingSamplingOrder(true);
+
+    const pendingRow = createPendingPrintingOrder({
+      orderId: samplingOrderId,
+      customerName: customer,
+      productName,
+      coordinatorName,
+      dueDate: formSnapshot.due_date,
+      qty,
+      status: "pending",
+      orderKind: "sampling"
+    });
+    const { clientKey } = pendingRow;
+
+    setPendingOrders((prev) => [pendingRow, ...prev]);
+    resetCreateOrderFormFields();
+    setShowCreateForm(false);
+    setCreateFormMode("printing");
+    setOrdersTab("active");
+
+    try {
+      const mockupUrls = [];
+      for (const file of mockupFilesSnapshot) {
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+        const uploadPath = `${session.user.id}/${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("approved-designs")
+          .upload(uploadPath, file, { upsert: false });
+        if (uploadError) {
+          alert(uploadError.message);
+          return;
+        }
+        const { data: publicUrlData } = supabase.storage
+          .from("approved-designs")
+          .getPublicUrl(uploadPath);
+        mockupUrls.push(publicUrlData.publicUrl);
+      }
+
+      const payload = {
+        order_date: todayLocalISODate(),
+        order_id: samplingOrderId,
+        order_kind: "sampling",
+        due_date: formSnapshot.due_date,
+        owner_name: "",
+        customer_name: customer,
+        coordinator_name: coordinatorName,
+        qty,
+        size_breakdown: samplingSizeToBreakdown(sizeText),
+        product_name: productName,
+        colors: [],
+        approved_design_url: JSON.stringify(mockupUrls),
+        approved_design_images: null,
+        printing_mtrs: 0,
+        status: "pending",
+        remarks: null,
+        created_by: session.user.id,
+        is_production_order: false,
+        expected_handover_to_printing: null,
+        payment_method: null,
+        payment_screenshot_url: null,
+        delivery_method: null
+      };
+
+      const { data: insertedOrder, error } = await supabase
+        .from("orders")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) {
+        const msg = String(error.message || "");
+        if (msg.includes("orders_order_kind_check")) {
+          alert(
+            `Could not save sampling order (database ${activeSupabaseRef}).\n\nHard-refresh the page (Cmd+Shift+R) and try again. If it persists, tell admin to run the latest DB migration.\n\n${msg}`
+          );
+        } else {
+          alert(msg);
+        }
+        return;
+      }
+
+      if (!insertedOrder?.id) {
+        alert("Could not save sampling order.");
+        return;
+      }
+
+      if (customerAssetsSnapshot.length > 0) {
+        try {
+          await uploadOrderCustomerAssets(
+            supabase,
+            insertedOrder.id,
+            customerAssetsSnapshot,
+            session.user.id
+          );
+        } catch (assetErr) {
+          alert(
+            `Sampling order saved, but asset upload failed: ${
+              assetErr instanceof Error ? assetErr.message : String(assetErr)
+            }`
+          );
+        }
+      }
+
+      try {
+        await insertOrderAssignmentNotification(supabase, {
+          coordinatorName,
+          orderId: insertedOrder.id,
+          orderDisplayId: formatSamplingOrderIdDisplay(samplingOrderId) || "Sampling order",
+          assignedByUserId: session.user.id,
+          profileLookup: profileLookupForAssignments
+        });
+      } catch (notifyErr) {
+        console.warn("Assignment notification skipped:", notifyErr);
+      }
+
+      await fetchOrders({ silent: true });
+    } finally {
+      removePendingOrder(clientKey);
+      orderSubmitLockRef.current = false;
+      setSavingSamplingOrder(false);
     }
   }
 
@@ -1874,6 +2238,7 @@ function App() {
     setPaymentScreenshotFiles([]);
     setCustomerAssetFiles([]);
     setShowCreateForm(true);
+    void fetchInventoryProducts();
   }
 
   function openCreateStickerOrderForm() {
@@ -1883,7 +2248,28 @@ function App() {
     setShowCreateForm(true);
   }
 
-  async function openCreateProductionJobSheet() {
+  async function openCreateSamplingOrderForm() {
+    setCreateFormMode("sampling");
+    setCustomerAssetFiles([]);
+    setSamplingMockupFiles([]);
+
+    let nextOrderId = computeNextSamplingOrderId([]);
+    const { data: existingRows, error: idError } = await supabase
+      .from("orders")
+      .select("order_id")
+      .eq("order_kind", "sampling");
+    if (!idError && existingRows?.length) {
+      nextOrderId = computeNextSamplingOrderId(existingRows.map((r) => r.order_id));
+    }
+
+    setSamplingOrderForm({
+      ...emptySamplingOrderForm(),
+      order_id: nextOrderId
+    });
+    setShowCreateForm(true);
+  }
+
+  async function openCreateProductionJobSheet(sourceOrder = null) {
     setCreateFormMode("job_sheet");
     setOrderForm(emptyOrder);
     setOrderIdDraft("");
@@ -1901,16 +2287,21 @@ function App() {
       nextOrderId = computeNextJobSheetOrderId(existingRows.map((r) => r.order_id));
     }
 
-    setJobSheetForm({
-      ...emptyJobSheetForm(),
-      order_id: nextOrderId,
-      order_date: today
-    });
+    setJobSheetForm(
+      sourceOrder
+        ? jobSheetFormFromOrder(sourceOrder, { nextOrderId, orderDate: today })
+        : {
+            ...emptyJobSheetForm(),
+            order_id: nextOrderId,
+            order_date: today
+          }
+    );
     setShowCreateForm(true);
   }
 
   async function handleCreateJobSheet(e) {
     e.preventDefault();
+    if (orderSubmitLockRef.current) return;
     if (!jobSheetForm.sales_incharge_name) {
       alert("Please select sales incharge.");
       return;
@@ -1919,8 +2310,12 @@ function App() {
       alert("Please enter customer name.");
       return;
     }
-    if (!jobSheetForm.size_type) {
-      alert("Please select size type.");
+    if (!jobSheetForm.gender || !jobSheetForm.size_type) {
+      alert("Please select gender and size type.");
+      return;
+    }
+    if (jobSheetForm.gender !== "pets" && !jobSheetForm.product_type) {
+      alert("Please select product type.");
       return;
     }
     if (!jobSheetForm.product_name.trim()) {
@@ -1940,75 +2335,119 @@ function App() {
       }
     }
 
-    const sizeBreakdown = jobSheetSizesToBreakdown(jobSheetForm.sizes, jobSheetForm.extraSizes);
-    const fromSizes = sumJobSheetSizes(jobSheetForm.sizes, jobSheetForm.extraSizes);
-    const manualQty = parseJobSheetSizeQty(jobSheetForm.total_quantity);
+    const formSnapshot = { ...jobSheetForm };
+    const fromPrintingForm = jobSheetFromPrintingFormRef.current;
+    const sizeBreakdown = jobSheetSizesToBreakdown(
+      formSnapshot.sizes,
+      formSnapshot.extraSizes,
+      formSnapshot.size_type,
+      formSnapshot.gender
+    );
+    const fromSizes = sumJobSheetSizes(
+      formSnapshot.sizes,
+      formSnapshot.extraSizes,
+      formSnapshot.size_type,
+      formSnapshot.gender
+    );
+    const manualQty = parseJobSheetSizeQty(formSnapshot.total_quantity);
     const qty = manualQty > 0 ? manualQty : fromSizes;
     if (qty <= 0) {
       alert("Please enter total quantity or quantities in at least one size.");
       return;
     }
 
-    const colorText = String(jobSheetForm.color ?? "").trim();
+    const colorText = String(formSnapshot.color ?? "").trim();
     const payload = {
-      order_date: jobSheetForm.order_date || todayLocalISODate(),
-      order_id: jobSheetForm.order_id,
+      order_date: formSnapshot.order_date || todayLocalISODate(),
+      order_id: formSnapshot.order_id,
       is_production_order: true,
       status: "new",
-      customer_name: jobSheetForm.customer_name.trim(),
-      sales_incharge_name: jobSheetForm.sales_incharge_name,
-      coordinator_name: jobSheetForm.sales_incharge_name,
+      customer_name: formSnapshot.customer_name.trim(),
+      sales_incharge_name: formSnapshot.sales_incharge_name,
+      coordinator_name: formSnapshot.sales_incharge_name,
       owner_name: "",
-      size_type: jobSheetForm.size_type,
-      rate_per_piece: parseJobSheetRate(jobSheetForm.rate_per_piece),
+      size_type: formSnapshot.size_type,
+      gender: formSnapshot.gender,
+      product_type: formSnapshot.product_type,
+      rate_per_piece: parseJobSheetRate(formSnapshot.rate_per_piece),
       qty,
       size_breakdown: sizeBreakdown,
-      product_name: jobSheetForm.product_name.trim(),
-      brand: String(jobSheetForm.brand ?? "").trim() || null,
+      product_name: formSnapshot.product_name.trim(),
+      brand: String(formSnapshot.brand ?? "").trim() || null,
       colors: colorText ? [colorText] : [],
-      fabric_type: String(jobSheetForm.fabric_type ?? "").trim() || null,
-      branding: jobSheetForm.branding === "yes",
+      fabric_type: String(formSnapshot.fabric_type ?? "").trim() || null,
+      branding: formSnapshot.branding === "yes",
       branding_type:
-        jobSheetForm.branding === "yes"
-          ? String(jobSheetForm.branding_type ?? "").trim() || null
+        formSnapshot.branding === "yes"
+          ? String(formSnapshot.branding_type ?? "").trim() || null
           : null,
-      gsm: String(jobSheetForm.gsm ?? "").trim() || null,
-      atta: jobSheetForm.atta === "yes",
-      remarks: String(jobSheetForm.comments ?? "").trim() || null,
-      due_date: jobSheetForm.delivery_required_on,
+      gsm: String(formSnapshot.gsm ?? "").trim() || null,
+      atta: formSnapshot.atta === "yes",
+      remarks: String(formSnapshot.comments ?? "").trim() || null,
+      due_date: formSnapshot.delivery_required_on,
       approved_design_url: "[]",
       printing_mtrs: 0,
       created_by: session.user.id
     };
 
+    orderSubmitLockRef.current = true;
     setSavingJobSheet(true);
-    const { data: insertedOrder, error } = await supabase
-      .from("orders")
-      .insert(payload)
-      .select("id")
-      .single();
-    setSavingJobSheet(false);
 
-    if (error) {
-      alert(error.message);
-      return;
+    const pendingRow = createPendingProductionOrder({
+      orderId: payload.order_id,
+      customerName: payload.customer_name,
+      productName: payload.product_name,
+      coordinatorName: payload.coordinator_name,
+      dueDate: payload.due_date,
+      qty: payload.qty,
+      handoverDate: formSnapshot.delivery_required_on
+    });
+    const { clientKey } = pendingRow;
+
+    setPendingOrders((prev) => [pendingRow, ...prev]);
+    if (!fromPrintingForm) {
+      resetCreateOrderFormFields();
+      setShowCreateForm(false);
+      setCreateFormMode("printing");
+      setDashboardTab("production_tracker");
+      setOrdersTab("active");
     }
 
-    if (insertedOrder?.id) {
-      await insertOrderAssignmentNotification(supabase, {
-        coordinatorName: payload.coordinator_name,
-        orderId: insertedOrder.id,
-        orderDisplayId: payload.order_id,
-        assignedByUserId: session.user.id,
-        profileLookup: profileLookupForAssignments
-      });
-    }
+    try {
+      const { data: insertedOrder, error } = await supabase
+        .from("orders")
+        .insert(payload)
+        .select("id")
+        .single();
 
-    closeCreateOrderForm();
-    setDashboardTab("production_tracker");
-    setOrdersTab("active");
-    await fetchOrders();
-    alert("Job sheet saved successfully.");
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      if (insertedOrder?.id) {
+        await insertOrderAssignmentNotification(supabase, {
+          coordinatorName: payload.coordinator_name,
+          orderId: insertedOrder.id,
+          orderDisplayId: payload.order_id,
+          assignedByUserId: session.user.id,
+          profileLookup: profileLookupForAssignments
+        });
+      }
+
+      await fetchOrders({ silent: true });
+
+      if (fromPrintingForm) {
+        jobSheetFromPrintingFormRef.current = false;
+        setJobSheetForm(emptyJobSheetForm());
+        setCreateFormMode("printing");
+        setPrintingFormJobSheetStatus({ jobSheetOrderId: payload.order_id });
+      }
+    } finally {
+      removePendingOrder(clientKey);
+      orderSubmitLockRef.current = false;
+      setSavingJobSheet(false);
+    }
   }
 
   function openRepeatOrderPicker() {
@@ -2346,21 +2785,32 @@ function App() {
     setShowCreateForm(true);
   }
 
-  async function handleAddOwner() {
-    const name = newOwnerName.trim();
-    if (!name) return;
-    const { error } = await supabase.from("owners").insert({ name });
+  async function addMasterListEntry(table, name, { missingTableMessage } = {}) {
+    const trimmed = String(name ?? "").trim();
+    if (!trimmed) return { error: "Name is required." };
+    const { data, error } = await supabase.from(table).insert({ name: trimmed }).select("id, name").single();
     if (error) {
       if (error.message?.includes("Could not find the table") && !isSchemaCacheError(error.message)) {
-        setMasterTableMissing(true);
-        alert("Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first.");
-      } else {
-        alert(error.message);
+        if (missingTableMessage) alert(missingTableMessage);
+        if (table === "sales_incharges") setSalesInchargeTableMissing(true);
+        else setMasterTableMissing(true);
       }
+      return { error: error.message };
+    }
+    await fetchMasters();
+    return { value: data.name, name: data.name, id: data.id };
+  }
+
+  async function handleAddOwner() {
+    const result = await addMasterListEntry("owners", newOwnerName, {
+      missingTableMessage:
+        "Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first."
+    });
+    if (result.error) {
+      if (!result.error.includes("Could not find the table")) alert(result.error);
       return;
     }
     setNewOwnerName("");
-    fetchMasters();
   }
 
   async function handleDeleteOwner(owner) {
@@ -2375,20 +2825,15 @@ function App() {
   }
 
   async function handleAddCoordinator() {
-    const name = newCoordinatorName.trim();
-    if (!name) return;
-    const { error } = await supabase.from("coordinators").insert({ name });
-    if (error) {
-      if (error.message?.includes("Could not find the table") && !isSchemaCacheError(error.message)) {
-        setMasterTableMissing(true);
-        alert("Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first.");
-      } else {
-        alert(error.message);
-      }
+    const result = await addMasterListEntry("coordinators", newCoordinatorName, {
+      missingTableMessage:
+        "Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first."
+    });
+    if (result.error) {
+      if (!result.error.includes("Could not find the table")) alert(result.error);
       return;
     }
     setNewCoordinatorName("");
-    fetchMasters();
   }
 
   async function handleDeleteCoordinator(coordinator) {
@@ -2403,23 +2848,43 @@ function App() {
   }
 
   async function handleAddSalesIncharge() {
-    const name = newSalesInchargeName.trim();
-    if (!name) return;
-    const { error } = await supabase.from("sales_incharges").insert({ name });
-    if (error) {
-      if (error.message?.includes("Could not find the table") && !isSchemaCacheError(error.message)) {
-        setMasterTableMissing(true);
-        alert(
-          "Sales incharges table is missing. Run supabase/migrations/20260613120000_add_job_sheet_fields.sql on your project."
-        );
-      } else {
-        alert(error.message);
-      }
+    const result = await addMasterListEntry("sales_incharges", newSalesInchargeName, {
+      missingTableMessage:
+        "Sales incharges table is missing. Run supabase/migrations/20260613120000_add_job_sheet_fields.sql on your project."
+    });
+    if (result.error) {
+      if (!result.error.includes("Could not find the table")) alert(result.error);
       return;
     }
     setNewSalesInchargeName("");
-    fetchMasters();
   }
+
+  const addOwnerFromDropdown = useCallback(
+    (name) =>
+      addMasterListEntry("owners", name, {
+        missingTableMessage:
+          "Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first."
+      }),
+    []
+  );
+
+  const addCoordinatorFromDropdown = useCallback(
+    (name) =>
+      addMasterListEntry("coordinators", name, {
+        missingTableMessage:
+          "Owners/Coordinators tables are missing in Supabase. Please run the updated supabase/schema.sql first."
+      }),
+    []
+  );
+
+  const addSalesInchargeFromDropdown = useCallback(
+    (name) =>
+      addMasterListEntry("sales_incharges", name, {
+        missingTableMessage:
+          "Sales incharges table is missing. Run supabase/migrations/20260613120000_add_job_sheet_fields.sql on your project."
+      }),
+    []
+  );
 
   async function handleDeleteSalesIncharge(row) {
     const ok = window.confirm(`Remove sales incharge "${row.name}"?`);
@@ -2577,6 +3042,23 @@ function App() {
       return;
     }
 
+    if (editingViewerAvatarFile) {
+      setAvatarUploading(true);
+      try {
+        await uploadProfileAvatar(viewerId, editingViewerAvatarFile);
+        setEditingViewerAvatarFile(null);
+        setEditingViewerAvatarPreview("");
+        if (viewerId === session?.user?.id) {
+          await fetchProfile(session.user);
+        }
+      } catch (avatarErr) {
+        alert(avatarErr instanceof Error ? avatarErr.message : String(avatarErr));
+        setAvatarUploading(false);
+        return;
+      }
+      setAvatarUploading(false);
+    }
+
     if (profileAccessRole(viewer) !== "admin") {
       const { error: permErr } = await supabase.from("profile_order_permissions").upsert(
         {
@@ -2638,6 +3120,8 @@ function App() {
     if (!viewer?.id) return;
     const id = viewer.id;
     setEditingViewerId(id);
+    setEditingViewerAvatarFile(null);
+    setEditingViewerAvatarPreview("");
     setViewerNameDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.full_name ?? "" }));
     setViewerEmployeeIdDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.employee_id ?? "" }));
     setViewerDepartmentDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.department ?? "" }));
@@ -2658,6 +3142,8 @@ function App() {
 
   function closeViewerEdit() {
     setEditingViewerId(null);
+    setEditingViewerAvatarFile(null);
+    setEditingViewerAvatarPreview("");
   }
 
   async function handleResetViewerPermissions(userId) {
@@ -2699,6 +3185,8 @@ function App() {
       status_tones_enabled: true,
       permissions: defaultNewUserPermissions()
     });
+    setNewUserAvatarFile(null);
+    setNewUserAvatarPreview("");
   }
 
   async function handleCreateUser(e) {
@@ -2736,6 +3224,18 @@ function App() {
         status_tones_enabled: newUserForm.status_tones_enabled !== false,
         permissions: role === "viewer" ? permissionRowFromDraft(newUserForm.permissions) : {}
       });
+      if (newUserAvatarFile && result?.user_id) {
+        setAvatarUploading(true);
+        try {
+          await uploadProfileAvatar(result.user_id, newUserAvatarFile);
+        } catch (avatarErr) {
+          setCreateUserError(
+            avatarErr instanceof Error ? avatarErr.message : String(avatarErr)
+          );
+        } finally {
+          setAvatarUploading(false);
+        }
+      }
       if (result?.recovered) {
         setCreateUserSuccess(
           `Recovered ${email}: linked missing profile and set password. User should now appear in the list.`
@@ -2949,6 +3449,7 @@ function App() {
   }
 
   function openViewOrder(order) {
+    if (order?._isPending) return;
     setViewOrderTarget(order);
     setViewOrderFromTab(dashboardTab);
   }
@@ -3299,7 +3800,12 @@ function App() {
 
   const ordersSearchTrimmed = ordersSearchQuery.trim();
 
-  const printingPaginationKey = `${ordersTab}|${dateFrom}|${dateTo}|${orderSortCoordinator}|${ordersSearchTrimmed}`;
+  const printingOrdersSource = useMemo(
+    () => mergePendingOrders(pendingOrders, sortedFilteredOrders, "printing"),
+    [pendingOrders, sortedFilteredOrders]
+  );
+
+  const printingPaginationKey = `${ordersTab}|${dateFrom}|${dateTo}|${orderSortCoordinator}|${ordersSearchTrimmed}|pending:${pendingOrders.filter((p) => p.targetTab === "printing").length}`;
   const {
     visible: printingVisibleOrders,
     total: printingTotalOrders,
@@ -3308,7 +3814,7 @@ function App() {
     pageSize: printingPageSize,
     setPageSize: setPrintingPageSize,
     totalPages: printingTotalPages
-  } = usePagination(sortedFilteredOrders, "printing", printingPaginationKey);
+  } = usePagination(printingOrdersSource, "printing", printingPaginationKey);
 
   const ordersInDateRangeAll = useMemo(
     () => filterOrdersInDateRange(orders, dateFrom, dateTo),
@@ -3318,6 +3824,11 @@ function App() {
   const productionTrackerOrders = useMemo(
     () => sortOrdersNewestFirst(filterProductionTrackerOrders(ordersInDateRangeAll)),
     [ordersInDateRangeAll]
+  );
+
+  const productionTrackerOrdersWithPending = useMemo(
+    () => mergePendingOrders(pendingOrders, productionTrackerOrders, "production_tracker"),
+    [pendingOrders, productionTrackerOrders]
   );
 
   const billingOrders = useMemo(
@@ -3434,73 +3945,24 @@ function App() {
 
   if (!session) {
     return (
-      <div className="auth-page">
-        <ThemeToggle
-          theme={theme}
-          onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-          className="theme-toggle-btn theme-toggle-btn--floating"
-        />
-        <div className="panel auth-card">
-          <div className="auth-brand">
-            <img
-              src="/brand-logo.png"
-              alt=""
-              className="auth-brand-logo"
-              width={72}
-              height={72}
-            />
-            <h1>Scott Dashboard</h1>
-          </div>
-          <form onSubmit={handleSignIn}>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <div className="auth-password-field">
-              <input
-                id="auth-password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                className="auth-password-toggle"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                aria-pressed={showPassword}
-                title={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                    />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            <button disabled={authLoading}>{authLoading ? "Signing in..." : "Sign in"}</button>
-          </form>
-        </div>
-      </div>
+      <LoginPage
+        email={email}
+        password={password}
+        showPassword={showPassword}
+        authError=""
+        signingIn={authLoading}
+        onEmailChange={(e) => setEmail(e.target.value)}
+        onPasswordChange={(e) => setPassword(e.target.value)}
+        onTogglePassword={() => setShowPassword((v) => !v)}
+        onSubmit={handleSignIn}
+        themeToggle={
+          <ThemeToggleButton
+            theme={theme}
+            onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            className="absolute right-4 top-4"
+          />
+        }
+      />
     );
   }
 
@@ -4078,257 +4540,124 @@ function App() {
     : userDisplayInitials(profile?.full_name, profile?.email);
 
   return (
-    <div className="page app-layout">
-      <div className="dashboard-shell">
-        {mobileNavOpen ? (
-          <button
-            type="button"
-            className="mobile-nav-backdrop"
-            aria-label="Close menu"
-            onClick={() => setMobileNavOpen(false)}
-          />
-        ) : null}
-        <aside
-          className={mobileNavOpen ? "dashboard-sidebar is-mobile-open" : "dashboard-sidebar"}
-          role="navigation"
-          aria-label="Dashboard menu"
-        >
-          <div className="dashboard-sidebar-brand">
-            <img
-              src="/brand-logo.png"
-              alt=""
-              className="dashboard-sidebar-logo"
-              width={32}
-              height={32}
+    <TooltipProvider delayDuration={200}>
+    <div className="page app-layout flex h-svh min-h-0 flex-col overflow-hidden bg-background">
+      <DashboardShell
+        topbarTitle={currentDashboardTabLabel}
+        mainSections={visibleSidebarMainBySection}
+        footerItems={visibleSidebarFooterWithChat}
+        adminTab={ADMIN_DASHBOARD_TAB}
+        isAdmin={isAdmin}
+        dashboardTab={dashboardTab}
+        onSelectTab={selectDashboardTab}
+        soonTabIds={DASHBOARD_SIDEBAR_SOON_TAB_IDS}
+        userName={headerUserName}
+        userDept={!profileLoading && !profileError ? profile?.department?.trim() || "" : ""}
+        userInitials={headerUserInitials}
+        userAvatarUrl={profileAvatarPublicUrl(profile?.avatar_path)}
+        sidebarFooterSlot={
+          <div className="flex items-center gap-1 group-data-[collapsible=icon]:hidden">
+            <NotificationBellButton
+              userId={session?.user?.id}
+              active={dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id}
+              onOpen={() => selectDashboardTab(NOTIFICATIONS_DASHBOARD_TAB.id)}
             />
-            <div className="dashboard-sidebar-brand-copy">
-              <span className="dashboard-sidebar-brand-text">Scott Dashboard</span>
-              <span className="dashboard-sidebar-brand-sub">Operations workspace</span>
-            </div>
+            <ThemeToggleButton
+              theme={theme}
+              onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            />
           </div>
-          <div className="mobile-nav-drawer-head">
-            <h2 className="mobile-nav-drawer-title">Menu</h2>
-            <button
-              type="button"
-              className="mobile-nav-close"
-              aria-label="Close menu"
-              onClick={() => setMobileNavOpen(false)}
-            >
-              ×
-            </button>
-          </div>
-          <nav className="dashboard-sidebar-nav">
-            <div className="dashboard-sidebar-main">
-              {visibleSidebarMainBySection.map((section) => (
-                <div key={section.label} className="dashboard-sidebar-section">
-                  <span className="dashboard-sidebar-section-label">{section.label}</span>
-                  {section.items.map((item) => (
-                    <DashboardSidebarItem
-                      key={item.id}
-                      item={item}
-                      isActive={dashboardTab === item.id}
-                      onSelect={selectDashboardTab}
-                      showSoon={DASHBOARD_SIDEBAR_SOON_TAB_IDS.has(item.id)}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-            <div className="dashboard-sidebar-footer">
-              <span className="dashboard-sidebar-section-label">Tools</span>
-              <div className="dashboard-sidebar-footer-nav">
-                {visibleSidebarFooterWithChat.map((item) => (
-                  <DashboardSidebarItem
-                    key={item.id}
-                    item={item}
-                    isActive={dashboardTab === item.id}
-                    onSelect={selectDashboardTab}
-                    showSoon={DASHBOARD_SIDEBAR_SOON_TAB_IDS.has(item.id)}
-                  />
-                ))}
-                {isAdmin ? (
-                  <DashboardSidebarItem
-                    item={ADMIN_DASHBOARD_TAB}
-                    isActive={dashboardTab === ADMIN_DASHBOARD_TAB.id}
-                    onSelect={selectDashboardTab}
-                  />
-                ) : null}
-              </div>
-              <div className="dashboard-sidebar-user">
-                <div className="dashboard-sidebar-user-avatar" aria-hidden="true">
-                  {headerUserInitials}
-                </div>
-                <div className="dashboard-sidebar-user-meta">
-                  <span className="dashboard-sidebar-user-name">{headerUserName}</span>
-                  {!profileLoading && !profileError && profile?.department?.trim() ? (
-                    <span className="dashboard-sidebar-user-dept" title="Department">
-                      {profile.department.trim()}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="dashboard-sidebar-user-actions">
-                  <NotificationBellButton
-                    userId={session?.user?.id}
-                    active={dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id}
-                    onOpen={() => selectDashboardTab(NOTIFICATIONS_DASHBOARD_TAB.id)}
-                  />
-                  <ThemeToggle
-                    theme={theme}
-                    onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-                    className="theme-toggle-btn theme-toggle-btn--sidebar"
-                  />
-                </div>
-              </div>
-            </div>
-          </nav>
-        </aside>
-
-        <div className="dashboard-workspace">
-          <header className="dashboard-topbar">
-            <div className="dashboard-topbar-context">
-              <span className="dashboard-topbar-eyebrow">Dashboard</span>
-              <h1 className="dashboard-topbar-title">{currentDashboardTabLabel}</h1>
-            </div>
-            <div className="dashboard-topbar-actions">
-              <div className="dashboard-topbar-row dashboard-topbar-row--primary">
-                <GlobalSearchBox
-                  query={globalSearchQuery}
-                  onQueryChange={setGlobalSearchQuery}
-                  orders={orders}
-                  outwardChallans={globalSearchOutwardChallans}
-                  contacts={globalSearchContacts}
-                  canAccessTab={canAccessDashboardTabForSearch}
-                  onSelect={handleGlobalSearchSelect}
-                  loadingExtras={globalSearchExtrasLoading}
-                />
-                {isAdmin ? (
-                  <>
-                    <button
-                      type="button"
-                      className="topbar-users-btn dashboard-topbar-btn dashboard-topbar-btn--primary"
-                      onClick={() => openAdminPanel("list")}
-                    >
-                      Edit Users
-                    </button>
-                    <button
-                      type="button"
-                      className="topbar-archive-btn dashboard-topbar-btn"
-                      onClick={() => setShowArchiveModal(true)}
-                    >
-                      Archive
-                    </button>
-                  </>
-                ) : null}
-                <button type="button" className="logout-btn dashboard-topbar-btn" onClick={handleSignOut}>
-                  Logout
-                </button>
-              </div>
-            </div>
-          </header>
-
+        }
+        topbarActions={
+          <>
+            <GlobalSearchBox
+              query={globalSearchQuery}
+              onQueryChange={setGlobalSearchQuery}
+              orders={orders}
+              outwardChallans={globalSearchOutwardChallans}
+              contacts={globalSearchContacts}
+              canAccessTab={canAccessDashboardTabForSearch}
+              onSelect={handleGlobalSearchSelect}
+              loadingExtras={globalSearchExtrasLoading}
+              className="max-w-none lg:max-w-xs xl:max-w-sm"
+            />
+            {isAdmin ? (
+              <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => setShowArchiveModal(true)}>
+                Archive
+              </Button>
+            ) : null}
+            <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={handleSignOut}>
+              Logout
+            </Button>
+          </>
+        }
+        fullBleed={dashboardTab === "asset_management" || dashboardTab === "inventory"}
+      >
           {profileError && (
-            <div className="panel profile-error-banner dashboard-banner">
-              <strong>{profileError.startsWith("Cannot reach Supabase") ? "Connection:" : "Account setup:"}</strong>{" "}
-              {profileError}{" "}
-              {!profileError.startsWith("Cannot reach Supabase") && (
-                <>
-                  If you are an admin, add your email to <code>admin_emails</code> and run the latest{" "}
-                  <code>supabase/schema.sql</code> in Supabase (RLS + profile rules).
-                </>
-              )}
-            </div>
+            <Alert variant="destructive" className="mb-4">
+              <AlertTitle>{profileError.startsWith("Cannot reach Supabase") ? "Connection" : "Account setup"}</AlertTitle>
+              <AlertDescription>
+                {profileError}{" "}
+                {!profileError.startsWith("Cannot reach Supabase") && (
+                  <>
+                    If you are an admin, add your email to <code>admin_emails</code> and run the latest{" "}
+                    <code>supabase/schema.sql</code> in Supabase (RLS + profile rules).
+                  </>
+                )}
+              </AlertDescription>
+            </Alert>
           )}
 
           {import.meta.env.DEV && getDeployEnvironment().isProduction ? (
-            <div className="panel dashboard-env-danger-banner dashboard-banner" role="alert">
-              <strong>Live database connected.</strong> This dev server is using production Supabase — changes here
-              affect the hosted live app. Stop and use <code>npm run dev</code> (needs{" "}
-              <code>.env.development</code>) or <code>npm run dev:staging</code> (needs <code>.env.staging</code>).
-            </div>
+            <Alert className="mb-4 border-amber-500/50 bg-amber-500/10 text-foreground" role="alert">
+              <AlertTitle>Live database connected</AlertTitle>
+              <AlertDescription>
+                This dev server is using production Supabase — changes here affect the hosted live app. Stop and use{" "}
+                <code>npm run dev</code> (needs <code>.env.development</code>) or <code>npm run dev:staging</code> (needs{" "}
+                <code>.env.staging</code>).
+              </AlertDescription>
+            </Alert>
           ) : null}
 
-          <div className="dashboard-main">
+          <div
+            className={cn(
+              "flex min-h-0 flex-1 flex-col",
+              dashboardTab === "asset_management" || dashboardTab === "inventory"
+                ? "overflow-hidden"
+                : "gap-4",
+              dashboardTab !== "asset_management" && dashboardTab !== "inventory" && "legacy-ui"
+            )}
+          >
           {isAdmin && masterTableMissing && (
-            <p className="panel master-warning master-warning-banner">
-              Supabase tables for <strong>owners</strong> or <strong>coordinators</strong> are missing. Run{" "}
-              <code>supabase/migrations/20260613140000_repair_master_directory_tables.sql</code> in the SQL
-              Editor (or <code>supabase db push</code>).
-            </p>
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>
+                Supabase tables for <strong>owners</strong> or <strong>coordinators</strong> are missing. Run{" "}
+                <code>supabase/migrations/20260613140000_repair_master_directory_tables.sql</code> in the SQL Editor (or{" "}
+                <code>supabase db push</code>).
+              </AlertDescription>
+            </Alert>
           )}
           {isAdmin && salesInchargeTableMissing && !masterTableMissing && (
-            <p className="panel master-warning master-warning-banner">
-              <strong>Sales incharges</strong> table is missing (job sheet dropdown). Run{" "}
-              <code>supabase/migrations/20260613140000_repair_master_directory_tables.sql</code> in the SQL
-              Editor, then refresh.
-            </p>
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>
+                <strong>Sales incharges</strong> table is missing (job sheet dropdown). Run{" "}
+                <code>supabase/migrations/20260613140000_repair_master_directory_tables.sql</code> in the SQL Editor, then
+                refresh.
+              </AlertDescription>
+            </Alert>
           )}
 
           {dashboardTab === "home" && (
-            <section className="home-status-panel" aria-labelledby="home-status-title">
-              <header className="home-status-head">
-                <div className="home-status-head-text">
-                  <h2 id="home-status-title" className="home-status-title">
-                    Order counts by status
-                  </h2>
-                </div>
-                <div className="home-status-refresh">
-                  <button
-                    type="button"
-                    className={
-                      homeRefreshing
-                        ? "home-status-refresh-btn is-refreshing"
-                        : "home-status-refresh-btn"
-                    }
-                    onClick={() => void refreshHomeStatus()}
-                    disabled={homeRefreshing}
-                    aria-label="Refresh order counts"
-                    aria-busy={homeRefreshing}
-                    title="Refresh order counts"
-                  >
-                    <svg
-                      className="home-status-refresh-icon"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
-                    >
-                      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
-                      <path d="M21 3v6h-6" />
-                    </svg>
-                  </button>
-                  <span className="home-status-updated" aria-live="polite">
-                    {homeRefreshing ? "Refreshing…" : `Last updated: ${homeLastUpdatedLabel}`}
-                  </span>
-                </div>
-              </header>
+            <div className="space-y-6">
+            <HomeStatusPanel
+              summary={summary}
+              refreshing={homeRefreshing}
+              onRefresh={() => void refreshHomeStatus()}
+              lastUpdatedLabel={homeLastUpdatedLabel}
+              renderStageIcon={renderStageIcon}
+            />
 
-              <div className="home-status-grid">
-                {summary.map((item) => (
-                  <article
-                    className={`home-stat-card home-stat-card--${item.key}`}
-                    key={item.key}
-                    aria-label={`${item.label}: ${item.count} ${item.count === 1 ? "order" : "orders"}`}
-                  >
-                    <div className="home-stat-card__icon-wrap">
-                      {item.key === "new" ? (
-                        <span className="home-stat-card__new-badge">NEW</span>
-                      ) : (
-                        renderStageIcon(item.key, item.label)
-                      )}
-                    </div>
-                    <h3 className="home-stat-card__title">{item.label}</h3>
-                    <p className="home-stat-card__count">{item.count}</p>
-                    <p className="home-stat-card__label">{item.count === 1 ? "order" : "orders"}</p>
-                  </article>
-                ))}
-              </div>
-
-              {isAdmin ? (
+            {isAdmin ? (
                 <section
                   className="home-printing-report-card"
                   aria-labelledby="home-printing-report-title"
@@ -4355,260 +4684,219 @@ function App() {
                   <ProductRevenuePanel orders={orders} />
                 </section>
               ) : null}
-
-            </section>
+            </div>
           )}
 
           {dashboardTab === "printing" && (
-      <section className={`panel table-panel dashboard-card${ordersTab === "print_queue" ? " dashboard-card--flat" : ""}`}>
-        <>
-        <div className="table-filters">
-          <div className="orders-tabs" role="tablist" aria-label="Printing orders views">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={ordersTab === "active"}
-              className={ordersTab === "active" ? "orders-tab is-active" : "orders-tab"}
-              onClick={() => setOrdersTab("active")}
-            >
-              All orders
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={ordersTab === "complete"}
-              className={ordersTab === "complete" ? "orders-tab is-active" : "orders-tab"}
-              onClick={() => setOrdersTab("complete")}
-            >
-              Complete orders
-            </button>
-            {canAccessPrintQueue ? (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={ordersTab === "print_queue"}
-                className={ordersTab === "print_queue" ? "orders-tab is-active" : "orders-tab"}
-                onClick={() => setOrdersTab("print_queue")}
-              >
-                {PRINTING_QUEUE_SUBTAB.label}
-              </button>
-            ) : null}
-          </div>
-          {ordersTab !== "print_queue" ? (
-          <>
-              <label>
-                From
-                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-              </label>
-              <label>
-                To
-                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  setDateFrom("");
-                  setDateTo("");
-                }}
-              >
-                Clear
-              </button>
-              <label>
-                Coordinator
-                <select
-                  value={orderSortCoordinator}
-                  onChange={(e) => setOrderSortCoordinator(e.target.value)}
-                  aria-label="Filter orders by coordinator name"
-                >
-                  <option value="none">All coordinators</option>
-                  {coordinatorFilterOptions.map((name) => (
-                    <option key={name} value={`coord:${name}`}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="orders-search-field">
-                Search
-                <input
-                  type="search"
-                  className="orders-search-input"
-                  placeholder="Order #, customer, coordinator…"
-                  value={ordersSearchQuery}
-                  onChange={(e) => setOrdersSearchQuery(e.target.value)}
+            <div className="space-y-4">
+              <Tabs value={ordersTab} onValueChange={setOrdersTab} aria-label="Printing orders views">
+                <TabsList>
+                  <TabsTrigger value="active">All orders</TabsTrigger>
+                  <TabsTrigger value="complete">Complete orders</TabsTrigger>
+                  {canAccessPrintQueue ? (
+                    <TabsTrigger value="print_queue">{PRINTING_QUEUE_SUBTAB.label}</TabsTrigger>
+                  ) : null}
+                </TabsList>
+              </Tabs>
+
+              {ordersTab === "print_queue" ? (
+                <PrintingDepartmentPanel
+                  orders={orders}
+                  loadingOrders={loadingOrders}
+                  onViewOrder={openViewOrder}
+                  renderStageIcon={renderStageIcon}
+                  sessionUserId={session?.user?.id}
+                  canEdit={canEditPrintQueue}
+                  isAdmin={isAdmin}
+                  teamProfiles={teamProfiles}
+                  initialSubview={pendingPrintingSubview}
+                  onNavigateConsumed={() => setPendingPrintingSubview(null)}
+                  embedded
                 />
-              </label>
-              {ordersSearchTrimmed ? (
-                <button type="button" onClick={() => setOrdersSearchQuery("")}>
-                  Clear search
-                </button>
-              ) : null}
-              <OrdersPerPageControl
-                idPrefix="printing-orders-per-page"
-                pageSize={printingPageSize}
-                onPageSizeChange={setPrintingPageSize}
-              />
-              {session ? (
-            <div className="create-order-row create-order-row--in-card create-order-row--right">
-              <button type="button" className="btn-mockup" onClick={() => setShowMockupStudio(true)}>
-                Create Mockup
-              </button>
-              {(isAdmin || viewerCanCreateOrders) && (
-                <>
-                  <button
-                    type="button"
-                    className="btn-repeat-order"
-                    onClick={openRepeatOrderPicker}
-                    title="Create a new order pre-filled from an existing one"
-                  >
-                    Repeat Order
-                  </button>
-                  {!showCreateForm && (
+              ) : (
+                <div className="space-y-4">
+                  <OrdersListFilters
+                    idPrefix="printing-orders"
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    onDateFromChange={setDateFrom}
+                    onDateToChange={setDateTo}
+                    onClearDates={() => {
+                      setDateFrom("");
+                      setDateTo("");
+                    }}
+                    clearDatesLabel="Clear"
+                    showSearch
+                    searchQuery={ordersSearchQuery}
+                    onSearchQueryChange={setOrdersSearchQuery}
+                    onClearSearch={() => setOrdersSearchQuery("")}
+                    pageSize={printingPageSize}
+                    onPageSizeChange={setPrintingPageSize}
+                    extraActions={
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="printing-coordinator-filter">Coordinator</Label>
+                        <Select value={orderSortCoordinator} onValueChange={setOrderSortCoordinator}>
+                          <SelectTrigger id="printing-coordinator-filter" className="min-w-[10.5rem]">
+                            <SelectValue placeholder="All coordinators" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">All coordinators</SelectItem>
+                            {coordinatorFilterOptions.map((name) => (
+                              <SelectItem key={name} value={`coord:${name}`}>
+                                {name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    }
+                  />
+                  {session ? (
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button type="button" variant="outline" onClick={() => setShowMockupStudio(true)}>
+                        Create Mockup
+                      </Button>
+                      {(isAdmin || viewerCanCreateOrders) && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={openRepeatOrderPicker}
+                            title="Create a new order pre-filled from an existing one"
+                          >
+                            Repeat Order
+                          </Button>
+                          {!showCreateForm && (
+                            <>
+                              <Button type="button" onClick={openCreateOrderForm}>
+                                Create New Order
+                              </Button>
+                              <Button type="button" variant="secondary" onClick={openCreateStickerOrderForm}>
+                                Place Sticker Order
+                              </Button>
+                              <Button type="button" variant="secondary" onClick={openCreateSamplingOrderForm}>
+                                Create Sampling Order
+                              </Button>
+                            </>
+                          )}
+                          {isAdmin && (
+                            <Button type="button" variant="outline" onClick={handleExportCsv}>
+                              Export
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ) : null}
+                  {loadingOrders ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-20 w-full rounded-xl" />
+                      <Skeleton className="h-64 w-full rounded-xl" />
+                    </div>
+                  ) : (
                     <>
-                      <button type="button" onClick={openCreateOrderForm}>
-                        Create New Order
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-sticker-order"
-                        onClick={openCreateStickerOrderForm}
-                      >
-                        Place Sticker Order
-                      </button>
+                      <OrdersListSummary
+                        label={ordersProcessedSummary.summaryLabel}
+                        count={ordersProcessedSummary.count}
+                        totalQty={ordersProcessedSummary.totalQty}
+                        filterBits={ordersProcessedSummary.hasFilters ? ordersProcessedSummary.filterBits : []}
+                      />
+                      <div className="rounded-xl border bg-card shadow-sm">
+                        <Table data-orders-table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[7rem]" />
+                              <TableHead>Order number</TableHead>
+                              <TableHead>Customer</TableHead>
+                              <TableHead>Product name</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Coordinator</TableHead>
+                              <TableHead>Delivery date</TableHead>
+                              <TableHead className="text-right">Qty</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {printingVisibleOrders.map((order) => {
+                              const statusLabel = stageLabelForOrder(order, order.status);
+                              return (
+                                <TableRow
+                                  key={order.clientKey ?? order.id}
+                                  className={cn(orderListRowClassName(order), order._isPending && "opacity-70")}
+                                >
+                                  <TableCell>
+                                    <OrderViewActionCell order={order} onViewOrder={openViewOrder} />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                      {isStickerOrder(order) ? (
+                                        <StickerOrderIdBadge />
+                                      ) : isSamplingOrder(order) ? (
+                                        <SamplingOrderIdBadge orderId={order.order_id} />
+                                      ) : (
+                                        <OrderIdBadges orderId={order.order_id} />
+                                      )}
+                                      {isDispatchVerificationFailed(order) ? (
+                                        <Badge variant="destructive" className="text-[10px] uppercase">
+                                          Fail
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="max-w-[12rem] truncate">
+                                    {order.customer_name?.trim() ? order.customer_name : "—"}
+                                  </TableCell>
+                                  <TableCell className="max-w-[12rem] truncate">
+                                    {isSamplingOrder(order)
+                                      ? order.product_name?.trim() || "—"
+                                      : isStickerOrder(order)
+                                        ? formatStickerSizeDisplay(order.product_name)
+                                        : order.product_name?.trim()
+                                          ? order.product_name
+                                          : "—"}
+                                  </TableCell>
+                                  <TableCell>
+                                    <OrderStatusBadge
+                                      status={order.status}
+                                      label={statusLabel}
+                                      icon={renderStageIcon(order.status, statusLabel)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>{order.coordinator_name || "—"}</TableCell>
+                                  <TableCell>{formatDeliveryDate(order.due_date)}</TableCell>
+                                  <TableCell className="text-right tabular-nums">
+                                    {isStickerOrder(order) || isSamplingOrder(order)
+                                      ? formatStickerQtyDisplay(order.qty)
+                                      : order.qty}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                            {printingTotalOrders === 0 && (
+                              <TableRow>
+                                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                                  {ordersSearchTrimmed
+                                    ? "No orders match your search."
+                                    : ordersTab === "complete"
+                                      ? "No completed orders in the selected date range."
+                                      : "No orders found for selected date range."}
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      <OrdersPagination
+                        page={printingPage}
+                        totalPages={printingTotalPages}
+                        onPageChange={setPrintingPage}
+                        total={printingTotalOrders}
+                        pageSize={printingPageSize}
+                      />
                     </>
                   )}
-                  {isAdmin && (
-                    <button type="button" onClick={handleExportCsv}>
-                      Export
-                    </button>
-                  )}
-                </>
+                </div>
               )}
             </div>
-              ) : null}
-          </>
-          ) : null}
-        </div>
-        {ordersTab === "print_queue" ? (
-          <PrintingDepartmentPanel
-            orders={orders}
-            loadingOrders={loadingOrders}
-            onViewOrder={openViewOrder}
-            renderStageIcon={renderStageIcon}
-            sessionUserId={session?.user?.id}
-            canEdit={canEditPrintQueue}
-            isAdmin={isAdmin}
-            teamProfiles={teamProfiles}
-            initialSubview={pendingPrintingSubview}
-            onNavigateConsumed={() => setPendingPrintingSubview(null)}
-            embedded
-          />
-        ) : loadingOrders ? (
-          <p>Loading orders...</p>
-        ) : (
-          <>
-          <div className="orders-processed-summary" role="status" aria-live="polite">
-            <div className="orders-processed-summary-main">
-              <span className="orders-processed-label">{ordersProcessedSummary.summaryLabel}</span>
-              <span className="orders-processed-count">{ordersProcessedSummary.count}</span>
-            </div>
-            <div className="orders-processed-summary-meta">
-              <span className="orders-processed-qty">
-                Total qty: <strong>{ordersProcessedSummary.totalQty}</strong>
-              </span>
-              {ordersProcessedSummary.hasFilters ? (
-                <span className="orders-processed-filters">
-                  {ordersProcessedSummary.filterBits.join(" · ")}
-                </span>
-              ) : null}
-            </div>
-          </div>
-          <div className="table-wrap table-wrap--compact">
-            <table className="orders-table-compact">
-              <thead>
-                <tr>
-                  <th />
-                  <th>Order number</th>
-                  <th>Customer</th>
-                  <th>Product name</th>
-                  <th>Status</th>
-                  <th>Coordinator</th>
-                  <th>Delivery Date</th>
-                  <th>Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {printingVisibleOrders.map((order) => (
-                  <tr key={order.id} className={dispatchRowHighlightClass(order) || undefined}>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn-view-order"
-                        onClick={() => openViewOrder(order)}
-                      >
-                        View order
-                      </button>
-                    </td>
-                    <td className="orders-compact-id">
-                      {isStickerOrder(order) ? (
-                        <StickerOrderIdBadge />
-                      ) : (
-                        <OrderIdBadges orderId={order.order_id} />
-                      )}
-                      {isDispatchVerificationFailed(order) ? (
-                        <span className="dispatch-failed-badge">FAIL</span>
-                      ) : null}
-                    </td>
-                    <td className="orders-compact-customer">
-                      {order.customer_name?.trim() ? order.customer_name : "—"}
-                    </td>
-                    <td className="orders-compact-product">
-                      {isStickerOrder(order)
-                        ? formatStickerSizeDisplay(order.product_name)
-                        : order.product_name?.trim()
-                          ? order.product_name
-                          : "—"}
-                    </td>
-                    <td>
-                      <span
-                        className={`status-pill status-pill--compact status-${order.status ?? "new"}`}
-                      >
-                        {renderStageIcon(order.status, stageLabelForOrder(order, order.status))}{" "}
-                        {stageLabelForOrder(order, order.status)}
-                      </span>
-                    </td>
-                    <td>{order.coordinator_name || "—"}</td>
-                    <td>{formatDeliveryDate(order.due_date)}</td>
-                    <td>
-                      {isStickerOrder(order) ? formatStickerQtyDisplay(order.qty) : order.qty}
-                    </td>
-                  </tr>
-                ))}
-                {printingTotalOrders === 0 && (
-                  <tr>
-                    <td colSpan={8}>
-                      {ordersSearchTrimmed
-                        ? "No orders match your search."
-                        : ordersTab === "complete"
-                          ? "No completed orders in the selected date range."
-                          : "No orders found for selected date range."}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <OrdersPagination
-            page={printingPage}
-            totalPages={printingTotalPages}
-            onPageChange={setPrintingPage}
-            total={printingTotalOrders}
-            pageSize={printingPageSize}
-          />
-          </>
-        )}
-        </>
-      </section>
           )}
 
           {dashboardTab === "regular" && (
@@ -4632,14 +4920,7 @@ function App() {
             />
           )}
 
-          {dashboardTab === "asset_management" && (
-            <section className="panel table-panel dashboard-card">
-              <div className="dashboard-placeholder">
-                <h3>Asset Management</h3>
-                <p>Coming soon — feature will be wired up later.</p>
-              </div>
-            </section>
-          )}
+          {dashboardTab === "asset_management" && <AssetManagementPanel isAdmin={isAdmin} />}
 
           {dashboardTab === "audit" && (
             <section className="panel table-panel dashboard-card">
@@ -4676,12 +4957,11 @@ function App() {
           )}
 
           {dashboardTab === "production_tracker" && (
-            <section className="panel table-panel dashboard-card dashboard-card--flat">
-          <LinkedOrdersTabPanel
+            <LinkedOrdersTabPanel
             tabTitle="Production Tracker"
             paginationKey="production-tracker"
             summaryLabel="Production jobs"
-            orders={productionTrackerOrders}
+            orders={productionTrackerOrdersWithPending}
             loadingOrders={loadingOrders}
             dateFrom={dateFrom}
             dateTo={dateTo}
@@ -4704,12 +4984,10 @@ function App() {
             canCreateJobSheet={isAdmin || viewerCanCreateOrders}
             onCreateJobSheet={openCreateProductionJobSheet}
           />
-            </section>
           )}
 
           {dashboardTab === "billing" && (
-            <section className="panel table-panel dashboard-card dashboard-card--flat">
-              <BillingTabPanel
+            <BillingTabPanel
                 orders={billingOrders}
                 loadingOrders={loadingOrders}
                 dateFrom={dateFrom}
@@ -4725,7 +5003,6 @@ function App() {
                 renderStageIcon={renderStageIcon}
                 canEdit={viewerCanEditCurrentTab}
               />
-            </section>
           )}
 
           {dashboardTab === "dispatch" && (
@@ -4853,6 +5130,21 @@ function App() {
 
                       {createUserInnerTab === "details" ? (
                         <div className="create-user-tab-panel" role="tabpanel">
+                          <div className="mb-4">
+                            <AvatarUploadField
+                              name={newUserForm.full_name}
+                              email={newUserForm.email}
+                              previewUrl={newUserAvatarPreview}
+                              onPick={(file) => {
+                                setNewUserAvatarFile(file);
+                                setNewUserAvatarPreview(URL.createObjectURL(file));
+                              }}
+                              onError={setCreateUserError}
+                              disabled={creatingUser || avatarUploading}
+                              size="xl"
+                              hint="Optional profile photo"
+                            />
+                          </div>
                           <div className="create-user-grid">
                             <label>
                               Email
@@ -4965,34 +5257,11 @@ function App() {
                           {newUserForm.role === "viewer" ? (
                             <div className="create-user-perms">
                               <p className="create-user-perms-title">Order field access</p>
-                              <div className="viewer-permission-fields user-access-checkboxes">
-                                {EDITABLE_FIELD_OPTIONS.map((option) => {
-                                  const fieldKey = `can_edit_${option.key}`;
-                                  return (
-                                    <label key={fieldKey}>
-                                      <input
-                                        type="checkbox"
-                                        checked={Boolean(newUserForm.permissions[fieldKey])}
-                                        onChange={(e) =>
-                                          updateNewUserPermission(fieldKey, e.target.checked)
-                                        }
-                                      />
-                                      {option.label}
-                                    </label>
-                                  );
-                                })}
-                                <label className="viewer-perm-create-order">
-                                  <input
-                                    type="checkbox"
-                                    checked={Boolean(newUserForm.permissions.can_create_orders)}
-                                    onChange={(e) =>
-                                      updateNewUserPermission("can_create_orders", e.target.checked)
-                                    }
-                                  />
-                                  Create new order
-                                </label>
-                              </div>
-                              <p className="create-user-perms-title">Dashboard tabs</p>
+                              <OrderFieldPermissionFields
+                                idPrefix="new-user"
+                                permissionDraft={newUserForm.permissions}
+                                onPermissionChange={updateNewUserPermission}
+                              />
                               <SidebarTabPermissionFields
                                 idPrefix="new-user"
                                 tabFlags={newUserForm.permissions.sidebar_tabs}
@@ -5089,6 +5358,7 @@ function App() {
                             <thead>
                               <tr>
                                 <th>#</th>
+                                <th className="user-mgmt-avatar-col" aria-label="Avatar" />
                                 <th>User name</th>
                                 <th>Employee ID</th>
                                 <th>Department</th>
@@ -5106,6 +5376,15 @@ function App() {
                                 return (
                                   <tr key={viewer.id}>
                                     <td className="admin-master-index">{rowNum}</td>
+                                    <td className="user-mgmt-avatar-cell">
+                                      <PersonAvatar
+                                        name={viewer.full_name}
+                                        email={viewer.email}
+                                        imageUrl={profileAvatarPublicUrl(viewer.avatar_path)}
+                                        size="sm"
+                                        className="mx-auto"
+                                      />
+                                    </td>
                                     <td className="user-mgmt-name-cell">
                                       <span>{viewer.full_name?.trim() || "—"}</span>
                                       {viewer.email?.trim() ? (
@@ -5139,25 +5418,29 @@ function App() {
                                     </td>
                                     <td>
                                       <div className="user-mgmt-icon-actions">
-                                        <button
+                                        <Button
                                           type="button"
-                                          className="user-mgmt-icon-btn user-mgmt-icon-btn--edit"
+                                          variant="outline"
+                                          size="icon"
+                                          className="size-9 shrink-0 border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
                                           title="Edit user & permissions"
                                           aria-label={`Edit ${viewer.full_name || viewer.email}`}
                                           onClick={() => openViewerEdit(viewer)}
                                         >
-                                          <IconUserEdit />
-                                        </button>
-                                        <button
+                                          <Pencil className="size-[18px]" strokeWidth={2} />
+                                        </Button>
+                                        <Button
                                           type="button"
-                                          className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                          variant="outline"
+                                          size="icon"
+                                          className="size-9 shrink-0 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                                           title="Remove user"
                                           aria-label={`Remove ${viewer.full_name || viewer.email}`}
                                           disabled={removingUserId === viewer.id}
                                           onClick={() => handleRemoveUser(viewer)}
                                         >
-                                          <IconUserDelete />
-                                        </button>
+                                          <Trash2 className="size-[18px]" strokeWidth={2} />
+                                        </Button>
                                       </div>
                                     </td>
                                   </tr>
@@ -5165,7 +5448,7 @@ function App() {
                               })}
                               {visibleViewerProfiles.length === 0 ? (
                                 <tr>
-                                  <td colSpan={8} className="user-mgmt-empty-row">
+                                  <td colSpan={9} className="user-mgmt-empty-row">
                                     No users match this search or filter.
                                   </td>
                                 </tr>
@@ -5231,6 +5514,14 @@ function App() {
                         permissionDrafts[editingViewer.id] ??
                         hydrateDraftFromPermission(viewerPermissions[editingViewer.id] ?? {})
                       }
+                      avatarPreviewUrl={editingViewerAvatarPreview}
+                      avatarFile={editingViewerAvatarFile}
+                      onAvatarPick={(file) => {
+                        setEditingViewerAvatarFile(file);
+                        setEditingViewerAvatarPreview(URL.createObjectURL(file));
+                      }}
+                      onAvatarError={(msg) => alert(msg)}
+                      avatarSaving={avatarUploading}
                       onNameChange={(v) =>
                         setViewerNameDrafts((prev) => ({ ...prev, [editingViewer.id]: v }))
                       }
@@ -5362,15 +5653,17 @@ function App() {
                                 </td>
                                 <td>
                                   <div className="user-mgmt-icon-actions">
-                                    <button
+                                    <Button
                                       type="button"
-                                      className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                      variant="outline"
+                                      size="icon"
+                                      className="size-9 shrink-0 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                                       title="Remove owner"
                                       aria-label={`Remove owner ${owner.name}`}
                                       onClick={() => handleDeleteOwner(owner)}
                                     >
-                                      <IconUserDelete />
-                                    </button>
+                                      <Trash2 className="size-[18px]" strokeWidth={2} />
+                                    </Button>
                                   </div>
                                 </td>
                               </tr>
@@ -5388,15 +5681,17 @@ function App() {
                                 </td>
                                 <td>
                                   <div className="user-mgmt-icon-actions">
-                                    <button
+                                    <Button
                                       type="button"
-                                      className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                      variant="outline"
+                                      size="icon"
+                                      className="size-9 shrink-0 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                                       title="Remove coordinator"
                                       aria-label={`Remove coordinator ${coordinator.name}`}
                                       onClick={() => handleDeleteCoordinator(coordinator)}
                                     >
-                                      <IconUserDelete />
-                                    </button>
+                                      <Trash2 className="size-[18px]" strokeWidth={2} />
+                                    </Button>
                                   </div>
                                 </td>
                               </tr>
@@ -5416,15 +5711,17 @@ function App() {
                                 </td>
                                 <td>
                                   <div className="user-mgmt-icon-actions">
-                                    <button
+                                    <Button
                                       type="button"
-                                      className="user-mgmt-icon-btn user-mgmt-icon-btn--delete"
+                                      variant="outline"
+                                      size="icon"
+                                      className="size-9 shrink-0 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                                       title="Remove sales incharge"
                                       aria-label={`Remove sales incharge ${row.name}`}
                                       onClick={() => handleDeleteSalesIncharge(row)}
                                     >
-                                      <IconUserDelete />
-                                    </button>
+                                      <Trash2 className="size-[18px]" strokeWidth={2} />
+                                    </Button>
                                   </div>
                                 </td>
                               </tr>
@@ -5442,25 +5739,8 @@ function App() {
             </section>
           )}
           </div>
-        </div>
-      </div>
+      </DashboardShell>
 
-      <div className="mobile-nav-bar">
-        <span className="mobile-nav-current">{currentDashboardTabLabel}</span>
-        <button
-          type="button"
-          className="mobile-nav-menu-btn"
-          aria-label="Open menu"
-          aria-expanded={mobileNavOpen}
-          onClick={() => setMobileNavOpen(true)}
-        >
-          <span className="mobile-nav-menu-icon" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-        </button>
-      </div>
       {repeatOrderPickerOpen && (isAdmin || viewerCanCreateOrders) && (
         <div
           className="image-modal-backdrop repeat-order-modal-backdrop"
@@ -5598,31 +5878,32 @@ function App() {
                   </label>
                   <label>
                     Owner
-                    <select
+                    <MasterListSelectField
+                      id="template-owner-name"
                       value={templateDraft.owner_name}
-                      onChange={(e) => updateTemplateDraft({ owner_name: e.target.value })}
-                    >
-                      <option value="">—</option>
-                      {owners.map((o) => (
-                        <option key={o.id ?? o.name} value={o.name}>
-                          {o.name}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(next) => updateTemplateDraft({ owner_name: next })}
+                      options={owners.map((o) => ({ value: o.name, label: o.name }))}
+                      onAdd={isAdminUser ? addOwnerFromDropdown : undefined}
+                      placeholder="—"
+                      addPlaceholder="Owner name"
+                      allowEmptyOption
+                    />
                   </label>
                   <label>
                     Coordinator
-                    <select
+                    <MasterListSelectField
+                      id="template-coordinator-name"
                       value={templateDraft.coordinator_name}
-                      onChange={(e) => updateTemplateDraft({ coordinator_name: e.target.value })}
-                    >
-                      <option value="">—</option>
-                      {createFormCoordinatorOptions.map((opt) => (
-                        <option key={opt.id} value={opt.name}>
-                          {opt.name}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(next) => updateTemplateDraft({ coordinator_name: next })}
+                      options={createFormCoordinatorOptions.map((opt) => ({
+                        value: opt.name,
+                        label: opt.name
+                      }))}
+                      onAdd={isAdminUser ? addCoordinatorFromDropdown : undefined}
+                      placeholder="—"
+                      addPlaceholder="Coordinator name"
+                      allowEmptyOption
+                    />
                   </label>
                   <label className="repeat-order-form-wide">
                     Product name
@@ -5755,11 +6036,11 @@ function App() {
                   {templateDraft.is_production_order ? (
                     <label>
                       Expected handover to printing
-                      <input
-                        type="date"
+                      <DatePicker
+                        id="template-draft-handover"
                         value={templateDraft.expected_handover_to_printing ?? ""}
-                        onChange={(e) =>
-                          updateTemplateDraft({ expected_handover_to_printing: e.target.value })
+                        onChange={(next) =>
+                          updateTemplateDraft({ expected_handover_to_printing: next })
                         }
                       />
                     </label>
@@ -5901,50 +6182,40 @@ function App() {
           </div>
         </div>
       )}
-      {showCreateForm &&
-        (dashboardTab === "printing" || dashboardTab === "production_tracker") &&
-        (isAdmin || viewerCanCreateOrders) && (
-        <div
-          className="image-modal-backdrop create-order-modal-backdrop"
-          onClick={closeCreateOrderForm}
-        >
-          <div
-            className="create-order-modal"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-order-modal-title"
-          >
-            <div className="create-order-modal-head">
-              <h2 id="create-order-modal-title">
-                {createFormMode === "job_sheet"
-                  ? "Create Job sheet"
-                  : createFormMode === "sticker"
-                    ? isAdmin
-                      ? "Place Sticker Order (Master Admin)"
-                      : "Place Sticker Order"
-                    : isAdmin
-                      ? "Create New Order (Master Admin)"
-                      : "Create New Order"}
-              </h2>
-              <button
-                type="button"
-                className="order-detail-close create-order-modal-close"
-                aria-label="Close create order"
-                onClick={closeCreateOrderForm}
-              >
-                ×
-              </button>
-            </div>
-            <div className="create-order-modal-body">
+      <CreateOrderModal
+        open={
+          showCreateForm &&
+          (dashboardTab === "printing" || dashboardTab === "production_tracker") &&
+          (isAdmin || viewerCanCreateOrders)
+        }
+        onOpenChange={(open) => {
+          if (!open) closeCreateOrderForm();
+        }}
+        title={
+          createFormMode === "job_sheet"
+            ? "Create Job sheet"
+            : createFormMode === "sticker"
+              ? isAdmin
+                ? "Place Sticker Order (Master Admin)"
+                : "Place Sticker Order"
+              : createFormMode === "sampling"
+                ? isAdmin
+                  ? "Create Sampling Order (Master Admin)"
+                  : "Create Sampling Order"
+                : isAdmin
+                  ? "Create New Order (Master Admin)"
+                  : "Create New Order"
+        }
+      >
               {createFormMode === "job_sheet" ? (
                 <CreateJobSheetForm
                   form={jobSheetForm}
                   onChange={setJobSheetForm}
                   salesIncharges={salesIncharges}
+                  onAddSalesIncharge={isAdminUser ? addSalesInchargeFromDropdown : undefined}
                   saving={savingJobSheet}
                   onSubmit={handleCreateJobSheet}
-                  onCancel={closeCreateOrderForm}
+                  onCancel={cancelJobSheetForm}
                 />
               ) : createFormMode === "sticker" ? (
                 <CreateStickerOrderForm
@@ -5957,9 +6228,26 @@ function App() {
                   saving={savingStickerOrder}
                   onSubmit={handleCreateStickerOrder}
                   onCancel={closeCreateOrderForm}
+                  variant="sticker"
+                />
+              ) : createFormMode === "sampling" ? (
+                <CreateStickerOrderForm
+                  form={samplingOrderForm}
+                  onChange={setSamplingOrderForm}
+                  orderDate={todayLocalISODate()}
+                  customerAssetFiles={customerAssetFiles}
+                  onCustomerAssetsSelected={onCustomerAssetsSelected}
+                  removeCustomerAssetFile={removeCustomerAssetFile}
+                  mockupFiles={samplingMockupFiles}
+                  onMockupsSelected={onSamplingMockupsSelected}
+                  removeMockupFile={removeSamplingMockupFile}
+                  saving={savingSamplingOrder}
+                  onSubmit={handleCreateSamplingOrder}
+                  onCancel={closeCreateOrderForm}
+                  variant="sampling"
                 />
               ) : (
-              <form className="order-form order-form--modal" onSubmit={handleCreateOrder}>
+              <form className="create-order-form" onSubmit={handleCreateOrder}>
             <div className="order-form-cell">
               <label htmlFor="create-order-date">Order date</label>
               <input
@@ -6070,12 +6358,10 @@ function App() {
             </div>
             <div className="order-form-cell">
               <label htmlFor="create-order-due-date">Delivery Date</label>
-              <input
+              <DatePicker
                 id="create-order-due-date"
-                name="due_date"
-                type="date"
                 value={orderForm.due_date}
-                onChange={onOrderFormChange}
+                onChange={(next) => setOrderForm((prev) => ({ ...prev, due_date: next }))}
                 required
               />
             </div>
@@ -6091,13 +6377,14 @@ function App() {
                         type="radio"
                         name="is_production_order"
                         checked={!orderForm.is_production_order}
-                        onChange={() =>
+                        onChange={() => {
+                          setPrintingFormJobSheetStatus(null);
                           setOrderForm((prev) => ({
                             ...prev,
                             is_production_order: false,
                             expected_handover_to_printing: ""
-                          }))
-                        }
+                          }));
+                        }}
                       />
                       No
                     </label>
@@ -6111,22 +6398,53 @@ function App() {
                       Yes
                     </label>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Currently:{" "}
+                    <span className="font-medium text-foreground">
+                      {orderForm.is_production_order ? "Production order" : "Printing order only"}
+                    </span>
+                  </p>
                 </div>
                 {orderForm.is_production_order ? (
                   <div className="order-form-handover-field">
                     <label htmlFor="create-order-handover">Expected product handover to printing</label>
-                    <input
-                      id="create-order-handover"
-                      type="date"
-                      value={orderForm.expected_handover_to_printing}
-                      onChange={(e) =>
-                        setOrderForm((prev) => ({
-                          ...prev,
-                          expected_handover_to_printing: e.target.value
-                        }))
-                      }
-                      required
-                    />
+                    <div className="order-form-handover-actions">
+                      <DatePicker
+                        id="create-order-handover"
+                        value={orderForm.expected_handover_to_printing}
+                        onChange={(next) =>
+                          setOrderForm((prev) => ({
+                            ...prev,
+                            expected_handover_to_printing: next
+                          }))
+                        }
+                        required={!printingFormJobSheetStatus?.jobSheetOrderId}
+                      />
+                      {!printingFormJobSheetStatus?.jobSheetOrderId ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0"
+                          onClick={() => void openCreateJobSheetFromPrintingForm()}
+                        >
+                          Create job sheet
+                        </Button>
+                      ) : null}
+                    </div>
+                    {printingFormJobSheetStatus?.jobSheetOrderId ? (
+                      <Alert className="mt-2 border-emerald-500/40 bg-emerald-500/10">
+                        <AlertTitle className="text-emerald-700 dark:text-emerald-300">
+                          Job sheet created
+                        </AlertTitle>
+                        <AlertDescription className="text-emerald-800 dark:text-emerald-200">
+                          Job sheet #{printingFormJobSheetStatus.jobSheetOrderId} has been created
+                          successfully for this order. Production tracker has this job. When you save
+                          this form, the printing order will be saved as{" "}
+                          <strong>printing order only</strong> (not production).
+                        </AlertDescription>
+                      </Alert>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -6185,43 +6503,64 @@ function App() {
                 ))}
               </select>
             </div>
-            <select name="owner_name" value={orderForm.owner_name} onChange={onOrderFormChange} required>
-              <option value="">Select Owner</option>
-              {owners.map((owner) => (
-                <option key={owner.id} value={owner.name}>
-                  {owner.name}
-                </option>
-              ))}
-            </select>
+            <div className="order-form-cell">
+              <MasterListSelectField
+                id="create-owner-name"
+                label="Owner"
+                value={orderForm.owner_name}
+                onValueChange={(next) => setOrderForm((prev) => ({ ...prev, owner_name: next }))}
+                options={owners.map((owner) => ({ value: owner.name, label: owner.name }))}
+                onAdd={isAdminUser ? addOwnerFromDropdown : undefined}
+                placeholder="Select Owner"
+                addPlaceholder="Owner name"
+                required
+              />
+            </div>
+            <div className="order-form-cell">
+              <label htmlFor="create-customer-name">Customer Name</label>
             <input
+              id="create-customer-name"
               name="customer_name"
               placeholder="Customer Name"
               value={orderForm.customer_name}
               onChange={onOrderFormChange}
               required
             />
-            <select name="coordinator_name" value={orderForm.coordinator_name} onChange={onOrderFormChange} required>
-              <option value="">Select Coordinator</option>
-              {createFormCoordinatorOptions.map((opt) => (
-                <option key={opt.id} value={opt.name}>
-                  {opt.name}
-                </option>
-              ))}
-            </select>
+            </div>
+            <div className="order-form-cell">
+              <MasterListSelectField
+                id="create-coordinator-name"
+                label="Coordinator"
+                value={orderForm.coordinator_name}
+                onValueChange={(next) => setOrderForm((prev) => ({ ...prev, coordinator_name: next }))}
+                options={createFormCoordinatorOptions.map((opt) => ({
+                  value: opt.name,
+                  label: opt.name
+                }))}
+                onAdd={isAdminUser ? addCoordinatorFromDropdown : undefined}
+                placeholder="Select Coordinator"
+                addPlaceholder="Coordinator name"
+                required
+              />
+            </div>
             <div className="order-form-cell order-form-span-3 order-form-product-colors">
-              <div className="order-form-product-block">
-                <input
+              <div className="order-form-product-block order-form-cell">
+                <PrintingOrderProductField
                   id="create-product-name"
-                  name="product_name"
-                  placeholder="Product name"
-                  aria-label="Product name"
-                  value={orderForm.product_name}
-                  onChange={onOrderFormChange}
+                  products={inventoryProducts}
+                  loading={loadingInventoryProducts}
+                  productName={orderForm.product_name}
+                  onProductNameChange={(next) =>
+                    setOrderForm((prev) => ({ ...prev, product_name: next }))
+                  }
+                  onColorsChange={(nextColors) =>
+                    setOrderForm((prev) => ({ ...prev, colors: nextColors }))
+                  }
                   required
-                  className="order-form-control-tall"
                 />
               </div>
-              <div className="order-form-colors-block colors-field" ref={colorPickerRef}>
+              <div className="order-form-colors-block colors-field order-form-cell" ref={colorPickerRef}>
+                <label htmlFor="color-picker-trigger">Colors</label>
                 <button
                   type="button"
                   id="color-picker-trigger"
@@ -6268,7 +6607,10 @@ function App() {
                 ) : null}
               </div>
             </div>
+            <div className="order-form-cell">
+              <label htmlFor="create-printing-mtrs">Printing Mtrs</label>
             <input
+              id="create-printing-mtrs"
               name="printing_mtrs"
               type="number"
               min="0"
@@ -6277,6 +6619,7 @@ function App() {
               value={orderForm.printing_mtrs}
               onChange={onOrderFormChange}
             />
+            </div>
             <div className="order-form-cell">
               <label htmlFor="create-order-order-cost">Order cost</label>
               <input
@@ -6468,26 +6811,24 @@ function App() {
               />
             </div>
             <div className="order-form-actions order-form-span-3">
-              <button type="submit">Save Job</button>
-              <button
-                type="button"
-                className="danger-btn order-form-cancel-btn"
-                onClick={closeCreateOrderForm}
-              >
+              <Button type="button" variant="destructive" onClick={closeCreateOrderForm}>
                 Cancel
-              </button>
+              </Button>
+              <Button type="submit" variant="success" disabled={savingOrder}>
+                {savingOrder ? "Saving…" : "Save Job"}
+              </Button>
             </div>
           </form>
               )}
-            </div>
-          </div>
-        </div>
-      )}
+      </CreateOrderModal>
 
       <MockupStudio open={showMockupStudio} onClose={() => setShowMockupStudio(false)} />
       {activeViewOrder && (
-        <div className="image-modal-backdrop" onClick={closeViewOrder}>
-          <div className="order-detail-modal" onClick={(e) => e.stopPropagation()}>
+        <Dialog open onOpenChange={(open) => { if (!open) closeViewOrder(); }}>
+          <DialogContent
+            className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] [&>button:last-child]:hidden"
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
             <OrderDetailPanel
               order={activeViewOrder}
               onClose={closeViewOrder}
@@ -6539,9 +6880,11 @@ function App() {
               openPreview={openPreview}
               renderStageIcon={renderStageIcon}
               OrderColorsCell={OrderColorsCell}
+              onAddOwner={isAdmin ? addOwnerFromDropdown : undefined}
+              onAddCoordinator={isAdmin ? addCoordinatorFromDropdown : undefined}
             />
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
       {orderHistoryTarget && (
         <div className="image-modal-backdrop" onClick={closeOrderHistory}>
@@ -6645,6 +6988,7 @@ function App() {
         onActivate={handleAssignmentToastActivate}
       />
     </div>
+    </TooltipProvider>
   );
 }
 

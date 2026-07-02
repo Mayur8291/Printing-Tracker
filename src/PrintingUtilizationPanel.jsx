@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import InventoryIcon from "./inventory/InventoryIcon";
+import { Download, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import CreatePrintingUtilizationModal from "./CreatePrintingUtilizationModal";
 import { exportPrintingUtilizationExcel } from "./printingUtilizationExport";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
@@ -78,19 +79,19 @@ export default function PrintingUtilizationPanel({
           {canEdit || isAdmin ? (
             <div className="page-actions printing-dept-page-actions">
               {isAdmin ? (
-                <button
+                <Button
                   type="button"
-                  className="btn btn-export"
+                  variant="outline"
                   onClick={() => void handleExport()}
                   disabled={exporting || !entries.length}
                 >
-                  <InventoryIcon name="download" size={13} /> {exporting ? "Exporting…" : "Export"}
-                </button>
+                  <Download className="size-3.5" /> {exporting ? "Exporting…" : "Export"}
+                </Button>
               ) : null}
               {canEdit ? (
-                <button type="button" className="btn primary" onClick={() => setModalOpen(true)}>
-                  <InventoryIcon name="plus" size={13} /> Make entry
-                </button>
+                <Button type="button" onClick={() => setModalOpen(true)}>
+                  <Plus className="size-3.5" /> Make entry
+                </Button>
               ) : null}
             </div>
           ) : null}

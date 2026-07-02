@@ -1,7 +1,20 @@
 import { supabase } from "../supabaseClient";
+import { isSchemaCacheError, waitForSchemaCacheRetry } from "../supabaseErrorUtils";
+
+async function withSchemaCacheRetry(run) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data, error } = await run();
+    if (!error) return { data, error: null };
+    if (!isSchemaCacheError(error.message) || attempt >= 4) return { data, error };
+    await waitForSchemaCacheRetry(attempt);
+  }
+  return { data: null, error: new Error("Schema cache retry exhausted.") };
+}
 
 export const INVENTORY_SKU_SELECT =
-  "id, sku_code, kind, name, color, hex_color, stock_qty, reorder_point, unit, unit_cost, retail_price, supplier_id, warehouse_id, bin_location, last_received_at, tags, extra, created_at, updated_at";
+  "id, sku_code, kind, name, color, hex_color, stock_qty, reorder_point, doc, drr, unit, unit_cost, retail_price, supplier_id, warehouse_id, bin_location, last_received_at, tags, extra, parent_style_id, created_at, updated_at, inventory_style_parents(id, parent_sku_code, style_name)";
+
+export const INVENTORY_STYLE_PARENT_SELECT = "id, parent_sku_code, style_name, kind, created_at";
 
 export const INVENTORY_MOVEMENT_SELECT =
   "id, sku_id, movement_type, qty, reason, reference, from_warehouse_id, to_warehouse_id, created_by, created_at, inventory_skus(sku_code, name, color, unit)";
@@ -13,9 +26,22 @@ export const DEFAULT_ALERT_SETTINGS = {
   out_of_stock_critical: true
 };
 
+function parentFromRow(row) {
+  const p = row.inventory_style_parents;
+  if (!p) return { parentStyleId: "", parentStyleCode: "", parentStyleName: "" };
+  return {
+    parentStyleId: p.id || row.parent_style_id || "",
+    parentStyleCode: p.parent_sku_code || "",
+    parentStyleName: p.style_name || ""
+  };
+}
+
 export function rowToSku(row) {
   if (!row) return null;
   const extra = row.extra && typeof row.extra === "object" ? row.extra : {};
+  const parent = parentFromRow(row);
+  const retail =
+    extra.retail ?? (row.retail_price != null ? Number(row.retail_price) : 0);
   const base = {
     _uuid: row.id,
     id: row.sku_code,
@@ -23,14 +49,18 @@ export function rowToSku(row) {
     color: row.color || "",
     hex: row.hex_color || "#cccccc",
     reorder: Number(row.reorder_point) || 0,
+    doc: Number(row.doc) || 0,
+    drr: Number(row.drr) || 0,
     cost: Number(row.unit_cost) || 0,
+    retail,
     supplier: row.supplier_id || "",
     wh: row.warehouse_id || "",
     bin: row.bin_location || "",
     lastIn: row.last_received_at || "",
     tags: Array.isArray(row.tags) ? row.tags : [],
     unit: row.unit || "pc",
-    kind: row.kind
+    kind: row.kind,
+    ...parent
   };
 
   if (row.kind === "apparel") {
@@ -38,7 +68,6 @@ export function rowToSku(row) {
       ...base,
       ...extra,
       totalStock: Number(row.stock_qty) || 0,
-      retail: extra.retail ?? (row.retail_price != null ? Number(row.retail_price) : 0),
       sizes: extra.sizes || {}
     };
   }
@@ -47,6 +76,17 @@ export function rowToSku(row) {
     ...base,
     ...extra,
     stock: Number(row.stock_qty) || 0
+  };
+}
+
+export function mapStyleParentRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    parentSkuCode: row.parent_sku_code,
+    styleName: row.style_name,
+    kind: row.kind,
+    createdAt: row.created_at
   };
 }
 
@@ -66,6 +106,8 @@ export function skuToInsertPayload(kind, record, userId) {
     "stock",
     "totalStock",
     "reorder",
+    "doc",
+    "drr",
     "cost",
     "supplier",
     "wh",
@@ -74,7 +116,12 @@ export function skuToInsertPayload(kind, record, userId) {
     "tags",
     "unit",
     "kind",
-    "retail"
+    "retail",
+    "parentStyleId",
+    "parentStyleCode",
+    "parentStyleName",
+    "parentMode",
+    "parentSkuCode"
   ].forEach((k) => delete extra[k]);
 
   return {
@@ -85,9 +132,12 @@ export function skuToInsertPayload(kind, record, userId) {
     hex_color: record.hex || "#cccccc",
     stock_qty: stockQty,
     reorder_point: Number(record.reorder) || 0,
+    doc: Number(record.doc) || 0,
+    drr: Number(record.drr) || 0,
     unit: record.unit || (isApparel ? "pc" : record.unit || "pc"),
     unit_cost: Number(record.cost) || 0,
-    retail_price: isApparel ? Number(record.retail) || null : null,
+    retail_price: Number(record.retail) || null,
+    parent_style_id: record.parentStyleId || null,
     supplier_id: record.supplier || null,
     warehouse_id: record.wh || null,
     bin_location: record.bin || "",
@@ -172,54 +222,115 @@ export function statusOfWithSettings(row, settings = DEFAULT_ALERT_SETTINGS) {
   return { label: "In stock", kind: "success" };
 }
 
+function mapSupplierRow(s) {
+  return {
+    id: s.id,
+    name: s.name,
+    country: s.country,
+    city: s.city,
+    leadDays: s.lead_days,
+    rating: s.rating != null ? Number(s.rating) : null,
+    contact: s.contact,
+    paymentTerms: s.payment_terms,
+    gstin: s.gstin || "",
+    address: s.address || "",
+    supplierType: s.supplier_type || "other",
+    openPOs: 0,
+    ytdSpend: 0
+  };
+}
+
+function mapWarehouseRow(w) {
+  return {
+    id: w.id,
+    name: w.name,
+    city: w.city,
+    capacity: Number(w.capacity) || 0,
+    used: 0,
+    type: w.warehouse_type
+  };
+}
+
+const SUPABASE_PAGE_SIZE = 1000;
+
+async function fetchAllInventorySkuRows() {
+  const rows = [];
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await withSchemaCacheRetry(() =>
+      supabase
+        .from("inventory_skus")
+        .select(INVENTORY_SKU_SELECT)
+        .order("sku_code")
+        .range(offset, offset + SUPABASE_PAGE_SIZE - 1)
+    );
+    if (error) throw error;
+    const chunk = data || [];
+    rows.push(...chunk);
+    if (chunk.length < SUPABASE_PAGE_SIZE) break;
+    offset += SUPABASE_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
+async function fetchAllStyleParents() {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase.from("inventory_style_parents").select(INVENTORY_STYLE_PARENT_SELECT).order("style_name")
+  );
+  if (error) throw error;
+  return (data || []).map(mapStyleParentRow);
+}
+
+export async function insertStyleParent({ parentSkuCode, styleName, kind }, userId) {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_style_parents")
+      .insert({
+        parent_sku_code: parentSkuCode,
+        style_name: styleName,
+        kind,
+        created_by: userId || null
+      })
+      .select(INVENTORY_STYLE_PARENT_SELECT)
+      .single()
+  );
+  if (error) throw error;
+  return mapStyleParentRow(data);
+}
+
 export async function fetchInventoryBundle() {
-  const [settingsRes, suppliersRes, warehousesRes, skusRes, movementsRes] = await Promise.all([
+  const [settingsRes, suppliersRes, warehousesRes, movementsRes, skuRows, styleParents] = await Promise.all([
     supabase.from("inventory_alert_settings").select("*").eq("id", 1).maybeSingle(),
     supabase.from("inventory_suppliers").select("*").order("name"),
     supabase.from("inventory_warehouses").select("*").order("name"),
-    supabase.from("inventory_skus").select(INVENTORY_SKU_SELECT).order("sku_code"),
     supabase
       .from("inventory_stock_movements")
       .select(INVENTORY_MOVEMENT_SELECT)
       .order("created_at", { ascending: false })
-      .limit(100)
+      .limit(100),
+    fetchAllInventorySkuRows(),
+    fetchAllStyleParents().catch(() => [])
   ]);
 
   const errors = [
     settingsRes.error,
     suppliersRes.error,
     warehousesRes.error,
-    skusRes.error,
     movementsRes.error
   ].filter(Boolean);
 
   if (errors.length) {
     const movementOnly = errors.find((e) => e && movementsRes.error === e);
-    if (movementOnly && !settingsRes.error && !suppliersRes.error && !warehousesRes.error && !skusRes.error) {
-      const skus = (skusRes.data || []).map(rowToSku);
+    if (movementOnly && !settingsRes.error && !suppliersRes.error && !warehousesRes.error) {
+      const skus = (skuRows || []).map(rowToSku);
       const settings = settingsRes.data || DEFAULT_ALERT_SETTINGS;
       return {
         settings,
-        suppliers: (suppliersRes.data || []).map((s) => ({
-          id: s.id,
-          name: s.name,
-          country: s.country,
-          city: s.city,
-          leadDays: s.lead_days,
-          rating: s.rating != null ? Number(s.rating) : null,
-          contact: s.contact,
-          paymentTerms: s.payment_terms,
-          openPOs: 0,
-          ytdSpend: 0
-        })),
-        warehouses: (warehousesRes.data || []).map((w) => ({
-          id: w.id,
-          name: w.name,
-          city: w.city,
-          capacity: Number(w.capacity) || 0,
-          used: 0,
-          type: w.warehouse_type
-        })),
+        suppliers: (suppliersRes.data || []).map(mapSupplierRow),
+        warehouses: (warehousesRes.data || []).map(mapWarehouseRow),
+        styleParents: styleParents || [],
         skus,
         fabrics: skus.filter((s) => s.kind === "fabric"),
         trims: skus.filter((s) => s.kind === "trim"),
@@ -231,31 +342,14 @@ export async function fetchInventoryBundle() {
     throw errors[0];
   }
 
-  const skus = (skusRes.data || []).map(rowToSku);
+  const skus = (skuRows || []).map(rowToSku);
   const settings = settingsRes.data || DEFAULT_ALERT_SETTINGS;
 
   return {
     settings,
-    suppliers: (suppliersRes.data || []).map((s) => ({
-      id: s.id,
-      name: s.name,
-      country: s.country,
-      city: s.city,
-      leadDays: s.lead_days,
-      rating: s.rating != null ? Number(s.rating) : null,
-      contact: s.contact,
-      paymentTerms: s.payment_terms,
-      openPOs: 0,
-      ytdSpend: 0
-    })),
-    warehouses: (warehousesRes.data || []).map((w) => ({
-      id: w.id,
-      name: w.name,
-      city: w.city,
-      capacity: Number(w.capacity) || 0,
-      used: 0,
-      type: w.warehouse_type
-    })),
+    suppliers: (suppliersRes.data || []).map(mapSupplierRow),
+    warehouses: (warehousesRes.data || []).map(mapWarehouseRow),
+    styleParents: styleParents || [],
     skus,
     fabrics: skus.filter((s) => s.kind === "fabric"),
     trims: skus.filter((s) => s.kind === "trim"),
@@ -281,9 +375,20 @@ export async function saveAlertSettings(patch, userId) {
 }
 
 export async function updateSkuReorder(skuUuid, reorderPoint) {
+  return updateSkuFields(skuUuid, { reorder: reorderPoint });
+}
+
+export async function updateSkuFields(skuUuid, patch) {
+  const payload = {};
+  if (patch.reorder !== undefined) payload.reorder_point = Number(patch.reorder) || 0;
+  if (patch.doc !== undefined) payload.doc = Number(patch.doc) || 0;
+  if (patch.drr !== undefined) payload.drr = Number(patch.drr) || 0;
+  if (patch.cost !== undefined) payload.unit_cost = Number(patch.cost) || 0;
+  if (patch.retail !== undefined) payload.retail_price = Number(patch.retail) || null;
+
   const { data, error } = await supabase
     .from("inventory_skus")
-    .update({ reorder_point: Number(reorderPoint) || 0 })
+    .update(payload)
     .eq("id", skuUuid)
     .select(INVENTORY_SKU_SELECT)
     .single();
@@ -292,13 +397,34 @@ export async function updateSkuReorder(skuUuid, reorderPoint) {
 }
 
 export async function insertSku(kind, record, userId) {
-  const { data, error } = await supabase
-    .from("inventory_skus")
-    .insert(skuToInsertPayload(kind, record, userId))
-    .select(INVENTORY_SKU_SELECT)
-    .single();
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_skus")
+      .insert(skuToInsertPayload(kind, record, userId))
+      .select(INVENTORY_SKU_SELECT)
+      .single()
+  );
   if (error) throw error;
   return rowToSku(data);
+}
+
+export async function insertSkuBatch(kind, records, userId, { chunkSize = 150 } = {}) {
+  let inserted = 0;
+  for (let i = 0; i < records.length; i += chunkSize) {
+    const chunk = records.slice(i, i + chunkSize);
+    const payloads = chunk.map((record) => skuToInsertPayload(kind, record, userId));
+    const { error } = await withSchemaCacheRetry(() =>
+      supabase.from("inventory_skus").insert(payloads, { ignoreDuplicates: true })
+    );
+    if (error) throw error;
+    inserted += chunk.length;
+  }
+  return { inserted, total: records.length };
+}
+
+export async function deleteSku(skuUuid) {
+  const { error } = await supabase.from("inventory_skus").delete().eq("id", skuUuid);
+  if (error) throw error;
 }
 
 export async function insertStockMovement({ skuUuid, type, qty, reason, reference, fromWh, toWh, userId }) {
@@ -349,36 +475,43 @@ export async function applyStockAdjustment({ skuUuid, type, qty, reason, referen
 }
 
 export async function insertSupplier(record) {
-  const { data, error } = await supabase
-    .from("inventory_suppliers")
-    .insert({
-      id: record.id,
-      name: record.name,
-      country: record.country || "",
-      city: record.city || "",
-      lead_days: Number(record.leadDays) || 0,
-      rating: record.rating != null ? Number(record.rating) : null,
-      contact: record.contact || "",
-      payment_terms: record.paymentTerms || ""
-    })
-    .select("*")
-    .single();
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_suppliers")
+      .insert({
+        id: record.id,
+        name: record.name,
+        country: record.country || "",
+        city: record.city || "",
+        lead_days: Number(record.leadDays) || 0,
+        rating: record.rating != null ? Number(record.rating) : null,
+        contact: record.contact || "",
+        payment_terms: record.paymentTerms || "",
+        gstin: record.gstin || "",
+        address: record.address || "",
+        supplier_type: record.supplierType || "other"
+      })
+      .select("*")
+      .single()
+  );
   if (error) throw error;
-  return data;
+  return mapSupplierRow(data);
 }
 
 export async function insertWarehouse(record) {
-  const { data, error } = await supabase
-    .from("inventory_warehouses")
-    .insert({
-      id: record.id,
-      name: record.name,
-      city: record.city || "",
-      capacity: Number(record.capacity) || 0,
-      warehouse_type: record.type || ""
-    })
-    .select("*")
-    .single();
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_warehouses")
+      .insert({
+        id: record.id,
+        name: record.name,
+        city: record.city || "",
+        capacity: Number(record.capacity) || 0,
+        warehouse_type: record.type || ""
+      })
+      .select("*")
+      .single()
+  );
   if (error) throw error;
-  return data;
+  return mapWarehouseRow(data);
 }

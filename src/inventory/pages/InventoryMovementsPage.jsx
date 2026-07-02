@@ -1,123 +1,126 @@
 import { useState } from "react";
-import InventoryIcon from "../InventoryIcon";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { useInventory } from "../InventoryDataContext";
+import { MovementTypeBadge, PageHeader } from "../inventoryUiUtils";
 
 export default function InventoryMovementsPage({ openNewSku }) {
   const { movements } = useInventory();
   const [type, setType] = useState("all");
   const filtered = type === "all" ? movements : movements.filter((m) => m.type === type);
 
-  return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Stock movements</h1>
-          <p className="page-subtitle">Immutable audit log · last 28 events shown.</p>
-        </div>
-        <div className="page-actions">
-          <button type="button" className="btn">
-            <InventoryIcon name="download" size={13} /> Export CSV
-          </button>
-          <button type="button" className="btn primary" onClick={() => openNewSku?.("fabric")}>
-            <InventoryIcon name="plus" size={13} /> New SKU
-          </button>
-        </div>
-      </div>
+  const tabs = ["all", "IN", "OUT", "TRANSFER", "ADJUST"];
 
-      <div className="card">
-        <div className="table-toolbar">
-          <div className="table-tabs">
-            {["all", "IN", "OUT", "TRANSFER", "ADJUST"].map((t) => (
-              <button key={t} type="button" className={`table-tab${type === t ? " active" : ""}`} onClick={() => setType(t)}>
-                {t === "all" ? "All" : t}
-                <span className="tab-count">
-                  {t === "all" ? movements.length : movements.filter((m) => m.type === t).length}
-                </span>
-              </button>
-            ))}
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Stock movements"
+        subtitle="Immutable audit log · last 28 events shown."
+        actions={
+          <>
+            <Button type="button" variant="outline" size="sm">
+              Export CSV
+            </Button>
+            <Button type="button" size="sm" onClick={() => openNewSku?.("fabric")}>
+              New SKU
+            </Button>
+          </>
+        }
+      />
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
+            <Tabs value={type} onValueChange={setType}>
+              <ScrollArea className="w-full">
+                <TabsList className="h-auto w-max">
+                  {tabs.map((t) => (
+                    <TabsTrigger key={t} value={t} className="gap-1.5">
+                      {t === "all" ? "All" : t}
+                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
+                        {t === "all" ? movements.length : movements.filter((m) => m.type === t).length}
+                      </Badge>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </Tabs>
+            <div className="sm:ml-auto sm:w-64">
+              <Input placeholder="Search SKU, user, ref…" />
+            </div>
           </div>
-          <div className="search-input">
-            <InventoryIcon name="search" size={12} stroke={1.8} />
-            <input placeholder="Search SKU, user, ref…" />
-          </div>
-        </div>
-        <div className="table-wrap">
-          <table className="t">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Type</th>
-                <th>SKU</th>
-                <th className="right">Qty</th>
-                <th>Reason</th>
-                <th>Reference</th>
-                <th>From → To</th>
-                <th>User</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((m) => {
-                const typeColor = m.type === "IN" ? "success" : m.type === "OUT" ? "danger" : m.type === "TRANSFER" ? "info" : "warning";
-                const dt = new Date(m.ts);
-                return (
-                  <tr key={m.id} style={{ cursor: "default" }}>
-                    <td>
-                      <div style={{ fontSize: 12.5 }}>
-                        {dt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--text-faint)" }}>
-                        {dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`badge ${typeColor}`}>
-                        <span className="dot" />
-                        {m.type}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 500, fontSize: 12.5 }}>{m.skuName}</div>
-                      <div className="mono" style={{ fontSize: 11, color: "var(--text-faint)" }}>
-                        {m.sku}
-                      </div>
-                    </td>
-                    <td className="num">
-                      <span style={{ color: m.qty > 0 ? "var(--success)" : "var(--danger)", fontWeight: 500 }}>
-                        {m.qty > 0 ? "+" : ""}
-                        {m.qty.toLocaleString()} {m.unit}
-                      </span>
-                    </td>
-                    <td>{m.reason}</td>
-                    <td className="mono">{m.ref}</td>
-                    <td className="mono" style={{ fontSize: 11.5 }}>
-                      {m.type === "TRANSFER" ? `${m.fromWh} → ${m.toWh}` : m.fromWh}
-                    </td>
-                    <td>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                        <span
-                          className="avatar"
-                          style={{
-                            width: 20,
-                            height: 20,
-                            fontSize: 9,
-                            background: "linear-gradient(135deg, #5b4ce5, #8b7eff)"
-                          }}
-                        >
-                          {m.user
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Reference</TableHead>
+                  <TableHead>From → To</TableHead>
+                  <TableHead>User</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((m) => {
+                  const dt = new Date(m.ts);
+                  const initials = m.user
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("");
+                  return (
+                    <TableRow key={m.id}>
+                      <TableCell>
+                        <div className="text-sm">{dt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <MovementTypeBadge type={m.type} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{m.skuName}</div>
+                        <div className="font-mono text-xs text-muted-foreground">{m.sku}</div>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        <span className={cn("font-medium", m.qty > 0 ? "text-emerald-600" : "text-red-600")}>
+                          {m.qty > 0 ? "+" : ""}
+                          {m.qty.toLocaleString()} {m.unit}
                         </span>
-                        {m.user}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                      </TableCell>
+                      <TableCell>{m.reason}</TableCell>
+                      <TableCell className="font-mono text-xs">{m.ref}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {m.type === "TRANSFER" ? `${m.fromWh} → ${m.toWh}` : m.fromWh}
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center gap-2">
+                          <Avatar className="size-5">
+                            <AvatarFallback className="bg-primary/10 text-[9px] text-primary">{initials}</AvatarFallback>
+                          </Avatar>
+                          {m.user}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

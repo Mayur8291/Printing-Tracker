@@ -1,5 +1,21 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { buildGlobalSearchSuggestions } from "./globalSearchUtils";
+
+const BADGE_VARIANT = {
+  printing: "default",
+  "printing-dept": "secondary",
+  billing: "outline",
+  production: "secondary",
+  dispatch: "outline",
+  outward: "outline",
+  contact: "secondary",
+  inventory: "outline",
+  chat: "secondary"
+};
 
 export default function GlobalSearchBox({
   query,
@@ -9,10 +25,10 @@ export default function GlobalSearchBox({
   contacts,
   canAccessTab,
   onSelect,
-  loadingExtras = false
+  loadingExtras = false,
+  className
 }) {
   const listId = useId();
-  const wrapRef = useRef(null);
   const inputRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -32,13 +48,8 @@ export default function GlobalSearchBox({
   }, [trimmed, suggestions.length]);
 
   useEffect(() => {
-    if (!showDropdown) return undefined;
-    function onPointerDown(e) {
-      if (!wrapRef.current?.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [showDropdown]);
+    if (!trimmed) setOpen(false);
+  }, [trimmed]);
 
   function pickSuggestion(item) {
     onSelect(item);
@@ -66,41 +77,70 @@ export default function GlobalSearchBox({
     }
   }
 
+  function onResultsWheel(e) {
+    e.stopPropagation();
+    const el = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const delta = e.deltaY;
+    const atTop = scrollTop <= 0 && delta < 0;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && delta > 0;
+    if (atTop || atBottom) e.preventDefault();
+  }
+
   return (
-    <div className="global-search-wrap" ref={wrapRef}>
-      <label className="global-search-label" htmlFor="global-dashboard-search">
-        <span className="visually-hidden">Search everywhere</span>
-        <input
-          id="global-dashboard-search"
-          ref={inputRef}
-          type="search"
-          className="dashboard-global-search-input global-search-input"
-          placeholder="Search order #, customer, OC, contact…"
-          value={query}
-          onChange={(e) => {
-            onQueryChange(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={onKeyDown}
-          role="combobox"
-          aria-expanded={showDropdown}
-          aria-controls={showDropdown ? listId : undefined}
-          aria-autocomplete="list"
-          aria-activedescendant={
-            showDropdown && activeIndex >= 0 ? `${listId}-opt-${activeIndex}` : undefined
-          }
-        />
-      </label>
-      {showDropdown ? (
-        <div className="global-search-dropdown" role="listbox" id={listId}>
+    <Popover open={showDropdown} onOpenChange={setOpen} modal={false}>
+      <div className={cn("relative min-w-0 flex-1", className)}>
+        <PopoverAnchor asChild>
+          <div className="w-full">
+            <label htmlFor="global-dashboard-search" className="sr-only">
+              Search everywhere
+            </label>
+            <Input
+              id="global-dashboard-search"
+              ref={inputRef}
+              type="search"
+              placeholder="Search order #, customer, OC, contact…"
+              value={query}
+              className="h-9 w-full"
+              onChange={(e) => {
+                onQueryChange(e.target.value);
+                setOpen(true);
+              }}
+              onFocus={() => setOpen(true)}
+              onKeyDown={onKeyDown}
+              role="combobox"
+              aria-expanded={showDropdown}
+              aria-controls={showDropdown ? listId : undefined}
+              aria-autocomplete="list"
+              aria-activedescendant={
+                showDropdown && activeIndex >= 0 ? `${listId}-opt-${activeIndex}` : undefined
+              }
+            />
+          </div>
+        </PopoverAnchor>
+
+        <PopoverContent
+          align="end"
+          sideOffset={4}
+          className="w-[min(100vw-2rem,28rem)] overflow-hidden p-0"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+          onWheel={(e) => e.stopPropagation()}
+        >
           {loadingExtras ? (
-            <p className="global-search-dropdown-status">Loading more areas…</p>
+            <p className="border-b px-3 py-2 text-xs text-muted-foreground">Loading more areas…</p>
           ) : null}
           {suggestions.length === 0 ? (
-            <p className="global-search-dropdown-empty">No matches across your departments.</p>
+            <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+              No matches across your departments.
+            </p>
           ) : (
-            <ul className="global-search-dropdown-list">
+            <ul
+              id={listId}
+              role="listbox"
+              className="max-h-72 overflow-y-auto overscroll-contain p-1 [-webkit-overflow-scrolling:touch]"
+              onWheel={onResultsWheel}
+            >
               {suggestions.map((item, index) => (
                 <li key={item.id}>
                   <button
@@ -108,24 +148,33 @@ export default function GlobalSearchBox({
                     id={`${listId}-opt-${index}`}
                     role="option"
                     aria-selected={index === activeIndex}
-                    className={`global-search-option${index === activeIndex ? " is-active" : ""}`}
+                    className={cn(
+                      "flex w-full flex-col gap-0.5 rounded-sm px-3 py-2 text-left text-sm transition-colors",
+                      index === activeIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+                    )}
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => pickSuggestion(item)}
                   >
-                    <span className={`global-search-badge global-search-badge--${item.badgeTone}`}>
-                      {item.areaLabel}
-                    </span>
-                    <span className="global-search-option-context">{item.contextLine}</span>
-                    <span className="global-search-option-title">{item.title}</span>
-                    <span className="global-search-option-sub">{item.subtitle}</span>
-                    {item.meta ? <span className="global-search-option-meta">{item.meta}</span> : null}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={BADGE_VARIANT[item.badgeTone] ?? "outline"} className="text-[10px]">
+                        {item.areaLabel}
+                      </Badge>
+                      {item.contextLine ? (
+                        <span className="text-xs text-muted-foreground">{item.contextLine}</span>
+                      ) : null}
+                    </div>
+                    <span className="font-medium leading-snug">{item.title}</span>
+                    {item.subtitle ? (
+                      <span className="text-xs text-muted-foreground">{item.subtitle}</span>
+                    ) : null}
+                    {item.meta ? <span className="text-[11px] text-muted-foreground/80">{item.meta}</span> : null}
                   </button>
                 </li>
               ))}
             </ul>
           )}
-        </div>
-      ) : null}
-    </div>
+        </PopoverContent>
+      </div>
+    </Popover>
   );
 }

@@ -12,6 +12,10 @@ import {
   YAxis,
   Line
 } from "recharts";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#64748b"];
 
@@ -320,68 +324,88 @@ export default function CoordinatorReportPanel({ orders, coordinators = [] }) {
       <div className="coordinator-report-toolbar">
         <div className="coordinator-report-group">
           <span className="coordinator-report-label">Period</span>
-          <div className="coordinator-report-segment" role="group" aria-label="Time period">
-            <button
-              type="button"
-              className={period === "day" ? "is-active" : ""}
-              onClick={() => setPeriod("day")}
-            >
-              Day
-            </button>
-            <button
-              type="button"
-              className={period === "week" ? "is-active" : ""}
-              onClick={() => setPeriod("week")}
-            >
-              Week
-            </button>
-            <button
-              type="button"
-              className={period === "month" ? "is-active" : ""}
-              onClick={() => setPeriod("month")}
-            >
-              Month
-            </button>
-            <button
-              type="button"
-              className={period === "month_range" ? "is-active" : ""}
-              onClick={() => setPeriod("month_range")}
-            >
-              Month range
-            </button>
+          <div className="coordinator-report-segment flex flex-wrap gap-1" role="group" aria-label="Time period">
+            {[
+              ["day", "Day"],
+              ["week", "Week"],
+              ["month", "Month"],
+              ["month_range", "Month range"]
+            ].map(([id, label]) => (
+              <Button
+                key={id}
+                type="button"
+                size="sm"
+                variant={period === id ? "default" : "outline"}
+                onClick={() => setPeriod(id)}
+              >
+                {label}
+              </Button>
+            ))}
           </div>
         </div>
         {period === "month" ? (
-          <label className="coordinator-report-field">
-            Month
-            <input type="month" value={anchorMonth} onChange={(e) => setAnchorMonth(e.target.value)} />
-          </label>
+          <div className="coordinator-report-field grid gap-1.5">
+            <Label htmlFor="coordinator-report-month">Month</Label>
+            <Input
+              id="coordinator-report-month"
+              type="month"
+              value={anchorMonth}
+              onChange={(e) => setAnchorMonth(e.target.value)}
+            />
+          </div>
         ) : period === "month_range" ? (
-          <div className="coordinator-report-range-fields">
-            <label className="coordinator-report-field">
-              From
-              <input type="month" value={monthRangeStart} onChange={(e) => setMonthRangeStart(e.target.value)} />
-            </label>
-            <label className="coordinator-report-field">
-              To
-              <input type="month" value={monthRangeEnd} onChange={(e) => setMonthRangeEnd(e.target.value)} />
-            </label>
+          <div className="coordinator-report-range-fields flex flex-wrap gap-3">
+            <div className="coordinator-report-field grid gap-1.5">
+              <Label htmlFor="coordinator-report-month-from">From</Label>
+              <Input
+                id="coordinator-report-month-from"
+                type="month"
+                value={monthRangeStart}
+                onChange={(e) => setMonthRangeStart(e.target.value)}
+              />
+            </div>
+            <div className="coordinator-report-field grid gap-1.5">
+              <Label htmlFor="coordinator-report-month-to">To</Label>
+              <Input
+                id="coordinator-report-month-to"
+                type="month"
+                value={monthRangeEnd}
+                onChange={(e) => setMonthRangeEnd(e.target.value)}
+              />
+            </div>
           </div>
         ) : (
-          <label className="coordinator-report-field">
-            {period === "week" ? "Week containing" : "Date"}
-            <input type="date" value={anchorDate} onChange={(e) => setAnchorDate(e.target.value)} />
-          </label>
+          <div className="coordinator-report-field grid gap-1.5">
+            <Label htmlFor="coordinator-report-date">
+              {period === "week" ? "Week containing" : "Date"}
+            </Label>
+            <DatePicker
+              id="coordinator-report-date"
+              value={anchorDate}
+              onChange={setAnchorDate}
+              className="min-w-[10.5rem]"
+            />
+          </div>
         )}
         <div className="coordinator-report-group">
           <span className="coordinator-report-label">Chart</span>
-          <div className="coordinator-report-segment" role="group" aria-label="Chart type">
-            <button type="button" className={chartType === "pie" ? "is-active" : ""} onClick={() => setChartType("pie")}>
+          <div className="coordinator-report-segment flex gap-1" role="group" aria-label="Chart type">
+            <Button
+              type="button"
+              size="sm"
+              variant={chartType === "pie" ? "default" : "outline"}
+              onClick={() => setChartType("pie")}
+            >
               Pie
-            </button>
-            <button type="button" className={chartType === "line" ? "is-active" : ""} onClick={() => setChartType("line")}>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={chartType === "line" ? "default" : "outline"}
+              onClick={() => setChartType("line")}
+            >
               Line
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabaseClient";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   formatGrnCreatedAt,
   formatInwardDepartmentDisplay,
@@ -17,6 +18,7 @@ import {
   GRN_SIZE_KEYS,
   GRN_TYPE_APPAREL,
   GRN_TYPE_FABRIC,
+  GRN_TYPE_OTHER,
   inwardGrnToInsertPayloadFromState,
   sanitizeGrnFabricInput,
   sanitizeGrnSizeInput,
@@ -78,6 +80,10 @@ export default function InwardGrnEntryPage({
     [formState, totals]
   );
   const isApparel = formState.type === GRN_TYPE_APPAREL;
+  const isFabric = formState.type === GRN_TYPE_FABRIC;
+  const isOther = formState.type === GRN_TYPE_OTHER;
+  const typeToggleIndex = isApparel ? 0 : isFabric ? 1 : 2;
+  const typeLabel = isApparel ? "Apparel" : isFabric ? "Fabric" : "Other";
 
   const productLabel = trimField(inwardRecord?.product_material) || "—";
   const departmentLabel = formatInwardDepartmentDisplay(inwardRecord);
@@ -202,6 +208,13 @@ export default function InwardGrnEntryPage({
     }));
   }
 
+  function updateOtherField(field, value) {
+    setFormState((prev) => ({
+      ...prev,
+      other: { ...prev.other, [field]: value }
+    }));
+  }
+
   async function handleSave(printAfterSave = false) {
     if (submitting || !canEdit) return;
     const validationError = validateGrnForm(formState);
@@ -290,13 +303,13 @@ export default function InwardGrnEntryPage({
 
           <div className="inward-grn-page-header-actions">
             <div
-              className="inward-grn-type-toggle"
+              className="inward-grn-type-toggle inward-grn-type-toggle--three"
               role="group"
               aria-label="Receipt type"
             >
               <span
                 className="inward-grn-type-toggle-thumb"
-                style={{ transform: isApparel ? "translateX(0%)" : "translateX(100%)" }}
+                style={{ transform: `translateX(${typeToggleIndex * 100}%)` }}
                 aria-hidden="true"
               />
               <button
@@ -309,11 +322,19 @@ export default function InwardGrnEntryPage({
               </button>
               <button
                 type="button"
-                className={`inward-grn-type-toggle-btn${!isApparel ? " is-active" : ""}`}
+                className={`inward-grn-type-toggle-btn${isFabric ? " is-active" : ""}`}
                 onClick={() => setType(GRN_TYPE_FABRIC)}
                 disabled={!canEdit}
               >
                 Fabric
+              </button>
+              <button
+                type="button"
+                className={`inward-grn-type-toggle-btn${isOther ? " is-active" : ""}`}
+                onClick={() => setType(GRN_TYPE_OTHER)}
+                disabled={!canEdit}
+              >
+                Other
               </button>
             </div>
             <button
@@ -388,9 +409,7 @@ export default function InwardGrnEntryPage({
             <h2 id="inward-grn-details-heading" className="inward-grn-card-title">
               GRN Details
             </h2>
-            <span className="inward-grn-card-meta">
-              {isApparel ? "Apparel" : "Fabric"} inward
-            </span>
+            <span className="inward-grn-card-meta">{typeLabel} inward</span>
           </header>
           <div className="inward-grn-details-grid">
             <label className="inward-grn-field">
@@ -405,55 +424,63 @@ export default function InwardGrnEntryPage({
             </label>
             <label className="inward-grn-field">
               <span className="inward-grn-field-label">Receipt Date</span>
-              <input
-                type="date"
+              <DatePicker
+                id="inward-grn-receipt-date"
                 value={formState.header.date}
-                onChange={(e) => updateHeader("date", e.target.value)}
+                onChange={(next) => updateHeader("date", next)}
                 disabled={!canEdit}
               />
             </label>
-            <label className="inward-grn-field">
-              <span className="inward-grn-field-label">Invoice No.</span>
-              <input
-                type="text"
-                value={formState.header.invoiceNo}
-                onChange={(e) => updateHeader("invoiceNo", e.target.value)}
-                placeholder="INV-0000"
-                disabled={!canEdit}
-              />
-            </label>
+            {isOther ? (
+              <label className="inward-grn-field">
+                <span className="inward-grn-field-label">Storage Location</span>
+                <input
+                  type="text"
+                  value={formState.header.location}
+                  onChange={(e) => updateHeader("location", e.target.value)}
+                  placeholder="e.g. Rack A-12"
+                  disabled={!canEdit}
+                  required
+                />
+              </label>
+            ) : (
+              <label className="inward-grn-field">
+                <span className="inward-grn-field-label">Invoice No.</span>
+                <input
+                  type="text"
+                  value={formState.header.invoiceNo}
+                  onChange={(e) => updateHeader("invoiceNo", e.target.value)}
+                  placeholder="INV-0000"
+                  disabled={!canEdit}
+                />
+              </label>
+            )}
             <label className="inward-grn-field inward-grn-field--span-2">
-              <span className="inward-grn-field-label">Supplier</span>
+              <span className="inward-grn-field-label">
+                {isOther ? "Sender name" : "Supplier"}
+              </span>
               <input
                 type="text"
                 value={formState.header.supplier}
                 onChange={(e) => updateHeader("supplier", e.target.value)}
-                placeholder="Supplier name"
+                placeholder={isOther ? "Sender name" : "Supplier name"}
                 disabled={!canEdit}
                 required
               />
             </label>
-            <label className="inward-grn-field">
-              <span className="inward-grn-field-label">Storage Location</span>
-              <input
-                type="text"
-                value={formState.header.location}
-                onChange={(e) => updateHeader("location", e.target.value)}
-                placeholder="e.g. Rack A-12"
-                disabled={!canEdit}
-                required
-              />
-            </label>
-            <label className="inward-grn-field">
-              <span className="inward-grn-field-label">For whom</span>
-              <input
-                type="text"
-                value={formState.header.forWhom}
-                onChange={(e) => updateHeader("forWhom", e.target.value)}
-                disabled={!canEdit}
-                required
-              />
-            </label>
+            {!isOther ? (
+              <label className="inward-grn-field">
+                <span className="inward-grn-field-label">Storage Location</span>
+                <input
+                  type="text"
+                  value={formState.header.location}
+                  onChange={(e) => updateHeader("location", e.target.value)}
+                  placeholder="e.g. Rack A-12"
+                  disabled={!canEdit}
+                  required
+                />
+              </label>
+            ) : null}
             <label className="inward-grn-field">
               <span className="inward-grn-field-label">Received by</span>
               <input
@@ -464,7 +491,7 @@ export default function InwardGrnEntryPage({
                 required
               />
             </label>
-            <label className="inward-grn-field inward-grn-field--span-3">
+            <label className="inward-grn-field inward-grn-field--span-2">
               <span className="inward-grn-field-label">Remark</span>
               <input
                 type="text"
@@ -636,7 +663,7 @@ export default function InwardGrnEntryPage({
               </div>
             </section>
           </>
-        ) : (
+        ) : isFabric ? (
           <section className="inward-grn-card inward-grn-fabric-card">
             <div className="inward-grn-table-wrap">
               <table className="inward-grn-fabric-table">
@@ -751,6 +778,39 @@ export default function InwardGrnEntryPage({
               >
                 + Add fabric line
               </button>
+            </div>
+          </section>
+        ) : (
+          <section className="inward-grn-card inward-grn-other-card" aria-labelledby="inward-grn-other-heading">
+            <header className="inward-grn-card-head">
+              <h2 id="inward-grn-other-heading" className="inward-grn-card-title">
+                Other receipt
+              </h2>
+              <span className="inward-grn-card-meta">product &amp; transport details</span>
+            </header>
+            <div className="inward-grn-details-grid inward-grn-other-grid">
+              <label className="inward-grn-field">
+                <span className="inward-grn-field-label">Product name</span>
+                <input
+                  type="text"
+                  value={formState.other.productName}
+                  onChange={(e) => updateOtherField("productName", e.target.value)}
+                  placeholder="Product name"
+                  disabled={!canEdit}
+                  required
+                />
+              </label>
+              <label className="inward-grn-field">
+                <span className="inward-grn-field-label">Transport name</span>
+                <input
+                  type="text"
+                  value={formState.other.transportName}
+                  onChange={(e) => updateOtherField("transportName", e.target.value)}
+                  placeholder="Transport name"
+                  disabled={!canEdit}
+                  required
+                />
+              </label>
             </div>
           </section>
         )}

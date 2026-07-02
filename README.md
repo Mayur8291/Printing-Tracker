@@ -10,7 +10,7 @@ Built with **React + Vite** on the frontend and **Supabase** (PostgreSQL, Auth, 
 
 | Area | What's new |
 |------|------------|
-| **Job sheet (Production tracker)** | Dedicated **Create Job sheet** form — separate from printing orders. Auto order ID from **0900+**, auto order date, sales incharge, customer, size type, rate/qty, **XXS–8XL** size grid + additional sizes, product/brand/color/fabric, branding, GSM, atta, comments, delivery date. |
+| **Job sheet (Production tracker)** | Dedicated **Create Job sheet** form — separate from printing orders. Auto order ID from **0900+**, auto order date, sales incharge, customer, **style-based size type** (from size set helper), rate/qty, dynamic size grid with template labels beside sizes, product/brand/color/fabric, branding, GSM, atta, comments, delivery date. |
 | **Sales incharges** | Admin → **Owners, coordinators & sales incharges** — add names used in the job sheet dropdown. |
 | **Inward entries (GRN)** | Dispatch tab → create/list **inward entries** with GRN, package photo, size breakdown, preview card. |
 | **Staging / production** | Git `develop` → staging Supabase + Netlify branch deploy; `main` → live. See [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md). |
@@ -50,10 +50,12 @@ supabase db push
 | Order date | Auto — today |
 | Sales incharge | Dropdown; manage in Admin |
 | Customer name | Text |
-| Size type | Alpha / Numeric / Free size / Custom |
+| Gender | Kids / Women / Men / Pets |
+| Product type | Denim Pant, Hoodies, Jacket, Polo, Round Neck, Shirt, Shorts, Skirts, Trackpant, V Neck (filtered by gender) |
+| Size type | Style from **size set helper** (filtered by gender + product type) — sets size column templates |
 | Rate per piece | Optional decimal |
 | Total quantity | Manual or sum of size boxes |
-| Sizes | **XXS** through **8XL** + **Additional sizes** |
+| Sizes | Per style: **XXS–8XL** headers show **size · template** (e.g. `M · 32`, `XXS · 0-2 Yrs`); inputs below are **quantities only** + optional additional sizes |
 | Product name, Brand, Color, Fabric type | Text |
 | Branding | Yes/No + branding type when Yes |
 | GSM, Atta | Text / Yes–No |

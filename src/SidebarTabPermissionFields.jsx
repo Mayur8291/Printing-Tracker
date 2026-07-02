@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
 import { DASHBOARD_SIDEBAR, DASHBOARD_TAB_PARENT } from "./dashboardSidebarConfig";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export default function SidebarTabPermissionFields({
   tabFlags,
@@ -8,9 +10,6 @@ export default function SidebarTabPermissionFields({
   onEditChange,
   idPrefix
 }) {
-  const viewAllRef = useRef(null);
-  const editAllRef = useRef(null);
-
   const allViewChecked = DASHBOARD_SIDEBAR.every((item) => Boolean(tabFlags?.[item.id]));
   const someViewChecked = DASHBOARD_SIDEBAR.some((item) => Boolean(tabFlags?.[item.id]));
   const viewIndeterminate = someViewChecked && !allViewChecked;
@@ -20,14 +19,6 @@ export default function SidebarTabPermissionFields({
     viewableTabs.length > 0 && viewableTabs.every((item) => Boolean(editFlags?.[item.id]));
   const someEditChecked = viewableTabs.some((item) => Boolean(editFlags?.[item.id]));
   const editIndeterminate = someEditChecked && !allEditChecked;
-
-  useEffect(() => {
-    if (viewAllRef.current) viewAllRef.current.indeterminate = viewIndeterminate;
-  }, [viewIndeterminate]);
-
-  useEffect(() => {
-    if (editAllRef.current) editAllRef.current.indeterminate = editIndeterminate;
-  }, [editIndeterminate]);
 
   function setAllView(checked) {
     DASHBOARD_SIDEBAR.forEach((item) => onViewChange(item.id, checked));
@@ -40,68 +31,76 @@ export default function SidebarTabPermissionFields({
   }
 
   return (
-    <div className="viewer-sidebar-tabs">
-      <p className="viewer-sidebar-tabs-title">Dashboard tabs</p>
-      <div className="viewer-sidebar-tabs-table">
-        <div className="viewer-sidebar-tabs-table-head">
-          <span>Tab</span>
-          <div className="viewer-sidebar-tabs-head-col">
-            <label className="viewer-sidebar-tabs-check viewer-sidebar-tabs-check--head">
-              <input
-                ref={viewAllRef}
-                type="checkbox"
-                checked={allViewChecked}
-                onChange={(e) => setAllView(e.target.checked)}
-                aria-label={allViewChecked ? "Deselect all view access" : "Select all view access"}
-              />
-              <span className="sr-only">Select or deselect all view</span>
-            </label>
-            <span className="viewer-sidebar-tabs-head-text">View</span>
+    <div className="space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dashboard tabs</p>
+      <div className="overflow-hidden rounded-md border bg-card">
+        <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_3.5rem] items-center gap-2 border-b bg-muted/40 px-3 py-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tab</span>
+          <div className="flex flex-col items-center gap-1">
+            <Checkbox
+              id={`${idPrefix}-view-all`}
+              checked={viewIndeterminate ? "indeterminate" : allViewChecked}
+              onCheckedChange={(checked) => setAllView(Boolean(checked))}
+              aria-label={allViewChecked ? "Deselect all view access" : "Select all view access"}
+            />
+            <Label htmlFor={`${idPrefix}-view-all`} className="text-[10px] font-medium uppercase text-muted-foreground">
+              View
+            </Label>
           </div>
-          <div className="viewer-sidebar-tabs-head-col">
-            <label
-              className={`viewer-sidebar-tabs-check viewer-sidebar-tabs-check--head${
-                viewableTabs.length === 0 ? " is-disabled" : ""
-              }`}
-            >
-              <input
-                ref={editAllRef}
-                type="checkbox"
-                checked={allEditChecked}
-                disabled={viewableTabs.length === 0}
-                onChange={(e) => setAllEdit(e.target.checked)}
-                aria-label={allEditChecked ? "Deselect all edit access" : "Select all edit access"}
-              />
-              <span className="sr-only">Select or deselect all edit</span>
-            </label>
-            <span className="viewer-sidebar-tabs-head-text">Edit</span>
+          <div className="flex flex-col items-center gap-1">
+            <Checkbox
+              id={`${idPrefix}-edit-all`}
+              checked={editIndeterminate ? "indeterminate" : allEditChecked}
+              disabled={viewableTabs.length === 0}
+              onCheckedChange={(checked) => setAllEdit(Boolean(checked))}
+              aria-label={allEditChecked ? "Deselect all edit access" : "Select all edit access"}
+            />
+            <Label htmlFor={`${idPrefix}-edit-all`} className="text-[10px] font-medium uppercase text-muted-foreground">
+              Edit
+            </Label>
           </div>
         </div>
         {DASHBOARD_SIDEBAR.map((item) => {
           const canView = Boolean(tabFlags?.[item.id]);
+          const viewId = `${idPrefix}-view-${item.id}`;
+          const editId = `${idPrefix}-edit-${item.id}`;
           return (
             <div
-              className={`viewer-sidebar-tabs-row${DASHBOARD_TAB_PARENT[item.id] ? " viewer-sidebar-tabs-row--nested" : ""}`}
               key={`${idPrefix}-${item.id}`}
+              className={cn(
+                "grid grid-cols-[minmax(0,1fr)_3.5rem_3.5rem] items-center gap-2 border-b px-3 py-2 last:border-b-0",
+                DASHBOARD_TAB_PARENT[item.id] && "bg-muted/20"
+              )}
             >
-              <span className="viewer-sidebar-tabs-row-label">{item.label}</span>
-              <label className="viewer-sidebar-tabs-check">
-                <input
-                  type="checkbox"
+              <span
+                className={cn(
+                  "text-sm text-foreground",
+                  DASHBOARD_TAB_PARENT[item.id] && "pl-4 text-muted-foreground"
+                )}
+              >
+                {item.label}
+              </span>
+              <div className="flex justify-center">
+                <Checkbox
+                  id={viewId}
                   checked={canView}
-                  onChange={(e) => onViewChange(item.id, e.target.checked)}
+                  onCheckedChange={(checked) => onViewChange(item.id, Boolean(checked))}
                 />
-                <span className="sr-only">View {item.label}</span>
-              </label>
-              <label className={`viewer-sidebar-tabs-check${canView ? "" : " is-disabled"}`}>
-                <input
-                  type="checkbox"
+                <Label htmlFor={viewId} className="sr-only">
+                  View {item.label}
+                </Label>
+              </div>
+              <div className={cn("flex justify-center", !canView && "opacity-50")}>
+                <Checkbox
+                  id={editId}
                   checked={canView && Boolean(editFlags?.[item.id])}
                   disabled={!canView}
-                  onChange={(e) => onEditChange(item.id, e.target.checked)}
+                  onCheckedChange={(checked) => onEditChange(item.id, Boolean(checked))}
                 />
-                <span className="sr-only">Edit {item.label}</span>
-              </label>
+                <Label htmlFor={editId} className="sr-only">
+                  Edit {item.label}
+                </Label>
+              </div>
             </div>
           );
         })}

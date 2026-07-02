@@ -1,5 +1,23 @@
 import { useEffect, useState } from "react";
-import InventoryIcon from "./inventory/InventoryIcon";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import {
   PRINTING_DEPT_MATERIALS,
   PRINTING_UTILIZATION_MATERIAL_KEYS
@@ -45,9 +63,7 @@ export default function RefillPrintingInventoryModal({
     setNote("");
     setSubmitting(false);
     setError("");
-  }, [open, defaultMaterialKey, mode]);
-
-  if (!open) return null;
+  }, [open, defaultMaterialKey, mode, isIssue]);
 
   const material = materialOptions.find((m) => m.key === materialKey) ?? materialOptions[0];
 
@@ -57,16 +73,16 @@ export default function RefillPrintingInventoryModal({
 
   function renderBulkRows(items) {
     return items.map((item) => (
-      <div className="printing-dept-bulk-refill-row" key={item.key}>
-        <label className="printing-dept-bulk-refill-label" htmlFor={`printing-inv-qty-${item.key}`}>
+      <div className="printing-dept-bulk-refill-row grid grid-cols-[1fr_7rem] items-center gap-2" key={item.key}>
+        <Label htmlFor={`printing-inv-qty-${item.key}`} className="font-normal">
           {item.label}
-        </label>
-        <input
+        </Label>
+        <Input
           id={`printing-inv-qty-${item.key}`}
           type="number"
           min="0"
           step="any"
-          className="printing-dept-bulk-refill-input"
+          className="h-8"
           value={quantities[item.key] ?? ""}
           onChange={(e) => setBulkQty(item.key, e.target.value)}
           placeholder="—"
@@ -123,105 +139,96 @@ export default function RefillPrintingInventoryModal({
   }
 
   return (
-    <div className="modal-backdrop open" onClick={onClose}>
-      <div
-        className={`modal${isIssue ? "" : " wide"}`}
-        onClick={(ev) => ev.stopPropagation()}
-      >
-        <div className="modal-header">
-          <div>
-            <h3 className="modal-title">{isIssue ? "Record usage" : "Refill inventory"}</h3>
-            {!isIssue ? (
-              <p className="printing-dept-refill-sub">
-                Fill any materials you received. Leave blank what you are not refilling.
-              </p>
-            ) : null}
-          </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
-            <InventoryIcon name="x" size={14} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            {error ? (
-              <p className="printing-dept-inv-error" role="alert">
-                {error}
-              </p>
-            ) : null}
+    <Dialog open={open} onOpenChange={(next) => !next && onClose?.()}>
+      <DialogContent className={isIssue ? "sm:max-w-md" : "sm:max-w-2xl"}>
+        <DialogHeader>
+          <DialogTitle>{isIssue ? "Record usage" : "Refill inventory"}</DialogTitle>
+          {!isIssue ? (
+            <DialogDescription>
+              Fill any materials you received. Leave blank what you are not refilling.
+            </DialogDescription>
+          ) : null}
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
 
-            {isIssue ? (
-              <>
-                <div className="field">
-                  <label htmlFor="printing-inv-material">Material</label>
-                  <select
-                    id="printing-inv-material"
-                    value={materialKey}
-                    onChange={(e) => setMaterialKey(e.target.value)}
-                    required
-                  >
+          {isIssue ? (
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="printing-inv-material">Material</Label>
+                <Select value={materialKey} onValueChange={setMaterialKey} required>
+                  <SelectTrigger id="printing-inv-material">
+                    <SelectValue placeholder="Select material" />
+                  </SelectTrigger>
+                  <SelectContent>
                     {materialOptions.map((item) => (
-                      <option key={item.key} value={item.key}>
+                      <SelectItem key={item.key} value={item.key}>
                         {item.label}
                         {item.unit ? ` (${item.unit})` : ""}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="printing-inv-qty">
-                    Amount used
-                    {material?.unit ? ` (${material.unit})` : ""}
-                  </label>
-                  <input
-                    id="printing-inv-qty"
-                    type="number"
-                    min="0.01"
-                    step="any"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    placeholder="e.g. 5"
-                    required
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="printing-dept-bulk-refill">
-                {inkMaterials.length ? (
-                  <div className="printing-dept-bulk-refill-group">
-                    <p className="printing-dept-bulk-refill-heading">Ink</p>
-                    <div className="printing-dept-bulk-refill-grid">{renderBulkRows(inkMaterials)}</div>
-                  </div>
-                ) : null}
-                {otherMaterials.length ? (
-                  <div className="printing-dept-bulk-refill-group">
-                    <p className="printing-dept-bulk-refill-heading">Materials</p>
-                    <div className="printing-dept-bulk-refill-grid">{renderBulkRows(otherMaterials)}</div>
-                  </div>
-                ) : null}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-
-            <div className="field">
-              <label htmlFor="printing-inv-note">Note (optional)</label>
-              <input
-                id="printing-inv-note"
-                type="text"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder={isIssue ? "Job, order, reason…" : "Supplier, batch, etc."}
-              />
+              <div className="grid gap-2">
+                <Label htmlFor="printing-inv-qty">
+                  Amount used
+                  {material?.unit ? ` (${material.unit})` : ""}
+                </Label>
+                <Input
+                  id="printing-inv-qty"
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="e.g. 5"
+                  required
+                />
+              </div>
+            </>
+          ) : (
+            <div className="printing-dept-bulk-refill max-h-[50vh] space-y-4 overflow-y-auto pr-1">
+              {inkMaterials.length ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Ink</p>
+                  <div className="grid gap-2">{renderBulkRows(inkMaterials)}</div>
+                </div>
+              ) : null}
+              {otherMaterials.length ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Materials</p>
+                  <div className="grid gap-2">{renderBulkRows(otherMaterials)}</div>
+                </div>
+              ) : null}
             </div>
+          )}
+
+          <div className="grid gap-2">
+            <Label htmlFor="printing-inv-note">Note (optional)</Label>
+            <Input
+              id="printing-inv-note"
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={isIssue ? "Job, order, reason…" : "Supplier, batch, etc."}
+            />
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn" onClick={onClose} disabled={submitting}>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="destructive" onClick={onClose} disabled={submitting}>
               Cancel
-            </button>
-            <button type="submit" className={`btn ${isIssue ? "danger" : "primary"}`} disabled={submitting}>
+            </Button>
+            <Button type="submit" variant={isIssue ? "destructive" : "success"} disabled={submitting}>
               {submitting ? "Saving…" : isIssue ? "Record usage" : "Record refill"}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

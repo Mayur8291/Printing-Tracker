@@ -14,6 +14,7 @@ alter table public.profiles add column if not exists department text;
 alter table public.profiles add column if not exists job_role text;
 alter table public.profiles add column if not exists employee_id text;
 alter table public.profiles add column if not exists is_active boolean not null default true;
+alter table public.profiles add column if not exists avatar_path text;
 
 create table if not exists public.admin_emails (
   email text primary key,
@@ -90,6 +91,8 @@ alter table public.orders add column if not exists is_production_order boolean n
 alter table public.orders add column if not exists expected_handover_to_printing date;
 alter table public.orders add column if not exists sales_incharge_name text;
 alter table public.orders add column if not exists size_type text;
+alter table public.orders add column if not exists gender text;
+alter table public.orders add column if not exists product_type text;
 alter table public.orders add column if not exists rate_per_piece numeric(12, 2) check (rate_per_piece is null or rate_per_piece >= 0);
 alter table public.orders add column if not exists brand text;
 alter table public.orders add column if not exists fabric_type text;
@@ -801,7 +804,8 @@ returns table (
   full_name text,
   email text,
   department text,
-  role text
+  role text,
+  avatar_path text
 )
 language sql
 security definer
@@ -813,7 +817,8 @@ as $$
     p.full_name,
     p.email,
     p.department,
-    p.role
+    p.role,
+    p.avatar_path
   from public.profiles p
   where nullif(trim(p.full_name), '') is not null
      or nullif(trim(p.email), '') is not null
@@ -1272,11 +1277,11 @@ alter table public.order_templates
 -- Order kind: printing vs regular stock (see migration 20260605120000_add_order_kind.sql).
 alter table public.orders
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock', 'sticker'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling'));
 
 alter table public.order_templates
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock', 'sticker'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling'));
 
 -- Shared resource links (see migration 20260604120000_add_shared_resource_links.sql).
 create table if not exists public.shared_resource_links (

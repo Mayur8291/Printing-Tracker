@@ -1,276 +1,351 @@
 import { useState } from "react";
-import InventoryIcon from "../InventoryIcon";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import ColorSwatch from "../components/ColorSwatch";
 import { useInventory } from "../InventoryDataContext";
-import { formatRelative, isApparelSku, statusOf } from "../inventoryUtils";
+import { MovementTypeBadge, StockStatusBadge } from "../inventoryUiUtils";
+import { formatInr, formatRelative, isApparelSku, statusOf } from "../inventoryUtils";
 
-export default function SkuDrawer({ sku, onClose, onAdjust, onReorder }) {
-  const { suppliers, warehouses, movements, settings, saveSkuReorder } = useInventory();
-  const [reorderDraft, setReorderDraft] = useState("");
-  const [savingReorder, setSavingReorder] = useState(false);
-  const open = !!sku;
+function KvGrid({ children }) {
+  return <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">{children}</dl>;
+}
 
-  if (!sku) {
-    return (
-      <>
-        <div className="drawer-backdrop" onClick={onClose} />
-        <div className="drawer" />
-      </>
-    );
-  }
+function KvLabel({ children }) {
+  return <dt className="text-muted-foreground">{children}</dt>;
+}
 
-  const isApparel = isApparelSku(sku);
-  const stock = sku.stock ?? sku.totalStock;
-  const supplier = suppliers.find((s) => s.id === sku.supplier);
-  const wh = warehouses.find((w) => w.id === sku.wh);
-  const status = statusOf(sku, settings);
-  const reorderValue = reorderDraft !== "" ? reorderDraft : String(sku.reorder ?? 0);
+function KvValue({ children, className }) {
+  return <dd className={cn("font-medium", className)}>{children}</dd>;
+}
 
-  const history = movements.filter((m) => m.sku === sku.id).slice(0, 6);
+export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete, deleting }) {
+  const { suppliers, warehouses, movements, settings, saveSkuFields } = useInventory();
+  const [metricsDraft, setMetricsDraft] = useState(null);
+  const [savingMetrics, setSavingMetrics] = useState(false);
 
-  const saveReorder = async () => {
-    if (!sku._uuid) return;
-    setSavingReorder(true);
+  const isApparel = sku ? isApparelSku(sku) : false;
+  const stock = sku?.stock ?? sku?.totalStock;
+  const supplier = sku ? suppliers.find((s) => s.id === sku.supplier) : null;
+  const wh = sku ? warehouses.find((w) => w.id === sku.wh) : null;
+  const status = sku ? statusOf(sku, settings) : null;
+  const metrics = metricsDraft || {
+    reorder: String(sku?.reorder ?? 0),
+    doc: String(sku?.doc ?? 0),
+    drr: String(sku?.drr ?? 0),
+    cost: String(sku?.cost ?? 0),
+    retail: String(sku?.retail ?? 0)
+  };
+  const history = sku ? movements.filter((m) => m.sku === sku.id).slice(0, 6) : [];
+
+  const setMetric = (key, value) => {
+    setMetricsDraft((prev) => ({ ...(prev || metrics), [key]: value }));
+  };
+
+  const saveMetrics = async () => {
+    if (!sku?._uuid) return;
+    setSavingMetrics(true);
     try {
-      await saveSkuReorder(sku._uuid, reorderValue);
-      setReorderDraft("");
+      await saveSkuFields(sku._uuid, {
+        reorder: metrics.reorder,
+        doc: metrics.doc,
+        drr: metrics.drr,
+        cost: metrics.cost,
+        retail: metrics.retail
+      });
+      setMetricsDraft(null);
     } finally {
-      setSavingReorder(false);
+      setSavingMetrics(false);
     }
   };
 
   return (
-    <>
-      <div className={`drawer-backdrop${open ? " open" : ""}`} onClick={onClose} />
-      <aside className={`drawer${open ? " open" : ""}`}>
-        <div className="drawer-header">
-          <div className="drawer-header-main">
-            <div className="drawer-swatch" style={{ background: sku.hex }} />
-            <div className="drawer-header-text">
-              <h3 className="drawer-title">{sku.name}</h3>
-              <div className="drawer-subtitle">
-                <span className="mono">{sku.id}</span>
-                {sku.color && <> · {sku.color}</>}
-              </div>
-              <div className="drawer-status">
-                <span className={`badge ${status.kind}`}>
-                  <span className="dot" />
-                  {status.label}
-                </span>
-              </div>
-            </div>
-          </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
-            <InventoryIcon name="x" size={14} />
-          </button>
-        </div>
-
-        <div className="drawer-body">
-          <div className="drawer-section">
-            <h4>Specifications</h4>
-            <dl className="kv">
-              {isApparel ? (
-                <>
-                  <dt>Category</dt>
-                  <dd>{sku.category}</dd>
-                  <dt>Season</dt>
-                  <dd>{sku.season}</dd>
-                  <dt>Colorway</dt>
-                  <dd>
-                    <span className="cell-with-swatch">
-                      <span className="swatch" style={{ background: sku.hex }} />
-                      {sku.color}
-                    </span>
-                  </dd>
-                  <dt>Unit cost</dt>
-                  <dd>${sku.cost.toFixed(2)}</dd>
-                  <dt>Retail price</dt>
-                  <dd>${sku.retail}</dd>
-                  <dt>Margin</dt>
-                  <dd>
-                    <b>{Math.round((1 - sku.cost / sku.retail) * 100)}%</b>
-                  </dd>
-                </>
-              ) : (
-                <>
-                  <dt>Composition</dt>
-                  <dd>{sku.composition || "—"}</dd>
-                  {sku.gsm && (
-                    <>
-                      <dt>Weight</dt>
-                      <dd>{sku.gsm} g/m²</dd>
-                    </>
-                  )}
-                  {sku.width && (
-                    <>
-                      <dt>Width</dt>
-                      <dd>{sku.width} cm</dd>
-                    </>
-                  )}
-                  {sku.type && (
-                    <>
-                      <dt>Type</dt>
-                      <dd>{sku.type}</dd>
-                    </>
-                  )}
-                  {sku.size && (
-                    <>
-                      <dt>Size</dt>
-                      <dd>{sku.size}</dd>
-                    </>
-                  )}
-                  <dt>Color</dt>
-                  <dd>
-                    <span className="cell-with-swatch">
-                      <span className="swatch" style={{ background: sku.hex }} />
-                      {sku.color}
-                    </span>
-                  </dd>
-                  <dt>Unit cost</dt>
-                  <dd>
-                    ${sku.cost.toFixed(2)} / {sku.unit}
-                  </dd>
-                </>
-              )}
-            </dl>
-          </div>
-
-          {isApparel && (
-            <div className="drawer-section">
-              <h4>Stock by size</h4>
-              <div
-                className="size-matrix"
-                style={{ gridTemplateColumns: `repeat(${Object.keys(sku.sizes).length}, 1fr)` }}
-              >
-                {Object.keys(sku.sizes).map((s) => (
-                  <div key={`h${s}`} className="head">
-                    {s}
+    <Sheet open={!!sku} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" className="flex w-full flex-col sm:max-w-lg">
+        {sku ? (
+          <>
+            <SheetHeader className="text-left">
+              <div className="flex items-start gap-3 pr-6">
+                <ColorSwatch color={sku.color} hex={sku.hex} size="lg" title={sku.color} />
+                <div className="min-w-0 flex-1">
+                  <SheetTitle className="truncate">{sku.name}</SheetTitle>
+                  <SheetDescription>
+                    <span className="font-mono">{sku.id}</span>
+                    {sku.color && <> · {sku.color}</>}
+                    {sku.parentStyleCode && (
+                      <>
+                        {" "}
+                        · Parent <span className="font-mono">{sku.parentStyleCode}</span>
+                      </>
+                    )}
+                  </SheetDescription>
+                  <div className="mt-2">
+                    <StockStatusBadge status={status} />
                   </div>
-                ))}
-                {Object.entries(sku.sizes).map(([s, v]) => (
-                  <div key={s} className={`val${v === 0 ? " zero" : v < 50 ? " low" : ""}`}>
-                    {v.toLocaleString()}
-                  </div>
-                ))}
-              </div>
-              <div className="drawer-size-summary">
-                Total <b>{sku.totalStock.toLocaleString()}</b> units · reorder threshold{" "}
-                {sku.reorder.toLocaleString()}
-              </div>
-            </div>
-          )}
-
-          <div className="drawer-section">
-            <h4>Stock & location</h4>
-            <dl className="kv">
-              <dt>On hand</dt>
-              <dd>
-                <b>{stock.toLocaleString()}</b> {sku.unit || "units"}
-                <span className="kv-secondary">
-                  {" "}
-                  · ${(stock * sku.cost).toLocaleString(undefined, { maximumFractionDigits: 0 })} value
-                </span>
-              </dd>
-              <dt>Reorder point</dt>
-              <dd className="drawer-reorder">
-                <input
-                  type="number"
-                  min={0}
-                  className="inv-threshold-input"
-                  value={reorderValue}
-                  onChange={(e) => setReorderDraft(e.target.value)}
-                />
-                <span className="kv-unit">{sku.unit || "units"}</span>
-                <button type="button" className="btn sm" disabled={savingReorder} onClick={saveReorder}>
-                  Save
-                </button>
-              </dd>
-              <dt>Warehouse</dt>
-              <dd>
-                {wh?.name}
-                <span className="kv-secondary">
-                  {" "}
-                  · <span className="mono">{sku.wh}</span>
-                </span>
-              </dd>
-              {sku.bin && (
-                <>
-                  <dt>Bin</dt>
-                  <dd className="mono">{sku.bin}</dd>
-                </>
-              )}
-              <dt>Last received</dt>
-              <dd>{sku.lastIn || "—"}</dd>
-            </dl>
-          </div>
-
-          <div className="drawer-section">
-            <h4>Supplier</h4>
-            <div className="drawer-supplier-card">
-              <div className="drawer-supplier-avatar">{supplier?.name?.[0] || "?"}</div>
-              <div className="drawer-supplier-info">
-                <div className="drawer-supplier-name">{supplier?.name}</div>
-                <div className="drawer-supplier-meta">
-                  <span className="mono">{supplier?.id}</span> · {supplier?.city}, {supplier?.country} ·{" "}
-                  {supplier?.leadDays}d lead · ★ {supplier?.rating}
                 </div>
               </div>
-              <button type="button" className="btn sm">
-                View
-              </button>
-            </div>
-          </div>
+            </SheetHeader>
 
-          <div className="drawer-section">
-            <h4>Recent activity</h4>
-            <div>
-              {history.length === 0 && (
-                <div className="inv-empty-hint" style={{ padding: "8px 0" }}>
-                  No movements logged yet.
-                </div>
-              )}
-              {history.map((m) => {
-                const cls = m.type === "IN" ? "in" : m.type === "ADJUST" ? "adj" : "out";
-                const sign = m.qty > 0 ? "+" : "";
-                return (
-                  <div className="history-row" key={m.id}>
-                    <div className={`h-icon ${cls}`}>
-                      <InventoryIcon
-                        name={m.type === "IN" ? "arrow_d" : m.type === "OUT" ? "arrow_u" : m.type === "TRANSFER" ? "swap" : "edit"}
-                        size={11}
-                        stroke={2}
-                      />
+            <ScrollArea className="flex-1 -mx-6 px-6">
+              <div className="space-y-6 pb-4">
+                <section>
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Specifications</h4>
+                  <KvGrid>
+                    {isApparel ? (
+                      <>
+                        <KvLabel>Category</KvLabel>
+                        <KvValue>{sku.category}</KvValue>
+                        <KvLabel>Season</KvLabel>
+                        <KvValue>{sku.season}</KvValue>
+                        <KvLabel>Colorway</KvLabel>
+                        <KvValue>
+                          <span className="inline-flex items-center gap-1.5">
+                            <ColorSwatch color={sku.color} hex={sku.hex} />
+                            {sku.color}
+                          </span>
+                        </KvValue>
+                        <KvLabel>Unit cost</KvLabel>
+                        <KvValue>{formatInr(sku.cost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</KvValue>
+                        <KvLabel>Sale price</KvLabel>
+                        <KvValue>{formatInr(sku.retail, { maximumFractionDigits: 0 })}</KvValue>
+                        {sku.retail > 0 ? (
+                          <>
+                            <KvLabel>Margin</KvLabel>
+                            <KvValue>{Math.round((1 - sku.cost / sku.retail) * 100)}%</KvValue>
+                          </>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <KvLabel>Composition</KvLabel>
+                        <KvValue>{sku.composition || "—"}</KvValue>
+                        {sku.gsm ? (
+                          <>
+                            <KvLabel>Weight</KvLabel>
+                            <KvValue>{sku.gsm} g/m²</KvValue>
+                          </>
+                        ) : null}
+                        {sku.width ? (
+                          <>
+                            <KvLabel>Width</KvLabel>
+                            <KvValue>{sku.width} cm</KvValue>
+                          </>
+                        ) : null}
+                        {sku.type ? (
+                          <>
+                            <KvLabel>Type</KvLabel>
+                            <KvValue>{sku.type}</KvValue>
+                          </>
+                        ) : null}
+                        {sku.size ? (
+                          <>
+                            <KvLabel>Size</KvLabel>
+                            <KvValue>{sku.size}</KvValue>
+                          </>
+                        ) : null}
+                        <KvLabel>Color</KvLabel>
+                        <KvValue>
+                          <span className="inline-flex items-center gap-1.5">
+                            <ColorSwatch color={sku.color} hex={sku.hex} />
+                            {sku.color}
+                          </span>
+                        </KvValue>
+                        <KvLabel>Unit cost</KvLabel>
+                        <KvValue>
+                          {formatInr(sku.cost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {sku.unit}
+                        </KvValue>
+                        <KvLabel>Sale price</KvLabel>
+                        <KvValue>{formatInr(sku.retail, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</KvValue>
+                      </>
+                    )}
+                  </KvGrid>
+                </section>
+
+                {isApparel && (
+                  <section>
+                    <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stock by size</h4>
+                    <div
+                      className="grid gap-px overflow-hidden rounded-md border text-center text-sm"
+                      style={{ gridTemplateColumns: `repeat(${Object.keys(sku.sizes).length}, 1fr)` }}
+                    >
+                      {Object.keys(sku.sizes).map((s) => (
+                        <div key={`h${s}`} className="bg-muted px-2 py-1.5 text-xs font-medium">
+                          {s}
+                        </div>
+                      ))}
+                      {Object.entries(sku.sizes).map(([s, v]) => (
+                        <div
+                          key={s}
+                          className={cn(
+                            "px-2 py-2 tabular-nums",
+                            v === 0 && "text-muted-foreground",
+                            v > 0 && v < 50 && "text-amber-600"
+                          )}
+                        >
+                          {v.toLocaleString()}
+                        </div>
+                      ))}
                     </div>
-                    <div className="h-text">
-                      <span>{m.reason}</span>
-                      <small>
-                        {m.user} · {formatRelative(new Date(m.ts))} · ref {m.ref}
-                      </small>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Total <strong>{sku.totalStock.toLocaleString()}</strong> units · reorder threshold{" "}
+                      {sku.reorder.toLocaleString()}
+                    </p>
+                  </section>
+                )}
+
+                <section>
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pricing & replenishment</h4>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Unit cost (₹)</Label>
+                      <Input type="number" min={0} step="0.01" className="h-8" value={metrics.cost} onChange={(e) => setMetric("cost", e.target.value)} />
                     </div>
-                    <div className={`h-qty ${m.qty > 0 ? "pos" : "neg"}`}>
-                      {sign}
-                      {m.qty.toLocaleString()} {m.unit}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Sale price (₹)</Label>
+                      <Input type="number" min={0} step="0.01" className="h-8" value={metrics.retail} onChange={(e) => setMetric("retail", e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Reorder point</Label>
+                      <Input type="number" min={0} className="h-8" value={metrics.reorder} onChange={(e) => setMetric("reorder", e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">DOC</Label>
+                      <Input type="number" min={0} step="0.01" className="h-8" value={metrics.doc} onChange={(e) => setMetric("doc", e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label className="text-xs text-muted-foreground">DRR</Label>
+                      <Input type="number" min={0} step="0.01" className="h-8" value={metrics.drr} onChange={(e) => setMetric("drr", e.target.value)} />
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+                  <Button type="button" size="sm" variant="outline" className="mt-3" disabled={savingMetrics} onClick={saveMetrics}>
+                    {savingMetrics ? "Saving…" : "Save pricing & metrics"}
+                  </Button>
+                </section>
 
-        <div className="drawer-footer">
-          <button type="button" className="btn ghost" onClick={onClose}>
-            Close
-          </button>
-          <div className="drawer-footer-actions">
-            <button type="button" className="btn" onClick={() => onAdjust(sku)}>
-              <InventoryIcon name="edit" size={12} /> Adjust stock
-            </button>
-            <button type="button" className="btn primary" onClick={() => onReorder(sku)}>
-              <InventoryIcon name="cart" size={12} /> Reorder
-            </button>
-          </div>
-        </div>
-      </aside>
-    </>
+                <section>
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stock & location</h4>
+                  <KvGrid>
+                    <KvLabel>On hand</KvLabel>
+                    <KvValue>
+                      {stock.toLocaleString()} {sku.unit || "units"}
+                      <span className="ml-1 font-normal text-muted-foreground">
+                        · {formatInr(stock * sku.cost, { maximumFractionDigits: 0 })} value
+                      </span>
+                    </KvValue>
+                    <KvLabel>Warehouse</KvLabel>
+                    <KvValue>
+                      {wh?.name}
+                      <span className="ml-1 font-normal text-muted-foreground">
+                        · <span className="font-mono">{sku.wh}</span>
+                      </span>
+                    </KvValue>
+                    {sku.bin ? (
+                      <>
+                        <KvLabel>Bin</KvLabel>
+                        <KvValue className="font-mono">{sku.bin}</KvValue>
+                      </>
+                    ) : null}
+                    <KvLabel>Last received</KvLabel>
+                    <KvValue>{sku.lastIn || "—"}</KvValue>
+                  </KvGrid>
+                </section>
+
+                <section>
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Supplier</h4>
+                  {supplier ? (
+                    <div className="flex items-center gap-3 rounded-lg border p-3">
+                      <Avatar className="size-9">
+                        <AvatarFallback>{supplier.name?.[0] || "?"}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{supplier.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-mono">{supplier.id}</span> · {supplier.city}, {supplier.country} ·{" "}
+                          {supplier.leadDays}d lead · ★ {supplier.rating}
+                        </p>
+                      </div>
+                      <Button type="button" variant="outline" size="sm">
+                        View
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No supplier linked.</p>
+                  )}
+                </section>
+
+                <section>
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</h4>
+                  {history.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No movements logged yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {history.map((m) => {
+                        const sign = m.qty > 0 ? "+" : "";
+                        return (
+                          <div key={m.id} className="flex items-center gap-3 rounded-md border px-3 py-2">
+                            <MovementTypeBadge type={m.type} />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm">{m.reason}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {m.user} · {formatRelative(new Date(m.ts))} · ref {m.ref}
+                              </p>
+                            </div>
+                            <span className={cn("text-sm tabular-nums", m.qty > 0 ? "text-emerald-600" : "text-red-600")}>
+                              {sign}
+                              {m.qty.toLocaleString()} {m.unit}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              </div>
+            </ScrollArea>
+
+            <Separator />
+
+            <SheetFooter className="flex-row flex-wrap items-center justify-between gap-2 sm:justify-between">
+              <div>
+                {onDelete ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    disabled={deleting || !sku._uuid}
+                    onClick={() => onDelete(sku)}
+                  >
+                    {deleting ? "Deleting…" : "Delete SKU"}
+                  </Button>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="ghost" onClick={onClose}>
+                  Close
+                </Button>
+                <Button type="button" variant="outline" onClick={() => onAdjust(sku)}>
+                  Adjust stock
+                </Button>
+                <Button type="button" onClick={() => onReorder(sku)}>
+                  Reorder
+                </Button>
+              </div>
+            </SheetFooter>
+          </>
+        ) : null}
+      </SheetContent>
+    </Sheet>
   );
 }

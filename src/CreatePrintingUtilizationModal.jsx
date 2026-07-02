@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
-import InventoryIcon from "./inventory/InventoryIcon";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createPrintingUtilizationEntry } from "./printingUtilizationUtils";
 
 export default function CreatePrintingUtilizationModal({ open, onClose, sessionUserId, onCreated }) {
@@ -15,8 +26,6 @@ export default function CreatePrintingUtilizationModal({ open, onClose, sessionU
     setSubmitting(false);
     setError("");
   }, [open]);
-
-  if (!open) return null;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -39,62 +48,55 @@ export default function CreatePrintingUtilizationModal({ open, onClose, sessionU
   }
 
   return (
-    <div className="modal-backdrop open" onClick={onClose}>
-      <div className="modal" onClick={(ev) => ev.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <h3 className="modal-title">Make entry</h3>
-            <p className="modal-subtitle">Record metres printed and pcs fused for today.</p>
+    <Dialog open={open} onOpenChange={(next) => !next && onClose?.()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Make entry</DialogTitle>
+          <DialogDescription>Record metres printed and pcs fused for today.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+          <div className="grid gap-2">
+            <Label htmlFor="printing-util-metres">Printing mtrs</Label>
+            <Input
+              id="printing-util-metres"
+              type="number"
+              min="0.01"
+              step="any"
+              value={printingMetres}
+              onChange={(e) => setPrintingMetres(e.target.value)}
+              placeholder="e.g. 120"
+              required
+            />
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
-            <InventoryIcon name="x" size={14} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            {error ? (
-              <p className="printing-dept-inv-error" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <div className="field">
-              <label htmlFor="printing-util-metres">Printing mtrs</label>
-              <input
-                id="printing-util-metres"
-                type="number"
-                min="0.01"
-                step="any"
-                value={printingMetres}
-                onChange={(e) => setPrintingMetres(e.target.value)}
-                placeholder="e.g. 120"
-                required
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="printing-util-pcs">Number of pcs fused</label>
-              <input
-                id="printing-util-pcs"
-                type="number"
-                min="1"
-                step="1"
-                value={pcsFused}
-                onChange={(e) => setPcsFused(e.target.value)}
-                placeholder="e.g. 48"
-                required
-              />
-            </div>
-            <p className="field-hint">Entries cannot be edited after saving.</p>
+          <div className="grid gap-2">
+            <Label htmlFor="printing-util-pcs">Number of pcs fused</Label>
+            <Input
+              id="printing-util-pcs"
+              type="number"
+              min="1"
+              step="1"
+              value={pcsFused}
+              onChange={(e) => setPcsFused(e.target.value)}
+              placeholder="e.g. 48"
+              required
+            />
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn" onClick={onClose} disabled={submitting}>
+          <p className="text-xs text-muted-foreground">Entries cannot be edited after saving.</p>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="destructive" onClick={onClose} disabled={submitting}>
               Cancel
-            </button>
-            <button type="submit" className="btn primary" disabled={submitting}>
+            </Button>
+            <Button type="submit" variant="success" disabled={submitting}>
               {submitting ? "Saving…" : "Save"}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

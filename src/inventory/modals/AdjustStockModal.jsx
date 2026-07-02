@@ -1,5 +1,19 @@
-import { useEffect, useState } from "react";
-import InventoryIcon from "../InventoryIcon";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { useInventory } from "../InventoryDataContext";
 
 const REASON_OPTS = {
@@ -9,21 +23,38 @@ const REASON_OPTS = {
   ADJUST: ["Cycle count", "Annual stocktake", "System correction"]
 };
 
+const TYPE_LABELS = {
+  IN: "Receive",
+  OUT: "Issue",
+  TRANSFER: "Transfer",
+  ADJUST: "Adjust"
+};
+
+function skuLabel(row) {
+  const style = row.parentStyleName && row.parentStyleName !== row.name ? `${row.parentStyleName} · ` : "";
+  return `${row.id} — ${style}${row.name}${row.color ? ` · ${row.color}` : ""}`;
+}
+
 export default function AdjustStockModal({ sku, onClose, onSubmit }) {
-  const { fabrics, trims, apparel, warehouses } = useInventory();
+  const { fabrics, trims, apparel, warehouses, userDisplayName } = useInventory();
   const [type, setType] = useState("IN");
   const [qty, setQty] = useState(100);
   const [reason, setReason] = useState(REASON_OPTS.IN[0]);
-  const [wh, setWh] = useState(sku?.wh || warehouses[0]?.id || "");
-  const [skuId, setSkuId] = useState(sku?.id || "");
+  const [wh, setWh] = useState("");
+  const [skuId, setSkuId] = useState("");
   const [note, setNote] = useState("");
+
+  const warehouseName = useMemo(() => warehouses.find((w) => w.id === wh)?.name || wh, [warehouses, wh]);
+  const recordedAt = useMemo(() => new Date().toLocaleString(), []);
 
   useEffect(() => {
     if (sku) {
       setSkuId(sku.id);
-      setWh(sku.wh);
+      setWh(sku.wh || warehouses[0]?.id || "");
+    } else if (!wh && warehouses[0]?.id) {
+      setWh(warehouses[0].id);
     }
-  }, [sku]);
+  }, [sku, warehouses, wh]);
 
   useEffect(() => {
     setReason(REASON_OPTS[type][0]);
@@ -35,112 +66,146 @@ export default function AdjustStockModal({ sku, onClose, onSubmit }) {
   };
 
   return (
-    <div className="modal-backdrop open" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 className="modal-title">Adjust stock</h3>
-          <button type="button" className="icon-btn" onClick={onClose}>
-            <InventoryIcon name="x" size={14} />
-          </button>
-        </div>
-        <form onSubmit={submit}>
-          <div className="modal-body">
-            <div className="field">
-              <label>Movement type</label>
-              <div className="seg">
-                {["IN", "OUT", "TRANSFER", "ADJUST"].map((t) => (
-                  <button key={t} type="button" className={type === t ? "active" : ""} onClick={() => setType(t)}>
-                    {t === "IN" ? "Receive" : t === "OUT" ? "Issue" : t === "TRANSFER" ? "Transfer" : "Adjust"}
-                  </button>
-                ))}
-              </div>
-            </div>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-lg gap-0 p-0">
+        <DialogHeader className="space-y-1.5 border-b px-6 py-5">
+          <DialogTitle>Adjust stock</DialogTitle>
+          <DialogDescription>Record a stock movement in the audit log.</DialogDescription>
+        </DialogHeader>
 
-            <div className="field">
-              <label>SKU</label>
-              <select value={skuId} onChange={(e) => setSkuId(e.target.value)} required>
-                <option value="" disabled>
-                  Choose SKU…
-                </option>
-                <optgroup label="Fabrics">
+        <form onSubmit={submit} className="space-y-5 px-6 py-5">
+          <div className="space-y-2">
+            <Label>Movement type</Label>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {["IN", "OUT", "TRANSFER", "ADJUST"].map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  variant={type === t ? "secondary" : "outline"}
+                  size="sm"
+                  className={cn("h-9 w-full", type === t && "border-foreground/20")}
+                  onClick={() => setType(t)}
+                >
+                  {TYPE_LABELS[t]}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="adjust-sku">SKU</Label>
+            <Select value={skuId || undefined} onValueChange={setSkuId} required>
+              <SelectTrigger id="adjust-sku" className="h-10">
+                <SelectValue placeholder="Choose SKU…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Fabrics</SelectLabel>
                   {fabrics.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.id} — {f.name} · {f.color}
-                    </option>
+                    <SelectItem key={f.id} value={f.id}>
+                      {skuLabel(f)}
+                    </SelectItem>
                   ))}
-                </optgroup>
-                <optgroup label="Trims">
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Trims</SelectLabel>
                   {trims.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.id} — {t.name} · {t.color}
-                    </option>
+                    <SelectItem key={t.id} value={t.id}>
+                      {skuLabel(t)}
+                    </SelectItem>
                   ))}
-                </optgroup>
-                <optgroup label="Apparel">
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Apparel</SelectLabel>
                   {apparel.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.id} — {a.name} · {a.color}
-                    </option>
+                    <SelectItem key={a.id} value={a.id}>
+                      {skuLabel(a)}
+                    </SelectItem>
                   ))}
-                </optgroup>
-              </select>
-            </div>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="field-row">
-              <div className="field">
-                <label>Quantity</label>
-                <input type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)} required />
-              </div>
-              <div className="field">
-                <label>Warehouse</label>
-                <select value={wh} onChange={(e) => setWh(e.target.value)}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="adjust-qty">Quantity</Label>
+              <Input
+                id="adjust-qty"
+                type="number"
+                min="1"
+                className="h-10"
+                value={qty}
+                onChange={(e) => setQty(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="adjust-wh">Warehouse</Label>
+              <Select value={wh || undefined} onValueChange={setWh} required>
+                <SelectTrigger id="adjust-wh" className="h-10">
+                  <SelectValue placeholder="Select warehouse" />
+                </SelectTrigger>
+                <SelectContent>
                   {warehouses.map((w) => (
-                    <option key={w.id} value={w.id}>
+                    <SelectItem key={w.id} value={w.id}>
                       {w.name}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-              </div>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
 
-            <div className="field">
-              <label>Reason</label>
-              <select value={reason} onChange={(e) => setReason(e.target.value)}>
+          <div className="space-y-2">
+            <Label htmlFor="adjust-reason">Reason</Label>
+            <Select value={reason} onValueChange={setReason}>
+              <SelectTrigger id="adjust-reason" className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {REASON_OPTS[type].map((r) => (
-                  <option key={r}>{r}</option>
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
                 ))}
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Note (optional)</label>
-              <textarea rows="2" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Any context for the audit log…" />
-            </div>
-
-            <div
-              style={{
-                background: "var(--bg-subtle)",
-                padding: 10,
-                borderRadius: "var(--radius-sm)",
-                fontSize: 12,
-                color: "var(--text-muted)"
-              }}
-            >
-              <InventoryIcon name="info" size={12} /> This will be recorded in the immutable audit log as{" "}
-              <b style={{ color: "var(--text)" }}>{type}</b> by <b style={{ color: "var(--text)" }}>Priya Mehta</b> at{" "}
-              <b style={{ color: "var(--text)" }}>{new Date("2026-06-10T14:32").toLocaleString()}</b>.
-            </div>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn ghost" onClick={onClose}>
+
+          <div className="space-y-2">
+            <Label htmlFor="adjust-note">Note (optional)</Label>
+            <Textarea
+              id="adjust-note"
+              rows={3}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Any context for the audit log…"
+            />
+          </div>
+
+          <Alert>
+            <AlertDescription className="leading-relaxed">
+              This will be recorded in the audit log as <strong className="text-foreground">{type}</strong>
+              {warehouseName ? (
+                <>
+                  {" "}
+                  at <strong className="text-foreground">{warehouseName}</strong>
+                </>
+              ) : null}{" "}
+              by <strong className="text-foreground">{userDisplayName}</strong> at{" "}
+              <strong className="text-foreground">{recordedAt}</strong>.
+            </AlertDescription>
+          </Alert>
+
+          <DialogFooter className="gap-2 border-t px-0 pb-0 pt-2 sm:justify-end">
+            <Button type="button" variant="ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button type="submit" className="btn primary">
-              Record movement
-            </button>
-          </div>
+            </Button>
+            <Button type="submit">Record movement</Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

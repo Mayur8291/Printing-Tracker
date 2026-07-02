@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabaseClient";
+import { AvatarUploadField } from "@/components/ui/avatar-upload-field";
+import { DatePicker } from "@/components/ui/date-picker";
+import { PersonAvatar } from "@/components/ui/person-avatar";
 import {
   CONTACT_PHOTO_BUCKET,
   EMPTY_CONTACT_FORM,
@@ -44,8 +47,6 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [sortBy, setSortBy] = useState("name");
-
-  const photoInputRef = useRef(null);
 
   const departmentOptions = useMemo(() => uniqueContactDepartments(contacts), [contacts]);
 
@@ -98,20 +99,6 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
     setEditingId(null);
     setPhotoFile(null);
     setPhotoPreview("");
-  }
-
-  function onPhotoPick(e) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    const validationError = validateContactPhotoFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setError("");
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
   }
 
   async function uploadContactPhoto(contactId, file) {
@@ -240,29 +227,19 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
           </div>
 
           <div className="contact-book-photo-row">
-            <span className="contact-book-field-label">Photo</span>
-            <button
-              type="button"
-              className="contact-book-photo-tap"
-              onClick={() => photoInputRef.current?.click()}
-              aria-label="Upload or change photo"
-            >
-              {photoPreview ? (
-                <img src={photoPreview} alt="" />
-              ) : (
-                <span className="contact-book-photo-tap-icon" aria-hidden>
-                  📷
-                </span>
-              )}
-            </button>
-            <input
-              ref={photoInputRef}
-              type="file"
-              className="contact-book-photo-input"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={onPhotoPick}
-              tabIndex={-1}
-              aria-hidden
+            <AvatarUploadField
+              name={form.name}
+              imageUrl={!photoFile && editingEntry ? contactPhotoPublicUrl(editingEntry.photo_path) : ""}
+              previewUrl={photoPreview}
+              onPick={(file) => {
+                setError("");
+                setPhotoFile(file);
+                setPhotoPreview(URL.createObjectURL(file));
+              }}
+              onError={setError}
+              disabled={saving}
+              size="xl"
+              hint="Click to upload or change photo"
             />
           </div>
 
@@ -313,10 +290,11 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
             </label>
             <label className="contact-book-field">
               <span className="contact-book-field-label">Date of birth</span>
-              <input
-                type="date"
+              <DatePicker
+                id="contact-book-dob"
                 value={form.date_of_birth}
-                onChange={(e) => setForm((f) => ({ ...f, date_of_birth: e.target.value }))}
+                onChange={(next) => setForm((f) => ({ ...f, date_of_birth: next }))}
+                maxDate={new Date().toISOString().slice(0, 10)}
               />
             </label>
             <label className="contact-book-field">
@@ -412,14 +390,13 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
               const dobDisplay = entry.date_of_birth ? formatContactDob(entry.date_of_birth) : "";
               return (
                 <article key={entry.id} className="contact-book-card">
-                  <div className="contact-book-card-photo">
-                    {photoUrl ? (
-                      <img src={photoUrl} alt="" />
-                    ) : (
-                      <span className="contact-book-card-photo-fallback" aria-hidden>
-                        👤
-                      </span>
-                    )}
+                  <div className="contact-book-card-photo flex justify-center">
+                    <PersonAvatar
+                      name={entry.name}
+                      imageUrl={photoUrl}
+                      size="xl"
+                      className="border border-border shadow-sm"
+                    />
                   </div>
                   <div className="contact-book-card-body">
                     <h3 className="contact-book-card-name">{entry.name}</h3>

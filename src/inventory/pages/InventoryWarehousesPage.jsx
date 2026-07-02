@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
-import InventoryIcon from "../InventoryIcon";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { useInventory } from "../InventoryDataContext";
+import { PageHeader } from "../inventoryUiUtils";
 
 function buildBins(seed) {
   const bins = [];
@@ -13,7 +18,23 @@ function buildBins(seed) {
   return bins;
 }
 
-export default function InventoryWarehousesPage() {
+function BinCell({ state, label }) {
+  return (
+    <div
+      title={label}
+      className={cn(
+        "flex h-7 items-center justify-center rounded border text-[9px] font-mono",
+        state === "empty" && "border-dashed bg-muted/30 text-muted-foreground/50",
+        state === "filled" && "border-primary/30 bg-primary/10 text-primary",
+        state === "full" && "border-primary bg-primary/20 font-medium text-primary"
+      )}
+    >
+      {state === "empty" ? "" : label.replace("A-", "").replace("-", "")}
+    </div>
+  );
+}
+
+export default function InventoryWarehousesPage({ onAddWarehouse }) {
   const { warehouses, skus, pos } = useInventory();
   const [selected, setSelected] = useState(warehouses[0]?.id || "");
   const wh = warehouses.find((w) => w.id === selected) || warehouses[0];
@@ -23,43 +44,40 @@ export default function InventoryWarehousesPage() {
 
   if (!warehouses.length) {
     return (
-      <div className="page">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Warehouses</h1>
-            <p className="page-subtitle">No warehouses yet. Add one in Supabase or via admin tools.</p>
-          </div>
-        </div>
-        <div className="card inv-empty-hint" style={{ padding: 24 }}>
-          Create a row in <span className="mono">inventory_warehouses</span> to get started.
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Warehouses"
+          subtitle="No warehouses yet. Add a storage facility to assign SKUs and track utilization."
+          actions={
+            <Button type="button" onClick={onAddWarehouse}>Add warehouse</Button>
+          }
+        />
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="mb-4 text-sm text-muted-foreground">
+              Set up raw material, finished goods, or mixed storage locations for your inventory.
+            </p>
+            <Button type="button" onClick={onAddWarehouse}>Add warehouse</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (!wh) {
-    return null;
-  }
+  if (!wh) return null;
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Warehouses</h1>
-          <p className="page-subtitle">
-            {warehouses.length} facilities · {warehouses.reduce((s, w) => s + w.used, 0).toLocaleString()} of{" "}
-            {warehouses.reduce((s, w) => s + w.capacity, 0).toLocaleString()} pallets used.
-          </p>
-        </div>
-        <div className="page-actions">
-          <button type="button" className="btn primary">
-            <InventoryIcon name="plus" size={13} /> Add warehouse
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Warehouses"
+        subtitle={`${warehouses.length} facilities · ${warehouses.reduce((s, w) => s + w.used, 0).toLocaleString()} of ${warehouses.reduce((s, w) => s + w.capacity, 0).toLocaleString()} pallets used.`}
+        actions={
+          <Button type="button" onClick={onAddWarehouse}>Add warehouse</Button>
+        }
+      />
 
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+        <div className="space-y-2">
           {warehouses.map((w) => {
             const pct = Math.round((w.used / w.capacity) * 100);
             const isActive = w.id === selected;
@@ -68,34 +86,27 @@ export default function InventoryWarehousesPage() {
                 key={w.id}
                 type="button"
                 onClick={() => setSelected(w.id)}
-                className="card"
-                style={{
-                  cursor: "pointer",
-                  padding: 12,
-                  textAlign: "left",
-                  border: `1px solid ${isActive ? "var(--text)" : "var(--border)"}`,
-                  background: isActive ? "var(--bg-subtle)" : "var(--bg-elevated)"
-                }}
+                className={cn(
+                  "w-full rounded-lg border p-3 text-left transition-colors",
+                  isActive ? "border-foreground bg-muted/50" : "border-border bg-card hover:bg-muted/30"
+                )}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 13 }}>{w.name}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>{w.city}</div>
+                    <p className="text-sm font-semibold">{w.name}</p>
+                    <p className="text-xs text-muted-foreground">{w.city}</p>
                   </div>
-                  <span className="badge neutral" style={{ fontSize: 10 }}>
+                  <Badge variant="secondary" className="text-[10px]">
                     {w.type}
-                  </span>
+                  </Badge>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 11.5, color: "var(--text-muted)" }}>
+                <p className="mt-2 text-xs text-muted-foreground">
                   {w.used.toLocaleString()} / {w.capacity.toLocaleString()} pallets · {pct}%
-                </div>
-                <div style={{ marginTop: 4, height: 4, background: "var(--bg-subtle)", borderRadius: 2, overflow: "hidden" }}>
+                </p>
+                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
                   <div
-                    style={{
-                      width: `${pct}%`,
-                      height: "100%",
-                      background: pct > 85 ? "var(--warning)" : "var(--accent)"
-                    }}
+                    className={cn("h-full rounded-full", pct > 85 ? "bg-amber-500" : "bg-primary")}
+                    style={{ width: `${pct}%` }}
                   />
                 </div>
               </button>
@@ -103,131 +114,94 @@ export default function InventoryWarehousesPage() {
           })}
         </div>
 
-        <div className="card">
-          <div style={{ padding: 18, borderBottom: "1px solid var(--border)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Card>
+          <CardHeader className="border-b">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 style={{ margin: 0, fontSize: 18, letterSpacing: "-0.01em" }}>{wh.name}</h2>
-                <p style={{ margin: "4px 0 0", color: "var(--text-muted)", fontSize: 12.5 }}>
-                  <span className="mono">{wh.id}</span> · {wh.city} · {wh.type}
+                <CardTitle>{wh.name}</CardTitle>
+                <CardDescription>
+                  <span className="font-mono">{wh.id}</span> · {wh.city} · {wh.type}
+                </CardDescription>
+              </div>
+              <Button type="button" variant="outline" size="sm">
+                Layout
+              </Button>
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Utilization</p>
+                <p className="text-2xl font-semibold">{utilPct}%</p>
+                <p className="text-xs text-muted-foreground">
+                  {wh.used.toLocaleString()} of {wh.capacity.toLocaleString()} pallets
                 </p>
               </div>
-              <button type="button" className="btn sm">
-                <InventoryIcon name="map" size={12} /> Layout
-              </button>
-            </div>
-
-            <div className="grid-3" style={{ marginTop: 16 }}>
               <div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  Utilization
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 600 }}>{utilPct}%</div>
-                <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
-                  {wh.used.toLocaleString()} of {wh.capacity.toLocaleString()} pallets
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  SKUs stored
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 600 }}>{skusHere.length}</div>
-                <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">SKUs stored</p>
+                <p className="text-2xl font-semibold">{skusHere.length}</p>
+                <p className="text-xs text-muted-foreground">
                   across {[...new Set(skusHere.map((s) => (s.bin || "").slice(0, 3)))].length} zones
-                </div>
+                </p>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  Inbound (next 14d)
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 600 }}>
-                  {pos.filter((p) => p.warehouse === wh?.id && p.status !== "Received").length}
-                </div>
-                <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>POs scheduled</div>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Inbound (next 14d)</p>
+                <p className="text-2xl font-semibold">{pos.filter((p) => p.warehouse === wh?.id && p.status !== "Received").length}</p>
+                <p className="text-xs text-muted-foreground">POs scheduled</p>
               </div>
             </div>
-          </div>
+          </CardHeader>
 
-          <div style={{ padding: 18, borderBottom: "1px solid var(--border)" }}>
-            <h4
-              style={{
-                fontSize: 11,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-muted)",
-                margin: "0 0 6px",
-                fontWeight: 500
-              }}
-            >
-              Bin map · zone A
-            </h4>
-            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 8px" }}>
-              Hover bins to see contents. Click an empty bin to assign a SKU.
-            </p>
-            <div className="bin-grid">
+          <CardContent className="border-b py-4">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Bin map · zone A</p>
+            <p className="mb-3 text-xs text-muted-foreground">Hover bins to see contents. Click an empty bin to assign a SKU.</p>
+            <div className="grid grid-cols-10 gap-1">
               {bins.map((state, i) => {
                 const col = (i % 10) + 1;
                 const row = Math.floor(i / 10) + 1;
                 const label = `A-${row.toString().padStart(2, "0")}-${col.toString().padStart(2, "0")}`;
-                return (
-                  <div key={i} className={`bin ${state}`} title={label}>
-                    {state === "empty" ? "" : `A${row}${col}`}
-                  </div>
-                );
+                return <BinCell key={i} state={state} label={label} />;
               })}
             </div>
-            <div style={{ display: "flex", gap: 16, marginTop: 12, fontSize: 11.5, color: "var(--text-muted)" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span className="bin" style={{ width: 12, height: 12 }} /> Empty
+            <div className="mt-3 flex gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="size-3 rounded border border-dashed bg-muted/30" /> Empty
               </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span className="bin filled" style={{ width: 12, height: 12 }} /> Partial
+              <span className="flex items-center gap-1.5">
+                <span className="size-3 rounded border border-primary/30 bg-primary/10" /> Partial
               </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span className="bin full" style={{ width: 12, height: 12 }} /> Full
+              <span className="flex items-center gap-1.5">
+                <span className="size-3 rounded border border-primary bg-primary/20" /> Full
               </span>
             </div>
-          </div>
+          </CardContent>
 
-          <div style={{ padding: 18 }}>
-            <h4
-              style={{
-                fontSize: 11,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-muted)",
-                margin: "0 0 10px",
-                fontWeight: 500
-              }}
-            >
-              Top SKUs in this warehouse
-            </h4>
-            <table className="t" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Name</th>
-                  <th>Bin</th>
-                  <th className="right">Qty</th>
-                </tr>
-              </thead>
-              <tbody>
+          <CardContent className="pt-4">
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Top SKUs in this warehouse</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Bin</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {skusHere.slice(0, 6).map((s) => (
-                  <tr key={s.id}>
-                    <td className="mono">{s.id}</td>
-                    <td>
+                  <TableRow key={s.id}>
+                    <TableCell className="font-mono text-xs">{s.id}</TableCell>
+                    <TableCell>
                       {s.name} · {s.color}
-                    </td>
-                    <td className="mono">{s.bin || "—"}</td>
-                    <td className="num">
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{s.bin || "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {(s.stock ?? s.totalStock).toLocaleString()} {s.unit || "pc"}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

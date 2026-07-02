@@ -4,7 +4,11 @@
  * - When filters narrow the list and current page no longer exists, snap back to page 1.
  */
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_PAGE_SIZE = 10;
@@ -73,17 +77,19 @@ export function OrdersPerPageControl({ pageSize, onPageSizeChange, idPrefix = "o
   const inputId = `${idPrefix}-input`;
   const listId = `${idPrefix}-options`;
   return (
-    <label className="orders-per-page" htmlFor={inputId}>
-      View
-      <span className="orders-per-page-row">
-        <input
+    <div className="orders-per-page flex items-end gap-2">
+      <Label htmlFor={inputId} className="text-sm font-normal text-muted-foreground">
+        View
+      </Label>
+      <div className="orders-per-page-row flex items-center gap-1.5">
+        <Input
           id={inputId}
           type="number"
           inputMode="numeric"
           min={1}
           max={500}
           step={1}
-          className="orders-per-page-input"
+          className="orders-per-page-input h-8 w-16 px-2"
           value={pageSize}
           list={listId}
           onChange={(e) => {
@@ -99,14 +105,14 @@ export function OrdersPerPageControl({ pageSize, onPageSizeChange, idPrefix = "o
             if (!Number.isFinite(n) || n < 1) onPageSizeChange(10);
           }}
         />
-        <span className="orders-per-page-suffix">/ page</span>
-      </span>
+        <span className="orders-per-page-suffix text-sm text-muted-foreground">/ page</span>
+      </div>
       <datalist id={listId}>
         {PAGE_SIZE_OPTIONS.map((size) => (
           <option key={size} value={size} />
         ))}
       </datalist>
-    </label>
+    </div>
   );
 }
 
@@ -114,34 +120,38 @@ export function OrdersPagination({ page, totalPages, onPageChange, total, pageSi
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(total, page * pageSize);
   return (
-    <div className="orders-pagination" role="navigation" aria-label="Order list pages">
-      <span className="orders-pagination-meta">
-        {total === 0
-          ? "No orders to show"
-          : `Showing ${start}\u2013${end} of ${total}`}
+    <div className="orders-pagination flex flex-wrap items-center justify-between gap-3" role="navigation" aria-label="Order list pages">
+      <span className="orders-pagination-meta text-sm text-muted-foreground">
+        {total === 0 ? "No orders to show" : `Showing ${start}\u2013${end} of ${total}`}
       </span>
-      <div className="orders-pagination-controls">
-        <button
+      <div className="orders-pagination-controls flex items-center gap-2">
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           className="orders-pagination-btn"
           onClick={() => onPageChange(Math.max(1, page - 1))}
           disabled={page <= 1}
           aria-label="Previous page"
         >
-          ‹ Prev
-        </button>
-        <span className="orders-pagination-page">
+          <ChevronLeft className="size-4" />
+          Prev
+        </Button>
+        <span className="orders-pagination-page text-sm">
           Page <strong>{page}</strong> of {totalPages}
         </span>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           className="orders-pagination-btn"
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
           disabled={page >= totalPages}
           aria-label="Next page"
         >
-          Next ›
-        </button>
+          Next
+          <ChevronRight className="size-4" />
+        </Button>
       </div>
     </div>
   );

@@ -362,9 +362,14 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.12);
   vertical-align: middle;
   margin-right: 8px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.inventory-dashboard .swatch.drawer-swatch {
+  margin-right: 0;
 }
 .inventory-dashboard .cell-with-swatch { display: inline-flex; align-items: center; }
 .inventory-dashboard .cell-name { display: flex; flex-direction: column; line-height: 1.3; }
@@ -465,6 +470,7 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
   border-radius: 6px;
   border: 1px solid var(--border);
   flex-shrink: 0;
+  margin-right: 0;
 }
 .inventory-dashboard .drawer-header-text {
   flex: 1;
@@ -498,9 +504,17 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
   display: flex;
   gap: 8px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-shrink: 0;
   background: var(--bg-elevated);
+}
+.inventory-dashboard .drawer-footer-left {
+  margin-right: auto;
+}
+.inventory-dashboard .inv-row-actions {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
 }
 .inventory-dashboard .drawer-footer-actions {
   display: flex;
@@ -922,6 +936,36 @@ html.theme-dark .inventory-dashboard .btn.primary:hover { filter: brightness(0.8
   background: var(--bg-hover);
   color: var(--text);
   border-color: var(--border);
+}
+.inventory-dashboard button.icon-btn.icon-btn--danger:hover,
+.inventory-dashboard .icon-btn.icon-btn--danger:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.inventory-dashboard button.icon-btn.icon-btn--danger:disabled,
+.inventory-dashboard .icon-btn.icon-btn--danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.inventory-dashboard .inv-import-error {
+  margin: 0 0 12px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.inventory-dashboard .inv-import-preview {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+}
+
+.inventory-dashboard .inv-import-preview-table {
+  margin-top: 10px;
+  font-size: 12px;
 }
 
 /* ===== Misc ===== */

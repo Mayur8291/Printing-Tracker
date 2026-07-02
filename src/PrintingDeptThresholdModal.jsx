@@ -1,5 +1,23 @@
 import { useEffect, useState } from "react";
-import InventoryIcon from "./inventory/InventoryIcon";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import {
   fetchPrintingDeptThresholds,
   formatQtyWithUnit,
@@ -31,8 +49,6 @@ export default function PrintingDeptThresholdModal({ open, onClose, state, sessi
         setError(err instanceof Error ? err.message : String(err));
       });
   }, [open]);
-
-  if (!open) return null;
 
   const items = inventoryItemsFromState(state);
 
@@ -70,72 +86,67 @@ export default function PrintingDeptThresholdModal({ open, onClose, state, sessi
   }
 
   return (
-    <div className="modal-backdrop open" onClick={onClose}>
-      <div className="modal wide" onClick={(ev) => ev.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <h3 className="modal-title">Low-stock thresholds</h3>
-            <p className="printing-dept-threshold-sub">
-              Set minimum stock per material. Admins get a notification when stock drops below the threshold.
-            </p>
-          </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
-            <InventoryIcon name="x" size={14} />
-          </button>
-        </div>
-        <form onSubmit={handleSave}>
-          <div className="modal-body">
-            {error ? (
-              <p className="printing-dept-inv-error" role="alert">
-                {error}
-              </p>
-            ) : null}
-            {message ? <p className="printing-dept-threshold-msg">{message}</p> : null}
-            <div className="table-wrap">
-              <table className="t">
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th className="right">Current stock</th>
-                    <th className="right">Alert below</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.key}>
-                      <td>{item.label}</td>
-                      <td className="right mono">
-                        {formatQtyWithUnit(item.quantity, item.unit)}
-                      </td>
-                      <td className="right">
-                        <input
+    <Dialog open={open} onOpenChange={(next) => !next && onClose?.()}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Low-stock thresholds</DialogTitle>
+          <DialogDescription>
+            Set minimum stock per material. Admins get a notification when stock drops below the threshold.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSave} className="space-y-4">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+          {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+          <div className="max-h-[50vh] overflow-auto rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Material</TableHead>
+                  <TableHead className="text-right">Current stock</TableHead>
+                  <TableHead className="text-right">Alert below</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.key}>
+                    <TableCell>{item.label}</TableCell>
+                    <TableCell className="text-right font-mono text-sm">
+                      {formatQtyWithUnit(item.quantity, item.unit)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        <Input
                           type="number"
                           min="0"
                           step="any"
-                          className="printing-dept-threshold-input"
+                          className="h-8 w-24 text-right"
                           value={drafts[item.key] ?? "0"}
                           onChange={(e) => setDrafts((prev) => ({ ...prev, [item.key]: e.target.value }))}
                         />
                         {item.unit ? (
-                          <span className="printing-dept-threshold-unit">{item.unit}</span>
+                          <span className="text-xs text-muted-foreground">{item.unit}</span>
                         ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn" onClick={onClose} disabled={saving}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="destructive" onClick={onClose} disabled={saving}>
               Cancel
-            </button>
-            <button type="submit" className="btn primary" disabled={saving}>
+            </Button>
+            <Button type="submit" variant="success" disabled={saving}>
               {saving ? "Saving…" : "Save thresholds"}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

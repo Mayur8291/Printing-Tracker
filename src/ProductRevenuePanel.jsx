@@ -1,4 +1,14 @@
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import {
   ResponsiveContainer,
   BarChart,
@@ -227,34 +237,41 @@ export default function ProductRevenuePanel({ orders }) {
 
   return (
     <div className="product-revenue-report">
-      <div className="product-revenue-toolbar">
-        <label>
-          From
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        </label>
-        <label>
-          To
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-        </label>
-        <button
+      <div className="product-revenue-toolbar flex flex-wrap items-end gap-3">
+        <div className="grid gap-1.5">
+          <Label htmlFor="product-revenue-from">From</Label>
+          <DatePicker id="product-revenue-from" value={dateFrom} onChange={setDateFrom} className="min-w-[10.5rem]" />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="product-revenue-to">To</Label>
+          <DatePicker id="product-revenue-to" value={dateTo} onChange={setDateTo} className="min-w-[10.5rem]" />
+        </div>
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => {
             setDateFrom("");
             setDateTo("");
           }}
         >
           Clear
-        </button>
-        <label>
-          Sort by
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        </Button>
+        <div className="grid gap-1.5">
+          <Label htmlFor="product-revenue-sort">Sort by</Label>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger id="product-revenue-sort" className="min-w-[10rem]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="product-revenue-summary" role="status">

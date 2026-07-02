@@ -20,7 +20,9 @@ import {
   STAGE_LABEL
 } from "./orderViewUtils";
 import { supabase } from "./supabaseClient";
-import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
+import { OrdersPagination, usePagination } from "./orderPagination";
+import OrdersListFilters from "./components/orders/OrdersListFilters";
+import { Button } from "@/components/ui/button";
 import CreateInwardEntryModal from "./CreateInwardEntryModal";
 import CreateOutwardChallanModal from "./CreateOutwardChallanModal";
 import InwardEntryList from "./InwardEntryList";
@@ -506,50 +508,33 @@ export default function DispatchTabPanel({
             Outward
           </button>
         </div>
-        {!isLedgerView ? (
-          <>
-            <label>
-              From
-              <input type="date" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)} />
-            </label>
-            <label>
-              To
-              <input type="date" value={dateTo} onChange={(e) => onDateToChange(e.target.value)} />
-            </label>
-            <button type="button" onClick={onClearDates}>
-              Clear dates
-            </button>
-          </>
-        ) : null}
-        <label className="orders-search-field">
-          {isProcessedView ? "Search by OC number" : isInwardGrnView ? "Search inward entries" : "Search"}
-          <input
-            type="search"
-            className="orders-search-input"
-            placeholder={
-              isProcessedView
-                ? "e.g. 4 or OC #4"
-                : isInwardGrnView
-                  ? "Product, department, GRN…"
-                  : "Order #, customer, coordinator…"
-            }
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            inputMode={isProcessedView ? "numeric" : undefined}
-          />
-        </label>
-        {searchTrimmed ? (
-          <button type="button" onClick={() => setSearchQuery("")}>
-            Clear search
-          </button>
-        ) : null}
-        {!isLedgerView ? (
-          <OrdersPerPageControl
-            idPrefix="dispatch-orders-per-page"
-            pageSize={pageSize}
-            onPageSizeChange={setPageSize}
-          />
-        ) : null}
+        <OrdersListFilters
+          idPrefix="dispatch"
+          showDates={!isLedgerView}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={onDateFromChange}
+          onDateToChange={onDateToChange}
+          onClearDates={onClearDates}
+          showSearch
+          searchLabel={
+            isProcessedView ? "Search by OC number" : isInwardGrnView ? "Search inward entries" : "Search"
+          }
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          onClearSearch={() => setSearchQuery("")}
+          searchPlaceholder={
+            isProcessedView
+              ? "e.g. 4 or OC #4"
+              : isInwardGrnView
+                ? "Product, department, GRN…"
+                : "Order #, customer, coordinator…"
+          }
+          searchInputMode={isProcessedView ? "numeric" : undefined}
+          showPerPage={!isLedgerView}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
         {dispatchTab === "inward" && !isInwardGrnFullView ? (
           <button
             type="button"

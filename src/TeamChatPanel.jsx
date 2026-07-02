@@ -1,5 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Paperclip, Send, Smile, X } from "lucide-react";
+import { profileAvatarPublicUrl } from "@/avatarUtils";
 import { supabase } from "./supabaseClient";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PersonAvatar } from "@/components/ui/person-avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import {
   CHAT_ATTACHMENT_BUCKET,
   CHAT_EMOJI_PALETTE,
@@ -14,7 +26,6 @@ import {
   messageAuthorDisplayName,
   orderChatToken,
   profileChatLabel,
-  profileDisplayName,
   profileMentionable,
   sanitizeChatFileName,
   splitChatBodyTokens,
@@ -25,7 +36,7 @@ function insertAtCursor(text, start, end, insert) {
   return `${text.slice(0, start)}${insert}${text.slice(end)}`;
 }
 
-function ChatMessageBody({ body, profiles, orders, onOpenOrder }) {
+function ChatMessageBody({ body, profiles, orders, onOpenOrder, inverted = false }) {
   if (!(body ?? "").trim()) return null;
 
   const profileByLabel = useMemo(() => {
@@ -47,9 +58,12 @@ function ChatMessageBody({ body, profiles, orders, onOpenOrder }) {
   }, [orders]);
 
   const parts = splitChatBodyTokens(body);
+  const tokenClass = inverted
+    ? "bg-primary-foreground/15 text-primary-foreground"
+    : "bg-background/80 text-foreground";
 
   return (
-    <p className="team-chat-msg-text">
+    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
       {parts.map((part, i) => {
         if (part.kind === "text") {
           return <span key={i}>{part.value}</span>;
@@ -57,29 +71,33 @@ function ChatMessageBody({ body, profiles, orders, onOpenOrder }) {
         const user = profileByLabel.get(part.value);
         if (user) {
           return (
-            <span key={i} className="team-chat-token team-chat-token--user">
+            <Badge key={i} variant="secondary" className={cn("mx-0.5 align-baseline text-xs", tokenClass)}>
               {part.value}
-            </span>
+            </Badge>
           );
         }
         const order = orderByToken.get(part.value);
         if (order && onOpenOrder) {
           return (
-            <button
+            <Button
               key={i}
               type="button"
-              className="team-chat-token team-chat-token--order"
+              variant="link"
+              className={cn(
+                "h-auto px-1 py-0 text-xs font-semibold underline-offset-2",
+                inverted ? "text-primary-foreground" : "text-primary"
+              )}
               onClick={() => onOpenOrder(order)}
             >
               {part.value}
-            </button>
+            </Button>
           );
         }
         if (part.value.startsWith("#")) {
           return (
-            <span key={i} className="team-chat-token team-chat-token--order">
+            <Badge key={i} variant="outline" className="mx-0.5 align-baseline text-xs">
               {part.value}
-            </span>
+            </Badge>
           );
         }
         return <span key={i}>{part.value}</span>;
@@ -88,7 +106,7 @@ function ChatMessageBody({ body, profiles, orders, onOpenOrder }) {
   );
 }
 
-function ChatMessageAttachment({ msg }) {
+function ChatMessageAttachment({ msg, inverted = false }) {
   const path = (msg.attachment_path ?? "").trim();
   if (!path) return null;
 
@@ -100,25 +118,37 @@ function ChatMessageAttachment({ msg }) {
 
   if (isChatImageMime(mime)) {
     return (
-      <div className="team-chat-attachment team-chat-attachment--image">
+      <div className="mt-2 space-y-2">
         <a href={url} target="_blank" rel="noopener noreferrer" download={name}>
-          <img src={url} alt={name} loading="lazy" />
+          <img
+            src={url}
+            alt={name}
+            loading="lazy"
+            className="max-h-56 max-w-full rounded-md border object-cover"
+          />
         </a>
-        <a className="team-chat-attachment-dl" href={url} download={name} target="_blank" rel="noopener noreferrer">
-          Download {name}
-        </a>
+        <Button
+          asChild
+          variant="link"
+          size="sm"
+          className={cn("h-auto px-0", inverted && "text-primary-foreground")}
+        >
+          <a href={url} download={name} target="_blank" rel="noopener noreferrer">
+            Download {name}
+          </a>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="team-chat-attachment team-chat-attachment--file">
-      <span className="team-chat-attachment-icon" aria-hidden>
-        📎
-      </span>
-      <a className="team-chat-attachment-dl" href={url} download={name} target="_blank" rel="noopener noreferrer">
-        {name}
-      </a>
+    <div className="mt-2 flex items-center gap-2 rounded-md border bg-background/50 px-2 py-1.5">
+      <Paperclip className="size-4 shrink-0 opacity-70" aria-hidden />
+      <Button asChild variant="link" size="sm" className="h-auto min-w-0 px-0">
+        <a href={url} download={name} target="_blank" rel="noopener noreferrer">
+          {name}
+        </a>
+      </Button>
     </div>
   );
 }
@@ -139,7 +169,7 @@ export default function TeamChatPanel({
   const [pendingFile, setPendingFile] = useState(null);
   const [error, setError] = useState("");
 
-  const listRef = useRef(null);
+  const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -159,9 +189,7 @@ export default function TeamChatPanel({
   }, [activeMention, orders]);
 
   const scrollToBottom = useCallback(() => {
-    const el = listRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
+    bottomRef.current?.scrollIntoView({ block: "end" });
   }, []);
 
   const loadMessages = useCallback(async () => {
@@ -377,141 +405,180 @@ export default function TeamChatPanel({
   const canSend = Boolean(draft.trim() || pendingFile) && !sending;
 
   return (
-    <section className="panel team-chat-panel dashboard-card">
-      <header className="dashboard-panel-head team-chat-head">
-        <div>
-          <h2 className="dashboard-section-title">Chat</h2>
-        </div>
-      </header>
+    <Card className="team-chat-shadcn flex min-h-[min(72vh,720px)] flex-col border shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Chat</CardTitle>
+      </CardHeader>
 
-      {error ? (
-        <p className="team-chat-error" role="alert">
-          {error}
-        </p>
-      ) : null}
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 pb-4">
+        {error ? (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
 
-      <div className="team-chat-body">
-        <div className="team-chat-messages" ref={listRef} aria-live="polite">
-          {loading ? (
-            <p className="team-chat-empty">Loading messages…</p>
-          ) : messages.length === 0 ? (
-            <p className="team-chat-empty">No messages yet.</p>
-          ) : (
-            messages.map((msg) => {
-              const author = msg.author ?? {};
-              const isOwn = msg.author_id === sessionUserId;
-              const authorName = messageAuthorDisplayName(msg, author);
-              return (
-                <article
-                  key={msg.id}
-                  className={isOwn ? "team-chat-msg team-chat-msg--own" : "team-chat-msg"}
-                >
-                  <div className="team-chat-msg-meta">
-                    <span className="team-chat-msg-author">{authorName}</span>
-                    <time className="team-chat-msg-time" dateTime={msg.created_at}>
-                      {formatChatTime(msg.created_at)}
-                    </time>
-                  </div>
-                  <ChatMessageBody
-                    body={msg.body}
-                    profiles={teamProfiles}
-                    orders={orders}
-                    onOpenOrder={onOpenOrder}
-                  />
-                  <ChatMessageAttachment msg={msg} />
-                  {(msg.mentioned_user_ids?.length > 0 || msg.mentioned_order_ids?.length > 0) && (
-                    <div className="team-chat-msg-chips">
-                      {(msg.mentioned_user_ids ?? []).map((uid) => {
-                        const p = teamProfiles.find((x) => x.id === uid);
-                        if (!p) return null;
-                        return (
-                          <span key={`u-${uid}`} className="team-chat-chip team-chat-chip--user">
-                            @{profileChatLabel(p)}
-                          </span>
-                        );
-                      })}
-                      {(msg.mentioned_order_ids ?? []).map((oid) => {
-                        const o = orders.find((x) => String(x.id) === String(oid));
-                        if (!o) return null;
-                        return (
-                          <button
-                            key={`o-${oid}`}
-                            type="button"
-                            className="team-chat-chip team-chat-chip--order"
-                            onClick={() => onOpenOrder?.(o)}
-                          >
-                            #{orderChatToken(o)}
-                          </button>
-                        );
-                      })}
+        <ScrollArea className="h-[min(52vh,520px)] min-h-[280px] rounded-lg border bg-muted/30">
+          <div className="flex flex-col gap-4 p-4" aria-live="polite">
+            {loading ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Loading messages…</p>
+            ) : messages.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">No messages yet.</p>
+            ) : (
+              messages.map((msg) => {
+                const author = msg.author ?? {};
+                const isOwn = msg.author_id === sessionUserId;
+                const authorName = messageAuthorDisplayName(msg, author);
+                const avatarUrl = profileAvatarPublicUrl(author.avatar_path);
+
+                return (
+                  <article
+                    key={msg.id}
+                    className={cn("flex gap-3", isOwn && "flex-row-reverse")}
+                  >
+                    <PersonAvatar
+                      name={author.full_name || authorName}
+                      email={author.email}
+                      imageUrl={avatarUrl}
+                      size="sm"
+                      className="mt-1 shrink-0"
+                    />
+                    <div className={cn("flex min-w-0 max-w-[85%] flex-col gap-1", isOwn && "items-end")}>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{authorName}</span>
+                        <time dateTime={msg.created_at}>{formatChatTime(msg.created_at)}</time>
+                      </div>
+                      {(msg.body ?? "").trim() || msg.attachment_path ? (
+                        <div
+                          className={cn(
+                            "rounded-lg px-3 py-2 shadow-sm",
+                            isOwn
+                              ? "bg-primary text-primary-foreground"
+                              : "border bg-card text-card-foreground"
+                          )}
+                        >
+                          <ChatMessageBody
+                            body={msg.body}
+                            profiles={teamProfiles}
+                            orders={orders}
+                            onOpenOrder={onOpenOrder}
+                            inverted={isOwn}
+                          />
+                          <ChatMessageAttachment msg={msg} inverted={isOwn} />
+                        </div>
+                      ) : null}
+                      {(msg.mentioned_user_ids?.length > 0 || msg.mentioned_order_ids?.length > 0) && (
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {(msg.mentioned_user_ids ?? []).map((uid) => {
+                            const p = teamProfiles.find((x) => x.id === uid);
+                            if (!p) return null;
+                            return (
+                              <Badge key={`u-${uid}`} variant="secondary" className="text-xs">
+                                @{profileChatLabel(p)}
+                              </Badge>
+                            );
+                          })}
+                          {(msg.mentioned_order_ids ?? []).map((oid) => {
+                            const o = orders.find((x) => String(x.id) === String(oid));
+                            if (!o) return null;
+                            return (
+                              <Button
+                                key={`o-${oid}`}
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => onOpenOrder?.(o)}
+                              >
+                                #{orderChatToken(o)}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </article>
-              );
-            })
-          )}
-        </div>
+                  </article>
+                );
+              })
+            )}
+            <div ref={bottomRef} aria-hidden />
+          </div>
+        </ScrollArea>
 
-        <form className="team-chat-composer" onSubmit={handleSend}>
+        <Separator />
+
+        <form className="flex flex-col gap-3" onSubmit={handleSend}>
           {pendingFile ? (
-            <div className="team-chat-pending-file">
-              <span>📎 {pendingFile.name}</span>
-              <button type="button" className="team-chat-pending-remove" onClick={() => setPendingFile(null)}>
-                Remove
-              </button>
+            <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+              <span className="flex min-w-0 items-center gap-2 truncate">
+                <Paperclip className="size-4 shrink-0" aria-hidden />
+                {pendingFile.name}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                aria-label="Remove attachment"
+                onClick={() => setPendingFile(null)}
+              >
+                <X className="size-4" />
+              </Button>
             </div>
           ) : null}
 
-          <div className="team-chat-composer-main">
-            <div className="team-chat-toolbar-group">
-              <div className="team-chat-tool-wrap">
-                <button
-                  type="button"
-                  className="team-chat-tool-btn"
-                  aria-expanded={emojiOpen}
-                  aria-label="Insert emoji"
-                  onClick={() => setEmojiOpen((v) => !v)}
-                >
-                  😀
-                </button>
-                {emojiOpen ? (
-                  <div className="team-chat-emoji-popover" role="listbox" aria-label="Emoji picker">
+          <div className="flex gap-2">
+            <div className="flex shrink-0 flex-col gap-1">
+              <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" size="icon" className="size-9" aria-label="Insert emoji">
+                    <Smile className="size-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2" align="start">
+                  <div className="grid grid-cols-8 gap-1" role="listbox" aria-label="Emoji picker">
                     {CHAT_EMOJI_PALETTE.map((emoji) => (
-                      <button
+                      <Button
                         key={emoji}
                         type="button"
-                        className="team-chat-emoji-item"
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-base"
                         onClick={() => insertEmoji(emoji)}
                       >
                         {emoji}
-                      </button>
+                      </Button>
                     ))}
                   </div>
-                ) : null}
-              </div>
+                </PopoverContent>
+              </Popover>
 
               <input
                 ref={fileInputRef}
                 type="file"
-                className="team-chat-file-input"
+                className="sr-only"
                 accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
                 onChange={onPickAttachment}
               />
-              <button
+              <Button
                 type="button"
-                className="team-chat-tool-btn"
+                variant="outline"
+                size="icon"
+                className="size-9"
                 aria-label="Attach image or PDF"
                 onClick={() => fileInputRef.current?.click()}
               >
-                📎
-              </button>
+                <Paperclip className="size-4" />
+              </Button>
             </div>
 
-            <div className="team-chat-input-wrap">
+            <div className="relative min-w-0 flex-1">
               {(showUserMenu || showOrderMenu) && (
-                <ul className="team-chat-mention-menu" role="listbox">
+                <ul
+                  className="absolute bottom-full z-20 mb-2 max-h-48 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
+                  role="listbox"
+                >
                   {showUserMenu && mentionUsers.length === 0 ? (
-                    <li className="team-chat-mention-empty">
+                    <li className="px-3 py-2 text-xs text-muted-foreground">
                       {teamProfiles.filter((p) => profileMentionable(p)).length < 1
                         ? "No display names yet — admin sets names in Edit Users"
                         : "No matching names"}
@@ -520,33 +587,41 @@ export default function TeamChatPanel({
                   {showUserMenu &&
                     mentionUsers.map((p) => (
                       <li key={p.id}>
-                        <button type="button" onClick={() => pickUser(p)}>
-                          <span className="team-chat-mention-label">@{profileChatLabel(p)}</span>
+                        <button
+                          type="button"
+                          className="flex w-full flex-col rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                          onClick={() => pickUser(p)}
+                        >
+                          <span className="font-medium">@{profileChatLabel(p)}</span>
                           {p.department?.trim() ? (
-                            <span className="team-chat-mention-sub">{p.department.trim()}</span>
+                            <span className="text-xs text-muted-foreground">{p.department.trim()}</span>
                           ) : null}
                         </button>
                       </li>
                     ))}
                   {showOrderMenu && mentionOrders.length === 0 ? (
-                    <li className="team-chat-mention-empty">No matching orders</li>
+                    <li className="px-3 py-2 text-xs text-muted-foreground">No matching orders</li>
                   ) : null}
                   {showOrderMenu &&
                     mentionOrders.map((o) => (
                       <li key={o.id}>
-                        <button type="button" onClick={() => pickOrder(o)}>
-                          <span className="team-chat-mention-label">#{orderChatToken(o)}</span>
-                          <span className="team-chat-mention-sub">{o.customer_name}</span>
+                        <button
+                          type="button"
+                          className="flex w-full flex-col rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                          onClick={() => pickOrder(o)}
+                        >
+                          <span className="font-medium">#{orderChatToken(o)}</span>
+                          <span className="text-xs text-muted-foreground">{o.customer_name}</span>
                         </button>
                       </li>
                     ))}
                 </ul>
               )}
 
-              <textarea
+              <Textarea
                 ref={textareaRef}
-                className="team-chat-textarea"
                 rows={3}
+                className="min-h-[88px] resize-none"
                 placeholder="Message… @ name, # order, or attach file"
                 value={draft}
                 onChange={(e) => {
@@ -561,11 +636,14 @@ export default function TeamChatPanel({
             </div>
           </div>
 
-          <button type="submit" className="team-chat-send-btn" disabled={!canSend}>
-            {sending ? "Sending…" : "Send"}
-          </button>
+          <div className="flex justify-end">
+            <Button type="submit" variant="success" disabled={!canSend} className="min-w-[7rem]">
+              <Send className="size-4" />
+              {sending ? "Sending…" : "Send"}
+            </Button>
+          </div>
         </form>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

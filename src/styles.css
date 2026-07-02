@@ -282,7 +282,7 @@ button,
   font-size: 14px;
 }
 
-button {
+.legacy-ui button:not([class*="inline-flex"]) {
   border: 1px solid #2563eb;
   border-radius: 8px;
   cursor: pointer;
@@ -293,7 +293,7 @@ button {
   font-weight: 600;
 }
 
-button:hover {
+.legacy-ui button:not([class*="inline-flex"]):hover {
   background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
 }
 
@@ -611,7 +611,20 @@ html.theme-dark .order-kind-badge--sticker {
   color: #ede9fe;
 }
 
-.sticker-order-form .order-form-hint {
+.order-kind-badge--sampling {
+  background: linear-gradient(180deg, #cffafe 0%, #a5f3fc 100%);
+  border: 1px solid #0891b2;
+  color: #155e75;
+}
+
+html.theme-dark .order-kind-badge--sampling {
+  background: linear-gradient(180deg, #164e63 0%, #0e7490 100%);
+  border-color: #22d3ee;
+  color: #ecfeff;
+}
+
+.sticker-order-form .order-form-hint,
+.sampling-order-form .order-form-hint {
   margin: 6px 0 0;
   font-size: 12px;
   color: #64748b;
@@ -4716,6 +4729,13 @@ html.theme-dark .order-form-readonly-input {
   justify-content: flex-end;
 }
 
+.dashboard-topbar-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .dashboard-topbar-btn.dashboard-topbar-btn--primary,
 .topbar-users-btn.dashboard-topbar-btn--primary {
   background: var(--btn-primary-bg);
@@ -6853,24 +6873,14 @@ html.theme-dark .shared-links-form label {
 
 .contact-book-card-photo {
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 4px 0;
 }
 
-.contact-book-card-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.contact-book-card-photo-fallback {
-  font-size: 28px;
+.contact-book-card-photo .relative.flex {
+  border-radius: 9999px;
 }
 
 .contact-book-card-body {
@@ -7539,9 +7549,9 @@ html.theme-dark .orders-pagination-btn:hover:not(:disabled) {
   gap: 10px;
 }
 
-input,
-textarea,
-select {
+.legacy-ui input,
+.legacy-ui textarea,
+.legacy-ui select {
   border: 1px solid #bfdbfe;
   border-radius: 8px;
   padding: 10px;
@@ -7648,6 +7658,19 @@ select {
   font-size: 12px;
   font-weight: 600;
   color: #475569;
+}
+
+.order-form-handover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-form-handover-actions .date-picker-trigger,
+.order-form-handover-actions button[data-slot="popover-trigger"] {
+  flex: 1 1 160px;
+  min-width: 0;
 }
 
 .production-order-pill {
@@ -9716,26 +9739,15 @@ html.theme-dark .btn-admin-deploy-secondary:hover {
   height: auto;
 }
 
-.admin-master-directory-card .user-mgmt-icon-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-}
-
-.admin-master-directory-card .user-mgmt-icon-btn svg {
-  width: 15px;
-  height: 15px;
+.admin-master-directory-card .user-mgmt-icon-actions {
+  justify-content: center;
+  gap: 6px;
 }
 
 .admin-master-directory-card .user-mgmt-action-col,
 .admin-master-directory-card td:last-child {
-  width: 72px;
+  width: 96px;
   text-align: center;
-}
-
-.admin-master-directory-card .user-mgmt-icon-actions {
-  justify-content: center;
-  gap: 4px;
 }
 
 .viewer-users-section .users-access-table--compact tbody td {
@@ -9758,6 +9770,25 @@ html.theme-dark .btn-admin-deploy-secondary:hover {
   gap: 2px;
   font-weight: 600;
   color: #0f172a;
+}
+
+.user-mgmt-avatar-col,
+.user-mgmt-avatar-cell {
+  width: 3rem;
+  min-width: 3rem;
+  max-width: 3rem;
+  padding-left: 8px;
+  padding-right: 8px;
+  text-align: center;
+}
+
+.user-mgmt-avatar-cell {
+  vertical-align: middle;
+}
+
+.user-mgmt-avatar-cell .relative.flex {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .user-mgmt-email-sub {
@@ -9823,6 +9854,12 @@ html.theme-dark .btn-admin-deploy-secondary:hover {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.user-mgmt-icon-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .user-mgmt-icon-btn {
@@ -10049,7 +10086,25 @@ html.theme-dark .btn-admin-deploy-secondary:hover {
 table {
   border-collapse: collapse;
   width: 100%;
+}
+
+/* Dashboard data tables only — not shadcn calendar or shadcn/ui Table */
+table:not(.rdp-month_grid):not([data-shadcn-table]) {
   min-width: 1120px;
+}
+
+table:not([data-shadcn-table]):not(.rdp-month_grid) th:not(.rdp-weekday),
+table:not([data-shadcn-table]):not(.rdp-month_grid) td:not(.rdp-day):not(.rdp-week_number) {
+  border: 1px solid #dbe7ff;
+  text-align: left;
+  padding: 8px;
+  vertical-align: top;
+}
+
+table:not([data-shadcn-table]):not(.rdp-month_grid) th:not(.rdp-weekday) {
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+  color: #1e3a8a;
+  font-weight: 700;
 }
 
 .orders-processed-summary {
@@ -10608,20 +10663,6 @@ html.theme-dark .post-design-remove-all-btn {
   background: #eef2ff;
 }
 
-th,
-td {
-  border: 1px solid #dbe7ff;
-  text-align: left;
-  padding: 8px;
-  vertical-align: top;
-}
-
-th {
-  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
-  color: #1e3a8a;
-  font-weight: 700;
-}
-
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -10968,6 +11009,34 @@ html.theme-dark button.btn-sticker-order {
   background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 100%);
   color: #1e1b4b;
   border-color: #6d28d9;
+}
+
+button.btn-sampling-order {
+  background: linear-gradient(180deg, #67e8f9 0%, #0891b2 100%);
+  border: 1px solid #0e7490;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(8, 145, 178, 0.28);
+}
+
+button.btn-sampling-order:hover:not(:disabled) {
+  background: linear-gradient(180deg, #22d3ee 0%, #0e7490 100%);
+  border-color: #155e75;
+}
+
+button.btn-sampling-order:focus-visible {
+  outline: 2px solid #0891b2;
+  outline-offset: 2px;
+}
+
+button.btn-sampling-order:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+html.theme-dark button.btn-sampling-order {
+  background: linear-gradient(180deg, #a5f3fc 0%, #22d3ee 100%);
+  color: #083344;
+  border-color: #0e7490;
 }
 
 .order-form-kind-note {
@@ -13013,18 +13082,18 @@ html.theme-dark .table-filters label {
   color: #cbd5e1;
 }
 
-html.theme-dark th,
-html.theme-dark td {
+html.theme-dark table:not([data-shadcn-table]) th,
+html.theme-dark table:not([data-shadcn-table]) td {
   border-color: var(--content-surface-border);
 }
 
-html.theme-dark th {
+html.theme-dark table:not([data-shadcn-table]) th {
   background: var(--dark-surface-raised);
   color: var(--dark-text-muted);
   font-weight: 600;
 }
 
-html.theme-dark td {
+html.theme-dark table:not([data-shadcn-table]) td {
   background: var(--content-surface);
   color: var(--dark-text-body);
 }
@@ -15863,27 +15932,27 @@ html.theme-dark .create-oc-generate-btn:hover:not(:disabled) {
   margin-top: 0;
 }
 
-/* ===== Flat UI — no shadows or glows (light + dark, app-wide) ===== */
-*,
-*::before,
-*::after {
+/* Flat UI — scoped to legacy panels only; shadcn components keep shadows/rings */
+.legacy-ui,
+.legacy-ui *::before,
+.legacy-ui *::after {
   box-shadow: none !important;
   text-shadow: none !important;
 }
 
-:focus {
+.legacy-ui :focus {
   outline: none;
 }
 
-:focus-visible {
+.legacy-ui :focus-visible {
   outline: 2px solid var(--accent-primary, #6366f1);
   outline-offset: 2px;
 }
 
-input:focus,
-select:focus,
-textarea:focus,
-button:focus {
+.legacy-ui input:focus,
+.legacy-ui select:focus,
+.legacy-ui textarea:focus,
+.legacy-ui button:focus {
   box-shadow: none !important;
 }
 

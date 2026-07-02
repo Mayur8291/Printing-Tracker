@@ -1,8 +1,15 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import ColorSwatch from "../components/ColorSwatch";
 import Sparkline from "../components/Sparkline";
 import StackedBar from "../components/StackedBar";
-import InventoryIcon from "../InventoryIcon";
 import { useInventory } from "../InventoryDataContext";
-import { formatRelative, usdFmt } from "../inventoryUtils";
+import { MovementTypeBadge, PageHeader } from "../inventoryUiUtils";
+import { formatRelative, inrFmt } from "../inventoryUtils";
+
+const KPI_ABBREVS = ["₹", "SKU", "!", "PO"];
 
 export default function InventoryOverview({ setActive, openSku, openNewSku, openCreatePO }) {
   const { fabrics, trims, apparel, alerts, movements, pos, suppliers, warehouses, skus } = useInventory();
@@ -19,7 +26,7 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
   const kpis = [
     {
       label: "Inventory Value",
-      value: usdFmt(inventoryValue),
+      value: inrFmt(inventoryValue),
       delta: "+4.2%",
       dir: "up",
       spark: [40, 42, 41, 44, 46, 47, 48, 49, 51, 52, 50, 54, 55, 57]
@@ -38,12 +45,12 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
       delta: "+3 today",
       dir: "down",
       spark: [4, 4, 6, 5, 7, 6, 8, 7, 9, 10, 11, 10, 12, 13],
-      color: "var(--danger)"
+      sparkColor: "#ef4444"
     },
     {
       label: "Open Purchase Orders",
       value: fmt(openPOCount),
-      sub: `· ${usdFmt(openPOValue)} on order`,
+      sub: `· ${inrFmt(openPOValue)} on order`,
       delta: "+2 this wk",
       dir: "up",
       spark: [3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 9, 9]
@@ -90,190 +97,171 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
   const topAlerts = alerts.filter((a) => a.severity === "critical").slice(0, 5);
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Overview</h1>
-          <p className="page-subtitle">
+    <div className="space-y-6">
+      <PageHeader
+        title="Overview"
+        subtitle={
+          <>
             {warehouses.length} warehouse{warehouses.length === 1 ? "" : "s"} · Live from database{" "}
-            <span className="pulse" style={{ marginLeft: 6, verticalAlign: "middle" }} />
-          </p>
-        </div>
-        <div className="page-actions">
-          <button type="button" className="btn">
-            <InventoryIcon name="download" size={13} /> Export
-          </button>
-          <button type="button" className="btn primary" onClick={() => openNewSku("fabric")}>
-            <InventoryIcon name="plus" size={13} /> New SKU
-          </button>
-        </div>
-      </div>
+            <span className="ml-1.5 inline-block size-2 animate-pulse rounded-full bg-emerald-500 align-middle" />
+          </>
+        }
+        actions={
+          <>
+            <Button type="button" variant="outline" size="sm">
+              Export
+            </Button>
+            <Button type="button" size="sm" onClick={() => openNewSku("fabric")}>
+              New SKU
+            </Button>
+          </>
+        }
+      />
 
-      <div className="kpi-grid">
-        {kpis.map((k) => (
-          <div className="kpi" key={k.label}>
-            <p className="kpi-label">{k.label}</p>
-            <p className="kpi-value">{k.value}</p>
-            <div className="kpi-meta">
-              {k.delta && (
-                <span className={`kpi-delta ${k.dir}`}>
-                  {k.dir === "up" ? "↑" : "↓"} {k.delta}
-                </span>
-              )}
-              {k.sub ? <span>{k.sub}</span> : <span>vs last 14d</span>}
-            </div>
-            <div className="kpi-spark">
-              <Sparkline data={k.spark} color={k.color || "var(--accent)"} />
-            </div>
-          </div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((k, i) => (
+          <Card key={k.label}>
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+              <CardDescription>{k.label}</CardDescription>
+              <div className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                {KPI_ABBREVS[i]}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold tracking-tight">{k.value}</div>
+              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                {k.delta ? (
+                  <span className={cn("font-medium", k.dir === "up" ? "text-emerald-600" : "text-red-600")}>
+                    {k.dir === "up" ? "↑" : "↓"} {k.delta}
+                  </span>
+                ) : null}
+                <span>{k.sub || "vs last 14d"}</span>
+              </div>
+              <div className="mt-3 h-8">
+                <Sparkline data={k.spark} color={k.sparkColor || "hsl(var(--primary))"} />
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="split">
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div className="card">
-            <div className="card-header">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
-                <h3 className="card-title">Fabric stock by category</h3>
-                <p className="card-subtitle">Total meters in 5 warehouses</p>
+                <CardTitle className="text-base">Fabric stock by category</CardTitle>
+                <CardDescription>Total meters in 5 warehouses</CardDescription>
               </div>
-              <button type="button" className="btn ghost sm" onClick={() => setActive("fabrics")}>
-                View all <InventoryIcon name="chev_r" size={12} />
-              </button>
-            </div>
-            <StackedBar rows={fabricBars} />
-          </div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setActive("fabrics")}>
+                View all
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <StackedBar rows={fabricBars} />
+            </CardContent>
+          </Card>
 
-          <div className="card">
-            <div className="card-header">
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
-                <h3 className="card-title">Recent stock movements</h3>
-                <p className="card-subtitle">Live feed across all warehouses</p>
+                <CardTitle className="text-base">Recent stock movements</CardTitle>
+                <CardDescription>Live feed across all warehouses</CardDescription>
               </div>
-              <button type="button" className="btn ghost sm" onClick={() => setActive("movements")}>
-                View all <InventoryIcon name="chev_r" size={12} />
-              </button>
-            </div>
-            <div style={{ padding: "4px 16px 12px" }}>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setActive("movements")}>
+                View all
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-1">
               {recentMoves.map((m) => {
-                const cls = m.type === "IN" ? "in" : m.type === "ADJUST" ? "adj" : "out";
                 const sign = m.qty > 0 ? "+" : "";
                 return (
-                  <div className="history-row" key={m.id}>
-                    <div className={`h-icon ${cls}`}>
-                      <InventoryIcon
-                        name={m.type === "IN" ? "arrow_d" : m.type === "OUT" ? "arrow_u" : m.type === "TRANSFER" ? "swap" : "edit"}
-                        size={12}
-                        stroke={2}
-                      />
-                    </div>
-                    <div className="h-text">
-                      <span>{m.skuName}</span>
-                      <small>
+                  <div key={m.id} className="flex items-center gap-3 border-b py-2.5 last:border-0">
+                    <MovementTypeBadge type={m.type} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{m.skuName}</p>
+                      <p className="truncate text-xs text-muted-foreground">
                         {m.reason} · {m.user} · {formatRelative(new Date(m.ts))} · ref {m.ref}
-                      </small>
+                      </p>
                     </div>
-                    <div className={`h-qty ${m.qty > 0 ? "pos" : "neg"}`}>
+                    <div className={cn("shrink-0 text-sm font-medium tabular-nums", m.qty > 0 ? "text-emerald-600" : "text-red-600")}>
                       {sign}
                       {m.qty.toLocaleString()} {m.unit}
                     </div>
                   </div>
                 );
               })}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div className="card">
-            <div className="card-header">
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
-                <h3 className="card-title">Critical reorder alerts</h3>
-                <p className="card-subtitle">{topAlerts.length} items need attention</p>
+                <CardTitle className="text-base text-red-600">Critical reorder alerts</CardTitle>
+                <CardDescription>{topAlerts.length} items need attention</CardDescription>
               </div>
-              <button type="button" className="btn ghost sm" onClick={() => setActive("alerts")}>
-                All alerts <InventoryIcon name="chev_r" size={12} />
-              </button>
-            </div>
-            <div className="alert-list">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setActive("alerts")}>
+                All alerts
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-2">
               {topAlerts.map((a) => (
-                <div className="alert-row" key={a.id}>
-                  <div className="a-icon">
-                    <InventoryIcon name="warn" size={14} stroke={1.8} />
-                  </div>
-                  <div className="a-main">
-                    <strong>
-                      <span className="swatch" style={{ background: a.hex, width: 11, height: 11 }} />
+                <div key={a.id} className="flex items-start gap-3 rounded-lg border p-3">
+                  <Badge variant="destructive" className="mt-0.5 shrink-0">
+                    Critical
+                  </Badge>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">
+                      <ColorSwatch color={a.color} hex={a.hex} size="xs" />
                       {a.name}
                       {a.color ? ` · ${a.color}` : ""}
-                    </strong>
-                    <small>
-                      {a.id} · {a.message} · on hand <b>{a.stock.toLocaleString()}</b> / reorder at{" "}
-                      <b>{a.reorder.toLocaleString()}</b>
-                    </small>
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {a.id} · {a.message} · on hand <strong>{a.stock.toLocaleString()}</strong> / reorder at{" "}
+                      <strong>{a.reorder.toLocaleString()}</strong>
+                    </p>
                   </div>
-                  <div className="a-actions">
-                    <button type="button" className="btn sm accent" onClick={() => openCreatePO()}>
-                      Reorder
-                    </button>
-                  </div>
+                  <Button type="button" size="sm" onClick={() => openCreatePO()}>
+                    Reorder
+                  </Button>
                 </div>
               ))}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <h3 className="card-title">Incoming shipments</h3>
-                <p className="card-subtitle">{openPOCount} POs · arriving next 30 days</p>
-              </div>
-            </div>
-            <div style={{ padding: "4px 16px 14px" }}>
-              {pos.filter((p) => p.status === "In Transit")
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Incoming shipments</CardTitle>
+              <CardDescription>{openPOCount} POs · arriving next 30 days</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-0">
+              {pos
+                .filter((p) => p.status === "In Transit")
                 .slice(0, 4)
                 .map((p) => {
                   const sup = suppliers.find((s) => s.id === p.supplier);
                   return (
-                    <div
-                      key={p.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "10px 0",
-                        borderBottom: "1px solid var(--border)"
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 6,
-                          background: "var(--info-soft)",
-                          color: "var(--info)",
-                          display: "grid",
-                          placeItems: "center",
-                          flexShrink: 0
-                        }}
-                      >
-                        <InventoryIcon name="truck" size={14} stroke={1.7} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
-                        <div style={{ fontWeight: 500, fontSize: 12.5 }}>{p.id}</div>
-                        <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
+                    <div key={p.id} className="flex items-center gap-3 border-b py-3 last:border-0">
+                      <Badge variant="outline" className="shrink-0">
+                        In transit
+                      </Badge>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{p.id}</p>
+                        <p className="text-xs text-muted-foreground">
                           {sup?.name} · {sup?.city} · {p.qty.toLocaleString()} units
-                        </div>
+                        </p>
                       </div>
-                      <div style={{ textAlign: "right", fontSize: 12 }}>
-                        <div style={{ fontWeight: 500 }}>{usdFmt(p.value)}</div>
-                        <div style={{ color: "var(--text-muted)", fontSize: 11.5 }}>ETA {p.eta}</div>
+                      <div className="text-right text-sm">
+                        <p className="font-medium">{inrFmt(p.value)}</p>
+                        <p className="text-xs text-muted-foreground">ETA {p.eta}</p>
                       </div>
                     </div>
                   );
                 })}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

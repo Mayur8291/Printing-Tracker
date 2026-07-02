@@ -11,11 +11,41 @@ export function formatRelative(d, now = REFERENCE_NOW) {
   return `${Math.floor(diff / (60 * 24))}d ago`;
 }
 
-export function usdFmt(n) {
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  if (n >= 1e3) return `$${(n / 1e3).toFixed(1)}K`;
-  return `$${n.toFixed(0)}`;
+export function formatInr(n, { minimumFractionDigits = 0, maximumFractionDigits = 2 } = {}) {
+  const value = Number(n);
+  if (!Number.isFinite(value)) return "₹0";
+  return value.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits,
+    maximumFractionDigits
+  });
 }
+
+export function inrFmt(n) {
+  const v = Number(n) || 0;
+  const abs = Math.abs(v);
+  const sign = v < 0 ? "-" : "";
+  if (abs >= 1e7) {
+    const cr = abs / 1e7;
+    const text = cr >= 10 || cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(1);
+    return `${sign}₹${text}Cr`;
+  }
+  if (abs >= 1e5) {
+    const lakhs = abs / 1e5;
+    const text = lakhs >= 10 || lakhs % 1 === 0 ? lakhs.toFixed(0) : lakhs.toFixed(1);
+    return `${sign}₹${text}L`;
+  }
+  if (abs >= 1e3) {
+    const k = abs / 1e3;
+    const text = k >= 10 || k % 1 === 0 ? k.toFixed(0) : k.toFixed(1);
+    return `${sign}₹${text}k`;
+  }
+  return formatInr(abs, { maximumFractionDigits: 0 });
+}
+
+/** @deprecated Use inrFmt */
+export const usdFmt = inrFmt;
 
 export function statusOf(row, settings) {
   return statusOfWithSettings(row, settings);

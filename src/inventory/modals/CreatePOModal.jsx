@@ -1,9 +1,25 @@
 import { useState } from "react";
-import InventoryIcon from "../InventoryIcon";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useInventory } from "../InventoryDataContext";
+import MasterListSelectField from "@/components/admin/MasterListSelectField";
+import { formatInr } from "../inventoryUtils";
 
 export default function CreatePOModal({ initialSku, onClose, onSubmit }) {
-  const { skus, fabrics, trims, suppliers, warehouses } = useInventory();
+  const { skus, fabrics, trims, suppliers, warehouses, pos, quickCreateSupplier, quickCreateWarehouse } =
+    useInventory();
   const [supplier, setSupplier] = useState(initialSku?.supplier || suppliers[0]?.id || "");
   const [lines, setLines] = useState(
     initialSku ? [{ skuId: initialSku.id, qty: initialSku.reorder * 2, cost: initialSku.cost }] : [{ skuId: "", qty: 0, cost: 0 }]
@@ -43,243 +59,185 @@ export default function CreatePOModal({ initialSku, onClose, onSubmit }) {
   };
 
   return (
-    <div className="modal-backdrop open" onClick={onClose}>
-      <div className="modal wide" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <h3 className="modal-title">Create purchase order</h3>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-              PO-2026-{(POS.length + 1418).toString().padStart(4, "0")} · Draft
-            </div>
-          </div>
-          <button type="button" className="icon-btn" onClick={onClose}>
-            <InventoryIcon name="x" size={14} />
-          </button>
-        </div>
-        <form onSubmit={submit}>
-          <div className="modal-body">
-            <div className="field-row">
-              <div className="field">
-                <label>Supplier</label>
-                <select value={supplier} onChange={(e) => setSupplier(e.target.value)}>
-                  {suppliers.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} — {s.city}, {s.country}
-                    </option>
-                  ))}
-                </select>
-                {sup && (
-                  <div className="field-hint">
-                    {sup.leadDays}-day lead · {sup.paymentTerms} · ★ {sup.rating}
-                  </div>
-                )}
-              </div>
-              <div className="field">
-                <label>Deliver to</label>
-                <select value={warehouse} onChange={(e) => setWarehouse(e.target.value)}>
-                  {warehouses.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="field-hint">
-                  Requested ETA:{" "}
-                  <input
-                    type="date"
-                    style={{
-                      display: "inline-block",
-                      width: "auto",
-                      padding: "2px 6px",
-                      marginLeft: 4,
-                      border: "1px solid var(--border)",
-                      borderRadius: 4,
-                      fontSize: 12,
-                      background: "var(--bg-elevated)",
-                      color: "var(--text)"
-                    }}
-                    value={eta}
-                    onChange={(e) => setEta(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="field">
-              <label>Line items</label>
-              <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
-                <table className="t" style={{ fontSize: 12.5 }}>
-                  <thead>
-                    <tr>
-                      <th>SKU</th>
-                      <th style={{ width: 90 }} className="right">
-                        Qty
-                      </th>
-                      <th style={{ width: 100 }} className="right">
-                        Unit cost
-                      </th>
-                      <th style={{ width: 100 }} className="right">
-                        Line total
-                      </th>
-                      <th style={{ width: 30 }} />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lines.map((l, i) => {
-                      const sku = allSku.find((s) => s.id === l.skuId);
-                      const lineTotal = (Number(l.qty) || 0) * (Number(l.cost) || 0);
-                      return (
-                        <tr key={i} style={{ cursor: "default" }}>
-                          <td>
-                            <select
-                              value={l.skuId}
-                              onChange={(e) => updateLine(i, { skuId: e.target.value })}
-                              style={{
-                                width: "100%",
-                                border: "none",
-                                background: "transparent",
-                                padding: 4,
-                                fontSize: 12.5,
-                                color: "var(--text)"
-                              }}
-                            >
-                              <option value="">Choose SKU…</option>
-                              <optgroup label="Fabrics">
-                                {fabrics.filter((f) => f.supplier === supplier).map((f) => (
-                                  <option key={f.id} value={f.id}>
-                                    {f.id} — {f.name} · {f.color}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Trims">
-                                {trims.filter((t) => t.supplier === supplier).map((t) => (
-                                  <option key={t.id} value={t.id}>
-                                    {t.id} — {t.name} · {t.color}
-                                  </option>
-                                ))}
-                              </optgroup>
-                            </select>
-                            {sku && (
-                              <div style={{ fontSize: 11, color: "var(--text-faint)", paddingLeft: 4 }}>
-                                {sku.unit} · reorder at {sku.reorder.toLocaleString()}
-                              </div>
-                            )}
-                          </td>
-                          <td className="right">
-                            <input
-                              type="number"
-                              value={l.qty}
-                              onChange={(e) => updateLine(i, { qty: e.target.value })}
-                              style={{
-                                width: "100%",
-                                textAlign: "right",
-                                border: "none",
-                                background: "transparent",
-                                padding: 4,
-                                fontSize: 12.5,
-                                color: "var(--text)",
-                                fontVariantNumeric: "tabular-nums"
-                              }}
-                            />
-                          </td>
-                          <td className="right">
-                            <input
-                              type="number"
-                              step="0.01"
-                              value={l.cost}
-                              onChange={(e) => updateLine(i, { cost: e.target.value })}
-                              style={{
-                                width: "100%",
-                                textAlign: "right",
-                                border: "none",
-                                background: "transparent",
-                                padding: 4,
-                                fontSize: 12.5,
-                                color: "var(--text)",
-                                fontVariantNumeric: "tabular-nums"
-                              }}
-                            />
-                          </td>
-                          <td className="num right" style={{ fontWeight: 500 }}>
-                            ${lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                          <td>
-                            <button type="button" className="icon-btn" onClick={() => rmLine(i)} title="Remove">
-                              <InventoryIcon name="x" size={12} />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <button type="button" className="btn ghost sm" style={{ marginTop: 6 }} onClick={addLine}>
-                <InventoryIcon name="plus" size={12} /> Add line
-              </button>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 18, alignItems: "start" }}>
-              <div className="field" style={{ margin: 0 }}>
-                <label>Internal notes</label>
-                <textarea rows="3" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Spec sheets, color approvals, special handling…" />
-              </div>
-              <div
-                style={{
-                  minWidth: 200,
-                  padding: 12,
-                  background: "var(--bg-subtle)",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: 12.5
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create purchase order</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            PO-2026-{(pos.length + 1418).toString().padStart(4, "0")} · Draft
+          </p>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <MasterListSelectField
+                label="Supplier"
+                id="po-supplier"
+                value={supplier}
+                onValueChange={setSupplier}
+                options={suppliers.map((s) => ({
+                  value: s.id,
+                  label: `${s.name} — ${s.city}, ${s.country}`
+                }))}
+                onAdd={async (name) => {
+                  const row = await quickCreateSupplier(name);
+                  return { value: row.id, name: row.name };
                 }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ color: "var(--text-muted)" }}>Subtotal</span>
-                  <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                    ${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ color: "var(--text-muted)" }}>Shipping (est.)</span>
-                  <span style={{ fontVariantNumeric: "tabular-nums" }}>${shipping.toFixed(2)}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ color: "var(--text-muted)" }}>Qty</span>
-                  <span style={{ fontVariantNumeric: "tabular-nums" }}>{totalQty.toLocaleString()}</span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginTop: 10,
-                    paddingTop: 10,
-                    borderTop: "1px solid var(--border)",
-                    fontWeight: 600,
-                    fontSize: 14
-                  }}
-                >
-                  <span>Total</span>
-                  <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                    ${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
+                placeholder="Select supplier"
+                addPlaceholder="Supplier name"
+                required
+              />
+              {sup ? (
+                <p className="text-xs text-muted-foreground">
+                  {sup.leadDays}-day lead · {sup.paymentTerms} · ★ {sup.rating}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <MasterListSelectField
+                label="Deliver to"
+                id="po-warehouse"
+                value={warehouse}
+                onValueChange={setWarehouse}
+                options={warehouses.map((w) => ({ value: w.id, label: w.name }))}
+                onAdd={async (name) => {
+                  const row = await quickCreateWarehouse(name);
+                  return { value: row.id, name: row.name };
+                }}
+                placeholder="Select warehouse"
+                addPlaceholder="Warehouse name"
+                required
+              />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Requested ETA:</span>
+                <DatePicker className="h-8 w-auto min-w-[10rem]" value={eta} onChange={setEta} />
               </div>
             </div>
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn ghost" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="button" className="btn">
-              Save draft
-            </button>
-            <button type="submit" className="btn accent">
-              Send to {sup?.name.split(" ")[0]}
-              <InventoryIcon name="chev_r" size={12} />
-            </button>
+
+          <div className="space-y-2">
+            <Label>Line items</Label>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>SKU</TableHead>
+                    <TableHead className="w-24 text-right">Qty</TableHead>
+                    <TableHead className="w-28 text-right">Unit cost</TableHead>
+                    <TableHead className="w-28 text-right">Line total</TableHead>
+                    <TableHead className="w-10" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lines.map((l, i) => {
+                    const sku = allSku.find((s) => s.id === l.skuId);
+                    const lineTotal = (Number(l.qty) || 0) * (Number(l.cost) || 0);
+                    return (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Select value={l.skuId || undefined} onValueChange={(v) => updateLine(i, { skuId: v })}>
+                            <SelectTrigger className="h-8 border-0 bg-transparent shadow-none">
+                              <SelectValue placeholder="Choose SKU…" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Fabrics</SelectLabel>
+                                {fabrics.filter((f) => f.supplier === supplier).map((f) => (
+                                  <SelectItem key={f.id} value={f.id}>
+                                    {f.id} — {f.name} · {f.color}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                              <SelectGroup>
+                                <SelectLabel>Trims</SelectLabel>
+                                {trims.filter((t) => t.supplier === supplier).map((t) => (
+                                  <SelectItem key={t.id} value={t.id}>
+                                    {t.id} — {t.name} · {t.color}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          {sku && (
+                            <p className="pl-1 text-[11px] text-muted-foreground">
+                              {sku.unit} · reorder at {sku.reorder.toLocaleString()}
+                            </p>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input
+                            type="number"
+                            className="h-8 border-0 bg-transparent text-right shadow-none"
+                            value={l.qty}
+                            onChange={(e) => updateLine(i, { qty: e.target.value })}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="h-8 border-0 bg-transparent text-right shadow-none"
+                            value={l.cost}
+                            onChange={(e) => updateLine(i, { cost: e.target.value })}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">
+                          {formatInr(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => rmLine(i)}>
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <Button type="button" variant="ghost" size="sm" onClick={addLine}>
+              Add line
+            </Button>
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+            <div className="space-y-2">
+              <Label>Internal notes</Label>
+              <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Spec sheets, color approvals, special handling…" />
+            </div>
+            <div className="min-w-[200px] rounded-md bg-muted p-3 text-sm">
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="tabular-nums">{formatInr(subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Shipping (est.)</span>
+                <span className="tabular-nums">{formatInr(shipping, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Qty</span>
+                <span className="tabular-nums">{totalQty.toLocaleString()}</span>
+              </div>
+              <div className="mt-2 flex justify-between border-t pt-2 text-base font-semibold">
+                <span>Total</span>
+                <span className="tabular-nums">{formatInr(total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="button" variant="outline">
+              Save draft
+            </Button>
+            <Button type="submit">
+              Send to {sup?.name.split(" ")[0]}
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

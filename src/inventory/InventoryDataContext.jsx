@@ -1,16 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { POS } from "./inventoryData";
+import { supabase } from "../supabaseClient";
 import {
   applyStockAdjustment,
   deriveAlerts,
+  deleteSku,
   fetchInventoryBundle,
   insertSku,
+  insertSkuBatch,
   insertStockMovement,
+  insertStyleParent,
   insertSupplier,
   insertWarehouse,
   saveAlertSettings,
+  updateSkuFields,
   updateSkuReorder
 } from "./inventoryDbUtils";
+import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
 
 const InventoryDataContext = createContext(null);
 
@@ -21,30 +27,69 @@ export function InventoryDataProvider({ session, children }) {
   const [suppliers, setSuppliers] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [skus, setSkus] = useState([]);
+  const [styleParents, setStyleParents] = useState([]);
   const [movements, setMovements] = useState([]);
+  const inventoryRefreshTimerRef = useRef(null);
 
   const userId = session?.user?.id || null;
+  const userDisplayName =
+    session?.user?.user_metadata?.full_name ||
+    session?.user?.user_metadata?.name ||
+    session?.user?.email?.split("@")[0] ||
+    "You";
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const refresh = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const bundle = await fetchInventoryBundle();
       setSettings(bundle.settings);
       setSuppliers(bundle.suppliers);
       setWarehouses(bundle.warehouses);
+      setStyleParents(bundle.styleParents || []);
       setSkus(bundle.skus);
       setMovements(bundle.movements);
     } catch (err) {
-      setError(err?.message || "Could not load inventory data.");
+      if (!silent) setError(err?.message || "Could not load inventory data.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!userId) return undefined;
+
+    const channel = supabase
+      .channel(`inventory-skus-bundle-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "inventory_skus" },
+        () => {
+          if (inventoryRefreshTimerRef.current) {
+            clearTimeout(inventoryRefreshTimerRef.current);
+          }
+          inventoryRefreshTimerRef.current = window.setTimeout(() => {
+            inventoryRefreshTimerRef.current = null;
+            void refresh({ silent: true });
+          }, 400);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (inventoryRefreshTimerRef.current) {
+        clearTimeout(inventoryRefreshTimerRef.current);
+        inventoryRefreshTimerRef.current = null;
+      }
+      supabase.removeChannel(channel);
+    };
+  }, [userId, refresh]);
 
   const fabrics = useMemo(() => skus.filter((s) => s.kind === "fabric"), [skus]);
   const trims = useMemo(() => skus.filter((s) => s.kind === "trim"), [skus]);
@@ -75,9 +120,41 @@ export function InventoryDataProvider({ session, children }) {
     return updated;
   }, []);
 
+  const saveSkuFields = useCallback(async (skuUuid, patch) => {
+    const updated = await updateSkuFields(skuUuid, patch);
+    setSkus((prev) => prev.map((s) => (s._uuid === updated._uuid ? updated : s)));
+    return updated;
+  }, []);
+
+  const createStyleParent = useCallback(
+    async ({ parentSkuCode, styleName, kind }) => {
+      const parent = await insertStyleParent({ parentSkuCode, styleName, kind }, userId);
+      setStyleParents((prev) =>
+        [...prev, parent].sort((a, b) => (a.styleName || "").localeCompare(b.styleName || ""))
+      );
+      return parent;
+    },
+    [userId]
+  );
+
   const createSku = useCallback(
     async (kind, record) => {
-      const created = await insertSku(kind, record, userId);
+      let parentStyleId = record.parentStyleId || null;
+
+      if (record.parentMode === "new" && record.parentSkuCode && record.parentStyleName) {
+        const parent = await insertStyleParent(
+          {
+            parentSkuCode: record.parentSkuCode,
+            styleName: record.parentStyleName,
+            kind
+          },
+          userId
+        );
+        parentStyleId = parent.id;
+        setStyleParents((prev) => [...prev, parent]);
+      }
+
+      const created = await insertSku(kind, { ...record, parentStyleId }, userId);
       setSkus((prev) => [created, ...prev]);
 
       const qty = kind === "apparel" ? created.totalStock : created.stock;
@@ -97,6 +174,22 @@ export function InventoryDataProvider({ session, children }) {
       return created;
     },
     [userId]
+  );
+
+  const importSkus = useCallback(
+    async (kind, records, { onProgress } = {}) => {
+      const chunkSize = 150;
+      let done = 0;
+      for (let i = 0; i < records.length; i += chunkSize) {
+        const chunk = records.slice(i, i + chunkSize);
+        await insertSkuBatch(kind, chunk, userId, { chunkSize: chunk.length });
+        done += chunk.length;
+        onProgress?.(done, records.length);
+      }
+      await refresh();
+      return { imported: records.length };
+    },
+    [refresh, userId]
   );
 
   const adjustStock = useCallback(
@@ -137,6 +230,38 @@ export function InventoryDataProvider({ session, children }) {
     await refresh();
   }, [refresh]);
 
+  const quickCreateSupplier = useCallback(
+    async (name) => {
+      const row = await insertSupplier(buildMinimalSupplierRecord(name, suppliers));
+      await refresh();
+      return row;
+    },
+    [refresh, suppliers]
+  );
+
+  const quickCreateWarehouse = useCallback(
+    async (name) => {
+      const row = await insertWarehouse(buildMinimalWarehouseRecord(name, warehouses));
+      await refresh();
+      return row;
+    },
+    [refresh, warehouses]
+  );
+
+  const removeSku = useCallback(
+    async (skuUuid) => {
+      await deleteSku(skuUuid);
+      setSkus((prev) => prev.filter((s) => s._uuid !== skuUuid));
+      setMovements((prev) =>
+        prev.filter((m) => {
+          const match = skus.find((s) => s._uuid === skuUuid);
+          return !match || m.sku !== match.id;
+        })
+      );
+    },
+    [skus]
+  );
+
   const value = {
     loading,
     error,
@@ -144,6 +269,7 @@ export function InventoryDataProvider({ session, children }) {
     suppliers,
     warehouses: warehousesWithUsage,
     skus,
+    styleParents,
     fabrics,
     trims,
     apparel,
@@ -153,14 +279,21 @@ export function InventoryDataProvider({ session, children }) {
     refresh,
     updateAlertSettings,
     saveSkuReorder,
+    saveSkuFields,
+    createStyleParent,
     createSku,
+    importSkus,
     adjustStock,
+    removeSku,
     createSupplier,
     createWarehouse,
-    canEdit: true
+    quickCreateSupplier,
+    quickCreateWarehouse,
+    canEdit: true,
+    userDisplayName
   };
 
-  return <InventoryDataContext.Provider value={value}>{children}</InventoryDataContext.Provider>;
+  return <InventoryDataContext.Provider value={value}><div className="flex h-full min-h-0 flex-1 flex-col">{children}</div></InventoryDataContext.Provider>;
 }
 
 export function useInventory() {
