@@ -1,5 +1,32 @@
 # Debugging
 
+## Job sheet appears in Printing orders list
+
+### Symptom
+Job sheet shows in **Printing orders** with printing columns/format; should only be in **Production tracker**.
+
+### Root cause
+Job sheet saved with default `order_kind = printing`. Printing tab did not exclude production tracker job sheets.
+
+### Fix
+Apply `20260703200000_add_order_kind_job_sheet.sql` (sets `order_kind = job_sheet` on save + backfill). Reload app — job sheets only in Production tracker.
+
+## Job sheet history empty or only generic events
+
+### Symptom
+**Job sheet history** modal opens but shows no entries for old job sheets, or only status/qty changes — not payment, gender, size type, etc.
+
+### Root cause
+History reads `order_activity_log`. Job-sheet-specific events are written by `log_order_activity()` only after migration `20260703190000_job_sheet_activity_log.sql` is applied. Events are not backfilled for past edits.
+
+### Investigation
+1. Open job sheet → **Job sheet history**.
+2. Supabase: `SELECT event_type, message, created_at FROM order_activity_log WHERE order_id = <id> ORDER BY created_at DESC;`
+3. Check migrations: `list_migrations` or `supabase migration list` for `job_sheet_activity_log`.
+
+### Fix
+Apply `20260703190000_job_sheet_activity_log.sql` on the linked project. Edit and save a job sheet field to confirm a new row appears (e.g. `job_sheet_payment_updated`).
+
 ## Orders table empty after save (loading skeleton, then no rows)
 
 ### Symptom
@@ -73,9 +100,25 @@ React crashes during initial render — usually a JSX component used without imp
 ### Fix
 Restore missing import or fix JSX structure. Hard refresh (`Cmd+Shift+R`).
 
+### Example (2026-07-03 — formatJobSheetMoneyDisplay missing import)
+- **Symptom:** View order in Production tracker → blank screen; console: `ReferenceError: formatJobSheetMoneyDisplay is not defined` at `OrderDetailPanel.jsx`.
+- **Fix:** Restore `import { formatJobSheetMoneyDisplay } from "./jobSheetPaymentUtils";` in `OrderDetailPanel.jsx`.
+
+### Example (2026-07-03 — duplicate hooks + Select crash)
+- **Symptom:** View order on production job sheet → blank screen.
+- **Cause 1:** Duplicate `useState` / `useEffect` left in `OrderDetailPanel.jsx` after a partial edit — React hooks count changed between renders → crash.
+- **Cause 2:** `JobSheetOrderPaymentSection` passed `value={undefined}` to shadcn `Select` when payment mode or delivery city was empty — controlled/uncontrolled Select crash.
+- **Fix:** Remove duplicate hooks; use sentinel `__none__` Select values; ensure status dropdown options always include the order’s current status.
+- **Verify:** `npm run check:ui` then hard refresh and open View order on a job sheet.
+
+### Example (2026-07-03 — jobSheet before init)
+- **Cause:** `OrderDetailPanel` used `jobSheet` in `showJobSheetPaymentProof` before `const jobSheet = isJobSheetOrder(order)` — `ReferenceError: Cannot access 'jobSheet' before initialization`. View order in Production tracker crashed entire app.
+- **Fix:** Declare `jobSheet` before any use. Run `npm run check:ui` before finishing.
+
 ### Example (2026-06-25)
 - **Cause:** `CreateOrderModal` import removed from `App.jsx` while adding shadcn `Dialog` for View Order.
 - **Fix:** `import CreateOrderModal from "./components/orders/CreateOrderModal";`
 
 ### Prevention (required before finishing UI work)
-See `.cursor/rules/shadcn-ui-only.mdc`: build pass, import sanity, HMR check, load smoke test.
+
+Run **`npm run check:ui`** (build + JSX import scan). See `.cursor/rules/blank-screen-gate.mdc` and `.cursor/rules/shadcn-ui-only.mdc`.

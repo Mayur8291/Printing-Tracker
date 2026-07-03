@@ -1,4 +1,8 @@
 import { ORDER_SIZE_COLUMNS, splitOrderIds } from "./orderViewUtils";
+import {
+  buildJobSheetAdminPayload,
+  mergeJobSheetIntoAdminDraft
+} from "./jobSheetAdminEditUtils";
 
 export function parseSizeQtyInput(raw) {
   const s = String(raw ?? "").replace(/\D/g, "");
@@ -100,15 +104,16 @@ export function buildAdminOrderDraftFromOrder(order) {
     printing_cost:
       order?.printing_cost != null && order?.printing_cost !== "" ? String(order.printing_cost) : "",
     is_production_order: Boolean(order?.is_production_order),
-    expected_handover_to_printing: order?.expected_handover_to_printing ?? ""
+    expected_handover_to_printing: order?.expected_handover_to_printing ?? "",
+    ...mergeJobSheetIntoAdminDraft(order)
   };
 }
 
-export function buildAdminOrderFieldsPayload(draft) {
+export function buildAdminOrderFieldsPayload(draft, orderRow = {}) {
   const size_breakdown = sizesFormToBreakdown(draft.sizes, draft.extraSizes);
   const qtyFromSizes = sumSizeForm(draft.sizes, draft.extraSizes);
   const orderIdJoined = parseOrderIdTokens(draft.order_id).join(", ") || null;
-  return {
+  const base = {
     order_date: String(draft.order_date ?? "").trim() || null,
     order_id: orderIdJoined,
     owner_name: String(draft.owner_name ?? "").trim() || null,
@@ -125,6 +130,10 @@ export function buildAdminOrderFieldsPayload(draft) {
       ? String(draft.expected_handover_to_printing ?? "").trim() || null
       : null
   };
+  if (draft.isJobSheetRow) {
+    Object.assign(base, buildJobSheetAdminPayload(draft, orderRow));
+  }
+  return base;
 }
 
 function hslToHex(h, s, l) {

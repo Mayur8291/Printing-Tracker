@@ -14,6 +14,7 @@ import { INDIAN_CITIES } from "./indianCities";
 import {
   calcJobSheetAdvancePercent,
   calcJobSheetBalanceAmount,
+  calcJobSheetTotalAmount,
   formatJobSheetClosureDate,
   formatJobSheetMoneyDisplay,
   JOB_SHEET_PAYMENT_MODES
@@ -60,14 +61,20 @@ export default function CreateJobSheetForm({
   const showSizeGrid = isPetsJobSheetGender(form.gender) || Boolean(form.size_type);
   const showBrandingType = form.branding === "yes";
   const showRegularStock = form.regular_stock === "yes";
+  const computedTotalAmount = useMemo(
+    () => calcJobSheetTotalAmount(form.rate_per_piece, sizesSum),
+    [form.rate_per_piece, sizesSum]
+  );
+  const totalAmountValue =
+    computedTotalAmount != null ? String(computedTotalAmount) : "";
   const advancePercent = useMemo(
-    () => calcJobSheetAdvancePercent(form.total_amount, form.advance_amount),
-    [form.total_amount, form.advance_amount]
+    () => calcJobSheetAdvancePercent(totalAmountValue, form.advance_amount),
+    [totalAmountValue, form.advance_amount]
   );
   const balancePendingAmount = useMemo(() => {
     if (form.full_paid === "yes") return 0;
-    return calcJobSheetBalanceAmount(form.total_amount, form.advance_amount);
-  }, [form.total_amount, form.advance_amount, form.full_paid]);
+    return calcJobSheetBalanceAmount(totalAmountValue, form.advance_amount);
+  }, [totalAmountValue, form.advance_amount, form.full_paid]);
   const paymentProofRequired = form.full_paid === "yes";
 
   function applySizeType(sizeType) {
@@ -255,15 +262,14 @@ export default function CreateJobSheetForm({
         <Label htmlFor="job-sheet-total-qty">Total quantity</Label>
         <Input
           id="job-sheet-total-qty"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          placeholder={sizesSum > 0 ? String(sizesSum) : "0"}
-          value={form.total_quantity}
-          onChange={(e) => setField({ total_quantity: e.target.value.replace(/\D/g, "") })}
-          required
+          readOnly
+          className="order-form-readonly-input bg-muted"
+          placeholder="0"
+          value={sizesSum > 0 ? String(sizesSum) : ""}
+          aria-label="Total quantity from size breakdown"
         />
         {sizesSum > 0 ? (
-          <p className="job-sheet-form-hint text-xs text-muted-foreground">From sizes: {sizesSum} (edit above to override)</p>
+          <p className="job-sheet-form-hint text-xs text-muted-foreground">Sum of sizes below</p>
         ) : null}
       </div>
       <div className="order-form-cell order-form-span-3">
@@ -292,11 +298,7 @@ export default function CreateJobSheetForm({
                     const v = e.target.value.replace(/\D/g, "");
                     onChange((prev) => ({
                       ...prev,
-                      sizes: { ...prev.sizes, [col.key]: v },
-                      total_quantity:
-                        prev.total_quantity === "" || prev.total_quantity === String(sizesSum)
-                          ? ""
-                          : prev.total_quantity
+                      sizes: { ...prev.sizes, [col.key]: v }
                     }));
                   }}
                 />
@@ -541,14 +543,17 @@ export default function CreateJobSheetForm({
         <Label htmlFor="job-sheet-total-amount">Total amount</Label>
         <Input
           id="job-sheet-total-amount"
-          type="number"
-          min="0"
-          step="0.01"
-          inputMode="decimal"
+          readOnly
+          className="order-form-readonly-input bg-muted"
           placeholder="0.00"
-          value={form.total_amount}
-          onChange={(e) => setField({ total_amount: e.target.value })}
+          value={totalAmountValue}
+          aria-label="Total amount (rate per piece × total quantity)"
         />
+        {sizesSum > 0 && form.rate_per_piece ? (
+          <p className="job-sheet-form-hint text-xs text-muted-foreground">
+            Rate × qty ({formatJobSheetMoneyDisplay(form.rate_per_piece)} × {sizesSum})
+          </p>
+        ) : null}
       </div>
       <div className="order-form-cell">
         <Label htmlFor="job-sheet-advance-amount">Advance amount received</Label>

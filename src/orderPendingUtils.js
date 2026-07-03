@@ -49,8 +49,8 @@ export function createPendingProductionOrder({
     due_date: dueDate || null,
     expected_handover_to_printing: handoverDate || null,
     qty: qty ?? 0,
-    status: "new",
-    order_kind: "printing",
+    status: "quotation_approval",
+    order_kind: "job_sheet",
     is_production_order: true
   };
 }

@@ -18,7 +18,19 @@ const STATUS_STYLES = {
     "border-transparent bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300",
   dispatch_fail: "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300",
   dispatched:
-    "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
+    "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
+  quotation_approval:
+    "border-transparent bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300",
+  sampling: "border-transparent bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300",
+  sourcing: "border-transparent bg-cyan-100 text-cyan-900 dark:bg-cyan-950 dark:text-cyan-300",
+  sourcing_in_transit:
+    "border-transparent bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-300",
+  inward: "border-transparent bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-300",
+  cutting: "border-transparent bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-300",
+  stitching:
+    "border-transparent bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-950 dark:text-fuchsia-300",
+  trimming: "border-transparent bg-pink-100 text-pink-900 dark:bg-pink-950 dark:text-pink-300",
+  qc: "border-transparent bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-300"
 };
 
 export default function OrderStatusBadge({ status, label, icon = null, className }) {

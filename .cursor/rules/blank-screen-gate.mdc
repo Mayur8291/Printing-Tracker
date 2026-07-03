@@ -1,0 +1,43 @@
+---
+description: Mandatory blank-screen verification before finishing any UI/frontend change
+alwaysApply: true
+---
+
+# Blank screen gate (mandatory)
+
+## Why blank screens happen here
+
+React **crashes the whole app** on uncaught errors during render. There is no error boundary on the root. Common causes in this repo:
+
+1. **Missing import** — JSX uses `<Badge>` but import removed (e.g. `ReferenceError: Badge is not defined`).
+2. **Stale variable** — rename/remove in refactor but still referenced (e.g. `effectiveQty`).
+3. **Broken merge** — duplicate or half-replaced function (`openViewOrder` overwritten by `handleMarkComplete`).
+4. **JSX mismatch** — unclosed tag; Vite HMR may still leave a broken module cached.
+
+`npm run build` catches syntax errors but **not** all runtime ReferenceErrors.
+
+## Before telling the user a UI change is done
+
+Run **in order** and fix failures before responding:
+
+```bash
+npm run check:ui
+```
+
+If the change touches **Create Job sheet**, **Create order modal**, or **View order** / **Order history**, also mentally smoke-test that path (modal open → close → no white page).
+
+### Agent checklist (required)
+
+1. **`npm run check:ui`** — must exit 0 (build + JSX import heuristic).
+2. **Changed files** — every PascalCase JSX tag has an import; every `useMemo`/handler variable is defined.
+3. **No duplicate function names** in the same file after search-replace (especially `App.jsx`).
+4. **Modal stacking** — new overlays must not trap the user (close handlers wired; z-index documented if custom).
+5. **Do not claim “fixed” or “done”** until step 1 passes in this session.
+
+### If user reports blank screen
+
+1. Browser DevTools → Console → first red error.
+2. Restore import or variable; run `npm run check:ui` again.
+3. User hard refresh: `Cmd+Shift+R`.
+
+See `docs/DEBUGGING.md` → “Blank white screen on load”.

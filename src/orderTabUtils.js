@@ -1,3 +1,5 @@
+import { isJobSheetOrder } from "./jobSheetUtils";
+
 export const PAYMENT_METHODS = [
   { value: "paid", label: "Paid" },
   { value: "pi_sent_advance_received", label: "PI Sent Advance Received" },
@@ -82,6 +84,11 @@ export function filterProductionTrackerOrders(orders) {
   return orders.filter((o) => !o.is_complete && Boolean(o.is_production_order));
 }
 
+/** Printing orders tab — excludes production tracker job sheets. */
+export function filterPrintingTabOrders(orders) {
+  return orders.filter((o) => !isJobSheetOrder(o));
+}
+
 /** Billing tab lists all orders (date range still applied in App). */
 export function filterBillingOrders(orders) {
   return orders;
@@ -158,7 +165,10 @@ const PRINTING_DEPARTMENT_STATUSES = new Set([
 
 export function filterPrintingDepartmentOrders(orders) {
   return orders.filter(
-    (o) => !o.is_complete && PRINTING_DEPARTMENT_STATUSES.has(o.status ?? "")
+    (o) =>
+      !o.is_complete &&
+      !isJobSheetOrder(o) &&
+      PRINTING_DEPARTMENT_STATUSES.has(o.status ?? "")
   );
 }
 

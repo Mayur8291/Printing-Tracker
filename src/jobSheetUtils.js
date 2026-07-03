@@ -24,6 +24,20 @@ export function isPetsJobSheetGender(gender) {
   return String(gender ?? "").trim() === "pets";
 }
 
+/** Production tracker job sheet — not a printing-floor order. */
+export function isJobSheetOrder(order) {
+  if ((order?.order_kind ?? "printing") === "job_sheet") return true;
+  if (!order?.is_production_order) return false;
+  if (String(order.job_sheet_payment_mode ?? "").trim()) return true;
+  if (String(order.gender ?? "").trim()) return true;
+  if (String(order.size_type ?? "").trim()) return true;
+  if (order.rate_per_piece != null && order.rate_per_piece !== "") return true;
+  const salesIncharge = String(order.sales_incharge_name ?? "").trim();
+  const hasPrintingPayment = String(order.payment_method ?? "").trim();
+  if (salesIncharge && !hasPrintingPayment) return true;
+  return false;
+}
+
 
 
 export function getJobSheetActiveColumns({ gender = "", sizeType = "" } = {}) {

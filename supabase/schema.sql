@@ -64,7 +64,10 @@ alter table public.orders drop column if exists printing_cost;
 alter table public.orders drop column if exists cost_per_mtr;
 alter table public.orders drop constraint if exists orders_status_check;
 alter table public.orders add constraint orders_status_check
-check (status in ('new', 'approval_pending', 'in_production', 'printing', 'fusing', 'ironing', 'packing', 'pending', 'on_hold', 'ready', 'sent_to_dispatch', 'dispatch_fail', 'dispatched'));
+check (status in (
+  'new', 'approval_pending', 'in_production', 'printing', 'fusing', 'ironing', 'packing', 'pending', 'on_hold', 'ready', 'sent_to_dispatch', 'dispatch_fail', 'dispatched',
+  'quotation_approval', 'sampling', 'sourcing', 'sourcing_in_transit', 'inward', 'cutting', 'stitching', 'trimming', 'qc'
+));
 
 alter table public.orders add column if not exists status_ready_at timestamptz;
 
@@ -970,7 +973,7 @@ insert into storage.buckets (id, name, public)
 values ('contact-book-photos', 'contact-book-photos', true)
 on conflict (id) do update set public = true;
 
--- Per-job activity timeline (see migration 20260520180000_add_order_activity_log.sql for full definition).
+-- Per-job activity timeline (see migrations 20260520180000_add_order_activity_log.sql and 20260703190000_job_sheet_activity_log.sql).
 create table if not exists public.order_activity_log (
   id bigint generated always as identity primary key,
   order_id bigint not null references public.orders(id) on delete cascade,
@@ -1295,11 +1298,11 @@ alter table public.order_templates
 -- Order kind: printing vs regular stock (see migration 20260605120000_add_order_kind.sql).
 alter table public.orders
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling', 'job_sheet'));
 
 alter table public.order_templates
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling', 'job_sheet'));
 
 -- Shared resource links (see migration 20260604120000_add_shared_resource_links.sql).
 create table if not exists public.shared_resource_links (

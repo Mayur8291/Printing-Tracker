@@ -17,6 +17,22 @@ export function parseJobSheetMoney(raw) {
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
 }
 
+export function jobSheetPaymentModeLabel(value) {
+  if (!value) return "—";
+  const row = JOB_SHEET_PAYMENT_MODES.find((o) => o.value === value);
+  return row?.label ?? value;
+}
+
+export function calcJobSheetTotalAmount(ratePerPiece, quantity) {
+  const rate = parseJobSheetMoney(ratePerPiece);
+  const qty =
+    typeof quantity === "number" && Number.isFinite(quantity) && quantity > 0
+      ? Math.floor(quantity)
+      : 0;
+  if (rate == null || qty <= 0) return null;
+  return Math.round(rate * qty * 100) / 100;
+}
+
 export function calcJobSheetAdvancePercent(totalAmount, advanceAmount) {
   const total = parseJobSheetMoney(totalAmount) ?? 0;
   const advance = parseJobSheetMoney(advanceAmount) ?? 0;

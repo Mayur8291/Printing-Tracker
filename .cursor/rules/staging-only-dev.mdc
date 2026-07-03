@@ -1,0 +1,17 @@
+# Staging-only during development
+
+## Local app
+
+- Daily work: `npm run dev` → must use `.env.development` → staging ref `scvojtvgnkmbupvyslmb`.
+- Never point `.env.development` or `.env.staging` at production ref `levwrmvqdntngeasrtnb`.
+- Run `npm run check:env` before DB-related work.
+
+## Supabase MCP / SQL / migrations
+
+- **Development tasks:** use staging project `scvojtvgnkmbupvyslmb` (`user-supabase staging` MCP server).
+- **Do not** run `apply_migration`, `execute_sql` DDL, or schema experiments on production unless the user explicitly requests a production release.
+- Production DB changes belong in the release flow: QA on staging → merge to `main` → `supabase link --project-ref levwrmvqdntngeasrtnb` → `db push`.
+
+## Production ref (read-only during dev)
+
+- `levwrmvqdntngeasrtnb` — live Printing Live tracker data (~300 orders).

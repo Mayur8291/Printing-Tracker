@@ -11,10 +11,13 @@ import {
 import OrdersListFilters from "./components/orders/OrdersListFilters";
 import OrdersListSummary from "./components/orders/OrdersListSummary";
 import OrderIdBadges from "./components/orders/OrderIdBadges";
+import JobSheetOrderIdBadge from "./JobSheetOrderIdBadge";
+import { isJobSheetOrder } from "./jobSheetUtils";
 import OrderStatusBadge from "./components/orders/OrderStatusBadge";
 import { orderListRowClassName } from "./components/orders/orderTableUtils";
 import OrderViewActionCell from "./components/orders/OrderViewActionCell";
-import { formatDeliveryDate, STAGE_LABEL } from "./orderViewUtils";
+import { formatDeliveryDate } from "./orderViewUtils";
+import { stageLabelForOrder } from "./stickerOrderUtils";
 import { OrdersPagination, usePagination } from "./orderPagination";
 import { cn } from "@/lib/utils";
 
@@ -109,7 +112,7 @@ export default function LinkedOrdersTabPanel({
               </TableHeader>
               <TableBody>
                 {visibleOrders.map((order) => {
-                  const statusLabel = STAGE_LABEL[order.status] ?? order.status ?? "—";
+                  const statusLabel = stageLabelForOrder(order, order.status);
                   return (
                     <TableRow
                       key={order.clientKey ?? order.id}
@@ -119,7 +122,10 @@ export default function LinkedOrdersTabPanel({
                         <OrderViewActionCell order={order} onViewOrder={onViewOrder} />
                       </TableCell>
                       <TableCell>
-                        <OrderIdBadges orderId={order.order_id} />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {isJobSheetOrder(order) ? <JobSheetOrderIdBadge /> : null}
+                          <OrderIdBadges orderId={order.order_id} />
+                        </div>
                       </TableCell>
                       <TableCell className="max-w-[12rem] truncate">
                         {order.customer_name?.trim() ? order.customer_name : "—"}

@@ -112,3 +112,70 @@ Production tracker job sheets store payment and approval data on the same `order
 |-----------|--------|
 | `20260703160000_add_job_sheet_payment_delivery_approval.sql` | Add columns above |
 | `20260703180000_add_job_sheet_regular_stock.sql` | Regular stock flag + items jsonb |
+
+## `orders.order_kind` — job sheet
+
+| Value | Purpose |
+|-------|---------|
+| `printing` | Standard printing floor order |
+| `job_sheet` | Production tracker job sheet only — **excluded** from Printing orders tab |
+| `sticker`, `sampling`, `regular_stock` | Other specialized flows |
+
+Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet`.
+
+| Migration | Change |
+|-----------|--------|
+| `20260703200000_add_order_kind_job_sheet.sql` | Add `job_sheet` to check constraint; backfill existing job sheet rows |
+
+## Job sheet production status (`orders.status`)
+
+Garment pipeline for Production tracker (`order_kind = job_sheet`). Updated by production users with **Status** field permission in View order.
+
+| Code | Label |
+|------|-------|
+| `quotation_approval` | Quotation approval |
+| `sampling` | Sampling |
+| `sourcing` | Sourcing |
+| `sourcing_in_transit` | Sourcing in transit |
+| `inward` | Inward |
+| `cutting` | Cutting |
+| `stitching` | Stitching |
+| `trimming` | Trimming |
+| `ironing` | Ironing |
+| `qc` | QC |
+| `packing` | Packing |
+| `ready` | Ready to Dispatch |
+
+| Migration | Change |
+|-----------|--------|
+| `20260703183000_job_sheet_production_stages.sql` | Extend `orders_status_check`; update `status_label()`; backfill `new` → `quotation_approval` for job sheets |
+
+## `order_activity_log`
+
+Append-only timeline for printing orders and production job sheets (same `orders` row, `is_production_order` distinguishes type).
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | bigint | Primary key |
+| `order_id` | bigint | FK → `orders.id` |
+| `event_type` | text | Event key (see below) |
+| `message` | text | Human-readable summary |
+| `meta` | jsonb | Structured before/after or snapshot |
+| `actor_id` | uuid | Auth user (nullable) |
+| `actor_label` | text | Display name at time of event |
+| `created_at` | timestamptz | Event time |
+
+**Trigger:** `trg_log_order_activity` on `orders` INSERT/UPDATE calls `log_order_activity()`.
+
+**Printing event types:** `order_created`, `status_changed`, `marked_complete`, design review events, `remarks_updated`, `qty_updated`, `due_date_updated`, `coordinator_updated`, `printing_mtrs_updated`, `received_at_printing_updated`.
+
+**Job sheet event types (added 20260703190000):** `job_sheet_created`, `sales_incharge_updated`, `product_name_updated`, `colors_updated`, `size_type_updated`, `gender_updated`, `product_type_updated`, `rate_per_piece_updated`, `size_breakdown_updated`, `brand_updated`, `fabric_type_updated`, `gsm_updated`, `branding_updated`, `atta_updated`, `expected_handover_updated`, `job_sheet_payment_updated`, `job_sheet_advance_proof_uploaded`, `job_sheet_payment_proof_uploaded`, `job_sheet_delivery_updated`, `job_sheet_approval_updated`, `job_sheet_regular_stock_updated`.
+
+**UI labels:** `src/orderHistoryUtils.js` maps `event_type` → display label; modal title is **Job sheet history** when `is_production_order`.
+
+### Migrations (activity log)
+
+| Migration | Change |
+|-----------|--------|
+| `20260520180000_add_order_activity_log.sql` | Table + initial trigger |
+| `20260703190000_job_sheet_activity_log.sql` | Job sheet field logging in trigger |

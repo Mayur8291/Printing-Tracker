@@ -5,8 +5,10 @@ import {
   filterPrintingDepartmentOrders,
   filterProductionTrackerOrders
 } from "./orderTabUtils";
+import { isJobSheetOrder } from "./jobSheetUtils";
 import { formatOcCreatedAt, ocTransportLabel } from "./outwardChallanUtils";
 import { splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
+import { stageLabelForOrder } from "./stickerOrderUtils";
 
 const MAX_SUGGESTIONS = 24;
 
@@ -27,6 +29,7 @@ export function orderMatchesGlobalQuery(order, query) {
     order.owner_name,
     order.status,
     STAGE_LABEL[order.status],
+    stageLabelForOrder(order, order.status),
     String(order.id)
   ]
     .map(norm)
@@ -98,7 +101,7 @@ function pushOrderHit(suggestions, order, hit) {
     badgeTone: hit.badgeTone,
     title: orderTitle(order),
     subtitle: orderSubtitle(order),
-    meta: STAGE_LABEL[order.status] ?? order.status ?? "—",
+    meta: stageLabelForOrder(order, order.status),
     order,
     dispatchSubview: hit.dispatchSubview ?? null
   });
@@ -107,9 +110,9 @@ function pushOrderHit(suggestions, order, hit) {
 function buildOrderHits(order, canAccessTab) {
   const hits = [];
   const orderKind = order.order_kind ?? "printing";
-  const statusLabel = STAGE_LABEL[order.status] ?? order.status ?? "—";
+  const statusLabel = stageLabelForOrder(order, order.status);
 
-  if (canAccessTab("printing")) {
+  if (canAccessTab("printing") && !isJobSheetOrder(order)) {
     hits.push({
       tabId: "printing",
       areaLabel: "Printing Orders",

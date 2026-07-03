@@ -5,10 +5,11 @@ import { createCoordinatorSelectOptions } from "./coordinatorSelectUtils";
 import { buildAdminOrderDraftFromOrder } from "./orderAdminEditUtils";
 import OrderStatusBadge from "./components/orders/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { getOrderHistoryButtonLabel } from "./orderHistoryUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -38,7 +39,12 @@ import {
   paymentMethodLabel,
   paymentMethodRequiresProof
 } from "./orderTabUtils";
-import { jobSheetFullPaidMissingPaymentProof } from "./jobSheetPaymentUtils";
+import {
+  jobSheetProductionStatusOptions,
+  jobSheetProductionStageLabel
+} from "./jobSheetProductionStages";
+import { formatJobSheetMoneyDisplay } from "./jobSheetPaymentUtils";
+import { isJobSheetOrder, getJobSheetGenderLabel, getJobSheetProductTypeLabel, getJobSheetSizeTypeLabel } from "./jobSheetUtils";
 import { supabase } from "./supabaseClient";
 import { DatePicker } from "@/components/ui/date-picker";
 import MasterListSelectField from "@/components/admin/MasterListSelectField";
@@ -49,6 +55,8 @@ import {
 } from "./orderCustomerAssets";
 import StickerOrderIdBadge from "./StickerOrderIdBadge";
 import SamplingOrderIdBadge from "./SamplingOrderIdBadge";
+import JobSheetOrderIdBadge from "./JobSheetOrderIdBadge";
+import JobSheetOrderPaymentSection from "./JobSheetOrderPaymentSection";
 import {
   compactPrintingOrderLabel,
   formatStickerQtyDisplay,
@@ -97,6 +105,11 @@ function DetailSelect({ value, onValueChange, options, disabled = false }) {
   );
 }
 
+function FallbackColorsCell({ colors }) {
+  if (!Array.isArray(colors) || colors.length === 0) return "—";
+  return colors.filter(Boolean).join(", ");
+}
+
 export default function OrderDetailPanel({
   order,
   onClose,
@@ -137,6 +150,8 @@ export default function OrderDetailPanel({
   handleAppendPostApprovedDesignImages,
   handleAppendPaymentProof,
   handleAppendJobSheetPaymentProof,
+  handleAppendJobSheetAdvanceProof,
+  handleAppendJobSheetApprovalImage,
   handleUpdatePaymentMethod,
   uploadingPaymentProofOrderId,
   handleArchiveApprovedDesignImages,
@@ -152,6 +167,34 @@ export default function OrderDetailPanel({
   onAddOwner,
   onAddCoordinator
 }) {
+  const ColorsCell = OrderColorsCell ?? FallbackColorsCell;
+
+  const [customerAssets, setCustomerAssets] = useState([]);
+  const [customerAssetsLoading, setCustomerAssetsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!order?.id) {
+      setCustomerAssets([]);
+      setCustomerAssetsLoading(false);
+      return undefined;
+    }
+    let cancelled = false;
+    setCustomerAssetsLoading(true);
+    fetchOrderCustomerAssets(supabase, order.id)
+      .then((rows) => {
+        if (!cancelled) setCustomerAssets(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setCustomerAssets([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCustomerAssetsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [order?.id]);
+
   function renderOrderIdBadges(orderId) {
     const ids = splitOrderIds(orderId);
     if (!ids.length) return "—";
@@ -182,20 +225,39 @@ export default function OrderDetailPanel({
   const isUploadingPaymentProof = uploadingPaymentProofOrderId === order.id;
   const designActionsBusy = isArchivingDesigns || isUploadingDesigns;
   const paymentProofUrls = parsePaymentProofUrls(order.payment_screenshot_url);
-  const jobSheetPaymentProofUrls = parsePaymentProofUrls(order.job_sheet_payment_proof_url);
-  const jobSheetProofMissing = jobSheetFullPaidMissingPaymentProof(order, parsePaymentProofUrls);
-  const showJobSheetPaymentProof =
-    Boolean(order.is_production_order && order.job_sheet_full_paid);
+  const compactPrinting = isCompactPrintingOrder(order);
+  const jobSheet = isJobSheetOrder(order);
+  const sticker = isStickerOrder(order);
+  const sampling = isSamplingOrder(order);
   const canEditPayment = canCurrentUserEdit("payment_method");
   const showPaymentProofUpload =
     canEditPayment && paymentMethodRequiresProof(order.payment_method);
-  const adminDraft =
-    isAdmin && (adminOrderDrafts?.[order.id] ?? buildAdminOrderDraftFromOrder(order));
-  const compactPrinting = isCompactPrintingOrder(order);
-  const sticker = isStickerOrder(order);
-  const sampling = isSamplingOrder(order);
-  const statusOptionStages = compactPrinting && !isAdmin ? STICKER_STAGES : FORM_STAGES;
-  const statusDisplayLabel = stageLabelForOrder(order, order.status);
+  const adminDraft = isAdmin
+    ? adminOrderDrafts?.[order.id] ?? buildAdminOrderDraftFromOrder(order)
+    : null;
+  const statusOptionStages = useMemo(() => {
+    if (jobSheet) return jobSheetProductionStatusOptions(order.status);
+    if (compactPrinting && !isAdmin) return STICKER_STAGES;
+    return FORM_STAGES;
+  }, [jobSheet, compactPrinting, isAdmin, order.status]);
+  const statusSelectOptions = useMemo(() => {
+    const current = String(statusUpdates[order.id] ?? order.status ?? "").trim();
+    const stages = [...statusOptionStages];
+    if (current && !stages.includes(current)) {
+      stages.unshift(current);
+    }
+    return stages.map((stage) => ({
+      value: stage,
+      label: jobSheet
+        ? jobSheetProductionStageLabel(stage)
+        : compactPrinting
+          ? `${STICKER_STAGE_LABEL[stage] ?? STAGE_LABEL[stage]}`
+          : STAGE_LABEL[stage] ?? stage
+    }));
+  }, [statusOptionStages, statusUpdates, order.id, order.status, jobSheet, compactPrinting]);
+  const statusDisplayLabel = jobSheet
+    ? jobSheetProductionStageLabel(order.status)
+    : stageLabelForOrder(order, order.status);
 
   const coordinatorValue = coordinatorUpdates[order.id] ?? order.coordinator_name ?? "";
   const coordinatorSelectOptions = useMemo(
@@ -213,34 +275,15 @@ export default function OrderDetailPanel({
     patchAdminOrderDraft?.(order.id, patch);
   }
 
-  const [customerAssets, setCustomerAssets] = useState([]);
-  const [customerAssetsLoading, setCustomerAssetsLoading] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setCustomerAssetsLoading(true);
-    fetchOrderCustomerAssets(supabase, order.id)
-      .then((rows) => {
-        if (!cancelled) setCustomerAssets(rows);
-      })
-      .catch(() => {
-        if (!cancelled) setCustomerAssets([]);
-      })
-      .finally(() => {
-        if (!cancelled) setCustomerAssetsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [order.id]);
-
   return (
     <div className="flex min-h-0 flex-col bg-background text-foreground">
       <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b bg-background px-6 py-5">
         <div className="min-w-0">
           <h3 className="truncate text-xl font-semibold tracking-tight">{order.customer_name}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {compactPrinting ? (
+            {jobSheet ? (
+              <>Job sheet {order.order_id || order.id} · Job #{order.id}</>
+            ) : compactPrinting ? (
               <>
                 {formatSamplingOrderIdDisplay(order.order_id) || compactPrintingOrderLabel(order)} · Job #
                 {order.id}
@@ -274,7 +317,12 @@ export default function OrderDetailPanel({
               )}
             </DetailField>
             <DetailField label="Order number">
-              {compactPrinting ? (
+              {jobSheet ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <JobSheetOrderIdBadge />
+                  <span className="font-medium">{order.order_id || "—"}</span>
+                </div>
+              ) : compactPrinting ? (
                 sticker ? (
                   <StickerOrderIdBadge />
                 ) : (
@@ -292,7 +340,7 @@ export default function OrderDetailPanel({
                 renderOrderIdBadges(order.order_id)
               )}
             </DetailField>
-            {!compactPrinting ? (
+            {!compactPrinting && !jobSheet ? (
             <DetailField label="Owner">
               {isAdmin ? (
                 <MasterListSelectField
@@ -322,7 +370,7 @@ export default function OrderDetailPanel({
                 order.customer_name
               )}
             </DetailField>
-            <DetailField label="Coordinator">
+            <DetailField label={jobSheet ? "Sales incharge" : "Coordinator"}>
               {canCurrentUserEdit("coordinator_name") ? (
                 <MasterListSelectField
                   id={`order-detail-coordinator-${order.id}`}
@@ -342,11 +390,13 @@ export default function OrderDetailPanel({
                   addPlaceholder="Coordinator name"
                   triggerClassName="h-9"
                 />
+              ) : jobSheet ? (
+                order.sales_incharge_name || order.coordinator_name || "—"
               ) : (
                 order.coordinator_name
               )}
             </DetailField>
-            <DetailField label="Delivery date">
+            <DetailField label={jobSheet ? "Delivery required on" : "Delivery date"}>
               {canCurrentUserEdit("due_date") ? (
                 <DatePicker
                   id={`order-detail-due-date-${order.id}`}
@@ -435,6 +485,57 @@ export default function OrderDetailPanel({
                 )}
               </DetailField>
               )
+            ) : jobSheet ? (
+              <>
+                <DetailField label="Gender">{getJobSheetGenderLabel(order.gender) || "—"}</DetailField>
+                <DetailField label="Product type">
+                  {getJobSheetProductTypeLabel(order.product_type) || "—"}
+                </DetailField>
+                <DetailField label="Size type">
+                  {getJobSheetSizeTypeLabel(order.size_type) || order.size_type || "—"}
+                </DetailField>
+                <DetailField label="Rate per piece">
+                  {isAdmin ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      className="h-9"
+                      placeholder="0.00"
+                      value={adminDraft.rate_per_piece ?? ""}
+                      onChange={(e) => patchAdminDraft({ rate_per_piece: e.target.value })}
+                    />
+                  ) : order.rate_per_piece != null && order.rate_per_piece !== "" ? (
+                    formatJobSheetMoneyDisplay(order.rate_per_piece)
+                  ) : (
+                    "—"
+                  )}
+                </DetailField>
+                <DetailField label="Total amount">
+                  {order.order_cost != null && order.order_cost !== ""
+                    ? formatJobSheetMoneyDisplay(order.order_cost)
+                    : "—"}
+                </DetailField>
+                <DetailField label="Sizes" wide>
+                  {formatSizeBreakdownSummary(order.size_breakdown) || "—"}
+                </DetailField>
+                <DetailField label="Product">{order.product_name || "—"}</DetailField>
+                <DetailField label="Brand">{order.brand || "—"}</DetailField>
+                <DetailField label="Color">
+                  <ColorsCell colors={order.colors} />
+                </DetailField>
+                <DetailField label="Fabric">{order.fabric_type || "—"}</DetailField>
+                <DetailField label="GSM">{order.gsm || "—"}</DetailField>
+                <DetailField label="Branding">
+                  {order.branding
+                    ? order.branding_type
+                      ? `Yes · ${order.branding_type}`
+                      : "Yes"
+                    : "No"}
+                </DetailField>
+                <DetailField label="Atta">{order.atta ? "Yes" : "No"}</DetailField>
+              </>
             ) : (
               <>
             <DetailField label="Sizes" wide={isAdmin}>
@@ -463,7 +564,7 @@ export default function OrderDetailPanel({
                   onChange={(colors) => patchAdminDraft({ colors })}
                 />
               ) : (
-                <OrderColorsCell colors={order.colors} />
+                <ColorsCell colors={order.colors} />
               )}
             </DetailField>
             <DetailField label="Payment">
@@ -523,53 +624,6 @@ export default function OrderDetailPanel({
                 ) : null}
               </DetailField>
             ) : null}
-            {showJobSheetPaymentProof ? (
-              <DetailField label="Job sheet payment proof" wide>
-                {jobSheetProofMissing ? (
-                  <p className="text-sm text-destructive">
-                    Payment proof required — upload proof to enable further job updates.
-                  </p>
-                ) : null}
-                {jobSheetPaymentProofUrls.length > 0 ? (
-                  <div className="order-detail-thumb-grid">
-                    {jobSheetPaymentProofUrls.map((url, index) => (
-                      <button
-                        key={`${order.id}-job-sheet-proof-${index}`}
-                        type="button"
-                        className="approved-thumb-btn order-detail-thumb-btn order-detail-payment-screenshot-btn"
-                        onClick={() => openPreview(jobSheetPaymentProofUrls, index)}
-                      >
-                        <img src={url} alt={`Job sheet payment proof ${index + 1}`} />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No proof uploaded yet</p>
-                )}
-                <input
-                  id={`job-sheet-payment-proof-upload-${order.id}`}
-                  type="file"
-                  accept="image/*,.pdf"
-                  multiple
-                  className="sr-only"
-                  disabled={isUploadingPaymentProof}
-                  onChange={(e) => {
-                    const picked = Array.from(e.target.files ?? []);
-                    e.target.value = "";
-                    if (picked.length) void handleAppendJobSheetPaymentProof(order, picked);
-                  }}
-                />
-                <Button variant="outline" size="sm" asChild disabled={isUploadingPaymentProof}>
-                  <label htmlFor={`job-sheet-payment-proof-upload-${order.id}`}>
-                    {isUploadingPaymentProof
-                      ? "Uploading…"
-                      : jobSheetPaymentProofUrls.length
-                        ? "Add more proof"
-                        : "Upload payment proof"}
-                  </label>
-                </Button>
-              </DetailField>
-            ) : null}
             {order.invoice_url ? (
               <DetailField label="Invoice">
                 <Button variant="link" className="h-auto px-0" asChild>
@@ -594,6 +648,20 @@ export default function OrderDetailPanel({
             )}
           </div>
         </section>
+
+        {jobSheet ? (
+          <JobSheetOrderPaymentSection
+            order={order}
+            adminDraft={adminDraft}
+            isAdmin={isAdmin}
+            patchAdminDraft={patchAdminDraft}
+            openPreview={openPreview}
+            isUploadingPaymentProof={isUploadingPaymentProof}
+            onUploadAdvanceProof={handleAppendJobSheetAdvanceProof}
+            onUploadPaymentProof={handleAppendJobSheetPaymentProof}
+            onUploadApprovalImage={handleAppendJobSheetApprovalImage}
+          />
+        ) : null}
 
         {(compactPrinting || customerAssetsLoading || customerAssets.length > 0) ? (
           <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
@@ -637,7 +705,7 @@ export default function OrderDetailPanel({
           </section>
         ) : null}
 
-        {!compactPrinting || sampling ? (
+        {((!compactPrinting && !jobSheet) || sampling) ? (
         <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
           <h4 className="text-sm font-semibold tracking-tight">{sampling ? "Mockups" : "Designs"}</h4>
           <div className="grid gap-6 lg:grid-cols-2">
@@ -818,10 +886,9 @@ export default function OrderDetailPanel({
         </section>
         ) : null}
 
+        {!compactPrinting && !jobSheet ? (
         <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
-          <h4 className="text-sm font-semibold tracking-tight">
-            {compactPrinting ? "Printing" : "Production & printing"}
-          </h4>
+          <h4 className="text-sm font-semibold tracking-tight">Production & printing</h4>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {!compactPrinting ? (
               <>
@@ -943,6 +1010,7 @@ export default function OrderDetailPanel({
             ) : null}
           </div>
         </section>
+        ) : null}
 
         <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
           <h4 className="text-sm font-semibold tracking-tight">Status &amp; remarks</h4>
@@ -958,12 +1026,7 @@ export default function OrderDetailPanel({
                 onValueChange={(next) => {
                   void persistOrderStatus(order, next);
                 }}
-                options={statusOptionStages.map((stage) => ({
-                  value: stage,
-                  label: compactPrinting
-                    ? `${STICKER_STAGE_LABEL[stage] ?? STAGE_LABEL[stage]}`
-                    : STAGE_LABEL[stage]
-                }))}
+                options={statusSelectOptions}
               />
             )}
           </div>
@@ -1001,7 +1064,7 @@ export default function OrderDetailPanel({
               onClick={() => openOrderHistory(order)}
               disabled={Boolean(profileError)}
             >
-              Order history
+              {getOrderHistoryButtonLabel(order)}
             </Button>
             {(viewerMayUpdateOrders || isAdmin) && (
               <Button

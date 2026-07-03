@@ -21,6 +21,7 @@ import {
   refillPrintingDeptMaterialsBulk
 } from "./printingDeptInventoryUtils";
 import "./inventory/inventory.css";
+import InventoryIcon from "./inventory/InventoryIcon";
 
 function formatMovementTime(iso) {
   if (!iso) return "—";

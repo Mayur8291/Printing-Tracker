@@ -599,6 +599,18 @@ html.theme-dark .order-id-badge {
   white-space: nowrap;
 }
 
+.order-kind-badge--job-sheet {
+  background: linear-gradient(180deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 1px solid #16a34a;
+  color: #14532d;
+}
+
+html.theme-dark .order-kind-badge--job-sheet {
+  background: linear-gradient(180deg, #14532d 0%, #166534 100%);
+  border-color: #4ade80;
+  color: #dcfce7;
+}
+
 .order-kind-badge--sticker {
   background: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 100%);
   border: 1px solid #8b5cf6;
@@ -8491,6 +8503,10 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
 
 .image-modal-backdrop--preview {
   z-index: 1100;
+}
+
+.image-modal-backdrop--stack-top {
+  z-index: 2000;
 }
 
 .image-modal {

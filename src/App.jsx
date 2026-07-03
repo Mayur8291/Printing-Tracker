@@ -28,6 +28,10 @@ import BillingTabPanel from "./BillingTabPanel";
 import DispatchTabPanel from "./DispatchTabPanel";
 import GlobalSearchBox from "./GlobalSearchBox";
 import DevEnvironmentIndicator from "./components/DevEnvironmentIndicator";
+import {
+  getOrderHistoryTitle,
+  getOrderHistoryEventLabel
+} from "./orderHistoryUtils";
 import { OC_SELECT_FIELDS } from "./outwardChallanUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import OrdersListFilters from "./components/orders/OrdersListFilters";
@@ -88,6 +92,7 @@ import {
 import CreateJobSheetForm from "./CreateJobSheetForm";
 import CreateStickerOrderForm from "./CreateStickerOrderForm";
 import StickerOrderIdBadge from "./StickerOrderIdBadge";
+import JobSheetOrderIdBadge from "./JobSheetOrderIdBadge";
 import SamplingOrderIdBadge from "./SamplingOrderIdBadge";
 import {
   computeNextSamplingOrderId,
@@ -109,6 +114,7 @@ import InventoryTabPanel from "./InventoryTabPanel";
 import {
   computeNextJobSheetOrderId,
   emptyJobSheetForm,
+  isJobSheetOrder,
   jobSheetFormFromOrder,
   jobSheetFormFromPrintingOrderForm,
   jobSheetSizesToBreakdown,
@@ -120,6 +126,7 @@ import {
 import {
   calcJobSheetBalanceAmount,
   calcJobSheetPendingAmount,
+  calcJobSheetTotalAmount,
   jobSheetFullPaidMissingPaymentProof,
   parseJobSheetMoney
 } from "./jobSheetPaymentUtils";
@@ -140,6 +147,7 @@ import {
   filterOrdersBySearch,
   isDispatchVerificationFailed,
   filterOrdersInDateRange,
+  filterPrintingTabOrders,
   filterProductionTrackerOrders,
   parsePaymentProofUrls,
   paymentMethodLabel,
@@ -200,6 +208,7 @@ import {
   ORDERS_LIST_SELECT,
   orderNeedsDetailHydration
 } from "./orderQueryFields";
+import { JOB_SHEET_PRODUCTION_STAGE_ICON } from "./jobSheetProductionStages";
 
 const STAGE_ICON = {
   new: "🆕",
@@ -214,7 +223,8 @@ const STAGE_ICON = {
   ready: "✅",
   sent_to_dispatch: "🚚",
   dispatch_fail: "⛔",
-  dispatched: "📤"
+  dispatched: "📤",
+  ...JOB_SHEET_PRODUCTION_STAGE_ICON
 };
 
 /**
@@ -518,26 +528,6 @@ function OrderColorsCell({ colors }) {
     </span>
   );
 }
-
-const ORDER_HISTORY_EVENT_LABELS = {
-  order_created: "Job created",
-  mockups_uploaded: "Mockups uploaded",
-  status_changed: "Status update",
-  marked_complete: "Completed",
-  design_images_uploaded: "Design images uploaded",
-  design_resubmitted: "Designs resubmitted",
-  design_images_updated: "Design images updated",
-  design_approved: "Design approved",
-  design_changes_requested: "Changes requested",
-  design_pending_review: "Awaiting review",
-  design_changes_note_updated: "Changes note",
-  remarks_updated: "Remarks",
-  qty_updated: "Quantity",
-  due_date_updated: "Delivery date",
-  coordinator_updated: "Coordinator",
-  printing_mtrs_updated: "Printing metres",
-  received_at_printing_updated: "Received at printing"
-};
 
 const DASHBOARD_TAB_STORAGE_KEY = "printing-tracker-dashboard-tab";
 
@@ -1682,6 +1672,7 @@ function App() {
     setShowCreateForm(false);
     setCreateFormMode("printing");
     resetCreateOrderFormFields();
+    closeOrderHistory();
   }
 
   function cancelJobSheetForm() {
@@ -2398,24 +2389,24 @@ function App() {
       formSnapshot.size_type,
       formSnapshot.gender
     );
-    const manualQty = parseJobSheetSizeQty(formSnapshot.total_quantity);
-    const qty = manualQty > 0 ? manualQty : fromSizes;
+    const qty = fromSizes;
     if (qty <= 0) {
-      alert("Please enter total quantity or quantities in at least one size.");
+      alert("Please enter quantities in at least one size.");
       return;
     }
 
     const colorText = String(formSnapshot.color ?? "").trim();
-    const totalAmount = parseJobSheetMoney(formSnapshot.total_amount);
+    const totalAmount = calcJobSheetTotalAmount(formSnapshot.rate_per_piece, qty);
     const advanceAmount = parseJobSheetMoney(formSnapshot.advance_amount);
     const transportCharges = parseJobSheetMoney(formSnapshot.transport_charges);
     if (advanceAmount != null && totalAmount != null && advanceAmount > totalAmount) {
       alert("Advance amount cannot exceed total amount.");
       return;
     }
-    const balanceAmount = calcJobSheetBalanceAmount(formSnapshot.total_amount, formSnapshot.advance_amount);
+    const totalAmountStr = totalAmount != null ? String(totalAmount) : "";
+    const balanceAmount = calcJobSheetBalanceAmount(totalAmountStr, formSnapshot.advance_amount);
     const pendingAmount = calcJobSheetPendingAmount(
-      formSnapshot.total_amount,
+      totalAmountStr,
       formSnapshot.advance_amount,
       formSnapshot.full_paid
     );
@@ -2434,8 +2425,9 @@ function App() {
     const payload = {
       order_date: formSnapshot.order_date || todayLocalISODate(),
       order_id: formSnapshot.order_id,
+      order_kind: "job_sheet",
       is_production_order: true,
-      status: "new",
+      status: "quotation_approval",
       customer_name: formSnapshot.customer_name.trim(),
       sales_incharge_name: formSnapshot.sales_incharge_name,
       coordinator_name: formSnapshot.sales_incharge_name,
@@ -2560,7 +2552,13 @@ function App() {
         .single();
 
       if (error) {
-        alert(error.message);
+        if (error.message?.includes("orders_order_kind_check")) {
+          alert(
+            "Job sheet order type is not enabled on the database. Apply migration 20260703200000_add_order_kind_job_sheet.sql."
+          );
+        } else {
+          alert(error.message);
+        }
         return;
       }
 
@@ -2575,6 +2573,7 @@ function App() {
       }
 
       await fetchOrders({ silent: true });
+      closeOrderHistory();
 
       if (fromPrintingForm) {
         jobSheetFromPrintingFormRef.current = false;
@@ -3594,6 +3593,10 @@ function App() {
 
   function openViewOrder(order) {
     if (order?._isPending) return;
+    if (showCreateForm) {
+      setShowCreateForm(false);
+      setCreateFormMode("printing");
+    }
     setViewOrderTarget(order);
     setViewOrderFromTab(dashboardTab);
     if (order?.id && orderNeedsDetailHydration(order)) {
@@ -3664,6 +3667,7 @@ function App() {
   function closeViewOrder() {
     setViewOrderTarget(null);
     setViewOrderFromTab(null);
+    closeOrderHistory();
   }
 
   async function refreshOrderHistory() {
@@ -3764,9 +3768,10 @@ function App() {
 
   const filteredOrders = useMemo(() => {
     if (ordersTab === "print_queue") return [];
-    return ordersInDateRange.filter((o) =>
+    const tabbed = ordersInDateRange.filter((o) =>
       ordersTab === "complete" ? o.is_complete : !o.is_complete
     );
+    return filterPrintingTabOrders(tabbed);
   }, [ordersInDateRange, ordersTab]);
 
   const coordinatorFilterOptions = useMemo(() => {
@@ -4307,7 +4312,20 @@ function App() {
     if (isAdmin) {
       const orderRow = orders.find((o) => o.id === orderId);
       const draft = adminOrderDrafts[orderId] ?? buildAdminOrderDraftFromOrder(orderRow ?? {});
-      Object.assign(payload, buildAdminOrderFieldsPayload(draft));
+      const adminPayload = buildAdminOrderFieldsPayload(draft, orderRow ?? {});
+      if (draft.isJobSheetRow) {
+        const advance = adminPayload.job_sheet_advance_amount;
+        const total = adminPayload.order_cost ?? orderRow?.order_cost;
+        if (advance != null && total != null && advance > total) {
+          alert("Advance amount cannot exceed total amount.");
+          return;
+        }
+        if (adminPayload.job_sheet_full_paid && jobSheetFullPaidMissingPaymentProof(orderRow, parsePaymentProofUrls)) {
+          alert("Upload full payment proof before marking the job as full paid.");
+          return;
+        }
+      }
+      Object.assign(payload, adminPayload);
     }
 
     if (!Object.keys(payload).length) return;
@@ -4358,7 +4376,67 @@ function App() {
                 "expected_handover_to_printing"
               )
                 ? payload.expected_handover_to_printing
-                : order.expected_handover_to_printing
+                : order.expected_handover_to_printing,
+              rate_per_piece: Object.prototype.hasOwnProperty.call(payload, "rate_per_piece")
+                ? payload.rate_per_piece
+                : order.rate_per_piece,
+              job_sheet_payment_mode: Object.prototype.hasOwnProperty.call(payload, "job_sheet_payment_mode")
+                ? payload.job_sheet_payment_mode
+                : order.job_sheet_payment_mode,
+              job_sheet_advance_amount: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_advance_amount"
+              )
+                ? payload.job_sheet_advance_amount
+                : order.job_sheet_advance_amount,
+              job_sheet_advance_payment_date: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_advance_payment_date"
+              )
+                ? payload.job_sheet_advance_payment_date
+                : order.job_sheet_advance_payment_date,
+              job_sheet_balance_amount: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_balance_amount"
+              )
+                ? payload.job_sheet_balance_amount
+                : order.job_sheet_balance_amount,
+              job_sheet_pending_amount: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_pending_amount"
+              )
+                ? payload.job_sheet_pending_amount
+                : order.job_sheet_pending_amount,
+              job_sheet_full_paid: Object.prototype.hasOwnProperty.call(payload, "job_sheet_full_paid")
+                ? payload.job_sheet_full_paid
+                : order.job_sheet_full_paid,
+              job_sheet_payment_closure_at: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_payment_closure_at"
+              )
+                ? payload.job_sheet_payment_closure_at
+                : order.job_sheet_payment_closure_at,
+              job_sheet_delivery_city: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_delivery_city"
+              )
+                ? payload.job_sheet_delivery_city
+                : order.job_sheet_delivery_city,
+              job_sheet_transport_charges: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_transport_charges"
+              )
+                ? payload.job_sheet_transport_charges
+                : order.job_sheet_transport_charges,
+              job_sheet_approval_date: Object.prototype.hasOwnProperty.call(
+                payload,
+                "job_sheet_approval_date"
+              )
+                ? payload.job_sheet_approval_date
+                : order.job_sheet_approval_date,
+              job_sheet_approved_by: Object.prototype.hasOwnProperty.call(payload, "job_sheet_approved_by")
+                ? payload.job_sheet_approved_by
+                : order.job_sheet_approved_by
             }
           : order
       )
@@ -4595,6 +4673,88 @@ function App() {
       }
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, job_sheet_payment_proof_url: serialized } : o))
+      );
+    } finally {
+      setUploadingPaymentProofOrderId(null);
+    }
+  }
+
+  async function handleAppendJobSheetAdvanceProof(order, fileList) {
+    const files = Array.from(fileList ?? []).filter((f) => f instanceof File);
+    if (!files.length) {
+      alert("Please choose an image or PDF file.");
+      return;
+    }
+    if (!session?.user) return;
+    const orderId = order.id;
+    const idKey = String(orderId);
+    const freshOrder = orders.find((o) => String(o.id) === idKey) ?? order;
+    setUploadingPaymentProofOrderId(orderId);
+    try {
+      const existing = parsePaymentProofUrls(freshOrder.job_sheet_advance_proof_url);
+      const nextUrls = [...existing];
+      for (const file of files) {
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+        const paymentPath = `${orderId}/job-sheet-advance-${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("payment-screenshots")
+          .upload(paymentPath, file, { upsert: true });
+        if (uploadError) {
+          alert(uploadError.message);
+          return;
+        }
+        const { data: urlData } = supabase.storage.from("payment-screenshots").getPublicUrl(paymentPath);
+        if (urlData?.publicUrl) nextUrls.push(urlData.publicUrl);
+      }
+      const serialized = serializePaymentProofUrls(nextUrls);
+      const { error: saveError } = await supabase
+        .from("orders")
+        .update({ job_sheet_advance_proof_url: serialized })
+        .eq("id", orderId);
+      if (saveError) {
+        alert(saveError.message);
+        await fetchOrders({ silent: true });
+        return;
+      }
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, job_sheet_advance_proof_url: serialized } : o))
+      );
+    } finally {
+      setUploadingPaymentProofOrderId(null);
+    }
+  }
+
+  async function handleAppendJobSheetApprovalImage(order, file) {
+    if (!(file instanceof File)) {
+      alert("Please choose an image file.");
+      return;
+    }
+    if (!session?.user) return;
+    const orderId = order.id;
+    setUploadingPaymentProofOrderId(orderId);
+    try {
+      const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+      const storagePath = `${orderId}/job-sheet-approval-${safeName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("approved-designs")
+        .upload(storagePath, file, { upsert: true });
+      if (uploadError) {
+        alert(uploadError.message);
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("approved-designs").getPublicUrl(storagePath);
+      const publicUrl = urlData?.publicUrl ?? null;
+      const { error: saveError } = await supabase
+        .from("orders")
+        .update({ job_sheet_approval_image_url: publicUrl })
+        .eq("id", orderId);
+      if (saveError) {
+        alert(saveError.message);
+        await fetchOrders({ silent: true });
+        return;
+      }
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, job_sheet_approval_image_url: publicUrl } : o))
       );
     } finally {
       setUploadingPaymentProofOrderId(null);
@@ -5046,7 +5206,9 @@ function App() {
                                   </TableCell>
                                   <TableCell>
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                      {isStickerOrder(order) ? (
+                                      {isJobSheetOrder(order) ? (
+                                        <JobSheetOrderIdBadge />
+                                      ) : isStickerOrder(order) ? (
                                         <StickerOrderIdBadge />
                                       ) : isSamplingOrder(order) ? (
                                         <SamplingOrderIdBadge orderId={order.order_id} />
@@ -5191,10 +5353,14 @@ function App() {
             }}
             extraColumn={{
               header: "Handover to printing",
-              render: (order) =>
-                order.expected_handover_to_printing
+              render: (order) => {
+                if (isJobSheetOrder(order)) {
+                  return order.due_date ? formatDeliveryDate(order.due_date) : "—";
+                }
+                return order.expected_handover_to_printing
                   ? formatDeliveryDate(order.expected_handover_to_printing)
-                  : "—"
+                  : "—";
+              }
             }}
             emptyMessage="No production orders."
             onViewOrder={openViewOrder}
@@ -7095,6 +7261,8 @@ function App() {
               handleAppendPostApprovedDesignImages={handleAppendPostApprovedDesignImages}
               handleAppendPaymentProof={handleAppendPaymentProof}
               handleAppendJobSheetPaymentProof={handleAppendJobSheetPaymentProof}
+              handleAppendJobSheetAdvanceProof={handleAppendJobSheetAdvanceProof}
+              handleAppendJobSheetApprovalImage={handleAppendJobSheetApprovalImage}
               handleUpdatePaymentMethod={handleUpdatePaymentMethod}
               uploadingPaymentProofOrderId={uploadingPaymentProofOrderId}
               handleArchiveApprovedDesignImages={handleArchiveApprovedDesignImages}
@@ -7114,11 +7282,11 @@ function App() {
         </Dialog>
       )}
       {orderHistoryTarget && (
-        <div className="image-modal-backdrop" onClick={closeOrderHistory}>
+        <div className="image-modal-backdrop image-modal-backdrop--stack-top" onClick={closeOrderHistory}>
           <div className="order-history-modal" onClick={(e) => e.stopPropagation()}>
             <div className="order-history-head">
               <div>
-                <h3>Order history</h3>
+                <h3>{getOrderHistoryTitle(orderHistoryTarget)}</h3>
                 <p className="order-history-sub">
                   {orderHistoryTarget.customer_name}
                   {orderHistoryTarget.order_id?.trim()
@@ -7151,7 +7319,7 @@ function App() {
                   >
                     <div className="order-history-item-head">
                       <span className="order-history-event">
-                        {ORDER_HISTORY_EVENT_LABELS[entry.event_type] ?? entry.event_type}
+                        {getOrderHistoryEventLabel(entry.event_type, orderHistoryTarget)}
                       </span>
                       <time className="order-history-time" dateTime={entry.created_at}>
                         {formatReceivedAtDisplay(entry.created_at)}

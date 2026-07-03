@@ -1,0 +1,37 @@
+---
+description: Use shadcn UI only; verify app loads before finishing builds
+alwaysApply: true
+---
+
+# shadcn UI only + blank-screen gate
+
+## UI components
+
+- Use **shadcn/ui components only** for interactive UI: buttons, inputs, selects, dialogs, modals, tables, tabs, badges, checkboxes, switches, popovers, alerts, tooltips, sheets, dropdowns, date pickers.
+- Import from `src/components/ui/*` (or add the component via shadcn MCP if missing).
+- Do **not** add or restore legacy UI: plain `<button>`, `.btn-*`, `.legacy-ui` controls, custom modal shells, or unstyled native form controls in new or migrated work.
+- Lucide icons are OK for iconography inside shadcn components.
+- When migrating a panel, replace legacy markup in that scope; do not mix legacy buttons/inputs with shadcn in the same view.
+- Scope legacy global CSS (`.legacy-ui`, `data-orders-table`) when shadcn and legacy rules conflict.
+
+## Before finalizing any build
+
+Run this checklist **every time** before marking UI work done:
+
+1. **`npm run build`** — must pass with no errors.
+2. **Import sanity** — every JSX component tag in changed files has a matching import (missing import → `ReferenceError` → blank screen).
+3. **Dev server / HMR** — check terminal for JSX parse errors or failed HMR after edits.
+4. **Entry render** — confirm `App.jsx` and changed root panels still mount (no white screen on load).
+5. **Smoke the changed UI** — open the affected modal/tab/list once if feasible.
+
+## Common blank-screen causes
+
+- Removed or renamed import still used in JSX (`CreateOrderModal`, `Dialog`, etc.).
+- Mismatched JSX tags (`<Dialog>` / `</DialogContent>`).
+- Runtime throw in top-level `App` render before error boundary.
+
+## When adding shadcn
+
+- Check `components.json` and existing `src/components/ui/` patterns.
+- Prefer shadcn MCP demo + install flow over hand-rolled copies.
+- Match existing variants: `outline`, `default`, `secondary`, `destructive`, `ghost`.

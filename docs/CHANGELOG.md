@@ -1,5 +1,71 @@
 # Changelog
 
+## 2026-07-03 — Fix blank screen on View order (job sheet)
+
+- **Issue:** Production tracker **View order** → blank screen again.
+- **Reason:** (1) Duplicate `useState`/`useEffect` in `OrderDetailPanel` after partial edit — React hooks count mismatch crash. (2) Job sheet payment `Select` used `value={undefined}` when payment mode / delivery city empty — shadcn Select controlled/uncontrolled crash.
+- **Fix:** Remove duplicate hooks; stable `Select` sentinel values in `JobSheetOrderPaymentSection`; status dropdown always includes current status option.
+- **Files:** `OrderDetailPanel.jsx`, `JobSheetOrderPaymentSection.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-07-03 — Production tracker: job sheet garment pipeline statuses
+
+- **Feature:** Job sheets in Production tracker use a dedicated production pipeline status: Quotation approval → Sampling → Sourcing → Sourcing in transit → Inward → Cutting → Stitching → Trimming → Ironing → QC → Packing → Ready to Dispatch. Production users with **Status** edit permission update status in View order or list badges.
+- **Database:** Migration `20260703183000_job_sheet_production_stages.sql` extends `orders.status` check + `status_label()`; backfills `order_kind = job_sheet` rows from `new` → `quotation_approval`. New job sheets save with `status: quotation_approval`.
+- **Files (new):** `src/jobSheetProductionStages.js`.
+- **Files:** `src/OrderDetailPanel.jsx`, `src/LinkedOrdersTabPanel.jsx`, `src/stickerOrderUtils.js`, `src/components/orders/OrderStatusBadge.jsx`, `src/App.jsx`, `src/orderPendingUtils.js`, `src/globalSearchUtils.js`, `supabase/schema.sql`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md.
+
+## 2026-07-03 — Job sheet view order: payment & transactions + admin edit
+
+- **Issue:** View order for production job sheets did not show advance payments, transaction proofs, dates, delivery, or approval details. Admin could not edit payment fields after create.
+- **Fix:** New **Payment & transactions** and **Delivery & approval** sections in order detail (`JobSheetOrderPaymentSection.jsx`). Admin can edit payment mode, advance amount/date, full paid, delivery city, transport, approval fields, and rate per piece; **Save changes** persists via `jobSheetAdminEditUtils.js`. Admin can upload advance proof, full payment proof, and approval image. Order queries now select all `job_sheet_*` payment columns.
+- **Files (new):** `src/JobSheetOrderPaymentSection.jsx`, `src/jobSheetAdminEditUtils.js`.
+- **Files:** `src/OrderDetailPanel.jsx`, `src/orderAdminEditUtils.js`, `src/orderQueryFields.js`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-03 — Fix blank screen on View order (production tracker)
+
+- **Issue:** Clicking **View order** in Production tracker → blank screen.
+- **Reason:** `OrderDetailPanel` referenced `jobSheet` before it was declared (`ReferenceError`).
+- **Fix:** Reorder declarations in `OrderDetailPanel.jsx`; safe fallback for `OrderColorsCell` prop.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-07-03 — Blank screen gate rule + check:ui script
+
+- **Issue:** Repeated blank screens after UI changes (missing imports, stale vars like `effectiveQty`, bad merges in `App.jsx`).
+- **Fix:** Added `.cursor/rules/blank-screen-gate.mdc` (always apply), `npm run check:ui` (`scripts/check-ui-gate.mjs`) — build + JSX import heuristic before marking work done.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-07-03 — Job sheets: production tracker only (not printing list)
+
+- **Issue:** Job sheets saved with default `order_kind: printing` — showed in Printing orders list with printing UI.
+- **Fix:** New job sheets save as `order_kind: job_sheet`. Printing tab excludes job sheets; global search routes them to Production tracker only. Detail panel shows job sheet fields (gender, size type, rate, etc.) not printing payment/designs.
+- **Follow-up:** Stronger `isJobSheetOrder()` for legacy rows; history modal stacks above create form and closes with view/create; **Production order** badge on billing + production tracker (like sticker); billing payment column uses job sheet payment mode.
+- **Migration:** `20260703200000_add_order_kind_job_sheet.sql` — adds `job_sheet` to `order_kind` check + backfill existing rows.
+- **Files:** `jobSheetUtils.js`, `orderTabUtils.js`, `App.jsx`, `OrderDetailPanel.jsx`, `orderPendingUtils.js`, `globalSearchUtils.js`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-03 — Job sheet: total quantity read-only from sizes
+
+- **Fix:** **Total quantity** is read-only, computed from size grid sum — not mandatory, no manual entry. Fixes browser “Please fill out this field” when qty showed as placeholder only. Fixed blank screen on open (stale `effectiveQty` reference).
+- **Files:** `CreateJobSheetForm.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-03 — Job sheet: auto total amount (rate × quantity)
+
+- **Fix:** **Total amount** on create job sheet form now auto-calculates as rate per piece × total quantity (read-only). Advance % and balance/pending use same computed total.
+- **Files:** `jobSheetPaymentUtils.js` (`calcJobSheetTotalAmount`), `CreateJobSheetForm.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-03 — Job sheet history (same as printing order history)
+
+- **Feature:** Production tracker job sheets now log changes to `order_activity_log` and show **Job sheet history** in order detail (same modal as printing orders).
+- **Events:** Create, status, qty, sales incharge, product/gender/size type, rate, size breakdown, brand/fabric/GSM, branding, atta, handover, payment, proofs, delivery, approval, regular stock.
+- **Migration:** `20260703190000_job_sheet_activity_log.sql` — extends `log_order_activity()` trigger; applied to linked Supabase project.
+- **Files:** `orderHistoryUtils.js` (new), `App.jsx`, `OrderDetailPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-07-03 — Job sheet: regular stock from inventory
 
 - **Feature:** **Regular stock** Yes/No radio beside Atta. When Yes, pick inventory SKUs from searchable dropdown; each selection adds to a list with qty input.
