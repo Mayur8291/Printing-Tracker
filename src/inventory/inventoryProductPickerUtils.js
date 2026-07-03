@@ -47,6 +47,14 @@ export const INVENTORY_KIND_LABELS = {
   apparel: "Apparel"
 };
 
+export function inventoryProductDisplayLabel(product) {
+  const code = String(product?.id ?? "").trim();
+  const name = String(product?.name ?? "").trim();
+  const color = String(product?.color ?? "").trim();
+  const parts = [code && code !== name ? code : "", name, color || ""].filter(Boolean);
+  return parts.join(" · ");
+}
+
 export function groupInventoryProducts(products) {
   const byKind = new Map();
   for (const product of products ?? []) {

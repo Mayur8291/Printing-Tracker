@@ -23,10 +23,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export default function InventoryDashboard() {
-  const { loading, error, alerts, skus, suppliers, createSku, importSkus, adjustStock, removeSku, createSupplier, createWarehouse, refresh } = useInventory();
+  const { loading, error, alerts, skus, suppliers, createSku, importSkus, adjustStock, removeSku, createSupplier, createWarehouse, refresh, hydrateSkuDetail, loadMovements } = useInventory();
   const [active, setActive] = useState("overview");
-  const [kind, setKind] = useState("fabrics");
+  const [kind, setKind] = useState("apparel");
   const [drawerSku, setDrawerSku] = useState(null);
+  const [drawerMovements, setDrawerMovements] = useState([]);
+  const [drawerDetailLoading, setDrawerDetailLoading] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [adjustSku, setAdjustSku] = useState(null);
   const [poOpen, setPoOpen] = useState(false);
@@ -41,10 +43,32 @@ export default function InventoryDashboard() {
   const [deletingSkuId, setDeletingSkuId] = useState(null);
   const [toasts, setToasts] = useState([]);
 
+  const openSkuDrawer = useCallback(
+    (sku) => {
+      if (!sku) return;
+      setDrawerSku(sku);
+      setDrawerMovements([]);
+      setDrawerDetailLoading(true);
+      void hydrateSkuDetail(sku)
+        .then(({ sku: detail, movements }) => {
+          setDrawerSku(detail);
+          setDrawerMovements(movements);
+        })
+        .finally(() => setDrawerDetailLoading(false));
+    },
+    [hydrateSkuDetail]
+  );
+
+  const closeSkuDrawer = useCallback(() => {
+    setDrawerSku(null);
+    setDrawerMovements([]);
+    setDrawerDetailLoading(false);
+  }, []);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") {
-        setDrawerSku(null);
+        closeSkuDrawer();
         setAdjustOpen(false);
         setPoOpen(false);
         setNewSkuOpen(false);
@@ -57,11 +81,17 @@ export default function InventoryDashboard() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [closeSkuDrawer]);
 
   useEffect(() => {
     if (["fabrics", "trims", "apparel"].includes(active)) setKind(active);
   }, [active]);
+
+  useEffect(() => {
+    if (active === "movements") {
+      void loadMovements({ silent: false });
+    }
+  }, [active, loadMovements]);
 
   const toast = useCallback((msg) => {
     const id = Date.now() + Math.random();
@@ -188,7 +218,7 @@ export default function InventoryDashboard() {
     setDeletingSkuId(sku._uuid);
     try {
       await removeSku(sku._uuid);
-      if (drawerSku?._uuid === sku._uuid) setDrawerSku(null);
+      if (drawerSku?._uuid === sku._uuid) closeSkuDrawer();
       toast(`Deleted ${sku.id} — ${sku.name}`);
     } catch (err) {
       toast(err?.message || "Could not delete SKU.");
@@ -206,7 +236,7 @@ export default function InventoryDashboard() {
             setKind(k);
             setActive(k);
           }}
-          openSku={setDrawerSku}
+          openSku={openSkuDrawer}
           openAdjust={openAdjust}
           openCreatePO={openCreatePO}
           openNewSku={openNewSku}
@@ -221,10 +251,10 @@ export default function InventoryDashboard() {
     switch (active) {
       case "overview":
         return (
-          <InventoryOverview setActive={setActive} openSku={setDrawerSku} openNewSku={openNewSku} openCreatePO={openCreatePO} />
+          <InventoryOverview setActive={setActive} openSku={openSkuDrawer} openNewSku={openNewSku} openCreatePO={openCreatePO} />
         );
       case "alerts":
-        return <InventoryAlertsPage openCreatePO={openCreatePO} openSku={setDrawerSku} />;
+        return <InventoryAlertsPage openCreatePO={openCreatePO} openSku={openSkuDrawer} />;
       case "movements":
         return <InventoryMovementsPage openNewSku={openNewSku} />;
       case "pos":
@@ -276,13 +306,15 @@ export default function InventoryDashboard() {
 
       <SkuDrawer
         sku={drawerSku}
-        onClose={() => setDrawerSku(null)}
+        movements={drawerMovements}
+        detailLoading={drawerDetailLoading}
+        onClose={closeSkuDrawer}
         onAdjust={(s) => {
-          setDrawerSku(null);
+          closeSkuDrawer();
           openAdjust(s);
         }}
         onReorder={(s) => {
-          setDrawerSku(null);
+          closeSkuDrawer();
           openCreatePO(s);
         }}
         onDelete={handleDeleteSku}
@@ -312,7 +344,7 @@ export default function InventoryDashboard() {
           onSkuCreated={handleSkuMgmtCreated}
           openSku={(sku) => {
             setSkuMgmtOpen(false);
-            setDrawerSku(sku);
+            openSkuDrawer(sku);
           }}
         />
       )}

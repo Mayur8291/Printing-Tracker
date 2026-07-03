@@ -475,9 +475,9 @@ export default function InventoryListPage({
   };
 
   const tabs = [
+    { id: "apparel", label: "Apparel", count: apparel.length },
     { id: "fabrics", label: "Fabrics", count: fabrics.length },
-    { id: "trims", label: "Trims", count: trims.length },
-    { id: "apparel", label: "Apparel", count: apparel.length }
+    { id: "trims", label: "Trims", count: trims.length }
   ];
 
   const statusLabels = { success: "In stock", warning: "Low", danger: "Critical" };

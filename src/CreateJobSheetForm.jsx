@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   formatJobSheetSizeColumnHeader,
   filterJobSheetSizeTypes,
@@ -9,6 +10,14 @@ import {
   newJobSheetExtraSizeRow,
   sumJobSheetSizes
 } from "./jobSheetUtils";
+import { INDIAN_CITIES } from "./indianCities";
+import {
+  calcJobSheetAdvancePercent,
+  calcJobSheetBalanceAmount,
+  formatJobSheetClosureDate,
+  formatJobSheetMoneyDisplay,
+  JOB_SHEET_PAYMENT_MODES
+} from "./jobSheetPaymentUtils";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -22,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import MasterListSelectField from "@/components/admin/MasterListSelectField";
+import JobSheetRegularStockField from "./JobSheetRegularStockField";
 
 export default function CreateJobSheetForm({
   form,
@@ -30,7 +40,15 @@ export default function CreateJobSheetForm({
   onAddSalesIncharge,
   saving = false,
   onSubmit,
-  onCancel
+  onCancel,
+  advanceProofFiles = [],
+  onAdvanceProofFilesChange,
+  paymentProofFiles = [],
+  onPaymentProofFilesChange,
+  approvalImageFile = null,
+  onApprovalImageFileChange,
+  inventoryProducts = [],
+  loadingInventoryProducts = false
 }) {
   const sizesSum = sumJobSheetSizes(form.sizes, form.extraSizes, form.size_type, form.gender);
   const sizeColumns = getJobSheetActiveColumns({ gender: form.gender, sizeType: form.size_type });
@@ -41,6 +59,16 @@ export default function CreateJobSheetForm({
   });
   const showSizeGrid = isPetsJobSheetGender(form.gender) || Boolean(form.size_type);
   const showBrandingType = form.branding === "yes";
+  const showRegularStock = form.regular_stock === "yes";
+  const advancePercent = useMemo(
+    () => calcJobSheetAdvancePercent(form.total_amount, form.advance_amount),
+    [form.total_amount, form.advance_amount]
+  );
+  const balancePendingAmount = useMemo(() => {
+    if (form.full_paid === "yes") return 0;
+    return calcJobSheetBalanceAmount(form.total_amount, form.advance_amount);
+  }, [form.total_amount, form.advance_amount, form.full_paid]);
+  const paymentProofRequired = form.full_paid === "yes";
 
   function applySizeType(sizeType) {
     const cols = getJobSheetSizeColumnsForType(sizeType);
@@ -433,6 +461,46 @@ export default function CreateJobSheetForm({
           </label>
         </div>
       </div>
+      <div className="order-form-cell">
+        <span className="order-form-label text-sm font-medium" id="job-sheet-regular-stock-legend">
+          Regular stock
+        </span>
+        <div className="order-form-radio-row" role="group" aria-labelledby="job-sheet-regular-stock-legend">
+          <label className="order-form-radio-label">
+            <input
+              type="radio"
+              name="job_sheet_regular_stock"
+              checked={form.regular_stock === "no"}
+              onChange={() => setField({ regular_stock: "no", regularStockItems: [] })}
+            />
+            No
+          </label>
+          <label className="order-form-radio-label">
+            <input
+              type="radio"
+              name="job_sheet_regular_stock"
+              checked={form.regular_stock === "yes"}
+              onChange={() => setField({ regular_stock: "yes" })}
+            />
+            Yes
+          </label>
+        </div>
+      </div>
+      {showRegularStock ? (
+        <div className="order-form-cell order-form-span-3">
+          <JobSheetRegularStockField
+            items={form.regularStockItems}
+            onChange={(next) =>
+              onChange((prev) => ({
+                ...prev,
+                regularStockItems: typeof next === "function" ? next(prev.regularStockItems) : next
+              }))
+            }
+            products={inventoryProducts}
+            loading={loadingInventoryProducts}
+          />
+        </div>
+      ) : null}
       <div className="order-form-cell order-form-span-3">
         <Label htmlFor="job-sheet-comments">Comments</Label>
         <Textarea
@@ -449,6 +517,217 @@ export default function CreateJobSheetForm({
           value={form.delivery_required_on}
           onChange={(next) => setField({ delivery_required_on: next })}
           required
+        />
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-payment-mode">Mode of payment</Label>
+        <Select
+          value={form.payment_mode || undefined}
+          onValueChange={(value) => setField({ payment_mode: value })}
+        >
+          <SelectTrigger id="job-sheet-payment-mode">
+            <SelectValue placeholder="Select payment mode" />
+          </SelectTrigger>
+          <SelectContent>
+            {JOB_SHEET_PAYMENT_MODES.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-total-amount">Total amount</Label>
+        <Input
+          id="job-sheet-total-amount"
+          type="number"
+          min="0"
+          step="0.01"
+          inputMode="decimal"
+          placeholder="0.00"
+          value={form.total_amount}
+          onChange={(e) => setField({ total_amount: e.target.value })}
+        />
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-advance-amount">Advance amount received</Label>
+        <div className="flex items-center gap-2">
+          <Input
+            id="job-sheet-advance-amount"
+            className="flex-1"
+            type="number"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={form.advance_amount}
+            onChange={(e) => setField({ advance_amount: e.target.value })}
+          />
+          {advancePercent > 0 ? (
+            <span className="shrink-0 text-sm font-medium text-muted-foreground" aria-label="Advance percentage">
+              {advancePercent}%
+            </span>
+          ) : null}
+        </div>
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-advance-date">Advance payment date</Label>
+        <DatePicker
+          id="job-sheet-advance-date"
+          value={form.advance_payment_date}
+          onChange={(next) => setField({ advance_payment_date: next })}
+        />
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-advance-proof">Transaction proof upload</Label>
+        <Input
+          id="job-sheet-advance-proof"
+          type="file"
+          accept="image/*,.pdf"
+          multiple
+          onChange={(e) => onAdvanceProofFilesChange?.(Array.from(e.target.files ?? []))}
+        />
+        {advanceProofFiles.length > 0 ? (
+          <p className="order-form-file-name text-xs text-muted-foreground">
+            Selected: {advanceProofFiles.map((f) => f.name).join(", ")}
+          </p>
+        ) : null}
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-balance-pending-amount">Balance / Pending amount</Label>
+        <Input
+          id="job-sheet-balance-pending-amount"
+          readOnly
+          className="order-form-readonly-input bg-muted"
+          value={formatJobSheetMoneyDisplay(balancePendingAmount)}
+          aria-label={`Balance / Pending amount ${formatJobSheetMoneyDisplay(balancePendingAmount)}`}
+        />
+      </div>
+      <div className="order-form-cell">
+        <span className="order-form-label text-sm font-medium" id="job-sheet-full-paid-legend">
+          Full paid
+        </span>
+        <div className="order-form-radio-row" role="group" aria-labelledby="job-sheet-full-paid-legend">
+          <label className="order-form-radio-label">
+            <input
+              type="radio"
+              name="job_sheet_full_paid"
+              checked={form.full_paid === "no"}
+              onChange={() => setField({ full_paid: "no", payment_closure_at: "" })}
+            />
+            No
+          </label>
+          <label className="order-form-radio-label">
+            <input
+              type="radio"
+              name="job_sheet_full_paid"
+              checked={form.full_paid === "yes"}
+              onChange={() =>
+                setField({
+                  full_paid: "yes",
+                  payment_closure_at: new Date().toISOString()
+                })
+              }
+            />
+            Yes
+          </label>
+        </div>
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-payment-closure-date">Payment closure date</Label>
+        <Input
+          id="job-sheet-payment-closure-date"
+          readOnly
+          className="order-form-readonly-input bg-muted"
+          placeholder="Auto when full payment is done"
+          value={form.full_paid === "yes" ? formatJobSheetClosureDate(form.payment_closure_at) : ""}
+        />
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-payment-proof">
+          Payment proof
+          {paymentProofRequired ? <span className="text-destructive"> *</span> : null}
+        </Label>
+        <Input
+          id="job-sheet-payment-proof"
+          type="file"
+          accept="image/*,.pdf"
+          multiple
+          required={paymentProofRequired}
+          aria-required={paymentProofRequired}
+          onChange={(e) => onPaymentProofFilesChange?.(Array.from(e.target.files ?? []))}
+        />
+        {paymentProofRequired && paymentProofFiles.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Required when full paid is Yes.</p>
+        ) : null}
+        {paymentProofFiles.length > 0 ? (
+          <p className="order-form-file-name text-xs text-muted-foreground">
+            Selected: {paymentProofFiles.map((f) => f.name).join(", ")}
+          </p>
+        ) : null}
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-delivery-city">Delivery city</Label>
+        <Select
+          value={form.delivery_city || undefined}
+          onValueChange={(value) => setField({ delivery_city: value })}
+        >
+          <SelectTrigger id="job-sheet-delivery-city">
+            <SelectValue placeholder="Select city" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            {INDIAN_CITIES.map((city) => (
+              <SelectItem key={city} value={city}>
+                {city}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-transport-charges">Transport charges</Label>
+        <Input
+          id="job-sheet-transport-charges"
+          type="number"
+          min="0"
+          step="0.01"
+          inputMode="decimal"
+          placeholder="0.00"
+          value={form.transport_charges}
+          onChange={(e) => setField({ transport_charges: e.target.value })}
+        />
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-approval-date">Approval date</Label>
+        <DatePicker
+          id="job-sheet-approval-date"
+          value={form.approval_date}
+          onChange={(next) => setField({ approval_date: next })}
+        />
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-approval-image">Approval image upload</Label>
+        <Input
+          id="job-sheet-approval-image"
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            onApprovalImageFileChange?.(file);
+          }}
+        />
+        {approvalImageFile ? (
+          <p className="order-form-file-name text-xs text-muted-foreground">Selected: {approvalImageFile.name}</p>
+        ) : null}
+      </div>
+      <div className="order-form-cell">
+        <Label htmlFor="job-sheet-approved-by">Approved by</Label>
+        <Input
+          id="job-sheet-approved-by"
+          value={form.approved_by}
+          onChange={(e) => setField({ approved_by: e.target.value })}
+          placeholder="Name of approver"
         />
       </div>
       <div className="order-form-actions order-form-span-3">

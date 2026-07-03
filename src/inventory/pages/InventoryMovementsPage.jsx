@@ -12,7 +12,7 @@ import { useInventory } from "../InventoryDataContext";
 import { MovementTypeBadge, PageHeader } from "../inventoryUiUtils";
 
 export default function InventoryMovementsPage({ openNewSku }) {
-  const { movements } = useInventory();
+  const { movements, movementsLoading } = useInventory();
   const [type, setType] = useState("all");
   const filtered = type === "all" ? movements : movements.filter((m) => m.type === type);
 
@@ -73,7 +73,14 @@ export default function InventoryMovementsPage({ openNewSku }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((m) => {
+                {movementsLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                      Loading movements…
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                filtered.map((m) => {
                   const dt = new Date(m.ts);
                   const initials = m.user
                     .split(" ")
@@ -115,7 +122,8 @@ export default function InventoryMovementsPage({ openNewSku }) {
                       </TableCell>
                     </TableRow>
                   );
-                })}
+                })
+                )}
               </TableBody>
             </Table>
           </div>

@@ -231,9 +231,33 @@ export function emptyJobSheetForm() {
 
     atta: "no",
 
+    regular_stock: "no",
+
+    regularStockItems: [],
+
     comments: "",
 
-    delivery_required_on: ""
+    delivery_required_on: "",
+
+    payment_mode: "",
+
+    total_amount: "",
+
+    advance_amount: "",
+
+    advance_payment_date: "",
+
+    full_paid: "no",
+
+    payment_closure_at: "",
+
+    delivery_city: "",
+
+    transport_charges: "",
+
+    approval_date: "",
+
+    approved_by: ""
 
   };
 
@@ -361,11 +385,57 @@ export function jobSheetFormFromOrder(order, { nextOrderId, orderDate }) {
 
     atta: order?.atta ? "yes" : "no",
 
+    regular_stock: order?.job_sheet_regular_stock ? "yes" : "no",
+
+    regularStockItems: jobSheetRegularStockItemsToForm(order?.job_sheet_regular_stock_items),
+
     comments: String(order?.remarks ?? "").trim(),
 
     delivery_required_on:
 
-      String(order?.due_date ?? order?.expected_handover_to_printing ?? "").trim() || ""
+      String(order?.due_date ?? order?.expected_handover_to_printing ?? "").trim() || "",
+
+    payment_mode: String(order?.job_sheet_payment_mode ?? "").trim(),
+
+    total_amount:
+
+      order?.order_cost != null && order?.order_cost !== ""
+
+        ? String(order.order_cost)
+
+        : "",
+
+    advance_amount:
+
+      order?.job_sheet_advance_amount != null && order?.job_sheet_advance_amount !== ""
+
+        ? String(order.job_sheet_advance_amount)
+
+        : "",
+
+    advance_payment_date: String(order?.job_sheet_advance_payment_date ?? "").trim(),
+
+    full_paid: order?.job_sheet_full_paid ? "yes" : "no",
+
+    payment_closure_at: order?.job_sheet_payment_closure_at
+
+      ? String(order.job_sheet_payment_closure_at)
+
+      : "",
+
+    delivery_city: String(order?.job_sheet_delivery_city ?? "").trim(),
+
+    transport_charges:
+
+      order?.job_sheet_transport_charges != null && order?.job_sheet_transport_charges !== ""
+
+        ? String(order.job_sheet_transport_charges)
+
+        : "",
+
+    approval_date: String(order?.job_sheet_approval_date ?? "").trim(),
+
+    approved_by: String(order?.job_sheet_approved_by ?? "").trim()
 
   };
 
@@ -430,6 +500,72 @@ export function parseJobSheetRate(raw) {
   const n = Number.parseFloat(s);
 
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
+
+}
+
+
+
+export function serializeJobSheetRegularStockItems(items) {
+
+  return (items ?? [])
+
+    .map((row) => {
+
+      const qty = parseJobSheetSizeQty(row?.qty);
+
+      return {
+
+        sku_uuid: String(row?.sku_uuid ?? "").trim(),
+
+        sku_code: String(row?.sku_code ?? "").trim(),
+
+        name: String(row?.name ?? "").trim(),
+
+        color: String(row?.color ?? "").trim() || null,
+
+        qty
+
+      };
+
+    })
+
+    .filter((row) => row.sku_uuid && row.name && row.qty > 0);
+
+}
+
+
+
+export function jobSheetRegularStockItemsToForm(items) {
+
+  if (!Array.isArray(items)) return [];
+
+  return items
+
+    .map((row, index) => {
+
+      const qty = parseJobSheetSizeQty(row?.qty);
+
+      if (!String(row?.sku_uuid ?? row?.sku_code ?? row?.name ?? "").trim()) return null;
+
+      return {
+
+        id: `rs-saved-${index}-${String(row?.sku_uuid ?? row?.sku_code ?? "item")}`,
+
+        sku_uuid: String(row?.sku_uuid ?? "").trim(),
+
+        sku_code: String(row?.sku_code ?? "").trim(),
+
+        name: String(row?.name ?? "").trim(),
+
+        color: String(row?.color ?? "").trim(),
+
+        qty: qty > 0 ? String(qty) : ""
+
+      };
+
+    })
+
+    .filter(Boolean);
 
 }
 

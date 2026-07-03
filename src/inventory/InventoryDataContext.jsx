@@ -5,17 +5,23 @@ import {
   applyStockAdjustment,
   deriveAlerts,
   deleteSku,
-  fetchInventoryBundle,
+  fetchInventoryMovements,
+  fetchInventoryRefreshBundle,
+  fetchInventorySkuRowsFromOffset,
+  fetchSkuDetail,
+  fetchSkuMovements,
   insertSku,
   insertSkuBatch,
   insertStockMovement,
   insertStyleParent,
   insertSupplier,
   insertWarehouse,
+  rowToSku,
   saveAlertSettings,
   updateSkuFields,
   updateSkuReorder
 } from "./inventoryDbUtils";
+import { INVENTORY_INITIAL_SKU_BATCH } from "./inventoryQueryFields";
 import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
 
 const InventoryDataContext = createContext(null);
@@ -29,7 +35,11 @@ export function InventoryDataProvider({ session, children }) {
   const [skus, setSkus] = useState([]);
   const [styleParents, setStyleParents] = useState([]);
   const [movements, setMovements] = useState([]);
+  const [movementsLoading, setMovementsLoading] = useState(false);
+  const [loadingMoreSkus, setLoadingMoreSkus] = useState(false);
   const inventoryRefreshTimerRef = useRef(null);
+  const movementsLoadedRef = useRef(false);
+  const loadingMoreSkusRef = useRef(false);
 
   const userId = session?.user?.id || null;
   const userDisplayName =
@@ -38,25 +48,95 @@ export function InventoryDataProvider({ session, children }) {
     session?.user?.email?.split("@")[0] ||
     "You";
 
+  const applyBundle = useCallback((bundle, { keepMovements = false } = {}) => {
+    setSettings(bundle.settings);
+    setSuppliers(bundle.suppliers);
+    setWarehouses(bundle.warehouses);
+    setStyleParents(bundle.styleParents || []);
+    setSkus(bundle.skus);
+    if (!keepMovements && Array.isArray(bundle.movements)) setMovements(bundle.movements);
+  }, []);
+
+  const loadMovements = useCallback(async ({ silent = true } = {}) => {
+    if (movementsLoadedRef.current) return;
+    if (!silent) setMovementsLoading(true);
+    try {
+      const rows = await fetchInventoryMovements();
+      setMovements(rows);
+      movementsLoadedRef.current = true;
+    } catch (err) {
+      if (!silent) setError(err?.message || "Could not load stock movements.");
+    } finally {
+      if (!silent) setMovementsLoading(false);
+    }
+  }, []);
+
+  const loadRemainingSkus = useCallback(async () => {
+    if (loadingMoreSkusRef.current) return;
+    loadingMoreSkusRef.current = true;
+    setLoadingMoreSkus(true);
+    try {
+      const moreRows = await fetchInventorySkuRowsFromOffset(INVENTORY_INITIAL_SKU_BATCH);
+      if (!moreRows.length) return;
+      const moreSkus = moreRows.map(rowToSku);
+      setSkus((prev) => {
+        const seen = new Set(prev.map((s) => s._uuid));
+        const merged = [...prev];
+        for (const sku of moreSkus) {
+          if (!seen.has(sku._uuid)) merged.push(sku);
+        }
+        return merged.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+      });
+    } catch (err) {
+      console.error("Inventory SKU background load:", err?.message || err);
+    } finally {
+      loadingMoreSkusRef.current = false;
+      setLoadingMoreSkus(false);
+    }
+  }, []);
+
   const refresh = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
       setLoading(true);
       setError("");
+      movementsLoadedRef.current = false;
     }
     try {
-      const bundle = await fetchInventoryBundle();
-      setSettings(bundle.settings);
-      setSuppliers(bundle.suppliers);
-      setWarehouses(bundle.warehouses);
-      setStyleParents(bundle.styleParents || []);
-      setSkus(bundle.skus);
-      setMovements(bundle.movements);
+      const bundle = await fetchInventoryRefreshBundle({ fullSkus: silent });
+      applyBundle(bundle, { keepMovements: silent && movementsLoadedRef.current });
+      if (!silent && bundle.hasMoreSkus) {
+        void loadRemainingSkus();
+      }
+      if (!silent) {
+        window.setTimeout(() => {
+          void loadMovements({ silent: true });
+        }, 2500);
+      }
     } catch (err) {
       if (!silent) setError(err?.message || "Could not load inventory data.");
     } finally {
       if (!silent) setLoading(false);
     }
+  }, [applyBundle, loadMovements, loadRemainingSkus]);
+
+  const patchSkuInState = useCallback((sku) => {
+    if (!sku?._uuid) return;
+    setSkus((prev) => prev.map((s) => (s._uuid === sku._uuid ? { ...s, ...sku } : s)));
   }, []);
+
+  const hydrateSkuDetail = useCallback(
+    async (sku) => {
+      if (!sku?._uuid) return { sku, movements: [] };
+      const [detail, skuMovements] = await Promise.all([
+        fetchSkuDetail(sku._uuid),
+        fetchSkuMovements(sku._uuid)
+      ]);
+      const merged = detail || sku;
+      patchSkuInState(merged);
+      return { sku: merged, movements: skuMovements };
+    },
+    [patchSkuInState]
+  );
 
   useEffect(() => {
     refresh();
@@ -264,6 +344,8 @@ export function InventoryDataProvider({ session, children }) {
 
   const value = {
     loading,
+    loadingMoreSkus,
+    movementsLoading,
     error,
     settings,
     suppliers,
@@ -277,6 +359,9 @@ export function InventoryDataProvider({ session, children }) {
     alerts,
     pos: POS,
     refresh,
+    loadMovements,
+    hydrateSkuDetail,
+    patchSkuInState,
     updateAlertSettings,
     saveSkuReorder,
     saveSkuFields,

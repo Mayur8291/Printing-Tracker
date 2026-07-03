@@ -81,3 +81,34 @@ Master SKU records. Sub SKUs (colorways / variants) link to a parent via `parent
 |-----------|--------|
 | `20260620120000_add_inventory_tables.sql` | Core inventory tables |
 | `20260708120000_inventory_sku_parent_pricing_doc_drr.sql` | Parent styles, `doc`, `drr`, `parent_style_id` |
+
+## `orders` — job sheet payment / delivery / approval
+
+Production tracker job sheets store payment and approval data on the same `orders` row (`is_production_order = true`).
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `order_cost` | numeric | Total amount |
+| `job_sheet_payment_mode` | text | Mode of payment (cash, UPI, bank transfer, etc.) |
+| `job_sheet_advance_amount` | numeric | Advance received |
+| `job_sheet_advance_payment_date` | date | Date advance was received |
+| `job_sheet_advance_proof_url` | text | JSON array of transaction proof URLs (`payment-screenshots` bucket) |
+| `job_sheet_balance_amount` | numeric | Total minus advance (snapshot at save) |
+| `job_sheet_pending_amount` | numeric | Balance when not full paid; 0 when full paid |
+| `job_sheet_full_paid` | boolean | Whether order is fully paid |
+| `job_sheet_payment_closure_at` | timestamptz | Auto-set when full paid = yes |
+| `job_sheet_payment_proof_url` | text | JSON array of final payment proof URLs |
+| `job_sheet_delivery_city` | text | Delivery city (India) |
+| `job_sheet_transport_charges` | numeric | Transport charges |
+| `job_sheet_approval_date` | date | Approval date |
+| `job_sheet_approval_image_url` | text | Approval image URL (`approved-designs` bucket) |
+| `job_sheet_approved_by` | text | Approver name |
+| `job_sheet_regular_stock` | boolean | Whether regular stock items are used |
+| `job_sheet_regular_stock_items` | jsonb | Array of `{ sku_uuid, sku_code, name, color, qty }` from inventory |
+
+### Migrations (job sheet payment)
+
+| Migration | Change |
+|-----------|--------|
+| `20260703160000_add_job_sheet_payment_delivery_approval.sql` | Add columns above |
+| `20260703180000_add_job_sheet_regular_stock.sql` | Regular stock flag + items jsonb |

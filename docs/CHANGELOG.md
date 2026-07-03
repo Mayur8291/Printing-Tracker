@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-07-03 — Job sheet: regular stock from inventory
+
+- **Feature:** **Regular stock** Yes/No radio beside Atta. When Yes, pick inventory SKUs from searchable dropdown; each selection adds to a list with qty input.
+- **Migration:** `20260703180000_add_job_sheet_regular_stock.sql` — `job_sheet_regular_stock`, `job_sheet_regular_stock_items` on `orders`; applied to staging.
+- **Files:** `CreateJobSheetForm.jsx`, `JobSheetRegularStockField.jsx` (new), `jobSheetUtils.js`, `App.jsx`, `inventoryProductPickerUtils.js`, `orderQueryFields.js`, `schema.sql`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md.
+
+## 2026-07-03 — Job sheet: merged balance/pending + mandatory full-paid proof
+
+- **UI:** Single read-only field **Balance / Pending amount** (replaces separate balance and pending fields).
+- **Validation:** Full paid = Yes requires payment proof on save; production jobs marked full paid without proof cannot be updated until proof is uploaded via order detail.
+- **Files:** `CreateJobSheetForm.jsx`, `App.jsx`, `OrderDetailPanel.jsx`, `jobSheetPaymentUtils.js`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-03 — Job sheet: payment, delivery, and approval fields
+
+- **Feature:** Create Job sheet form now includes payment block (mode, total, advance + %, advance date, transaction proof), computed balance/pending amounts, full-paid radio with auto closure date/time, payment proof upload, delivery city (India cities), transport charges, and approval date/image/approver.
+- **Migration:** `20260703160000_add_job_sheet_payment_delivery_approval.sql` — new `orders.job_sheet_*` columns; applied to **staging** (`scvojtvgnkmbupvyslmb`) only.
+- **Files:** `CreateJobSheetForm.jsx`, `jobSheetUtils.js`, `jobSheetPaymentUtils.js` (new), `indianCities.js` (new), `App.jsx`, `schema.sql`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md.
+
+## 2026-07-03 — Inventory tabs: Apparel first
+
+- **Fix:** Reordered inventory kind tabs to **Apparel → Fabrics → Trims** in list view and sidebar; default list tab is Apparel.
+- **Files:** `InventoryListPage.jsx`, `InventorySubNav.jsx`, `InventoryDashboard.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-03 — Faster inventory load (staged SKUs + deferred movements)
+
+- **Issue:** Inventory tab slow to open — long skeleton with thousands of SKUs.
+- **Reason:** `fetchInventoryBundle` loaded all SKU pages, 100 stock movements, and full supplier/warehouse rows before first paint.
+- **Fix:** Initial load uses first 1000 SKUs (`INVENTORY_SKU_LIST_SELECT`), background fetch for remaining SKUs, movements deferred (2.5s or when Movements tab opens). SKU drawer hydrates full row + last 6 movements on open. Slim supplier/warehouse selects.
+- **Files:** `src/inventory/inventoryQueryFields.js` (new), `inventoryDbUtils.js`, `InventoryDataContext.jsx`, `InventoryDashboard.jsx`, `SkuDrawer.jsx`, `InventoryMovementsPage.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-07-03 — Faster initial load (orders list query + deferred extras)
+
+- **Issue:** Dashboard felt slow after login — long loading skeleton before orders appeared.
+- **Reason:** `fetchOrders` downloaded every order with heavy design image URL JSON for all rows. Global search extras (400 challans + contacts) ran immediately on login. Orders also polled every 25s on top of realtime.
+- **Fix:** Split order queries — lightweight `ORDERS_LIST_SELECT` for list/tabs; full `ORDERS_FULL_SELECT` loaded when opening order detail (`hydrateOrderDetail`). Deferred global search extras by 2.5s. Poll interval 25s → 60s and only when tab visible.
+- **Files:** `src/orderQueryFields.js` (new), `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-07-03 — Enforce staging-only local dev + environment health docs
+
+- **Issue:** Risk of local dev or agents touching production Supabase during development.
+- **Fix:** `supabaseClient.js` blocks dev server when production URL is loaded (escape: `VITE_ALLOW_PROD_IN_DEV=true`). Compact green pulse dot before global search shows staging (tooltip on hover); amber dot if prod. `npm run check:env` verifies dev commands. `VITE_APP_ENV=staging` on `.env.development` / `.env.staging`. Documented prod vs staging health and MCP rules in `docs/ENVIRONMENTS.md`. Cursor rule `.cursor/rules/staging-only-dev.mdc`.
+- **Files:** `src/supabaseClient.js`, `src/components/DevEnvironmentIndicator.jsx`, `src/App.jsx`, `scripts/check-dev-env.mjs`, `package.json`, env examples, `docs/ENVIRONMENTS.md`, `.cursor/rules/staging-only-dev.mdc`.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md.
+
+## 2026-07-03 — Fix orders table empty after save (missing DB columns)
+
+- **Issue:** Orders vanished after saving jobs — loading skeleton, then empty table. Saves could succeed in DB but UI could not reload rows.
+- **Reason:** `fetchOrders` selects `gender` and `product_type`, but migration `20260709120000_add_job_sheet_gender_product_type.sql` was not applied to production or staging Supabase projects. PostgREST failed the entire select; errors were console-only.
+- **Fix:** Applied `add_job_sheet_gender_product_type` migration to production (`levwrmvqdntngeasrtnb`) and staging (`scvojtvgnkmbupvyslmb`). Added `ordersLoadError` alert in Printing tab when order fetch fails.
+- **Files:** `src/App.jsx`, `docs/DEBUGGING.md`, `docs/CHANGELOG.md`.
+- **Migration applied remotely:** `add_job_sheet_gender_product_type`.
+
 ## 2026-06-25 — Production tracker: Pets uses standard size grid
 
 - **Issue:** Pets gender lost normal XXS–8XL quantity inputs.

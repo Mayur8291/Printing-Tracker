@@ -27,6 +27,7 @@ import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
 import DispatchTabPanel from "./DispatchTabPanel";
 import GlobalSearchBox from "./GlobalSearchBox";
+import DevEnvironmentIndicator from "./components/DevEnvironmentIndicator";
 import { OC_SELECT_FIELDS } from "./outwardChallanUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import OrdersListFilters from "./components/orders/OrdersListFilters";
@@ -113,8 +114,15 @@ import {
   jobSheetSizesToBreakdown,
   parseJobSheetRate,
   parseJobSheetSizeQty,
+  serializeJobSheetRegularStockItems,
   sumJobSheetSizes
 } from "./jobSheetUtils";
+import {
+  calcJobSheetBalanceAmount,
+  calcJobSheetPendingAmount,
+  jobSheetFullPaidMissingPaymentProof,
+  parseJobSheetMoney
+} from "./jobSheetPaymentUtils";
 import AdminDeployPanel from "./AdminDeployPanel";
 import { getDeployEnvironment, shouldShowAdminDeployTools } from "./deployEnvironmentUtils";
 import {
@@ -187,6 +195,11 @@ import {
   serializeDesignUrls,
   userIsSalesReviewer
 } from "./orderViewUtils";
+import {
+  ORDERS_FULL_SELECT,
+  ORDERS_LIST_SELECT,
+  orderNeedsDetailHydration
+} from "./orderQueryFields";
 
 const STAGE_ICON = {
   new: "🆕",
@@ -734,6 +747,7 @@ function App() {
   }, [statusTonesEnabled]);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [ordersLoadError, setOrdersLoadError] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -761,6 +775,9 @@ function App() {
   const templateColorPickerRef = useRef(null);
   const [designFiles, setDesignFiles] = useState([]);
   const [paymentScreenshotFiles, setPaymentScreenshotFiles] = useState([]);
+  const [jobSheetAdvanceProofFiles, setJobSheetAdvanceProofFiles] = useState([]);
+  const [jobSheetPaymentProofFiles, setJobSheetPaymentProofFiles] = useState([]);
+  const [jobSheetApprovalImageFile, setJobSheetApprovalImageFile] = useState(null);
   const [customerAssetFiles, setCustomerAssetFiles] = useState([]);
   const [stickerOrderForm, setStickerOrderForm] = useState(emptyStickerOrderForm);
   const [samplingOrderForm, setSamplingOrderForm] = useState(emptySamplingOrderForm);
@@ -917,15 +934,18 @@ function App() {
     try {
       const { data, error } = await supabase
         .from("orders")
-        .select(
-          "id, order_id, order_kind, order_date, due_date, owner_name, customer_name, coordinator_name, sales_incharge_name, qty, size_breakdown, product_name, colors, approved_design_url, approved_design_images, approved_design_images_archive, post_approved_design_review_status, post_approved_design_changes_note, post_approved_design_reviewed_by, post_approved_design_reviewed_at, printing_mtrs, status, status_ready_at, remarks, created_at, created_by, is_complete, is_production_order, expected_handover_to_printing, received_at_printing, payment_method, payment_screenshot_url, invoice_url, delivery_method, dispatch_sizes_verified, dispatch_sizes_qty_ok, dispatch_product_name_ok, dispatch_colors_ok, dispatch_issue_type, dispatch_verification_failed, dispatch_verified_at, dispatch_verified_by, order_cost, printing_cost, size_type, gender, product_type, rate_per_piece, brand, fabric_type, branding, branding_type, gsm, atta"
-        )
+        .select(ORDERS_LIST_SELECT)
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error(error.message);
+        const hint = /column .* does not exist/i.test(error.message)
+          ? `${error.message} — run pending Supabase migrations (see supabase/migrations/).`
+          : error.message;
+        setOrdersLoadError(hint);
         return false;
       }
+      setOrdersLoadError(null);
       const rows = data ?? [];
       setOrders((prev) =>
         mergeOrdersPreservingDesignImages(prev, rows, recentImagePatchRef.current)
@@ -937,7 +957,9 @@ function App() {
       );
       return true;
     } catch (e) {
-      console.error(e instanceof Error ? e.message : e);
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(msg);
+      setOrdersLoadError(msg);
       return false;
     } finally {
       if (!silent) setLoadingOrders(false);
@@ -969,7 +991,10 @@ function App() {
 
   useEffect(() => {
     if (!session?.user) return;
-    loadGlobalSearchExtras();
+    const deferId = window.setTimeout(() => {
+      loadGlobalSearchExtras();
+    }, 2500);
+    return () => window.clearTimeout(deferId);
   }, [session?.user?.id, loadGlobalSearchExtras]);
 
   useEffect(() => {
@@ -1057,9 +1082,11 @@ function App() {
       )
       .subscribe();
 
-    const pollMs = 25000;
+    const pollMs = 60000;
     const pollId = setInterval(() => {
-      fetchOrders({ silent: true });
+      if (document.visibilityState === "visible") {
+        fetchOrders({ silent: true });
+      }
     }, pollMs);
 
     return () => {
@@ -1240,21 +1267,24 @@ function App() {
     try {
       const email = sessionUser.email?.trim() || "";
 
-      const { data: adminRow, error: adminErr } = await supabase
-        .from("admin_emails")
-        .select("email")
-        .ilike("email", email || "__no_email__")
-        .maybeSingle();
+      const [{ data: adminRow, error: adminErr }, profileResult] = await Promise.all([
+        supabase
+          .from("admin_emails")
+          .select("email")
+          .ilike("email", email || "__no_email__")
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
+          .eq("id", sessionUser.id)
+          .maybeSingle()
+      ]);
 
       if (adminErr) {
         console.error(adminErr.message);
       }
 
-      let { data: prof, error: profErr } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
-        .eq("id", sessionUser.id)
-        .maybeSingle();
+      let { data: prof, error: profErr } = profileResult;
 
       if (profErr) {
         if (isSchemaCacheError(profErr.message) && attempt < 4) {
@@ -1635,6 +1665,9 @@ function App() {
     setOrderIdDraft("");
     setDesignFiles([]);
     setPaymentScreenshotFiles([]);
+    setJobSheetAdvanceProofFiles([]);
+    setJobSheetPaymentProofFiles([]);
+    setJobSheetApprovalImageFile(null);
     setCustomerAssetFiles([]);
     setSamplingMockupFiles([]);
   }
@@ -1683,6 +1716,7 @@ function App() {
     }
 
     setJobSheetForm(jobSheetFormFromPrintingOrderForm(orderForm, { nextOrderId, orderDate: today }));
+    void fetchInventoryProducts();
     setCreateFormMode("job_sheet");
   }
 
@@ -2296,6 +2330,7 @@ function App() {
             order_date: today
           }
     );
+    void fetchInventoryProducts();
     setShowCreateForm(true);
   }
 
@@ -2334,6 +2369,20 @@ function App() {
         return;
       }
     }
+    if (jobSheetForm.regular_stock === "yes") {
+      const stockItems = jobSheetForm.regularStockItems ?? [];
+      if (!stockItems.length) {
+        alert("Please add at least one inventory product for regular stock.");
+        return;
+      }
+      for (const row of stockItems) {
+        const qty = parseJobSheetSizeQty(row?.qty);
+        if (qty <= 0) {
+          alert(`Enter quantity for ${String(row?.name ?? "each regular stock product").trim() || "each product"}.`);
+          return;
+        }
+      }
+    }
 
     const formSnapshot = { ...jobSheetForm };
     const fromPrintingForm = jobSheetFromPrintingFormRef.current;
@@ -2357,6 +2406,31 @@ function App() {
     }
 
     const colorText = String(formSnapshot.color ?? "").trim();
+    const totalAmount = parseJobSheetMoney(formSnapshot.total_amount);
+    const advanceAmount = parseJobSheetMoney(formSnapshot.advance_amount);
+    const transportCharges = parseJobSheetMoney(formSnapshot.transport_charges);
+    if (advanceAmount != null && totalAmount != null && advanceAmount > totalAmount) {
+      alert("Advance amount cannot exceed total amount.");
+      return;
+    }
+    const balanceAmount = calcJobSheetBalanceAmount(formSnapshot.total_amount, formSnapshot.advance_amount);
+    const pendingAmount = calcJobSheetPendingAmount(
+      formSnapshot.total_amount,
+      formSnapshot.advance_amount,
+      formSnapshot.full_paid
+    );
+    const fullPaid = formSnapshot.full_paid === "yes";
+    if (fullPaid && jobSheetPaymentProofFiles.length === 0) {
+      alert("Please upload payment proof when marking the job as full paid.");
+      return;
+    }
+    const paymentClosureAt = fullPaid
+      ? formSnapshot.payment_closure_at || new Date().toISOString()
+      : null;
+    const advanceFilesSnapshot = [...jobSheetAdvanceProofFiles];
+    const paymentFilesSnapshot = [...jobSheetPaymentProofFiles];
+    const approvalFileSnapshot = jobSheetApprovalImageFile;
+
     const payload = {
       order_date: formSnapshot.order_date || todayLocalISODate(),
       order_id: formSnapshot.order_id,
@@ -2383,8 +2457,25 @@ function App() {
           : null,
       gsm: String(formSnapshot.gsm ?? "").trim() || null,
       atta: formSnapshot.atta === "yes",
+      job_sheet_regular_stock: formSnapshot.regular_stock === "yes",
+      job_sheet_regular_stock_items:
+        formSnapshot.regular_stock === "yes"
+          ? serializeJobSheetRegularStockItems(formSnapshot.regularStockItems)
+          : [],
       remarks: String(formSnapshot.comments ?? "").trim() || null,
       due_date: formSnapshot.delivery_required_on,
+      order_cost: totalAmount,
+      job_sheet_payment_mode: String(formSnapshot.payment_mode ?? "").trim() || null,
+      job_sheet_advance_amount: advanceAmount,
+      job_sheet_advance_payment_date: String(formSnapshot.advance_payment_date ?? "").trim() || null,
+      job_sheet_balance_amount: balanceAmount,
+      job_sheet_pending_amount: pendingAmount,
+      job_sheet_full_paid: fullPaid,
+      job_sheet_payment_closure_at: paymentClosureAt,
+      job_sheet_delivery_city: String(formSnapshot.delivery_city ?? "").trim() || null,
+      job_sheet_transport_charges: transportCharges,
+      job_sheet_approval_date: String(formSnapshot.approval_date ?? "").trim() || null,
+      job_sheet_approved_by: String(formSnapshot.approved_by ?? "").trim() || null,
       approved_design_url: "[]",
       printing_mtrs: 0,
       created_by: session.user.id
@@ -2414,6 +2505,54 @@ function App() {
     }
 
     try {
+      const orderIdToken = String(formSnapshot.order_id ?? "job-sheet").replace(/\s+/g, "-");
+
+      async function uploadJobSheetProofFiles(bucket, files) {
+        const proofUrls = [];
+        for (const file of files) {
+          const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+          const storagePath = `${session.user.id}/job-sheet-${orderIdToken}-${safeName}`;
+          const { error: uploadError } = await supabase.storage
+            .from(bucket)
+            .upload(storagePath, file, { upsert: false });
+          if (uploadError) {
+            throw new Error(uploadError.message);
+          }
+          const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
+          if (urlData?.publicUrl) proofUrls.push(urlData.publicUrl);
+        }
+        return serializePaymentProofUrls(proofUrls);
+      }
+
+      if (advanceFilesSnapshot.length > 0) {
+        payload.job_sheet_advance_proof_url = await uploadJobSheetProofFiles(
+          "payment-screenshots",
+          advanceFilesSnapshot
+        );
+      }
+
+      if (paymentFilesSnapshot.length > 0) {
+        payload.job_sheet_payment_proof_url = await uploadJobSheetProofFiles(
+          "payment-screenshots",
+          paymentFilesSnapshot
+        );
+      }
+
+      if (approvalFileSnapshot) {
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${approvalFileSnapshot.name.replace(/\s+/g, "-")}`;
+        const storagePath = `${session.user.id}/job-sheet-${orderIdToken}-approval-${safeName}`;
+        const { error: approvalUploadError } = await supabase.storage
+          .from("approved-designs")
+          .upload(storagePath, approvalFileSnapshot, { upsert: false });
+        if (approvalUploadError) {
+          throw new Error(approvalUploadError.message);
+        }
+        const { data: approvalUrlData } = supabase.storage
+          .from("approved-designs")
+          .getPublicUrl(storagePath);
+        payload.job_sheet_approval_image_url = approvalUrlData?.publicUrl ?? null;
+      }
+
       const { data: insertedOrder, error } = await supabase
         .from("orders")
         .insert(payload)
@@ -2440,9 +2579,14 @@ function App() {
       if (fromPrintingForm) {
         jobSheetFromPrintingFormRef.current = false;
         setJobSheetForm(emptyJobSheetForm());
+        setJobSheetAdvanceProofFiles([]);
+        setJobSheetPaymentProofFiles([]);
+        setJobSheetApprovalImageFile(null);
         setCreateFormMode("printing");
         setPrintingFormJobSheetStatus({ jobSheetOrderId: payload.order_id });
       }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
     } finally {
       removePendingOrder(clientKey);
       orderSubmitLockRef.current = false;
@@ -3452,13 +3596,38 @@ function App() {
     if (order?._isPending) return;
     setViewOrderTarget(order);
     setViewOrderFromTab(dashboardTab);
+    if (order?.id && orderNeedsDetailHydration(order)) {
+      void hydrateOrderDetail(order.id);
+    }
+  }
+
+  async function hydrateOrderDetail(orderId) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(ORDERS_FULL_SELECT)
+      .eq("id", orderId)
+      .maybeSingle();
+    if (error || !data) {
+      if (error) console.error(error.message);
+      return;
+    }
+    setOrders((prev) =>
+      prev.map((o) => (String(o.id) === String(orderId) ? { ...o, ...data } : o))
+    );
+    setViewOrderTarget((prev) =>
+      prev && String(prev.id) === String(orderId) ? { ...prev, ...data } : prev
+    );
   }
 
   async function handleNotificationAssignmentOpen(item) {
     if (!item?.order_id) return;
     let order = orders.find((o) => o.id === item.order_id);
     if (!order) {
-      const { data } = await supabase.from("orders").select("*").eq("id", item.order_id).maybeSingle();
+      const { data } = await supabase
+        .from("orders")
+        .select(ORDERS_FULL_SELECT)
+        .eq("id", item.order_id)
+        .maybeSingle();
       order = data ?? null;
     }
     if (!order) return;
@@ -4091,6 +4260,14 @@ function App() {
   }
 
   async function handleViewerUpdate(orderId) {
+    const orderRow = orders.find((o) => o.id === orderId);
+    if (jobSheetFullPaidMissingPaymentProof(orderRow, parsePaymentProofUrls)) {
+      alert(
+        "This job sheet is marked full paid but has no payment proof. Upload payment proof before making other changes."
+      );
+      return;
+    }
+
     const nextStatus = statusUpdates[orderId];
     const nextRemarks = remarksUpdates[orderId];
     const nextQty = qtyUpdates[orderId];
@@ -4379,6 +4556,51 @@ function App() {
     }
   }
 
+  async function handleAppendJobSheetPaymentProof(order, fileList) {
+    const files = Array.from(fileList ?? []).filter((f) => f instanceof File);
+    if (!files.length) {
+      alert("Please choose an image or PDF file.");
+      return;
+    }
+    if (!session?.user) return;
+    const orderId = order.id;
+    const idKey = String(orderId);
+    const freshOrder = orders.find((o) => String(o.id) === idKey) ?? order;
+    setUploadingPaymentProofOrderId(orderId);
+    try {
+      const existing = parsePaymentProofUrls(freshOrder.job_sheet_payment_proof_url);
+      const nextUrls = [...existing];
+      for (const file of files) {
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, "-")}`;
+        const paymentPath = `${orderId}/job-sheet-${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("payment-screenshots")
+          .upload(paymentPath, file, { upsert: true });
+        if (uploadError) {
+          alert(uploadError.message);
+          return;
+        }
+        const { data: urlData } = supabase.storage.from("payment-screenshots").getPublicUrl(paymentPath);
+        if (urlData?.publicUrl) nextUrls.push(urlData.publicUrl);
+      }
+      const serialized = serializePaymentProofUrls(nextUrls);
+      const { error: saveError } = await supabase
+        .from("orders")
+        .update({ job_sheet_payment_proof_url: serialized })
+        .eq("id", orderId);
+      if (saveError) {
+        alert(saveError.message);
+        await fetchOrders({ silent: true });
+        return;
+      }
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, job_sheet_payment_proof_url: serialized } : o))
+      );
+    } finally {
+      setUploadingPaymentProofOrderId(null);
+    }
+  }
+
   async function handleArchiveApprovedDesignImages(order, removeUrls) {
     if (!session?.user) return;
     if (!canCurrentUserEdit("approved_design_images")) {
@@ -4570,6 +4792,7 @@ function App() {
         }
         topbarActions={
           <>
+            <DevEnvironmentIndicator />
             <GlobalSearchBox
               query={globalSearchQuery}
               onQueryChange={setGlobalSearchQuery}
@@ -4607,17 +4830,6 @@ function App() {
               </AlertDescription>
             </Alert>
           )}
-
-          {import.meta.env.DEV && getDeployEnvironment().isProduction ? (
-            <Alert className="mb-4 border-amber-500/50 bg-amber-500/10 text-foreground" role="alert">
-              <AlertTitle>Live database connected</AlertTitle>
-              <AlertDescription>
-                This dev server is using production Supabase — changes here affect the hosted live app. Stop and use{" "}
-                <code>npm run dev</code> (needs <code>.env.development</code>) or <code>npm run dev:staging</code> (needs{" "}
-                <code>.env.staging</code>).
-              </AlertDescription>
-            </Alert>
-          ) : null}
 
           <div
             className={cn(
@@ -4787,6 +4999,12 @@ function App() {
                         </>
                       )}
                     </div>
+                  ) : null}
+                  {ordersLoadError ? (
+                    <Alert variant="destructive" className="mb-4">
+                      <AlertTitle>Orders could not load</AlertTitle>
+                      <AlertDescription>{ordersLoadError}</AlertDescription>
+                    </Alert>
                   ) : null}
                   {loadingOrders ? (
                     <div className="space-y-3">
@@ -6216,6 +6434,14 @@ function App() {
                   saving={savingJobSheet}
                   onSubmit={handleCreateJobSheet}
                   onCancel={cancelJobSheetForm}
+                  advanceProofFiles={jobSheetAdvanceProofFiles}
+                  onAdvanceProofFilesChange={setJobSheetAdvanceProofFiles}
+                  paymentProofFiles={jobSheetPaymentProofFiles}
+                  onPaymentProofFilesChange={setJobSheetPaymentProofFiles}
+                  approvalImageFile={jobSheetApprovalImageFile}
+                  onApprovalImageFileChange={setJobSheetApprovalImageFile}
+                  inventoryProducts={inventoryProducts}
+                  loadingInventoryProducts={loadingInventoryProducts}
                 />
               ) : createFormMode === "sticker" ? (
                 <CreateStickerOrderForm
@@ -6868,6 +7094,7 @@ function App() {
               handleViewerUpdate={handleViewerUpdate}
               handleAppendPostApprovedDesignImages={handleAppendPostApprovedDesignImages}
               handleAppendPaymentProof={handleAppendPaymentProof}
+              handleAppendJobSheetPaymentProof={handleAppendJobSheetPaymentProof}
               handleUpdatePaymentMethod={handleUpdatePaymentMethod}
               uploadingPaymentProofOrderId={uploadingPaymentProofOrderId}
               handleArchiveApprovedDesignImages={handleArchiveApprovedDesignImages}

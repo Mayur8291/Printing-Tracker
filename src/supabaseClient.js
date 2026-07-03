@@ -10,10 +10,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const activeSupabaseRef = getSupabaseProjectRef(supabaseUrl);
 
-if (import.meta.env.DEV && activeSupabaseRef === PRODUCTION_SUPABASE_REF) {
+const allowProdInDev = import.meta.env.VITE_ALLOW_PROD_IN_DEV === "true";
+
+if (import.meta.env.DEV && activeSupabaseRef === PRODUCTION_SUPABASE_REF && !allowProdInDev) {
+  throw new Error(
+    "[Scott Dashboard] DEV blocked: production Supabase is configured. " +
+      "Use npm run dev with .env.development (staging) or set VITE_ALLOW_PROD_IN_DEV=true to override."
+  );
+}
+
+if (import.meta.env.DEV && activeSupabaseRef === PRODUCTION_SUPABASE_REF && allowProdInDev) {
   console.warn(
-    "[Scott Dashboard] DEV is connected to PRODUCTION Supabase (%s). " +
-      "Use npm run dev (.env.development) or npm run dev:staging (.env.staging).",
+    "[Scott Dashboard] DEV is connected to PRODUCTION Supabase (%s). Changes affect live users.",
     activeSupabaseRef
   );
 }

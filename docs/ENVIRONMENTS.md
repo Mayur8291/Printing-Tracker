@@ -128,8 +128,36 @@ Examples (committed, no secrets): `.env.example`, `.env.development.example`, `.
 
 ## MCP / automation notes
 
-- Supabase MCP (`user-supabase_scott1`) is linked to the **production** project above.
+- **Production MCP:** `user-supabase` / `user-supabase_scott1` → `levwrmvqdntngeasrtnb` (live data).
+- **Staging MCP:** `user-supabase staging` → `scvojtvgnkmbupvyslmb` (safe testing).
+- **Rule for agents and developers:** schema changes, `execute_sql`, and `apply_migration` during feature work must target **staging only**. Production changes happen only at release (merge `develop` → `main`, then `supabase link` + `db push` to prod ref).
 - Creating a second Supabase project requires the dashboard (billing/org); duplicate schema via `supabase db push` on the new ref.
+
+### Verify local dev never hits production
+
+```bash
+npm run check:env
+```
+
+Expected: both `npm run dev` and `npm run dev:staging` show ref `scvojtvgnkmbupvyslmb`.
+
+`src/supabaseClient.js` **blocks** `npm run dev` if production URL is loaded (unless `VITE_ALLOW_PROD_IN_DEV=true`).
+
+---
+
+## Health check (2026-07-03)
+
+| Check | Production (`levwrmvqdntngeasrtnb`) | Staging (`scvojtvgnkmbupvyslmb`) |
+|-------|--------------------------------------|----------------------------------|
+| Project status | ACTIVE_HEALTHY | ACTIVE_HEALTHY |
+| Orders in DB | ~300 rows | 9 rows (test data) |
+| `gender` / `product_type` columns | Present | Present |
+| Orders SELECT (app columns) | OK | OK |
+| Local `npm run dev` target | N/A — use staging only | **Yes** (`.env.development`) |
+
+**Schema drift:** Staging has migrations not yet on production (e.g. `20260705120000` through `20260708120000`). That is expected during development — apply to production only at release via `supabase db push` on prod ref after QA on staging.
+
+**Previous note:** `.env` in repo root still holds **production** keys for Netlify/local `build` fallback. That file is **not** used when you run `npm run dev` if `.env.development` exists.
 
 ---
 

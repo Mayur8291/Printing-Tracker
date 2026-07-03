@@ -38,6 +38,7 @@ import {
   paymentMethodLabel,
   paymentMethodRequiresProof
 } from "./orderTabUtils";
+import { jobSheetFullPaidMissingPaymentProof } from "./jobSheetPaymentUtils";
 import { supabase } from "./supabaseClient";
 import { DatePicker } from "@/components/ui/date-picker";
 import MasterListSelectField from "@/components/admin/MasterListSelectField";
@@ -135,6 +136,7 @@ export default function OrderDetailPanel({
   handleViewerUpdate,
   handleAppendPostApprovedDesignImages,
   handleAppendPaymentProof,
+  handleAppendJobSheetPaymentProof,
   handleUpdatePaymentMethod,
   uploadingPaymentProofOrderId,
   handleArchiveApprovedDesignImages,
@@ -180,6 +182,10 @@ export default function OrderDetailPanel({
   const isUploadingPaymentProof = uploadingPaymentProofOrderId === order.id;
   const designActionsBusy = isArchivingDesigns || isUploadingDesigns;
   const paymentProofUrls = parsePaymentProofUrls(order.payment_screenshot_url);
+  const jobSheetPaymentProofUrls = parsePaymentProofUrls(order.job_sheet_payment_proof_url);
+  const jobSheetProofMissing = jobSheetFullPaidMissingPaymentProof(order, parsePaymentProofUrls);
+  const showJobSheetPaymentProof =
+    Boolean(order.is_production_order && order.job_sheet_full_paid);
   const canEditPayment = canCurrentUserEdit("payment_method");
   const showPaymentProofUpload =
     canEditPayment && paymentMethodRequiresProof(order.payment_method);
@@ -515,6 +521,53 @@ export default function OrderDetailPanel({
                     </Button>
                   </>
                 ) : null}
+              </DetailField>
+            ) : null}
+            {showJobSheetPaymentProof ? (
+              <DetailField label="Job sheet payment proof" wide>
+                {jobSheetProofMissing ? (
+                  <p className="text-sm text-destructive">
+                    Payment proof required — upload proof to enable further job updates.
+                  </p>
+                ) : null}
+                {jobSheetPaymentProofUrls.length > 0 ? (
+                  <div className="order-detail-thumb-grid">
+                    {jobSheetPaymentProofUrls.map((url, index) => (
+                      <button
+                        key={`${order.id}-job-sheet-proof-${index}`}
+                        type="button"
+                        className="approved-thumb-btn order-detail-thumb-btn order-detail-payment-screenshot-btn"
+                        onClick={() => openPreview(jobSheetPaymentProofUrls, index)}
+                      >
+                        <img src={url} alt={`Job sheet payment proof ${index + 1}`} />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No proof uploaded yet</p>
+                )}
+                <input
+                  id={`job-sheet-payment-proof-upload-${order.id}`}
+                  type="file"
+                  accept="image/*,.pdf"
+                  multiple
+                  className="sr-only"
+                  disabled={isUploadingPaymentProof}
+                  onChange={(e) => {
+                    const picked = Array.from(e.target.files ?? []);
+                    e.target.value = "";
+                    if (picked.length) void handleAppendJobSheetPaymentProof(order, picked);
+                  }}
+                />
+                <Button variant="outline" size="sm" asChild disabled={isUploadingPaymentProof}>
+                  <label htmlFor={`job-sheet-payment-proof-upload-${order.id}`}>
+                    {isUploadingPaymentProof
+                      ? "Uploading…"
+                      : jobSheetPaymentProofUrls.length
+                        ? "Add more proof"
+                        : "Upload payment proof"}
+                  </label>
+                </Button>
               </DetailField>
             ) : null}
             {order.invoice_url ? (

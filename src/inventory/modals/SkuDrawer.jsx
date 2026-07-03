@@ -31,8 +31,8 @@ function KvValue({ children, className }) {
   return <dd className={cn("font-medium", className)}>{children}</dd>;
 }
 
-export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete, deleting }) {
-  const { suppliers, warehouses, movements, settings, saveSkuFields } = useInventory();
+export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete, deleting, movements: drawerMovements, detailLoading = false }) {
+  const { suppliers, warehouses, settings, saveSkuFields } = useInventory();
   const [metricsDraft, setMetricsDraft] = useState(null);
   const [savingMetrics, setSavingMetrics] = useState(false);
 
@@ -48,7 +48,7 @@ export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete,
     cost: String(sku?.cost ?? 0),
     retail: String(sku?.retail ?? 0)
   };
-  const history = sku ? movements.filter((m) => m.sku === sku.id).slice(0, 6) : [];
+  const history = sku ? (drawerMovements ?? []).slice(0, 6) : [];
 
   const setMetric = (key, value) => {
     setMetricsDraft((prev) => ({ ...(prev || metrics), [key]: value }));
@@ -287,7 +287,9 @@ export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete,
 
                 <section>
                   <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</h4>
-                  {history.length === 0 ? (
+                  {detailLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading activity…</p>
+                  ) : history.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No movements logged yet.</p>
                   ) : (
                     <div className="space-y-2">

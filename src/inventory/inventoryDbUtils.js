@@ -1,5 +1,12 @@
 import { supabase } from "../supabaseClient";
 import { isSchemaCacheError, waitForSchemaCacheRetry } from "../supabaseErrorUtils";
+import {
+  INVENTORY_INITIAL_SKU_BATCH,
+  INVENTORY_SKU_FULL_SELECT,
+  INVENTORY_SKU_LIST_SELECT,
+  INVENTORY_SUPPLIER_LIST_SELECT,
+  INVENTORY_WAREHOUSE_LIST_SELECT
+} from "./inventoryQueryFields";
 
 async function withSchemaCacheRetry(run) {
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -11,8 +18,7 @@ async function withSchemaCacheRetry(run) {
   return { data: null, error: new Error("Schema cache retry exhausted.") };
 }
 
-export const INVENTORY_SKU_SELECT =
-  "id, sku_code, kind, name, color, hex_color, stock_qty, reorder_point, doc, drr, unit, unit_cost, retail_price, supplier_id, warehouse_id, bin_location, last_received_at, tags, extra, parent_style_id, created_at, updated_at, inventory_style_parents(id, parent_sku_code, style_name)";
+export const INVENTORY_SKU_SELECT = INVENTORY_SKU_FULL_SELECT;
 
 export const INVENTORY_STYLE_PARENT_SELECT = "id, parent_sku_code, style_name, kind, created_at";
 
@@ -253,20 +259,50 @@ function mapWarehouseRow(w) {
 
 const SUPABASE_PAGE_SIZE = 1000;
 
+async function fetchInventorySkuBatch(offset, pageSize = SUPABASE_PAGE_SIZE) {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_skus")
+      .select(INVENTORY_SKU_LIST_SELECT)
+      .order("sku_code")
+      .range(offset, offset + pageSize - 1)
+  );
+  if (error) throw error;
+  return data || [];
+}
+
 async function fetchAllInventorySkuRows() {
   const rows = [];
   let offset = 0;
 
   while (true) {
-    const { data, error } = await withSchemaCacheRetry(() =>
-      supabase
-        .from("inventory_skus")
-        .select(INVENTORY_SKU_SELECT)
-        .order("sku_code")
-        .range(offset, offset + SUPABASE_PAGE_SIZE - 1)
-    );
-    if (error) throw error;
-    const chunk = data || [];
+    const chunk = await fetchInventorySkuBatch(offset);
+    rows.push(...chunk);
+    if (chunk.length < SUPABASE_PAGE_SIZE) break;
+    offset += SUPABASE_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
+export async function fetchInventorySkuRowsAll() {
+  return fetchAllInventorySkuRows();
+}
+
+export async function fetchInventorySkuRowsInitial() {
+  return fetchInventorySkuBatch(0, INVENTORY_INITIAL_SKU_BATCH);
+}
+
+export async function fetchInventorySkuRowsFromOffset(offset) {
+  return fetchAllInventorySkuRowsFromOffset(offset);
+}
+
+async function fetchAllInventorySkuRowsFromOffset(startOffset) {
+  const rows = [];
+  let offset = startOffset;
+
+  while (true) {
+    const chunk = await fetchInventorySkuBatch(offset);
     rows.push(...chunk);
     if (chunk.length < SUPABASE_PAGE_SIZE) break;
     offset += SUPABASE_PAGE_SIZE;
@@ -300,47 +336,42 @@ export async function insertStyleParent({ parentSkuCode, styleName, kind }, user
   return mapStyleParentRow(data);
 }
 
-export async function fetchInventoryBundle() {
-  const [settingsRes, suppliersRes, warehousesRes, movementsRes, skuRows, styleParents] = await Promise.all([
-    supabase.from("inventory_alert_settings").select("*").eq("id", 1).maybeSingle(),
-    supabase.from("inventory_suppliers").select("*").order("name"),
-    supabase.from("inventory_warehouses").select("*").order("name"),
+export async function fetchInventoryMovements(limit = 100) {
+  const { data, error } = await withSchemaCacheRetry(() =>
     supabase
       .from("inventory_stock_movements")
       .select(INVENTORY_MOVEMENT_SELECT)
       .order("created_at", { ascending: false })
-      .limit(100),
-    fetchAllInventorySkuRows(),
-    fetchAllStyleParents().catch(() => [])
-  ]);
+      .limit(limit)
+  );
+  if (error) throw error;
+  return (data || []).map(movementRowToUi);
+}
 
-  const errors = [
-    settingsRes.error,
-    suppliersRes.error,
-    warehousesRes.error,
-    movementsRes.error
-  ].filter(Boolean);
+export async function fetchSkuDetail(skuUuid) {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase.from("inventory_skus").select(INVENTORY_SKU_FULL_SELECT).eq("id", skuUuid).maybeSingle()
+  );
+  if (error) throw error;
+  return data ? rowToSku(data) : null;
+}
 
-  if (errors.length) {
-    const movementOnly = errors.find((e) => e && movementsRes.error === e);
-    if (movementOnly && !settingsRes.error && !suppliersRes.error && !warehousesRes.error) {
-      const skus = (skuRows || []).map(rowToSku);
-      const settings = settingsRes.data || DEFAULT_ALERT_SETTINGS;
-      return {
-        settings,
-        suppliers: (suppliersRes.data || []).map(mapSupplierRow),
-        warehouses: (warehousesRes.data || []).map(mapWarehouseRow),
-        styleParents: styleParents || [],
-        skus,
-        fabrics: skus.filter((s) => s.kind === "fabric"),
-        trims: skus.filter((s) => s.kind === "trim"),
-        apparel: skus.filter((s) => s.kind === "apparel"),
-        movements: [],
-        alerts: deriveAlerts(skus, settings)
-      };
-    }
-    throw errors[0];
-  }
+export async function fetchSkuMovements(skuUuid, limit = 6) {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_stock_movements")
+      .select(INVENTORY_MOVEMENT_SELECT)
+      .eq("sku_id", skuUuid)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+  );
+  if (error) throw error;
+  return (data || []).map(movementRowToUi);
+}
+
+function buildInventoryBundleFromParts({ settingsRes, suppliersRes, warehousesRes, skuRows, styleParents, movements = [] }) {
+  const errors = [settingsRes.error, suppliersRes.error, warehousesRes.error].filter(Boolean);
+  if (errors.length) throw errors[0];
 
   const skus = (skuRows || []).map(rowToSku);
   const settings = settingsRes.data || DEFAULT_ALERT_SETTINGS;
@@ -354,8 +385,49 @@ export async function fetchInventoryBundle() {
     fabrics: skus.filter((s) => s.kind === "fabric"),
     trims: skus.filter((s) => s.kind === "trim"),
     apparel: skus.filter((s) => s.kind === "apparel"),
-    movements: (movementsRes.data || []).map(movementRowToUi),
+    movements,
     alerts: deriveAlerts(skus, settings)
+  };
+}
+
+export async function fetchInventoryRefreshBundle({ fullSkus = false } = {}) {
+  const [settingsRes, suppliersRes, warehousesRes, skuRows, styleParents] = await Promise.all([
+    supabase.from("inventory_alert_settings").select("*").eq("id", 1).maybeSingle(),
+    supabase.from("inventory_suppliers").select(INVENTORY_SUPPLIER_LIST_SELECT).order("name"),
+    supabase.from("inventory_warehouses").select(INVENTORY_WAREHOUSE_LIST_SELECT).order("name"),
+    fullSkus ? fetchAllInventorySkuRows() : fetchInventorySkuRowsInitial(),
+    fetchAllStyleParents().catch(() => [])
+  ]);
+
+  const bundle = buildInventoryBundleFromParts({
+    settingsRes,
+    suppliersRes,
+    warehousesRes,
+    skuRows,
+    styleParents,
+    movements: []
+  });
+
+  return {
+    ...bundle,
+    hasMoreSkus: !fullSkus && skuRows.length >= INVENTORY_INITIAL_SKU_BATCH
+  };
+}
+
+export async function fetchInventoryCoreBundle() {
+  return fetchInventoryRefreshBundle({ fullSkus: false });
+}
+
+export async function fetchInventoryBundle() {
+  const [core, movements] = await Promise.all([
+    fetchInventoryCoreBundle(),
+    fetchInventoryMovements().catch(() => [])
+  ]);
+
+  return {
+    ...core,
+    movements,
+    alerts: deriveAlerts(core.skus, core.settings)
   };
 }
 
