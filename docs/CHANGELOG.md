@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-07-06 — Inventory list pagination
+
+- **Issue:** Apparel/Fabrics/Trims inventory showed all rows on one page (e.g. 3,894 apparel SKUs — disabled Prev/Next stub).
+- **Fix:** Client-side pagination via shared `usePagination` (default 25/page, per-tab localStorage). Apparel paginates top-level style groups + standalone SKUs; fabrics/trims paginate SKU rows. Footer: per-page control + Prev/Next.
+- **Files:** `src/inventory/pages/InventoryListPage.jsx`, `src/inventory/inventorySkuGrouping.js`, `src/orderPagination.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Radix Themes Button (via shadcn `Button` adapter)
+
+- **Feature:** `src/components/ui/button.jsx` now renders `@radix-ui/themes` `Button` while keeping the same shadcn API (`variant`, `size`, `asChild`). All existing imports keep working. `buttonVariants` kept for calendar nav class names.
+- **Theme:** `accentColor="gray"` + `radius="medium"` on root `<Theme>` to match zinc dashboard.
+- **Files:** `src/components/ui/button.jsx`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Radix UI Themes provider
+
+- **Feature:** Added `@radix-ui/themes` — global styles import in `main.jsx`, app wrapped in `<Theme>` (syncs with light/dark toggle; `hasBackground={false}` so shadcn/Tailwind layout stays in control).
+- **Files:** `package.json`, `package-lock.json`, `src/main.jsx`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-04 — Production tracker list: inline status edit
+
+- **Issue:** Production tracker list showed status as read-only badge only; users had to open View order to change status.
+- **Fix:** New `OrderListStatusCell` — dropdown in list when user has **Status** edit permission on Production tracker tab (admin always). Uses same pipeline options and `persistOrderStatus` as View order.
+- **Files (new):** `src/components/orders/OrderListStatusCell.jsx`.
+- **Files:** `src/LinkedOrdersTabPanel.jsx`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
 ## 2026-07-03 — Fix blank screen on View order (job sheet)
 
 - **Issue:** Production tracker **View order** → blank screen again.

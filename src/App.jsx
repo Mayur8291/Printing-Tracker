@@ -21,6 +21,7 @@ import { Button } from "./components/ui/button";
 import { DatePicker } from "./components/ui/date-picker";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { TooltipProvider } from "./components/ui/tooltip";
+import { Theme } from "@radix-ui/themes";
 import { cn } from "./lib/utils";
 import SharedLinksPanel from "./SharedLinksPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
@@ -4922,6 +4923,12 @@ function App() {
     : userDisplayInitials(profile?.full_name, profile?.email);
 
   return (
+    <Theme
+      appearance={theme === "dark" ? "dark" : "light"}
+      accentColor="gray"
+      radius="medium"
+      hasBackground={false}
+    >
     <TooltipProvider delayDuration={200}>
     <div className="page app-layout flex h-svh min-h-0 flex-col overflow-hidden bg-background">
       <DashboardShell
@@ -5367,6 +5374,10 @@ function App() {
             renderStageIcon={renderStageIcon}
             canCreateJobSheet={isAdmin || viewerCanCreateOrders}
             onCreateJobSheet={openCreateProductionJobSheet}
+            canEditStatus={canUseOrderControls && canCurrentUserEdit("status")}
+            isAdmin={isAdmin}
+            statusUpdates={statusUpdates}
+            onStatusChange={persistOrderStatus}
           />
           )}
 
@@ -7384,6 +7395,7 @@ function App() {
       />
     </div>
     </TooltipProvider>
+    </Theme>
   );
 }
 

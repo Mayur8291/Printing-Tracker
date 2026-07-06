@@ -13,7 +13,8 @@ import SkuMetricInput from "../components/SkuMetricInput";
 import { useInventory } from "../InventoryDataContext";
 import { ExpandToggle, PageHeader, SortIndicator, StockStatusBadge } from "../inventoryUiUtils";
 import { formatInr, statusOf } from "../inventoryUtils";
-import { apparelMatchesQuery, groupSkusByParent, mergeEmptyStyleParents, skuMatchesQuery } from "../inventorySkuGrouping";
+import { apparelMatchesQuery, buildApparelTopLevelEntries, groupSkusByParent, mergeEmptyStyleParents, skuMatchesQuery } from "../inventorySkuGrouping";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "../../orderPagination";
 
 const INV_HEAD = "h-11 whitespace-nowrap px-4 text-xs font-medium text-muted-foreground";
 const INV_CELL = "px-4 py-3 align-middle";
@@ -246,26 +247,36 @@ function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, 
   );
 }
 
-function ApparelTable({ rows, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, Th, settings, query, supplierOf, styleParents }) {
+function ApparelTable({
+  rows,
+  visibleGroups: visibleGroupsProp,
+  visibleStandalone: visibleStandaloneProp,
+  selected,
+  toggleSel,
+  openSku,
+  openAdjust,
+  onDelete,
+  deletingSkuId,
+  Th,
+  settings,
+  query,
+  supplierOf,
+  styleParents
+}) {
   const [collapsed, setCollapsed] = useState(() => new Set());
 
-  const { groups, standalone } = useMemo(() => groupSkusByParent(rows), [rows]);
-
-  const allGroups = useMemo(
-    () => mergeEmptyStyleParents(groups, styleParents, "apparel"),
-    [groups, styleParents]
-  );
-
-  const visibleGroups = useMemo(
-    () => allGroups.filter((g) => apparelMatchesQuery(g, query, supplierOf)),
-    [allGroups, query, supplierOf]
-  );
-
-  const visibleStandalone = useMemo(() => {
-    if (!query) return standalone;
-    const q = query.toLowerCase();
-    return standalone.filter((r) => skuMatchesQuery(r, q, supplierOf));
-  }, [standalone, query, supplierOf]);
+  const { visibleGroups, visibleStandalone } = useMemo(() => {
+    if (visibleGroupsProp != null && visibleStandaloneProp != null) {
+      return { visibleGroups: visibleGroupsProp, visibleStandalone: visibleStandaloneProp };
+    }
+    const { groups, standalone } = groupSkusByParent(rows);
+    const allGroups = mergeEmptyStyleParents(groups, styleParents, "apparel");
+    const visibleGroupsInner = allGroups.filter((g) => apparelMatchesQuery(g, query, supplierOf));
+    const visibleStandaloneInner = !query
+      ? standalone
+      : standalone.filter((r) => skuMatchesQuery(r, String(query).toLowerCase(), supplierOf));
+    return { visibleGroups: visibleGroupsInner, visibleStandalone: visibleStandaloneInner };
+  }, [visibleGroupsProp, visibleStandaloneProp, rows, styleParents, query, supplierOf]);
 
   const toggleGroup = (id) => {
     setCollapsed((prev) => {
@@ -474,6 +485,34 @@ export default function InventoryListPage({
     });
   };
 
+  const paginationResetKey = `${kind}|${query}|${warehouseFilter}|${statusFilter}|${sortBy}|${sortDir}`;
+
+  const apparelTopLevel = useMemo(() => {
+    if (kind !== "apparel") return [];
+    return buildApparelTopLevelEntries(sorted, styleParents, query, supplierOf);
+  }, [kind, sorted, styleParents, query, supplierOf]);
+
+  const paginationSource = kind === "apparel" ? apparelTopLevel : sorted;
+
+  const {
+    visible: pageItems,
+    total: paginationTotal,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages
+  } = usePagination(paginationSource, `inventory-${kind}`, paginationResetKey, 25);
+
+  const paginatedApparel = useMemo(() => {
+    if (kind !== "apparel") return { visibleGroups: [], visibleStandalone: [] };
+    const visibleGroups = pageItems.filter((e) => e.kind === "group").map((e) => e.group);
+    const visibleStandalone = pageItems.filter((e) => e.kind === "standalone").map((e) => e.sku);
+    return { visibleGroups, visibleStandalone };
+  }, [kind, pageItems]);
+
+  const paginatedFabricTrimRows = kind === "apparel" ? [] : pageItems;
+
   const tabs = [
     { id: "apparel", label: "Apparel", count: apparel.length },
     { id: "fabrics", label: "Fabrics", count: fabrics.length },
@@ -607,6 +646,8 @@ export default function InventoryListPage({
               {kind === "apparel" ? (
                 <ApparelTable
                   rows={sorted}
+                  visibleGroups={paginatedApparel.visibleGroups}
+                  visibleStandalone={paginatedApparel.visibleStandalone}
                   selected={selected}
                   toggleSel={toggleSel}
                   openSku={openSku}
@@ -622,7 +663,7 @@ export default function InventoryListPage({
               ) : (
                 <FabricTrimTable
                   kind={kind}
-                  rows={sorted}
+                  rows={paginatedFabricTrimRows}
                   selected={selected}
                   toggleSel={toggleSel}
                   openSku={openSku}
@@ -637,19 +678,19 @@ export default function InventoryListPage({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center justify-between border-t px-4 py-3 text-xs text-muted-foreground">
-            <span>
-              Showing 1–{sorted.length} of {rows.length}
-            </span>
-            <div className="flex items-center gap-1">
-              <Button type="button" variant="ghost" size="sm" disabled>
-                Prev
-              </Button>
-              <span className="px-2">Page 1 of 1</span>
-              <Button type="button" variant="ghost" size="sm" disabled>
-                Next
-              </Button>
-            </div>
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
+            <OrdersPerPageControl
+              idPrefix={`inventory-${kind}-per-page`}
+              pageSize={pageSize}
+              onPageSizeChange={setPageSize}
+            />
+            <OrdersPagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              total={paginationTotal}
+              pageSize={pageSize}
+            />
           </div>
         </CardContent>
       </Card>

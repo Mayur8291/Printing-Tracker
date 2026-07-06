@@ -106,3 +106,29 @@ export function skuMatchesQuery(r, q, supplierOf) {
     (supplierOf(r.supplier)?.name || "").toLowerCase().includes(q)
   );
 }
+
+/** Groups + standalone SKUs for apparel list (before pagination). */
+export function buildApparelDisplayLists(rows, styleParents, query, supplierOf) {
+  const { groups, standalone } = groupSkusByParent(rows);
+  const allGroups = mergeEmptyStyleParents(groups, styleParents, "apparel");
+  const q = String(query ?? "").trim().toLowerCase();
+  const visibleGroups = allGroups.filter((g) => apparelMatchesQuery(g, query, supplierOf));
+  const visibleStandalone = !q
+    ? standalone
+    : standalone.filter((r) => skuMatchesQuery(r, q, supplierOf));
+  return { visibleGroups, visibleStandalone };
+}
+
+/** Flat top-level rows for apparel pagination (one group header or one SKU per entry). */
+export function buildApparelTopLevelEntries(rows, styleParents, query, supplierOf) {
+  const { visibleGroups, visibleStandalone } = buildApparelDisplayLists(
+    rows,
+    styleParents,
+    query,
+    supplierOf
+  );
+  return [
+    ...visibleGroups.map((group) => ({ kind: "group", group })),
+    ...visibleStandalone.map((sku) => ({ kind: "standalone", sku }))
+  ];
+}

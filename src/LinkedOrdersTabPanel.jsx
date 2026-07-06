@@ -13,11 +13,10 @@ import OrdersListSummary from "./components/orders/OrdersListSummary";
 import OrderIdBadges from "./components/orders/OrderIdBadges";
 import JobSheetOrderIdBadge from "./JobSheetOrderIdBadge";
 import { isJobSheetOrder } from "./jobSheetUtils";
-import OrderStatusBadge from "./components/orders/OrderStatusBadge";
+import OrderListStatusCell from "./components/orders/OrderListStatusCell";
 import { orderListRowClassName } from "./components/orders/orderTableUtils";
 import OrderViewActionCell from "./components/orders/OrderViewActionCell";
 import { formatDeliveryDate } from "./orderViewUtils";
-import { stageLabelForOrder } from "./stickerOrderUtils";
 import { OrdersPagination, usePagination } from "./orderPagination";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +39,11 @@ export default function LinkedOrdersTabPanel({
   renderStageIcon,
   paginationKey: paginationKeyProp,
   onCreateJobSheet,
-  canCreateJobSheet = false
+  canCreateJobSheet = false,
+  canEditStatus = false,
+  isAdmin = false,
+  statusUpdates = {},
+  onStatusChange
 }) {
   const safeOrders = Array.isArray(orders) ? orders : [];
   const totalQty = safeOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
@@ -103,7 +106,7 @@ export default function LinkedOrdersTabPanel({
                   <TableHead>Order number</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Product name</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="min-w-[11rem]">Status</TableHead>
                   <TableHead>Coordinator</TableHead>
                   <TableHead>Delivery date</TableHead>
                   {extraColumn ? <TableHead>{extraColumn.header}</TableHead> : null}
@@ -112,7 +115,6 @@ export default function LinkedOrdersTabPanel({
               </TableHeader>
               <TableBody>
                 {visibleOrders.map((order) => {
-                  const statusLabel = stageLabelForOrder(order, order.status);
                   return (
                     <TableRow
                       key={order.clientKey ?? order.id}
@@ -134,10 +136,13 @@ export default function LinkedOrdersTabPanel({
                         {order.product_name?.trim() ? order.product_name : "—"}
                       </TableCell>
                       <TableCell>
-                        <OrderStatusBadge
-                          status={order.status}
-                          label={statusLabel}
-                          icon={renderStageIcon?.(order.status, statusLabel)}
+                        <OrderListStatusCell
+                          order={order}
+                          canEdit={canEditStatus}
+                          isAdmin={isAdmin}
+                          statusUpdates={statusUpdates}
+                          renderStageIcon={renderStageIcon}
+                          onStatusChange={onStatusChange}
                         />
                       </TableCell>
                       <TableCell>{order.coordinator_name || "—"}</TableCell>

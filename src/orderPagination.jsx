@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_PAGE_SIZE = 10;
 
-function readStoredPageSize(storageKey) {
-  if (typeof window === "undefined" || !storageKey) return DEFAULT_PAGE_SIZE;
+function readStoredPageSize(storageKey, fallback = DEFAULT_PAGE_SIZE) {
+  if (typeof window === "undefined" || !storageKey) return fallback;
   try {
     const raw = window.localStorage.getItem(`orders-per-page:${storageKey}`);
     const n = Number.parseInt(raw ?? "", 10);
@@ -22,7 +22,7 @@ function readStoredPageSize(storageKey) {
   } catch {
     /* ignore */
   }
-  return DEFAULT_PAGE_SIZE;
+  return fallback;
 }
 
 function persistPageSize(storageKey, value) {
@@ -34,9 +34,9 @@ function persistPageSize(storageKey, value) {
   }
 }
 
-export function usePagination(items, storageKey, resetSignal) {
+export function usePagination(items, storageKey, resetSignal, defaultPageSize = DEFAULT_PAGE_SIZE) {
   const safeItems = Array.isArray(items) ? items : [];
-  const [pageSize, setPageSizeState] = useState(() => readStoredPageSize(storageKey));
+  const [pageSize, setPageSizeState] = useState(() => readStoredPageSize(storageKey, defaultPageSize));
   const [page, setPage] = useState(1);
 
   const total = safeItems.length;
