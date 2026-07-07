@@ -1,5 +1,31 @@
 # Debugging
 
+## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
+
+### Symptom
+Production deploy on `main` fails. Deploy log shows **Exposed secrets detected** and `Build script returned non-zero exit code: 2`. GitHub Actions promote may still succeed (DB + functions only).
+
+### Root cause
+Netlify **secret scanning** (Secrets Controller / smart detection) blocks publish when it finds API keys or JWTs in:
+
+1. **Tracked `.env`** — Supabase anon key committed in git (even though `.gitignore` lists `.env`, an already-tracked file stays in the repo).
+2. **Tracked `dist/`** — a local `npm run build` inlines `VITE_*` values into `dist/assets/*.js`; committing `dist/` puts the anon JWT in git.
+3. **Netlify env marked "Contains secret values"** — Vite always embeds `VITE_SUPABASE_ANON_KEY` / `VITE_GIPHY_API_KEY` in the browser bundle; marking them as secrets makes the post-build scan fail every time.
+
+### Fix
+1. **Repo:** stop tracking secrets and build output:
+   ```bash
+   git rm --cached .env
+   git rm -r --cached dist/
+   ```
+   Ensure `.gitignore` includes `.env` and `dist/`. Commit and push to `main`.
+2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GIPHY_API_KEY` as normal variables — **do not** enable **Contains secret values** (Supabase anon + Giphy client keys are public in the browser by design).
+3. **Redeploy:** Netlify → Deploys → **Trigger deploy** on `main` (or push a fix commit).
+4. **If still blocked** (smart detection false positive on Supabase JWT in build output): add site env `SECRETS_SCAN_SMART_DETECTION_ENABLED` = `false` (lowercase). Prefer fixing tracked files first.
+
+### Verify
+Deploy log reaches **Deploy site** / **Published** with no secret scan failure. Live app loads; Network tab Supabase requests use production host.
+
 ## Notifications: goal task or order status missing
 
 ### Symptom

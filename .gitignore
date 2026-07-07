@@ -1,6 +1,7 @@
 /node_modules
 .DS_Store
 **/.DS_Store
+dist/
 supabase/.temp/
 .env
 .env.*

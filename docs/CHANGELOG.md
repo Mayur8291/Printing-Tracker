@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-09 — Fix Netlify production deploy blocked by secret scanning
+
+- **Issue:** Production deploys on `main` failed with **Exposed secrets detected** (build exit code 2) after chat/goals release.
+- **Cause:** `.env` (Supabase anon JWT) and `dist/` (Vite build with inlined env) were tracked in git; Netlify secret scan blocked publish.
+- **Fix:** Add `dist/` to `.gitignore`; untrack `.env` and `dist/` from git. Document Netlify env setup (do not mark `VITE_*` as "Contains secret values").
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, RELEASE_AUTOMATION.md.
+
 ## 2026-07-09 — Chat: no ghost DM until first message
 
 - **Issue:** Picking a user in **New chat** (without sending) created a conversation — other user saw empty chat in inbox.
