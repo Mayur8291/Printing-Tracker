@@ -44,7 +44,11 @@ export default function AdminDeployPanel() {
         "• Apply database migrations to LIVE Supabase\n" +
         "• Deploy edge functions\n" +
         "• Rebuild the live website (Netlify)\n\n" +
-        "Only continue if you tested on staging."
+        "Before you continue:\n" +
+        "• Commit your work locally\n" +
+        "• Run: git push origin develop\n" +
+        "• Test on staging — Release only ships what is already on GitHub develop\n\n" +
+        "Local-only commits (not pushed) are NOT included."
     );
     if (!ok) return;
 
