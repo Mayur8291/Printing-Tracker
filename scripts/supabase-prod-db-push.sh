@@ -30,8 +30,24 @@ trap 'rm -f "$log"' EXIT
 
 echo "Running supabase db push..."
 set +e
-supabase db push 2>&1 | tee "$log"
-status=${PIPESTATUS[0]}
+attempt=1
+max_attempts=3
+status=1
+while [ "$attempt" -le "$max_attempts" ]; do
+  : > "$log"
+  supabase db push 2>&1 | tee "$log"
+  status=${PIPESTATUS[0]}
+  if [ "$status" -eq 0 ]; then
+    break
+  fi
+  if grep -qi "deadlock detected" "$log" 2>/dev/null && [ "$attempt" -lt "$max_attempts" ]; then
+    echo "Deadlock during db push — retrying ($attempt/$max_attempts) in 15s..."
+    sleep 15
+    attempt=$((attempt + 1))
+    continue
+  fi
+  break
+done
 set -e
 
 if [ "$status" -eq 0 ]; then
