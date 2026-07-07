@@ -62,6 +62,15 @@ Annual goals, assignable tasks, and timestamped status remarks.
 | `20260709160000_remove_task_priority_p3.sql` | Drop P3; migrate existing P3 → P2; default P2 |
 | `20260709170000_add_profile_notification_tones.sql` | `profiles.notification_tone_path`; `notification-tones` storage bucket |
 
+### `profiles.avatar_path`
+
+| Value pattern | Meaning |
+|---------------|---------|
+| `preset:avatar-XX` | Built-in character from `/public/avatars/presets/` (no storage upload) |
+| `{userId}/{uuid}-filename` | Uploaded photo in `profile-avatars` Supabase bucket |
+
+Resolved for display by `profileAvatarPublicUrl()` in `src/avatarUtils.js`. Preset catalog: `src/presetAvatars.js`.
+
 ### `get_goals_for_task_assignment(p_assignee_id, p_year)`
 
 Security-definer RPC for **Assign task → Link to goal**. Returns annual goals for the assignee/year so any authenticated assigner can populate the dropdown without broadening `user_annual_goals` SELECT RLS. Requires assignee to exist in `profiles`.

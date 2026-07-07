@@ -1,7 +1,7 @@
 import { EDITABLE_FIELD_OPTIONS } from "./orderViewUtils";
 import OrderFieldPermissionFields from "./OrderFieldPermissionFields";
 import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
-import { AvatarUploadField } from "@/components/ui/avatar-upload-field";
+import ProfileAvatarPicker from "@/components/profile/ProfileAvatarPicker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,7 +36,9 @@ export default function ViewerUserEditModal({
   permissionDraft,
   avatarPreviewUrl = "",
   avatarFile = null,
+  selectedPresetAvatarId = null,
   onAvatarPick,
+  onPresetAvatarSelect,
   onAvatarError,
   avatarSaving = false,
   onNameChange,
@@ -76,16 +78,18 @@ export default function ViewerUserEditModal({
         </DialogHeader>
 
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
-          <AvatarUploadField
+          <ProfileAvatarPicker
             name={nameValue}
             email={viewer.email}
+            avatarPath={viewer.avatar_path}
             imageUrl={!avatarFile ? profileAvatarPublicUrl(viewer.avatar_path) : ""}
-            previewUrl={avatarPreviewUrl}
-            onPick={onAvatarPick}
+            selectedPresetId={selectedPresetAvatarId}
+            uploadPreviewUrl={avatarPreviewUrl}
+            onPresetSelect={onPresetAvatarSelect}
+            onUploadPick={onAvatarPick}
             onError={onAvatarError}
             disabled={avatarSaving}
             size="xl"
-            hint="Click to set profile photo"
           />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

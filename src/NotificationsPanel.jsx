@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import NotificationToneSettings from "./components/notifications/NotificationToneSettings";
 import {
   fetchUserNotifications,
   formatNotificationWhen,
@@ -7,34 +6,10 @@ import {
   notificationTitle,
   subscribeUserNotifications
 } from "./notificationsUtils";
-import { profileNotificationTonePublicUrl } from "./notificationToneUtils";
-import { setUserNotificationToneUrl } from "./notificationTonePlayer";
 
-export default function NotificationsPanel({
-  userId,
-  tonePath,
-  tonesEnabled = true,
-  onTonePathChange,
-  onOpenNotification
-}) {
+export default function NotificationsPanel({ userId, onOpenNotification }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [localTonePath, setLocalTonePath] = useState(tonePath ?? null);
-
-  useEffect(() => {
-    setLocalTonePath(tonePath ?? null);
-  }, [tonePath]);
-
-  const handleToneUpdated = useCallback(
-    (patch) => {
-      const nextPath =
-        patch?.notification_tone_path !== undefined ? patch.notification_tone_path : localTonePath;
-      setLocalTonePath(nextPath);
-      setUserNotificationToneUrl(profileNotificationTonePublicUrl(nextPath));
-      onTonePathChange?.(patch);
-    },
-    [localTonePath, onTonePathChange]
-  );
 
   const load = useCallback(async () => {
     if (!userId) {
@@ -70,15 +45,6 @@ export default function NotificationsPanel({
         <p className="notifications-panel-sub">
           Order assignments, status updates, task assignments, inward tags, and printing inventory alerts.
         </p>
-      </div>
-
-      <div className="mb-6">
-        <NotificationToneSettings
-          userId={userId}
-          tonePath={localTonePath}
-          tonesEnabled={tonesEnabled}
-          onUpdated={handleToneUpdated}
-        />
       </div>
 
       {loading && !items.length ? <p className="notifications-panel-empty">Loading notifications…</p> : null}

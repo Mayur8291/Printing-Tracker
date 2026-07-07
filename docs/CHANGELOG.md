@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-07-09 — Profile settings moved to sidebar (not Notifications tab)
+
+- **Issue:** Avatar + notification tone lived on Notifications page — wrong place for user.
+- **Fix:** Click sidebar **name/avatar** → **Profile settings** dialog: profile photo on top, notification tone below. Notifications tab = alert list only.
+- **Files (new):** `src/components/profile/UserProfileSettingsDialog.jsx`.
+- **Files:** `DashboardAppSidebar.jsx`, `DashboardShell.jsx`, `App.jsx`, `NotificationsPanel.jsx`.
+- **Documentation updated:** FLOWS.md, CHANGELOG.md.
+
+## 2026-07-09 — Preset profile avatars (50 characters)
+
+- **Feature:** 50 built-in character avatars in `public/avatars/presets/`. Users pick from grid or upload photo.
+- **Self-service:** Sidebar footer — click **name/avatar** → **Profile settings** dialog (avatar + notification tone).
+- **Not in Notifications tab:** Alert list only on that page.
+- **Admin:** **Create user** and **Edit user** include same picker (preset + upload).
+- **Storage:** Presets stored as `profiles.avatar_path = preset:avatar-XX` (no bucket upload). Uploaded photos still use `profile-avatars` bucket.
+- **Files (new):** `src/presetAvatars.js`, `src/components/profile/ProfileAvatarPicker.jsx`, `src/components/profile/ProfileAvatarSettings.jsx`.
+- **Files:** `src/avatarUtils.js`, `src/App.jsx`, `src/ViewerUserEditModal.jsx`, `src/NotificationsPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-09 — Production blank screen after removing .env from git
+
+- **Issue:** Live site blank; console `Missing Supabase env vars`.
+- **Cause:** Vite needs `VITE_SUPABASE_ANON_KEY` at Netlify build time; was previously supplied by committed `.env`.
+- **Fix:** Set `VITE_SUPABASE_ANON_KEY` in Netlify production env; `VITE_SUPABASE_URL` in `netlify.toml` for production context.
+- **Documentation updated:** DEBUGGING.md, RELEASE_AUTOMATION.md, CHANGELOG.md.
+
 ## 2026-07-09 — Fix Netlify production deploy blocked by secret scanning
 
 - **Issue:** Production deploys on `main` failed with **Exposed secrets detected** (build exit code 2) after chat/goals release.

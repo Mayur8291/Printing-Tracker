@@ -17,6 +17,8 @@
 
 [context.production.environment]
   VITE_APP_ENV = "production"
+  # Public API host — anon key must be set in Netlify UI (never commit keys).
+  VITE_SUPABASE_URL = "https://levwrmvqdntngeasrtnb.supabase.co"
 
 [context.staging]
   branch = "develop"

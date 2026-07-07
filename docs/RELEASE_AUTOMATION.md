@@ -91,6 +91,7 @@ The release button does **not** upload files from your laptop. It only merges wh
 | Chat/goals work locally but not live | Production DB migrations not applied | Re-run Release (runs `supabase db push`) or check Actions log |
 | GIF search works locally not on live | `VITE_GIPHY_API_KEY` missing in Netlify env | Add in Netlify → Environment variables, redeploy |
 | Netlify build fails **Exposed secrets detected** | `.env` or `dist/` committed with keys; or `VITE_*` marked "Contains secret values" | See `docs/DEBUGGING.md` → Netlify secret scanning. Remove `.env`/`dist` from git; set Netlify env without secret flag; redeploy |
+| Production site blank, console **Missing Supabase env vars** | `VITE_SUPABASE_ANON_KEY` not set in Netlify before build | Netlify env vars → add anon key for Production scope → clear cache redeploy. See `docs/DEBUGGING.md` |
 
 GitHub Actions log shows `develop (8193c16) → main (8193c16)` when **nothing new was on develop** — push your branch first.
 

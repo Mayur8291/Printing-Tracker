@@ -19,6 +19,7 @@ export default function DashboardShell({
   userDept,
   userInitials,
   userAvatarUrl,
+  onOpenProfileSettings,
   sidebarFooterSlot,
   fullBleed = false,
   tabBadges
@@ -37,6 +38,7 @@ export default function DashboardShell({
         userDept={userDept}
         userInitials={userInitials}
         userAvatarUrl={userAvatarUrl}
+        onOpenProfileSettings={onOpenProfileSettings}
         footerSlot={sidebarFooterSlot}
         tabBadges={tabBadges}
       />

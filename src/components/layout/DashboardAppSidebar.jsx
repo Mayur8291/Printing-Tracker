@@ -88,6 +88,7 @@ export default function DashboardAppSidebar({
   userDept,
   userInitials,
   userAvatarUrl,
+  onOpenProfileSettings,
   footerSlot,
   tabBadges = {}
 }) {
@@ -178,16 +179,31 @@ export default function DashboardAppSidebar({
                 "group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-1 group-data-[collapsible=icon]:px-0"
               )}
             >
-              <Avatar className="size-8 shrink-0">
-                {userAvatarUrl ? <AvatarImage src={userAvatarUrl} alt="" /> : null}
-                <AvatarFallback className="bg-muted text-muted-foreground text-xs">{userInitials}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                <p className="truncate text-sm font-medium text-sidebar-foreground">{userName}</p>
-                {userDept ? (
-                  <p className="truncate text-xs text-sidebar-foreground/70">{userDept}</p>
-                ) : null}
-              </div>
+              <button
+                type="button"
+                onClick={() => onOpenProfileSettings?.()}
+                className={cn(
+                  "flex min-w-0 flex-1 items-center gap-2 rounded-md text-left transition-colors",
+                  "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center"
+                )}
+                aria-label="Open profile settings"
+                title="Profile settings"
+              >
+                <Avatar className="size-8 shrink-0">
+                  {userAvatarUrl ? <AvatarImage src={userAvatarUrl} alt="" /> : null}
+                  <AvatarFallback className="bg-muted text-muted-foreground text-xs">{userInitials}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                  <p className="truncate text-sm font-medium text-sidebar-foreground">{userName}</p>
+                  {userDept ? (
+                    <p className="truncate text-xs text-sidebar-foreground/70">{userDept}</p>
+                  ) : (
+                    <p className="truncate text-xs text-sidebar-foreground/70">Profile settings</p>
+                  )}
+                </div>
+                <Settings className="size-3.5 shrink-0 text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden" aria-hidden />
+              </button>
               {footerSlot ? (
                 <div className="flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:hidden">
                   {footerSlot}

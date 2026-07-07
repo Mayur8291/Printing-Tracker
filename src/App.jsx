@@ -160,7 +160,7 @@ import {
   sortOrdersNewestFirst
 } from "./orderTabUtils";
 import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
-import { profileAvatarPublicUrl, uploadProfileAvatar } from "./avatarUtils";
+import { profileAvatarPublicUrl, setProfilePresetAvatar, uploadProfileAvatar } from "./avatarUtils";
 import { profileNotificationTonePublicUrl } from "./notificationToneUtils";
 import {
   playNotificationTone,
@@ -172,7 +172,8 @@ import {
   TONE_DEFAULT_STATUS
 } from "./notificationTonePlayer";
 import { PersonAvatar } from "./components/ui/person-avatar";
-import { AvatarUploadField } from "./components/ui/avatar-upload-field";
+import ProfileAvatarPicker from "./components/profile/ProfileAvatarPicker";
+import UserProfileSettingsDialog from "./components/profile/UserProfileSettingsDialog";
 import { activeSupabaseRef, supabase } from "./supabaseClient";
 import { fetchMyConversations } from "./teamChatService";
 import {
@@ -724,6 +725,7 @@ function App() {
   /** Set when job sheet saved from create printing order form — keeps production UI + success message. */
   const [printingFormJobSheetStatus, setPrintingFormJobSheetStatus] = useState(null);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const [masterListView, setMasterListView] = useState("list");
   const [showMockupStudio, setShowMockupStudio] = useState(false);
   const [masterTableMissing, setMasterTableMissing] = useState(false);
@@ -785,8 +787,10 @@ function App() {
   const [createUserSuccess, setCreateUserSuccess] = useState("");
   const [newUserAvatarFile, setNewUserAvatarFile] = useState(null);
   const [newUserAvatarPreview, setNewUserAvatarPreview] = useState("");
+  const [newUserPresetAvatarId, setNewUserPresetAvatarId] = useState(null);
   const [editingViewerAvatarFile, setEditingViewerAvatarFile] = useState(null);
   const [editingViewerAvatarPreview, setEditingViewerAvatarPreview] = useState("");
+  const [editingViewerPresetAvatarId, setEditingViewerPresetAvatarId] = useState(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   /** Map of viewer.id -> draft new password (string) or undefined when picker closed. */
   const [resetPasswordDrafts, setResetPasswordDrafts] = useState({});
@@ -3122,6 +3126,21 @@ function App() {
         await uploadProfileAvatar(viewerId, editingViewerAvatarFile);
         setEditingViewerAvatarFile(null);
         setEditingViewerAvatarPreview("");
+        setEditingViewerPresetAvatarId(null);
+        if (viewerId === session?.user?.id) {
+          await fetchProfile(session.user);
+        }
+      } catch (avatarErr) {
+        alert(avatarErr instanceof Error ? avatarErr.message : String(avatarErr));
+        setAvatarUploading(false);
+        return;
+      }
+      setAvatarUploading(false);
+    } else if (editingViewerPresetAvatarId) {
+      setAvatarUploading(true);
+      try {
+        await setProfilePresetAvatar(viewerId, editingViewerPresetAvatarId);
+        setEditingViewerPresetAvatarId(null);
         if (viewerId === session?.user?.id) {
           await fetchProfile(session.user);
         }
@@ -3196,6 +3215,11 @@ function App() {
     setEditingViewerId(id);
     setEditingViewerAvatarFile(null);
     setEditingViewerAvatarPreview("");
+    setEditingViewerPresetAvatarId(null);
+    const presetFromPath = viewer.avatar_path?.startsWith("preset:")
+      ? viewer.avatar_path.slice("preset:".length)
+      : null;
+    setEditingViewerPresetAvatarId(presetFromPath);
     setViewerNameDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.full_name ?? "" }));
     setViewerEmployeeIdDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.employee_id ?? "" }));
     setViewerDepartmentDrafts((prev) => ({ ...prev, [id]: prev[id] ?? viewer.department ?? "" }));
@@ -3218,6 +3242,7 @@ function App() {
     setEditingViewerId(null);
     setEditingViewerAvatarFile(null);
     setEditingViewerAvatarPreview("");
+    setEditingViewerPresetAvatarId(null);
   }
 
   async function handleResetViewerPermissions(userId) {
@@ -3261,6 +3286,7 @@ function App() {
     });
     setNewUserAvatarFile(null);
     setNewUserAvatarPreview("");
+    setNewUserPresetAvatarId(null);
   }
 
   async function handleCreateUser(e) {
@@ -3302,6 +3328,17 @@ function App() {
         setAvatarUploading(true);
         try {
           await uploadProfileAvatar(result.user_id, newUserAvatarFile);
+        } catch (avatarErr) {
+          setCreateUserError(
+            avatarErr instanceof Error ? avatarErr.message : String(avatarErr)
+          );
+        } finally {
+          setAvatarUploading(false);
+        }
+      } else if (newUserPresetAvatarId && result?.user_id) {
+        setAvatarUploading(true);
+        try {
+          await setProfilePresetAvatar(result.user_id, newUserPresetAvatarId);
         } catch (avatarErr) {
           setCreateUserError(
             avatarErr instanceof Error ? avatarErr.message : String(avatarErr)
@@ -5037,6 +5074,7 @@ function App() {
         userDept={!profileLoading && !profileError ? profile?.department?.trim() || "" : ""}
         userInitials={headerUserInitials}
         userAvatarUrl={profileAvatarPublicUrl(profile?.avatar_path)}
+        onOpenProfileSettings={() => setProfileSettingsOpen(true)}
         sidebarFooterSlot={
           <div className="flex items-center gap-1 group-data-[collapsible=icon]:hidden">
             <NotificationBellButton
@@ -5431,11 +5469,6 @@ function App() {
           {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (
             <NotificationsPanel
               userId={session.user.id}
-              tonePath={profile?.notification_tone_path}
-              tonesEnabled={statusTonesEnabled}
-              onTonePathChange={(patch) => {
-                setProfile((prev) => (prev ? { ...prev, ...patch } : prev));
-              }}
               onOpenNotification={handleOpenDashboardNotification}
             />
           )}
@@ -5651,18 +5684,24 @@ function App() {
                       {createUserInnerTab === "details" ? (
                         <div className="create-user-tab-panel" role="tabpanel">
                           <div className="mb-4">
-                            <AvatarUploadField
+                            <ProfileAvatarPicker
                               name={newUserForm.full_name}
                               email={newUserForm.email}
-                              previewUrl={newUserAvatarPreview}
-                              onPick={(file) => {
+                              selectedPresetId={newUserPresetAvatarId}
+                              uploadPreviewUrl={newUserAvatarPreview}
+                              onPresetSelect={(id) => {
+                                setNewUserAvatarFile(null);
+                                setNewUserAvatarPreview("");
+                                setNewUserPresetAvatarId(id);
+                              }}
+                              onUploadPick={(file) => {
+                                setNewUserPresetAvatarId(null);
                                 setNewUserAvatarFile(file);
                                 setNewUserAvatarPreview(URL.createObjectURL(file));
                               }}
                               onError={setCreateUserError}
                               disabled={creatingUser || avatarUploading}
                               size="xl"
-                              hint="Optional profile photo"
                             />
                           </div>
                           <div className="create-user-grid">
@@ -6040,9 +6079,16 @@ function App() {
                       }
                       avatarPreviewUrl={editingViewerAvatarPreview}
                       avatarFile={editingViewerAvatarFile}
+                      selectedPresetAvatarId={editingViewerPresetAvatarId}
                       onAvatarPick={(file) => {
+                        setEditingViewerPresetAvatarId(null);
                         setEditingViewerAvatarFile(file);
                         setEditingViewerAvatarPreview(URL.createObjectURL(file));
+                      }}
+                      onPresetAvatarSelect={(id) => {
+                        setEditingViewerAvatarFile(null);
+                        setEditingViewerAvatarPreview("");
+                        setEditingViewerPresetAvatarId(id);
                       }}
                       onAvatarError={(msg) => alert(msg)}
                       avatarSaving={avatarUploading}
@@ -7474,6 +7520,25 @@ function App() {
           </div>
         </div>
       )}
+      {session?.user ? (
+        <UserProfileSettingsDialog
+          open={profileSettingsOpen}
+          onOpenChange={setProfileSettingsOpen}
+          userId={session.user.id}
+          userName={profile?.full_name ?? session.user.email ?? ""}
+          userEmail={profile?.email ?? session.user.email ?? ""}
+          avatarPath={profile?.avatar_path}
+          tonePath={profile?.notification_tone_path}
+          tonesEnabled={statusTonesEnabled}
+          onAvatarPathChange={(patch) => {
+            setProfile((prev) => (prev ? { ...prev, ...patch } : prev));
+            void fetchViewersAndPermissions();
+          }}
+          onTonePathChange={(patch) => {
+            setProfile((prev) => (prev ? { ...prev, ...patch } : prev));
+          }}
+        />
+      ) : null}
       {showArchiveModal && (
         <div className="image-modal-backdrop" onClick={() => setShowArchiveModal(false)}>
           <div className="archive-modal" onClick={(e) => e.stopPropagation()}>

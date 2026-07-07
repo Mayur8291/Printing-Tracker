@@ -26,6 +26,31 @@ Netlify **secret scanning** (Secrets Controller / smart detection) blocks publis
 ### Verify
 Deploy log reaches **Deploy site** / **Published** with no secret scan failure. Live app loads; Network tab Supabase requests use production host.
 
+## Production blank screen: Missing Supabase env vars
+
+### Symptom
+Live site white/blank. Console: `Uncaught Error: Missing Supabase env vars. Check .env configuration.` (`src/supabaseClient.js`).
+
+### Root cause
+Vite bakes `VITE_*` into the bundle **at build time**. After `.env` was removed from git, Netlify builds no longer get `VITE_SUPABASE_ANON_KEY` unless you set it in **Netlify → Environment variables**. Local `.env` does not affect production deploys.
+
+### Fix
+1. **Netlify → Site configuration → Environment variables → Add a variable**
+2. Set for **Production** scope (or **All** if you use one context):
+
+   | Key | Value |
+   |-----|--------|
+   | `VITE_SUPABASE_ANON_KEY` | Production anon/publishable key from [Supabase → Project Settings → API](https://supabase.com/dashboard/project/levwrmvqdntngeasrtnb/settings/api) |
+   | `VITE_GIPHY_API_KEY` | *(optional)* Giphy key for chat GIF search |
+
+   `VITE_SUPABASE_URL` is set in `netlify.toml` for production; you can mirror it in the UI if needed.
+
+3. **Do not** enable **Contains secret values** on `VITE_*` vars (breaks Netlify secret scan on Vite output).
+4. **Deploys → Trigger deploy → Clear cache and deploy site** on `main`.
+
+### Verify
+Hard refresh production URL. Console has no Supabase env error. Network requests go to `levwrmvqdntngeasrtnb.supabase.co`.
+
 ## Notifications: goal task or order status missing
 
 ### Symptom

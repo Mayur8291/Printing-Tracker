@@ -1,4 +1,8 @@
 import { supabase } from "./supabaseClient";
+import { PRESET_AVATAR_BY_ID, PRESET_AVATAR_PREFIX } from "./presetAvatars";
+
+export { PRESET_AVATAR_PREFIX } from "./presetAvatars";
+export { parsePresetAvatarId, presetAvatarPublicUrl, isPresetAvatarPath } from "./presetAvatars";
 
 export const PROFILE_AVATAR_BUCKET = "profile-avatars";
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
@@ -21,7 +25,12 @@ export function personDisplayInitials(name, email) {
 
 export function profileAvatarPublicUrl(avatarPath) {
   if (!avatarPath?.trim()) return "";
-  const { data } = supabase.storage.from(PROFILE_AVATAR_BUCKET).getPublicUrl(avatarPath.trim());
+  const trimmed = avatarPath.trim();
+  if (trimmed.startsWith(PRESET_AVATAR_PREFIX)) {
+    const presetId = trimmed.slice(PRESET_AVATAR_PREFIX.length);
+    return PRESET_AVATAR_BY_ID[presetId]?.url ?? "";
+  }
+  const { data } = supabase.storage.from(PROFILE_AVATAR_BUCKET).getPublicUrl(trimmed);
   return data?.publicUrl ?? "";
 }
 
@@ -40,11 +49,47 @@ export function validateAvatarPhotoFile(file) {
   return null;
 }
 
+async function fetchProfileAvatarPath(userId) {
+  const { data, error } = await supabase.from("profiles").select("avatar_path").eq("id", userId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.avatar_path ?? null;
+}
+
+async function removeStoredAvatarIfNeeded(avatarPath) {
+  if (!avatarPath?.trim() || avatarPath.trim().startsWith(PRESET_AVATAR_PREFIX)) return;
+  try {
+    await removeProfileAvatar(avatarPath);
+  } catch {
+    /* old upload may already be gone */
+  }
+}
+
+export async function setProfilePresetAvatar(userId, presetId) {
+  if (!userId || !presetId) throw new Error("Avatar selection required");
+  if (!PRESET_AVATAR_BY_ID[presetId]) throw new Error("Invalid avatar selection");
+
+  const previousPath = await fetchProfileAvatarPath(userId);
+  const nextPath = `${PRESET_AVATAR_PREFIX}${presetId}`;
+
+  const { error: updateErr } = await supabase
+    .from("profiles")
+    .update({ avatar_path: nextPath })
+    .eq("id", userId);
+  if (updateErr) throw new Error(updateErr.message);
+
+  if (previousPath && previousPath !== nextPath) {
+    await removeStoredAvatarIfNeeded(previousPath);
+  }
+
+  return nextPath;
+}
+
 export async function uploadProfileAvatar(userId, file) {
   if (!userId || !file) return null;
   const validationError = validateAvatarPhotoFile(file);
   if (validationError) throw new Error(validationError);
 
+  const previousPath = await fetchProfileAvatarPath(userId);
   const safeName = sanitizeAvatarFileName(file.name);
   const path = `${userId}/${crypto.randomUUID()}-${safeName}`;
   const { error: uploadErr } = await supabase.storage
@@ -58,11 +103,16 @@ export async function uploadProfileAvatar(userId, file) {
     .eq("id", userId);
   if (updateErr) throw new Error(updateErr.message);
 
+  if (previousPath && previousPath !== path) {
+    await removeStoredAvatarIfNeeded(previousPath);
+  }
+
   return path;
 }
 
 export async function removeProfileAvatar(avatarPath) {
   if (!avatarPath?.trim()) return;
+  if (avatarPath.trim().startsWith(PRESET_AVATAR_PREFIX)) return;
   const { error } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).remove([avatarPath.trim()]);
   if (error) throw new Error(error.message);
 }

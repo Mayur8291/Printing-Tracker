@@ -28,9 +28,17 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 
 **Realtime:** `subscribeUserNotifications()` + dedicated toast channels in `App.jsx` for each table.
 
+### Profile settings (sidebar footer)
+
+1. **Trigger:** User clicks **name/avatar** in sidebar footer → **Profile settings** dialog (`UserProfileSettingsDialog`).
+2. **Profile photo:** Grid of 50 preset characters or **Upload photo** → **Save photo** → `profiles.avatar_path` (`preset:avatar-XX` or storage path).
+3. **Notification tone:** MP3 upload (max 2 MB) → `profiles.notification_tone_path`; **Preview** / **Use default** below avatar section in same dialog.
+4. **Admin create/edit user:** Avatar picker also on **Create user** and **Edit user access** modals.
+5. **Notifications tab:** Alert list only — no profile/tone cards.
+
 ### Custom notification tone (MP3)
 
-1. **Trigger:** User opens **Notifications** tab → **Notification tone** card.
+1. **Trigger:** Sidebar **Profile settings** dialog → **Notification tone** section (not Notifications tab).
 2. **Upload:** MP3 up to 2 MB → `uploadProfileNotificationTone()` → `notification-tones` bucket → `profiles.notification_tone_path`.
 3. **Playback:** `notificationTonePlayer.js` uses custom public URL for all alert sounds when set; otherwise built-in `sounds/tone-01.mp3` (and Tone-02/03 for order status variants).
 4. **Preview / reset:** **Preview** plays current tone; **Use default** clears path and deletes storage file.
