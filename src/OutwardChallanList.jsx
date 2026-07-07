@@ -1,6 +1,16 @@
 import { useMemo, useState } from "react";
 import { formatOcCreatedAt, ocTransportLabel } from "./outwardChallanUtils";
 import { printOutwardChallanLabel } from "./outwardChallanPrint";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 
 function cell(value) {
   const t = String(value ?? "").trim();
@@ -57,84 +67,92 @@ export default function OutwardChallanList({
   }
 
   if (loading) {
-    return <p className="outward-challan-list-loading">Loading outward challans…</p>;
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-48 w-full rounded-md" />
+      </div>
+    );
   }
 
   if (!filtered.length) {
     return (
-      <p className="outward-challan-list-empty">
+      <p className="py-6 text-center text-sm text-muted-foreground">
         {searchQuery.trim() ? "No matches." : "No outward challans yet."}
       </p>
     );
   }
 
   return (
-    <div className="table-wrap table-wrap--compact outward-challan-list-wrap">
-      <table className="orders-table-compact outward-challans-table">
-        <thead>
-          <tr>
-            <th>Created</th>
-            <th>OC #</th>
-            <th>Sender</th>
-            <th>Product / Material</th>
-            <th>Purpose</th>
-            <th>Mode of transport</th>
-            <th>Sent to</th>
-            <th>Receiver name</th>
-            <th>Sender contact</th>
-            <th>Receiver contact</th>
-            <th>Quantity</th>
-            <th>Bora / Carton</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Created</TableHead>
+            <TableHead>OC #</TableHead>
+            <TableHead>Sender</TableHead>
+            <TableHead>Product / Material</TableHead>
+            <TableHead>Purpose</TableHead>
+            <TableHead>Mode of transport</TableHead>
+            <TableHead>Sent to</TableHead>
+            <TableHead>Receiver name</TableHead>
+            <TableHead>Sender contact</TableHead>
+            <TableHead>Receiver contact</TableHead>
+            <TableHead>Quantity</TableHead>
+            <TableHead>Bora / Carton</TableHead>
+            <TableHead className="min-w-[12rem]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {filtered.map((record) => (
-            <tr key={record.id}>
-              <td className="outward-challan-created">{formatOcCreatedAt(record)}</td>
-              <td>{record.id}</td>
-              <td>{cell(record.sender)}</td>
-              <td>{cell(record.product_material)}</td>
-              <td>{cell(record.purpose)}</td>
-              <td>{ocTransportLabel(record.mode_of_transport)}</td>
-              <td>{cell(record.sent_to)}</td>
-              <td>{cell(record.receiver_name)}</td>
-              <td>{cell(record.sender_contact)}</td>
-              <td>{cell(record.receiver_contact)}</td>
-              <td>{cell(record.quantity)}</td>
-              <td>{cell(record.bora_carton_count)}</td>
-              <td>
-                <div className="outward-challan-actions">
-                  <button
+            <TableRow key={record.id}>
+              <TableCell className="whitespace-nowrap">{formatOcCreatedAt(record)}</TableCell>
+              <TableCell>{record.id}</TableCell>
+              <TableCell>{cell(record.sender)}</TableCell>
+              <TableCell>{cell(record.product_material)}</TableCell>
+              <TableCell>{cell(record.purpose)}</TableCell>
+              <TableCell>{ocTransportLabel(record.mode_of_transport)}</TableCell>
+              <TableCell>{cell(record.sent_to)}</TableCell>
+              <TableCell>{cell(record.receiver_name)}</TableCell>
+              <TableCell>{cell(record.sender_contact)}</TableCell>
+              <TableCell>{cell(record.receiver_contact)}</TableCell>
+              <TableCell>{cell(record.quantity)}</TableCell>
+              <TableCell>{cell(record.bora_carton_count)}</TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-2">
+                  <Button
                     type="button"
-                    className="outward-challan-view-btn"
+                    variant="outline"
+                    size="sm"
                     onClick={() => onViewRecord?.(record)}
                   >
                     View
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
-                    className="outward-challan-print-btn"
+                    variant="outline"
+                    size="sm"
                     onClick={() => printOutwardChallanLabel(record)}
                   >
                     Print label
-                  </button>
+                  </Button>
                   {canDelete ? (
-                    <button
+                    <Button
                       type="button"
-                      className="outward-challan-delete-btn"
+                      variant="outline"
+                      size="sm"
                       disabled={deletingId === record.id}
                       onClick={() => handleDelete(record)}
                     >
                       {deletingId === record.id ? "Deleting…" : "Delete"}
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

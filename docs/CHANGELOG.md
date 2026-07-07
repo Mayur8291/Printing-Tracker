@@ -1,5 +1,195 @@
 # Changelog
 
+## 2026-07-09 — Chat: no ghost DM until first message
+
+- **Issue:** Picking a user in **New chat** (without sending) created a conversation — other user saw empty chat in inbox.
+- **Fix:** Direct chat opens compose-only until first message; `get_or_create_direct_conversation` runs on send. Inbox hides empty direct conversations (no messages).
+- **Files:** `src/TeamChatPanel.jsx`, `src/teamChatService.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-09 — Chat unread clear, highlight, message tone
+
+- **Issue:** Unread badge stay after open chat; unread row hard to see; no sound on new chat message.
+- **Fix:** Mark read clears badge immediately (optimistic + RPC). Unread rows get primary left border + bold text. New message play notification tone (respects `status_tones_enabled` + custom MP3); skip tone when user already viewing that thread.
+- **Sidebar:** Chat tab shows total unread badge.
+- **Files (new):** `src/teamChatNotificationUtils.js`.
+- **Files:** `src/TeamChatPanel.jsx`, `src/teamChatService.js`, `src/App.jsx`, `DashboardAppSidebar.jsx`, `DashboardShell.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-07-09 — Chat GIF search: Giphy (replaces Tenor)
+
+- **Issue:** Tenor API discontinued / invalid keys — GIF Search tab empty.
+- **Fix:** Switched to **Giphy** search + trending (`src/giphyGifApi.js`). Key via `VITE_GIPHY_API_KEY` in `.env`. Giphy allows browser CORS — no proxy needed.
+- **Removed:** `src/tenorGifApi.js`, Vite Tenor proxy.
+- **Files:** `src/components/chat/GifPicker.jsx`, `.env`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md.
+
+## 2026-07-09 — Fix Tenor GIF search (CORS + v2 API)
+
+- **Issue:** GIF Search tab empty — browser blocked direct Tenor calls (no CORS); old v1 endpoint discontinued; v2 requires `client_key` + Google Cloud API key (not old tenor.com demo key).
+- **Fix:** `tenor-gif-search` Supabase Edge Function proxies Tenor v2; dev uses Vite proxy. Search tab shows errors when API fails; trending GIFs on empty query.
+- **Files (new):** `src/tenorGifApi.js`, `supabase/functions/tenor-gif-search/index.ts`.
+- **Files:** `src/components/chat/GifPicker.jsx`, `vite.config.js`.
+- **Deploy:** `supabase functions deploy tenor-gif-search` + `supabase secrets set TENOR_API_KEY=<Google Cloud Tenor key>`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DEPLOYMENT.md.
+
+## 2026-07-09 — Chat Enter to send + Tenor GIF key
+
+- **Change:** Chat composer sends on **Enter**; **Shift+Enter** adds new line (WhatsApp-style).
+- **Env:** `VITE_TENOR_API_KEY` enables GIF **Search** tab in chat picker.
+- **Files:** `src/TeamChatPanel.jsx`, `.env`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-09 — Team chat v2 (DMs, groups, GIFs)
+
+- **Issue:** Chat was one shared team wall — no private messages, no groups, no GIF send.
+- **Fix:** WhatsApp-style inbox: conversation list, direct messages (any user → any user), group chats, GIF picker (presets + optional Tenor search via `VITE_TENOR_API_KEY`), file attachments kept. Legacy messages migrate into **General** group.
+- **Database:** `20260709180000_team_chat_conversations.sql` — `team_chat_conversations`, `team_chat_conversation_members`, `conversation_id` + `gif_url` on messages, member-scoped RLS, RPCs `get_or_create_direct_conversation`, `create_group_conversation`, `mark_conversation_read`.
+- **Files (new):** `src/teamChatService.js`, `src/components/chat/*`.
+- **Files:** `src/TeamChatPanel.jsx`, `src/teamChatUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-09 — Custom notification tone (MP3 upload)
+
+- **Feature:** Every user can upload a personal MP3 notification tone on **Notifications** page. Custom tone plays for assignments, task alerts, order status, inward tags, and inventory alerts. **Preview**, **Replace**, or **Use default** (built-in sound).
+- **Database:** `20260709170000_add_profile_notification_tones.sql` — `profiles.notification_tone_path`, `notification-tones` storage bucket + RLS.
+- **Files (new):** `src/notificationToneUtils.js`, `src/notificationTonePlayer.js`, `src/components/notifications/NotificationToneSettings.jsx`.
+- **Files:** `src/NotificationsPanel.jsx`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-09 — Remove P3 task priority
+
+- **Change:** Priorities are **P0**, **P1**, **P2** only. Existing P3 tasks migrated to P2. Default on assign is P2.
+- **Database:** `20260709160000_remove_task_priority_p3.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-09 — Task list priority filter
+
+- **Feature:** **My tasks**, **Assigned by me**, and **All team tasks** tabs have a **Priority** dropdown — All, P0, P1, or P2. List stays sorted P0 → P2 within selection.
+- **Files:** `src/goalTrackerUtils.js` (`filterTasksByPriority`), `src/GoalTrackerPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-09 — Task priority (P0–P2) on assign
+
+- **Feature:** Assign task dialog adds **Priority** dropdown — P0 Top (red), P1 Medium (beige), P2 Less (green, default). Badge visible on goal tasks and task lists. **My tasks** sorted P0 → P2.
+- **Database:** `20260709150000_add_task_priority.sql` — `user_goal_tasks.priority`, index on assignee + priority.
+- **Files (new):** `src/components/goals/TaskPriorityBadge.jsx`.
+- **Files:** `src/goalTrackerUtils.js`, `src/GoalTrackerPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-09 — Task verification by assigner (not assignee)
+
+- **Issue:** Assignee could verify own completed task — wrong flow.
+- **Fix:** When assignee marks task complete, **assigner** (`assigned_by`) gets verify controls + notification. RLS policy `goal tasks assigner verify completion`. Goals still verified by goal owner.
+- **Files:** `src/goalTrackerUtils.js`, `src/AdminRolesGoalsPanel.jsx`.
+- **Database:** `20260709140000_task_verification_by_assigner.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md.
+
+## 2026-07-09 — Tasks stay on goal card; verification UI on card
+
+- **Change:** Completed **tasks** no longer move to **Completed** tab — they stay on the goal card (and task list tabs). Only **goals** move to **Completed** when marked done.
+- **UI:** Completed unverified tasks show **Pending verification** badge; verified tasks get strikethrough. Assignee remarks (e.g. “Not complete”) show below the task until verified.
+- **Files:** `src/GoalTrackerPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-09 — Assign task: show assignee goals (RLS fix)
+
+- **Issue:** **Link to goal** empty when assignee has goals (e.g. Test 2) — goals created by admin for that user not visible to assigner.
+- **Reason:** RLS on `user_annual_goals` only allows owner, admin, or users with existing tasks on that goal. Task assigners could not read assignee goals before first link. Task insert also blocked linking to assignee-owned goals unless assigner owned the goal.
+- **Fix:** Migration `20260709120000_goal_assign_link_visibility.sql` — `get_goals_for_task_assignment()` security-definer RPC for assign-task dropdown; task insert allows assignee-owned goals via `jwt_user_owns_goal(goal_id, assignee_id)` (`20260709130000_fix_goal_task_insert_rls.sql` — replaces RLS-blocked EXISTS subquery).
+- **Files:** `src/goalTrackerUtils.js` (`fetchGoalsForTaskAssignment`), `src/GoalTrackerPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-07 — Assign task: link goal filtered by selected user
+
+- **Fix:** **Link to goal** dropdown in Assign task shows only the selected **Assign to** user's goals for the current year (not everyone's goals).
+- **Files:** `src/GoalTrackerPanel.jsx`.
+
+## 2026-07-07 — Goals: assignee confirms completion (not admin)
+
+- **Change:** Admin no longer verifies. Assignee marks complete → **Completed** tab → assignee **Verify complete** or **Not complete** with required remark (what still needs work). Goal owner same for goals. Notification on submit. Reject sends task/goal back to active with remark in history.
+- **Database:** `20260707150000_goal_assigner_verification_rls.sql` — assignee/owner verify RLS; nullable `task_id` on goal notifications.
+- **Files:** `src/goalTrackerUtils.js`, `src/GoalTrackerPanel.jsx`, `src/AdminRolesGoalsPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-07 — Admin completed tasks: labeled goal/task/user fields
+
+- **Change:** Completed task rows (Goals **Completed** tab + Admin **Roles & goals**) now show labeled **Goal title**, **Task title**, **Task description**, and **User name** in a clear grid. Admin panel lists all completed tasks at top for review.
+- **Files (new):** `src/components/goals/GoalTaskDetailGrid.jsx`.
+- **Files:** `src/GoalTrackerPanel.jsx`, `src/AdminRolesGoalsPanel.jsx`.
+
+## 2026-07-07 — Goals: checkbox complete + Completed tab + admin verification
+
+- **Feature:** Users check box on task (assignee) or goal (owner) to mark complete — item moves out of active tabs into new **Completed** tab. Admin sees **Verify complete** / **Not complete** on completed items; verified badge when approved. Uncheck or admin reject moves back to active.
+- **Database:** Migration `20260707140000_goal_task_completion_verification.sql` — `completed_at`, `admin_verified_at`, `admin_verified_by` on goals and tasks. Applied on staging.
+- **Files:** `src/goalTrackerUtils.js`, `src/GoalTrackerPanel.jsx`, `supabase/schema.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-07 — Admin delete any goal or task
+
+- **Feature:** Admin can delete any user's goal or task — **Goals & Tasks** (Manage users, All team tasks, goal cards) and **Admin panel → Roles & goals** (per-user goals, tasks assigned to/by them). Confirm dialog + error alert on failure. DB RLS already allowed admin delete.
+- **Files:** `src/GoalTrackerPanel.jsx`, `src/AdminRolesGoalsPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-07 — Home: hide order status counts from normal users
+
+- **Change:** **Order counts by status** grid on Home is admin-only. Normal users see Goals widget and their allowed tabs; no pipeline status overview.
+- **Files:** `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-07 — Dispatch tab: shadcn UI migration
+
+- **Change:** Dispatch section UI aligned with Printing Orders / LinkedOrdersTabPanel — shadcn `Tabs`, `Table`, `Button`, `Card`, `Skeleton`, `OrdersListSummary`, shared order badges/cells. App wrapper uses `space-y-4` instead of `dashboard-card`.
+- **Files:** `src/DispatchTabPanel.jsx`, `src/OutwardChallanList.jsx`, `src/InwardEntryList.jsx`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-07 — Goals panel: My tasks tab first
+
+- **Change:** Goals & Tasks tab order — **My tasks** first (default), then **My goals**.
+- **Files:** `src/GoalTrackerPanel.jsx`.
+
+## 2026-07-07 — Notifications: task assignments + order status updates
+
+- **Feature:** Bell + Notifications page now include **task assigned to you** (goal tracker) and **order status updated** (coordinator + order creator). Realtime toasts for both; click opens Goals & Tasks or the order.
+- **Database:** Migration `20260707130000_add_goal_task_and_order_status_notifications.sql` — `user_goal_task_notifications`, `order_status_notifications`, trigger `orders_status_notify`. Applied on staging.
+- **Files (new):** `src/goalTaskNotificationUtils.js`.
+- **Files:** `src/notificationsUtils.js`, `src/NotificationsPanel.jsx`, `src/App.jsx`, `src/goalTrackerUtils.js`, `src/components/notifications/AssignmentToastStack.jsx`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-07-06 — Goals: user self-create + admin Roles & goals cards
+
+- **Feature:** Users get **Create my goal** on Goals & Tasks → My goals. Admin **Roles & goals** tab (Admin panel) shows user cards with job role + progress; click card for goals, tasks, status, remarks. Admin **All team tasks** tab sees every task anyone created.
+- **Database:** `20260706200000_goal_tracker_user_self_create.sql` — users can insert own annual goals. Applied on staging.
+- **Files (new):** `src/AdminRolesGoalsPanel.jsx`.
+- **Files:** `src/GoalTrackerPanel.jsx`, `src/goalTrackerUtils.js`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-06 — Sidebar: Goals & Tasks below Home
+
+- **Change:** Moved **Goals & Tasks** from footer to Workspace section — order: Home → Goals & Tasks → Printing Orders.
+- **Files:** `src/dashboardSidebarConfig.js`.
+
+## 2026-07-06 — Fix dialog footer buttons (Assign task)
+
+- **Issue:** Dialog buttons (e.g. Assign task) looked broken — no padding, misaligned Cancel vs primary action.
+- **Reason:** Radix Themes `Button` adapter conflicted with shadcn `DialogFooter` / Tailwind design tokens.
+- **Fix:** Restore native shadcn `Button` in `components/ui/button.jsx`; improve `DialogFooter` flex alignment with `gap-2` + `items-center`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-06 — Fix goal tracker RLS infinite recursion (staging)
+
+- **Issue:** Home/Goals panel error: `infinite recursion detected in policy for relation user_annual_goals`.
+- **Fix:** Migration `20260706190000_fix_goal_tracker_rls_recursion.sql` — security definer helpers break goals ↔ tasks policy cycle. Applied on staging `scvojtvgnkmbupvyslmb`.
+- **Documentation updated:** DEBUGGING.md, CHANGELOG.md.
+
+## 2026-07-06 — Goal tracker (annual goals, tasks, remarks)
+
+- **Feature:** Annual goal tracker per user. Admin sets yearly goals + todo tasks with deadlines in sidebar **Goals & Tasks**. Any user can assign tasks to anyone. Non-admin status updates require timestamped remarks. Home page shows goal/task summary widget.
+- **Database:** Migration `20260706180000_add_goal_tracker.sql` — `user_annual_goals`, `user_goal_tasks`, `user_goal_status_remarks` with RLS + realtime.
+- **Files (new):** `src/goalTrackerUtils.js`, `src/GoalTrackerPanel.jsx`, `src/components/goals/HomeGoalTrackerPanel.jsx`.
+- **Files:** `src/App.jsx`, `src/dashboardSidebarConfig.js`, `src/components/layout/DashboardAppSidebar.jsx`, `supabase/schema.sql`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md.
+
 ## 2026-07-06 — Inventory list pagination
 
 - **Issue:** Apparel/Fabrics/Trims inventory showed all rows on one page (e.g. 3,894 apparel SKUs — disabled Prev/Next stub).

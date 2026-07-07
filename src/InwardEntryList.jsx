@@ -7,6 +7,17 @@ import {
   getInwardGrnEntries,
   inwardHasGrnDetails
 } from "./inwardEntryUtils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 
 function cell(value) {
   const t = String(value ?? "").trim();
@@ -70,83 +81,91 @@ export default function InwardEntryList({
   }
 
   if (loading) {
-    return <p className="outward-challan-list-loading">Loading inward entries…</p>;
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-48 w-full rounded-md" />
+      </div>
+    );
   }
 
   if (!filtered.length) {
     return (
-      <p className="outward-challan-list-empty">
+      <p className="py-6 text-center text-sm text-muted-foreground">
         {searchQuery.trim() ? "No matches." : "No inward entries yet."}
       </p>
     );
   }
 
   return (
-    <div className="table-wrap table-wrap--compact outward-challan-list-wrap">
-      <table className="orders-table-compact outward-challans-table inward-entries-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Product / Material</th>
-            <th>Department</th>
-            <th>Photos</th>
-            <th>GRN</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Product / Material</TableHead>
+            <TableHead>Department</TableHead>
+            <TableHead>Photos</TableHead>
+            <TableHead>GRN</TableHead>
+            <TableHead className="min-w-[12rem]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {filtered.map((record) => {
             const hasGrn = inwardHasGrnDetails(record);
             return (
-              <tr key={record.id}>
-                <td className="outward-challan-created">{formatInwardEntryListDate(record)}</td>
-                <td>{cell(record.product_material)}</td>
-                <td>{formatInwardDepartmentDisplay(record)}</td>
-                <td>{formatInwardPhotoUploadStatus(record)}</td>
-                <td>
+              <TableRow key={record.id}>
+                <TableCell className="whitespace-nowrap">
+                  {formatInwardEntryListDate(record)}
+                </TableCell>
+                <TableCell>{cell(record.product_material)}</TableCell>
+                <TableCell>{formatInwardDepartmentDisplay(record)}</TableCell>
+                <TableCell>{formatInwardPhotoUploadStatus(record)}</TableCell>
+                <TableCell>
                   {hasGrn ? (
-                    <span className="inward-grn-badge inward-grn-badge--done">
-                      {formatInwardGrnListSummary(record)}
-                    </span>
+                    <Badge variant="secondary">{formatInwardGrnListSummary(record)}</Badge>
                   ) : (
-                    <span className="inward-grn-badge inward-grn-badge--pending">Pending</span>
+                    <Badge variant="outline">Pending</Badge>
                   )}
-                </td>
-                <td>
-                  <div className="outward-challan-actions">
-                    <button
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
                       type="button"
-                      className="outward-challan-view-btn"
+                      variant="outline"
+                      size="sm"
                       onClick={() => onViewRecord?.(record)}
                     >
                       View
-                    </button>
+                    </Button>
                     {canEdit ? (
-                      <button
+                      <Button
                         type="button"
-                        className="inward-grn-entry-btn"
+                        variant="outline"
+                        size="sm"
                         onClick={() => onGrnEntry?.(record)}
                       >
                         GRN Entry
-                      </button>
+                      </Button>
                     ) : null}
                     {canDelete ? (
-                      <button
+                      <Button
                         type="button"
-                        className="outward-challan-delete-btn"
+                        variant="outline"
+                        size="sm"
                         disabled={deletingId === record.id}
                         onClick={() => handleDelete(record)}
                       >
                         {deletingId === record.id ? "Deleting…" : "Delete"}
-                      </button>
+                      </Button>
                     ) : null}
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

@@ -5,7 +5,6 @@ import {
   DISPATCH_FAIL_STATUS,
   DISPATCHED_STATUS,
   dispatchIssueLabel,
-  dispatchRowHighlightClass,
   filterDispatchActiveOrders,
   filterDispatchProcessedOrders,
   filterOrdersBySearch,
@@ -16,13 +15,29 @@ import {
   formatDeliveryDate,
   formatSizeBreakdownSummary,
   getDispatchSizeRows,
-  splitOrderIds,
   STAGE_LABEL
 } from "./orderViewUtils";
 import { supabase } from "./supabaseClient";
 import { OrdersPagination, usePagination } from "./orderPagination";
 import OrdersListFilters from "./components/orders/OrdersListFilters";
+import OrdersListSummary from "./components/orders/OrdersListSummary";
+import OrderIdBadges from "./components/orders/OrderIdBadges";
+import OrderStatusBadge from "./components/orders/OrderStatusBadge";
+import OrderViewActionCell from "./components/orders/OrderViewActionCell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import CreateInwardEntryModal from "./CreateInwardEntryModal";
 import CreateOutwardChallanModal from "./CreateOutwardChallanModal";
 import InwardEntryList from "./InwardEntryList";
@@ -339,21 +354,6 @@ export default function DispatchTabPanel({
     );
   }
 
-  function renderOrderIdBadges(orderId) {
-    const ids = splitOrderIds(orderId);
-    if (!ids.length) return "—";
-    if (ids.length === 1) return ids[0];
-    return (
-      <span className="order-id-badges" aria-label="Order IDs">
-        {ids.map((id) => (
-          <span key={id} className="order-id-badge" title={id}>
-            {id}
-          </span>
-        ))}
-      </span>
-    );
-  }
-
   function getDraft(order) {
     const sizeRows = getDispatchSizeRows(order.size_breakdown);
     const saved = draftByOrderId[order.id];
@@ -467,47 +467,45 @@ export default function DispatchTabPanel({
     }
   }
 
+  const summaryFilterBits = [...filterBits];
+  if (failedCount > 0) {
+    summaryFilterBits.push(`Failed verify: ${failedCount}`);
+  }
+
+  const dispatchExtraActions =
+    dispatchTab === "inward" && !isInwardGrnFullView ? (
+      <Button
+        type="button"
+        size="sm"
+        disabled={!canEdit}
+        title={canEdit ? "Record a new inward entry" : "View only"}
+        onClick={() => setCreateInwardOpen(true)}
+      >
+        Make Entry
+      </Button>
+    ) : dispatchTab === "outward" ? (
+      <Button
+        type="button"
+        size="sm"
+        disabled={!canEdit}
+        title={canEdit ? "Create a new outward challan" : "View only"}
+        onClick={() => setCreateOcOpen(true)}
+      >
+        Create New OC
+      </Button>
+    ) : null;
+
   return (
-    <>
-      <div className="table-filters linked-tab-filters dispatch-tab-filters">
-        <div className="orders-tabs dispatch-orders-tabs" role="tablist" aria-label="Dispatch views">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={dispatchTab === "printing"}
-            className={dispatchTab === "printing" ? "orders-tab is-active" : "orders-tab"}
-            onClick={() => switchDispatchTab("printing")}
-          >
-            Printing order
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={dispatchTab === "regular_stock"}
-            className={dispatchTab === "regular_stock" ? "orders-tab is-active" : "orders-tab"}
-            onClick={() => switchDispatchTab("regular_stock")}
-          >
-            Regular stock
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={dispatchTab === "inward"}
-            className={dispatchTab === "inward" ? "orders-tab is-active" : "orders-tab"}
-            onClick={() => switchDispatchTab("inward")}
-          >
-            Inward
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={dispatchTab === "outward"}
-            className={dispatchTab === "outward" ? "orders-tab is-active" : "orders-tab"}
-            onClick={() => switchDispatchTab("outward")}
-          >
-            Outward
-          </button>
-        </div>
+    <div className="space-y-4">
+      <Tabs value={dispatchTab} onValueChange={switchDispatchTab} aria-label="Dispatch views">
+        <TabsList>
+          <TabsTrigger value="printing">Printing order</TabsTrigger>
+          <TabsTrigger value="regular_stock">Regular stock</TabsTrigger>
+          <TabsTrigger value="inward">Inward</TabsTrigger>
+          <TabsTrigger value="outward">Outward</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      {!isInwardGrnFullView ? (
         <OrdersListFilters
           idPrefix="dispatch"
           showDates={!isLedgerView}
@@ -516,6 +514,7 @@ export default function DispatchTabPanel({
           onDateFromChange={onDateFromChange}
           onDateToChange={onDateToChange}
           onClearDates={onClearDates}
+          clearDatesLabel="Clear"
           showSearch
           searchLabel={
             isProcessedView ? "Search by OC number" : isInwardGrnView ? "Search inward entries" : "Search"
@@ -534,30 +533,9 @@ export default function DispatchTabPanel({
           showPerPage={!isLedgerView}
           pageSize={pageSize}
           onPageSizeChange={setPageSize}
+          extraActions={dispatchExtraActions}
         />
-        {dispatchTab === "inward" && !isInwardGrnFullView ? (
-          <button
-            type="button"
-            className="dispatch-create-oc-btn"
-            disabled={!canEdit}
-            title={canEdit ? "Record a new inward entry" : "View only"}
-            onClick={() => setCreateInwardOpen(true)}
-          >
-            Make Entry
-          </button>
-        ) : null}
-        {dispatchTab === "outward" ? (
-          <button
-            type="button"
-            className="dispatch-create-oc-btn"
-            disabled={!canEdit}
-            title={canEdit ? "Create a new outward challan" : "View only"}
-            onClick={() => setCreateOcOpen(true)}
-          >
-            Create New OC
-          </button>
-        ) : null}
-      </div>
+      ) : null}
       {isInwardGrnFullView ? (
         <InwardGrnEntryPage
           inwardRecord={grnEntryRecord}
@@ -577,94 +555,78 @@ export default function DispatchTabPanel({
           }}
         />
       ) : isInwardGrnView ? (
-        <section
-          className="outward-challans-section dashboard-card"
-          aria-labelledby="inward-entries-heading"
-        >
-          <header className="outward-challans-section-head">
-            <h3 id="inward-entries-heading" className="dashboard-section-title">
-              Inward entries
-            </h3>
-            <p className="outward-challans-section-meta">
+        <Card aria-labelledby="inward-entries-heading">
+          <CardHeader>
+            <CardTitle id="inward-entries-heading">Inward entries</CardTitle>
+            <CardDescription>
               {loadingInward ? "Loading…" : `${inwardEntries.length} saved`}
               {searchTrimmed ? ` · filter “${searchTrimmed}”` : ""}
-            </p>
-          </header>
-          <InwardEntryList
-            entries={inwardEntries}
-            loading={loadingInward}
-            searchQuery={searchQuery}
-            onViewRecord={openInwardPreview}
-            onGrnEntry={openGrnEntry}
-            canEdit={canEdit}
-            canDelete={isAdmin}
-            onDelete={handleDeleteInward}
-          />
-        </section>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <InwardEntryList
+              entries={inwardEntries}
+              loading={loadingInward}
+              searchQuery={searchQuery}
+              onViewRecord={openInwardPreview}
+              onGrnEntry={openGrnEntry}
+              canEdit={canEdit}
+              canDelete={isAdmin}
+              onDelete={handleDeleteInward}
+            />
+          </CardContent>
+        </Card>
       ) : null}
       {isProcessedView ? (
-        <section
-          className="outward-challans-section dashboard-card"
-          aria-labelledby="outward-challans-heading"
-        >
-          <header className="outward-challans-section-head">
-            <h3 id="outward-challans-heading" className="dashboard-section-title">
-              Outward challans
-            </h3>
-            <p className="outward-challans-section-meta">
+        <Card aria-labelledby="outward-challans-heading">
+          <CardHeader>
+            <CardTitle id="outward-challans-heading">Outward challans</CardTitle>
+            <CardDescription>
               {loadingChallans ? "Loading…" : `${outwardChallans.length} saved`}
               {searchTrimmed ? ` · OC # filter “${searchTrimmed}”` : ""}
-            </p>
-          </header>
-          <OutwardChallanList
-            challans={outwardChallans}
-            loading={loadingChallans}
-            searchQuery={searchQuery}
-            onViewRecord={openOcPreview}
-            canDelete={isAdmin}
-            onDelete={handleDeleteOc}
-          />
-        </section>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OutwardChallanList
+              challans={outwardChallans}
+              loading={loadingChallans}
+              searchQuery={searchQuery}
+              onViewRecord={openOcPreview}
+              canDelete={isAdmin}
+              onDelete={handleDeleteOc}
+            />
+          </CardContent>
+        </Card>
       ) : null}
       {!isLedgerView && loadingOrders ? (
-        <p>Loading orders…</p>
+        <div className="space-y-3">
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
       ) : null}
-      {!isLedgerView ? (
+      {!isLedgerView && !loadingOrders ? (
         <>
-          <div className="orders-processed-summary" role="status">
-            <div className="orders-processed-summary-main">
-              <span className="orders-processed-label">
-                {DISPATCH_TAB_LABELS[dispatchTab] ?? "Dispatch"}
-              </span>
-              <span className="orders-processed-count">{totalFiltered}</span>
-            </div>
-            <div className="orders-processed-summary-meta">
-              <span className="orders-processed-qty">
-                Total qty: <strong>{totalQty}</strong>
-              </span>
-              {failedCount > 0 ? (
-                <span className="dispatch-failed-summary">
-                  Failed verify: <strong>{failedCount}</strong>
-                </span>
-              ) : null}
-              <span className="orders-processed-filters">{filterBits.join(" · ")}</span>
-            </div>
-          </div>
-          <div className="table-wrap table-wrap--compact">
-            <table className="orders-table-compact dispatch-orders-table">
-              <thead>
-                <tr>
-                  <th />
-                  <th>Order number</th>
-                  <th>Customer</th>
-                  <th>Product name</th>
-                  <th>Status</th>
-                  <th>Delivery</th>
-                  <th>{dispatchTab === "regular_stock" ? "Dispatch" : "Verify"}</th>
-                  <th>Qty</th>
-                </tr>
-              </thead>
-              <tbody>
+          <OrdersListSummary
+            label={DISPATCH_TAB_LABELS[dispatchTab] ?? "Dispatch"}
+            count={totalFiltered}
+            totalQty={totalQty}
+            filterBits={summaryFilterBits}
+          />
+          <div className="rounded-xl border bg-card shadow-sm">
+            <Table data-orders-table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[7rem]" />
+                  <TableHead>Order number</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Product name</TableHead>
+                  <TableHead className="min-w-[11rem]">Status</TableHead>
+                  <TableHead>Delivery</TableHead>
+                  <TableHead>{dispatchTab === "regular_stock" ? "Dispatch" : "Verify"}</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {visibleOrders.map((order) => {
                   const failed = isDispatchVerificationFailed(order);
                   const expanded = expandedId === order.id;
@@ -672,54 +634,51 @@ export default function DispatchTabPanel({
                   const sizesOk = allSizesVerified(draft.sizeRows, draft.sizeVerified);
                   const allOk = sizesOk && draft.productNameOk && draft.colorsOk;
                   const showIssueSelect = !allOk;
-                  const rowClass = dispatchRowHighlightClass(order);
                   const isDispatched = order.status === DISPATCHED_STATUS;
+                  const statusLabel = STAGE_LABEL[order.status] ?? order.status ?? "—";
 
                   return (
                     <Fragment key={order.id}>
-                      <tr
-                        className={rowClass || undefined}
+                      <TableRow
+                        className={cn(
+                          failed && "bg-destructive/5 hover:bg-destructive/10"
+                        )}
                         title={
                           failed
                             ? `Verification failed: ${dispatchIssueLabel(order.dispatch_issue_type)}`
                             : undefined
                         }
                       >
-                        <td>
-                          <button
-                            type="button"
-                            className="btn-view-order"
-                            onClick={() => onViewOrder(order)}
-                          >
-                            View order
-                          </button>
-                        </td>
-                        <td className="orders-compact-id">
-                          {renderOrderIdBadges(order.order_id)}
-                          {failed ? (
-                            <span className="dispatch-failed-badge" title="Verification failed">
-                              FAIL
-                            </span>
-                          ) : null}
-                        </td>
-                        <td className="orders-compact-customer">
+                        <TableCell>
+                          <OrderViewActionCell order={order} onViewOrder={onViewOrder} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <OrderIdBadges orderId={order.order_id} />
+                            {failed ? (
+                              <Badge variant="destructive" className="text-[10px] uppercase">
+                                Fail
+                              </Badge>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[12rem] truncate">
                           {order.customer_name?.trim() ? order.customer_name : "—"}
-                        </td>
-                        <td className="orders-compact-product">
+                        </TableCell>
+                        <TableCell className="max-w-[12rem] truncate">
                           {order.product_name?.trim() ? order.product_name : "—"}
-                        </td>
-                        <td>
-                          <span
-                            className={`status-pill status-pill--compact status-${order.status ?? "new"}`}
-                          >
-                            {renderStageIcon?.(order.status, STAGE_LABEL[order.status])}{" "}
-                            {STAGE_LABEL[order.status] ?? order.status ?? "—"}
-                          </span>
-                        </td>
-                        <td>{deliveryMethodLabel(order.delivery_method)}</td>
-                        <td>
+                        </TableCell>
+                        <TableCell>
+                          <OrderStatusBadge
+                            status={order.status}
+                            label={statusLabel}
+                            icon={renderStageIcon?.(order.status, statusLabel)}
+                          />
+                        </TableCell>
+                        <TableCell>{deliveryMethodLabel(order.delivery_method)}</TableCell>
+                        <TableCell>
                           {isDispatched ? (
-                            <span className="dispatch-processed-at">
+                            <span className="text-sm text-muted-foreground">
                               {order.dispatch_verified_at
                                 ? new Date(order.dispatch_verified_at).toLocaleString()
                                 : "—"}
@@ -727,42 +686,44 @@ export default function DispatchTabPanel({
                           ) : (
                             <div className="dispatch-verify-cell">
                               {failed ? (
-                                <p className="dispatch-fail-reason" title="Why verification failed">
+                                <p className="dispatch-fail-reason text-sm text-destructive" title="Why verification failed">
                                   {order.dispatch_issue_type
                                     ? dispatchIssueLabel(order.dispatch_issue_type)
                                     : "Verification failed"}
                                 </p>
                               ) : null}
                               {canEdit ? (
-                                <div className="dispatch-verify-cell-actions">
+                                <div className="flex flex-wrap gap-2">
                                   {failed ? (
-                                    <button
+                                    <Button
                                       type="button"
-                                      className="btn-dispatch-verify-again"
+                                      variant="outline"
+                                      size="sm"
                                       onClick={() => openVerifyPanel(order)}
                                     >
                                       Verify again
-                                    </button>
+                                    </Button>
                                   ) : null}
-                                  <button
+                                  <Button
                                     type="button"
-                                    className={`btn-dispatch-verify${expanded ? " btn-dispatch-verify--open" : ""}`}
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() =>
                                       expanded ? closeVerifyPanel() : openVerifyPanel(order)
                                     }
                                   >
                                     {expanded ? "Close" : failed ? "Re-open" : "Verify"}
-                                  </button>
+                                  </Button>
                                 </div>
                               ) : null}
                             </div>
                           )}
-                        </td>
-                        <td>{order.qty}</td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">{order.qty}</TableCell>
+                      </TableRow>
                       {expanded && !isDispatched ? (
-                        <tr className="dispatch-verify-row">
-                          <td colSpan={8}>
+                        <TableRow className="dispatch-verify-row hover:bg-transparent">
+                          <TableCell colSpan={8} className="p-0">
                             <div className="dispatch-verify-panel">
                               {failed ? (
                                 <div className="dispatch-verify-fail-banner" role="alert">
@@ -932,32 +893,31 @@ export default function DispatchTabPanel({
                               ) : null}
 
                               {canEdit ? (
-                                <div className="dispatch-verify-actions">
+                                <div className="dispatch-verify-actions flex flex-wrap items-center gap-3">
                                   {allOk ? (
-                                    <button
+                                    <Button
                                       type="button"
-                                      className="btn-dispatch-pass"
                                       disabled={submittingId === order.id}
                                       onClick={() => saveVerification(order, true)}
                                     >
                                       {submittingId === order.id
                                         ? "Saving…"
                                         : "Verified & mark as dispatch"}
-                                    </button>
+                                    </Button>
                                   ) : (
-                                    <button
+                                    <Button
                                       type="button"
-                                      className="btn-dispatch-submit"
+                                      variant="destructive"
                                       disabled={submittingId === order.id}
                                       onClick={() => saveVerification(order, false)}
                                     >
                                       {submittingId === order.id
                                         ? "Saving…"
                                         : "Submit — Dispatch Fail"}
-                                    </button>
+                                    </Button>
                                   )}
                                   {order.dispatch_verified_at ? (
-                                    <span className="dispatch-verify-meta">
+                                    <span className="dispatch-verify-meta text-sm text-muted-foreground">
                                       Last verified{" "}
                                       {new Date(order.dispatch_verified_at).toLocaleString()}
                                       {failed && order.dispatch_issue_type
@@ -968,23 +928,23 @@ export default function DispatchTabPanel({
                                 </div>
                               ) : null}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ) : null}
                     </Fragment>
                   );
                 })}
                 {visibleOrders.length === 0 && (
-                  <tr>
-                    <td colSpan={8}>
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       {searchTrimmed
                         ? "No orders match your search."
                         : `No orders in ${DISPATCH_TAB_LABELS[dispatchTab] ?? "this view"} for the selected date range.`}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
           <OrdersPagination
             page={page}
@@ -1028,6 +988,6 @@ export default function DispatchTabPanel({
           setCreateInwardOpen(false);
         }}
       />
-    </>
+    </div>
   );
 }

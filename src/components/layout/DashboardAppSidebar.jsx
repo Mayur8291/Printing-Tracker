@@ -11,6 +11,7 @@ import {
   Printer,
   Settings,
   ShoppingBag,
+  Target,
   Truck,
   Users
 } from "lucide-react";
@@ -42,14 +43,16 @@ const TAB_ICONS = {
   distributor: Globe,
   shared_links: Link2,
   contact_book: Users,
+  goals: Target,
   chat: MessageSquare,
   asset_management: Briefcase,
   audit: ClipboardList,
   admin: Settings
 };
 
-function NavItem({ item, isActive, onSelect, showSoon }) {
+function NavItem({ item, isActive, onSelect, showSoon, badgeCount = 0 }) {
   const Icon = TAB_ICONS[item.id] ?? Package;
+  const showBadge = badgeCount > 0 && !showSoon;
   return (
     <SidebarMenuItem>
       <SidebarMenuButton isActive={isActive} onClick={() => onSelect(item.id)} tooltip={item.label}>
@@ -61,6 +64,11 @@ function NavItem({ item, isActive, onSelect, showSoon }) {
             className="ml-auto text-[10px] px-1.5 py-0 group-data-[collapsible=icon]:hidden"
           >
             Soon
+          </Badge>
+        ) : null}
+        {showBadge ? (
+          <Badge className="ml-auto min-w-5 justify-center rounded-full bg-primary px-1.5 py-0 text-[10px] text-primary-foreground group-data-[collapsible=icon]:hidden">
+            {badgeCount > 9 ? "9+" : badgeCount}
           </Badge>
         ) : null}
       </SidebarMenuButton>
@@ -80,7 +88,8 @@ export default function DashboardAppSidebar({
   userDept,
   userInitials,
   userAvatarUrl,
-  footerSlot
+  footerSlot,
+  tabBadges = {}
 }) {
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -123,6 +132,7 @@ export default function DashboardAppSidebar({
                     isActive={dashboardTab === item.id}
                     onSelect={onSelectTab}
                     showSoon={soonTabIds.has(item.id)}
+                    badgeCount={tabBadges[item.id] ?? 0}
                   />
                 ))}
               </SidebarMenu>
@@ -143,6 +153,7 @@ export default function DashboardAppSidebar({
                   isActive={dashboardTab === item.id}
                   onSelect={onSelectTab}
                   showSoon={soonTabIds.has(item.id)}
+                  badgeCount={tabBadges[item.id] ?? 0}
                 />
               ))}
               {isAdmin && adminTab ? (

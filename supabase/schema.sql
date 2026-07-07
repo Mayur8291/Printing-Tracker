@@ -15,6 +15,7 @@ alter table public.profiles add column if not exists job_role text;
 alter table public.profiles add column if not exists employee_id text;
 alter table public.profiles add column if not exists is_active boolean not null default true;
 alter table public.profiles add column if not exists avatar_path text;
+alter table public.profiles add column if not exists notification_tone_path text;
 
 create table if not exists public.admin_emails (
   email text primary key,
@@ -932,6 +933,40 @@ $$;
 revoke all on function public.purge_expired_team_chat_attachments() from public;
 grant execute on function public.purge_expired_team_chat_attachments() to service_role;
 
+-- Team chat v2: conversations, DMs, groups (20260709180000_team_chat_conversations.sql).
+create table if not exists public.team_chat_conversations (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('direct', 'group')),
+  title text,
+  created_by uuid not null references public.profiles(id) on delete restrict,
+  last_message_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.team_chat_conversation_members (
+  conversation_id uuid not null references public.team_chat_conversations(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  role text not null default 'member' check (role in ('admin', 'member')),
+  joined_at timestamptz not null default now(),
+  last_read_at timestamptz,
+  primary key (conversation_id, user_id)
+);
+
+alter table public.team_chat_messages
+  add column if not exists conversation_id uuid references public.team_chat_conversations(id) on delete cascade,
+  add column if not exists gif_url text;
+
+create or replace function public.jwt_user_in_conversation(p_conversation_id uuid, p_user_id uuid default auth.uid())
+returns boolean language sql stable security definer set search_path = public as $$
+  select p_conversation_id is not null and p_user_id is not null
+    and exists (
+      select 1 from public.team_chat_conversation_members m
+      where m.conversation_id = p_conversation_id and m.user_id = p_user_id
+    );
+$$;
+
+grant execute on function public.jwt_user_in_conversation(uuid, uuid) to authenticated;
+
 -- Contact Book (see migration 20260526160000_add_contact_book.sql).
 create table if not exists public.contact_book_entries (
   id bigint generated always as identity primary key,
@@ -1440,3 +1475,119 @@ create table if not exists public.inward_grn_entries (
 
 comment on column public.inward_grn_entries.grn_entry_detail is
   'Structured GRN form: type (apparel|fabric), header extras, boras[], fabrics[].';
+
+-- Goal tracker (see migration 20260706180000_add_goal_tracker.sql).
+create table if not exists public.user_annual_goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  year integer not null check (year >= 2000 and year <= 2100),
+  title text not null,
+  description text,
+  status text not null default 'not_started'
+    check (status in ('not_started', 'in_progress', 'completed', 'on_hold')),
+  created_by uuid not null references public.profiles(id) on delete restrict,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  completed_at timestamptz,
+  admin_verified_at timestamptz,
+  admin_verified_by uuid references public.profiles(id) on delete set null
+);
+
+-- Assign-task goal list (see migration 20260709120000_goal_assign_link_visibility.sql).
+create or replace function public.get_goals_for_task_assignment(p_assignee_id uuid, p_year integer)
+returns table (
+  id uuid,
+  user_id uuid,
+  year integer,
+  title text,
+  description text,
+  status text,
+  created_by uuid,
+  created_at timestamptz,
+  updated_at timestamptz,
+  completed_at timestamptz,
+  admin_verified_at timestamptz,
+  admin_verified_by uuid
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    g.id,
+    g.user_id,
+    g.year,
+    g.title,
+    g.description,
+    g.status,
+    g.created_by,
+    g.created_at,
+    g.updated_at,
+    g.completed_at,
+    g.admin_verified_at,
+    g.admin_verified_by
+  from public.user_annual_goals g
+  where g.user_id = p_assignee_id
+    and g.year = p_year
+    and auth.uid() is not null
+    and exists (select 1 from public.profiles p where p.id = p_assignee_id)
+  order by g.created_at asc;
+$$;
+
+grant execute on function public.get_goals_for_task_assignment(uuid, integer) to authenticated;
+
+create table if not exists public.user_goal_tasks (
+  id uuid primary key default gen_random_uuid(),
+  goal_id uuid references public.user_annual_goals(id) on delete cascade,
+  assignee_id uuid not null references public.profiles(id) on delete cascade,
+  assigned_by uuid not null references public.profiles(id) on delete restrict,
+  title text not null,
+  description text,
+  deadline_date date,
+  priority text not null default 'P2'
+    check (priority in ('P0', 'P1', 'P2')),
+  status text not null default 'pending'
+    check (status in ('pending', 'in_progress', 'completed', 'cancelled')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  completed_at timestamptz,
+  admin_verified_at timestamptz,
+  admin_verified_by uuid references public.profiles(id) on delete set null
+);
+
+create table if not exists public.user_goal_status_remarks (
+  id uuid primary key default gen_random_uuid(),
+  goal_id uuid references public.user_annual_goals(id) on delete cascade,
+  task_id uuid references public.user_goal_tasks(id) on delete cascade,
+  author_id uuid not null references public.profiles(id) on delete restrict,
+  previous_status text,
+  new_status text not null,
+  remark text not null,
+  created_at timestamptz not null default now(),
+  constraint user_goal_status_remarks_entity check (goal_id is not null or task_id is not null)
+);
+
+-- Goal task + order status notifications (see migration 20260707130000_add_goal_task_and_order_status_notifications.sql).
+create table if not exists public.user_goal_task_notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_user_id uuid not null references public.profiles(id) on delete cascade,
+  task_id uuid not null references public.user_goal_tasks(id) on delete cascade,
+  task_title text not null,
+  goal_id uuid references public.user_annual_goals(id) on delete set null,
+  goal_title text,
+  assigned_by_user_id uuid not null references public.profiles(id) on delete cascade,
+  deadline_date date,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.order_status_notifications (
+  id bigint generated always as identity primary key,
+  recipient_user_id uuid not null references public.profiles(id) on delete cascade,
+  order_id bigint not null references public.orders(id) on delete cascade,
+  order_display_id text,
+  previous_status text,
+  new_status text not null,
+  changed_by_user_id uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);

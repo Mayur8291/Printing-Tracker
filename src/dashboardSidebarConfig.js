@@ -9,6 +9,7 @@ export const PRINTING_QUEUE_SUBTAB = {
 
 export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "home", label: "Home" },
+  { id: "goals", label: "Goals & Tasks" },
   PRINTING_ORDERS_TAB,
   { id: "billing", label: "Billing" },
   { id: "dispatch", label: "Dispatch" },
@@ -21,7 +22,7 @@ export const DASHBOARD_SIDEBAR_MAIN = [
 export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
   {
     label: "Workspace",
-    ids: ["home", "printing", "billing", "dispatch"]
+    ids: ["home", "goals", "printing", "billing", "dispatch"]
   },
   {
     label: "Inventory",

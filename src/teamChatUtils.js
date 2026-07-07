@@ -7,6 +7,18 @@ export const CHAT_EMOJI_PALETTE = [
   "⭐", "🎉", "📦", "🖨️", "🧵", "📋", "⏰", "📞", "💬", "❤️"
 ];
 
+/** Preset GIFs (public CDN) when no Giphy API key configured. */
+export const CHAT_GIF_PRESETS = [
+  { label: "Thumbs up", url: "https://media.giphy.com/media/111ebonPs90jF2/giphy.gif" },
+  { label: "OK", url: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" },
+  { label: "Clap", url: "https://media.giphy.com/media/7rj2ZgTgyvNhGxBuV/giphy.gif" },
+  { label: "Celebrate", url: "https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif" },
+  { label: "Done", url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif" },
+  { label: "Thinking", url: "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyg/giphy.gif" },
+  { label: "Wow", url: "https://media.giphy.com/media/5VKbvrjxpVJCMaNR7W/giphy.gif" },
+  { label: "Thanks", url: "https://media.giphy.com/media/osjgQPWRx3cac/giphy.gif" }
+];
+
 export const CHAT_ATTACHMENT_BUCKET = "team-chat-files";
 export const CHAT_MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
 
@@ -213,4 +225,19 @@ export function splitChatBodyTokens(body) {
   if (last < text.length) parts.push({ kind: "text", value: text.slice(last) });
   if (!parts.length && text) parts.push({ kind: "text", value: text });
   return parts;
+}
+
+export function directConversationPeerId(conversation, userId) {
+  if (conversation?.kind !== "direct") return null;
+  return (conversation.member_ids ?? []).find((id) => id !== userId) ?? null;
+}
+
+export function conversationDisplayTitle(conversation, userId, profiles) {
+  if (!conversation) return "Chat";
+  if (conversation.kind === "group") {
+    return (conversation.title ?? "").trim() || "Group";
+  }
+  const peerId = directConversationPeerId(conversation, userId);
+  const peer = (profiles ?? []).find((p) => p.id === peerId);
+  return profileChatLabel(peer) || "Direct chat";
 }

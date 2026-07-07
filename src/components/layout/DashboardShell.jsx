@@ -20,7 +20,8 @@ export default function DashboardShell({
   userInitials,
   userAvatarUrl,
   sidebarFooterSlot,
-  fullBleed = false
+  fullBleed = false,
+  tabBadges
 }) {
   return (
     <SidebarProvider defaultOpen className="flex h-svh max-h-svh w-full min-h-0 overflow-hidden">
@@ -37,6 +38,7 @@ export default function DashboardShell({
         userInitials={userInitials}
         userAvatarUrl={userAvatarUrl}
         footerSlot={sidebarFooterSlot}
+        tabBadges={tabBadges}
       />
       <SidebarInset className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-background">
         <header className="sticky top-0 z-20 shrink-0 overflow-visible border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">

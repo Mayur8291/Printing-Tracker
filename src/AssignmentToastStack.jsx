@@ -5,6 +5,8 @@ const TOAST_LIFETIME_MS = 7000;
 function toastTitle(toast) {
   if (toast.kind === "inward") return "Tagged on inward entry";
   if (toast.kind === "printing_inventory") return "Printing inventory low stock";
+  if (toast.kind === "goal_task") return "Task assigned to you";
+  if (toast.kind === "order_status") return "Order status updated";
   return "New order assigned to you";
 }
 
@@ -21,6 +23,15 @@ function toastBody(toast) {
     const stockText = Number.isFinite(stock) ? stock.toLocaleString() : "—";
     const thresholdText = Number.isFinite(threshold) ? threshold.toLocaleString() : "—";
     return `${label} · ${stockText} left (threshold ${thresholdText})`;
+  }
+  if (toast.kind === "goal_task") {
+    const title = String(toast.taskTitle ?? "").trim() || "Task";
+    const goal = String(toast.goalTitle ?? "").trim();
+    return goal ? `${title} · Goal: ${goal}` : title;
+  }
+  if (toast.kind === "order_status") {
+    const ref = toast.orderDisplayId ? `Order ${toast.orderDisplayId}` : "Order";
+    return `${ref} · ${toast.previousStatusLabel ?? "—"} → ${toast.newStatusLabel ?? "—"}`;
   }
   if (toast.orderDisplayId) {
     return (

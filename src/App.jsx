@@ -7,6 +7,9 @@ import MonthlyArchivePanel from "./MonthlyArchivePanel";
 import LinkedOrdersTabPanel from "./LinkedOrdersTabPanel";
 import TeamChatPanel from "./TeamChatPanel";
 import ContactBookPanel from "./ContactBookPanel";
+import GoalTrackerPanel from "./GoalTrackerPanel";
+import AdminRolesGoalsPanel from "./AdminRolesGoalsPanel";
+import HomeGoalTrackerPanel from "./components/goals/HomeGoalTrackerPanel";
 import AssetManagementPanel from "./AssetManagementPanel";
 import HomeStatusPanel from "./components/home/HomeStatusPanel";
 import { Dialog, DialogContent } from "./components/ui/dialog";
@@ -84,7 +87,7 @@ import { filterViewerProfiles, formatProfileAccessLabel, profileAccessRole, view
 import AssignmentToastStack from "./AssignmentToastStack";
 import NotificationBellButton from "./NotificationBellButton";
 import NotificationsPanel from "./NotificationsPanel";
-import { NOTIFICATIONS_DASHBOARD_TAB } from "./notificationsUtils";
+import { NOTIFICATIONS_DASHBOARD_TAB, formatOrderStatusCode } from "./notificationsUtils";
 import MacStyleColorPicker from "./MacStyleColorPicker";
 import {
   isCssColorString,
@@ -158,9 +161,24 @@ import {
 } from "./orderTabUtils";
 import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
 import { profileAvatarPublicUrl, uploadProfileAvatar } from "./avatarUtils";
+import { profileNotificationTonePublicUrl } from "./notificationToneUtils";
+import {
+  playNotificationTone,
+  playOrderStatusChangeTone,
+  playReadyDispatchOverdueTone,
+  primeNotificationTonesFromUserGesture,
+  setMuteStatusTones,
+  setUserNotificationToneUrl,
+  TONE_DEFAULT_STATUS
+} from "./notificationTonePlayer";
 import { PersonAvatar } from "./components/ui/person-avatar";
 import { AvatarUploadField } from "./components/ui/avatar-upload-field";
 import { activeSupabaseRef, supabase } from "./supabaseClient";
+import { fetchMyConversations } from "./teamChatService";
+import {
+  shouldPlayChatMessageTone,
+  sumConversationUnread
+} from "./teamChatNotificationUtils";
 import {
   isMissingPostgrestTableError,
   isSchemaCacheError,
@@ -240,106 +258,12 @@ function staticAssetUrl(relPath) {
   return `${b}${relPath.replace(/^\//, "")}`;
 }
 
-const TONE_DEFAULT_STATUS = "sounds/tone-01.mp3";
-const TONE_READY_STATUS = "sounds/Tone-02.mp3";
-const TONE_READY_OVERDUE = "sounds/Tone-03.mp3";
 const READY_DISPATCH_SLA_MS = 48 * 60 * 60 * 1000;
 const READY_OVERDUE_TONE_INTERVAL_MS = 5 * 60 * 1000;
-
-const toneAudioCache = new Map();
-const tonePrimed = new Set();
 
 /** Status changed while tab hidden — play once when user returns. */
 let pendingStatusTone = false;
 let pendingStatusToneReady = false;
-
-/** When true (admin role), no status / overdue tones play. */
-let muteStatusTones = false;
-
-function resolveToneUrl(file) {
-  try {
-    return new URL(staticAssetUrl(file), window.location.href).href;
-  } catch {
-    return staticAssetUrl(file);
-  }
-}
-
-function getToneAudio(file) {
-  if (!toneAudioCache.has(file)) {
-    const el = new Audio(resolveToneUrl(file));
-    el.preload = "auto";
-    toneAudioCache.set(file, el);
-  }
-  return toneAudioCache.get(file);
-}
-
-/** Call once after a user gesture so autoplay policy allows tones later. */
-function primeStatusToneFromUserGesture() {
-  for (const file of [TONE_DEFAULT_STATUS, TONE_READY_STATUS, TONE_READY_OVERDUE]) {
-    if (tonePrimed.has(file)) continue;
-    try {
-      const el = getToneAudio(file);
-      el.volume = 0.001;
-      void el
-        .play()
-        .then(() => {
-          el.pause();
-          el.currentTime = 0;
-          el.volume = 1;
-          tonePrimed.add(file);
-        })
-        .catch(() => {});
-    } catch {
-      /* ignore */
-    }
-  }
-}
-
-function playTone(file) {
-  try {
-    const tryPlay = (el) => {
-      if (!el) return Promise.reject(new Error("no audio"));
-      el.volume = 1;
-      el.pause();
-      el.currentTime = 0;
-      return el.play();
-    };
-
-    const cached = getToneAudio(file);
-    const p = tryPlay(cached);
-    if (p) {
-      void p.catch(() => {
-        try {
-          const fresh = new Audio(resolveToneUrl(file));
-          fresh.preload = "auto";
-          fresh.volume = 1;
-          void fresh.play().catch(() => {});
-        } catch {
-          /* ignore */
-        }
-      });
-    }
-  } catch {
-    try {
-      const fresh = new Audio(resolveToneUrl(file));
-      fresh.volume = 1;
-      void fresh.play().catch(() => {});
-    } catch {
-      /* ignore */
-    }
-  }
-}
-
-/** Tone-02 only when status becomes Ready to Dispatch; Tone-01 for all other status changes. */
-function playOrderStatusChangeTone(isReadyToDispatch) {
-  if (muteStatusTones) return;
-  playTone(isReadyToDispatch ? TONE_READY_STATUS : TONE_DEFAULT_STATUS);
-}
-
-function playReadyDispatchOverdueTone() {
-  if (muteStatusTones) return;
-  playTone(TONE_READY_OVERDUE);
-}
 
 function orderReadyOver48h(order) {
   if (order.is_complete || order.status !== "ready") return false;
@@ -730,12 +654,16 @@ function App() {
 
   const statusTonesEnabled = profile?.status_tones_enabled !== false;
   useEffect(() => {
-    muteStatusTones = !statusTonesEnabled;
+    setMuteStatusTones(!statusTonesEnabled);
     if (!statusTonesEnabled) {
       pendingStatusTone = false;
       pendingStatusToneReady = false;
     }
   }, [statusTonesEnabled]);
+
+  useEffect(() => {
+    setUserNotificationToneUrl(profileNotificationTonePublicUrl(profile?.notification_tone_path));
+  }, [profile?.notification_tone_path]);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersLoadError, setOrdersLoadError] = useState(null);
@@ -756,6 +684,8 @@ function App() {
   /** "printing" = full create-order form; "job_sheet" = production job sheet (placeholder until dedicated fields). */
   const [createFormMode, setCreateFormMode] = useState("printing");
   const [assignmentToasts, setAssignmentToasts] = useState([]);
+  const [chatUnreadTotal, setChatUnreadTotal] = useState(0);
+  const chatMemberConvIdsRef = useRef(new Set());
   const [repeatOrderPickerOpen, setRepeatOrderPickerOpen] = useState(false);
   const [orderTemplates, setOrderTemplates] = useState([]);
   const [loadingOrderTemplates, setLoadingOrderTemplates] = useState(false);
@@ -1095,7 +1025,7 @@ function App() {
       done = true;
       window.removeEventListener("pointerdown", prime, true);
       window.removeEventListener("keydown", prime, true);
-      primeStatusToneFromUserGesture();
+      primeNotificationTonesFromUserGesture();
     };
     window.addEventListener("pointerdown", prime, { capture: true, passive: true });
     window.addEventListener("keydown", prime, { capture: true, passive: true });
@@ -1136,7 +1066,7 @@ function App() {
       }
       if (anyStatusChanged) {
         if (typeof document !== "undefined" && document.visibilityState === "visible") {
-          console.debug("[tone] status change → playing", { changedToReady, muteStatusTones });
+          console.debug("[tone] status change → playing", { changedToReady, muted: !statusTonesEnabled });
           playOrderStatusChangeTone(changedToReady);
         } else {
           console.debug("[tone] status change deferred (tab hidden)");
@@ -1266,7 +1196,7 @@ function App() {
           .maybeSingle(),
         supabase
           .from("profiles")
-          .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
+          .select("id, full_name, email, role, department, status_tones_enabled, avatar_path, notification_tone_path")
           .eq("id", sessionUser.id)
           .maybeSingle()
       ]);
@@ -1312,7 +1242,7 @@ function App() {
         }
         const again = await supabase
           .from("profiles")
-          .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
+          .select("id, full_name, email, role, department, status_tones_enabled, avatar_path, notification_tone_path")
           .eq("id", sessionUser.id)
           .maybeSingle();
         prof = again.data;
@@ -1329,7 +1259,7 @@ function App() {
         if (!upErr) {
           const { data: promoted } = await supabase
             .from("profiles")
-            .select("id, full_name, email, role, department, status_tones_enabled, avatar_path")
+            .select("id, full_name, email, role, department, status_tones_enabled, avatar_path, notification_tone_path")
             .eq("id", sessionUser.id)
             .maybeSingle();
           if (promoted) prof = promoted;
@@ -3654,6 +3584,14 @@ function App() {
 
   function handleOpenDashboardNotification(item) {
     if (!item) return;
+    if (item.kind === "goal_task") {
+      selectDashboardTab("goals");
+      return;
+    }
+    if (item.kind === "order_status") {
+      void handleNotificationAssignmentOpen({ order_id: item.order_id });
+      return;
+    }
     if (item.kind === "inward") {
       void handleNotificationInwardOpen(item);
       return;
@@ -3848,9 +3786,53 @@ function App() {
     ]);
   }, []);
 
+  const pushGoalTaskToast = useCallback((row) => {
+    const id = row?.id != null ? `goal-task-${row.id}` : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setAssignmentToasts((prev) => [
+      ...prev,
+      {
+        id,
+        kind: "goal_task",
+        taskTitle: row?.task_title ?? "",
+        goalTitle: row?.goal_title ?? ""
+      }
+    ]);
+  }, []);
+
+  const pushOrderStatusToast = useCallback((row) => {
+    const id = row?.id != null ? `order-status-${row.id}` : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setAssignmentToasts((prev) => [
+      ...prev,
+      {
+        id,
+        kind: "order_status",
+        orderId: row?.order_id,
+        orderDisplayId: row?.order_display_id ?? "",
+        previousStatusLabel: formatOrderStatusCode(row?.previous_status),
+        newStatusLabel: formatOrderStatusCode(row?.new_status)
+      }
+    ]);
+  }, []);
+
   const dismissAssignmentToast = useCallback((id) => {
     setAssignmentToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const refreshChatUnread = useCallback(async () => {
+    const uid = session?.user?.id;
+    if (!uid) {
+      setChatUnreadTotal(0);
+      chatMemberConvIdsRef.current = new Set();
+      return;
+    }
+    try {
+      const rows = await fetchMyConversations(uid);
+      chatMemberConvIdsRef.current = new Set(rows.map((row) => row.id));
+      setChatUnreadTotal(sumConversationUnread(rows));
+    } catch {
+      /* ignore — chat migration may be pending */
+    }
+  }, [session?.user?.id]);
 
   function handleAssignmentToastActivate(toast) {
     if (!toast) return;
@@ -3861,6 +3843,14 @@ function App() {
     }
     if (toast.kind === "printing_inventory") {
       handleNotificationPrintingInventoryOpen();
+      return;
+    }
+    if (toast.kind === "goal_task") {
+      selectDashboardTab("goals");
+      return;
+    }
+    if (toast.kind === "order_status") {
+      void handleNotificationAssignmentOpen({ order_id: toast.orderId });
       return;
     }
     void handleNotificationAssignmentOpen({ order_id: toast.orderId });
@@ -3883,8 +3873,8 @@ function App() {
           const row = payload.new;
           if (row && typeof row === "object") {
             pushAssignmentToast(row);
-            if (!muteStatusTones) {
-              playTone(TONE_DEFAULT_STATUS);
+            if (statusTonesEnabled) {
+              playNotificationTone(TONE_DEFAULT_STATUS);
             }
           }
         }
@@ -3893,7 +3883,7 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, pushAssignmentToast]);
+  }, [session?.user?.id, pushAssignmentToast, statusTonesEnabled]);
 
   useEffect(() => {
     const uid = session?.user?.id;
@@ -3912,8 +3902,8 @@ function App() {
           const row = payload.new;
           if (!row || typeof row !== "object") return;
           pushInwardToast(row);
-          if (!muteStatusTones) {
-            playTone(TONE_DEFAULT_STATUS);
+          if (statusTonesEnabled) {
+            playNotificationTone(TONE_DEFAULT_STATUS);
           }
         }
       )
@@ -3921,7 +3911,7 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, pushInwardToast]);
+  }, [session?.user?.id, pushInwardToast, statusTonesEnabled]);
 
   useEffect(() => {
     const uid = session?.user?.id;
@@ -3940,8 +3930,8 @@ function App() {
           const row = payload.new;
           if (!row || typeof row !== "object") return;
           pushPrintingInventoryToast(row);
-          if (!muteStatusTones) {
-            playTone(TONE_DEFAULT_STATUS);
+          if (statusTonesEnabled) {
+            playNotificationTone(TONE_DEFAULT_STATUS);
           }
         }
       )
@@ -3949,7 +3939,109 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, pushPrintingInventoryToast]);
+  }, [session?.user?.id, pushPrintingInventoryToast, statusTonesEnabled]);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return undefined;
+    const channel = supabase
+      .channel(`goal-task-notifications-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_goal_task_notifications",
+          filter: `recipient_user_id=eq.${uid}`
+        },
+        (payload) => {
+          const row = payload.new;
+          if (!row || typeof row !== "object") return;
+          pushGoalTaskToast(row);
+          if (statusTonesEnabled) {
+            playNotificationTone(TONE_DEFAULT_STATUS);
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, pushGoalTaskToast, statusTonesEnabled]);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return undefined;
+    const channel = supabase
+      .channel(`order-status-notifications-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "order_status_notifications",
+          filter: `recipient_user_id=eq.${uid}`
+        },
+        (payload) => {
+          const row = payload.new;
+          if (!row || typeof row !== "object") return;
+          pushOrderStatusToast(row);
+          if (statusTonesEnabled) {
+            playNotificationTone(TONE_DEFAULT_STATUS);
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, pushOrderStatusToast, statusTonesEnabled]);
+
+  useEffect(() => {
+    void refreshChatUnread();
+  }, [refreshChatUnread]);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return undefined;
+
+    const channel = supabase
+      .channel(`team-chat-unread-${uid}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "team_chat_messages" },
+        (payload) => {
+          const row = payload.new;
+          if (!row || typeof row !== "object") return;
+          if (row.author_id === uid) {
+            void refreshChatUnread();
+            return;
+          }
+          if (!chatMemberConvIdsRef.current.has(row.conversation_id)) return;
+          if (statusTonesEnabled && shouldPlayChatMessageTone(row, uid)) {
+            playNotificationTone(TONE_DEFAULT_STATUS);
+          }
+          void refreshChatUnread();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "team_chat_conversation_members",
+          filter: `user_id=eq.${uid}`
+        },
+        () => {
+          void refreshChatUnread();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, statusTonesEnabled, refreshChatUnread]);
 
   useEffect(() => {
     if (!showCreateForm || profileLoading) return;
@@ -4940,6 +5032,7 @@ function App() {
         dashboardTab={dashboardTab}
         onSelectTab={selectDashboardTab}
         soonTabIds={DASHBOARD_SIDEBAR_SOON_TAB_IDS}
+        tabBadges={{ chat: chatUnreadTotal }}
         userName={headerUserName}
         userDept={!profileLoading && !profileError ? profile?.department?.trim() || "" : ""}
         userInitials={headerUserInitials}
@@ -5028,13 +5121,22 @@ function App() {
 
           {dashboardTab === "home" && (
             <div className="space-y-6">
-            <HomeStatusPanel
-              summary={summary}
-              refreshing={homeRefreshing}
-              onRefresh={() => void refreshHomeStatus()}
-              lastUpdatedLabel={homeLastUpdatedLabel}
-              renderStageIcon={renderStageIcon}
-            />
+            {isAdmin ? (
+              <HomeStatusPanel
+                summary={summary}
+                refreshing={homeRefreshing}
+                onRefresh={() => void refreshHomeStatus()}
+                lastUpdatedLabel={homeLastUpdatedLabel}
+                renderStageIcon={renderStageIcon}
+              />
+            ) : null}
+
+            {session?.user ? (
+              <HomeGoalTrackerPanel
+                userId={session.user.id}
+                onOpenGoalsTab={() => selectDashboardTab("goals")}
+              />
+            ) : null}
 
             {isAdmin ? (
                 <section
@@ -5329,7 +5431,20 @@ function App() {
           {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (
             <NotificationsPanel
               userId={session.user.id}
+              tonePath={profile?.notification_tone_path}
+              tonesEnabled={statusTonesEnabled}
+              onTonePathChange={(patch) => {
+                setProfile((prev) => (prev ? { ...prev, ...patch } : prev));
+              }}
               onOpenNotification={handleOpenDashboardNotification}
+            />
+          )}
+
+          {dashboardTab === "goals" && session?.user && (
+            <GoalTrackerPanel
+              sessionUserId={session.user.id}
+              isAdmin={isAdmin}
+              teamProfiles={teamProfiles}
             />
           )}
 
@@ -5340,6 +5455,7 @@ function App() {
               teamProfiles={teamProfiles}
               orders={orders}
               onOpenOrder={openViewOrder}
+              onUnreadTotalChange={setChatUnreadTotal}
             />
           )}
 
@@ -5401,7 +5517,7 @@ function App() {
           )}
 
           {dashboardTab === "dispatch" && (
-            <section className="panel table-panel dashboard-card dashboard-card--flat">
+            <div className="space-y-4">
               <DispatchTabPanel
                 orders={dispatchOrders}
                 loadingOrders={loadingOrders}
@@ -5425,7 +5541,7 @@ function App() {
                 pendingInwardEntryId={pendingInwardEntryId}
                 onNavigateConsumed={clearGlobalSearchNavigation}
               />
-            </section>
+            </div>
           )}
           {dashboardTab === "inventory" && (
             <InventoryTabPanel session={session} />
@@ -5459,6 +5575,15 @@ function App() {
                       onClick={() => setMasterListView("list")}
                     >
                       List users and permissions
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={masterListView === "roles_goals"}
+                      className={masterListView === "roles_goals" ? "master-view-tab is-active" : "master-view-tab"}
+                      onClick={() => setMasterListView("roles_goals")}
+                    >
+                      Roles &amp; goals
                     </button>
                     {showAdminDeployTools && (
                       <button
@@ -5692,6 +5817,10 @@ function App() {
                       </div>
                     </form>
                   </div>
+                  )}
+
+                  {masterListView === "roles_goals" && (
+                    <AdminRolesGoalsPanel profiles={viewerProfiles} teamProfiles={teamProfiles} />
                   )}
 
                   {masterListView === "list" && (

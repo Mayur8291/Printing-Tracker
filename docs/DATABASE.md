@@ -1,5 +1,156 @@
 # Database
 
+## Goal tracker
+
+Annual goals, assignable tasks, and timestamped status remarks.
+
+### `user_annual_goals`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | FK → `profiles.id` — goal owner |
+| `year` | integer | Calendar year (annual cycle) |
+| `title` | text | Goal title |
+| `description` | text | Optional detail |
+| `status` | text | `not_started`, `in_progress`, `completed`, `on_hold` |
+| `created_by` | uuid | Admin who created the goal |
+| `created_at` / `updated_at` | timestamptz | Audit |
+| `completed_at` | timestamptz | When owner/admin marked complete |
+| `admin_verified_at` / `admin_verified_by` | timestamptz / uuid | Admin verification |
+
+### `user_goal_tasks`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `goal_id` | uuid | Optional FK → `user_annual_goals.id` |
+| `assignee_id` | uuid | FK → `profiles.id` |
+| `assigned_by` | uuid | FK → `profiles.id` |
+| `title` | text | Task title |
+| `description` | text | Optional |
+| `deadline_date` | date | Due date |
+| `priority` | text | `P0` (top) … `P2` (least, default) |
+| `status` | text | `pending`, `in_progress`, `completed`, `cancelled` |
+| `completed_at` | timestamptz | When marked complete (checkbox or status) |
+| `admin_verified_at` / `admin_verified_by` | timestamptz / uuid | Admin verification of completion |
+
+### `user_goal_status_remarks`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `goal_id` / `task_id` | uuid | One of them required |
+| `author_id` | uuid | Who updated status |
+| `previous_status` | text | Before change |
+| `new_status` | text | After change |
+| `remark` | text | Required for non-admin updates |
+| `created_at` | timestamptz | Timestamp of remark |
+
+### Migration
+
+| Migration | Change |
+|-----------|--------|
+| `20260706180000_add_goal_tracker.sql` | Tables, RLS, realtime publication |
+| `20260707130000_add_goal_task_and_order_status_notifications.sql` | Task assignment + order status notification tables, `orders_status_notify` trigger |
+| `20260707140000_goal_task_completion_verification.sql` | Completion timestamps + verification columns |
+| `20260707150000_goal_assigner_verification_rls.sql` | Assignee/owner completion verify RLS; nullable task_id on notifications |
+| `20260709120000_goal_assign_link_visibility.sql` | RPC `get_goals_for_task_assignment`; task insert may link assignee-owned goals |
+| `20260709130000_fix_goal_task_insert_rls.sql` | Task insert uses `jwt_user_owns_goal(goal_id, assignee_id)` |
+| `20260709140000_task_verification_by_assigner.sql` | Task verify RLS: `assigned_by` not assignee |
+| `20260709150000_add_task_priority.sql` | `user_goal_tasks.priority` P0–P2 + assignee priority index |
+| `20260709160000_remove_task_priority_p3.sql` | Drop P3; migrate existing P3 → P2; default P2 |
+| `20260709170000_add_profile_notification_tones.sql` | `profiles.notification_tone_path`; `notification-tones` storage bucket |
+
+### `get_goals_for_task_assignment(p_assignee_id, p_year)`
+
+Security-definer RPC for **Assign task → Link to goal**. Returns annual goals for the assignee/year so any authenticated assigner can populate the dropdown without broadening `user_annual_goals` SELECT RLS. Requires assignee to exist in `profiles`.
+
+### `user_goal_task_notifications`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `recipient_user_id` | uuid | Assignee (FK → `profiles.id`) |
+| `task_id` | uuid | FK → `user_goal_tasks.id` |
+| `task_title` / `goal_title` | text | Snapshot for notification display |
+| `goal_id` | uuid | Optional FK → `user_annual_goals.id` |
+| `assigned_by_user_id` | uuid | Who assigned the task |
+| `deadline_date` | date | Optional due date |
+| `created_at` | timestamptz | When notification was created |
+
+**RLS:** Recipient can read own rows; assigner can insert (skips self-assign in app).
+
+### `order_status_notifications`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | bigint | Primary key |
+| `recipient_user_id` | uuid | Coordinator or order creator |
+| `order_id` | bigint | FK → `orders.id` |
+| `order_display_id` | text | Human-readable order ref |
+| `previous_status` / `new_status` | text | Status transition |
+| `changed_by_user_id` | uuid | User who changed status (excluded from recipients) |
+| `created_at` | timestamptz | When notification was created |
+
+**Trigger:** `orders_status_notify` on `orders.status` UPDATE — notifies coordinator (name match on `profiles.full_name`) and `created_by`, excluding the actor.
+
+## Team chat
+
+Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments. Legacy wall messages live in **General** group.
+
+### `team_chat_conversations`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `kind` | text | `direct` or `group` |
+| `title` | text | Group name (null for direct) |
+| `created_by` | uuid | FK → `profiles.id` |
+| `last_message_at` | timestamptz | Inbox sort |
+| `created_at` | timestamptz | Created time |
+
+### `team_chat_conversation_members`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `conversation_id` | uuid | FK → `team_chat_conversations.id` |
+| `user_id` | uuid | FK → `profiles.id` |
+| `role` | text | `admin` or `member` |
+| `joined_at` | timestamptz | Join time |
+| `last_read_at` | timestamptz | Unread tracking |
+
+**PK:** `(conversation_id, user_id)`.
+
+### `team_chat_messages` (extended)
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `conversation_id` | uuid | FK → `team_chat_conversations.id` (required for new messages) |
+| `gif_url` | text | External GIF URL (Giphy search or preset) |
+| `attachment_*` | text/bigint | File in `team-chat-files` bucket |
+| `mentioned_user_ids` / `mentioned_order_ids` | uuid[] / bigint[] | @user and #order tokens |
+
+**RLS:** SELECT/INSERT only when `jwt_user_in_conversation(conversation_id)`.
+
+### RPCs
+
+| Function | Purpose |
+|----------|---------|
+| `get_or_create_direct_conversation(p_other_user_id)` | Find or create 1:1 chat |
+| `create_group_conversation(p_title, p_member_ids)` | New group; creator is admin |
+| `mark_conversation_read(p_conversation_id)` | Sets `last_read_at` for current user |
+| `jwt_user_in_conversation(conversation_id)` | RLS helper |
+| `list_team_chat_directory()` | Mention picker profiles |
+
+### Migrations
+
+| Migration | Change |
+|-----------|--------|
+| `20260526120000_add_team_chat.sql` | Initial messages table |
+| `20260706130000_team_chat_directory_avatars.sql` | Directory RPC + avatars |
+| `20260709180000_team_chat_conversations.sql` | Conversations, members, GIF, member RLS, General migration |
+
 ## `inward_grn_entries`
 
 Multiple GRN rows per inward entry. Labels print per GRN row.
