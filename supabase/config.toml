@@ -15,3 +15,6 @@ verify_jwt = true
 
 [functions.admin-promote-production]
 verify_jwt = true
+
+[functions.dashboard-stock-api]
+verify_jwt = false

@@ -1,5 +1,36 @@
 # Flows
 
+## Dashboard Stock API (Scott International)
+
+External order backend ↔ Scott Dashboard inventory (M2M, not browser).
+
+### Stock snapshot
+
+1. **Trigger:** Scott backend needs available qty before checkout or allocation.
+2. **Entry:** `GET /functions/v1/dashboard-stock-api/api/v1/stock/snapshot?skus=...&facility=...`
+3. **Auth:** `Authorization: Bearer <DASHBOARD_API_KEY>`
+4. **Logic:** Edge function loads `inventory_facility_stock` joined to `inventory_skus`; available = `on_hand_qty - reserved_qty`.
+5. **Response:** `{ snapshot: { "SCOTT_1DAY_01:SKU-COTTON-WHT-M": 120 } }`
+6. **Failure:** `401` bad key; `400` missing `skus`.
+
+### Reserve → fulfill / release
+
+1. **Reserve:** Customer places RMP order → `POST .../stock/reserve` with `order_code`, `facility_code`, `items[]`.
+2. **Check:** Each line compared to available; `409 INSUFFICIENT_STOCK` if short.
+3. **Success:** Row in `inventory_stock_reservations` + items; `reserved_qty` increased on `inventory_facility_stock`; webhook `stock.level_changed` enqueued.
+4. **Cancel / edit:** `DELETE .../stock/reserve/:id?reason=CANCELLED` — idempotent if already released; reserved qty restored.
+5. **Dispatch:** `POST .../stock/fulfill/:id` — deducts `on_hand_qty` and `reserved_qty`; writes `inventory_stock_movements`; syncs `inventory_skus.stock_qty`.
+6. **Edge cases:** Unknown SKU → treated as zero available on reserve; expired reservations not auto-released yet (24h `expires_at` stored for future cron).
+
+### Manual adjust
+
+1. **Trigger:** Damage, return, count correction.
+2. **Entry:** `POST .../stock/adjust` with `facility_code`, `reason`, `items[{ sku_code, delta }]`.
+3. **Logic:** Updates `on_hand_qty`; rejects if result would leave `on_hand < reserved`.
+4. **Webhooks:** `stock.level_changed`; if available &lt; `reorder_point`, also `stock.low_threshold`.
+
+See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
+
 ## Home tab
 
 ### Admin home

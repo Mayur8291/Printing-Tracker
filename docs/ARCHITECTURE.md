@@ -7,7 +7,7 @@
 | **Presentation** | UI, forms, charts, realtime subscriptions | React 18 + Vite, Tailwind, Radix |
 | **Client SDK** | Auth session, HTTP to Supabase | `@supabase/supabase-js` |
 | **API (implicit)** | REST over tables/views/RPCs | PostgREST (Supabase) |
-| **Privileged API** | Admin user ops, release automation | Supabase Edge Functions (Deno) |
+| **Privileged API** | Admin user ops, release automation, partner stock API | Supabase Edge Functions (Deno) |
 | **Data** | Business entities, RLS, triggers | PostgreSQL |
 | **Files** | Designs, invoices, media | Supabase Storage |
 | **Realtime** | Chat, notifications, live updates | Supabase Realtime |
@@ -46,7 +46,20 @@ Cross-user updates propagate without manual refresh:
 5. **Fallback** — orders poll every 120s when tab visible if Realtime disconnects.
 
 Notifications (bell/toasts) remain separate INSERT subscriptions; they alert users but do not replace source-panel refetch.
+
 | **Edge Function invoke** | Admin-only | `supabase.functions.invoke('admin-create-user')` |
+| **Partner HTTP API** | Scott International stock sync | `dashboard-stock-api` (Bearer API key, service role DB) |
+
+## Dashboard Stock API (2026-07-10)
+
+External Scott backend calls Edge Function `dashboard-stock-api` (not browser):
+
+1. **Auth** — static Bearer `DASHBOARD_API_KEY` (no Supabase JWT).
+2. **Data** — `inventory_facility_stock` (on_hand / reserved per facility + SKU), reservations, adjustments.
+3. **Webhooks** — mutations enqueue `dashboard_webhook_outbox`; edge function POSTs HMAC-signed payloads to Scott server when secrets set.
+4. **RLS** — API tables have RLS enabled with **no** anon/authenticated policies; only `service_role` (edge function) can access.
+
+See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `20260710120000_dashboard_stock_api.sql`.
 
 ## Module map (frontend)
 

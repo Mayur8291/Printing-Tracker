@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-10 — Dashboard Stock API (Scott International)
+
+- **Feature:** Machine-to-machine stock API per `dashboard-api-requirements.pdf` — snapshot, reserve, release, fulfill, adjust + outbound webhooks.
+- **Implementation:** Edge function `dashboard-stock-api` (Bearer `DASHBOARD_API_KEY`); migration `20260710120000_dashboard_stock_api.sql` for facility stock, reservations, adjustments, webhook outbox.
+- **Files (new):** `supabase/functions/dashboard-stock-api/index.ts`, `docs/DASHBOARD_STOCK_API.md`, `docs/openapi/dashboard-stock-api.yaml`.
+- **Files:** `supabase/config.toml` (`verify_jwt = false` for stock API).
+- **Documentation updated:** API.md, ARCHITECTURE.md, DATABASE.md, CHANGELOG.md, FLOWS.md, DEBUGGING.md, SECURITY.md.
+
 ## 2026-07-09 — Inventory: Export SKU CSV
 
 - **Issue:** Overview and SKU list **Export** buttons had no handler — click did nothing.

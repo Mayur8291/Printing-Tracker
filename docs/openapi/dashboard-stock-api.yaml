@@ -1,0 +1,270 @@
+openapi: 3.0.3
+info:
+  title: Scott Dashboard Stock API
+  version: 1.0.0
+  description: |
+    Machine-to-machine stock API for Scott International backend.
+    Implemented as Supabase Edge Function `dashboard-stock-api`.
+    Full guide: docs/DASHBOARD_STOCK_API.md
+servers:
+  - url: https://levwrmvqdntngeasrtnb.supabase.co/functions/v1/dashboard-stock-api
+    description: Production
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/stock/snapshot:
+    get:
+      summary: Stock snapshot
+      operationId: getStockSnapshot
+      parameters:
+        - name: skus
+          in: query
+          required: true
+          schema:
+            type: string
+          example: SKU-COTTON-WHT-M,SKU-COTTON-WHT-L
+        - name: facility
+          in: query
+          required: false
+          schema:
+            type: string
+          example: SCOTT_1DAY_01
+      responses:
+        "200":
+          description: Available quantities keyed by FACILITY:SKU_CODE
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  snapshot:
+                    type: object
+                    additionalProperties:
+                      type: number
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/stock/reserve:
+    post:
+      summary: Reserve stock for RMP order
+      operationId: reserveStock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReserveRequest"
+      responses:
+        "201":
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationResponse"
+        "409":
+          description: Insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsufficientStockError"
+  /api/v1/stock/reserve/{reservation_id}:
+    delete:
+      summary: Release reservation
+      operationId: releaseReservation
+      parameters:
+        - name: reservation_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reason
+          in: query
+          schema:
+            type: string
+            enum: [CANCELLED, ORDER_EDIT]
+      responses:
+        "200":
+          description: Released (idempotent if already released)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservation_id:
+                    type: string
+                  status:
+                    type: string
+                    example: RELEASED
+                  released_at:
+                    type: string
+                    format: date-time
+  /api/v1/stock/fulfill/{reservation_id}:
+    post:
+      summary: Fulfill reservation (deduct stock)
+      operationId: fulfillReservation
+      parameters:
+        - name: reservation_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dispatched_at:
+                  type: string
+                  format: date-time
+      responses:
+        "200":
+          description: Fulfilled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FulfillResponse"
+  /api/v1/stock/adjust:
+    post:
+      summary: Manual stock adjustment
+      operationId: adjustStock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdjustRequest"
+      responses:
+        "200":
+          description: Adjustment applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdjustResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: DASHBOARD_API_KEY (Edge Function secret)
+  schemas:
+    ReserveRequest:
+      type: object
+      required: [order_code, facility_code, items]
+      properties:
+        order_code:
+          type: string
+          example: P-53011
+        facility_code:
+          type: string
+          example: SCOTT_1DAY_01
+        items:
+          type: array
+          items:
+            type: object
+            required: [sku_code, quantity]
+            properties:
+              sku_code:
+                type: string
+              item_code:
+                type: string
+              quantity:
+                type: number
+    ReservationResponse:
+      type: object
+      properties:
+        reservation_id:
+          type: string
+        order_code:
+          type: string
+        status:
+          type: string
+          example: RESERVED
+        expires_at:
+          type: string
+          format: date-time
+    InsufficientStockError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: INSUFFICIENT_STOCK
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              sku_code:
+                type: string
+              requested:
+                type: number
+              available:
+                type: number
+    FulfillResponse:
+      type: object
+      properties:
+        reservation_id:
+          type: string
+        status:
+          type: string
+        fulfilled_at:
+          type: string
+          format: date-time
+        stock_deducted:
+          type: array
+          items:
+            type: object
+            properties:
+              sku_code:
+                type: string
+              deducted:
+                type: number
+              remaining:
+                type: number
+    AdjustRequest:
+      type: object
+      required: [facility_code, items]
+      properties:
+        facility_code:
+          type: string
+        reason:
+          type: string
+          example: DAMAGE_WRITE_OFF
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              sku_code:
+                type: string
+              delta:
+                type: number
+    AdjustResponse:
+      type: object
+      properties:
+        adjustment_id:
+          type: string
+        applied_at:
+          type: string
+          format: date-time
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              sku_code:
+                type: string
+              before:
+                type: number
+              after:
+                type: number
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: UNAUTHORIZED

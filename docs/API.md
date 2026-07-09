@@ -70,9 +70,20 @@ const { data, error } = await supabase.rpc('mark_conversation_read', {
 | `admin-delete-user` | Admin JWT | Delete user |
 | `admin-reset-password` | Admin JWT | Reset password |
 | `admin-promote-production` | Admin JWT | Trigger GitHub release |
+| `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International stock M2M API (snapshot, reserve, fulfill, adjust) |
 | `tenor-gif-search` | Optional | Legacy GIF proxy |
 
+Full contract: [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) · OpenAPI: [openapi/dashboard-stock-api.yaml](./openapi/dashboard-stock-api.yaml)
+
 Deploy: `supabase functions deploy <name>`
+
+**Dashboard Stock API base path** (after deploy):
+
+```text
+https://<project-ref>.supabase.co/functions/v1/dashboard-stock-api/api/v1/stock/...
+```
+
+Secrets for `dashboard-stock-api`: `DASHBOARD_API_KEY` (required), `SCOTT_WEBHOOK_BASE_URL`, `SCOTT_WEBHOOK_SECRET` (optional outbound webhooks).
 
 ## Storage buckets
 
@@ -97,7 +108,7 @@ supabase.channel('x').on('postgres_changes', { event: 'INSERT', schema: 'public'
 
 For external clients, add a **versioned BFF** (e.g. `/v1/orders`) rather than exposing all PostgREST tables. See [PLATFORM_OVERVIEW.md](./PLATFORM_OVERVIEW.md) Section 8.
 
-Planned documentation for BFF: OpenAPI 3 spec in `docs/openapi/` when implemented.
+**Implemented (2026-07-10):** Dashboard Stock API for Scott International — see [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
 
 ## Rate limits
 

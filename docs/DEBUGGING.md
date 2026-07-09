@@ -1,5 +1,29 @@
 # Debugging
 
+## Dashboard Stock API returns 401 UNAUTHORIZED
+
+| | |
+|--|--|
+| **Symptom** | Scott backend gets `401` on all stock endpoints. |
+| **Root cause** | Missing/wrong `DASHBOARD_API_KEY` secret on edge function, or caller not sending `Authorization: Bearer ...`. |
+| **Fix** | Supabase Dashboard → Edge Functions → `dashboard-stock-api` → Secrets: set `DASHBOARD_API_KEY`. Redeploy function after secret change. Match exact Bearer value on client. |
+| **Also check** | `503 API_NOT_CONFIGURED` means secret not set at all. |
+
+## Dashboard Stock API snapshot empty for known SKUs
+
+| | |
+|--|--|
+| **Symptom** | `200` with `{}` snapshot keys for SKUs that exist in dashboard. |
+| **Root cause** | `inventory_skus.sku_code` mismatch vs external codes; or warehouse `facility_code` not set / wrong facility filter. |
+| **Fix** | Align `sku_code` with external catalogue; set `inventory_warehouses.facility_code` (e.g. `SCOTT_1DAY_01`); re-run backfill or insert `inventory_facility_stock` rows. Migration `20260710120000_dashboard_stock_api.sql` backfills from existing SKU `stock_qty`. |
+
+## Dashboard Stock API 409 on reserve under load
+
+| | |
+|--|--|
+| **Symptom** | Two concurrent reserves for last units — both might pass check-then-act in edge function (race). |
+| **Mitigation** | Serialize reserves per SKU/facility in caller; future: Postgres RPC with `SELECT FOR UPDATE` on `inventory_facility_stock`. |
+
 ## Printing order create: Colors swatch wrong after SKU pick
 
 ### Symptom

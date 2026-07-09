@@ -243,6 +243,49 @@ Master SKU records. Sub SKUs (colorways / variants) link to a parent via `parent
 |-----------|--------|
 | `20260620120000_add_inventory_tables.sql` | Core inventory tables |
 | `20260708120000_inventory_sku_parent_pricing_doc_drr.sql` | Parent styles, `doc`, `drr`, `parent_style_id` |
+| `20260710120000_dashboard_stock_api.sql` | Facility stock, reservations, adjustments, webhook outbox, `inventory_warehouses.facility_code` |
+
+### `inventory_warehouses.facility_code`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `facility_code` | text | External facility id for Stock API snapshot keys (e.g. `SCOTT_1DAY_01`). Unique when set. |
+
+### `inventory_facility_stock`
+
+Per-facility on-hand and reserved qty. **Available** = `on_hand_qty - reserved_qty`.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `sku_id` | uuid | FK → `inventory_skus.id` |
+| `facility_code` | text | External facility code |
+| `on_hand_qty` | numeric | Physical stock |
+| `reserved_qty` | numeric | Held for open reservations |
+| `updated_at` | timestamptz | Last mutation |
+
+Constraint: `reserved_qty <= on_hand_qty`.
+
+### `inventory_stock_reservations` / `inventory_stock_reservation_items`
+
+RMP order holds from external backend. Status: `RESERVED` → `RELEASED` or `FULFILLED`.
+
+### `inventory_stock_adjustments` / `inventory_stock_adjustment_items`
+
+Audit log for manual +/- deltas via `POST /api/v1/stock/adjust`.
+
+### `dashboard_webhook_outbox`
+
+Outbound webhook queue (`stock.level_changed`, `stock.low_threshold`). Edge function delivers with HMAC; failed rows stay `pending` for retry on next mutation.
+
+### RPC (stock API)
+
+| Function | Purpose |
+|----------|---------|
+| `facility_stock_available(sku_id, facility_code)` | Available qty helper |
+| `inventory_sku_id_by_code(sku_code)` | Resolve SKU uuid |
+| `enqueue_dashboard_webhook(event_type, payload)` | Insert outbox row |
+
+Access: `service_role` only (RLS on tables, no user policies).
 
 ## `orders` — job sheet payment / delivery / approval
 
