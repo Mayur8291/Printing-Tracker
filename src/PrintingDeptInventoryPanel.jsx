@@ -20,6 +20,7 @@ import {
   refillPrintingDeptMaterial,
   refillPrintingDeptMaterialsBulk
 } from "./printingDeptInventoryUtils";
+import { subscribePostgresChanges } from "./realtimeUtils";
 import "./inventory/inventory.css";
 import InventoryIcon from "./inventory/InventoryIcon";
 
@@ -64,9 +65,10 @@ export default function PrintingDeptInventoryPanel({
     return map;
   }, [teamProfiles]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoading(true);
+    if (!silent) setError("");
     try {
       const [nextState, nextHistory, nextThresholds] = await Promise.all([
         fetchPrintingDeptInventoryState(),
@@ -79,13 +81,28 @@ export default function PrintingDeptInventoryPanel({
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!sessionUserId) return undefined;
+    return subscribePostgresChanges({
+      channelName: `printing-dept-inv-live-${sessionUserId}`,
+      tables: [
+        "printing_dept_inventory_state",
+        "printing_dept_refill_log",
+        "printing_dept_inventory_thresholds"
+      ],
+      onEvent: () => {
+        void load({ silent: true });
+      }
+    });
+  }, [sessionUserId, load]);
 
   const items = useMemo(() => inventoryItemsFromState(state), [state]);
   const inkItems = items.filter((item) => item.group === "Ink");

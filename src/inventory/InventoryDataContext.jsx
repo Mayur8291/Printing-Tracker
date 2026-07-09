@@ -23,6 +23,7 @@ import {
 } from "./inventoryDbUtils";
 import { INVENTORY_INITIAL_SKU_BATCH } from "./inventoryQueryFields";
 import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
+import { subscribePostgresChanges } from "../realtimeUtils";
 
 const InventoryDataContext = createContext(null);
 
@@ -37,7 +38,6 @@ export function InventoryDataProvider({ session, children }) {
   const [movements, setMovements] = useState([]);
   const [movementsLoading, setMovementsLoading] = useState(false);
   const [loadingMoreSkus, setLoadingMoreSkus] = useState(false);
-  const inventoryRefreshTimerRef = useRef(null);
   const movementsLoadedRef = useRef(false);
   const loadingMoreSkusRef = useRef(false);
 
@@ -145,31 +145,24 @@ export function InventoryDataProvider({ session, children }) {
   useEffect(() => {
     if (!userId) return undefined;
 
-    const channel = supabase
-      .channel(`inventory-skus-bundle-${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "inventory_skus" },
-        () => {
-          if (inventoryRefreshTimerRef.current) {
-            clearTimeout(inventoryRefreshTimerRef.current);
-          }
-          inventoryRefreshTimerRef.current = window.setTimeout(() => {
-            inventoryRefreshTimerRef.current = null;
-            void refresh({ silent: true });
-          }, 400);
+    return subscribePostgresChanges({
+      channelName: `inventory-bundle-${userId}`,
+      tables: [
+        "inventory_skus",
+        "inventory_style_parents",
+        "inventory_stock_movements",
+        "inventory_alert_settings",
+        "inventory_suppliers",
+        "inventory_warehouses"
+      ],
+      onEvent: () => {
+        void refresh({ silent: true });
+        if (movementsLoadedRef.current) {
+          void loadMovements({ silent: true });
         }
-      )
-      .subscribe();
-
-    return () => {
-      if (inventoryRefreshTimerRef.current) {
-        clearTimeout(inventoryRefreshTimerRef.current);
-        inventoryRefreshTimerRef.current = null;
       }
-      supabase.removeChannel(channel);
-    };
-  }, [userId, refresh]);
+    });
+  }, [userId, refresh, loadMovements]);
 
   const fabrics = useMemo(() => skus.filter((s) => s.kind === "fabric"), [skus]);
   const trims = useMemo(() => skus.filter((s) => s.kind === "trim"), [skus]);

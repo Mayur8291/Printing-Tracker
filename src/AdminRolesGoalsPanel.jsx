@@ -30,6 +30,7 @@ import {
   TASK_STATUS_LABEL,
   userGoalsProgressSummary
 } from "./goalTrackerUtils";
+import { subscribePostgresChanges } from "./realtimeUtils";
 
 function ProgressBar({ value, className }) {
   const pct = Math.max(0, Math.min(100, Number(value) || 0));
@@ -314,9 +315,10 @@ export default function AdminRolesGoalsPanel({ profiles, teamProfiles = [] }) {
 
   const goalsByUser = useMemo(() => groupGoalsByUserId(allGoals), [allGoals]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoading(true);
+    if (!silent) setError("");
     try {
       const [goals, tasks] = await Promise.all([fetchAllGoalsForYear(year), fetchAllTasksForYear(year)]);
       setAllGoals(goals);
@@ -326,12 +328,22 @@ export default function AdminRolesGoalsPanel({ profiles, teamProfiles = [] }) {
     } catch (e) {
       setError(e.message || "Could not load roles and goals.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [year]);
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    return subscribePostgresChanges({
+      channelName: "admin-roles-goals-live",
+      tables: ["user_annual_goals", "user_goal_tasks", "user_goal_status_remarks"],
+      onEvent: () => {
+        void load({ silent: true });
+      }
+    });
   }, [load]);
 
   useEffect(() => {

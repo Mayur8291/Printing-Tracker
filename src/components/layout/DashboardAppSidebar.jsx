@@ -50,12 +50,17 @@ const TAB_ICONS = {
   admin: Settings
 };
 
-function NavItem({ item, isActive, onSelect, showSoon, badgeCount = 0 }) {
+function NavItem({ item, isActive, onSelect, showSoon, badgeCount = 0, showActivityDot = false }) {
   const Icon = TAB_ICONS[item.id] ?? Package;
   const showBadge = badgeCount > 0 && !showSoon;
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton isActive={isActive} onClick={() => onSelect(item.id)} tooltip={item.label}>
+      <SidebarMenuButton
+        isActive={isActive}
+        onClick={() => onSelect(item.id)}
+        tooltip={item.label}
+        className="relative"
+      >
         <Icon className="size-4 shrink-0" />
         <span>{item.label}</span>
         {showSoon ? (
@@ -65,6 +70,16 @@ function NavItem({ item, isActive, onSelect, showSoon, badgeCount = 0 }) {
           >
             Soon
           </Badge>
+        ) : null}
+        {showActivityDot && !showSoon ? (
+          <span
+            className={cn(
+              "ml-auto size-2 shrink-0 rounded-full bg-primary",
+              "group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:right-1 group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:ml-0"
+            )}
+            title="New updates"
+            aria-label="New updates on this tab"
+          />
         ) : null}
         {showBadge ? (
           <Badge className="ml-auto min-w-5 justify-center rounded-full bg-primary px-1.5 py-0 text-[10px] text-primary-foreground group-data-[collapsible=icon]:hidden">
@@ -90,7 +105,8 @@ export default function DashboardAppSidebar({
   userAvatarUrl,
   onOpenProfileSettings,
   footerSlot,
-  tabBadges = {}
+  tabBadges = {},
+  tabMarkers = {}
 }) {
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -134,6 +150,7 @@ export default function DashboardAppSidebar({
                     onSelect={onSelectTab}
                     showSoon={soonTabIds.has(item.id)}
                     badgeCount={tabBadges[item.id] ?? 0}
+                    showActivityDot={Boolean(tabMarkers[item.id])}
                   />
                 ))}
               </SidebarMenu>
@@ -155,6 +172,7 @@ export default function DashboardAppSidebar({
                   onSelect={onSelectTab}
                   showSoon={soonTabIds.has(item.id)}
                   badgeCount={tabBadges[item.id] ?? 0}
+                  showActivityDot={Boolean(tabMarkers[item.id])}
                 />
               ))}
               {isAdmin && adminTab ? (
@@ -163,6 +181,8 @@ export default function DashboardAppSidebar({
                   isActive={dashboardTab === adminTab.id}
                   onSelect={onSelectTab}
                   showSoon={false}
+                  badgeCount={tabBadges[adminTab.id] ?? 0}
+                  showActivityDot={Boolean(tabMarkers[adminTab.id])}
                 />
               ) : null}
             </SidebarMenu>

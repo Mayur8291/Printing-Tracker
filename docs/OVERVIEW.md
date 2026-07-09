@@ -1,0 +1,139 @@
+# Scott Dashboard — Product & Platform Overview
+
+## Product overview
+
+**Scott Dashboard** (repo name: `printing-live-tracker`) is an internal **operations and production hub** for Scott's printing and garment workflow. It is **not** an ecommerce storefront. It tracks orders, production job sheets, dispatch, inward/outward logistics, inventory, team collaboration, goals, and admin controls in one web application.
+
+| Item | Detail |
+|------|--------|
+| **Target users** | Admins, coordinators, production, stores, dispatch, sales |
+| **Problem solved** | Replace spreadsheets + fragmented tools with one live system for order → production → dispatch → inventory |
+| **Future direction** | Connect mobile apps; gradually replace **Uniware** (WMS/OMS) for warehouse and order orchestration |
+
+---
+
+## Is this Flutter?
+
+**No.** This dashboard is **not built with Flutter**, React Native, or any mobile framework.
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | **React 18** + **Vite 5** (JavaScript/JSX) |
+| **UI** | **Tailwind CSS**, **Radix UI** / **shadcn-style** components, **Radix Themes** |
+| **Backend** | **Supabase** (managed PostgreSQL + Auth + Storage + Realtime + Edge Functions) |
+| **Hosting** | **Netlify** (static SPA build from `main` / `develop`) |
+| **Source control** | **GitHub** — [Mayur8291/Printing-Tracker](https://github.com/Mayur8291/Printing-Tracker) |
+
+The app runs in the **browser** as a Single Page Application (SPA). A future **mobile app** would be a **separate client** talking to the same backend (recommended: via a dedicated API layer — see [PLATFORM_OVERVIEW.md](./PLATFORM_OVERVIEW.md)).
+
+---
+
+## System overview
+
+```mermaid
+flowchart LR
+  subgraph clients [Clients]
+    Web[React SPA - Netlify CDN]
+    MobileFuture[Future mobile apps]
+  end
+  subgraph supabase [Supabase Cloud]
+    Auth[Auth - JWT]
+    PG[(PostgreSQL + RLS)]
+    Storage[Storage buckets]
+    RT[Realtime]
+    EF[Edge Functions Deno]
+  end
+  Web -->|supabase-js| Auth
+  Web -->|PostgREST| PG
+  Web --> Storage
+  Web --> RT
+  Web --> EF
+  MobileFuture -.->|recommended API| PG
+```
+
+### Major modules (frontend)
+
+| Module | Location | Purpose |
+|--------|----------|---------|
+| Core shell & routing | `src/App.jsx` | Tab navigation, auth, orders, admin (~7.6k lines — refactor candidate) |
+| Printing / production | `src/App.jsx`, `src/PrintingDepartmentPanel.jsx` | Orders, job sheets, status workflow |
+| Dispatch & logistics | `src/DispatchTabPanel.jsx`, inward/outward modals | GRN, challans, verification |
+| Inventory | `src/inventory/*` | SKUs, warehouses, POs, suppliers, alerts |
+| Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js` | DMs, groups, attachments, GIFs |
+| Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
+| Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
+| Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
+
+### Data flow (typical)
+
+1. User logs in → Supabase Auth issues JWT.
+2. React app loads profile + permissions from `profiles` / `profile_order_permissions`.
+3. UI reads/writes tables via `@supabase/supabase-js` (PostgREST).
+4. **Row Level Security (RLS)** on PostgreSQL enforces who can see/edit what.
+5. File uploads go to **Supabase Storage** (designs, invoices, avatars, chat files).
+6. **Realtime** subscriptions push chat messages, notifications, permission changes.
+
+---
+
+## Technology stack (detail)
+
+### Frontend
+
+- **Build tool:** Vite (`vite.config.js`) — fast dev server, production bundle to `dist/`
+- **Language:** JavaScript (JSX), ES modules
+- **State:** React `useState` / `useEffect` / context (e.g. `InventoryDataContext`) — no Redux
+- **Charts:** Recharts
+- **Excel/export:** ExcelJS, JSZip
+- **Barcodes/QR:** jsbarcode, qrcode
+- **Env vars:** `VITE_*` injected at build time (Netlify env for production)
+
+### Backend (Supabase)
+
+- **Database:** PostgreSQL with **103+ migrations** in `supabase/migrations/`
+- **Auth:** Email/password; roles `admin` | `viewer` on `profiles`
+- **API surface today:** Auto-generated **PostgREST** REST API + RPC functions in SQL
+- **Edge Functions** (Deno/TypeScript): `admin-create-user`, `admin-delete-user`, `admin-reset-password`, `admin-promote-production`, `tenor-gif-search`
+- **Storage buckets:** e.g. approved designs, profile avatars, notification tones, chat attachments, contact photos
+
+### Infrastructure
+
+| Environment | Git branch | Frontend | Database |
+|-------------|------------|----------|----------|
+| Production | `main` | Netlify production | Supabase prod (`levwrmvqdntngeasrtnb`) |
+| Staging | `develop` | Netlify branch deploy | Separate Supabase staging project |
+| Local dev | any | `npm run dev` :5173 | Staging Supabase via `.env.development` |
+
+See [ENVIRONMENTS.md](./ENVIRONMENTS.md) and [RELEASE_AUTOMATION.md](./RELEASE_AUTOMATION.md).
+
+---
+
+## Repository structure
+
+| Path | Purpose |
+|------|---------|
+| `src/` | React application source |
+| `src/components/` | Reusable UI (shadcn-style, layout, chat, profile) |
+| `src/inventory/` | Inventory submodule (pages, modals, utils) |
+| `public/` | Static assets (icons, sounds, avatar presets, mockups) |
+| `supabase/schema.sql` | Baseline schema reference |
+| `supabase/migrations/` | Incremental DB changes |
+| `supabase/functions/` | Edge Functions |
+| `docs/` | Project documentation |
+| `netlify.toml` | Build & deploy config |
+| `.github/workflows/` | CI — promote to production |
+
+---
+
+## Related documents
+
+| Document | Contents |
+|----------|----------|
+| [PLATFORM_OVERVIEW.md](./PLATFORM_OVERVIEW.md) | **Full platform brief** — API strategy, mobile, Uniware replacement, scaling, improvements |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Architecture boundaries and communication patterns |
+| [DATABASE.md](./DATABASE.md) | Tables, migrations, RPCs |
+| [FLOWS.md](./FLOWS.md) | User flows |
+| [ENVIRONMENTS.md](./ENVIRONMENTS.md) | Staging vs production |
+| [RELEASE_AUTOMATION.md](./RELEASE_AUTOMATION.md) | Deploy pipeline |
+| [DEBUGGING.md](./DEBUGGING.md) | Common failures |
+
+For a **Word-friendly export**, open `docs/export/Scott_Dashboard_Platform_Overview.html` in Microsoft Word → **Save As → .docx**.

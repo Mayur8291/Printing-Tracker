@@ -10,6 +10,7 @@ import {
   formatPrintingUtilizationDate,
   formatPcsFused
 } from "./printingUtilizationUtils";
+import { subscribePostgresChanges } from "./realtimeUtils";
 import "./inventory/inventory.css";
 
 export default function PrintingUtilizationPanel({
@@ -24,21 +25,32 @@ export default function PrintingUtilizationPanel({
   const [exporting, setExporting] = useState(false);
   const [exportMessage, setExportMessage] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoading(true);
+    if (!silent) setError("");
     try {
       const rows = await fetchPrintingUtilizationEntries();
       setEntries(rows);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    return subscribePostgresChanges({
+      channelName: "printing-utilization-live",
+      tables: ["printing_utilization_entries"],
+      onEvent: () => {
+        void load({ silent: true });
+      }
+    });
   }, [load]);
 
   const {

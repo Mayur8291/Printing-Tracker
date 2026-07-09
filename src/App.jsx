@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ImagePreviewModal from "./components/ImagePreviewModal";
+import { subscribePostgresChanges } from "./realtimeUtils";
+import {
+  clearSidebarTabMarker,
+  subscribeSidebarTabActivity
+} from "./sidebarTabActivity";
 import MockupStudio from "./MockupStudio";
 import CoordinatorReportPanel from "./CoordinatorReportPanel";
 import ProductRevenuePanel from "./ProductRevenuePanel";
@@ -686,6 +692,7 @@ function App() {
   const [createFormMode, setCreateFormMode] = useState("printing");
   const [assignmentToasts, setAssignmentToasts] = useState([]);
   const [chatUnreadTotal, setChatUnreadTotal] = useState(0);
+  const [sidebarTabMarkers, setSidebarTabMarkers] = useState({});
   const chatMemberConvIdsRef = useRef(new Set());
   const [repeatOrderPickerOpen, setRepeatOrderPickerOpen] = useState(false);
   const [orderTemplates, setOrderTemplates] = useState([]);
@@ -748,6 +755,7 @@ function App() {
   const [pendingInwardEntryId, setPendingInwardEntryId] = useState(null);
   const [pendingPrintingSubview, setPendingPrintingSubview] = useState(null);
   const [dashboardTab, setDashboardTab] = useState(readStoredDashboardTab);
+  const dashboardTabRef = useRef(readStoredDashboardTab());
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
   const [remarksUpdates, setRemarksUpdates] = useState({});
@@ -833,6 +841,11 @@ function App() {
   }, [dashboardTab]);
 
   useEffect(() => {
+    dashboardTabRef.current = dashboardTab;
+    clearSidebarTabMarker(setSidebarTabMarkers, dashboardTab);
+  }, [dashboardTab]);
+
+  useEffect(() => {
     try {
       sessionStorage.setItem(PRINTING_ORDERS_TAB_STORAGE_KEY, ordersTab);
     } catch {
@@ -875,6 +888,10 @@ function App() {
       setOrders((prev) =>
         mergeOrdersPreservingDesignImages(prev, rows, recentImagePatchRef.current)
       );
+      setViewOrderTarget((prev) => {
+        if (!prev) return prev;
+        return rows.find((o) => String(o.id) === String(prev.id)) ?? prev;
+      });
       // Select uses statusUpdates[id] ?? order.status — stale keys hide remote changes until full reload.
       setStatusUpdates(Object.fromEntries(rows.map((o) => [o.id, o.status])));
       setReceivedAtPrintingUpdates(
@@ -1007,7 +1024,7 @@ function App() {
       )
       .subscribe();
 
-    const pollMs = 60000;
+    const pollMs = 120000;
     const pollId = setInterval(() => {
       if (document.visibilityState === "visible") {
         fetchOrders({ silent: true });
@@ -1462,9 +1479,20 @@ function App() {
   useEffect(() => {
     if (!session?.user?.id || !profile?.role) return undefined;
     const uid = session.user.id;
-    const channel = supabase
-      .channel(`profile-order-permissions-self-${uid}`)
-      .on(
+    const isAdminRole = (profile?.role ?? "").trim().toLowerCase() === "admin";
+    const channel = supabase.channel(
+      isAdminRole ? `profile-order-permissions-admin-${uid}` : `profile-order-permissions-self-${uid}`
+    );
+    if (isAdminRole) {
+      channel.on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profile_order_permissions" },
+        () => {
+          void fetchViewersAndPermissions();
+        }
+      );
+    } else {
+      channel.on(
         "postgres_changes",
         {
           event: "*",
@@ -1475,12 +1503,65 @@ function App() {
         () => {
           void fetchViewersAndPermissions();
         }
-      )
-      .subscribe();
+      );
+    }
+    channel.subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, [session?.user?.id, profile?.role]);
+
+  /** Live sync: order form master lists. */
+  useEffect(() => {
+    if (!session?.user?.id) return undefined;
+    return subscribePostgresChanges({
+      channelName: `dashboard-masters-${session.user.id}`,
+      tables: ["owners", "coordinators", "sales_incharges"],
+      onEvent: () => {
+        void fetchMasters();
+      }
+    });
+  }, [session?.user?.id]);
+
+  /** Live sync: team directory + admin user lists when profiles change. */
+  useEffect(() => {
+    if (!session?.user?.id || !profile?.role) return undefined;
+    const isAdminRole = (profile?.role ?? "").trim().toLowerCase() === "admin";
+    return subscribePostgresChanges({
+      channelName: `dashboard-profiles-${session.user.id}`,
+      tables: ["profiles"],
+      onEvent: () => {
+        void fetchTeamProfiles();
+        if (isAdminRole) void fetchViewersAndPermissions();
+      }
+    });
+  }, [session?.user?.id, profile?.role]);
+
+  /** Live sync: global search (outward challans + contacts). */
+  useEffect(() => {
+    if (!session?.user?.id) return undefined;
+    return subscribePostgresChanges({
+      channelName: `dashboard-search-${session.user.id}`,
+      tables: ["outward_challans", "contact_book_entries"],
+      onEvent: () => {
+        void loadGlobalSearchExtras();
+      }
+    });
+  }, [session?.user?.id, loadGlobalSearchExtras]);
+
+  /** Sidebar tab activity dots (new order, task update, etc.) on tabs user is not viewing. */
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setSidebarTabMarkers({});
+      return undefined;
+    }
+    const uid = session.user.id;
+    return subscribeSidebarTabActivity({
+      channelName: `sidebar-tab-activity-${uid}`,
+      getCurrentTab: () => dashboardTabRef.current,
+      setMarkers: setSidebarTabMarkers
+    });
+  }, [session?.user?.id]);
 
   /** Refresh own profile when admin toggles tone (or other profile fields) live. */
   useEffect(() => {
@@ -5070,6 +5151,7 @@ function App() {
         onSelectTab={selectDashboardTab}
         soonTabIds={DASHBOARD_SIDEBAR_SOON_TAB_IDS}
         tabBadges={{ chat: chatUnreadTotal }}
+        tabMarkers={sidebarTabMarkers}
         userName={headerUserName}
         userDept={!profileLoading && !profileError ? profile?.department?.trim() || "" : ""}
         userInitials={headerUserInitials}
@@ -6505,11 +6587,10 @@ function App() {
                             <span
                               key={`${c}-${i}`}
                               className="color-field-trigger__dot"
-                              style={
-                                isCssColorString(c)
-                                  ? { backgroundColor: c, backgroundImage: "none" }
-                                  : undefined
-                              }
+                              style={{
+                                backgroundColor: swatchBackgroundForColor(c),
+                                backgroundImage: "none"
+                              }}
                               title={c}
                               aria-hidden
                             />
@@ -7157,11 +7238,10 @@ function App() {
                         <span
                           key={`${c}-${i}`}
                           className="color-field-trigger__dot"
-                          style={
-                            isCssColorString(c)
-                              ? { backgroundColor: c, backgroundImage: "none" }
-                              : undefined
-                          }
+                          style={{
+                            backgroundColor: swatchBackgroundForColor(c),
+                            backgroundImage: "none"
+                          }}
                           title={c}
                           aria-hidden
                         />
@@ -7402,10 +7482,22 @@ function App() {
 
       <MockupStudio open={showMockupStudio} onClose={() => setShowMockupStudio(false)} />
       {activeViewOrder && (
-        <Dialog open onOpenChange={(open) => { if (!open) closeViewOrder(); }}>
+        <Dialog
+          open
+          modal={previewImages.length === 0}
+          onOpenChange={(open) => {
+            if (!open) closeViewOrder();
+          }}
+        >
           <DialogContent
             className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] [&>button:last-child]:hidden"
             onOpenAutoFocus={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => {
+              if (previewImages.length > 0) e.preventDefault();
+            }}
+            onInteractOutside={(e) => {
+              if (previewImages.length > 0) e.preventDefault();
+            }}
           >
             <OrderDetailPanel
               order={activeViewOrder}
@@ -7559,29 +7651,14 @@ function App() {
           </div>
         </div>
       )}
-      {previewImages.length > 0 && (
-        <div
-          className="image-modal-backdrop image-modal-backdrop--preview"
-          onClick={closePreview}
-        >
-          <div className="image-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="image-modal-close" onClick={closePreview}>
-              x
-            </button>
-            {previewImages.length > 1 && (
-              <button className="image-modal-nav prev" onClick={prevPreview}>
-                {"<"}
-              </button>
-            )}
-            <img src={previewImages[previewIndex]} alt="Mockup preview" />
-            {previewImages.length > 1 && (
-              <button className="image-modal-nav next" onClick={nextPreview}>
-                {">"}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <ImagePreviewModal
+        images={previewImages}
+        index={previewIndex}
+        onClose={closePreview}
+        onPrev={prevPreview}
+        onNext={nextPreview}
+        alt="Mockup preview"
+      />
       <AssignmentToastStack
         toasts={assignmentToasts}
         onDismiss={dismissAssignmentToast}

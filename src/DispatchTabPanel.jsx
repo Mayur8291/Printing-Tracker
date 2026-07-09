@@ -51,6 +51,7 @@ import {
   INWARD_SELECT_FIELDS
 } from "./inwardEntryUtils";
 import { deleteOutwardChallan, OC_SELECT_FIELDS } from "./outwardChallanUtils";
+import { subscribePostgresChanges } from "./realtimeUtils";
 
 function formatColorsList(colors) {
   if (!Array.isArray(colors) || !colors.length) return "—";
@@ -189,8 +190,9 @@ export default function DispatchTabPanel({
     return map;
   }, [teamProfiles]);
 
-  const loadOutwardChallans = useCallback(async () => {
-    setLoadingChallans(true);
+  const loadOutwardChallans = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoadingChallans(true);
     const { data, error } = await supabase
       .from("outward_challans")
       .select(OC_SELECT_FIELDS)
@@ -201,11 +203,12 @@ export default function DispatchTabPanel({
     } else {
       setOutwardChallans(data ?? []);
     }
-    setLoadingChallans(false);
+    if (!silent) setLoadingChallans(false);
   }, []);
 
-  const loadInwardEntries = useCallback(async () => {
-    setLoadingInward(true);
+  const loadInwardEntries = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoadingInward(true);
     let { data, error } = await supabase
       .from("inward_entries")
       .select(INWARD_ENTRY_WITH_GRNS_SELECT)
@@ -224,7 +227,7 @@ export default function DispatchTabPanel({
     } else {
       setInwardEntries(data ?? []);
     }
-    setLoadingInward(false);
+    if (!silent) setLoadingInward(false);
   }, []);
 
   useEffect(() => {
@@ -235,6 +238,18 @@ export default function DispatchTabPanel({
       loadInwardEntries();
     }
   }, [dispatchTab, loadOutwardChallans, loadInwardEntries]);
+
+  useEffect(() => {
+    if (!sessionUserId) return undefined;
+    return subscribePostgresChanges({
+      channelName: `dispatch-live-${sessionUserId}`,
+      tables: ["outward_challans", "inward_entries", "inward_grn_entries"],
+      onEvent: () => {
+        void loadOutwardChallans({ silent: true });
+        void loadInwardEntries({ silent: true });
+      }
+    });
+  }, [sessionUserId, loadOutwardChallans, loadInwardEntries]);
 
   function closeVerifyPanel() {
     setExpandedId(null);

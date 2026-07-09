@@ -1,5 +1,58 @@
 # Changelog
 
+## 2026-07-09 — Printing order: SKU color auto-sync on product pick
+
+- **Issue:** Picking inventory SKU (e.g. `6D-BL-S · 6 DEGREE · BLACK`) left Colors field showing wrong swatch (placeholder gray, wrong hex, or another variant).
+- **Reason:** `colorsFromInventoryProduct()` preferred inventory `hex_color` (often default `#cccccc` or stale). Product picker also re-matched by **product name only**, so multiple SKUs named `6 DEGREE` could fight over selection.
+- **Fix:**
+  - Resolve order colors from SKU **color name**, **SKU code segments** (e.g. `BL` → black), then label text; use stored hex only when it is a real non-placeholder value.
+  - Keep picker selection pinned by SKU `_uuid` when name matches; re-sync colors whenever selected SKU changes.
+  - Color trigger dots use `swatchBackgroundForColor()` so named colors (e.g. `BLACK`) render correctly.
+- **Files:** `src/inventory/inventoryProductPickerUtils.js`, `src/components/orders/PrintingOrderProductField.jsx`, `src/orderColorUtils.js`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-07-09 — Sidebar tab activity markers
+
+- **Feature:** Blue dot on sidebar tab when data changes elsewhere (new printing order, task status update, dispatch entry, inventory, etc.).
+- **Behavior:** Dot shows on tabs user is **not** viewing; clears when they open that tab. Chat keeps numeric unread badge.
+- **Files (new):** `src/sidebarTabActivity.js`.
+- **Files:** `App.jsx`, `DashboardAppSidebar.jsx`, `DashboardShell.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-09 — Dashboard-wide realtime sync
+
+- **Issue:** Users and admins had to refresh to see updates from others (orders, dispatch, goals, inventory, contacts, etc.).
+- **Reason:** Only some tables were on `supabase_realtime` and only a few panels subscribed to `postgres_changes`; most data loaded once on mount.
+- **Fix:**
+  - Migration `20260709200000_dashboard_realtime_publication.sql` — adds dispatch, masters, profiles, contacts, shared links, dealers, full inventory, printing dept tables to realtime publication.
+  - Shared helper `src/realtimeUtils.js` — debounced multi-table subscriptions.
+  - **App.jsx:** live masters, team profiles, admin permissions, global search; orders poll fallback 60s → 120s.
+  - **Panels:** dispatch, contact book, shared links, goals (home + tab + admin), inventory bundle, printing dept inventory/utilization, dealer report.
+- **Files (new):** `src/realtimeUtils.js`, `supabase/migrations/20260709200000_dashboard_realtime_publication.sql`.
+- **Documentation updated:** CHANGELOG.md, ARCHITECTURE.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-09 — View order: mockup preview, status sync, customer assets
+
+- **Issue 1 — Mockup preview behind dialog:** Click mockup in View order → image card hidden under order dialog.
+- **Reason:** Preview rendered inside app shell; Radix Dialog portals to `document.body` at `z-50` and paints above in-app fixed layers.
+- **Fix:** `ImagePreviewModal` portaled to `document.body` (`z-index: 2000`). Toolbar **Close** only (no hint, no backdrop/Esc dismiss). View order `Dialog` uses `modal={false}` while preview open so Radix does not block pointer events on the preview layer.
+- **Issue 2 — Status not syncing across users:** One user changes status; others see stale value until manual refresh.
+- **Reason:** App subscribed to `postgres_changes` on `orders`, but `orders` was never added to `supabase_realtime` publication.
+- **Fix:** Migration `20260709190000_orders_realtime.sql` adds `orders` + `order_customer_assets` to realtime. `fetchOrders` also refreshes `viewOrderTarget` on silent refetch.
+- **Issue 3 — Customer assets not view/download:** Some uploaded files fail to open or download.
+- **Reason:** UI used `getPublicUrl()` without auth; bucket storage policy is `authenticated` only, so public URLs 403 for many files.
+- **Fix:** Signed URLs via `createSignedUrl` (1h TTL); **View** for images/PDFs; **Download** with filename; realtime refetch when assets change on open order.
+- **Files (new):** `src/components/ImagePreviewModal.jsx`, `supabase/migrations/20260709190000_orders_realtime.sql`.
+- **Files:** `src/App.jsx`, `src/OrderDetailPanel.jsx`, `src/orderCustomerAssets.js`.
+- **Bug fix:** Restored missing `ImagePreviewModal` import in `App.jsx` (blank screen after realtime work).
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-08 — Platform overview documentation (API, mobile, Uniware roadmap)
+
+- **Added:** `docs/PLATFORM_OVERVIEW.md` — full stack brief (React + Supabase, not Flutter), API/mobile strategy, Uniware replacement phases, scaling, improvements.
+- **Added:** `docs/OVERVIEW.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, Word export `docs/export/Scott_Dashboard_Platform_Overview.html` + `.doc`.
+- **Documentation updated:** CHANGELOG.md.
+
 ## 2026-07-09 — Profile settings moved to sidebar (not Notifications tab)
 
 - **Issue:** Avatar + notification tone lived on Notifications page — wrong place for user.

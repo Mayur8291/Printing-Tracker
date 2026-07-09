@@ -77,6 +77,7 @@ import {
   verifyGoalCompletion,
   verifyTaskCompletion
 } from "./goalTrackerUtils";
+import { subscribePostgresChanges } from "./realtimeUtils";
 
 function StatusBadge({ kind, status }) {
   const label = kind === "goal" ? GOAL_STATUS_LABEL[status] : TASK_STATUS_LABEL[status];
@@ -1118,10 +1119,11 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
     setTaskRemarksMap(Object.fromEntries(entries));
   }, []);
 
-  const reload = useCallback(async () => {
+  const reload = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
     if (!sessionUserId) return;
-    setLoading(true);
-    setError("");
+    if (!silent) setLoading(true);
+    if (!silent) setError("");
     try {
       const [goals, tasks, byMe] = await Promise.all([
         fetchGoalsForUser(sessionUserId, year),
@@ -1158,13 +1160,24 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
     } catch (e) {
       setError(e.message || "Could not load goals.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [sessionUserId, year, isAdmin, manageUserId, loadGoalDetails, loadTaskRemarks]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (!sessionUserId) return undefined;
+    return subscribePostgresChanges({
+      channelName: `goals-live-${sessionUserId}`,
+      tables: ["user_annual_goals", "user_goal_tasks", "user_goal_status_remarks"],
+      onEvent: () => {
+        void reload({ silent: true });
+      }
+    });
+  }, [sessionUserId, reload]);
 
   useEffect(() => {
     if (isAdmin && !manageUserId && teamProfiles?.length) {

@@ -55,6 +55,8 @@ Annual goals, assignable tasks, and timestamped status remarks.
 | `20260707130000_add_goal_task_and_order_status_notifications.sql` | Task assignment + order status notification tables, `orders_status_notify` trigger |
 | `20260707140000_goal_task_completion_verification.sql` | Completion timestamps + verification columns |
 | `20260707150000_goal_assigner_verification_rls.sql` | Assignee/owner completion verify RLS; nullable task_id on notifications |
+| `20260709190000_orders_realtime.sql` | Add `orders` + `order_customer_assets` to `supabase_realtime` publication for live status/asset sync |
+| `20260709200000_dashboard_realtime_publication.sql` | Add dispatch, masters, profiles, contacts, shared links, dealers, inventory, printing dept tables to realtime |
 | `20260709120000_goal_assign_link_visibility.sql` | RPC `get_goals_for_task_assignment`; task insert may link assignee-owned goals |
 | `20260709130000_fix_goal_task_insert_rls.sql` | Task insert uses `jwt_user_owns_goal(goal_id, assignee_id)` |
 | `20260709140000_task_verification_by_assigner.sql` | Task verify RLS: `assigned_by` not assignee |

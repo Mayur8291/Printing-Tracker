@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabaseClient";
+import { subscribePostgresChanges } from "./realtimeUtils";
 
 const CATEGORIES = [
   { id: "sharepoint", label: "SharePoint / OneDrive" },
@@ -56,8 +57,9 @@ export default function SharedLinksPanel({ isAdmin, canEdit = false }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const loadLinks = useCallback(async () => {
-    setLoading(true);
+  const loadLinks = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoading(true);
     const { data, error: fetchErr } = await supabase
       .from("shared_resource_links")
       .select("*")
@@ -71,11 +73,21 @@ export default function SharedLinksPanel({ isAdmin, canEdit = false }) {
       setError("");
       setLinks(data ?? []);
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, []);
 
   useEffect(() => {
     loadLinks();
+  }, [loadLinks]);
+
+  useEffect(() => {
+    return subscribePostgresChanges({
+      channelName: "shared-links-live",
+      tables: ["shared_resource_links"],
+      onEvent: () => {
+        void loadLinks({ silent: true });
+      }
+    });
   }, [loadLinks]);
 
   const visibleLinks = useMemo(() => {

@@ -1,0 +1,422 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Scott Dashboard Platform Overview</title>
+<style>body{font-family:Calibri,Arial,sans-serif;max-width:900px;margin:40px auto;line-height:1.5;color:#111}
+h1{font-size:24pt;border-bottom:2px solid #333;padding-bottom:8px}h2{font-size:16pt;margin-top:24px;color:#1a1a1a}
+h3{font-size:13pt;margin-top:16px}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:11pt}
+th{background:#f0f0f0;text-align:left}td,th{border:1px solid #ccc}pre{background:#f8f8f8;padding:12px;font-size:10pt;white-space:pre-wrap}
+ul{margin:8px 0 8px 24px}hr{margin:24px 0;border:none;border-top:1px solid #ccc}</style></head><body><h1>Scott Dashboard — Platform Overview, API Strategy & Roadmap</h1>
+
+<strong>Document version:</strong> 2026-07-08  
+<strong>Audience:</strong> Founders, engineering, operations, mobile team  
+<strong>Repository:</strong> [Mayur8291/Printing-Tracker](https://github.com/Mayur8291/Printing-Tracker)
+
+<hr/>
+
+<h2>1. Executive summary</h2>
+
+Scott Dashboard is a <strong>web-based operations platform</strong> built with <strong>React + Vite</strong> on the frontend and <strong>Supabase</strong> (PostgreSQL, Auth, Storage, Realtime, Edge Functions) on the backend. It is hosted as a static site on <strong>Netlify</strong>.
+
+It is <strong>not Flutter</strong>, <strong>not Next.js</strong>, and <strong>not a traditional self-hosted Node/Java API monolith</strong>. The browser app talks <strong>directly to Supabase</strong> using the official JavaScript client (`@supabase/supabase-js`), with security enforced primarily through <strong>PostgreSQL Row Level Security (RLS)</strong>.
+
+This architecture is excellent for <strong>rapid internal tool delivery</strong> and <strong>real-time collaboration</strong>. For <strong>large-scale mobile + Uniware replacement</strong>, you should plan a phased evolution toward a <strong>dedicated API layer</strong>, clearer domain boundaries, and stronger automated testing — detailed in Sections 8–11.
+
+<hr/>
+
+<h2>2. What we are using (complete stack)</h2>
+
+<h3>2.1 Frontend</h3>
+
+| Component | Choice | Notes |
+|-----------|--------|-------|
+| Framework | <strong>React 18</strong> | Component-based UI |
+| Build | <strong>Vite 5</strong> | `npm run dev`, `npm run build` → `dist/` |
+| Language | <strong>JavaScript (JSX)</strong> | No TypeScript in main app today |
+| Styling | <strong>Tailwind CSS 3</strong> + custom CSS | `src/styles.css`, `src/inventory/inventory.css` |
+| Components | <strong>Radix UI</strong> primitives | Dialog, Select, Sidebar, etc. |
+| Design system | <strong>shadcn-style</strong> (`src/components/ui/`) | Button, Card, Avatar, etc. |
+| Icons | <strong>Lucide React</strong> | |
+| Charts | <strong>Recharts</strong> | Coordinator / product reports |
+| Client DB SDK | <strong>@supabase/supabase-js</strong> | All CRUD + auth + storage + realtime |
+
+<strong>Entry point:</strong> `src/main.jsx` → `src/App.jsx` (main application shell and most business tabs).
+
+<h3>2.2 Backend</h3>
+
+| Component | Choice | Notes |
+|-----------|--------|-------|
+| Database | <strong>PostgreSQL</strong> (Supabase-managed) | Single source of truth |
+| Auth | <strong>Supabase Auth</strong> | Email/password; JWT in browser |
+| REST API | <strong>PostgREST</strong> (auto from schema) | Tables/views exposed as REST |
+| Business RPCs | <strong>PostgreSQL functions</strong> | e.g. chat conversation helpers, goal assignment |
+| Privileged ops | <strong>Supabase Edge Functions</strong> (Deno) | Admin user create/delete, production promote |
+| Files | <strong>Supabase Storage</strong> | Designs, invoices, avatars, chat media |
+| Realtime | <strong>Supabase Realtime</strong> | Chat, notifications, live permission updates |
+| Migrations | <strong>Supabase CLI</strong> | `supabase/migrations/*.sql` (100+ files) |
+
+There is <strong>no separate Express/FastAPI/Spring server</strong> in this repo today.
+
+<h3>2.3 DevOps & hosting</h3>
+
+| Component | Choice |
+|-----------|--------|
+| Frontend hosting | <strong>Netlify</strong> (CDN + CI from GitHub) |
+| Backend hosting | <strong>Supabase Cloud</strong> (managed) |
+| CI/CD | GitHub Actions (`promote-to-production.yml`) + Netlify auto-build on push |
+| Branches | `develop` → staging, `main` → production |
+| Node version | 20+ (`netlify.toml`, `package.json`) |
+
+<h3>2.4 Third-party integrations (current)</h3>
+
+| Integration | Purpose |
+|-------------|---------|
+| <strong>Giphy API</strong> | Chat GIF search (`VITE_GIPHY_API_KEY`) |
+| <strong>GitHub</strong> | Release automation (merge develop → main) |
+| <strong>Supabase MCP</strong> | Dev/agent database access (staging vs prod) |
+
+<strong>Uniware:</strong> Not integrated today. Inventory, dispatch, and orders are modeled in-house — Uniware replacement is a <strong>future program</strong> (Section 10).
+
+<hr/>
+
+<h2>3. Architecture today</h2>
+
+<h3>3.1 High-level diagram</h3>
+
+<pre>
+flowchart TB
+  subgraph user [Users]
+    Browser[Web browser]
+    MobileLater[Future iOS/Android apps]
+  end
+
+  subgraph netlify [Netlify]
+    CDN[Static files dist/]
+  end
+
+  subgraph supa [Supabase Project]
+    Auth[GoTrue Auth]
+    PG[(PostgreSQL)]
+    RLS[Row Level Security]
+    PostgREST[PostgREST API]
+    Realtime[Realtime]
+    Storage[Object Storage]
+    Edge[Edge Functions]
+  end
+
+  Browser --&gt; CDN
+  Browser --&gt;|HTTPS + JWT| Auth
+  Browser --&gt;|supabase-js| PostgREST
+  PostgREST --&gt; RLS --&gt; PG
+  Browser --&gt; Storage
+  Browser --&gt; Realtime
+  Browser --&gt; Edge
+  MobileLater -.-&gt;|Phase 2: BFF/API Gateway| PostgREST
+</pre>
+
+<h3>3.2 Security model</h3>
+
+<p>1. <strong>Authentication:</strong> Supabase Auth → JWT stored in browser.</p>
+<p>2. <strong>Authorization:</strong> PostgreSQL <strong>RLS policies</strong> per table; helpers like `jwt_user_is_admin()`, `jwt_viewer_can_create_orders()`.</p>
+<p>3. <strong>Field-level UI permissions:</strong> `profile_order_permissions` — which order fields and sidebar tabs each viewer can see/edit.</p>
+<p>4. <strong>Admin-only actions:</strong> Edge Functions with service role (create user, reset password, promote production).</p>
+<p>5. <strong>Secrets:</strong> `VITE_SUPABASE_ANON_KEY` is public in the browser (by design); <strong>never</strong> embed service role key in frontend.</p>
+
+<h3>3.3 How the web app accesses data (no custom REST server)</h3>
+
+<pre>
+React component
+  → supabase.from('orders').select(...)
+  → HTTPS to https://&lt;project&gt;.supabase.co/rest/v1/orders
+  → PostgREST
+  → RLS check with JWT
+  → PostgreSQL
+</pre>
+
+RPC example: `supabase.rpc('get_or_create_direct_conversation', { ... })`.
+
+<hr/>
+
+<h2>4. Domain modules & database (functional map)</h2>
+
+<h3>4.1 Core operational domains</h3>
+
+| Domain | Key tables / assets | UI entry |
+|--------|---------------------|----------|
+| <strong>Printing orders</strong> | `orders`, `order_activity_log`, `order_templates` | Printing Orders tab |
+| <strong>Production / job sheets</strong> | `orders` (`is_production_order`, job_sheet_* columns) | Production tracker |
+| <strong>Dispatch</strong> | Dispatch fields on `orders`, verification flags | Dispatch tab |
+| <strong>Inward / GRN</strong> | `inward_grn_entries`, tags, notifications | Dispatch → Inward |
+| <strong>Outward challans</strong> | Outward challan tables (migrations) | Dispatch → Outward |
+| <strong>Billing</strong> | Invoice URLs on orders | Billing tab |
+| <strong>Inventory</strong> | SKUs, warehouses, suppliers, POs, stock (inventory migrations) | Inventory tab |
+| <strong>Printing dept stock</strong> | Printing department inventory tables | Printing department |
+| <strong>Team chat</strong> | `team_chat_conversations`, messages, members | Chat tab |
+| <strong>Goals & tasks</strong> | `user_annual_goals`, `user_goal_tasks` | Goals tab |
+| <strong>Notifications</strong> | Assignment, status, goal, inward, inventory notification tables | Bell + Notifications tab |
+| <strong>Contacts</strong> | `contact_book_entries` | Contact Book |
+| <strong>Shared links</strong> | `shared_resource_links` | Shared Links |
+| <strong>Users & permissions</strong> | `profiles`, `profile_order_permissions` | Admin |
+| <strong>Dealer / distributor</strong> | Dealer report tables | Distributor tab |
+
+See [DATABASE.md](./DATABASE.md) for migration-level detail.
+
+<h3>4.2 Edge Functions (privileged backend code)</h3>
+
+| Function | Purpose |
+|----------|---------|
+| `admin-create-user` | Create auth user + profile + permissions |
+| `admin-delete-user` | Remove user |
+| `admin-reset-password` | Admin password reset |
+| `admin-promote-production` | Trigger GitHub release workflow |
+| `tenor-gif-search` | Legacy GIF proxy (Giphy now client-side) |
+
+<hr/>
+
+<h2>5. Deployment & environments</h2>
+
+| Stage | Trigger | Frontend | Database |
+|-------|---------|----------|----------|
+| <strong>Local</strong> | `npm run dev` | localhost:5173 | Staging Supabase (`.env.development`) |
+| <strong>Staging</strong> | Push to `develop` | Netlify branch URL | Staging Supabase project |
+| <strong>Production</strong> | Push to `main` or Release button | Netlify production URL | Production Supabase |
+
+<strong>Build command:</strong> `npm ci && npm run build`  
+<strong>Publish directory:</strong> `dist/`  
+<strong>Required Netlify env:</strong> `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, optional `VITE_GIPHY_API_KEY`
+
+Full guide: [ENVIRONMENTS.md](./ENVIRONMENTS.md), [RELEASE_AUTOMATION.md](./RELEASE_AUTOMATION.md), [DEBUGGING.md](./DEBUGGING.md).
+
+<hr/>
+
+<h2>6. Current strengths</h2>
+
+<p>1. <strong>Fast iteration</strong> — schema migration + React deploy in hours, not weeks.</p>
+<p>2. <strong>Real-time</strong> — chat and notifications without custom WebSocket servers.</p>
+<p>3. <strong>Unified ops view</strong> — orders, production, dispatch, inventory, chat in one place.</p>
+<p>4. <strong>Fine-grained viewer permissions</strong> — sidebar tabs and order field ACLs.</p>
+<p>5. <strong>Staging/production split</strong> — safe QA before live release.</p>
+<p>6. <strong>Cost-effective scale</strong> for current user count — Supabase + Netlify pay-as-you-grow.</p>
+
+<hr/>
+
+<h2>7. Current limitations & technical debt (honest assessment)</h2>
+
+| Area | Issue | Risk | Priority |
+|------|-------|------|----------|
+| <strong>Monolithic App.jsx</strong> | ~7,600 lines; most tabs wired here | Hard to maintain, test, onboard devs | <strong>High</strong> |
+| <strong>No TypeScript</strong> | JS only | Runtime errors, weak contracts for mobile/API | Medium |
+| <strong>No automated tests</strong> | No Jest/Playwright suite visible | Regressions on release | <strong>High</strong> |
+| <strong>Business logic in UI</strong> | Validation/rules spread in components | Duplication when mobile arrives | <strong>High</strong> |
+| <strong>Direct PostgREST from browser</strong> | Mobile would need same RLS surface or duplicate logic | Security review burden; API versioning hard | <strong>High</strong> for mobile |
+| <strong>Large JS bundle</strong> | Vite warns chunks > 500 KB | Slow first load on poor networks | Medium |
+| <strong>RLS complexity</strong> | Many policies; history of recursion fixes | Subtle permission bugs | Medium |
+| <strong>Migration history</strong> | Remote sync placeholders, out-of-order repairs | Prod push friction | Medium |
+| <strong>No formal API docs</strong> | PostgREST is implicit | Mobile/third-party integration slow | <strong>High</strong> |
+| <strong>Single-region Supabase</strong> | Default one region | Latency if users spread nationally | Low until scale |
+| <strong>Uniware gap</strong> | No channel sync, marketplace, advanced WMS | Cannot replace Uniware yet | Expected — roadmap |
+
+These are <strong>normal for a successful internal MVP</strong> that grew into a platform. They are <strong>fixable with planned architecture work</strong>, not a rewrite.
+
+<hr/>
+
+<h2>8. Recommended API strategy (for mobile & scale)</h2>
+
+<h3>8.1 Phase 1 — Document & stabilize (now – 3 months)</h3>
+
+<p>1. <strong>Publish API catalog</strong> — document every table/RPC mobile needs ([API.md](./API.md) to maintain).</p>
+<p>2. <strong>Extract domain services</strong> from `App.jsx` into modules (`src/services/orders.js`, etc.).</p>
+<p>3. <strong>Add integration tests</strong> for critical RPCs and RLS (Supabase local + pgTAP or API tests).</p>
+<p>4. <strong>Introduce TypeScript gradually</strong> — start with `supabase/` types generated from schema.</p>
+
+<h3>8.2 Phase 2 — Backend-for-Frontend (BFF) API (3–9 months)</h3>
+
+Add a <strong>thin API layer</strong> mobile and partners call instead of raw PostgREST:
+
+| Option | Pros | Cons |
+|--------|------|------|
+| <strong>Supabase Edge Functions</strong> (extend current) | Same stack, JWT reuse | Cold starts, Deno limits for heavy jobs |
+| <strong>Node/Fastify or NestJS on Railway/Fly.io</strong> | Full control, OpenAPI, webhooks | New service to operate |
+| <strong>Cloudflare Workers + Hono</strong> | Edge, cheap scale | Learning curve |
+
+<strong>Recommended pattern:</strong>
+
+<pre>
+Mobile app → API Gateway (REST or GraphQL)
+           → Validates JWT (Supabase)
+           → Service layer (business rules)
+           → Supabase service role OR direct PG pool (careful)
+           → PostgreSQL
+</pre>
+
+<strong>Expose versioned endpoints</strong>, e.g.:
+
+<ul><li>`POST /v1/orders` — create order with server-side validation  </li>
+<li>`GET /v1/orders/:id/status` — mobile-friendly DTO  </li>
+<li>`POST /v1/inventory/adjustments` — stock movement with audit  </li>
+<li>`POST /v1/webhooks/uniware` — future inbound sync  </li>
+
+Use <strong>OpenAPI 3</strong> spec as contract between mobile and backend teams.
+
+<h3>8.3 Phase 3 — Event-driven scale (9–18 months)</h3>
+
+For high volume and Uniware sync:
+
+<li><strong>Outbox pattern</strong> — DB triggers → queue (Supabase pg_net, or external Redis/SQS).</li>
+<li><strong>Workers</strong> — process inventory sync, label printing, marketplace orders.</li>
+<li><strong>Read replicas</strong> — Supabase Pro/Team for reporting without loading primary.</li>
+<li><strong>CDN + edge</strong> — Netlify already covers frontend; add rate limiting on API gateway.</li>
+
+<hr/>
+
+<h2>9. Mobile app integration plan</h2>
+
+<h3>9.1 Principles</h3>
+
+<p>1. <strong>Reuse Supabase Auth</strong> — same users; mobile uses `signInWithPassword` + refresh tokens.</p>
+<p>2. <strong>Do not ship service role key in mobile</strong> — only anon key + user JWT.</p>
+<p>3. <strong>Prefer BFF</strong> over exposing 50+ PostgREST tables to mobile.</p>
+<p>4. <strong>Optimistic UI + offline queue</strong> for warehouse scanning (outward/inward barcodes).</p>
+
+<h3>9.2 Suggested mobile scope (MVP)</h3>
+
+| Feature | Dashboard today | Mobile MVP |
+|---------|-----------------|------------|
+| Login | Web | Shared Supabase Auth |
+| Order status lookup | Full order UI | Scan/search order ID |
+| Dispatch verify | Dispatch tab | Pass/fail + photo |
+| Inward GRN | Inward forms | Camera + size entry |
+| Outward challan | Challan list | Barcode scan confirm |
+| Notifications | Bell + realtime | Push (FCM/APNs via Edge Function) |
+| Chat | Full chat | Phase 2 |
+| Inventory | Full module | Stock lookup / adjust Phase 2 |
+
+<h3>9.3 Mobile tech choice (separate from dashboard)</h3>
+
+| Option | When to use |
+|--------|-------------|
+| <strong>Flutter</strong> | If team wants one codebase for iOS+Android + rich offline UI |
+| <strong>React Native</strong> | If team already knows React (closer to dashboard skills) |
+| <strong>Native Swift/Kotlin</strong> | Maximum performance for scanner-heavy warehouse apps |
+
+The <strong>dashboard stays React web</strong>; mobile is a <strong>new repo</strong> consuming the same backend/API.
+
+<hr/>
+
+<h2>10. Uniware replacement — gap analysis & roadmap</h2>
+
+<strong>Uniware</strong> (Unicommerce) is typically used for: omnichannel order management, inventory across locations, pick/pack/ship, marketplace integrations (Amazon/Flipkart/etc.), shipping label generation, and WMS workflows.
+
+<h3>10.1 What Scott Dashboard already covers (partial Uniware overlap)</h3>
+
+| Uniware capability | Scott Dashboard status |
+|--------------------|------------------------|
+| Internal order tracking | ✅ Strong — printing + job sheets |
+| Production stages | ✅ Status workflow + job sheet stages |
+| Dispatch verification | ✅ Dispatch tab |
+| Inward / GRN | ✅ Inward entries |
+| Outward / challans | ✅ Outward module |
+| Warehouse inventory | ✅ Growing — inventory module, printing dept stock |
+| Multi-warehouse logic | ⚠️ Partial — warehouses in inventory schema |
+| Channel / marketplace orders | ❌ Not built |
+| Courier integration / AWB | ❌ Not built |
+| Uniware API sync | ❌ Not built |
+| Returns / RTO | ❌ Not built |
+| Advanced pick paths / bin locations | ❌ Not built |
+
+<h3>10.2 Suggested replacement phases</h3>
+
+<strong>Phase A — Source of truth internally (current → 6 mo)</strong>  
+<li>Harden inventory (SKU, stock ledger, PO GRN → stock increase).  </li>
+<li>Tie `orders` dispatch status to stock deduction events.  </li>
+<li>Audit log for every stock movement.</li>
+
+<strong>Phase B — Integration hub (6–12 mo)</strong>  
+<li>Build `integration_events` table + webhook/API endpoints.  </li>
+<li>Optional: read-only sync <strong>from</strong> Uniware while you migrate (orders in, ship status out).  </li>
+<li>Nightly reconciliation job.</li>
+
+<strong>Phase C — Channel ingestion (12–18 mo)</strong>  
+<li>Marketplace connectors or middleware (e.g. custom + EasyEcom alternative patterns).  </li>
+<li>Normalize external orders → internal `orders` + inventory reservations.</li>
+
+<strong>Phase D — Decommission Uniware (18+ mo)</strong>  
+<li>All channels flow through Scott platform API.  </li>
+<li>WMS mobile app for floor operations.  </li>
+<li>Reporting parity with Uniware exports.</li>
+
+<strong>Do not big-bang cutover.</strong> Run <strong>parallel operations</strong> with reconciliation until inventory accuracy ≥ 99.5% for 90 days.
+
+<hr/>
+
+<h2>11. Large-scale hosting recommendations</h2>
+
+<h3>11.1 Current stack limits (approximate)</h3>
+
+| Tier | Users | Orders/day | Notes |
+|------|-------|------------|-------|
+| Supabase Free/Pro | tens–low hundreds concurrent | thousands | Fine for current internal use |
+| Netlify | unlimited static views | N/A | Bandwidth on Pro if global |
+
+<h3>11.2 When you outgrow default setup</h3>
+
+<p>1. <strong>Supabase</strong> — upgrade to Pro/Team; enable connection pooling (PgBouncer); consider read replica for reports.  </p>
+<p>2. <strong>Netlify</strong> — Pro for team seats, build minutes, env secrets.  </p>
+<p>3. <strong>API layer</strong> — horizontal scale on Fly.io/Railway/AWS ECS behind load balancer.  </p>
+<p>4. <strong>Background jobs</strong> — separate worker service (not in Vite SPA).  </p>
+<p>5. <strong>Observability</strong> — Sentry (frontend + API), Supabase logs, uptime checks.  </p>
+<p>6. <strong>Backups</strong> — Supabase PITR; test restore quarterly.  </p>
+<p>7. <strong>Security</strong> — WAF on API gateway; rate limits; audit admin Edge Functions.</p>
+
+<h3>11.3 Multi-region (if needed later)</h3>
+
+<li>Supabase: choose primary region closest to ops (e.g. Mumbai/Singapore).  </li>
+<li>Netlify: global CDN already.  </li>
+<li>API: deploy workers in same region as DB to minimize latency.</li></ul>
+
+<hr/>
+
+<h2>12. Improvement backlog (prioritized)</h2>
+
+<h3>Quick wins (1–4 weeks)</h3>
+
+<p>&#9744; Split `App.jsx` into route-level panels (already partially separate files — finish extraction).  </p>
+<p>&#9744; Code-split heavy tabs (Inventory, Admin) via `React.lazy`.  </p>
+<p>&#9744; Generate TypeScript types from Supabase schema.  </p>
+<p>&#9744; Add smoke test script (`npm run check:ui` exists — extend).  </p>
+<p>&#9744; Complete [API.md](./API.md) with all RPCs and mobile-critical tables.</p>
+
+<h3>Medium term (1–3 months)</h3>
+
+<p>&#9744; Introduce BFF with OpenAPI for mobile team.  </p>
+<p>&#9744; Centralize validation (Zod schemas shared web/API).  </p>
+<p>&#9744; Push notifications via Edge Function + FCM.  </p>
+<p>&#9744; Stock ledger table with immutable movement rows.  </p>
+<p>&#9744; Admin audit log for permission and inventory changes.</p>
+
+<h3>Long term (3–12 months)</h3>
+
+<p>&#9744; Uniware sync adapter (read-only → two-way).  </p>
+<p>&#9744; Mobile warehouse app (RN or Flutter).  </p>
+<p>&#9744; Marketplace order normalization layer.  </p>
+<p>&#9744; Optional: migrate hottest read paths to materialized views / caching.</p>
+
+<hr/>
+
+<h2>13. Glossary</h2>
+
+| Term | Meaning |
+|------|---------|
+| <strong>SPA</strong> | Single Page Application — loads once, tabs swap in browser |
+| <strong>RLS</strong> | Row Level Security — Postgres policies per user |
+| <strong>PostgREST</strong> | Auto REST API from PostgreSQL schema |
+| <strong>BFF</strong> | Backend-for-Frontend — API tailored for clients |
+| <strong>WMS</strong> | Warehouse Management System |
+| <strong>OMS</strong> | Order Management System |
+| <strong>Uniware</strong> | Unicommerce warehouse/omnichannel platform you plan to replace |
+
+<hr/>
+
+<h2>14. Document maintenance</h2>
+
+When architecture changes, update this file plus [OVERVIEW.md](./OVERVIEW.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [API.md](./API.md), [DATABASE.md](./DATABASE.md), and [CHANGELOG.md](./CHANGELOG.md).
+
+<strong>Export to Word:</strong> Open `docs/export/Scott_Dashboard_Platform_Overview.html` in Microsoft Word → Save As `.docx`.
+</body></html>

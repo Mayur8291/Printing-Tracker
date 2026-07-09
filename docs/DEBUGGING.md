@@ -1,5 +1,23 @@
 # Debugging
 
+## Printing order create: Colors swatch wrong after SKU pick
+
+### Symptom
+Product picker shows correct SKU label (e.g. `6D-BL-S · 6 DEGREE · BLACK`) but Colors field shows wrong swatch (gray, pink, or another variant).
+
+### Root cause
+1. Inventory `hex_color` default `#cccccc` or stale value was used before SKU color name / code.
+2. Multiple inventory SKUs share the same `name`; picker re-matched by name only and could desync uuid vs colors.
+3. Named colors (e.g. `BLACK`) in `orderForm.colors` did not get CSS `backgroundColor` unless stored as hex.
+
+### Fix (2026-07-09)
+- `colorsFromInventoryProduct()` in `inventoryProductPickerUtils.js` — color name → SKU segment (`BL` → black) → label → real hex.
+- `PrintingOrderProductField` keeps selection by `_uuid` and re-syncs colors on SKU change.
+- Create-order color dots use `swatchBackgroundForColor()`.
+
+### Verify
+Pick `6D-BL-S · 6 DEGREE · BLACK` → Colors dot is black (`#1a1a1a`). Change to another color variant of same product name → swatch updates to that SKU’s color.
+
 ## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
 
 ### Symptom
@@ -25,6 +43,88 @@ Netlify **secret scanning** (Secrets Controller / smart detection) blocks publis
 
 ### Verify
 Deploy log reaches **Deploy site** / **Published** with no secret scan failure. Live app loads; Network tab Supabase requests use production host.
+
+## View order mockup preview appears behind dialog
+
+### Symptom
+Printing order **View order** open → click mockup thumbnail → preview card hidden behind order dialog.
+
+### Root cause
+Image preview was a fixed overlay inside the React app tree. Radix **Dialog** (View order) portals to `document.body` with `z-50`, which stacks above non-portaled overlays even when CSS `z-index` is higher inside the app shell.
+
+### Root cause
+1. Radix **View order** `Dialog` runs in **modal** mode — disables pointer events on everything outside the dialog, including the portaled preview. Close button clicks never reach the handler.
+2. Earlier close control sat under the image in the paint order.
+
+### Fix
+- Preview: toolbar **Close** only; instruction text removed; no backdrop/Esc dismiss.
+- `App.jsx`: `modal={previewImages.length === 0}` on View order Dialog while preview open; block Esc/outside dismiss on dialog when preview showing.
+- CSS: `pointer-events: auto` on preview stack.
+
+### Verify
+Open View order → mockup → click **Close** → preview gone, View order still open.
+
+## Order status not updating for other users
+
+### Symptom
+User A changes order status; User B still sees old status (list or View order) until hard refresh or ~60s poll.
+
+### Root cause
+`App.jsx` subscribes to `postgres_changes` on `public.orders`, but **`orders` was not in the `supabase_realtime` publication**. Realtime events never fired; only the 60s visibility poll refreshed data.
+
+### Fix
+1. Apply migration `20260709190000_orders_realtime.sql` on Supabase (adds `orders` and `order_customer_assets` to realtime).
+2. Client: `fetchOrders({ silent: true })` on subscription + refresh `viewOrderTarget` when refetch completes.
+
+### Verify
+Two browsers logged in → change status on one → other updates within ~1–2s without refresh.
+
+### Logs / checks
+Browser console: Supabase Realtime channel `orders-live` subscribed. Supabase Dashboard → Database → Publications → `supabase_realtime` includes `orders`.
+
+## Supabase `db push`: remote migration versions not found locally
+
+### Symptom
+`supabase db push` fails: **Remote migration versions not found in local migrations directory** — lists timestamps like `20260703045936`.
+
+### Root cause
+Someone applied SQL on remote (Dashboard / another machine) without committing matching files under `supabase/migrations/`. Remote history has versions the repo does not.
+
+### Fix
+1. Compare histories:
+   ```bash
+   supabase migration list
+   ```
+2. Mark orphan **remote-only** versions reverted (does not undo schema already applied):
+   ```bash
+   supabase migration repair --status reverted 20260703045936 20260703102945 20260703104937
+   ```
+3. Push pending local files (including out-of-order ones):
+   ```bash
+   supabase db push --include-all
+   ```
+4. If push fails on `No valid role for order update` during a migration **UPDATE** on `orders`, that migration must disable `trg_enforce_order_update_scope` during the backfill (see `20260528150000_update_payment_methods.sql`).
+
+### Verify
+`supabase migration list` — Local and Remote columns match for all rows. Realtime publication includes `orders` after `20260709190000_orders_realtime.sql`.
+
+## Customer assets fail to view or download
+
+### Symptom
+View order → **Customer assets** / **Uploaded assets** → Download or open fails (403/blank) for some files.
+
+### Root cause
+UI used `storage.getPublicUrl()`. Storage RLS on `order-customer-assets` allows **authenticated** reads only; anonymous public URLs fail unless bucket/object is fully public.
+
+### Fix
+`fetchOrderCustomerAssetsWithUrls()` uses `createSignedUrl` (1 hour). View button for images/PDFs; Download uses signed URL with filename.
+
+### Edge cases
+- Files older than **48 hours** are purged by cron — row may remain briefly; signed URL returns not found.
+- Non-preview types: Download only.
+
+### Verify
+Upload PDF + PNG on create job → View order → View/Download both work while logged in.
 
 ## Production blank screen: Missing Supabase env vars
 
@@ -191,10 +291,43 @@ Long skeleton on Printing / orders tabs; app feels sluggish right after sign-in.
 ### Fix (2026-07-03)
 - List fetch uses `ORDERS_LIST_SELECT`; full assets load on **View order** only.
 - Search extras deferred 2.5s after login.
-- Poll every 60s when tab visible only.
+- Poll every 120s when tab visible only (orders fallback after Realtime).
 
 ### Investigation
 Network tab → `orders` request payload size before/after. Console for slow Supabase errors.
+
+## Dashboard data stale until manual refresh
+
+### Symptom
+User A changes order, challan, goal, inventory, contact, etc.; User B sees old data until browser refresh.
+
+### Root cause
+Table not in `supabase_realtime` publication and/or panel only fetched on mount with no `postgres_changes` subscription.
+
+### Fix
+1. Apply migrations through `20260709200000_dashboard_realtime_publication.sql`.
+2. Client uses `subscribePostgresChanges` per panel (see `src/realtimeUtils.js`).
+3. Verify Supabase Dashboard → Database → Publications → `supabase_realtime` lists the table.
+
+### Verify
+Two browsers → change data on one → other updates within ~1–2s on the relevant tab without refresh.
+
+### Investigation
+Browser DevTools → Network → WS filter → confirm Realtime socket connected. Console: channel names like `orders-live`, `dispatch-live-*`, `goals-live-*`.
+
+## Blank screen after deploy / HMR
+
+### Symptom
+App white/blank; console `ImagePreviewModal is not defined` (or similar ReferenceError in `App.jsx`).
+
+### Root cause
+`ImagePreviewModal` import removed from `App.jsx` while component still rendered at bottom of tree — React throws on first render.
+
+### Fix
+Ensure `App.jsx` includes:
+`import ImagePreviewModal from "./components/ImagePreviewModal";`
+
+Hard refresh after fix (`Cmd+Shift+R`).
 
 ## Inventory tab slow to open
 

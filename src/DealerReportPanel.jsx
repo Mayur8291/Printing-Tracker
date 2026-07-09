@@ -49,6 +49,7 @@ import {
   todayLocalISODate,
   weekRangeFromDate
 } from "./dealerReportUtils";
+import { subscribePostgresChanges } from "./realtimeUtils";
 
 export default function DealerReportPanel({ canEdit = false, isAdmin = false, sessionUserId }) {
   const [allDealers, setAllDealers] = useState([]);
@@ -145,17 +146,18 @@ export default function DealerReportPanel({ canEdit = false, isAdmin = false, se
     return normalizeAllDealerRows(data);
   }, []);
 
-  const fetchEntriesForRange = useCallback(async (fromDate, toDate) => {
+  const fetchEntriesForRange = useCallback(async (fromDate, toDate, opts) => {
+    const silent = opts?.silent === true;
     const { from, to } = normalizeDateRange(fromDate, toDate);
-    setLoading(true);
-    setLoadError("");
+    if (!silent) setLoading(true);
+    if (!silent) setLoadError("");
     const { data, error } = await supabase
       .from("dealer_daily_reports")
       .select(DEALER_REPORT_SELECT)
       .gte("report_date", from)
       .lte("report_date", to)
       .order("report_date", { ascending: true });
-    setLoading(false);
+    if (!silent) setLoading(false);
     if (error) {
       setLoadError(error.message);
       setEntries([]);
@@ -164,13 +166,14 @@ export default function DealerReportPanel({ canEdit = false, isAdmin = false, se
     setEntries(data ?? []);
   }, []);
 
-  const fetchProgressEntries = useCallback(async (fromDate, toDate) => {
+  const fetchProgressEntries = useCallback(async (fromDate, toDate, opts) => {
+    const silent = opts?.silent === true;
     const { from, to } = normalizeDateRange(fromDate, toDate);
     if (!from || !to) {
       setProgressEntries([]);
       return;
     }
-    setLoadingTargets(true);
+    if (!silent) setLoadingTargets(true);
     try {
       const data = await fetchEntriesForPeriodRange(supabase, from, to);
       setProgressEntries(data);
@@ -178,7 +181,7 @@ export default function DealerReportPanel({ canEdit = false, isAdmin = false, se
       console.error(err?.message ?? err);
       setProgressEntries([]);
     } finally {
-      setLoadingTargets(false);
+      if (!silent) setLoadingTargets(false);
     }
   }, []);
 
@@ -219,6 +222,29 @@ export default function DealerReportPanel({ canEdit = false, isAdmin = false, se
   useEffect(() => {
     void fetchProgressEntries(progressRange.from, progressRange.to);
   }, [progressRange.from, progressRange.to, fetchProgressEntries]);
+
+  useEffect(() => {
+    return subscribePostgresChanges({
+      channelName: "dealer-report-live",
+      tables: ["dealers", "dealer_daily_reports"],
+      onEvent: () => {
+        void (async () => {
+          const list = await fetchDealers();
+          setAllDealers(list);
+          await fetchEntriesForRange(dateRange.from, dateRange.to, { silent: true });
+          await fetchProgressEntries(progressRange.from, progressRange.to, { silent: true });
+        })();
+      }
+    });
+  }, [
+    fetchDealers,
+    fetchEntriesForRange,
+    fetchProgressEntries,
+    dateRange.from,
+    dateRange.to,
+    progressRange.from,
+    progressRange.to
+  ]);
 
   useEffect(() => {
     if (showSetTarget) {

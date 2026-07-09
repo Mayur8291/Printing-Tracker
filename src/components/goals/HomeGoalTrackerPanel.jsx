@@ -14,6 +14,7 @@ import {
   summarizeHomeGoals,
   TASK_STATUS_LABEL
 } from "../../goalTrackerUtils";
+import { subscribePostgresChanges } from "../../realtimeUtils";
 
 export default function HomeGoalTrackerPanel({ userId, onOpenGoalsTab }) {
   const year = currentGoalYear();
@@ -21,10 +22,11 @@ export default function HomeGoalTrackerPanel({ userId, onOpenGoalsTab }) {
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
     if (!userId) return;
-    setLoading(true);
-    setError("");
+    if (!silent) setLoading(true);
+    if (!silent) setError("");
     try {
       const [goals, tasks] = await Promise.all([
         fetchGoalsForUser(userId, year),
@@ -35,13 +37,24 @@ export default function HomeGoalTrackerPanel({ userId, onOpenGoalsTab }) {
       setError(e.message || "Could not load goals.");
       setSummary(null);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [userId, year]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!userId) return undefined;
+    return subscribePostgresChanges({
+      channelName: `home-goals-live-${userId}`,
+      tables: ["user_annual_goals", "user_goal_tasks", "user_goal_status_remarks"],
+      onEvent: () => {
+        void load({ silent: true });
+      }
+    });
+  }, [userId, load]);
 
   if (!userId) return null;
 

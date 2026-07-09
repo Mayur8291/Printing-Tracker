@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ export default function PrintingOrderProductField({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectKey, setSelectKey] = useState(PRINTING_PRODUCT_CUSTOM_KEY);
+  const prevSelectKeyRef = useRef(selectKey);
 
   const grouped = useMemo(() => groupInventoryProducts(products), [products]);
 
@@ -61,11 +62,26 @@ export default function PrintingOrderProductField({
       setSelectKey(PRINTING_PRODUCT_CUSTOM_KEY);
       return;
     }
+    const current = products.find((p) => p._uuid === selectKey);
+    if (
+      current &&
+      String(current.name ?? "").trim().toLowerCase() === trimmed.toLowerCase()
+    ) {
+      return;
+    }
     const match = products.find(
       (p) => String(p.name ?? "").trim().toLowerCase() === trimmed.toLowerCase()
     );
     setSelectKey(match?._uuid ?? PRINTING_PRODUCT_CUSTOM_KEY);
-  }, [productName, products]);
+  }, [productName, products, selectKey]);
+
+  useEffect(() => {
+    if (prevSelectKeyRef.current === selectKey) return;
+    prevSelectKeyRef.current = selectKey;
+    if (selectKey === PRINTING_PRODUCT_CUSTOM_KEY) return;
+    const product = products.find((p) => p._uuid === selectKey);
+    if (product) onColorsChange?.(colorsFromInventoryProduct(product));
+  }, [selectKey, products, onColorsChange]);
 
   const isCustom = selectKey === PRINTING_PRODUCT_CUSTOM_KEY;
   const selectedProduct = products.find((p) => p._uuid === selectKey);

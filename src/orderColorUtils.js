@@ -1,3 +1,5 @@
+import { colorLabelToHex } from "./inventory/inventoryColorUtils";
+
 /** HSL (0–360, 0–100, 0–100) → #rrggbb */
 export function hslToHex(h, s, l) {
   const hue = (((h % 360) + 360) % 360) / 360;
@@ -77,6 +79,8 @@ export function swatchBackgroundForColor(c) {
   const t = String(c ?? "").trim();
   if (!t) return "#cbd5e1";
   if (isCssColorString(t)) return t;
+  const fromLabel = colorLabelToHex(t);
+  if (fromLabel && fromLabel !== "#cccccc") return fromLabel;
   return t;
 }
 

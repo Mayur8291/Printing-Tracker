@@ -16,6 +16,7 @@ import {
   uniqueContactDepartments,
   validateContactPhotoFile
 } from "./contactBookUtils";
+import { subscribePostgresChanges } from "./realtimeUtils";
 
 function ContactDetailRow({ label, value, href }) {
   const text = displayContactValue(value);
@@ -55,8 +56,9 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
     [contacts, searchQuery, departmentFilter, sortBy]
   );
 
-  const loadContacts = useCallback(async () => {
-    setLoading(true);
+  const loadContacts = useCallback(async (opts) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoading(true);
     const { data, error: fetchErr } = await supabase
       .from("contact_book_entries")
       .select("*")
@@ -69,11 +71,21 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
       setError("");
       setContacts(data ?? []);
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, []);
 
   useEffect(() => {
     loadContacts();
+  }, [loadContacts]);
+
+  useEffect(() => {
+    return subscribePostgresChanges({
+      channelName: "contact-book-live",
+      tables: ["contact_book_entries"],
+      onEvent: () => {
+        void loadContacts({ silent: true });
+      }
+    });
   }, [loadContacts]);
 
   function openCreateForm() {

@@ -22,7 +22,8 @@ export default function DashboardShell({
   onOpenProfileSettings,
   sidebarFooterSlot,
   fullBleed = false,
-  tabBadges
+  tabBadges,
+  tabMarkers
 }) {
   return (
     <SidebarProvider defaultOpen className="flex h-svh max-h-svh w-full min-h-0 overflow-hidden">
@@ -41,6 +42,7 @@ export default function DashboardShell({
         onOpenProfileSettings={onOpenProfileSettings}
         footerSlot={sidebarFooterSlot}
         tabBadges={tabBadges}
+        tabMarkers={tabMarkers}
       />
       <SidebarInset className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-background">
         <header className="sticky top-0 z-20 shrink-0 overflow-visible border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">

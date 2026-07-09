@@ -38,6 +38,46 @@ export async function fetchOrderCustomerAssets(supabase, orderId) {
   return data ?? [];
 }
 
+const CUSTOMER_ASSET_SIGNED_URL_TTL_SEC = 60 * 60;
+
+export function customerAssetIsPreviewable(mimeType, fileName) {
+  const mime = (mimeType || "").toLowerCase();
+  if (mime.startsWith("image/")) return true;
+  if (mime === "application/pdf") return true;
+  const name = (fileName || "").toLowerCase();
+  return /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|tiff?|pdf)$/i.test(name);
+}
+
+export async function customerAssetSignedUrl(supabase, storagePath, opts = {}) {
+  if (!storagePath) return null;
+  const { download = false } = opts;
+  const { data, error } = await supabase.storage
+    .from(ORDER_CUSTOMER_ASSETS_BUCKET)
+    .createSignedUrl(storagePath, CUSTOMER_ASSET_SIGNED_URL_TTL_SEC, { download });
+  if (error) {
+    console.warn("customer asset signed url failed", storagePath, error.message);
+    return null;
+  }
+  return data?.signedUrl ?? null;
+}
+
+/** Fetch rows and attach view/download signed URLs (works for private or public bucket). */
+export async function fetchOrderCustomerAssetsWithUrls(supabase, orderId) {
+  const rows = await fetchOrderCustomerAssets(supabase, orderId);
+  const enriched = await Promise.all(
+    rows.map(async (row) => {
+      const [viewUrl, downloadUrl] = await Promise.all([
+        customerAssetSignedUrl(supabase, row.storage_path, { download: false }),
+        customerAssetSignedUrl(supabase, row.storage_path, {
+          download: row.file_name || true
+        })
+      ]);
+      return { ...row, viewUrl, downloadUrl };
+    })
+  );
+  return enriched;
+}
+
 export function customerAssetPublicUrl(supabase, storagePath) {
   const { data } = supabase.storage.from(ORDER_CUSTOMER_ASSETS_BUCKET).getPublicUrl(storagePath);
   return data?.publicUrl ?? "";

@@ -6,13 +6,30 @@
 
 1. **Trigger:** Admin opens **Home**.
 2. **Display:** **Order counts by status** grid (pipeline overview), **Goals & Tasks** widget, printing coordinator report, other admin widgets.
-3. **Refresh:** Status counts refresh button re-fetches orders.
+3. **Refresh:** Status counts update live via `orders-live` Realtime; manual refresh button still available.
 
 ### Normal user home
 
 1. **Trigger:** Viewer opens **Home**.
 2. **Display:** **Goals & Tasks** widget only (no order status count grid, no admin reports).
-3. **Exit:** Links to **Goals & Tasks** tab for full panel.
+3. **Live sync:** Goals widget refetches on `user_annual_goals` / `user_goal_tasks` changes.
+4. **Exit:** Links to **Goals & Tasks** tab for full panel.
+
+## Dashboard live sync (all tabs)
+
+1. **Trigger:** Any user INSERT/UPDATE/DELETE on a published table while another user has the app open.
+2. **Database:** Row change replicated through Supabase Realtime (`postgres_changes`).
+3. **Client:** Matching panel channel fires → debounced silent refetch (no full-page reload).
+4. **Coverage:** Orders, printing queue, billing, dispatch inward/outward, inventory, goals, contact book, shared links, dealer report, printing dept inventory/utilization, masters, team directory, admin user permissions.
+5. **Failure:** If Realtime disconnected, orders still poll every 120s; reopen tab or use panel Refresh where shown.
+
+## Sidebar tab activity markers
+
+1. **Trigger:** Realtime `postgres_changes` on a table mapped to a sidebar tab (e.g. `orders` → Printing Orders).
+2. **UI:** Small primary dot on the tab label (right side), same area as Chat unread count.
+3. **Clear:** User opens that tab → dot removed.
+4. **Skip:** No dot on the tab you are currently viewing (you already see live data there).
+5. **Chat:** Still uses numeric badge for unread messages, not the activity dot.
 
 ## Notifications
 
@@ -27,6 +44,14 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 | `printing_inventory` | Stock below threshold | Subscribed users | Printing inventory |
 
 **Realtime:** `subscribeUserNotifications()` + dedicated toast channels in `App.jsx` for each table.
+
+## Printing order create — product SKU → colors
+
+1. **Trigger:** User opens Create order and picks a product from inventory (`PrintingOrderProductField`).
+2. **Selection:** Picker stores inventory SKU by `_uuid` (not product name alone — many SKUs share one name).
+3. **Color sync:** `colorsFromInventoryProduct()` resolves hex in order: SKU `color` field → SKU code segment (e.g. `BL` → black) → combined label → non-placeholder `hex_color`.
+4. **UI:** `orderForm.colors` updates automatically; Colors trigger shows swatch via `swatchBackgroundForColor()`.
+5. **Edge cases:** Custom product name clears inventory link; user can still edit colors manually in Mac-style picker without overwrite until another SKU is picked.
 
 ### Profile settings (sidebar footer)
 
@@ -55,8 +80,25 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 
 1. **Trigger:** Order status changed (list inline edit, View order, or API update).
 2. **Database:** Trigger `notify_order_status_change()` inserts rows for coordinator (name match) and order creator.
-3. **Display:** Toast shows `previous → new` with human-readable labels via `formatOrderStatusCode()`.
-4. **Exit:** Click notification → open that order.
+3. **Realtime:** `orders` table on `supabase_realtime` — all clients refetch on `postgres_changes` (channel `orders-live`).
+4. **Display:** Toast shows `previous → new` with human-readable labels via `formatOrderStatusCode()`.
+5. **Exit:** Click notification → open that order.
+
+### View order — mockup preview
+
+1. **Trigger:** User opens **View order** (printing job) → clicks mockup or approved-design thumbnail.
+2. **Services:** `openPreview(urls, index)` in `App.jsx` → `ImagePreviewModal` portaled to `document.body`.
+3. **Stacking:** Must render above Radix Dialog (`z-50`); modal uses `image-modal-backdrop--stack-top` (`z-index: 2000`).
+4. **Exit:** Click backdrop, **x**, or Escape (close handler on backdrop click).
+
+### View order — customer assets
+
+1. **Trigger:** View order panel open for a job with rows in `order_customer_assets`.
+2. **Services:** `fetchOrderCustomerAssetsWithUrls()` — DB rows + `createSignedUrl` for view/download (authenticated storage).
+3. **Realtime:** While panel open, subscribe to `order_customer_assets` filtered by `order_id` → reload list on insert/delete.
+4. **UI:** **View** (images inline preview; PDF in new tab); **Download** (signed URL with filename).
+5. **Retention:** Files auto-purged after 48 hours (`purge_expired_order_customer_assets` cron).
+6. **Failure:** Expired/missing object → buttons show **Unavailable**; check storage path and cron.
 
 ## Team chat
 

@@ -49,8 +49,8 @@ import { supabase } from "./supabaseClient";
 import { DatePicker } from "@/components/ui/date-picker";
 import MasterListSelectField from "@/components/admin/MasterListSelectField";
 import {
-  customerAssetPublicUrl,
-  fetchOrderCustomerAssets,
+  customerAssetIsPreviewable,
+  fetchOrderCustomerAssetsWithUrls,
   formatCustomerAssetExpiry
 } from "./orderCustomerAssets";
 import StickerOrderIdBadge from "./StickerOrderIdBadge";
@@ -179,19 +179,40 @@ export default function OrderDetailPanel({
       return undefined;
     }
     let cancelled = false;
-    setCustomerAssetsLoading(true);
-    fetchOrderCustomerAssets(supabase, order.id)
-      .then((rows) => {
+
+    async function loadAssets() {
+      setCustomerAssetsLoading(true);
+      try {
+        const rows = await fetchOrderCustomerAssetsWithUrls(supabase, order.id);
         if (!cancelled) setCustomerAssets(rows);
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setCustomerAssets([]);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setCustomerAssetsLoading(false);
-      });
+      }
+    }
+
+    loadAssets();
+
+    const assetsChannel = supabase
+      .channel(`order-customer-assets-${order.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "order_customer_assets",
+          filter: `order_id=eq.${order.id}`
+        },
+        () => {
+          loadAssets();
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(assetsChannel);
     };
   }, [order?.id]);
 
@@ -673,7 +694,10 @@ export default function OrderDetailPanel({
             ) : (
               <ul className="space-y-2">
                 {customerAssets.map((asset) => {
-                  const url = customerAssetPublicUrl(supabase, asset.storage_path);
+                  const previewable = customerAssetIsPreviewable(asset.mime_type, asset.file_name);
+                  const isImage =
+                    (asset.mime_type || "").toLowerCase().startsWith("image/") ||
+                    /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|tiff?)$/i.test(asset.file_name || "");
                   return (
                     <li
                       key={asset.id}
@@ -685,18 +709,44 @@ export default function OrderDetailPanel({
                           Until {formatCustomerAssetExpiry(asset.uploaded_at) || "—"}
                         </p>
                       </div>
-                      {url ? (
-                        <Button variant="outline" size="sm" asChild>
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download={asset.file_name}
-                          >
-                            Download
-                          </a>
-                        </Button>
-                      ) : null}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {asset.viewUrl && previewable ? (
+                          isImage && openPreview ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openPreview([asset.viewUrl], 0)}
+                            >
+                              View
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" asChild>
+                              <a
+                                href={asset.viewUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                View
+                              </a>
+                            </Button>
+                          )
+                        ) : null}
+                        {asset.downloadUrl ? (
+                          <Button variant="outline" size="sm" asChild>
+                            <a
+                              href={asset.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={asset.file_name}
+                            >
+                              Download
+                            </a>
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Unavailable</span>
+                        )}
+                      </div>
                     </li>
                   );
                 })}
