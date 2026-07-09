@@ -152,7 +152,8 @@ export function mergeOrderDetailAssets(prevRow, serverRow, patch) {
     const remoteCount = designUrlCount(serverRow.approved_design_images);
     const localCount = designUrlCount(patch.approved_design_images);
     if (localCount > remoteCount) {
-      return { ...serverRow, ...patch.fields };
+      const patched = { ...serverRow, ...patch.fields };
+      return mergeOrderDetailAssets(prevRow, patched, null);
     }
   }
 

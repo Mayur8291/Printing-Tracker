@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-09 — View order: mockups preserved when approved images uploaded
+
+- **Issue:** Uploading approved design images made mockup thumbnails vanish in View order.
+- **Reason:** Recent-image patch merge returned `{ ...listRow, ...patch }` without re-merging mockup fields from the prior hydrated row; patch payload only contained `approved_design_images`.
+- **Fix:** After applying image patch, run `mergeOrderDetailAssets()` again to keep `approved_design_url`; stash mockups in patch ref; re-hydrate order detail after successful upload.
+- **Files:** `src/orderViewUtils.js`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-07-09 — View order: mockup images no longer vanish on live refresh
 
 - **Issue:** Mockup thumbnails in View order sometimes disappeared while the dialog stayed open.

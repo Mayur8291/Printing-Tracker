@@ -89,7 +89,7 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 
 1. **Trigger:** User opens **View order** → **Designs** / **Mockups** section.
 2. **Hydration:** `openViewOrder()` always fetches `ORDERS_FULL_SELECT` (includes `approved_design_url`, approved images, payment proof).
-3. **Live refresh:** List refetch uses lightweight columns; `mergeOrderDetailAssets()` keeps mockup URLs on the open order so thumbnails do not vanish during realtime sync.
+3. **Live refresh:** List refetch uses lightweight columns; `mergeOrderDetailAssets()` keeps mockup URLs on the open order so thumbnails do not vanish during realtime sync or after approved-image upload patches.
 4. **Preview:** Click thumbnail → `openPreview()` → `ImagePreviewModal` portaled to `document.body` (`z-index: 2000`).
 5. **Exit preview:** Toolbar **Close** button.
 

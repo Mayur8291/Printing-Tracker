@@ -49,6 +49,10 @@ View order shows mockup thumbnail, then it disappears (shows "No mockups") witho
 ### Verify
 Open order with mockups, wait for live refresh or save status from another tab — mockups stay visible.
 
+### Also: mockups vanish after uploading approved design images
+- **Cause:** Image-upload patch merge replaced the open order row without preserving `approved_design_url`.
+- **Fix:** Re-merge detail assets after patch; include mockup URL in patch ref; hydrate full row after upload.
+
 ## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
 
 ### Symptom

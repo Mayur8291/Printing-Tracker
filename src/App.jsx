@@ -4257,16 +4257,22 @@ function App() {
 
   function patchOrderInClient(orderId, patch, opts) {
     const idKey = String(orderId);
-    if (opts?.rememberImagePatch && patch.approved_design_images) {
-      recentImagePatchRef.current[idKey] = {
-        at: Date.now(),
-        approved_design_images: patch.approved_design_images,
-        fields: patch
-      };
-    }
-    setOrders((prev) =>
-      prev.map((o) => (String(o.id) === idKey ? { ...o, ...patch } : o))
-    );
+    setOrders((prev) => {
+      const current = prev.find((o) => String(o.id) === idKey);
+      if (opts?.rememberImagePatch && patch.approved_design_images && current) {
+        recentImagePatchRef.current[idKey] = {
+          at: Date.now(),
+          approved_design_images: patch.approved_design_images,
+          fields: {
+            ...patch,
+            approved_design_url: current.approved_design_url,
+            approved_design_images_archive: current.approved_design_images_archive,
+            payment_screenshot_url: current.payment_screenshot_url
+          }
+        };
+      }
+      return prev.map((o) => (String(o.id) === idKey ? { ...o, ...patch } : o));
+    });
     setViewOrderTarget((prev) =>
       prev && String(prev.id) === idKey ? { ...prev, ...patch } : prev
     );
@@ -5118,6 +5124,7 @@ function App() {
         delete next[orderId];
         return next;
       });
+      await hydrateOrderDetail(orderId);
     } finally {
       setUploadingPostDesignOrderId(null);
     }
