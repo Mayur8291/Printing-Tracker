@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-09 — View order: mockup images no longer vanish on live refresh
+
+- **Issue:** Mockup thumbnails in View order sometimes disappeared while the dialog stayed open.
+- **Reason:** Silent order list refetch uses `ORDERS_LIST_SELECT` (no `approved_design_url`). Merge logic only preserved `approved_design_images`, and `viewOrderTarget` was replaced with the stripped list row on each realtime refresh.
+- **Fix:** `mergeOrderDetailAssets()` keeps mockups, approved designs, archive, payment proof, and notes when list refetch omits them; View order syncs from merged row; opening an order always hydrates full detail row.
+- **Files:** `src/orderViewUtils.js`, `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
+## 2026-07-09 — Sidebar activity dots: correct tab only
+
+- **Issue:** Saving a printing order showed activity dot on **Home** instead of only Printing Orders.
+- **Reason:** `orders` (and goals tables) mapped to both their domain tab and `home`.
+- **Fix:** Remove `home` from activity mappings; route `orders` by `order_kind` to Printing Orders, Production tracker, or Ready Stock Order.
+- **Files:** `src/sidebarTabActivity.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-07-09 — Printing order: SKU color auto-sync on product pick
 
 - **Issue:** Picking inventory SKU (e.g. `6D-BL-S · 6 DEGREE · BLACK`) left Colors field showing wrong swatch (placeholder gray, wrong hex, or another variant).

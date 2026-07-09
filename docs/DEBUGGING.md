@@ -18,6 +18,37 @@ Product picker shows correct SKU label (e.g. `6D-BL-S · 6 DEGREE · BLACK`) but
 ### Verify
 Pick `6D-BL-S · 6 DEGREE · BLACK` → Colors dot is black (`#1a1a1a`). Change to another color variant of same product name → swatch updates to that SKU’s color.
 
+## Sidebar activity dot on wrong tab (e.g. Home after order save)
+
+### Symptom
+User saves printing order; blue activity dot appears on **Home** (or Goals widget tab) instead of **Printing Orders**.
+
+### Root cause
+`SIDEBAR_ACTIVITY_TABLE_TABS` listed `home` alongside domain tabs for `orders` and goal tables.
+
+### Fix (2026-07-09)
+- Orders: dot only on tab for `order_kind` (`printing` → Printing Orders, `job_sheet` → Production tracker, `regular_stock` → Ready Stock Order).
+- Goals: dot only on **Goals & Tasks**, not Home.
+
+### Verify
+Save order while on Home → dot on Printing Orders only. Open Printing Orders → dot clears.
+
+## View order: mockup image vanishes while dialog open
+
+### Symptom
+View order shows mockup thumbnail, then it disappears (shows "No mockups") without closing the dialog — often after another user edits an order or realtime refresh fires.
+
+### Root cause
+`fetchOrders()` loads lightweight list rows without `approved_design_url`. On each refresh, `viewOrderTarget` was overwritten with that row and merge only preserved `approved_design_images`, not mockups.
+
+### Fix (2026-07-09)
+- `mergeOrderDetailAssets()` preserves `approved_design_url` and related detail fields when list refetch omits them.
+- View order target syncs from merged orders array after refresh.
+- `openViewOrder()` always calls `hydrateOrderDetail()` for full row.
+
+### Verify
+Open order with mockups, wait for live refresh or save status from another tab — mockups stay visible.
+
 ## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
 
 ### Symptom

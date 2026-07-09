@@ -231,8 +231,7 @@ import {
 } from "./orderViewUtils";
 import {
   ORDERS_FULL_SELECT,
-  ORDERS_LIST_SELECT,
-  orderNeedsDetailHydration
+  ORDERS_LIST_SELECT
 } from "./orderQueryFields";
 import { JOB_SHEET_PRODUCTION_STAGE_ICON } from "./jobSheetProductionStages";
 
@@ -885,12 +884,13 @@ function App() {
       }
       setOrdersLoadError(null);
       const rows = data ?? [];
-      setOrders((prev) =>
-        mergeOrdersPreservingDesignImages(prev, rows, recentImagePatchRef.current)
-      );
-      setViewOrderTarget((prev) => {
-        if (!prev) return prev;
-        return rows.find((o) => String(o.id) === String(prev.id)) ?? prev;
+      setOrders((prev) => {
+        const next = mergeOrdersPreservingDesignImages(prev, rows, recentImagePatchRef.current);
+        setViewOrderTarget((viewPrev) => {
+          if (!viewPrev) return viewPrev;
+          return next.find((o) => String(o.id) === String(viewPrev.id)) ?? viewPrev;
+        });
+        return next;
       });
       // Select uses statusUpdates[id] ?? order.status — stale keys hide remote changes until full reload.
       setStatusUpdates(Object.fromEntries(rows.map((o) => [o.id, o.status])));
@@ -3648,7 +3648,7 @@ function App() {
     }
     setViewOrderTarget(order);
     setViewOrderFromTab(dashboardTab);
-    if (order?.id && orderNeedsDetailHydration(order)) {
+    if (order?.id) {
       void hydrateOrderDetail(order.id);
     }
   }

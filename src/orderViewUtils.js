@@ -138,39 +138,75 @@ export function filesFromImageInput(fileList) {
   });
 }
 
+function designUrlCount(value) {
+  return parseDesignUrls(value).length;
+}
+
+/** Keep hydrated design/payment fields when list refetch omits them. */
+export function mergeOrderDetailAssets(prevRow, serverRow, patch) {
+  if (!serverRow) return prevRow ?? null;
+  if (!prevRow) return serverRow;
+
+  const now = Date.now();
+  if (patch && now - patch.at < 20000) {
+    const remoteCount = designUrlCount(serverRow.approved_design_images);
+    const localCount = designUrlCount(patch.approved_design_images);
+    if (localCount > remoteCount) {
+      return { ...serverRow, ...patch.fields };
+    }
+  }
+
+  let merged = { ...serverRow };
+
+  const preserveUrlField = (field) => {
+    const prevVal = prevRow[field];
+    const serverVal = serverRow[field];
+    const prevCount = designUrlCount(prevVal);
+    const serverCount = designUrlCount(serverVal);
+    if (prevCount > serverCount) {
+      merged[field] = prevVal;
+    } else if (prevCount > 0 && (serverVal === undefined || serverVal === null || serverVal === "")) {
+      merged[field] = prevVal;
+    }
+  };
+
+  preserveUrlField("approved_design_images");
+  preserveUrlField("approved_design_url");
+  preserveUrlField("approved_design_images_archive");
+
+  if (prevRow.payment_screenshot_url && !serverRow.payment_screenshot_url) {
+    merged.payment_screenshot_url = prevRow.payment_screenshot_url;
+  }
+
+  const prevNote = String(prevRow.post_approved_design_changes_note ?? "").trim();
+  const serverNote = String(serverRow.post_approved_design_changes_note ?? "").trim();
+  if (prevNote && !serverNote) {
+    merged.post_approved_design_changes_note = prevRow.post_approved_design_changes_note;
+  }
+
+  if (
+    merged.approved_design_images === prevRow.approved_design_images &&
+    designUrlCount(prevRow.approved_design_images) > 0
+  ) {
+    merged.post_approved_design_review_status =
+      prevRow.post_approved_design_review_status ?? merged.post_approved_design_review_status;
+    merged.post_approved_design_changes_note =
+      prevRow.post_approved_design_changes_note ?? merged.post_approved_design_changes_note;
+    merged.post_approved_design_reviewed_by =
+      prevRow.post_approved_design_reviewed_by ?? merged.post_approved_design_reviewed_by;
+    merged.post_approved_design_reviewed_at =
+      prevRow.post_approved_design_reviewed_at ?? merged.post_approved_design_reviewed_at;
+  }
+
+  return merged;
+}
+
 export function mergeOrdersPreservingDesignImages(prevRows, serverRows, recentPatches) {
   const prevById = new Map((prevRows ?? []).map((o) => [String(o.id), o]));
-  const now = Date.now();
   return (serverRows ?? []).map((row) => {
     const key = String(row.id);
-    const patch = recentPatches?.[key];
-    if (patch && now - patch.at < 20000) {
-      const remoteCount = parseDesignUrls(row.approved_design_images).length;
-      const localCount = parseDesignUrls(patch.approved_design_images).length;
-      if (localCount > remoteCount) {
-        return { ...row, ...patch.fields };
-      }
-    }
     const prevRow = prevById.get(key);
-    if (prevRow) {
-      const prevCount = parseDesignUrls(prevRow.approved_design_images).length;
-      const remoteCount = parseDesignUrls(row.approved_design_images).length;
-      if (prevCount > remoteCount) {
-        return {
-          ...row,
-          approved_design_images: prevRow.approved_design_images,
-          post_approved_design_review_status:
-            prevRow.post_approved_design_review_status ?? row.post_approved_design_review_status,
-          post_approved_design_changes_note:
-            prevRow.post_approved_design_changes_note ?? row.post_approved_design_changes_note,
-          post_approved_design_reviewed_by:
-            prevRow.post_approved_design_reviewed_by ?? row.post_approved_design_reviewed_by,
-          post_approved_design_reviewed_at:
-            prevRow.post_approved_design_reviewed_at ?? row.post_approved_design_reviewed_at
-        };
-      }
-    }
-    return row;
+    return mergeOrderDetailAssets(prevRow, row, recentPatches?.[key]);
   });
 }
 

@@ -25,11 +25,12 @@
 
 ## Sidebar tab activity markers
 
-1. **Trigger:** Realtime `postgres_changes` on a table mapped to a sidebar tab (e.g. `orders` → Printing Orders).
-2. **UI:** Small primary dot on the tab label (right side), same area as Chat unread count.
-3. **Clear:** User opens that tab → dot removed.
-4. **Skip:** No dot on the tab you are currently viewing (you already see live data there).
-5. **Chat:** Still uses numeric badge for unread messages, not the activity dot.
+1. **Trigger:** Realtime `postgres_changes` on a table mapped to a sidebar tab (e.g. `orders` → **Printing Orders** only, not Home).
+2. **Routing:** `orders` use `order_kind` — printing/sticker/sampling → Printing Orders; `job_sheet` → Production tracker; `regular_stock` → Ready Stock Order. Goals tables → Goals & Tasks only.
+3. **UI:** Small primary dot on the tab label (right side), same area as Chat unread count.
+4. **Clear:** User opens that tab → dot removed.
+5. **Skip:** No dot on the tab you are currently viewing (you already see live data there).
+6. **Chat:** Still uses numeric badge for unread messages, not the activity dot.
 
 ## Notifications
 
@@ -84,12 +85,13 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 4. **Display:** Toast shows `previous → new` with human-readable labels via `formatOrderStatusCode()`.
 5. **Exit:** Click notification → open that order.
 
-### View order — mockup preview
+### View order — mockups & designs
 
-1. **Trigger:** User opens **View order** (printing job) → clicks mockup or approved-design thumbnail.
-2. **Services:** `openPreview(urls, index)` in `App.jsx` → `ImagePreviewModal` portaled to `document.body`.
-3. **Stacking:** Must render above Radix Dialog (`z-50`); modal uses `image-modal-backdrop--stack-top` (`z-index: 2000`).
-4. **Exit:** Click backdrop, **x**, or Escape (close handler on backdrop click).
+1. **Trigger:** User opens **View order** → **Designs** / **Mockups** section.
+2. **Hydration:** `openViewOrder()` always fetches `ORDERS_FULL_SELECT` (includes `approved_design_url`, approved images, payment proof).
+3. **Live refresh:** List refetch uses lightweight columns; `mergeOrderDetailAssets()` keeps mockup URLs on the open order so thumbnails do not vanish during realtime sync.
+4. **Preview:** Click thumbnail → `openPreview()` → `ImagePreviewModal` portaled to `document.body` (`z-index: 2000`).
+5. **Exit preview:** Toolbar **Close** button.
 
 ### View order — customer assets
 
