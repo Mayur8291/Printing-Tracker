@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-09 — Inventory: Export SKU CSV
+
+- **Issue:** Overview and SKU list **Export** buttons had no handler — click did nothing.
+- **Fix:** CSV export utility downloads all SKU fields; overview fetches full SKU list from Supabase; list page exports filtered rows (or selected rows).
+- **Files (new):** `src/inventory/inventorySkuExportUtils.js`.
+- **Files:** `InventoryOverview.jsx`, `InventoryListPage.jsx`.
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-07-09 — Inventory overview: live KPI sparklines
+
+- **Issue:** Overview KPI cards used hardcoded sparkline arrays and fake deltas; charts did not change when stock or SKUs updated.
+- **Fix:** `buildInventoryOverviewKpis()` derives 14-day series from SKU stock, movements, alerts, and POs; realtime refresh reloads KPI movement window; deltas computed from actual trend.
+- **Files (new):** `src/inventory/inventoryKpiUtils.js`.
+- **Files:** `InventoryOverview.jsx`, `InventoryDataContext.jsx`, `inventoryDbUtils.js`, `inventoryQueryFields.js`, `Sparkline.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-07-09 — View order: mockups preserved when approved images uploaded
 
 - **Issue:** Uploading approved design images made mockup thumbnails vanish in View order.

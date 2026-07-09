@@ -1,10 +1,11 @@
 export default function Sparkline({ data, color = "var(--accent)", height = 36 }) {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
+  const safe = Array.isArray(data) && data.length ? data : [0, 0];
+  const max = Math.max(...safe);
+  const min = Math.min(...safe);
   const range = Math.max(1, max - min);
-  const pts = data
+  const pts = safe
     .map((v, i) => {
-      const x = (i / (data.length - 1)) * 100;
+      const x = safe.length === 1 ? 50 : (i / (safe.length - 1)) * 100;
       const y = 100 - ((v - min) / range) * 100;
       return `${x},${y}`;
     })

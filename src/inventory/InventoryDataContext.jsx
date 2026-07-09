@@ -6,6 +6,7 @@ import {
   deriveAlerts,
   deleteSku,
   fetchInventoryMovements,
+  fetchInventoryMovementsSince,
   fetchInventoryRefreshBundle,
   fetchInventorySkuRowsFromOffset,
   fetchSkuDetail,
@@ -24,6 +25,7 @@ import {
 import { INVENTORY_INITIAL_SKU_BATCH } from "./inventoryQueryFields";
 import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
 import { subscribePostgresChanges } from "../realtimeUtils";
+import { kpiMovementsSinceIso } from "./inventoryKpiUtils";
 
 const InventoryDataContext = createContext(null);
 
@@ -36,6 +38,7 @@ export function InventoryDataProvider({ session, children }) {
   const [skus, setSkus] = useState([]);
   const [styleParents, setStyleParents] = useState([]);
   const [movements, setMovements] = useState([]);
+  const [kpiMovements, setKpiMovements] = useState([]);
   const [movementsLoading, setMovementsLoading] = useState(false);
   const [loadingMoreSkus, setLoadingMoreSkus] = useState(false);
   const movementsLoadedRef = useRef(false);
@@ -57,8 +60,8 @@ export function InventoryDataProvider({ session, children }) {
     if (!keepMovements && Array.isArray(bundle.movements)) setMovements(bundle.movements);
   }, []);
 
-  const loadMovements = useCallback(async ({ silent = true } = {}) => {
-    if (movementsLoadedRef.current) return;
+  const loadMovements = useCallback(async ({ silent = true, force = false } = {}) => {
+    if (movementsLoadedRef.current && !force) return;
     if (!silent) setMovementsLoading(true);
     try {
       const rows = await fetchInventoryMovements();
@@ -68,6 +71,16 @@ export function InventoryDataProvider({ session, children }) {
       if (!silent) setError(err?.message || "Could not load stock movements.");
     } finally {
       if (!silent) setMovementsLoading(false);
+    }
+  }, []);
+
+  const loadKpiMovements = useCallback(async () => {
+    try {
+      const since = kpiMovementsSinceIso();
+      const rows = await fetchInventoryMovementsSince(since);
+      setKpiMovements(rows);
+    } catch (err) {
+      console.error("Inventory KPI movements:", err?.message || err);
     }
   }, []);
 
@@ -107,9 +120,11 @@ export function InventoryDataProvider({ session, children }) {
       if (!silent && bundle.hasMoreSkus) {
         void loadRemainingSkus();
       }
+      void loadKpiMovements();
       if (!silent) {
         window.setTimeout(() => {
-          void loadMovements({ silent: true });
+          void loadMovements({ silent: true, force: true });
+          void loadKpiMovements();
         }, 2500);
       }
     } catch (err) {
@@ -117,7 +132,11 @@ export function InventoryDataProvider({ session, children }) {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [applyBundle, loadMovements, loadRemainingSkus]);
+  }, [applyBundle, loadMovements, loadKpiMovements, loadRemainingSkus]);
+
+  useEffect(() => {
+    void loadKpiMovements();
+  }, [loadKpiMovements]);
 
   const patchSkuInState = useCallback((sku) => {
     if (!sku?._uuid) return;
@@ -157,12 +176,13 @@ export function InventoryDataProvider({ session, children }) {
       ],
       onEvent: () => {
         void refresh({ silent: true });
+        void loadKpiMovements();
         if (movementsLoadedRef.current) {
-          void loadMovements({ silent: true });
+          void loadMovements({ silent: true, force: true });
         }
       }
     });
-  }, [userId, refresh, loadMovements]);
+  }, [userId, refresh, loadMovements, loadKpiMovements]);
 
   const fabrics = useMemo(() => skus.filter((s) => s.kind === "fabric"), [skus]);
   const trims = useMemo(() => skus.filter((s) => s.kind === "trim"), [skus]);
@@ -243,10 +263,11 @@ export function InventoryDataProvider({ session, children }) {
           userId
         });
         setMovements((prev) => [movement, ...prev]);
+        void loadKpiMovements();
       }
       return created;
     },
-    [userId]
+    [userId, loadKpiMovements]
   );
 
   const importSkus = useCallback(
@@ -278,6 +299,7 @@ export function InventoryDataProvider({ session, children }) {
         userId
       });
       setMovements((prev) => [movement, ...prev]);
+      void loadKpiMovements();
       setSkus((prev) =>
         prev.map((s) => {
           if (s._uuid !== skuUuid) return s;
@@ -290,7 +312,7 @@ export function InventoryDataProvider({ session, children }) {
       );
       return movement;
     },
-    [userId]
+    [userId, loadKpiMovements]
   );
 
   const createSupplier = useCallback(async (record) => {
@@ -349,10 +371,12 @@ export function InventoryDataProvider({ session, children }) {
     trims,
     apparel,
     movements,
+    kpiMovements,
     alerts,
     pos: POS,
     refresh,
     loadMovements,
+    loadKpiMovements,
     hydrateSkuDetail,
     patchSkuInState,
     updateAlertSettings,

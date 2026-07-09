@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,56 +7,39 @@ import ColorSwatch from "../components/ColorSwatch";
 import Sparkline from "../components/Sparkline";
 import StackedBar from "../components/StackedBar";
 import { useInventory } from "../InventoryDataContext";
+import { buildInventoryOverviewKpis } from "../inventoryKpiUtils";
+import { exportAllSkusCsv } from "../inventorySkuExportUtils";
 import { MovementTypeBadge, PageHeader } from "../inventoryUiUtils";
 import { formatRelative, inrFmt } from "../inventoryUtils";
 
 const KPI_ABBREVS = ["₹", "SKU", "!", "PO"];
 
 export default function InventoryOverview({ setActive, openSku, openNewSku, openCreatePO }) {
-  const { fabrics, trims, apparel, alerts, movements, pos, suppliers, warehouses, skus } = useInventory();
-  const inventoryValue =
+  const { fabrics, trims, apparel, alerts, movements, kpiMovements, pos, suppliers, warehouses, skus, settings } =
+    useInventory();
+  const [exporting, setExporting] = useState(false);
+  const inventoryValueNum =
     fabrics.reduce((s, f) => s + f.stock * f.cost, 0) +
     trims.reduce((s, t) => s + t.stock * t.cost, 0) +
     apparel.reduce((s, a) => s + a.totalStock * a.cost, 0);
 
   const openPOValue = pos.filter((p) => p.status !== "Received").reduce((s, p) => s + p.value, 0);
   const openPOCount = pos.filter((p) => p.status !== "Received").length;
-  const totalUnits = skus.reduce((s, item) => s + Number(item.stock ?? item.totalStock ?? 0), 0);
-  const fmt = (n) => n.toLocaleString();
 
-  const kpis = [
-    {
-      label: "Inventory Value",
-      value: inrFmt(inventoryValue),
-      delta: "+4.2%",
-      dir: "up",
-      spark: [40, 42, 41, 44, 46, 47, 48, 49, 51, 52, 50, 54, 55, 57]
-    },
-    {
-      label: "SKUs On Hand",
-      value: fmt(skus.length),
-      sub: skus.length ? `· ${fmt(totalUnits)} units on hand` : "· Add SKUs to get started",
-      delta: "+18",
-      dir: "up",
-      spark: [30, 32, 34, 33, 36, 38, 40, 41, 42, 43, 45, 44, 46, 47]
-    },
-    {
-      label: "Reorder Alerts",
-      value: alerts.length.toString(),
-      delta: "+3 today",
-      dir: "down",
-      spark: [4, 4, 6, 5, 7, 6, 8, 7, 9, 10, 11, 10, 12, 13],
-      sparkColor: "#ef4444"
-    },
-    {
-      label: "Open Purchase Orders",
-      value: fmt(openPOCount),
-      sub: `· ${inrFmt(openPOValue)} on order`,
-      delta: "+2 this wk",
-      dir: "up",
-      spark: [3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 9, 9]
-    }
-  ];
+  const kpis = useMemo(
+    () =>
+      buildInventoryOverviewKpis({
+        skus,
+        movements: kpiMovements,
+        settings,
+        pos,
+        inventoryValue: inrFmt(inventoryValueNum),
+        openPOCount,
+        openPOValue: inrFmt(openPOValue),
+        alertCount: alerts.length
+      }),
+    [skus, kpiMovements, settings, pos, inventoryValueNum, openPOCount, openPOValue, alerts.length]
+  );
 
   const fabricBy = fabrics.reduce((acc, f) => {
     const cat = f.tags?.includes("denim")
@@ -96,6 +80,17 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
   const recentMoves = movements.slice(0, 7);
   const topAlerts = alerts.filter((a) => a.severity === "critical").slice(0, 5);
 
+  async function handleExportSkus() {
+    setExporting(true);
+    try {
+      await exportAllSkusCsv({ suppliers, warehouses });
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Could not export SKUs.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -108,8 +103,8 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
         }
         actions={
           <>
-            <Button type="button" variant="outline" size="sm">
-              Export
+            <Button type="button" variant="outline" size="sm" disabled={exporting} onClick={handleExportSkus}>
+              {exporting ? "Exporting…" : "Export"}
             </Button>
             <Button type="button" size="sm" onClick={() => openNewSku("fabric")}>
               New SKU

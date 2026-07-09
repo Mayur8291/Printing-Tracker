@@ -14,6 +14,7 @@ import { useInventory } from "../InventoryDataContext";
 import { ExpandToggle, PageHeader, SortIndicator, StockStatusBadge } from "../inventoryUiUtils";
 import { formatInr, statusOf } from "../inventoryUtils";
 import { apparelMatchesQuery, buildApparelTopLevelEntries, groupSkusByParent, mergeEmptyStyleParents, skuMatchesQuery } from "../inventorySkuGrouping";
+import { exportSkusCsv, exportSkuFilename } from "../inventorySkuExportUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "../../orderPagination";
 
 const INV_HEAD = "h-11 whitespace-nowrap px-4 text-xs font-medium text-muted-foreground";
@@ -485,6 +486,17 @@ export default function InventoryListPage({
     });
   };
 
+  function handleExportSkus() {
+    const exportRows =
+      selected.size > 0 ? sorted.filter((r) => selected.has(r.id)) : sorted;
+    exportSkusCsv({
+      skus: exportRows,
+      suppliers,
+      warehouses,
+      filename: exportSkuFilename(kind)
+    });
+  }
+
   const paginationResetKey = `${kind}|${query}|${warehouseFilter}|${statusFilter}|${sortBy}|${sortDir}`;
 
   const apparelTopLevel = useMemo(() => {
@@ -635,7 +647,7 @@ export default function InventoryListPage({
                   SKU management
                 </Button>
               ) : null}
-              <Button type="button" variant="ghost" size="sm">
+              <Button type="button" variant="ghost" size="sm" onClick={handleExportSkus}>
                 Export
               </Button>
             </div>

@@ -66,6 +66,7 @@ export function rowToSku(row) {
     tags: Array.isArray(row.tags) ? row.tags : [],
     unit: row.unit || "pc",
     kind: row.kind,
+    created_at: row.created_at || null,
     ...parent
   };
 
@@ -162,6 +163,7 @@ export function movementRowToUi(row) {
   return {
     id: `MV-${row.id}`,
     _dbId: row.id,
+    skuUuid: row.sku_id,
     ts: row.created_at,
     type: row.movement_type,
     sku: sku.sku_code || row.sku_id,
@@ -341,6 +343,20 @@ export async function fetchInventoryMovements(limit = 100) {
     supabase
       .from("inventory_stock_movements")
       .select(INVENTORY_MOVEMENT_SELECT)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+  );
+  if (error) throw error;
+  return (data || []).map(movementRowToUi);
+}
+
+/** Movements since a date — used for overview KPI sparklines. */
+export async function fetchInventoryMovementsSince(sinceIso, limit = 8000) {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_stock_movements")
+      .select(INVENTORY_MOVEMENT_SELECT)
+      .gte("created_at", sinceIso)
       .order("created_at", { ascending: false })
       .limit(limit)
   );
