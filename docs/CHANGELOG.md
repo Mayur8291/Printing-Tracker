@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-10 — Admin Roles & goals: minimal left-aligned user cards
+
+- **UI:** User grid cards are full-width left column — name, one role line, one goals summary line, progress bar. Removed avatar/icons and extra task lines from overview cards; goal cards show title + one status line only.
+- **Files:** `AdminRolesGoalsPanel.jsx`.
+
 ## 2026-07-10 — Admin Roles & goals: left-align user cards
 
 - **UI:** User grid cards and goal cards in **Roles & goals** stack name, role, goals, progress bar, and tasks left-aligned (no split left/right rows).

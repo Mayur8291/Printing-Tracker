@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Briefcase, Target, Trash2, User } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import GoalTaskDetailGrid from "./components/goals/GoalTaskDetailGrid";
-import TaskPriorityBadge from "./components/goals/TaskPriorityBadge";
 import {
   currentGoalYear,
   deleteAnnualGoal,
@@ -23,7 +22,6 @@ import {
   fetchRemarksForGoal,
   fetchTasksForGoal,
   GOAL_STATUS_LABEL,
-  goalOwnershipLabel,
   goalProgressPercent,
   groupGoalsByUserId,
   isTaskAdminVerified,
@@ -70,33 +68,30 @@ function AdminDeleteButton({ label, onClick, disabled }) {
   );
 }
 
+function profileRoleLine(profile) {
+  const parts = [
+    profile.job_role?.trim(),
+    profile.department?.trim(),
+    profile.role?.trim()
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : "—";
+}
+
 function UserGoalCard({ goal, tasks, onSelect, onDeleteGoal }) {
   const pct = goalProgressPercent(goal, tasks);
+  const doneTasks = tasks.filter((t) => t.status === "completed").length;
   return (
     <div className="relative rounded-lg border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40">
-      <button type="button" className="w-full text-left" onClick={() => onSelect?.(goal)}>
-        <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {goalOwnershipLabel(goal)}
-          </p>
-          <p className="font-medium">{goal.title}</p>
-          {goal.description ? (
-            <p className="line-clamp-2 text-xs text-muted-foreground">{goal.description}</p>
-          ) : null}
-          <div className="flex flex-wrap items-center gap-2">
-            <TaskPriorityBadge priority={goal.priority} compact />
-            <Badge variant="outline">{GOAL_STATUS_LABEL[goal.status] ?? goal.status}</Badge>
-          </div>
-        </div>
-        <div className="mt-3 space-y-2">
-          <p className="text-xs text-muted-foreground">
-            Progress · {pct}%
-          </p>
-          <ProgressBar value={pct} />
-          <p className="text-xs text-muted-foreground">
-            {tasks.filter((t) => t.status === "completed").length}/{tasks.length} tasks done
-          </p>
-        </div>
+      <button
+        type="button"
+        className="flex w-full flex-col items-start justify-start text-left"
+        onClick={() => onSelect?.(goal)}
+      >
+        <p className="w-full truncate font-medium">{goal.title}</p>
+        <p className="mt-1 w-full text-xs text-muted-foreground">
+          {GOAL_STATUS_LABEL[goal.status] ?? goal.status} · {pct}% · {doneTasks}/{tasks.length} tasks
+        </p>
+        <ProgressBar value={pct} className="mt-2 w-full" />
       </button>
       {onDeleteGoal ? (
         <div className="mt-3 flex justify-end border-t pt-3">
@@ -491,45 +486,34 @@ export default function AdminRolesGoalsPanel({ profiles, teamProfiles = [] }) {
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {mergedProfiles.map((profile) => {
             const goals = goalsByUser.get(profile.id) ?? [];
             const summary = userGoalsProgressSummary(goals, tasksByGoalId);
+            const metaParts = [
+              `${summary.totalGoals} goal${summary.totalGoals === 1 ? "" : "s"}`,
+              `${summary.percent}%`
+            ];
+            if (summary.openTasks > 0) {
+              metaParts.push(`${summary.openTasks} open`);
+            }
             return (
               <button
                 key={profile.id}
                 type="button"
-                className="rounded-xl border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40"
+                className="roles-goals-user-card flex h-full w-full flex-col items-start justify-start rounded-xl border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40"
                 onClick={() => setSelectedUserId(profile.id)}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
-                    <User className="size-5 text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <div className="space-y-0.5">
-                      <p className="truncate font-semibold">{profileDisplayName(profile)}</p>
-                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Briefcase className="size-3 shrink-0" />
-                        {profile.job_role?.trim() || profile.role || "—"}
-                      </p>
-                      {profile.department ? (
-                        <p className="text-xs text-muted-foreground">{profile.department}</p>
-                      ) : null}
-                    </div>
-                    <div className="space-y-2">
-                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Target className="size-3 shrink-0" />
-                        {summary.totalGoals} goal{summary.totalGoals === 1 ? "" : "s"} · {summary.percent}%
-                      </p>
-                      <ProgressBar value={summary.percent} />
-                      <p className="text-xs text-muted-foreground">
-                        {summary.openTasks} open task{summary.openTasks === 1 ? "" : "s"}
-                        {summary.completedGoals > 0 ? ` · ${summary.completedGoals} goal done` : ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <p className="w-full truncate text-left font-semibold leading-snug">
+                  {profileDisplayName(profile)}
+                </p>
+                <p className="mt-1 w-full truncate text-left text-xs text-muted-foreground">
+                  {profileRoleLine(profile)}
+                </p>
+                <p className="mt-3 w-full text-left text-xs text-muted-foreground">
+                  {metaParts.join(" · ")}
+                </p>
+                <ProgressBar value={summary.percent} className="mt-2 w-full" />
               </button>
             );
           })}

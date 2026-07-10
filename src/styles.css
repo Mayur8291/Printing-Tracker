@@ -9024,6 +9024,22 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   color: #0f172a;
 }
 
+.roles-goals-user-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.roles-goals-user-card p {
+  text-align: left;
+  width: 100%;
+  margin: 0;
+}
+
 .admin-master-directory-card {
   margin-bottom: 8px;
 }
