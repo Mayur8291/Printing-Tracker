@@ -73,28 +73,25 @@ function AdminDeleteButton({ label, onClick, disabled }) {
 function UserGoalCard({ goal, tasks, onSelect, onDeleteGoal }) {
   const pct = goalProgressPercent(goal, tasks);
   return (
-    <div className="relative rounded-lg border bg-card p-4 shadow-sm transition-colors hover:bg-muted/40">
+    <div className="relative rounded-lg border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40">
       <button type="button" className="w-full text-left" onClick={() => onSelect?.(goal)}>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {goalOwnershipLabel(goal)}
-            </p>
-            <p className="font-medium">{goal.title}</p>
-            {goal.description ? (
-              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{goal.description}</p>
-            ) : null}
-          </div>
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {goalOwnershipLabel(goal)}
+          </p>
+          <p className="font-medium">{goal.title}</p>
+          {goal.description ? (
+            <p className="line-clamp-2 text-xs text-muted-foreground">{goal.description}</p>
+          ) : null}
           <div className="flex flex-wrap items-center gap-2">
             <TaskPriorityBadge priority={goal.priority} compact />
             <Badge variant="outline">{GOAL_STATUS_LABEL[goal.status] ?? goal.status}</Badge>
           </div>
         </div>
-        <div className="mt-3 space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Progress</span>
-            <span>{pct}%</span>
-          </div>
+        <div className="mt-3 space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Progress · {pct}%
+          </p>
           <ProgressBar value={pct} />
           <p className="text-xs text-muted-foreground">
             {tasks.filter((t) => t.status === "completed").length}/{tasks.length} tasks done
@@ -509,30 +506,29 @@ export default function AdminRolesGoalsPanel({ profiles, teamProfiles = [] }) {
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
                     <User className="size-5 text-muted-foreground" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{profileDisplayName(profile)}</p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                      <Briefcase className="size-3 shrink-0" />
-                      {profile.job_role?.trim() || profile.role || "—"}
-                    </p>
-                    {profile.department ? (
-                      <p className="text-xs text-muted-foreground">{profile.department}</p>
-                    ) : null}
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="space-y-0.5">
+                      <p className="truncate font-semibold">{profileDisplayName(profile)}</p>
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Briefcase className="size-3 shrink-0" />
+                        {profile.job_role?.trim() || profile.role || "—"}
+                      </p>
+                      {profile.department ? (
+                        <p className="text-xs text-muted-foreground">{profile.department}</p>
+                      ) : null}
+                    </div>
+                    <div className="space-y-2">
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Target className="size-3 shrink-0" />
+                        {summary.totalGoals} goal{summary.totalGoals === 1 ? "" : "s"} · {summary.percent}%
+                      </p>
+                      <ProgressBar value={summary.percent} />
+                      <p className="text-xs text-muted-foreground">
+                        {summary.openTasks} open task{summary.openTasks === 1 ? "" : "s"}
+                        {summary.completedGoals > 0 ? ` · ${summary.completedGoals} goal done` : ""}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Target className="size-3" />
-                      {summary.totalGoals} goal{summary.totalGoals === 1 ? "" : "s"}
-                    </span>
-                    <span className="font-medium">{summary.percent}%</span>
-                  </div>
-                  <ProgressBar value={summary.percent} />
-                  <p className="text-xs text-muted-foreground">
-                    {summary.openTasks} open task{summary.openTasks === 1 ? "" : "s"}
-                    {summary.completedGoals > 0 ? ` · ${summary.completedGoals} goal done` : ""}
-                  </p>
                 </div>
               </button>
             );

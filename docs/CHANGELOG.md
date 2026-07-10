@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-10 — Admin Roles & goals: left-align user cards
+
+- **UI:** User grid cards and goal cards in **Roles & goals** stack name, role, goals, progress bar, and tasks left-aligned (no split left/right rows).
+- **Files:** `AdminRolesGoalsPanel.jsx`.
+
 ## 2026-07-10 — Policy: staging-first Supabase (migrations & edge functions)
 
 - **Rule:** All `supabase db push`, migrations, and `functions deploy` default to **staging** (`scvojtvgnkmbupvyslmb`) only. Production (`levwrmvqdntngeasrtnb`) changes require explicit user request for production release.
