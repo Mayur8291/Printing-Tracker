@@ -196,3 +196,13 @@ supabase functions deploy dashboard-stock-api
 ## Flutter / mobile note
 
 This API is for the **Scott International order backend**, not the Flutter MVP (which uses Supabase Auth + direct table access for read inventory / create printing order). Both can coexist.
+
+## Postman
+
+Ready-made collection + staging/production environments:
+
+- `docs/postman/Scott_Dashboard_Stock_API.postman_collection.json`
+- `docs/postman/Scott_Dashboard_Stock_API.staging.postman_environment.json`
+- `docs/postman/Scott_Dashboard_Stock_API.production.postman_environment.json`
+
+Import guide: [docs/postman/README.md](./postman/README.md)

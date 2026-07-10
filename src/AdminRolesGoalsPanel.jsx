@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import GoalTaskDetailGrid from "./components/goals/GoalTaskDetailGrid";
+import TaskPriorityBadge from "./components/goals/TaskPriorityBadge";
 import {
   currentGoalYear,
   deleteAnnualGoal,
@@ -22,6 +23,7 @@ import {
   fetchRemarksForGoal,
   fetchTasksForGoal,
   GOAL_STATUS_LABEL,
+  goalOwnershipLabel,
   goalProgressPercent,
   groupGoalsByUserId,
   isTaskAdminVerified,
@@ -75,12 +77,18 @@ function UserGoalCard({ goal, tasks, onSelect, onDeleteGoal }) {
       <button type="button" className="w-full text-left" onClick={() => onSelect?.(goal)}>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {goalOwnershipLabel(goal)}
+            </p>
             <p className="font-medium">{goal.title}</p>
             {goal.description ? (
               <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{goal.description}</p>
             ) : null}
           </div>
-          <Badge variant="outline">{GOAL_STATUS_LABEL[goal.status] ?? goal.status}</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <TaskPriorityBadge priority={goal.priority} compact />
+            <Badge variant="outline">{GOAL_STATUS_LABEL[goal.status] ?? goal.status}</Badge>
+          </div>
         </div>
         <div className="mt-3 space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">

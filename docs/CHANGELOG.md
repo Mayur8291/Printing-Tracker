@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-07-10 — Manage User Goals: show all user goals (incl. completed)
+
+- **Issue:** Admin **Manage User Goals** tab looked empty when selected user only had completed goals — tab filtered to active goals only.
+- **Fix:** Show all goals for the selected user (active + completed) with tasks; user picker merges team directory + admin viewer list; tab renamed from **Manage users** to **Manage User Goals**.
+- **Files:** `GoalTrackerPanel.jsx`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-07-10 — Goals: ownership card grid, detail view, goal priority
+
+- **UI:** My goals / Manage / Completed use ownership **card grid**; click card → full-page goals + tasks with **Back** button (not nested in-card list).
+## 2026-07-10 — Goals: task priority colors visible in dark theme
+
+- **Issue:** Task P0/P1/P2 badges washed out or invisible in dark mode (`theme-dark`).
+- **Fix:** Dedicated `.task-priority-*` CSS for light + dark; badges on task title row; colored priority in assign/create selects.
+- **Files:** `TaskPriorityBadge.jsx`, `index.css`, `GoalTrackerPanel.jsx`.
+- **Feature:** Goal **priority** P0 / P1 / P2 (same as tasks); set on create; change in detail view dropdown.
+- **Migration:** `20260710150000_add_goal_priority.sql` (staging + production applied).
+- **Files:** `GoalTrackerPanel.jsx`, `goalTrackerUtils.js`, `AdminRolesGoalsPanel.jsx`.
+- **Documentation updated:** DATABASE.md, CHANGELOG.md.
+
+## 2026-07-10 — Goals: ownership grouping (Ownership → Goal → Tasks)
+
+- **Feature:** Annual goals have an **Ownership** field; My goals / Completed / Manage users tabs group goals under ownership headings. Legacy goals without ownership show under **Uncategorized** with **Set ownership** on each card.
+- **Migration:** `20260710140000_add_goal_ownership.sql` — nullable `user_annual_goals.ownership`; updated `get_goals_for_task_assignment` RPC.
+- **Files:** `goalTrackerUtils.js`, `GoalTrackerPanel.jsx`, `AdminRolesGoalsPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-07-10 — View order: order history modal visible again
+
+- **Issue:** Order history not visible when opened from View order dialog.
+- **Reason:** Modal rendered in app tree below Radix Dialog portal; focus trap blocked interaction.
+- **Fix:** `OrderHistoryModal` portaled to `document.body`; View order `modal={false}` while history open; history button always in footer.
+- **Files (new):** `src/components/OrderHistoryModal.jsx`.
+- **Files:** `App.jsx`, `OrderDetailPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-07-10 — Postman collection for Dashboard Stock API
+
+- **Feature:** Exportable Postman collection + staging/production environments for all stock endpoints and happy-path flow.
+- **Files (new):** `docs/postman/Scott_Dashboard_Stock_API.postman_collection.json`, staging/production environment JSON, `docs/postman/README.md`.
+- **Documentation updated:** DASHBOARD_STOCK_API.md, CHANGELOG.md.
+
 ## 2026-07-10 — Dashboard Stock API (Scott International)
 
 - **Feature:** Machine-to-machine stock API per `dashboard-api-requirements.pdf` — snapshot, reserve, release, fulfill, adjust + outbound webhooks.

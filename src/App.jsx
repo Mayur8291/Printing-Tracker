@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImagePreviewModal from "./components/ImagePreviewModal";
+import OrderHistoryModal from "./components/OrderHistoryModal";
 import { subscribePostgresChanges } from "./realtimeUtils";
 import {
   clearSidebarTabMarker,
@@ -38,10 +39,6 @@ import BillingTabPanel from "./BillingTabPanel";
 import DispatchTabPanel from "./DispatchTabPanel";
 import GlobalSearchBox from "./GlobalSearchBox";
 import DevEnvironmentIndicator from "./components/DevEnvironmentIndicator";
-import {
-  getOrderHistoryTitle,
-  getOrderHistoryEventLabel
-} from "./orderHistoryUtils";
 import { OC_SELECT_FIELDS } from "./outwardChallanUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import OrdersListFilters from "./components/orders/OrdersListFilters";
@@ -5567,6 +5564,7 @@ function App() {
               sessionUserId={session.user.id}
               isAdmin={isAdmin}
               teamProfiles={teamProfiles}
+              adminProfiles={viewerProfiles}
             />
           )}
 
@@ -7491,7 +7489,7 @@ function App() {
       {activeViewOrder && (
         <Dialog
           open
-          modal={previewImages.length === 0}
+          modal={previewImages.length === 0 && !orderHistoryTarget}
           onOpenChange={(open) => {
             if (!open) closeViewOrder();
           }}
@@ -7566,59 +7564,16 @@ function App() {
           </DialogContent>
         </Dialog>
       )}
-      {orderHistoryTarget && (
-        <div className="image-modal-backdrop image-modal-backdrop--stack-top" onClick={closeOrderHistory}>
-          <div className="order-history-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="order-history-head">
-              <div>
-                <h3>{getOrderHistoryTitle(orderHistoryTarget)}</h3>
-                <p className="order-history-sub">
-                  {orderHistoryTarget.customer_name}
-                  {orderHistoryTarget.order_id?.trim()
-                    ? ` · ${orderHistoryTarget.order_id}`
-                    : ""}{" "}
-                  · Job #{orderHistoryTarget.id}
-                </p>
-              </div>
-              <div className="order-history-head-actions">
-                <button type="button" onClick={refreshOrderHistory} disabled={orderHistoryLoading}>
-                  Refresh
-                </button>
-                <button type="button" onClick={closeOrderHistory}>
-                  x
-                </button>
-              </div>
-            </div>
-            {orderHistoryError ? (
-              <p className="order-history-error">{orderHistoryError}</p>
-            ) : orderHistoryLoading ? (
-              <p className="order-history-loading">Loading activity…</p>
-            ) : orderHistoryEntries.length === 0 ? (
-              <p className="order-history-empty">No activity yet.</p>
-            ) : (
-              <ul className="order-history-timeline">
-                {orderHistoryEntries.map((entry) => (
-                  <li
-                    key={entry.id}
-                    className={`order-history-item order-history-item--${entry.event_type}`}
-                  >
-                    <div className="order-history-item-head">
-                      <span className="order-history-event">
-                        {getOrderHistoryEventLabel(entry.event_type, orderHistoryTarget)}
-                      </span>
-                      <time className="order-history-time" dateTime={entry.created_at}>
-                        {formatReceivedAtDisplay(entry.created_at)}
-                      </time>
-                    </div>
-                    <p className="order-history-message">{entry.message}</p>
-                    <p className="order-history-actor">By {entry.actor_label || "System"}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
+      {orderHistoryTarget ? (
+        <OrderHistoryModal
+          order={orderHistoryTarget}
+          entries={orderHistoryEntries}
+          loading={orderHistoryLoading}
+          error={orderHistoryError}
+          onClose={closeOrderHistory}
+          onRefresh={refreshOrderHistory}
+        />
+      ) : null}
       {session?.user ? (
         <UserProfileSettingsDialog
           open={profileSettingsOpen}

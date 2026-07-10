@@ -1483,6 +1483,9 @@ create table if not exists public.user_annual_goals (
   year integer not null check (year >= 2000 and year <= 2100),
   title text not null,
   description text,
+  ownership text,
+  priority text not null default 'P2'
+    check (priority in ('P0', 'P1', 'P2')),
   status text not null default 'not_started'
     check (status in ('not_started', 'in_progress', 'completed', 'on_hold')),
   created_by uuid not null references public.profiles(id) on delete restrict,
@@ -1501,6 +1504,7 @@ returns table (
   year integer,
   title text,
   description text,
+  ownership text,
   status text,
   created_by uuid,
   created_at timestamptz,

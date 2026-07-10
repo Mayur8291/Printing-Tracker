@@ -182,15 +182,17 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 ### User creates own goal
 
 1. **Trigger:** Goals & Tasks → **My goals** → **Create my goal**.
-2. **Services:** `createAnnualGoal()` with `user_id = created_by = auth.uid()` (owner insert RLS).
-3. **Exit:** Goal appears in My goals; user can **Add task** on their goal.
+2. **Form:** **Ownership** (required) → title → optional description.
+3. **Services:** `createAnnualGoal()` with `ownership`, `user_id = created_by = auth.uid()` (owner insert RLS).
+4. **Display:** Goals group under ownership headings (**Ownership → Goal → Tasks**). Legacy goals with null `ownership` show under **Uncategorized** until owner clicks **Set ownership**.
+5. **Exit:** Goal appears in My goals; user can **Add task** on their goal.
 
 ## Goal tracker
 
 ### Admin sets annual goal
 
-1. **Trigger:** Admin opens sidebar **Goals & Tasks** → **Manage users** tab.
-2. **Entry:** Select user + year → **Create goal for user**.
+1. **Trigger:** Admin opens sidebar **Goals & Tasks** → **Manage User Goals** tab.
+2. **Entry:** Select user + year → **Create goal for user** (ownership + title required). Tab lists **all** goals for that user (active and completed) grouped by ownership, with tasks on each goal.
 3. **Services:** `createAnnualGoal()` → `user_annual_goals` insert (admin RLS).
 4. **Tasks:** Admin adds tasks on goal with deadline via **Add task** → `user_goal_tasks`.
 5. **Exit:** Goal visible on user homepage widget and **My goals** tab.

@@ -1104,18 +1104,18 @@ export default function OrderDetailPanel({
       </div>
 
       <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t bg-background px-6 py-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => openOrderHistory(order)}
+          disabled={Boolean(profileLoading || profileError)}
+        >
+          {getOrderHistoryButtonLabel(order)}
+        </Button>
         {profileLoading ? (
           <span className="text-sm text-muted-foreground">Loading…</span>
         ) : canUseOrderControls ? (
           <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => openOrderHistory(order)}
-              disabled={Boolean(profileError)}
-            >
-              {getOrderHistoryButtonLabel(order)}
-            </Button>
             {(viewerMayUpdateOrders || isAdmin) && (
               <Button
                 type="button"

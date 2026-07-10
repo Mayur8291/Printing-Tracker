@@ -56,6 +56,20 @@ export function sortGoalCardTasks(tasks) {
   return sortTasksByPriority(tasks, { groupActiveFirst: true });
 }
 
+/** Sort goals P0 first within an ownership group. */
+export function sortGoalsByPriority(goals) {
+  return [...(goals ?? [])].sort((a, b) => {
+    const pr = taskPriorityRank(a.priority) - taskPriorityRank(b.priority);
+    if (pr !== 0) return pr;
+    return String(a.created_at ?? "").localeCompare(String(b.created_at ?? ""));
+  });
+}
+
+export function topGoalPriorityRank(goals) {
+  const ranks = (goals ?? []).map((g) => taskPriorityRank(g.priority));
+  return ranks.length ? Math.min(...ranks) : 2;
+}
+
 /** Filter task list by priority; `all` or empty = no filter. */
 export function filterTasksByPriority(tasks, priorityFilter) {
   const list = tasks ?? [];
@@ -66,6 +80,54 @@ export function filterTasksByPriority(tasks, priorityFilter) {
 
 export function currentGoalYear() {
   return new Date().getFullYear();
+}
+
+/** Shown in UI when ownership column is null (legacy goals). */
+export const GOAL_OWNERSHIP_UNASSIGNED_LABEL = "Uncategorized";
+
+export function normalizeGoalOwnership(value) {
+  const trimmed = String(value ?? "").trim();
+  return trimmed || null;
+}
+
+export function goalOwnershipLabel(goal) {
+  return normalizeGoalOwnership(goal?.ownership) || GOAL_OWNERSHIP_UNASSIGNED_LABEL;
+}
+
+export function formatGoalWithOwnership(goal) {
+  const ownership = normalizeGoalOwnership(goal?.ownership);
+  if (!ownership) return goal?.title ?? "";
+  return `${ownership} · ${goal.title}`;
+}
+
+export function collectOwnershipLabelsFromGoals(goals) {
+  const labels = new Set();
+  for (const goal of goals ?? []) {
+    const ownership = normalizeGoalOwnership(goal.ownership);
+    if (ownership) labels.add(ownership);
+  }
+  return [...labels].sort((a, b) => a.localeCompare(b));
+}
+
+/** Group goals under ownership headings (uncategorized first). */
+export function groupGoalsByOwnership(goals) {
+  const groups = new Map();
+  for (const goal of goals ?? []) {
+    const key = goalOwnershipLabel(goal);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(goal);
+  }
+  return [...groups.entries()]
+    .map(([ownership, list]) => ({
+      ownership,
+      goals: list,
+      isUnassigned: ownership === GOAL_OWNERSHIP_UNASSIGNED_LABEL
+    }))
+    .sort((a, b) => {
+      if (a.isUnassigned && !b.isUnassigned) return -1;
+      if (!a.isUnassigned && b.isUnassigned) return 1;
+      return a.ownership.localeCompare(b.ownership);
+    });
 }
 
 export function profileDisplayName(profile) {
@@ -106,7 +168,7 @@ export function formatRemarkTimestamp(iso) {
 }
 
 const GOAL_SELECT =
-  "id, user_id, year, title, description, status, created_by, created_at, updated_at, completed_at, admin_verified_at, admin_verified_by";
+  "id, user_id, year, title, description, ownership, priority, status, created_by, created_at, updated_at, completed_at, admin_verified_at, admin_verified_by";
 
 const TASK_SELECT =
   "id, goal_id, assignee_id, assigned_by, title, description, deadline_date, priority, status, created_at, updated_at, completed_at, admin_verified_at, admin_verified_by";
@@ -217,7 +279,7 @@ export async function fetchRemarksForTask(taskId) {
   return data ?? [];
 }
 
-export async function createAnnualGoal({ userId, year, title, description, createdBy }) {
+export async function createAnnualGoal({ userId, year, title, description, ownership, priority = "P2", createdBy }) {
   const { data, error } = await supabase
     .from("user_annual_goals")
     .insert({
@@ -225,9 +287,39 @@ export async function createAnnualGoal({ userId, year, title, description, creat
       year,
       title: title.trim(),
       description: description?.trim() || null,
+      ownership: normalizeGoalOwnership(ownership),
+      priority: normalizeTaskPriority(priority),
       created_by: createdBy,
       status: "not_started"
     })
+    .select(GOAL_SELECT)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateGoalOwnership(goalId, ownership) {
+  const { data, error } = await supabase
+    .from("user_annual_goals")
+    .update({
+      ownership: normalizeGoalOwnership(ownership),
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", goalId)
+    .select(GOAL_SELECT)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateGoalPriority(goalId, priority) {
+  const { data, error } = await supabase
+    .from("user_annual_goals")
+    .update({
+      priority: normalizeTaskPriority(priority),
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", goalId)
     .select(GOAL_SELECT)
     .single();
   if (error) throw error;

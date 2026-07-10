@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ArrowLeft,
   CalendarClock,
   CheckCircle2,
   ChevronDown,
@@ -35,8 +36,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
-import TaskPriorityBadge, { prioritySelectItemClass } from "./components/goals/TaskPriorityBadge";
+import TaskPriorityBadge from "./components/goals/TaskPriorityBadge";
+import GoalOwnershipField from "./components/goals/GoalOwnershipField";
 import {
+  collectOwnershipLabelsFromGoals,
   createAnnualGoal,
   createGoalTask,
   currentGoalYear,
@@ -54,20 +57,28 @@ import {
   fetchTasksForGoal,
   filterTasksByPriority,
   formatGoalDeadline,
+  formatGoalWithOwnership,
   formatRemarkTimestamp,
+  GOAL_OWNERSHIP_UNASSIGNED_LABEL,
   GOAL_STATUSES,
   GOAL_STATUS_LABEL,
+  groupGoalsByOwnership,
   isGoalAdminVerified,
   isGoalCompleted,
   isTaskAdminVerified,
   isTaskCompleted,
   isTaskOverdue,
+  normalizeGoalOwnership,
   partitionGoalsByCompletion,
   profileDisplayName,
   sortGoalCardTasks,
+  sortGoalsByPriority,
   sortTasksByPriority,
   setGoalCompleted,
   setTaskCompleted,
+  topGoalPriorityRank,
+  updateGoalOwnership,
+  updateGoalPriority,
   TASK_PRIORITIES,
   TASK_PRIORITY_LABEL,
   TASK_STATUSES,
@@ -516,7 +527,7 @@ function AssignTaskDialog({
                   <SelectItem value="__none__">No goal</SelectItem>
                   {assigneeGoals.map((g) => (
                     <SelectItem key={g.id} value={g.id}>
-                      {g.title}
+                      {formatGoalWithOwnership(g)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -526,21 +537,14 @@ function AssignTaskDialog({
           <div className="space-y-2">
             <Label>Priority</Label>
             <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger className="h-9 w-auto min-w-[7rem]">
+                <TaskPriorityBadge priority={priority} />
               </SelectTrigger>
               <SelectContent>
                 {TASK_PRIORITIES.map((p) => (
                   <SelectItem key={p} value={p}>
                     <span className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          "inline-flex rounded border px-1.5 py-0.5 text-xs font-medium",
-                          prioritySelectItemClass(p)
-                        )}
-                      >
-                        {p}
-                      </span>
+                      <TaskPriorityBadge priority={p} compact />
                       {TASK_PRIORITY_LABEL[p]}
                     </span>
                   </SelectItem>
@@ -567,7 +571,87 @@ function AssignTaskDialog({
   );
 }
 
-function CreateGoalDialog({ open, onOpenChange, userId, year, createdBy, selfCreate = false, onSaved }) {
+function EditGoalOwnershipDialog({ open, onOpenChange, goal, ownershipSuggestions = [], onSaved }) {
+  const [ownership, setOwnership] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setOwnership(normalizeGoalOwnership(goal?.ownership) ?? "");
+      setError("");
+    }
+  }, [open, goal]);
+
+  async function handleSave() {
+    if (!normalizeGoalOwnership(ownership)) {
+      setError("Ownership is required (e.g. Sales, Operations, Personal).");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await updateGoalOwnership(goal.id, ownership);
+      onSaved?.();
+      onOpenChange(false);
+    } catch (e) {
+      setError(e.message || "Could not update ownership.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Set goal ownership</DialogTitle>
+          <DialogDescription>
+            Group goals under an ownership area. Format: <strong>Ownership → Goal → Tasks</strong>.
+            {goal?.title ? ` Goal: ${goal.title}` : ""}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="goal-ownership-edit">Ownership</Label>
+            <GoalOwnershipField
+              id="goal-ownership-edit"
+              value={ownership}
+              onChange={setOwnership}
+              suggestions={ownershipSuggestions}
+            />
+            <p className="text-xs text-muted-foreground">
+              Existing goals without ownership appear under <strong>{GOAL_OWNERSHIP_UNASSIGNED_LABEL}</strong> until
+              you assign one here.
+            </p>
+          </div>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={() => void handleSave()} disabled={saving}>
+            {saving ? "Saving…" : "Save ownership"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CreateGoalDialog({
+  open,
+  onOpenChange,
+  userId,
+  year,
+  createdBy,
+  selfCreate = false,
+  ownershipSuggestions = [],
+  onSaved
+}) {
+  const [ownership, setOwnership] = useState("");
+  const [priority, setPriority] = useState("P2");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -575,6 +659,8 @@ function CreateGoalDialog({ open, onOpenChange, userId, year, createdBy, selfCre
 
   useEffect(() => {
     if (open) {
+      setOwnership("");
+      setPriority("P2");
       setTitle("");
       setDescription("");
       setError("");
@@ -582,6 +668,10 @@ function CreateGoalDialog({ open, onOpenChange, userId, year, createdBy, selfCre
   }, [open]);
 
   async function handleSave() {
+    if (!normalizeGoalOwnership(ownership)) {
+      setError("Ownership is required (e.g. Sales, Operations, Personal).");
+      return;
+    }
     if (!title.trim()) {
       setError("Goal title is required.");
       return;
@@ -589,7 +679,7 @@ function CreateGoalDialog({ open, onOpenChange, userId, year, createdBy, selfCre
     setSaving(true);
     setError("");
     try {
-      await createAnnualGoal({ userId, year, title, description, createdBy });
+      await createAnnualGoal({ userId, year, title, description, ownership, priority, createdBy });
       onSaved?.();
       onOpenChange(false);
     } catch (e) {
@@ -606,11 +696,38 @@ function CreateGoalDialog({ open, onOpenChange, userId, year, createdBy, selfCre
           <DialogTitle>{selfCreate ? "Create my goal" : "Create annual goal"}</DialogTitle>
           <DialogDescription>
             {selfCreate
-              ? "Set a personal annual goal for this year. Add tasks with deadlines after creating."
-              : "Set a yearly goal for this user."}
+              ? "Pick ownership, priority, then your goal. Add tasks after creating."
+              : "Set ownership, priority, and yearly goal for this user."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="goal-ownership">Ownership</Label>
+            <GoalOwnershipField
+              id="goal-ownership"
+              value={ownership}
+              onChange={setOwnership}
+              suggestions={ownershipSuggestions}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Priority</Label>
+            <Select value={priority} onValueChange={setPriority}>
+              <SelectTrigger className="h-9 w-auto min-w-[7rem]">
+                <TaskPriorityBadge priority={priority} />
+              </SelectTrigger>
+              <SelectContent>
+                {TASK_PRIORITIES.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    <span className="flex items-center gap-2">
+                      <TaskPriorityBadge priority={p} compact />
+                      {TASK_PRIORITY_LABEL[p]}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="goal-title">Title</Label>
             <Input id="goal-title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -634,6 +751,108 @@ function CreateGoalDialog({ open, onOpenChange, userId, year, createdBy, selfCre
   );
 }
 
+function OwnershipOverviewGrid({ groups, goalTasksMap, onSelect }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {groups.map(({ ownership, goals, isUnassigned }) => {
+        const taskCount = goals.reduce(
+          (sum, goal) => sum + (goalTasksMap[goal.id]?.filter((t) => t.status !== "cancelled").length ?? 0),
+          0
+        );
+        const openTasks = goals.reduce(
+          (sum, goal) =>
+            sum +
+            (goalTasksMap[goal.id]?.filter((t) => t.status !== "completed" && t.status !== "cancelled").length ?? 0),
+          0
+        );
+        const topRank = topGoalPriorityRank(goals);
+        const topPriority = TASK_PRIORITIES[topRank] ?? "P2";
+
+        return (
+          <button
+            key={ownership}
+            type="button"
+            className="rounded-xl border bg-card p-5 text-left shadow-sm transition-colors hover:border-primary/50 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => onSelect(ownership)}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-lg font-semibold leading-tight">{ownership}</p>
+                {isUnassigned ? (
+                  <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">Needs ownership labels on goals</p>
+                ) : null}
+              </div>
+              <TaskPriorityBadge priority={topPriority} compact />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted-foreground">
+              <span>
+                {goals.length} goal{goals.length === 1 ? "" : "s"}
+              </span>
+              <span>
+                {taskCount} task{taskCount === 1 ? "" : "s"}
+              </span>
+              {openTasks > 0 ? <span>{openTasks} open</span> : null}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Click to view goals and tasks</p>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function OwnershipGoalsDetailView({ group, onBack, toolbar, renderGoalFull }) {
+  const sortedGoals = sortGoalsByPriority(group.goals);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="outline" size="sm" onClick={onBack}>
+            <ArrowLeft className="size-4" />
+            Back
+          </Button>
+          <div>
+            <h3 className="text-lg font-semibold">{group.ownership}</h3>
+            <p className="text-sm text-muted-foreground">
+              {group.goals.length} goal{group.goals.length === 1 ? "" : "s"} · Ownership → Goal → Tasks
+            </p>
+          </div>
+          {group.isUnassigned ? (
+            <Badge variant="outline" className="border-amber-500/40 text-amber-800 dark:text-amber-200">
+              Set ownership on goals below
+            </Badge>
+          ) : null}
+        </div>
+        {toolbar}
+      </div>
+      <div className="space-y-8">{sortedGoals.map((goal) => renderGoalFull(goal))}</div>
+    </div>
+  );
+}
+
+function GoalsOwnershipNavigator({ groups, goalTasksMap, detailKey, onSelectDetail, onBack, toolbar, renderGoalFull }) {
+  if (!groups.length) return null;
+
+  if (detailKey) {
+    const group = groups.find((g) => g.ownership === detailKey);
+    if (!group) {
+      onBack();
+      return null;
+    }
+    return (
+      <OwnershipGoalsDetailView
+        group={group}
+        onBack={onBack}
+        toolbar={toolbar}
+        renderGoalFull={renderGoalFull}
+      />
+    );
+  }
+
+  return <OwnershipOverviewGrid groups={groups} goalTasksMap={goalTasksMap} onSelect={onSelectDetail} />;
+}
+
 function GoalCard({
   goal,
   tasks,
@@ -643,8 +862,11 @@ function GoalCard({
   isOwner,
   sessionUserId,
   teamProfiles,
+  fullView = false,
   onAssignTask,
   onUpdateStatus,
+  onEditOwnership,
+  onUpdateGoalPriority,
   onDeleteGoal,
   onDeleteTask,
   onToggleGoalComplete,
@@ -654,78 +876,123 @@ function GoalCard({
   onRequestRejectTask,
   onVerifyTask
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(fullView || true);
   const canUpdateGoalStatus = isAdmin || isOwner;
   const canToggleGoal = isAdmin || isOwner;
+  const canEditOwnership = isAdmin || isOwner;
+  const canEditPriority = isAdmin || isOwner;
+  const ownershipSet = Boolean(normalizeGoalOwnership(goal.ownership));
   const visibleTasks = sortGoalCardTasks(tasks);
   const goalCompleted = isGoalCompleted(goal);
   const profilesById = useMemo(() => new Map(teamProfiles.map((p) => [p.id, p])), [teamProfiles]);
 
-  return (
-    <Card className={cn("shadow-sm", goalCompleted && "border-muted bg-muted/20")}>
-      <CardHeader className="p-4 pb-2">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              {canToggleGoal ? (
-                <Checkbox
-                  checked={goalCompleted}
-                  onCheckedChange={(value) => onToggleGoalComplete?.(goal, value === true)}
-                  aria-label={goalCompleted ? "Mark goal incomplete" : "Mark goal complete"}
-                />
-              ) : null}
-              <button
-                type="button"
-                className="flex items-center gap-2 text-left"
-                onClick={() => setExpanded((v) => !v)}
-              >
-                {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-                <CardTitle className="text-base">{goal.title}</CardTitle>
-              </button>
-            </div>
-            {goal.description ? (
-              <CardDescription className="mt-1 pl-6">{goal.description}</CardDescription>
-            ) : null}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge kind="goal" status={goal.status} />
-            <VerificationBadge item={goal} sessionUserId={sessionUserId} teamProfiles={teamProfiles} />
-            {canUserVerifyGoal(goal, sessionUserId) ? (
-              <VerifierControls
-                onVerify={() => onVerifyGoal?.(goal.id)}
-                onReject={() => onRequestRejectGoal?.(goal)}
-              />
-            ) : null}
-            {!goalCompleted && canUpdateGoalStatus ? (
-              <Button type="button" variant="outline" size="sm" onClick={() => onUpdateStatus({ kind: "goal", ...goal })}>
-                Update status
-              </Button>
-            ) : null}
-            {!goalCompleted && (isAdmin || isOwner) ? (
-              <Button type="button" variant="outline" size="sm" onClick={() => onAssignTask(goal)}>
-                Add task
-              </Button>
-            ) : null}
-            {isAdmin ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => void onDeleteGoal(goal.id)}
-                title="Delete goal and its tasks"
-              >
-                <Trash2 className="size-4" />
-                Delete
-              </Button>
-            ) : null}
-          </div>
+  const shellClass = cn(
+    fullView ? "rounded-xl border bg-card shadow-sm" : "shadow-sm",
+    goalCompleted && "border-muted bg-muted/20"
+  );
+
+  const header = (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          {canToggleGoal ? (
+            <Checkbox
+              checked={goalCompleted}
+              onCheckedChange={(value) => onToggleGoalComplete?.(goal, value === true)}
+              aria-label={goalCompleted ? "Mark goal incomplete" : "Mark goal complete"}
+            />
+          ) : null}
+          {fullView ? (
+            <h4 className={cn("text-lg font-semibold", fullView && "text-xl")}>{goal.title}</h4>
+          ) : (
+            <button
+              type="button"
+              className="flex items-center gap-2 text-left"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+              <CardTitle className="text-base">{goal.title}</CardTitle>
+            </button>
+          )}
         </div>
-      </CardHeader>
-      {expanded ? (
-        <CardContent className="space-y-4 p-4 pt-0">
-          <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tasks</p>
+        {goal.description ? (
+          <p className={cn("mt-2 text-sm text-muted-foreground", !fullView && "pl-6")}>{goal.description}</p>
+        ) : null}
+        {canEditOwnership ? (
+          <div className={cn("mt-2", !fullView && "pl-6")}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-muted-foreground"
+              onClick={() => onEditOwnership?.(goal)}
+            >
+              {ownershipSet ? "Change ownership" : "Set ownership"}
+            </Button>
+          </div>
+        ) : ownershipSet ? (
+          <p className={cn("mt-1 text-xs text-muted-foreground", !fullView && "pl-6")}>{goal.ownership}</p>
+        ) : null}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {canEditPriority ? (
+          <Select
+            value={goal.priority ?? "P2"}
+            onValueChange={(value) => onUpdateGoalPriority?.(goal.id, value)}
+          >
+            <SelectTrigger className="h-8 w-auto min-w-[3.25rem] border-0 bg-transparent p-0 shadow-none focus:ring-0">
+              <TaskPriorityBadge priority={goal.priority} compact />
+            </SelectTrigger>
+            <SelectContent>
+              {TASK_PRIORITIES.map((p) => (
+                <SelectItem key={p} value={p}>
+                  <TaskPriorityBadge priority={p} compact />
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <TaskPriorityBadge priority={goal.priority} compact />
+        )}
+        <StatusBadge kind="goal" status={goal.status} />
+        <VerificationBadge item={goal} sessionUserId={sessionUserId} teamProfiles={teamProfiles} />
+        {canUserVerifyGoal(goal, sessionUserId) ? (
+          <VerifierControls
+            onVerify={() => onVerifyGoal?.(goal.id)}
+            onReject={() => onRequestRejectGoal?.(goal)}
+          />
+        ) : null}
+        {!goalCompleted && canUpdateGoalStatus ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => onUpdateStatus({ kind: "goal", ...goal })}>
+            Update status
+          </Button>
+        ) : null}
+        {!goalCompleted && (isAdmin || isOwner) ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => onAssignTask(goal)}>
+            Add task
+          </Button>
+        ) : null}
+        {isAdmin ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={() => void onDeleteGoal(goal.id)}
+            title="Delete goal and its tasks"
+          >
+            <Trash2 className="size-4" />
+            Delete
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  const body = (
+    <div className={cn("space-y-4", fullView ? "p-6 pt-0" : "p-4 pt-0")}>
+      <div className="space-y-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tasks</p>
             {visibleTasks.length === 0 ? (
               <p className="text-sm text-muted-foreground">No tasks on this goal yet.</p>
             ) : (
@@ -755,6 +1022,7 @@ function GoalCard({
                             canToggle={canToggleTask && !taskVerified}
                             onToggle={onToggleTaskComplete}
                           />
+                          <TaskPriorityBadge priority={task.priority} compact />
                           <p
                             className={cn(
                               "font-medium",
@@ -782,7 +1050,6 @@ function GoalCard({
                         ) : null}
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <TaskPriorityBadge priority={task.priority} compact />
                         <StatusBadge kind="task" status={task.status} />
                         <VerificationBadge item={task} sessionUserId={sessionUserId} teamProfiles={teamProfiles} />
                         {canUserVerifyTask(task, sessionUserId) ? (
@@ -829,8 +1096,22 @@ function GoalCard({
             </p>
             <RemarkHistory remarks={remarks} profilesById={profilesById} />
           </div>
-        </CardContent>
-      ) : null}
+    </div>
+  );
+
+  if (fullView) {
+    return (
+      <section className={shellClass}>
+        <div className="p-6 pb-4">{header}</div>
+        {body}
+      </section>
+    );
+  }
+
+  return (
+    <Card className={shellClass}>
+      <CardHeader className="p-4 pb-2">{header}</CardHeader>
+      {expanded ? <CardContent>{body}</CardContent> : null}
     </Card>
   );
 }
@@ -841,21 +1122,18 @@ function TaskPriorityFilterSelect({ value, onChange, className }) {
       <Label className="shrink-0 text-sm text-muted-foreground">Priority</Label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-[12rem]">
-          <SelectValue placeholder="All priorities" />
+          {value && value !== "all" ? (
+            <TaskPriorityBadge priority={value} />
+          ) : (
+            <SelectValue placeholder="All priorities" />
+          )}
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All priorities</SelectItem>
           {TASK_PRIORITIES.map((p) => (
             <SelectItem key={p} value={p}>
               <span className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "inline-flex rounded border px-1.5 py-0.5 text-xs font-medium",
-                    prioritySelectItemClass(p)
-                  )}
-                >
-                  {p}
-                </span>
+                <TaskPriorityBadge priority={p} compact />
                 {TASK_PRIORITY_LABEL[p]}
               </span>
             </SelectItem>
@@ -929,6 +1207,7 @@ function TaskList({
                     canToggle={canToggleTask && !taskVerified}
                     onToggle={onToggleTaskComplete}
                   />
+                  <TaskPriorityBadge priority={task.priority} compact />
                   <p
                     className={cn(
                       "font-medium",
@@ -961,7 +1240,6 @@ function TaskList({
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <TaskPriorityBadge priority={task.priority} compact />
                 <StatusBadge kind="task" status={task.status} />
                 <VerificationBadge item={task} sessionUserId={sessionUserId} teamProfiles={teamProfiles} />
                 {canUserVerifyTask(task, sessionUserId) ? (
@@ -1010,12 +1288,17 @@ function CompletedPanel({
   isAdmin,
   sessionUserId,
   teamProfiles,
+  detailKey,
+  onSelectDetail,
+  onBack,
   onToggleGoalComplete,
   onToggleTaskComplete,
   onRequestRejectGoal,
   onVerifyGoal,
   onRequestRejectTask,
   onVerifyTask,
+  onEditOwnership,
+  onUpdateGoalPriority,
   onDeleteGoal,
   onDeleteTask,
   year
@@ -1031,12 +1314,19 @@ function CompletedPanel({
     );
   }
 
+  const groups = groupGoalsByOwnership(completedGoals);
+
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold">Completed goals</h3>
-      {completedGoals.map((goal) => (
+    <GoalsOwnershipNavigator
+      groups={groups}
+      goalTasksMap={goalTasksMap}
+      detailKey={detailKey}
+      onSelectDetail={onSelectDetail}
+      onBack={onBack}
+      renderGoalFull={(goal) => (
         <GoalCard
           key={goal.id}
+          fullView
           goal={goal}
           tasks={goalTasksMap[goal.id] ?? []}
           remarks={goalRemarksMap[goal.id] ?? []}
@@ -1047,6 +1337,8 @@ function CompletedPanel({
           teamProfiles={teamProfiles}
           onAssignTask={() => {}}
           onUpdateStatus={() => {}}
+          onEditOwnership={onEditOwnership}
+          onUpdateGoalPriority={onUpdateGoalPriority}
           onDeleteGoal={onDeleteGoal}
           onDeleteTask={onDeleteTask}
           onToggleGoalComplete={onToggleGoalComplete}
@@ -1056,12 +1348,12 @@ function CompletedPanel({
           onRequestRejectTask={onRequestRejectTask}
           onVerifyTask={onVerifyTask}
         />
-      ))}
-    </div>
+      )}
+    />
   );
 }
 
-export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles }) {
+export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles, adminProfiles = [] }) {
   const [year, setYear] = useState(currentGoalYear());
   const [tab, setTab] = useState("my_tasks");
   const [manageUserId, setManageUserId] = useState("");
@@ -1081,6 +1373,10 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
   const [createGoalOpen, setCreateGoalOpen] = useState(false);
   const [createGoalUserId, setCreateGoalUserId] = useState(null);
   const [createGoalSelf, setCreateGoalSelf] = useState(false);
+  const [editOwnershipGoal, setEditOwnershipGoal] = useState(null);
+  const [myGoalsOwnershipDetail, setMyGoalsOwnershipDetail] = useState(null);
+  const [manageOwnershipDetail, setManageOwnershipDetail] = useState(null);
+  const [completedOwnershipDetail, setCompletedOwnershipDetail] = useState(null);
   const [allTeamTasks, setAllTeamTasks] = useState([]);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [myTasksPriorityFilter, setMyTasksPriorityFilter] = useState("all");
@@ -1092,9 +1388,19 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
     return [y - 1, y, y + 1];
   }, []);
 
+  const manageProfiles = useMemo(() => {
+    const map = new Map((teamProfiles ?? []).map((p) => [p.id, { ...p }]));
+    for (const profile of adminProfiles ?? []) {
+      map.set(profile.id, { ...map.get(profile.id), ...profile });
+    }
+    return [...map.values()]
+      .filter((profile) => profile.is_active !== false)
+      .sort((a, b) => profileDisplayName(a).localeCompare(profileDisplayName(b)));
+  }, [teamProfiles, adminProfiles]);
+
   const profilesById = useMemo(
-    () => new Map((teamProfiles ?? []).map((p) => [p.id, p])),
-    [teamProfiles]
+    () => new Map(manageProfiles.map((p) => [p.id, p])),
+    [manageProfiles]
   );
 
   const loadGoalDetails = useCallback(async (goals) => {
@@ -1180,11 +1486,30 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
   }, [sessionUserId, reload]);
 
   useEffect(() => {
-    if (isAdmin && !manageUserId && teamProfiles?.length) {
-      const first = teamProfiles.find((p) => p.id !== sessionUserId) ?? teamProfiles[0];
+    if (isAdmin && !manageUserId && manageProfiles.length) {
+      const first = manageProfiles.find((p) => p.id !== sessionUserId) ?? manageProfiles[0];
       if (first) setManageUserId(first.id);
     }
-  }, [isAdmin, manageUserId, teamProfiles, sessionUserId]);
+  }, [isAdmin, manageUserId, manageProfiles, sessionUserId]);
+
+  useEffect(() => {
+    setManageOwnershipDetail(null);
+  }, [manageUserId]);
+
+  useEffect(() => {
+    setMyGoalsOwnershipDetail(null);
+    setManageOwnershipDetail(null);
+    setCompletedOwnershipDetail(null);
+  }, [tab, year]);
+
+  async function handleUpdateGoalPriority(goalId, priority) {
+    try {
+      await updateGoalPriority(goalId, priority);
+      void reload({ silent: true });
+    } catch (e) {
+      alert(e.message || "Could not update goal priority.");
+    }
+  }
 
   async function handleDeleteGoal(goalId) {
     if (
@@ -1269,10 +1594,58 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
     () => partitionGoalsByCompletion(myGoals),
     [myGoals]
   );
-  const { active: managedGoalsActive, completed: managedGoalsCompleted } = useMemo(
+  const { completed: managedGoalsCompleted } = useMemo(
     () => partitionGoalsByCompletion(managedGoals),
     [managedGoals]
   );
+
+  const ownershipSuggestions = useMemo(
+    () => collectOwnershipLabelsFromGoals([...myGoals, ...managedGoals]),
+    [myGoals, managedGoals]
+  );
+
+  const myGoalsActiveGroups = useMemo(() => groupGoalsByOwnership(myGoalsActive), [myGoalsActive]);
+  const managedGoalsAllGroups = useMemo(
+    () => groupGoalsByOwnership(managedGoals),
+    [managedGoals]
+  );
+
+  const goalCardHandlers = {
+    onToggleGoalComplete: handleToggleGoalComplete,
+    onToggleTaskComplete: handleToggleTaskComplete,
+    onVerifyGoal: handleVerifyGoal,
+    onVerifyTask: handleVerifyTask,
+    onRequestRejectGoal: (goal) => setRejectTarget({ kind: "goal", id: goal.id, title: goal.title }),
+    onRequestRejectTask: (task) => setRejectTarget({ kind: "task", id: task.id, title: task.title })
+  };
+
+  function renderGoalCard(goal, { isOwner = false, isAdminView = false, fullView = false } = {}) {
+    return (
+      <GoalCard
+        key={goal.id}
+        fullView={fullView}
+        goal={goal}
+        tasks={goalTasksMap[goal.id] ?? []}
+        remarks={goalRemarksMap[goal.id] ?? []}
+        taskRemarksMap={taskRemarksMap}
+        isAdmin={isAdminView || isAdmin}
+        isOwner={isOwner}
+        sessionUserId={sessionUserId}
+        teamProfiles={teamProfiles}
+        onAssignTask={(g) => {
+          setAssignGoalId(g.id);
+          setAssignDefaultUserId(g.user_id);
+          setAssignOpen(true);
+        }}
+        onUpdateStatus={setStatusTarget}
+        onEditOwnership={setEditOwnershipGoal}
+        onUpdateGoalPriority={handleUpdateGoalPriority}
+        onDeleteGoal={handleDeleteGoal}
+        onDeleteTask={handleDeleteTask}
+        {...goalCardHandlers}
+      />
+    );
+  }
 
   const goalTitleById = useMemo(() => {
     const map = new Map();
@@ -1290,23 +1663,14 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
     return [...map.values()];
   }, [myGoalsCompleted, managedGoalsCompleted]);
 
-  const goalCardHandlers = {
-    onToggleGoalComplete: handleToggleGoalComplete,
-    onToggleTaskComplete: handleToggleTaskComplete,
-    onVerifyGoal: handleVerifyGoal,
-    onVerifyTask: handleVerifyTask,
-    onRequestRejectGoal: (goal) => setRejectTarget({ kind: "goal", id: goal.id, title: goal.title }),
-    onRequestRejectTask: (task) => setRejectTarget({ kind: "task", id: task.id, title: task.title })
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Goals & Tasks</h2>
           <p className="text-sm text-muted-foreground">
-            Tasks stay on their goal — mark complete for verification. Only goals move to{" "}
-            <strong>Completed</strong> when done.
+            Goals group as <strong>Ownership → Goal → Tasks</strong>. Mark complete for verification; done
+            goals move to <strong>Completed</strong>.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -1349,7 +1713,7 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
           <TabsTrigger value="assigned_by_me">Assigned by me</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
           {isAdmin ? <TabsTrigger value="team_tasks">All team tasks</TabsTrigger> : null}
-          {isAdmin ? <TabsTrigger value="manage">Manage users</TabsTrigger> : null}
+          {isAdmin ? <TabsTrigger value="manage">Manage User Goals</TabsTrigger> : null}
         </TabsList>
 
         {loading ? (
@@ -1360,21 +1724,23 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
         ) : (
           <>
             <TabsContent value="my_goals" className="space-y-4 pt-4">
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setCreateGoalUserId(sessionUserId);
-                    setCreateGoalSelf(true);
-                    setCreateGoalOpen(true);
-                  }}
-                >
-                  <Plus className="size-4" />
-                  Create my goal
-                </Button>
-              </div>
+              {!myGoalsOwnershipDetail ? (
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCreateGoalUserId(sessionUserId);
+                      setCreateGoalSelf(true);
+                      setCreateGoalOpen(true);
+                    }}
+                  >
+                    <Plus className="size-4" />
+                    Create my goal
+                  </Button>
+                </div>
+              ) : null}
               {myGoalsActive.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center gap-2 p-8 text-center text-sm text-muted-foreground">
@@ -1384,28 +1750,31 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
                   </CardContent>
                 </Card>
               ) : (
-                myGoalsActive.map((goal) => (
-                  <GoalCard
-                    key={goal.id}
-                    goal={goal}
-                    tasks={goalTasksMap[goal.id] ?? []}
-                    remarks={goalRemarksMap[goal.id] ?? []}
-                    taskRemarksMap={taskRemarksMap}
-                    isAdmin={isAdmin}
-                    isOwner
-                    sessionUserId={sessionUserId}
-                    teamProfiles={teamProfiles}
-                    onAssignTask={(goal) => {
-                      setAssignGoalId(goal.id);
-                      setAssignDefaultUserId(goal.user_id);
-                      setAssignOpen(true);
-                    }}
-                    onUpdateStatus={setStatusTarget}
-                    onDeleteGoal={handleDeleteGoal}
-                    onDeleteTask={handleDeleteTask}
-                    {...goalCardHandlers}
-                  />
-                ))
+                <GoalsOwnershipNavigator
+                  groups={myGoalsActiveGroups}
+                  goalTasksMap={goalTasksMap}
+                  detailKey={myGoalsOwnershipDetail}
+                  onSelectDetail={setMyGoalsOwnershipDetail}
+                  onBack={() => setMyGoalsOwnershipDetail(null)}
+                  toolbar={
+                    !myGoalsOwnershipDetail ? null : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCreateGoalUserId(sessionUserId);
+                          setCreateGoalSelf(true);
+                          setCreateGoalOpen(true);
+                        }}
+                      >
+                        <Plus className="size-4" />
+                        Create my goal
+                      </Button>
+                    )
+                  }
+                  renderGoalFull={(goal) => renderGoalCard(goal, { isOwner: true, fullView: true })}
+                />
               )}
             </TabsContent>
 
@@ -1468,6 +1837,9 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
                 isAdmin={isAdmin}
                 sessionUserId={sessionUserId}
                 teamProfiles={teamProfiles}
+                detailKey={completedOwnershipDetail}
+                onSelectDetail={setCompletedOwnershipDetail}
+                onBack={() => setCompletedOwnershipDetail(null)}
                 onToggleGoalComplete={handleToggleGoalComplete}
                 onToggleTaskComplete={handleToggleTaskComplete}
                 onRequestRejectGoal={(goal) =>
@@ -1478,6 +1850,8 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
                   setRejectTarget({ kind: "task", id: task.id, title: task.title })
                 }
                 onVerifyTask={handleVerifyTask}
+                onEditOwnership={setEditOwnershipGoal}
+                onUpdateGoalPriority={handleUpdateGoalPriority}
                 onDeleteGoal={handleDeleteGoal}
                 onDeleteTask={handleDeleteTask}
                 year={year}
@@ -1521,7 +1895,7 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
                         <SelectValue placeholder="Select user" />
                       </SelectTrigger>
                       <SelectContent>
-                        {teamProfiles.map((p) => (
+                        {manageProfiles.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
                             {profileDisplayName(p)}
                           </SelectItem>
@@ -1542,35 +1916,43 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
                     Create goal for user
                   </Button>
                 </div>
-                {managedGoalsActive.length === 0 ? (
+                {managedGoals.length === 0 ? (
                   <Card>
                     <CardContent className="p-6 text-sm text-muted-foreground">
-                      No active goals for {profileDisplayName(profilesById.get(manageUserId))} in {year}.
+                      No goals for {profileDisplayName(profilesById.get(manageUserId))} in {year}.
                     </CardContent>
                   </Card>
                 ) : (
-                  managedGoalsActive.map((goal) => (
-                    <GoalCard
-                      key={goal.id}
-                      goal={goal}
-                      tasks={goalTasksMap[goal.id] ?? []}
-                      remarks={goalRemarksMap[goal.id] ?? []}
-                      taskRemarksMap={taskRemarksMap}
-                      isAdmin
-                      isOwner={goal.user_id === sessionUserId}
-                      sessionUserId={sessionUserId}
-                      teamProfiles={teamProfiles}
-                      onAssignTask={(goal) => {
-                        setAssignGoalId(goal.id);
-                        setAssignDefaultUserId(goal.user_id);
-                        setAssignOpen(true);
-                      }}
-                      onUpdateStatus={setStatusTarget}
-                      onDeleteGoal={handleDeleteGoal}
-                      onDeleteTask={handleDeleteTask}
-                      {...goalCardHandlers}
-                    />
-                  ))
+                  <GoalsOwnershipNavigator
+                    groups={managedGoalsAllGroups}
+                    goalTasksMap={goalTasksMap}
+                    detailKey={manageOwnershipDetail}
+                    onSelectDetail={setManageOwnershipDetail}
+                    onBack={() => setManageOwnershipDetail(null)}
+                    toolbar={
+                      manageOwnershipDetail ? (
+                        <Button
+                          type="button"
+                          disabled={!manageUserId}
+                          onClick={() => {
+                            setCreateGoalUserId(manageUserId);
+                            setCreateGoalSelf(false);
+                            setCreateGoalOpen(true);
+                          }}
+                        >
+                          <Plus className="size-4" />
+                          Create goal for user
+                        </Button>
+                      ) : null
+                    }
+                    renderGoalFull={(goal) =>
+                      renderGoalCard(goal, {
+                        isOwner: goal.user_id === sessionUserId,
+                        isAdminView: true,
+                        fullView: true
+                      })
+                    }
+                  />
                 )}
               </TabsContent>
             ) : null}
@@ -1616,6 +1998,15 @@ export default function GoalTrackerPanel({ sessionUserId, isAdmin, teamProfiles 
         year={year}
         createdBy={sessionUserId}
         selfCreate={createGoalSelf}
+        ownershipSuggestions={ownershipSuggestions}
+        onSaved={reload}
+      />
+
+      <EditGoalOwnershipDialog
+        open={Boolean(editOwnershipGoal)}
+        onOpenChange={(open) => !open && setEditOwnershipGoal(null)}
+        goal={editOwnershipGoal}
+        ownershipSuggestions={ownershipSuggestions}
         onSaved={reload}
       />
     </div>

@@ -1,0 +1,289 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Scott Dashboard — Stock API",
+    "description": "Machine-to-machine stock API for Scott International backend.\n\n**Auth:** Bearer `DASHBOARD_API_KEY` (Supabase Edge Function secret — not Supabase JWT).\n\n**Docs:** `docs/DASHBOARD_STOCK_API.md`\n\nImport the matching environment (staging or production) and set `DASHBOARD_API_KEY` if blank.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{DASHBOARD_API_KEY}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://scvojtvgnkmbupvyslmb.supabase.co/functions/v1/dashboard-stock-api"
+    },
+    {
+      "key": "facility_code",
+      "value": "SCOTT_1DAY_01"
+    },
+    {
+      "key": "sku_code",
+      "value": "SKU-COTTON-WHT-M"
+    },
+    {
+      "key": "sku_code_2",
+      "value": "SKU-COTTON-WHT-L"
+    },
+    {
+      "key": "order_code",
+      "value": "P-53011"
+    },
+    {
+      "key": "reservation_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Stock",
+      "item": [
+        {
+          "name": "GET Snapshot — single SKU + facility",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/snapshot?skus={{sku_code}}&facility={{facility_code}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "snapshot"],
+              "query": [
+                { "key": "skus", "value": "{{sku_code}}" },
+                { "key": "facility", "value": "{{facility_code}}" }
+              ]
+            },
+            "description": "Available qty = on_hand − reserved. Response keys: `FACILITY:SKU_CODE`."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Snapshot — multiple SKUs (all facilities)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/snapshot?skus={{sku_code}},{{sku_code_2}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "snapshot"],
+              "query": [
+                { "key": "skus", "value": "{{sku_code}},{{sku_code_2}}" }
+              ]
+            },
+            "description": "Omit `facility` to return all facilities for listed SKUs."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Reserve stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.reservation_id) {",
+                  "    pm.collectionVariables.set('reservation_id', body.reservation_id);",
+                  "    pm.environment.set('reservation_id', body.reservation_id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_code\": \"{{order_code}}\",\n  \"facility_code\": \"{{facility_code}}\",\n  \"items\": [\n    {\n      \"sku_code\": \"{{sku_code}}\",\n      \"item_code\": \"P-1-4201-88\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/reserve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "reserve"]
+            },
+            "description": "Hold stock for RMP order. **201** on success. **409 INSUFFICIENT_STOCK** if short.\n\nTest script saves `reservation_id` for release/fulfill requests."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Release reservation — CANCELLED",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/reserve/{{reservation_id}}?reason=CANCELLED",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "reserve", "{{reservation_id}}"],
+              "query": [
+                { "key": "reason", "value": "CANCELLED" }
+              ]
+            },
+            "description": "Release reserved stock. Idempotent if already released."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Release reservation — ORDER_EDIT",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/reserve/{{reservation_id}}?reason=ORDER_EDIT",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "reserve", "{{reservation_id}}"],
+              "query": [
+                { "key": "reason", "value": "ORDER_EDIT" }
+              ]
+            },
+            "description": "Release when order line items change."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Fulfill reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dispatched_at\": \"2026-06-30T14:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/fulfill/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "fulfill", "{{reservation_id}}"]
+            },
+            "description": "Deduct reserved stock when order dispatches. Body optional."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Adjust stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"facility_code\": \"{{facility_code}}\",\n  \"reason\": \"DAMAGE_WRITE_OFF\",\n  \"items\": [\n    { \"sku_code\": \"{{sku_code}}\", \"delta\": -1 },\n    { \"sku_code\": \"{{sku_code_2}}\", \"delta\": 10 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/adjust",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "adjust"]
+            },
+            "description": "Manual +/- correction. Negative delta cannot leave on_hand below reserved."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Happy path flow",
+      "description": "Run in order: Snapshot → Reserve → Fulfill (or Release instead of Fulfill).",
+      "item": [
+        {
+          "name": "1. Snapshot",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/snapshot?skus={{sku_code}}&facility={{facility_code}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "snapshot"],
+              "query": [
+                { "key": "skus", "value": "{{sku_code}}" },
+                { "key": "facility", "value": "{{facility_code}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Reserve",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('reservation_id', body.reservation_id);",
+                  "  pm.environment.set('reservation_id', body.reservation_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_code\": \"{{order_code}}\",\n  \"facility_code\": \"{{facility_code}}\",\n  \"items\": [\n    { \"sku_code\": \"{{sku_code}}\", \"item_code\": \"P-1-4201-88\", \"quantity\": 1 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/reserve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "reserve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Fulfill",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/fulfill/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "fulfill", "{{reservation_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3 alt. Release (cancel)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stock/reserve/{{reservation_id}}?reason=CANCELLED",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stock", "reserve", "{{reservation_id}}"],
+              "query": [
+                { "key": "reason", "value": "CANCELLED" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

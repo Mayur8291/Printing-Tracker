@@ -13,6 +13,8 @@ Annual goals, assignable tasks, and timestamped status remarks.
 | `year` | integer | Calendar year (annual cycle) |
 | `title` | text | Goal title |
 | `description` | text | Optional detail |
+| `ownership` | text | Grouping label (e.g. Sales, Operations). Null = uncategorized until user assigns in UI |
+| `priority` | text | `P0`, `P1`, `P2` (default `P2`) — same scale as tasks |
 | `status` | text | `not_started`, `in_progress`, `completed`, `on_hold` |
 | `created_by` | uuid | Admin who created the goal |
 | `created_at` / `updated_at` | timestamptz | Audit |
@@ -62,6 +64,8 @@ Annual goals, assignable tasks, and timestamped status remarks.
 | `20260709140000_task_verification_by_assigner.sql` | Task verify RLS: `assigned_by` not assignee |
 | `20260709150000_add_task_priority.sql` | `user_goal_tasks.priority` P0–P2 + assignee priority index |
 | `20260709160000_remove_task_priority_p3.sql` | Drop P3; migrate existing P3 → P2; default P2 |
+| `20260710140000_add_goal_ownership.sql` | `ownership` column on goals; RPC returns ownership |
+| `20260710150000_add_goal_priority.sql` | `priority` P0–P2 on goals; RPC updated |
 | `20260709170000_add_profile_notification_tones.sql` | `profiles.notification_tone_path`; `notification-tones` storage bucket |
 
 ### `profiles.avatar_path`

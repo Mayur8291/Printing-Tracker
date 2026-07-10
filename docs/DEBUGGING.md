@@ -1,5 +1,31 @@
 # Debugging
 
+## Goals: ownership column missing / create goal fails
+
+| | |
+|--|--|
+| **Symptom** | Create goal or set ownership fails; PostgREST error about `ownership` column. |
+| **Fix** | Apply migration `20260710140000_add_goal_ownership.sql` on the Supabase project (`supabase db push`). |
+
+## Goals: Manage User Goals tab empty but user has goals
+
+| | |
+|--|--|
+| **Symptom** | Admin picks user in **Manage User Goals** — shows “No goals” or empty grid, but user has goals in DB or **My goals**. |
+| **Root cause** | Tab previously showed **active goals only** (`status !== completed`). Users whose goals are all marked complete looked empty; completed goals live in **Completed** tab globally, not per-user in manage view. |
+| **Fix** | Manage tab now loads **all** goals for the selected user (active + completed) with tasks. Tab label is **Manage User Goals** (was “Manage users”). |
+| **Verify** | Goals & Tasks → Manage User Goals → pick user with only completed goals → ownership cards and goal detail with tasks appear. |
+
+## Order history modal not visible (View order)
+
+| | |
+|--|--|
+| **Symptom** | Click **Order history** in View order — nothing appears, or modal hidden behind dialog. |
+| **Root cause** | History modal rendered inside app shell; Radix View order `Dialog` portals to `document.body` at `z-50` and stacks above in-app fixed layers. Focus trap also blocked interaction. |
+| **Fix (2026-07-10)** | `OrderHistoryModal` portaled to `document.body` (`z-index: 2000`); View order `Dialog` uses `modal={false}` while history open (same pattern as mockup preview). History button always shown in order detail footer (not gated on edit permissions). |
+| **Empty list** | `No activity yet` = table exists but no rows for that job; trigger `log_order_activity()` only logs changes after migration — not backfilled. |
+| **SQL check** | `SELECT event_type, message, created_at FROM order_activity_log WHERE order_id = <id> ORDER BY created_at DESC;` |
+
 ## Dashboard Stock API returns 401 UNAUTHORIZED
 
 | | |
