@@ -1,3 +1,8 @@
+---
+description: Local dev must use staging Supabase only (see staging-first-supabase.mdc for migrations/deploy)
+alwaysApply: true
+---
+
 # Staging-only during development
 
 ## Local app
@@ -8,10 +13,10 @@
 
 ## Supabase MCP / SQL / migrations
 
-- **Development tasks:** use staging project `scvojtvgnkmbupvyslmb` (`user-supabase staging` MCP server).
-- **Do not** run `apply_migration`, `execute_sql` DDL, or schema experiments on production unless the user explicitly requests a production release.
-- Production DB changes belong in the release flow: QA on staging → merge to `main` → `supabase link --project-ref levwrmvqdntngeasrtnb` → `db push`.
+- **Development tasks:** use staging project `scvojtvgnkmbupvyslmb` only.
+- **Do not** run `apply_migration`, `execute_sql` DDL, `db push`, or edge function deploy on production unless the user **explicitly** requests a production release.
+- Full policy: `.cursor/rules/staging-first-supabase.mdc`.
 
 ## Production ref (read-only during dev)
 
-- `levwrmvqdntngeasrtnb` — live Printing Live tracker data (~300 orders).
+- `levwrmvqdntngeasrtnb` — live Printing Live tracker data (~300 orders). Touch only on explicit user request.

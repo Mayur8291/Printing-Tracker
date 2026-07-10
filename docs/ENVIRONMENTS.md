@@ -27,7 +27,7 @@ npm install
 npm run dev
 ```
 
-Schema changes: apply migrations to **staging** first (`supabase link` to staging ref, then push). **First-time staging:** run `schema.sql` in SQL Editor, then `migration repair` — see [supabase/README-staging.md](../supabase/README-staging.md) (do not run bare `db push` on an empty project).
+Schema changes: apply migrations to **staging** first (`supabase link --project-ref scvojtvgnkmbupvyslmb`, then `db push`). **Never** push migrations or deploy edge functions to production unless you explicitly request a production release. See `.cursor/rules/staging-first-supabase.mdc`. **First-time staging:** run `schema.sql` in SQL Editor, then `migration repair` — see [supabase/README-staging.md](../supabase/README-staging.md) (do not run bare `db push` on an empty project).
 
 ---
 

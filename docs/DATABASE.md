@@ -1,5 +1,28 @@
 # Database
 
+## Password reset requests
+
+Admin-approved forgot-password flow from login screen.
+
+### `password_reset_requests`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | FK → `profiles.id` |
+| `email` | text | Requester email (denormalized for admin list) |
+| `requester_role` | text | `viewer` or `admin` |
+| `routing` | text | `panel_admin` (any admin approves) or `main_admin` (only `admin@scott.com`) |
+| `status` | text | `pending`, `approved`, `rejected`, `completed` |
+| `admin_note` | text | Optional reviewer note |
+| `requested_at` | timestamptz | When user submitted |
+| `reviewed_by` | uuid | FK → `profiles.id` — approving admin |
+| `reviewed_at` | timestamptz | When approved/rejected |
+| `approved_expires_at` | timestamptz | User must set password before this (7 days after approve) |
+| `completed_at` | timestamptz | When user finished password change |
+
+**Migration:** `20260710160000_add_password_reset_requests.sql` — table + RLS (admin select/update only; public writes via Edge Functions).
+
 ## Goal tracker
 
 Annual goals, assignable tasks, and timestamped status remarks.

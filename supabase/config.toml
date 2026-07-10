@@ -3,6 +3,11 @@
 # npx supabase functions deploy admin-delete-user
 # npx supabase functions deploy admin-reset-password
 # npx supabase functions deploy admin-promote-production
+# npx supabase functions deploy request-password-reset
+# npx supabase functions deploy check-password-reset-status
+# npx supabase functions deploy complete-password-reset
+# npx supabase functions deploy admin-review-password-reset
+# npx supabase functions deploy admin-list-password-reset-requests
 
 [functions.admin-create-user]
 verify_jwt = true
@@ -14,6 +19,21 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.admin-promote-production]
+verify_jwt = true
+
+[functions.request-password-reset]
+verify_jwt = false
+
+[functions.check-password-reset-status]
+verify_jwt = false
+
+[functions.complete-password-reset]
+verify_jwt = false
+
+[functions.admin-review-password-reset]
+verify_jwt = true
+
+[functions.admin-list-password-reset-requests]
 verify_jwt = true
 
 [functions.dashboard-stock-api]

@@ -16,6 +16,15 @@
 | **Fix** | Manage tab now loads **all** goals for the selected user (active + completed) with tasks. Tab label is **Manage User Goals** (was “Manage users”). |
 | **Verify** | Goals & Tasks → Manage User Goals → pick user with only completed goals → ownership cards and goal detail with tasks appear. |
 
+## Password reset: user cannot set password after approval
+
+| | |
+|--|--|
+| **Symptom** | Admin approved request but login still shows pending or “no approved request”. |
+| **Root cause** | Edge functions not deployed, migration not applied, or approval expired (`approved_expires_at` past 7 days). |
+| **Fix** | Run `supabase db push` + deploy all four password-reset edge functions on **the same Supabase project your app uses**. Local `npm run dev` uses **staging** (`.env.development` → `scvojtvgnkmbupvyslmb`); production Netlify uses `levwrmvqdntngeasrtnb`. Deploy to both if you test locally and on live site. After migrate, apply `20260710161000_reload_schema_password_reset.sql` or wait ~30s. Ensure `VITE_SUPABASE_ANON_KEY` has no space after `=`. Restart dev server after `.env` change. |
+| **Admin-user requests** | Only `admin@scott.com` sees and can approve `routing = main_admin` rows in **Password resets** tab. |
+
 ## Order history modal not visible (View order)
 
 | | |

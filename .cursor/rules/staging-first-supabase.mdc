@@ -1,0 +1,65 @@
+---
+description: Staging-first Supabase — migrations, SQL, edge functions; never production unless user explicitly asks
+alwaysApply: true
+---
+
+# Staging-first Supabase (mandatory)
+
+## Default rule
+
+**All database and Supabase backend changes go to STAGING first. Do not touch production unless the user explicitly asks for a production deploy/release.**
+
+| Environment | Supabase project ref | When to use |
+|-------------|----------------------|-------------|
+| **Staging** | `scvojtvgnkmbupvyslmb` | Always — daily dev, migrations, edge functions, MCP SQL |
+| **Production** | `levwrmvqdntngeasrtnb` | Only when user explicitly says production release / deploy to prod |
+
+## Before any Supabase work
+
+1. Confirm target is **staging** (`scvojtvgnkmbupvyslmb`).
+2. Run `npm run check:env` when changing local env or before DB work.
+3. Link CLI to staging before push/deploy:
+   ```bash
+   npx supabase link --project-ref scvojtvgnkmbupvyslmb
+   ```
+
+## Allowed on staging (default)
+
+- Write migration files in `supabase/migrations/`
+- `npx supabase db push` (staging link only)
+- `NOTIFY pgrst, 'reload schema'` / schema repair on staging
+- `npx supabase functions deploy <name>` (staging link only)
+- Supabase MCP / SQL on staging project
+
+## Forbidden without explicit user request
+
+- `npx supabase link --project-ref levwrmvqdntngeasrtnb`
+- `db push`, `migration repair`, or DDL on production
+- Deploy edge functions to production
+- `apply_migration` or destructive SQL on production MCP
+
+If the user says **"commit"**, **"push to develop"**, or **"fix locally"** — that is **not** permission to change production Supabase.
+
+## Production promotion (only when user asks)
+
+User must explicitly request production, e.g. *"deploy to production"*, *"push migration to prod"*, *"release to production"*.
+
+Then:
+
+1. Staging already applied and verified.
+2. `npx supabase link --project-ref levwrmvqdntngeasrtnb`
+3. `npx supabase db push` and/or `functions deploy`
+4. Tell user what was applied to production.
+5. Re-link to staging when done unless user wants prod link kept:
+   ```bash
+   npx supabase link --project-ref scvojtvgnkmbupvyslmb
+   ```
+
+## Local app
+
+- `npm run dev` / `npm run dev:staging` → `.env.development` / `.env.staging` → staging keys only.
+- Never point dev env at production ref `levwrmvqdntngeasrtnb`.
+
+## Why
+
+Production has live data (~300+ orders). Staging-first prevents accidental schema/function drift and outages like deploying to prod while local dev uses staging.

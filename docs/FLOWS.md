@@ -242,3 +242,26 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 1. **Trigger:** User opens **Home** tab.
 2. **Services:** `fetchGoalsForUser()` + `fetchMyAssignedTasks()` for current year.
 3. **Display:** Counts (goals, open tasks, overdue) + upcoming deadlines; link to full panel.
+
+## Password reset (admin-approved)
+
+### User requests reset (login screen)
+
+1. **Trigger:** User clicks **Forgot password?** on login.
+2. **Input:** Email → **Request password reset** (or **Check status** if already submitted).
+3. **Services:** Edge `request-password-reset` → row in `password_reset_requests` (`pending`). Admin users route to `main_admin` (only `admin@scott.com` may approve).
+4. **Exit:** Message that admin will review; status **pending**.
+
+### Admin approves or rejects
+
+1. **Trigger:** Admin opens **Admin panel → Password resets**.
+2. **Services:** Edge `admin-review-password-reset` with `approve` or `reject`. Approve sets `approved_expires_at` (+7 days).
+3. **Failure:** Non–main-admin cannot approve `main_admin` routing requests.
+4. **Exit:** User may set password on login when status is **approved**.
+
+### User sets new password (login screen only)
+
+1. **Trigger:** User returns to login → **Forgot password?** → enter email → **Check status** (or auto-check on blur).
+2. **When approved:** New password + confirm fields appear.
+3. **Services:** Edge `complete-password-reset` → `auth.admin.updateUserById` + request `completed`.
+4. **Exit:** User signs in with new password on same login screen.

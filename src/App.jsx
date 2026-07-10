@@ -16,6 +16,7 @@ import TeamChatPanel from "./TeamChatPanel";
 import ContactBookPanel from "./ContactBookPanel";
 import GoalTrackerPanel from "./GoalTrackerPanel";
 import AdminRolesGoalsPanel from "./AdminRolesGoalsPanel";
+import AdminPasswordResetRequestsPanel from "./AdminPasswordResetRequestsPanel";
 import HomeGoalTrackerPanel from "./components/goals/HomeGoalTrackerPanel";
 import AssetManagementPanel from "./AssetManagementPanel";
 import HomeStatusPanel from "./components/home/HomeStatusPanel";
@@ -25,6 +26,11 @@ import PrintingOrderProductField from "./components/orders/PrintingOrderProductF
 import MasterListSelectField from "./components/admin/MasterListSelectField";
 import { fetchInventoryProductsForPicker } from "./inventory/inventoryProductPickerUtils";
 import LoginPage from "./components/auth/LoginPage";
+import {
+  checkPasswordResetStatus,
+  completePasswordReset,
+  requestPasswordReset
+} from "./passwordResetUtils";
 import DashboardShell from "./components/layout/DashboardShell";
 import ThemeToggleButton from "./components/layout/ThemeToggleButton";
 import { Button } from "./components/ui/button";
@@ -674,6 +680,15 @@ function App() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [loginMode, setLoginMode] = useState("signIn");
+  const [forgotStatus, setForgotStatus] = useState("none");
+  const [forgotInfo, setForgotInfo] = useState("");
+  const [forgotBusy, setForgotBusy] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [theme, setTheme] = useState(() => {
     if (typeof window === "undefined") return "light";
     return window.localStorage.getItem("printing-tracker-theme") === "dark" ? "dark" : "light";
@@ -1613,9 +1628,95 @@ function App() {
   async function handleSignIn(e) {
     e.preventDefault();
     setAuthLoading(true);
+    setAuthError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
+    if (error) setAuthError(error.message);
     setAuthLoading(false);
+  }
+
+  function resetForgotFlow() {
+    setLoginMode("signIn");
+    setForgotStatus("none");
+    setForgotInfo("");
+    setAuthError("");
+    setNewPassword("");
+    setConfirmPassword("");
+  }
+
+  async function handleCheckForgotStatus(e) {
+    e?.preventDefault?.();
+    const trimmed = String(email ?? "").trim();
+    if (!trimmed) {
+      setAuthError("Enter your email first.");
+      return;
+    }
+    setForgotBusy(true);
+    setAuthError("");
+    setForgotInfo("");
+    try {
+      const result = await checkPasswordResetStatus(trimmed);
+      const status = result?.status ?? "none";
+      setForgotStatus(status);
+      if (result?.message) setForgotInfo(result.message);
+      else if (status === "pending") {
+        setForgotInfo("Your request is waiting for admin approval.");
+      } else if (status === "approved") {
+        setForgotInfo("Approved. Enter and confirm your new password below.");
+      } else if (status === "none") {
+        setForgotInfo("No open request. Submit a new password reset request.");
+      }
+    } catch (err) {
+      setAuthError(err.message || "Could not check reset status.");
+    } finally {
+      setForgotBusy(false);
+    }
+  }
+
+  async function handleRequestPasswordReset(e) {
+    e?.preventDefault?.();
+    const trimmed = String(email ?? "").trim();
+    if (!trimmed) {
+      setAuthError("Enter your email first.");
+      return;
+    }
+    setForgotBusy(true);
+    setAuthError("");
+    setForgotInfo("");
+    try {
+      const result = await requestPasswordReset(trimmed);
+      const status = result?.status ?? "pending";
+      setForgotStatus(status === "approved" ? "approved" : "pending");
+      setForgotInfo(result?.message || "Request submitted. An admin will review it.");
+    } catch (err) {
+      setAuthError(err.message || "Could not submit reset request.");
+    } finally {
+      setForgotBusy(false);
+    }
+  }
+
+  async function handleCompletePasswordReset(e) {
+    e?.preventDefault?.();
+    const trimmed = String(email ?? "").trim();
+    if (!trimmed) {
+      setAuthError("Enter your email first.");
+      return;
+    }
+    setForgotBusy(true);
+    setAuthError("");
+    setForgotInfo("");
+    try {
+      const result = await completePasswordReset(trimmed, newPassword, confirmPassword);
+      setForgotInfo(result?.message || "Password updated. You can sign in now.");
+      setNewPassword("");
+      setConfirmPassword("");
+      setForgotStatus("none");
+      setLoginMode("signIn");
+      setPassword("");
+    } catch (err) {
+      setAuthError(err.message || "Could not update password.");
+    } finally {
+      setForgotBusy(false);
+    }
   }
 
   async function handleSignOut() {
@@ -4334,15 +4435,37 @@ function App() {
   if (!session) {
     return (
       <LoginPage
+        mode={loginMode}
         email={email}
         password={password}
+        newPassword={newPassword}
+        confirmPassword={confirmPassword}
         showPassword={showPassword}
-        authError=""
+        showNewPassword={showNewPassword}
+        showConfirmPassword={showConfirmPassword}
+        authError={authError}
+        infoMessage={forgotInfo}
+        forgotStatus={forgotStatus}
         signingIn={authLoading}
+        forgotBusy={forgotBusy}
         onEmailChange={(e) => setEmail(e.target.value)}
         onPasswordChange={(e) => setPassword(e.target.value)}
+        onNewPasswordChange={(e) => setNewPassword(e.target.value)}
+        onConfirmPasswordChange={(e) => setConfirmPassword(e.target.value)}
         onTogglePassword={() => setShowPassword((v) => !v)}
+        onToggleNewPassword={() => setShowNewPassword((v) => !v)}
+        onToggleConfirmPassword={() => setShowConfirmPassword((v) => !v)}
         onSubmit={handleSignIn}
+        onForgotPassword={() => {
+          setLoginMode("forgot");
+          setAuthError("");
+          setForgotInfo("");
+          setForgotStatus("none");
+        }}
+        onBackToSignIn={resetForgotFlow}
+        onCheckForgotStatus={handleCheckForgotStatus}
+        onRequestPasswordReset={handleRequestPasswordReset}
+        onCompletePasswordReset={handleCompletePasswordReset}
         themeToggle={
           <ThemeToggleButton
             theme={theme}
@@ -5705,6 +5828,15 @@ function App() {
                     >
                       Roles &amp; goals
                     </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={masterListView === "password_reset"}
+                      className={masterListView === "password_reset" ? "master-view-tab is-active" : "master-view-tab"}
+                      onClick={() => setMasterListView("password_reset")}
+                    >
+                      Password resets
+                    </button>
                     {showAdminDeployTools && (
                       <button
                         type="button"
@@ -5947,6 +6079,10 @@ function App() {
 
                   {masterListView === "roles_goals" && (
                     <AdminRolesGoalsPanel profiles={viewerProfiles} teamProfiles={teamProfiles} />
+                  )}
+
+                  {masterListView === "password_reset" && (
+                    <AdminPasswordResetRequestsPanel profile={profile} />
                   )}
 
                   {masterListView === "list" && (

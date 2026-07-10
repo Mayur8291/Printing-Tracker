@@ -32,7 +32,8 @@ export async function messageFromFunctionInvoke(error, response) {
     return (
       "Edge function not reachable (often not deployed on this Supabase project). " +
       "An admin must run: npx supabase link --project-ref YOUR_PROJECT_REF && " +
-      "npx supabase functions deploy admin-promote-production. See docs/RELEASE_AUTOMATION.md."
+      "npx supabase functions deploy <function-name>. " +
+      "For password reset: request-password-reset check-password-reset-status complete-password-reset admin-review-password-reset"
     );
   }
   if (/edge function returned a non-2xx/i.test(msg)) {
@@ -64,16 +65,39 @@ async function accessTokenForInvoke() {
  */
 export async function invokeAdminEdgeFunction(functionName, body) {
   const accessToken = await accessTokenForInvoke();
+  const supabaseUrl = String(import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const anonKey = String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? "").trim();
 
-  const { data, error, response } = await supabase.functions.invoke(functionName, {
-    body,
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-
-  if (error) {
-    throw new Error(await messageFromFunctionInvoke(error, response));
+  let response;
+  try {
+    response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+        Authorization: `Bearer ${accessToken}`
+      },
+      body: JSON.stringify(body ?? {})
+    });
+  } catch {
+    const ref = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] ?? "unknown";
+    throw new Error(
+      `Cannot reach ${functionName} on Supabase project ${ref}. ` +
+        `Deploy with: npx supabase link --project-ref ${ref} && npx supabase functions deploy ${functionName}`
+    );
   }
-  if (data && typeof data === "object" && "error" in data && data.error) {
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || data?.message || `Request failed (${response.status})`);
+  }
+  if (data && typeof data === "object" && data.error) {
     throw new Error(String(data.error));
   }
 

@@ -1,5 +1,6 @@
 export function isSchemaCacheError(message) {
-  return String(message ?? "").toLowerCase().includes("schema cache");
+  const text = String(message ?? "").toLowerCase();
+  return text.includes("schema cache") || text.includes("could not find the table");
 }
 
 export function isMissingPostgrestTableError(message) {

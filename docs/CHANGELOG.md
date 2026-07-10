@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-10 — Policy: staging-first Supabase (migrations & edge functions)
+
+- **Rule:** All `supabase db push`, migrations, and `functions deploy` default to **staging** (`scvojtvgnkmbupvyslmb`) only. Production (`levwrmvqdntngeasrtnb`) changes require explicit user request for production release.
+- **Files:** `.cursor/rules/staging-first-supabase.mdc`, `.cursor/rules/staging-only-dev.mdc`, `docs/ENVIRONMENTS.md`.
+
+## 2026-07-10 — Admin-approved password reset (login forgot password)
+
+- **Feature:** Login **Forgot password?** → user submits reset request → admin approves in **Admin panel → Password resets** → user sets new password on login screen only (7-day approval window).
+- **Routing:** Viewer requests → any admin; **admin** user requests → **main admin only** (`admin@scott.com`).
+- **Migration:** `20260710160000_add_password_reset_requests.sql`.
+- **Edge functions:** `request-password-reset`, `check-password-reset-status`, `complete-password-reset`, `admin-review-password-reset`.
+- **Files:** `LoginPage.jsx`, `AdminPasswordResetRequestsPanel.jsx`, `passwordResetUtils.js`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md, API.md.
+
 ## 2026-07-10 — Manage User Goals: show all user goals (incl. completed)
 
 - **Issue:** Admin **Manage User Goals** tab looked empty when selected user only had completed goals — tab filtered to active goals only.

@@ -68,7 +68,12 @@ const { data, error } = await supabase.rpc('mark_conversation_read', {
 |----------|------|---------|
 | `admin-create-user` | Admin JWT | Create user + profile |
 | `admin-delete-user` | Admin JWT | Delete user |
-| `admin-reset-password` | Admin JWT | Reset password |
+| `admin-reset-password` | Admin JWT | Reset password (direct set) |
+| `admin-review-password-reset` | Admin JWT | Approve/reject user reset request |
+| `admin-list-password-reset-requests` | Admin JWT | List reset requests (bypasses PostgREST client cache) |
+| `request-password-reset` | Public (anon) | Submit forgot-password request from login |
+| `check-password-reset-status` | Public (anon) | Check pending/approved status for email |
+| `complete-password-reset` | Public (anon) | Set new password after admin approval |
 | `admin-promote-production` | Admin JWT | Trigger GitHub release |
 | `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International stock M2M API (snapshot, reserve, fulfill, adjust) |
 | `tenor-gif-search` | Optional | Legacy GIF proxy |

@@ -1595,3 +1595,21 @@ create table if not exists public.order_status_notifications (
   changed_by_user_id uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+create table if not exists public.password_reset_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  email text not null,
+  requester_role text not null default 'viewer'
+    check (requester_role in ('viewer', 'admin')),
+  routing text not null default 'panel_admin'
+    check (routing in ('panel_admin', 'main_admin')),
+  status text not null default 'pending'
+    check (status in ('pending', 'approved', 'rejected', 'completed')),
+  admin_note text,
+  requested_at timestamptz not null default now(),
+  reviewed_by uuid references public.profiles(id) on delete set null,
+  reviewed_at timestamptz,
+  approved_expires_at timestamptz,
+  completed_at timestamptz
+);
