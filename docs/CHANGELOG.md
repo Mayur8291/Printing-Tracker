@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-13 — Mobile app integration guide for Dashboard Stock API
+
+- **Docs:** New [MOBILE_API_INTEGRATION.md](./MOBILE_API_INTEGRATION.md) — staging base URL + API key, all 5 stock endpoints with request/response samples, error-handling table, Flutter/Dart and React Native client code, webhook HMAC verification, staging testing checklist, production go-live steps.
+- **Verified:** All endpoints smoke-tested on staging (`scvojtvgnkmbupvyslmb`): 401 without key, snapshot 200, reserve 409 `INSUFFICIENT_STOCK` for unavailable SKU, release/fulfill 404 for unknown reservation, adjust 200. Production function **not deployed** (staging-first policy; deploy on explicit release request).
+- **Files:** `docs/MOBILE_API_INTEGRATION.md`, `docs/API.md`, `docs/CHANGELOG.md`.
+
 ## 2026-07-10 — Admin Roles & goals: minimal left-aligned user cards
 
 - **UI:** User grid cards are full-width left column — name, one role line, one goals summary line, progress bar. Removed avatar/icons and extra task lines from overview cards; goal cards show title + one status line only.

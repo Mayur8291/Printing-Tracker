@@ -78,7 +78,7 @@ const { data, error } = await supabase.rpc('mark_conversation_read', {
 | `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International stock M2M API (snapshot, reserve, fulfill, adjust) |
 | `tenor-gif-search` | Optional | Legacy GIF proxy |
 
-Full contract: [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) · OpenAPI: [openapi/dashboard-stock-api.yaml](./openapi/dashboard-stock-api.yaml)
+Full contract: [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) · OpenAPI: [openapi/dashboard-stock-api.yaml](./openapi/dashboard-stock-api.yaml) · Mobile integration guide (keys, code samples): [MOBILE_API_INTEGRATION.md](./MOBILE_API_INTEGRATION.md)
 
 Deploy: `supabase functions deploy <name>`
 
