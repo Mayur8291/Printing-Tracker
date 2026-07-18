@@ -30,7 +30,8 @@ export default function NewWarehouseModal({ onClose, onSubmit }) {
     name: "",
     city: "",
     type: WAREHOUSE_TYPES[0],
-    capacity: "1000"
+    capacity: "1000",
+    facilityCode: ""
   }));
   const [saving, setSaving] = useState(false);
 
@@ -46,7 +47,8 @@ export default function NewWarehouseModal({ onClose, onSubmit }) {
         name: form.name.trim(),
         city: form.city.trim(),
         type: form.type,
-        capacity: Number(form.capacity) || 0
+        capacity: Number(form.capacity) || 0,
+        facilityCode: form.facilityCode.trim()
       });
     } finally {
       setSaving(false);
@@ -103,6 +105,21 @@ export default function NewWarehouseModal({ onClose, onSubmit }) {
             <Label>Capacity (pallets)</Label>
             <Input type="number" min="0" value={form.capacity} onChange={(e) => set({ capacity: e.target.value })} required />
             <p className="text-xs text-muted-foreground">Used for utilization % on the warehouse dashboard.</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Facility code (external)</Label>
+            <Input
+              value={form.facilityCode}
+              onChange={(e) =>
+                set({ facilityCode: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "").trim() })
+              }
+              placeholder="SCOTT_1DAY_01"
+              className="font-mono"
+            />
+            <p className="text-xs text-muted-foreground">
+              Used by the Scott International stock API. Must match their facility code exactly.
+            </p>
           </div>
 
           <DialogFooter>

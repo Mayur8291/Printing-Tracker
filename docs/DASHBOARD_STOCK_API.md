@@ -35,7 +35,7 @@ Optional webhook secrets:
 
 Snapshot keys use **`FACILITY_CODE:SKU_CODE`** (e.g. `SCOTT_1DAY_01:SKU-COTTON-WHT-M`).
 
-Map warehouses in the dashboard: set `inventory_warehouses.facility_code` to the external code. Existing SKU stock is backfilled into `inventory_facility_stock` on migration.
+Map warehouses in the dashboard: set `inventory_warehouses.facility_code` to the external code — editable in the UI via **Inventory → Warehouses → Add warehouse → "Facility code (external)"** (warehouse cards show a "Not mapped" badge when unset). Existing SKU stock is backfilled into `inventory_facility_stock` on migration.
 
 ---
 

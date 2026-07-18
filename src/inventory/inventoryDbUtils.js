@@ -255,7 +255,8 @@ function mapWarehouseRow(w) {
     city: w.city,
     capacity: Number(w.capacity) || 0,
     used: 0,
-    type: w.warehouse_type
+    type: w.warehouse_type,
+    facilityCode: w.facility_code || ""
   };
 }
 
@@ -595,7 +596,8 @@ export async function insertWarehouse(record) {
         name: record.name,
         city: record.city || "",
         capacity: Number(record.capacity) || 0,
-        warehouse_type: record.type || ""
+        warehouse_type: record.type || "",
+        facility_code: record.facilityCode?.trim() || null
       })
       .select("*")
       .single()

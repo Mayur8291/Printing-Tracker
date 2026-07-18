@@ -95,6 +95,13 @@ export default function InventoryWarehousesPage({ onAddWarehouse }) {
                   <div>
                     <p className="text-sm font-semibold">{w.name}</p>
                     <p className="text-xs text-muted-foreground">{w.city}</p>
+                    {w.facilityCode ? (
+                      <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{w.facilityCode}</p>
+                    ) : (
+                      <Badge variant="outline" className="mt-0.5 text-[10px] font-normal text-muted-foreground">
+                        Not mapped
+                      </Badge>
+                    )}
                   </div>
                   <Badge variant="secondary" className="text-[10px]">
                     {w.type}
