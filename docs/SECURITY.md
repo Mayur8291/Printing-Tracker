@@ -20,6 +20,13 @@
 - HMAC-SHA256 body signature: header `X-Dashboard-Signature: sha256=<hex>`
 - Secret: `SCOTT_WEBHOOK_SECRET` (Edge Function secret)
 - Scott backend must verify signature before trusting payload
+- Connectivity test: admin edge function `admin-test-scott-webhook` (admin JWT) signs and sends a test event; the secret never reaches the browser — only the target base URL is sent from the client
+
+## Runtime environment toggle (admin header)
+
+- Admins can switch the browser between staging and production backends; choice lives in localStorage (`scott-dashboard-env-override`), not on the server.
+- Ships **anon keys only** for both projects (anon keys are public by design; RLS + JWT still gate all data).
+- Switching to production requires an inline confirmation ("live production data"); explicit override works in local dev too (console-warned). The dev hard block applies only when the **build default** (`.env` files) points at production without `VITE_ALLOW_PROD_IN_DEV=true`.
 
 ## Secrets inventory
 

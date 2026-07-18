@@ -1,4 +1,5 @@
 import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
+import { getRuntimeEnv } from "./runtimeEnv";
 
 export const MAIN_ADMIN_EMAIL = "admin@scott.com";
 
@@ -11,15 +12,16 @@ export function isMainAdminProfile(profile) {
 }
 
 function supabaseProjectRef() {
-  const url = String(import.meta.env.VITE_SUPABASE_URL ?? "");
+  const url = getRuntimeEnv().url;
   const match = url.match(/https:\/\/([^.]+)\.supabase\.co/i);
   return match?.[1] ?? "unknown";
 }
 
 /** Public Edge Function invoke (login screen — no session). Uses fetch + anon JWT. */
 export async function invokePublicEdgeFunction(functionName, body) {
-  const supabaseUrl = String(import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
-  const anonKey = String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? "").trim();
+  const runtime = getRuntimeEnv();
+  const supabaseUrl = runtime.url.replace(/\/$/, "");
+  const anonKey = runtime.anonKey;
   if (!supabaseUrl || !anonKey) {
     throw new Error("Missing Supabase env vars for password reset.");
   }

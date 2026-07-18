@@ -45,6 +45,7 @@ import BillingTabPanel from "./BillingTabPanel";
 import DispatchTabPanel from "./DispatchTabPanel";
 import GlobalSearchBox from "./GlobalSearchBox";
 import DevEnvironmentIndicator from "./components/DevEnvironmentIndicator";
+import EnvironmentSwitcherPopover from "./components/EnvironmentSwitcherPopover";
 import { OC_SELECT_FIELDS } from "./outwardChallanUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import OrdersListFilters from "./components/orders/OrdersListFilters";
@@ -5300,6 +5301,7 @@ function App() {
         topbarActions={
           <>
             <DevEnvironmentIndicator />
+            {isAdmin ? <EnvironmentSwitcherPopover /> : null}
             <GlobalSearchBox
               query={globalSearchQuery}
               onQueryChange={setGlobalSearchQuery}

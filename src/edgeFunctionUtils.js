@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { getRuntimeEnv } from "./runtimeEnv";
 
 /**
  * Read `{ error: "..." }` from a failed Edge Function invoke (FunctionsHttpError).
@@ -65,8 +66,9 @@ async function accessTokenForInvoke() {
  */
 export async function invokeAdminEdgeFunction(functionName, body) {
   const accessToken = await accessTokenForInvoke();
-  const supabaseUrl = String(import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
-  const anonKey = String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? "").trim();
+  const runtime = getRuntimeEnv();
+  const supabaseUrl = runtime.url.replace(/\/$/, "");
+  const anonKey = runtime.anonKey;
 
   let response;
   try {

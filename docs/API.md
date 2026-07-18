@@ -75,6 +75,7 @@ const { data, error } = await supabase.rpc('mark_conversation_read', {
 | `check-password-reset-status` | Public (anon) | Check pending/approved status for email |
 | `complete-password-reset` | Public (anon) | Set new password after admin approval |
 | `admin-promote-production` | Admin JWT | Trigger GitHub release |
+| `admin-test-scott-webhook` | Admin JWT | Send signed test `stock.level_changed` to Scott backend (`base_url` in body; needs `SCOTT_WEBHOOK_SECRET`) |
 | `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International stock M2M API (snapshot, reserve, fulfill, adjust) |
 | `tenor-gif-search` | Optional | Legacy GIF proxy |
 

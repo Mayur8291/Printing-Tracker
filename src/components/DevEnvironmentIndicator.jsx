@@ -1,11 +1,13 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { getDeployEnvironment } from "../deployEnvironmentUtils";
+import { getSupabaseProjectRef } from "../deployEnvironmentUtils";
+import { getRuntimeEnv } from "../runtimeEnv";
 
 export default function DevEnvironmentIndicator({ className }) {
   if (!import.meta.env.DEV) return null;
 
-  const env = getDeployEnvironment();
+  const runtime = getRuntimeEnv();
+  const env = { isProduction: runtime.env === "production", ref: getSupabaseProjectRef(runtime.url) };
 
   if (env.isProduction) {
     return (

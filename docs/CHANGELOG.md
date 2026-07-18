@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-07-18 — Env toggle: confirm-to-production instead of dev block; neutral placeholder
+
+- **Issue:** production side of the header toggle was disabled in local dev (looked broken), and the Scott REST URL input used a real backend IP as placeholder (looked like a wrongly saved value).
+- **Fix:** toggle now always works — switching to production shows an inline amber confirm ("live production data") before applying; explicit admin override is allowed in dev with a console warning. The hard dev block remains only for the real hazard: `.env` files whose **build default** points at production. Placeholder replaced with a neutral example URL.
+- **Files:** `runtimeEnv.js`, `supabaseClient.js`, `components/EnvironmentSwitcherPopover.jsx`.
+
+## 2026-07-18 — Admin header: Staging/Production toggle + Scott REST base URL
+
+- **Feature:** admin-only header popover (`EnvironmentSwitcherPopover`) with a Staging ↔ Production switch — choice saved in this browser (`scott-dashboard-env-override` in localStorage), app reloads on switch; sessions are per-project so first switch may require login. Production override is ignored in local dev unless `VITE_ALLOW_PROD_IN_DEV=true` (staging-first), silently falling back instead of blanking the app.
+- **Feature:** "Scott REST base URL" field (localStorage `scott-rest-base-url`) + **Send test webhook** button → new admin edge function `admin-test-scott-webhook` sends an HMAC-signed test `stock.level_changed` to `{base_url}/webhooks/stock/level_changed` using `SCOTT_WEBHOOK_SECRET` (10s timeout), returns delivery status. Deployed to staging.
+- **Refactor:** new `src/runtimeEnv.js` is the single source for the active Supabase URL/anon key; `supabaseClient`, `edgeFunctionUtils`, `passwordResetUtils`, `DevEnvironmentIndicator` read from it. Anon keys for both environments ship in the bundle (public by design); service keys/webhook secret stay server-side.
+- **Files:** `runtimeEnv.js`, `supabaseClient.js`, `edgeFunctionUtils.js`, `passwordResetUtils.js`, `components/EnvironmentSwitcherPopover.jsx`, `components/DevEnvironmentIndicator.jsx`, `App.jsx`, `supabase/functions/admin-test-scott-webhook/`, `supabase/config.toml`.
+- **Documentation updated:** CHANGELOG.md, API.md, SECURITY.md.
+
+## 2026-07-16 — Sync UI stock changes into facility stock (snapshot showed 0)
+
+- **Issue:** stock added via dashboard UI (PO receive, adjust, new SKU) only writes `inventory_skus.stock_qty`; the Stock API reads `inventory_facility_stock`, which was backfilled once and then drifted — snapshot returned 0 for SKUs with real on-hand stock.
+- **Fix:** migration `20260716140000_sync_sku_stock_to_facility.sql` — trigger `inventory_skus_sync_facility_stock` mirrors `stock_qty` deltas into `inventory_facility_stock` (upsert into the SKU's warehouse facility, `DEFAULT` fallback). Service-role writes are skipped so `dashboard-stock-api` fulfill/adjust (which maintain facility stock directly and write back `stock_qty`) do not double-count. One-time resync for single-facility SKUs, clamped to `reserved_qty`.
+- **Verified on staging:** snapshot 0 → 500 after resync; reserve 10 → 490; release → 500.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-16 — Inventory list shows Reserved / Available (oversell fix)
+
+- **Issue:** inventory list showed `inventory_skus.stock_qty` as sellable stock, but Stock API reservations only mutate `inventory_facility_stock.reserved_qty` — reserved units looked fully available (oversell risk). Only fulfill/adjust write back `stock_qty`.
+- **Fix:** `InventoryDataContext` fetches `inventory_sku_availability` (paged), exposes `availabilityBySku` (per-SKU aggregate + per-facility breakdown), subscribes to `inventory_facility_stock` realtime, fails soft to `stock_qty` on error. List page adds **Reserved** (amber + tooltip "Held for open orders — not available to sell") and **Available** columns (sortable) for fabric/trim/apparel incl. group rows; status/low-stock and stock bar now compare reorder point against **available**. KPIs (inventory value, units on hand, alert series) and context `alerts` use available qty.
+- **Migration:** `20260716130000_facility_stock_realtime.sql` — adds `inventory_facility_stock` to `supabase_realtime` publication (staging applied).
+- **Files:** `InventoryDataContext.jsx`, `pages/InventoryListPage.jsx`, `inventoryKpiUtils.js`, `pages/InventoryOverview.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-07-16 — Facility stock read access + availability view
+
+- **Migration:** `20260716120000_facility_stock_read_access.sql` (applied on **staging**; production pending explicit release).
+- **Access:** read-only SELECT policies + grants for `authenticated` on `inventory_facility_stock`, `inventory_stock_reservations`, `inventory_stock_reservation_items` — frontend previously got `[]` because `20260710120000` granted `service_role` only. Mutations remain edge-function only.
+- **View:** `inventory_sku_availability` (`security_invoker`) — per-SKU/per-facility `available_qty = greatest(0, on_hand − reserved)`.
+- **Backfill fix:** `inventory_facility_stock.facility_code` rows holding a warehouse id (old fallback, e.g. `WH-01`) rewritten to the warehouse's real `facility_code`; idempotent, merges quantities when the target row already exists.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md.
+
+## 2026-07-16 — Warehouses: external facility code editable in UI
+
+- **Feature:** `inventory_warehouses.facility_code` (added by `20260710120000_dashboard_stock_api.sql`, used by the Dashboard Stock API for `FACILITY:SKU` snapshot keys) is now surfaced in the frontend: optional "Facility code (external)" input in the Add warehouse modal (uppercase, `A-Z 0-9 _` only, mono) and shown on each warehouse card in the Warehouses page (muted "Not mapped" badge when empty).
+- **Files:** `src/inventory/inventoryQueryFields.js`, `src/inventory/inventoryDbUtils.js`, `src/inventory/modals/NewWarehouseModal.jsx`, `src/inventory/pages/InventoryWarehousesPage.jsx`.
+- **Documentation updated:** CHANGELOG.md, DASHBOARD_STOCK_API.md.
+
 ## 2026-07-13 — Mobile app integration guide for Dashboard Stock API
 
 - **Docs:** New [MOBILE_API_INTEGRATION.md](./MOBILE_API_INTEGRATION.md) — staging base URL + API key, all 5 stock endpoints with request/response samples, error-handling table, Flutter/Dart and React Native client code, webhook HMAC verification, staging testing checklist, production go-live steps.

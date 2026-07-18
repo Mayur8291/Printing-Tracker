@@ -38,3 +38,6 @@ verify_jwt = true
 
 [functions.dashboard-stock-api]
 verify_jwt = false
+
+[functions.admin-test-scott-webhook]
+verify_jwt = true
