@@ -292,6 +292,8 @@ Per-facility on-hand and reserved qty. **Available** = `on_hand_qty - reserved_q
 
 Constraint: `reserved_qty <= on_hand_qty`.
 
+Sync (since `20260716140000_sync_sku_stock_to_facility.sql`): trigger `inventory_skus_sync_facility_stock` mirrors dashboard-UI `stock_qty` changes into this table (SKU's warehouse facility, `DEFAULT` fallback). Service-role writes are excluded — the `dashboard-stock-api` edge function maintains this table directly and writes back `stock_qty` on fulfill/adjust; syncing those again would double-count.
+
 ### `inventory_stock_reservations` / `inventory_stock_reservation_items`
 
 RMP order holds from external backend. Status: `RESERVED` → `RELEASED` or `FULFILLED`.
@@ -312,7 +314,11 @@ Outbound webhook queue (`stock.level_changed`, `stock.low_threshold`). Edge func
 | `inventory_sku_id_by_code(sku_code)` | Resolve SKU uuid |
 | `enqueue_dashboard_webhook(event_type, payload)` | Insert outbox row |
 
-Access: `service_role` only (RLS on tables, no user policies).
+### `inventory_sku_availability` (view)
+
+Per-SKU, per-facility availability for the frontend (`security_invoker`): `sku_id`, `sku_code`, `facility_code`, `on_hand_qty`, `reserved_qty`, `available_qty` (= `greatest(0, on_hand − reserved)`), `updated_at`. SELECT granted to `authenticated`.
+
+Access (since `20260716120000_facility_stock_read_access.sql`): mutations `service_role` only (edge function); **read-only SELECT** for `authenticated` on `inventory_facility_stock`, `inventory_stock_reservations`, `inventory_stock_reservation_items`, and the view. Adjustments/outbox stay `service_role` only. The migration also rewrites backfilled `facility_code` values that fell back to the warehouse id (e.g. `WH-01`) to the warehouse's real `facility_code` (merges quantities on collision).
 
 ## `orders` — job sheet payment / delivery / approval
 

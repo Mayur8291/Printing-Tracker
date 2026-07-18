@@ -44,6 +44,13 @@
 | **Fix** | Supabase Dashboard → Edge Functions → `dashboard-stock-api` → Secrets: set `DASHBOARD_API_KEY`. Redeploy function after secret change. Match exact Bearer value on client. |
 | **Also check** | `503 API_NOT_CONFIGURED` means secret not set at all. |
 
+## Dashboard Stock API snapshot shows 0 but UI shows on-hand stock
+
+- **Symptom:** SKU has units on hand in the inventory UI, but `GET /stock/snapshot` returns 0 (often keyed `DEFAULT:<sku>`).
+- **Root cause:** UI stock mutations write `inventory_skus.stock_qty` only; the API reads `inventory_facility_stock`, which drifted after its one-time backfill (migration `20260710120000`).
+- **Fix:** apply `20260716140000_sync_sku_stock_to_facility.sql` — adds trigger `inventory_skus_sync_facility_stock` + one-time resync. If a specific SKU still mismatches, check whether it has multiple facility rows (resync skips multi-facility SKUs; correct manually).
+- **Check:** `select s.sku_code, s.stock_qty, fs.facility_code, fs.on_hand_qty, fs.reserved_qty from inventory_skus s join inventory_facility_stock fs on fs.sku_id = s.id where s.sku_code = '<SKU>';`
+
 ## Dashboard Stock API snapshot empty for known SKUs
 
 | | |
@@ -51,6 +58,13 @@
 | **Symptom** | `200` with `{}` snapshot keys for SKUs that exist in dashboard. |
 | **Root cause** | `inventory_skus.sku_code` mismatch vs external codes; or warehouse `facility_code` not set / wrong facility filter. |
 | **Fix** | Align `sku_code` with external catalogue; set `inventory_warehouses.facility_code` (e.g. `SCOTT_1DAY_01`); re-run backfill or insert `inventory_facility_stock` rows. Migration `20260710120000_dashboard_stock_api.sql` backfills from existing SKU `stock_qty`. |
+
+## Inventory list: Reserved column always 0 / Available equals On hand
+
+- **Symptom:** SKUs with open Scott International reservations show Reserved 0 and Available = On hand.
+- **Root cause:** `inventory_sku_availability` fetch failed (see console `Inventory availability load (falling back to stock_qty)`), usually because migration `20260716120000_facility_stock_read_access.sql` (read policies + view) is not applied on the connected project, or the user JWT is missing (anon has no policy).
+- **Fix:** apply the migration (`npx supabase db push` on the linked project), confirm login session, hard refresh. Realtime updates also need `20260716130000_facility_stock_realtime.sql` (adds table to `supabase_realtime`).
+- **Note:** the UI intentionally fails soft — a broken availability query must never blank the inventory page; it just falls back to `stock_qty`.
 
 ## Dashboard Stock API 409 on reserve under load
 
