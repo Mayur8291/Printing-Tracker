@@ -31,6 +31,14 @@ External order backend ↔ Scott Dashboard inventory (M2M, not browser).
 
 See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
 
+### Inventory UI availability (Reserved / Available)
+
+1. **Trigger:** Inventory tab mounts (`InventoryDataContext`).
+2. **Fetch:** `inventory_sku_availability` view (paged 1000/req, authenticated read via `20260716120000`), aggregated per `sku_code` + per-facility breakdown → `availabilityBySku`.
+3. **Display:** Inventory list shows **Reserved** (amber, tooltip "Held for open orders — not available to sell") and **Available** (= on_hand − reserved) next to On hand; low-stock status, stock bar, alerts, and overview KPIs compare against **available**.
+4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills.
+5. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
+
 ## Home tab
 
 ### Admin home

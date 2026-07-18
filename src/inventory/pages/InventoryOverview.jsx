@@ -15,13 +15,17 @@ import { formatRelative, inrFmt } from "../inventoryUtils";
 const KPI_ABBREVS = ["₹", "SKU", "!", "PO"];
 
 export default function InventoryOverview({ setActive, openSku, openNewSku, openCreatePO }) {
-  const { fabrics, trims, apparel, alerts, movements, kpiMovements, pos, suppliers, warehouses, skus, settings } =
+  const { fabrics, trims, apparel, alerts, movements, kpiMovements, pos, suppliers, warehouses, skus, settings, availabilityBySku } =
     useInventory();
   const [exporting, setExporting] = useState(false);
+  const availableQty = (sku, fallback) => {
+    const entry = availabilityBySku?.[sku.id];
+    return entry ? Number(entry.available) || 0 : fallback;
+  };
   const inventoryValueNum =
-    fabrics.reduce((s, f) => s + f.stock * f.cost, 0) +
-    trims.reduce((s, t) => s + t.stock * t.cost, 0) +
-    apparel.reduce((s, a) => s + a.totalStock * a.cost, 0);
+    fabrics.reduce((s, f) => s + availableQty(f, f.stock) * f.cost, 0) +
+    trims.reduce((s, t) => s + availableQty(t, t.stock) * t.cost, 0) +
+    apparel.reduce((s, a) => s + availableQty(a, a.totalStock) * a.cost, 0);
 
   const openPOValue = pos.filter((p) => p.status !== "Received").reduce((s, p) => s + p.value, 0);
   const openPOCount = pos.filter((p) => p.status !== "Received").length;
@@ -36,9 +40,10 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
         inventoryValue: inrFmt(inventoryValueNum),
         openPOCount,
         openPOValue: inrFmt(openPOValue),
-        alertCount: alerts.length
+        alertCount: alerts.length,
+        availabilityBySku
       }),
-    [skus, kpiMovements, settings, pos, inventoryValueNum, openPOCount, openPOValue, alerts.length]
+    [skus, kpiMovements, settings, pos, inventoryValueNum, openPOCount, openPOValue, alerts.length, availabilityBySku]
   );
 
   const fabricBy = fabrics.reduce((acc, f) => {

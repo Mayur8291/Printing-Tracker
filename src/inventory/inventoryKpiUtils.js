@@ -27,7 +27,9 @@ export function buildKpiDayEnds(days = KPI_DAYS) {
   return ends;
 }
 
-function skuStock(sku) {
+function skuStock(sku, availabilityBySku) {
+  const entry = availabilityBySku?.[sku?.id];
+  if (entry) return Number(entry.available) || 0;
   return Number(sku?.stock ?? sku?.totalStock ?? 0);
 }
 
@@ -35,11 +37,11 @@ function skuUnitCost(sku) {
   return Number(sku?.cost ?? 0);
 }
 
-/** Undo movements after `endMs` to estimate per-SKU stock at that time. */
-export function stockBySkuAt(endMs, skus, movements) {
+/** Undo movements after `endMs` to estimate per-SKU stock at that time (available qty when facility data given). */
+export function stockBySkuAt(endMs, skus, movements, availabilityBySku) {
   const map = new Map();
   for (const sku of skus) {
-    if (sku?._uuid) map.set(sku._uuid, skuStock(sku));
+    if (sku?._uuid) map.set(sku._uuid, skuStock(sku, availabilityBySku));
   }
   for (const mov of movements) {
     const ts = new Date(mov.ts).getTime();
@@ -68,8 +70,8 @@ function skuCountAt(endMs, skus) {
   }).length;
 }
 
-function alertsCountAt(endMs, skus, settings, movements) {
-  const stockMap = stockBySkuAt(endMs, skus, movements);
+function alertsCountAt(endMs, skus, settings, movements, availabilityBySku) {
+  const stockMap = stockBySkuAt(endMs, skus, movements, availabilityBySku);
   const snapshot = skus
     .filter((sku) => stockMap.has(sku._uuid))
     .map((sku) => ({
@@ -123,16 +125,19 @@ export function buildInventoryOverviewKpis({
   inventoryValue,
   openPOCount,
   openPOValue,
-  alertCount
+  alertCount,
+  availabilityBySku = null
 }) {
   const dayEnds = buildKpiDayEnds(KPI_DAYS);
 
   const valueSeries = seriesMinFloor(
-    dayEnds.map((end) => inventoryValueFromStockMap(stockBySkuAt(end.getTime(), skus, movements), skus))
+    dayEnds.map((end) =>
+      inventoryValueFromStockMap(stockBySkuAt(end.getTime(), skus, movements, availabilityBySku), skus)
+    )
   );
   const skuSeries = seriesMinFloor(dayEnds.map((end) => skuCountAt(end.getTime(), skus)));
   const alertSeries = seriesMinFloor(
-    dayEnds.map((end) => alertsCountAt(end.getTime(), skus, settings, movements))
+    dayEnds.map((end) => alertsCountAt(end.getTime(), skus, settings, movements, availabilityBySku))
   );
   const poSeries = seriesMinFloor(dayEnds.map((end) => openPoCountAt(end.getTime(), pos)));
 
@@ -145,7 +150,7 @@ export function buildInventoryOverviewKpis({
   const alertsTodayDelta = alertSeries[last] - alertSeries[prev];
   const poWeekDelta = poSeries[last] - (poSeries[Math.max(0, last - 7)] ?? poSeries[first]);
 
-  const totalUnits = skus.reduce((s, item) => s + skuStock(item), 0);
+  const totalUnits = skus.reduce((s, item) => s + skuStock(item, availabilityBySku), 0);
   const fmt = (n) => n.toLocaleString();
 
   return [

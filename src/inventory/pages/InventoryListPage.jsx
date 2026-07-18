@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import SizeDots from "../components/SizeDots";
 import ColorSwatch from "../components/ColorSwatch";
@@ -22,6 +23,32 @@ const INV_CELL = "px-4 py-3 align-middle";
 const INV_METRIC_CELL = "min-w-[6.5rem] px-4 py-3 text-right align-middle";
 const INV_ACTIONS_CELL = "min-w-[9rem] px-4 py-3 text-right align-middle";
 
+/** Reserved/available from facility stock; falls back to stock_qty when the map is missing an SKU. */
+function availabilityOf(r, availabilityBySku) {
+  const base = Number(r.stock ?? r.totalStock ?? 0);
+  const entry = availabilityBySku?.[r.id];
+  if (!entry) return { reserved: 0, available: base };
+  return { reserved: entry.reserved, available: entry.available };
+}
+
+/** Row shim so status/low-stock checks compare reorder point against available, not stock_qty. */
+function withAvailableStock(r, availabilityBySku) {
+  const { available } = availabilityOf(r, availabilityBySku);
+  return r.totalStock !== undefined ? { ...r, totalStock: available, stock: available } : { ...r, stock: available };
+}
+
+function ReservedQty({ reserved }) {
+  if (!(reserved > 0)) return <span className="text-muted-foreground">0</span>;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="cursor-default font-medium text-amber-600">{reserved.toLocaleString()}</span>
+      </TooltipTrigger>
+      <TooltipContent>Held for open orders — not available to sell</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function StockBar({ pct, kind }) {
   return (
     <div className="mb-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -36,7 +63,7 @@ function StockBar({ pct, kind }) {
   );
 }
 
-function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, Th, suppliers, settings }) {
+function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, Th, suppliers, settings, availabilityBySku }) {
   const supplierOf = (id) => suppliers.find((s) => s.id === id);
 
   return (
@@ -64,6 +91,12 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
           <Th col="stock" right>
             On hand
           </Th>
+          <Th col="reserved" right>
+            Reserved
+          </Th>
+          <Th col="available" right>
+            Available
+          </Th>
           <TableHead className={INV_HEAD}>Stock level</TableHead>
           <Th col="cost" right>
             Unit cost
@@ -90,8 +123,9 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
       </TableHeader>
       <TableBody>
         {rows.map((r) => {
-          const st = statusOf(r, settings);
-          const pct = Math.min(100, Math.round((r.stock / Math.max(r.reorder * 2, 1)) * 100));
+          const avail = availabilityOf(r, availabilityBySku);
+          const st = statusOf(withAvailableStock(r, availabilityBySku), settings);
+          const pct = Math.min(100, Math.round((avail.available / Math.max(r.reorder * 2, 1)) * 100));
           return (
             <TableRow key={r.id} onClick={() => openSku(r)} className={cn("cursor-pointer", selected.has(r.id) && "bg-muted/50")}>
               <TableCell className={cn(INV_CELL, "w-12")} onClick={(e) => e.stopPropagation()}>
@@ -121,6 +155,12 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
               <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
                 <strong>{r.stock.toLocaleString()}</strong>{" "}
                 <span className="text-muted-foreground">{r.unit}</span>
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+                <ReservedQty reserved={avail.reserved} />
+              </TableCell>
+              <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+                <strong>{avail.available.toLocaleString()}</strong>
               </TableCell>
               <TableCell className={cn(INV_CELL, "min-w-[8rem]")}>
                 <StockBar pct={pct} kind={st.kind} />
@@ -176,8 +216,9 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
   );
 }
 
-function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, settings, indent }) {
-  const st = statusOf(r, settings);
+function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, settings, availabilityBySku, indent }) {
+  const avail = availabilityOf(r, availabilityBySku);
+  const st = statusOf(withAvailableStock(r, availabilityBySku), settings);
   return (
     <TableRow key={r.id} onClick={() => openSku(r)} className={cn("cursor-pointer", selected.has(r.id) && "bg-muted/50")}>
       <TableCell className={cn(INV_CELL, "w-12")} onClick={(e) => e.stopPropagation()}>
@@ -202,6 +243,12 @@ function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, 
       </TableCell>
       <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
         <strong>{r.totalStock.toLocaleString()}</strong>
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+        <ReservedQty reserved={avail.reserved} />
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+        <strong>{avail.available.toLocaleString()}</strong>
       </TableCell>
       <TableCell className={INV_CELL}>
         <StockStatusBadge status={st} />
@@ -262,7 +309,8 @@ function ApparelTable({
   settings,
   query,
   supplierOf,
-  styleParents
+  styleParents,
+  availabilityBySku
 }) {
   const [collapsed, setCollapsed] = useState(() => new Set());
 
@@ -306,6 +354,12 @@ function ApparelTable({
           <Th col="stock" right>
             Total units
           </Th>
+          <Th col="reserved" right>
+            Reserved
+          </Th>
+          <Th col="available" right>
+            Available
+          </Th>
           <TableHead className={INV_HEAD}>Status</TableHead>
           <Th col="cost" right>
             Unit cost
@@ -331,6 +385,13 @@ function ApparelTable({
       <TableBody>
         {visibleGroups.map((group) => {
           const open = isExpanded(group.id);
+          const groupAvail = group.children.reduce(
+            (acc, child) => {
+              const a = availabilityOf(child, availabilityBySku);
+              return { reserved: acc.reserved + a.reserved, available: acc.available + a.available };
+            },
+            { reserved: 0, available: 0 }
+          );
           return (
             <Fragment key={`group-${group.id}`}>
               <TableRow className="bg-muted/30 hover:bg-muted/50">
@@ -353,6 +414,12 @@ function ApparelTable({
                 <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
                   <strong>{group.totalStock.toLocaleString()}</strong>
                 </TableCell>
+                <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+                  <ReservedQty reserved={groupAvail.reserved} />
+                </TableCell>
+                <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
+                  <strong>{groupAvail.available.toLocaleString()}</strong>
+                </TableCell>
                 <TableCell className={INV_CELL} />
                 <TableCell className={INV_CELL} colSpan={5} />
                 <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
@@ -372,6 +439,7 @@ function ApparelTable({
                       onDelete={onDelete}
                       deletingSkuId={deletingSkuId}
                       settings={settings}
+                      availabilityBySku={availabilityBySku}
                       indent
                     />
                   ))
@@ -390,6 +458,7 @@ function ApparelTable({
             onDelete={onDelete}
             deletingSkuId={deletingSkuId}
             settings={settings}
+            availabilityBySku={availabilityBySku}
           />
         ))}
       </TableBody>
@@ -409,7 +478,7 @@ export default function InventoryListPage({
   onDeleteSku,
   deletingSkuId
 }) {
-  const { fabrics, trims, apparel, suppliers, warehouses, settings, styleParents } = useInventory();
+  const { fabrics, trims, apparel, suppliers, warehouses, settings, styleParents, availabilityBySku } = useInventory();
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("id");
   const [sortDir, setSortDir] = useState("asc");
@@ -422,7 +491,7 @@ export default function InventoryListPage({
 
   const filtered = rows.filter((r) => {
     if (warehouseFilter !== "all" && r.wh !== warehouseFilter) return false;
-    const st = statusOf(r, settings);
+    const st = statusOf(withAvailableStock(r, availabilityBySku), settings);
     if (statusFilter !== "all" && st.kind !== statusFilter) return false;
     if (!query) return true;
     const q = query.toLowerCase();
@@ -441,6 +510,12 @@ export default function InventoryListPage({
     if (sortBy === "stock") {
       va = a.stock ?? a.totalStock;
       vb = b.stock ?? b.totalStock;
+    } else if (sortBy === "reserved") {
+      va = availabilityOf(a, availabilityBySku).reserved;
+      vb = availabilityOf(b, availabilityBySku).reserved;
+    } else if (sortBy === "available") {
+      va = availabilityOf(a, availabilityBySku).available;
+      vb = availabilityOf(b, availabilityBySku).available;
     } else if (sortBy === "value") {
       va = (a.stock ?? a.totalStock) * a.cost;
       vb = (b.stock ?? b.totalStock) * b.cost;
@@ -671,6 +746,7 @@ export default function InventoryListPage({
                   query={query}
                   supplierOf={supplierOf}
                   styleParents={styleParents}
+                  availabilityBySku={availabilityBySku}
                 />
               ) : (
                 <FabricTrimTable
@@ -685,6 +761,7 @@ export default function InventoryListPage({
                   Th={Th}
                   suppliers={suppliers}
                   settings={settings}
+                  availabilityBySku={availabilityBySku}
                 />
               )}
             </div>

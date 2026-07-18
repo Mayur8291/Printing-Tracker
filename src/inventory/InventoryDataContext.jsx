@@ -41,6 +41,7 @@ export function InventoryDataProvider({ session, children }) {
   const [kpiMovements, setKpiMovements] = useState([]);
   const [movementsLoading, setMovementsLoading] = useState(false);
   const [loadingMoreSkus, setLoadingMoreSkus] = useState(false);
+  const [availabilityBySku, setAvailabilityBySku] = useState(null);
   const movementsLoadedRef = useRef(false);
   const loadingMoreSkusRef = useRef(false);
 
@@ -81,6 +82,44 @@ export function InventoryDataProvider({ session, children }) {
       setKpiMovements(rows);
     } catch (err) {
       console.error("Inventory KPI movements:", err?.message || err);
+    }
+  }, []);
+
+  // Reserved stock lives only in inventory_facility_stock (Dashboard Stock API);
+  // stock_qty alone overstates what is sellable. Fail soft: null map = fall back to stock_qty.
+  const loadAvailability = useCallback(async () => {
+    try {
+      const pageSize = 1000;
+      const rows = [];
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await supabase
+          .from("inventory_sku_availability")
+          .select("sku_code, facility_code, on_hand_qty, reserved_qty, available_qty")
+          .order("sku_code")
+          .range(offset, offset + pageSize - 1);
+        if (error) throw error;
+        rows.push(...(data || []));
+        if (!data || data.length < pageSize) break;
+      }
+      const bySku = {};
+      for (const row of rows) {
+        const onHand = Number(row.on_hand_qty) || 0;
+        const reserved = Number(row.reserved_qty) || 0;
+        const available = Number.isFinite(Number(row.available_qty))
+          ? Number(row.available_qty)
+          : Math.max(0, onHand - reserved);
+        const entry =
+          bySku[row.sku_code] ||
+          (bySku[row.sku_code] = { onHand: 0, reserved: 0, available: 0, facilities: [] });
+        entry.onHand += onHand;
+        entry.reserved += reserved;
+        entry.available += available;
+        entry.facilities.push({ facilityCode: row.facility_code, onHand, reserved, available });
+      }
+      setAvailabilityBySku(bySku);
+    } catch (err) {
+      console.error("Inventory availability load (falling back to stock_qty):", err?.message || err);
+      setAvailabilityBySku(null);
     }
   }, []);
 
@@ -138,6 +177,10 @@ export function InventoryDataProvider({ session, children }) {
     void loadKpiMovements();
   }, [loadKpiMovements]);
 
+  useEffect(() => {
+    void loadAvailability();
+  }, [loadAvailability]);
+
   const patchSkuInState = useCallback((sku) => {
     if (!sku?._uuid) return;
     setSkus((prev) => prev.map((s) => (s._uuid === sku._uuid ? { ...s, ...sku } : s)));
@@ -184,10 +227,34 @@ export function InventoryDataProvider({ session, children }) {
     });
   }, [userId, refresh, loadMovements, loadKpiMovements]);
 
+  useEffect(() => {
+    if (!userId) return undefined;
+
+    return subscribePostgresChanges({
+      channelName: `inventory-availability-${userId}`,
+      tables: ["inventory_facility_stock"],
+      onEvent: () => {
+        void loadAvailability();
+      }
+    });
+  }, [userId, loadAvailability]);
+
   const fabrics = useMemo(() => skus.filter((s) => s.kind === "fabric"), [skus]);
   const trims = useMemo(() => skus.filter((s) => s.kind === "trim"), [skus]);
   const apparel = useMemo(() => skus.filter((s) => s.kind === "apparel"), [skus]);
-  const alerts = useMemo(() => deriveAlerts(skus, settings), [skus, settings]);
+  // Alerts compare against available (on_hand − reserved) when facility data is loaded.
+  const alerts = useMemo(() => {
+    const adjusted = !availabilityBySku
+      ? skus
+      : skus.map((s) => {
+          const entry = availabilityBySku[s.id];
+          if (!entry) return s;
+          return s.totalStock !== undefined
+            ? { ...s, totalStock: entry.available, stock: entry.available }
+            : { ...s, stock: entry.available };
+        });
+    return deriveAlerts(adjusted, settings);
+  }, [skus, settings, availabilityBySku]);
 
   const warehousesWithUsage = useMemo(() => {
     return warehouses.map((wh) => {
@@ -373,6 +440,8 @@ export function InventoryDataProvider({ session, children }) {
     movements,
     kpiMovements,
     alerts,
+    availabilityBySku,
+    refreshAvailability: loadAvailability,
     pos: POS,
     refresh,
     loadMovements,
