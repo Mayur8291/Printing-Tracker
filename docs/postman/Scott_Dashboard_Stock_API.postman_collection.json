@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "name": "Scott Dashboard — Stock API",
-    "description": "Machine-to-machine stock API for Scott International backend.\n\n**Auth:** Bearer `DASHBOARD_API_KEY` (Supabase Edge Function secret — not Supabase JWT).\n\n**Docs:** `docs/DASHBOARD_STOCK_API.md`\n\nImport the matching environment (staging or production) and set `DASHBOARD_API_KEY` if blank.",
+    "name": "Scott Dashboard — Stock & Order API",
+    "description": "Machine-to-machine API for the Scott International backend: stock (snapshot / reserve / fulfill / adjust) and order lifecycle (create / edit / cancel / status).\n\n**Auth:** Bearer API key — either the shared `DASHBOARD_API_KEY` or a key generated in the dashboard (Admin Panel → Integrations → API keys). Not a Supabase JWT.\n\n**Docs:** `docs/DASHBOARD_STOCK_API.md`, `docs/DASHBOARD_ORDER_API.md`, `docs/SCOTT_INTEGRATION_REFERENCE.md`\n\nImport the matching environment (staging or production) and set `DASHBOARD_API_KEY` if blank.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -39,6 +39,14 @@
     {
       "key": "reservation_id",
       "value": ""
+    },
+    {
+      "key": "dashboard_order_id",
+      "value": ""
+    },
+    {
+      "key": "scott_webhook_base_url",
+      "value": "https://your-scott-backend.example.com"
     }
   ],
   "item": [
@@ -194,7 +202,268 @@
       ]
     },
     {
-      "name": "Happy path flow",
+      "name": "Orders",
+      "description": "Order lifecycle (order-api-requirements.html). Statuses: PENDING → PROCESSING → COMPLETE, or CANCELLED / FAILED (terminal).",
+      "item": [
+        {
+          "name": "POST Create order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.dashboard_order_id) {",
+                  "    pm.collectionVariables.set('dashboard_order_id', body.dashboard_order_id);",
+                  "    pm.environment.set('dashboard_order_id', body.dashboard_order_id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_code\": \"{{order_code}}\",\n  \"facility_code\": \"{{facility_code}}\",\n  \"due_on\": \"2026-07-25T00:00:00Z\",\n  \"customer\": {\n    \"code\": \"P-104\",\n    \"name\": \"Acme Traders\",\n    \"email\": \"acme@example.com\",\n    \"phone\": \"9876543210\"\n  },\n  \"shipping_address\": {\n    \"name\": \"Acme Traders\",\n    \"address_line1\": \"12 MG Road\",\n    \"city\": \"Pune\",\n    \"state\": \"MH\",\n    \"country\": \"IN\",\n    \"pincode\": \"411001\",\n    \"phone\": \"9876543210\",\n    \"email\": \"acme@example.com\"\n  },\n  \"payment\": {\n    \"instrument\": \"CASH\",\n    \"cash_on_delivery\": true\n  },\n  \"comment\": \"Rush order - dispatch by Friday\",\n  \"items\": [\n    {\n      \"item_code\": \"P-1-4201-88\",\n      \"sku_code\": \"{{sku_code}}\",\n      \"quantity\": 1,\n      \"unit_price\": 245.50\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"]
+            },
+            "description": "Create RMP order + hold stock. **201** with `dashboard_order_id` (test script saves it). **409 INSUFFICIENT_STOCK** with per-SKU details; **409 ORDER_EXISTS** when an open order already uses this `order_code`."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Order (status + items)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}"]
+            },
+            "description": "Current status + items with `dispatched_quantity`. For reconciliation/support — status changes are pushed via the `order.status_changed` webhook."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Update order (items / address / due_on)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"due_on\": \"2026-07-27T00:00:00Z\",\n  \"shipping_address\": {\n    \"name\": \"Acme Traders\",\n    \"address_line1\": \"14 FC Road\",\n    \"city\": \"Pune\",\n    \"state\": \"MH\",\n    \"country\": \"IN\",\n    \"pincode\": \"411004\"\n  },\n  \"items\": [\n    {\n      \"item_code\": \"P-1-4201-88\",\n      \"sku_code\": \"{{sku_code}}\",\n      \"quantity\": 2,\n      \"unit_price\": 245.50\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}"]
+            },
+            "description": "Full replace of `items` / `shipping_address` / `due_on` (omitted fields untouched). Old stock hold released, new hold created. **409 ORDER_NOT_EDITABLE** when COMPLETE/CANCELLED/FAILED; **409 INSUFFICIENT_STOCK** if the new quantities don't fit."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Cancel order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}?reason=CUSTOMER_CANCELLED",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}"],
+              "query": [
+                { "key": "reason", "value": "CUSTOMER_CANCELLED", "description": "or ORDER_EDIT, OUT_OF_STOCK" }
+              ]
+            },
+            "description": "Cancel + release held stock. **Idempotent** — repeating returns 200 with the original `cancelled_at`. **409 ORDER_NOT_EDITABLE** when already COMPLETE/FAILED."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Set status — PROCESSING (internal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PROCESSING\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}", "status"]
+            },
+            "description": "Dashboard-internal transition endpoint (not in the Scott spec). PROCESSING allowed from PENDING only. Fires `order.status_changed` webhook."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Set status — COMPLETE (internal, fulfills stock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETE\",\n  \"dispatched_at\": \"2026-07-20T14:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}", "status"]
+            },
+            "description": "Terminal. Fulfills the reservation (on-hand permanently deducted), sets `dispatched_at` and items' `dispatched_quantity`. `dispatched_at` optional (defaults to now)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Set status — FAILED (internal, releases stock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FAILED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}", "status"]
+            },
+            "description": "Terminal. Releases the stock hold back to available."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Order happy path flow",
+      "description": "Run in order: Create → Get → PROCESSING → COMPLETE. (Or DELETE to cancel instead.) `dashboard_order_id` is saved automatically by the Create request.",
+      "item": [
+        {
+          "name": "1. Create order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('dashboard_order_id', body.dashboard_order_id);",
+                  "  pm.environment.set('dashboard_order_id', body.dashboard_order_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_code\": \"{{order_code}}\",\n  \"facility_code\": \"{{facility_code}}\",\n  \"customer\": { \"code\": \"P-104\", \"name\": \"Acme Traders\" },\n  \"payment\": { \"instrument\": \"CASH\", \"cash_on_delivery\": true },\n  \"items\": [\n    { \"item_code\": \"P-1-4201-88\", \"sku_code\": \"{{sku_code}}\", \"quantity\": 1, \"unit_price\": 245.50 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Mark PROCESSING",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"PROCESSING\" }"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Mark COMPLETE (dispatch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"COMPLETE\" }"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4 alt. Cancel instead",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{dashboard_order_id}}?reason=CUSTOMER_CANCELLED",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{dashboard_order_id}}"],
+              "query": [
+                { "key": "reason", "value": "CUSTOMER_CANCELLED" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Happy path flow (stock only)",
       "description": "Run in order: Snapshot → Reserve → Fulfill (or Release instead of Fulfill).",
       "item": [
         {
@@ -280,6 +549,75 @@
                 { "key": "reason", "value": "CANCELLED" }
               ]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhooks (dashboard → your server)",
+      "description": "OUTBOUND — these are the requests the DASHBOARD sends to the Scott backend. They are included here as mock examples so your team can see exact payloads and build/test the receiver (point `scott_webhook_base_url` at a mock server or webhook.site).\n\nEvery request is signed: `X-Dashboard-Signature: sha256=<hmac-sha256-hex(rawBody, SCOTT_WEBHOOK_SECRET)>`. Respond 2xx; anything else is retried from the outbox on the next stock/order mutation.",
+      "item": [
+        {
+          "name": "POST order.status_changed (example payload)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Dashboard-Signature", "value": "sha256=<computed by dashboard>", "description": "HMAC-SHA256 of raw body with SCOTT_WEBHOOK_SECRET" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"order.status_changed\",\n  \"event_id\": \"evt_pqr678\",\n  \"occurred_at\": \"2026-07-20T14:00:00Z\",\n  \"dashboard_order_id\": \"ord_abc123\",\n  \"order_code\": \"P-53011\",\n  \"previous_status\": \"PROCESSING\",\n  \"status\": \"COMPLETE\",\n  \"dispatched_at\": \"2026-07-20T14:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{scott_webhook_base_url}}/webhooks/orders/status_changed",
+              "host": ["{{scott_webhook_base_url}}"],
+              "path": ["webhooks", "orders", "status_changed"]
+            },
+            "description": "Fired on EVERY status transition (PENDING → PROCESSING → COMPLETE, or → CANCELLED / FAILED). `dispatched_at` present only when status is COMPLETE. Respond `200 { \"received\": true }`."
+          },
+          "response": []
+        },
+        {
+          "name": "POST stock.level_changed (example payload)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Dashboard-Signature", "value": "sha256=<computed by dashboard>", "description": "HMAC-SHA256 of raw body with SCOTT_WEBHOOK_SECRET" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"stock.level_changed\",\n  \"event_id\": \"evt_abc123\",\n  \"occurred_at\": \"2026-07-20T14:00:00Z\",\n  \"facility_code\": \"SCOTT_1DAY_01\",\n  \"trigger\": \"RESERVATION\",\n  \"changed_skus\": [\n    {\n      \"sku_code\": \"SKU-COTTON-WHT-M\",\n      \"previous_stock\": 120,\n      \"current_stock\": 119\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{scott_webhook_base_url}}/webhooks/stock/level_changed",
+              "host": ["{{scott_webhook_base_url}}"],
+              "path": ["webhooks", "stock", "level_changed"]
+            },
+            "description": "Fired when available stock changes. `trigger` is one of RESERVATION / RELEASE / FULFILLMENT / ADJUST. Stock values are AVAILABLE qty (on_hand − reserved)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST stock.low_threshold (example payload)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Dashboard-Signature", "value": "sha256=<computed by dashboard>", "description": "HMAC-SHA256 of raw body with SCOTT_WEBHOOK_SECRET" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"stock.low_threshold\",\n  \"event_id\": \"evt_def456\",\n  \"occurred_at\": \"2026-07-20T14:00:00Z\",\n  \"facility_code\": \"SCOTT_1DAY_01\",\n  \"low_stock_items\": [\n    {\n      \"sku_code\": \"SKU-COTTON-WHT-M\",\n      \"available\": 8,\n      \"threshold\": 20\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{scott_webhook_base_url}}/webhooks/stock/low_threshold",
+              "host": ["{{scott_webhook_base_url}}"],
+              "path": ["webhooks", "stock", "low_threshold"]
+            },
+            "description": "Fired when an adjust leaves available qty below the SKU's reorder point."
           },
           "response": []
         }

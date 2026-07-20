@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-07-20 — Postman collection + single integration reference (APIs, webhooks, realtime)
+
+- **Docs:** new `docs/SCOTT_INTEGRATION_REFERENCE.md` — one readable handoff document covering all 10 REST endpoints (5 stock + 5 order) with request/response/error examples, all 3 outbound webhooks with payloads + Node HMAC verification snippet, and the realtime/websocket story (Supabase Realtime channels; subscription example for external clients). Clears the earlier "Postman covers stock only" gap.
+- **Postman:** `docs/postman/Scott_Dashboard_Stock_API.postman_collection.json` renamed to "Stock & Order API" and extended with an **Orders** folder (create auto-saves `dashboard_order_id`), an **Order happy path flow** folder, and a **Webhooks (dashboard → your server)** folder containing the exact payloads the dashboard sends (targeting `scott_webhook_base_url` for mock-receiver testing). JSON validated.
+- **HTML version:** `docs/SCOTT_INTEGRATION_REFERENCE.html` — self-contained single-file HTML (same visual style as Scott's `order-api-requirements.html`) for sharing with the partner team; identical content to the markdown reference.
+- **Files:** `docs/SCOTT_INTEGRATION_REFERENCE.md` + `.html` (new), `docs/postman/Scott_Dashboard_Stock_API.postman_collection.json`, `docs/postman/README.md`, `docs/API.md`.
+
+## 2026-07-20 — Admin Panel → Integrations: API keys, Channels, Facilities
+
+- **Feature:** new "Integrations" tab in Admin Panel (`src/AdminIntegrationsPanel.jsx`, admin-only via existing `masterListView` gating + RLS):
+  - **API keys** — generate per-client keys (label + optional username) for the Stock & Order API. Key generated client-side (`scott_` + 48 hex), shown **once** with copy button; only the SHA-256 hash + display prefix are stored (`dashboard_api_keys`). Disable/enable and delete per key; table shows status, created, last-used.
+  - **Channels** — registry of order sources (`dashboard_channels`): code, display name, type (CUSTOM/MOBILE_APP/SHOPIFY/AMAZON/FLIPKART/MYNTRA/JIOMART/OTHER), linked API key, default facility, enabled switch. Connector status derived: Connected / No API key / Key disabled / Disabled.
+  - **Facilities** — inline edit of `inventory_warehouses.facility_code` (uppercase A-Z0-9_ sanitizer, duplicate-code error surfaced, "Not mapped" badge) without going through the warehouse modal.
+- **Edge function:** `requireApiKey` in `stockCore.ts` now accepts the legacy `DASHBOARD_API_KEY` secret **or** any active `dashboard_api_keys` row (SHA-256 lookup, bumps `last_used_at`); disabled keys get `401 KEY_DISABLED`. Deployed to staging.
+- **Migration:** `20260720140000_admin_integrations.sql` — `dashboard_api_keys` + `dashboard_channels`, RLS `jwt_user_is_admin()` for all ops, service_role read (+ key update for last_used_at). Applied on **staging**.
+- **Verified on staging:** legacy key still authenticates; inserted test DB key → snapshot OK + `last_used_at` bumped; disabled → `KEY_DISABLED`; bad key → 401; test row cleaned up.
+- **Security:** plaintext keys never stored or logged; screenshots' UniCommerce credentials not used anywhere.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, SECURITY.md, API.md, DASHBOARD_STOCK_API.md, FLOWS.md.
+
+## 2026-07-20 — Ready Stock Order tab shows live app orders
+
+- **Feature:** the "Ready Stock Order" sidebar tab (previously a "coming soon" placeholder) now lists Scott International RMP orders created through the Order API. New `src/ReadyStockOrdersPanel.jsx` (shadcn Card/Table/Tabs/Badge): order code + `ord_*` id, placed time, facility, customer (name/email/phone), status badge (color per lifecycle state + cancel reason), payment (method / computed INR amount / COD), per-item breakdown (SKU display name from `inventory_skus`, SKU code, quantity + dispatched), due/dispatched column. Status filter tabs with counts, free-text search (order/customer/SKU), manual refresh.
+- **Realtime:** migration `20260720130000_scott_orders_realtime.sql` adds `scott_orders` + `scott_order_items` to `supabase_realtime` (staging applied); panel subscribes and silently refetches, so app orders appear instantly.
+- **Read-only:** panel reads via authenticated SELECT policies from `20260720120000`; mutations stay with the edge function.
+- **Files:** `ReadyStockOrdersPanel.jsx` (new), `App.jsx` (mount, placeholder removed), `supabase/migrations/20260720130000_scott_orders_realtime.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DASHBOARD_ORDER_API.md.
+
+## 2026-07-20 — Order Management API (Scott International order lifecycle)
+
+- **Feature:** implements `order-api-requirements.html` — the dashboard now manages the RMP order lifecycle (UniCommerce replacement role). New routes on edge function `dashboard-stock-api` (same base URL + `DASHBOARD_API_KEY` as stock): `POST /api/v1/orders` (create + stock hold, `409 INSUFFICIENT_STOCK` / `ORDER_EXISTS`), `PATCH /api/v1/orders/:id` (full item/address/due_on replace, `409 ORDER_NOT_EDITABLE` when terminal), `DELETE /api/v1/orders/:id` (idempotent cancel + stock release), `GET /api/v1/orders/:id`, plus dashboard-internal `POST /api/v1/orders/:id/status` (PROCESSING / COMPLETE fulfills the hold / FAILED releases it).
+- **Webhook:** `order.status_changed` → `{SCOTT_WEBHOOK_BASE_URL}/webhooks/orders/status_changed`, enqueued by DB trigger `scott_orders_status_changed` on every transition (any code path), delivered via existing `dashboard_webhook_outbox` with the same HMAC scheme. Delivery waits for `SCOTT_WEBHOOK_BASE_URL` / `SCOTT_WEBHOOK_SECRET` secrets.
+- **Migration:** `20260720120000_scott_orders.sql` — `scott_orders` + `scott_order_items` (service-role mutations, authenticated read, partial unique open `order_code`), trigger + `notify_scott_order_status_changed()`. Applied on **staging**.
+- **Refactor:** reserve/release/fulfill primitives extracted from `index.ts` into `stockCore.ts` and reused by both stock and order routes (no drift between `/stock/reserve` and order holds); `orders.ts` holds the order handlers. Stock endpoints regression-tested after deploy.
+- **Verified on staging (SKU BYB-JAQPN-BL-WH-S, facility DEFAULT):** create 50 → avail 450; edit → 30 → 470; PROCESSING → COMPLETE deducted 30 + `dispatched_quantity` set; second order cancel idempotent → 470; 409/404 error paths correct; test stock restored via adjust (+30 → 500).
+- **Not updated:** Postman collection still covers stock endpoints only.
+- **Documentation updated:** DASHBOARD_ORDER_API.md (new), API.md, DATABASE.md, FLOWS.md, DEBUGGING.md, CHANGELOG.md.
+
+## 2026-07-20 — Policy: all changes staging-only (git, deploys, Supabase)
+
+- **Rule:** new `.cursor/rules/staging-only-all-changes.mdc` (always applied) — every change goes to `develop` branch / Netlify branch deploy / staging Supabase only. Production (`main`, live Netlify site, `levwrmvqdntngeasrtnb`) requires an explicit release request; generic "commit/push/deploy/fix" means staging. Extends the existing Supabase-only staging-first rules to git and web deploys.
+- **Files:** `.cursor/rules/staging-only-all-changes.mdc`, `docs/CHANGELOG.md`.
+
 ## 2026-07-18 — Env toggle: confirm-to-production instead of dev block; neutral placeholder
 
 - **Issue:** production side of the header toggle was disabled in local dev (looked broken), and the Scott REST URL input used a real backend IP as placeholder (looked like a wrongly saved value).

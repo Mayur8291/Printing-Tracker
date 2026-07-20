@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scott Dashboard — Integration Reference (APIs, Webhooks, Realtime)</title>
+<meta name="description" content="Every REST endpoint, outbound webhook and realtime channel provided by the Scott Dashboard for the Scott International backend and mobile app.">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fff;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  .header {
+    border-bottom: 2px solid #111;
+    padding-bottom: 18px;
+    margin-bottom: 12px;
+  }
+
+  .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .header p  { font-size: 13px; color: #666; }
+
+  h2 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #555;
+    margin: 40px 0 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .api {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .api-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+    flex-wrap: wrap;
+  }
+
+  .method {
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .GET    { background: #dbeafe; color: #1d4ed8; }
+  .POST   { background: #dcfce7; color: #15803d; }
+  .DELETE { background: #fee2e2; color: #b91c1c; }
+  .PATCH  { background: #fef9c3; color: #92400e; }
+  .WS     { background: #ede9fe; color: #6d28d9; }
+
+  .api-path {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #111;
+  }
+
+  .api-desc {
+    font-size: 12.5px;
+    color: #777;
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  .api-body { padding: 16px; }
+
+  .label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+    margin: 14px 0 6px;
+  }
+
+  .label:first-child { margin-top: 0; }
+
+  pre {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+    padding: 12px 14px;
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: #1a1a1a;
+    white-space: pre;
+  }
+
+  code { font-family: 'Consolas', 'Menlo', monospace; font-size: 12.5px; background: #f5f5f5; padding: 1px 4px; border-radius: 3px; }
+  pre code { background: none; padding: 0; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+
+  .note {
+    font-size: 12.5px;
+    color: #666;
+    background: #fffbe6;
+    border-left: 3px solid #f0b429;
+    padding: 8px 12px;
+    margin-top: 10px;
+  }
+
+  p.desc {
+    font-size: 13.5px;
+    color: #444;
+    margin-bottom: 14px;
+  }
+
+  .auth-note {
+    background: #f0f7ff;
+    border: 1px solid #c0d8f5;
+    border-radius: 4px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+    color: #1e3a5f;
+    margin: 20px 0 12px;
+  }
+
+  .auth-note strong { display: block; margin-bottom: 4px; }
+
+  table.info {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 8px 0 14px;
+  }
+
+  table.info th, table.info td {
+    border: 1px solid #e0e0e0;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  table.info th {
+    background: #f8f8f8;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #666;
+  }
+
+  .toc { font-size: 13px; margin: 14px 0 0; columns: 2; column-gap: 32px; }
+  .toc li { margin-bottom: 3px; margin-left: 18px; }
+  .toc a { color: #1d4ed8; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Scott Dashboard — Integration Reference</h1>
+  <p>Scott International · All APIs, webhooks &amp; realtime channels the dashboard provides · Last verified on staging: 20 Jul 2026</p>
+</div>
+
+<ul class="toc">
+  <li><a href="#auth">Environments &amp; authentication</a></li>
+  <li><a href="#stock">Stock API (5 endpoints)</a></li>
+  <li><a href="#orders">Order API (5 endpoints)</a></li>
+  <li><a href="#webhooks">Webhooks (3 events)</a></li>
+  <li><a href="#realtime">Realtime / websockets</a></li>
+  <li><a href="#postman">Postman collection</a></li>
+</ul>
+
+<h2 id="auth">Environments &amp; Authentication</h2>
+
+<table class="info">
+  <tr><th></th><th>Staging (test here first)</th><th>Production</th></tr>
+  <tr>
+    <td>Base URL</td>
+    <td><code>https://scvojtvgnkmbupvyslmb.supabase.co/functions/v1/dashboard-stock-api</code></td>
+    <td><code>https://levwrmvqdntngeasrtnb.supabase.co/functions/v1/dashboard-stock-api</code></td>
+  </tr>
+  <tr><td>API key</td><td>Shared separately / generated in dashboard</td><td>Issued at go-live</td></tr>
+</table>
+
+<div class="auth-note">
+  <strong>Authentication</strong>
+  Every request: <code>Authorization: Bearer &lt;API_KEY&gt;</code> + <code>Content-Type: application/json</code>.
+  Keys are either the shared <code>DASHBOARD_API_KEY</code> or per-client keys generated in the dashboard
+  (Admin Panel → Integrations → API keys — these can be disabled individually; a disabled key returns
+  <code>401 KEY_DISABLED</code>). This is an M2M key, <em>not</em> a Supabase JWT.
+</div>
+
+<p class="desc">Order status values (used exactly, no mapping): <code>PENDING</code> → <code>PROCESSING</code> → <code>COMPLETE</code>, or terminal <code>CANCELLED</code> / <code>FAILED</code>.</p>
+
+<h2 id="stock">Stock API</h2>
+
+<!-- Snapshot -->
+<div class="api">
+  <div class="api-title">
+    <span class="method GET">GET</span>
+    <span class="api-path">/api/v1/stock/snapshot</span>
+    <span class="api-desc">Available qty (on-hand − reserved) for one or more SKUs</span>
+  </div>
+  <div class="api-body">
+    <div class="cols">
+      <div>
+        <div class="label">Query Params</div>
+        <pre>skus     = SKU-COTTON-WHT-M,SKU-COTTON-WHT-L   // required
+facility = SCOTT_1DAY_01                        // optional</pre>
+      </div>
+      <div>
+        <div class="label">Response — 200</div>
+        <pre>{
+  "snapshot": {
+    "SCOTT_1DAY_01:SKU-COTTON-WHT-M": 120,
+    "SCOTT_3DAY_01:SKU-COTTON-WHT-M": 200
+  }
+}</pre>
+      </div>
+    </div>
+    <div class="note">Keys are <code>FACILITY_CODE:SKU_CODE</code>. Errors: <code>400 MISSING_SKUS</code>, <code>401 UNAUTHORIZED</code>.</div>
+  </div>
+</div>
+
+<!-- Reserve -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">/api/v1/stock/reserve</span>
+    <span class="api-desc">Hold stock for an order</span>
+  </div>
+  <div class="api-body">
+    <div class="cols">
+      <div>
+        <div class="label">Request Body</div>
+        <pre>{
+  "order_code":    "P-53011",
+  "facility_code": "SCOTT_1DAY_01",
+  "items": [
+    {
+      "sku_code":  "SKU-COTTON-WHT-M",
+      "item_code": "P-1-4201-88",
+      "quantity":  50
+    }
+  ]
+}</pre>
+      </div>
+      <div>
+        <div class="label">Response — 201</div>
+        <pre>{
+  "reservation_id": "rsv_abc123",
+  "order_code":     "P-53011",
+  "status":         "RESERVED",
+  "expires_at":     "2026-07-21T10:00:00Z"
+}</pre>
+        <div class="label" style="margin-top:14px">If stock is short — 409</div>
+        <pre>{
+  "error": "INSUFFICIENT_STOCK",
+  "details": [
+    {
+      "sku_code":  "SKU-COTTON-WHT-M",
+      "requested": 50,
+      "available": 12
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Release -->
+<div class="api">
+  <div class="api-title">
+    <span class="method DELETE">DELETE</span>
+    <span class="api-path">/api/v1/stock/reserve/:reservation_id</span>
+    <span class="api-desc">Release a hold — idempotent</span>
+  </div>
+  <div class="api-body">
+    <div class="cols">
+      <div>
+        <div class="label">Query (optional)</div>
+        <pre>reason = "CANCELLED"   // or "ORDER_EDIT"</pre>
+      </div>
+      <div>
+        <div class="label">Response — 200</div>
+        <pre>{
+  "reservation_id": "rsv_abc123",
+  "status":         "RELEASED",
+  "released_at":    "2026-07-20T11:00:00Z"
+}</pre>
+      </div>
+    </div>
+    <div class="note">Errors: <code>404 RESERVATION_NOT_FOUND</code>, <code>409 ALREADY_FULFILLED</code>.</div>
+  </div>
+</div>
+
+<!-- Fulfill -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">/api/v1/stock/fulfill/:reservation_id</span>
+    <span class="api-desc">Convert hold to permanent deduction (dispatched)</span>
+  </div>
+  <div class="api-body">
+    <div class="cols">
+      <div>
+        <div class="label">Request Body (optional)</div>
+        <pre>{ "dispatched_at": "2026-07-20T14:00:00Z" }</pre>
+      </div>
+      <div>
+        <div class="label">Response — 200</div>
+        <pre>{
+  "reservation_id": "rsv_abc123",
+  "status":         "FULFILLED",
+  "fulfilled_at":   "2026-07-20T14:00:00Z",
+  "stock_deducted": [
+    {
+      "sku_code": "SKU-COTTON-WHT-M",
+      "deducted": 50,
+      "remaining": 70
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+    <div class="note">Idempotent for already-fulfilled. Errors: <code>404 RESERVATION_NOT_FOUND</code>, <code>409 RESERVATION_RELEASED</code>.</div>
+  </div>
+</div>
+
+<!-- Adjust -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">/api/v1/stock/adjust</span>
+    <span class="api-desc">Manual +/- correction (damage, returns, count errors)</span>
+  </div>
+  <div class="api-body">
+    <div class="cols">
+      <div>
+        <div class="label">Request Body</div>
+        <pre>{
+  "facility_code": "SCOTT_1DAY_01",
+  "reason": "DAMAGE_WRITE_OFF",
+  "items": [
+    { "sku_code": "SKU-COTTON-WHT-M", "delta": -12 },
+    { "sku_code": "SKU-POLY-BLK-S",   "delta": 50 }
+  ]
+}</pre>
+      </div>
+      <div>
+        <div class="label">Response — 200</div>
+        <pre>{
+  "adjustment_id": "adj_def456",
+  "applied_at":    "2026-07-20T09:00:00Z",
+  "results": [
+    {
+      "sku_code": "SKU-COTTON-WHT-M",
+      "before": 120,
+      "after": 108
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+    <div class="note"><code>409 INSUFFICIENT_STOCK</code> if a negative delta would leave on-hand below the reserved quantity.</div>
+  </div>
+</div>
+
+<h2 id="orders">Order API</h2>
+
+<!-- Create order -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">/api/v1/orders</span>
+    <span class="api-desc">Create an order — holds stock automatically</span>
+  </div>
+  <div class="api-body">
+    <div class="cols">
+      <div>
+        <div class="label">Request Body</div>
+        <pre>{
+  "order_code":    "P-53011",
+  "facility_code": "SCOTT_1DAY_01",
+  "due_on":        "2026-07-25T00:00:00Z",
+  "customer": {
+    "code":  "P-104",
+    "name":  "Acme Traders",
+    "email": "acme@example.com",
+    "phone": "9876543210"
+  },
+  "shipping_address": {
+    "name":          "Acme Traders",
+    "address_line1": "12 MG Road",
+    "city":          "Pune",
+    "state":         "MH",
+    "country":       "IN",
+    "pincode":       "411001"
+  },
+  "payment": {
+    "instrument":       "CASH",
+    "cash_on_delivery":  true
+  },
+  "comment": "Rush order - dispatch by Friday",
+  "items": [
+    {
+      "item_code":  "P-1-4201-88",
+      "sku_code":   "SKU-COTTON-WHT-M",
+      "quantity":   50,
+      "unit_price": 245.50
+    }
+  ]
+}</pre>
+      </div>
+      <div>
+        <div class="label">Response — 201</div>
+        <pre>{
+  "dashboard_order_id": "ord_abc123",
+  "order_code":         "P-53011",
+  "status":             "PENDING",
+  "created_at":         "2026-07-20T09:00:00Z"
+}</pre>
+        <div class="label" style="margin-top:14px">If stock is short — 409</div>
+        <pre>{
+  "error": "INSUFFICIENT_STOCK",
+  "details": [
+    {
+      "sku_code":  "SKU-COTTON-WHT-M",
+      "requested": 50,
+      "available": 12
+    }
+  ]
+}</pre>
+        <div class="label" style="margin-top:14px">If order_code already open — 409</div>
+        <pre>{
+  "error": "ORDER_EXISTS",
+  "details": {
+    "dashboard_order_id": "ord_abc123",
+    "status": "PENDING"
+  }
+}</pre>
+      </div>
+    </div>
+    <div class="note">Store <code>dashboard_order_id</code> — it is the id for all later calls. Re-using an <code>order_code</code> is allowed after CANCELLED/FAILED. On <code>ORDER_EXISTS</code>, adopt the returned id instead of retrying (covers lost 201 responses).</div>
+  </div>
+</div>
+
+<!-- Get order -->
+<div class="api">
+  <div class="api-title">
+    <span class="method GET">GET</span>
+    <span class="api-path">/api/v1/orders/:dashboard_order_id</span>
+    <span class="api-desc">Current status + items (reconciliation / support)</span>
+  </div>
+  <div class="api-body">
+    <div class="label">Response — 200</div>
+    <pre>{
+  "dashboard_order_id": "ord_abc123",
+  "order_code":         "P-53011",
+  "status":             "PROCESSING",
+  "updated_at":         "2026-07-20T12:00:00Z",
+  "items": [
+    { "sku_code": "SKU-COTTON-WHT-M", "quantity": 30, "dispatched_quantity": 0 }
+  ]
+}</pre>
+    <div class="note"><code>404 ORDER_NOT_FOUND</code> for unknown ids. Status changes are pushed via the <code>order.status_changed</code> webhook — polling not required.</div>
+  </div>
+</div>
+
+<!-- Update order -->
+<div class="api">
+  <div class="api-title">
+    <span class="method PATCH">PATCH</span>
+    <span class="api-path">/api/v1/orders/:dashboard_order_id</span>
+    <span class="api-desc">Edit items / address / due date before dispatch</span>
+  </div>
+  <div class="api-body">
+    <p class="desc">Full replace of <code>items</code> / <code>shipping_address</code> / <code>due_on</code> (same shapes as create; omitted fields untouched). The old stock hold is swapped for a new one — shrinking an order never fails because its own held stock is credited during the availability check.</p>
+    <div class="cols">
+      <div>
+        <div class="label">Request Body</div>
+        <pre>{
+  "due_on":           "2026-07-27T00:00:00Z",
+  "shipping_address": { /* same shape as create */ },
+  "items": [
+    {
+      "item_code":  "P-1-4201-88",
+      "sku_code":   "SKU-COTTON-WHT-M",
+      "quantity":   30,
+      "unit_price": 245.50
+    }
+  ]
+}</pre>
+      </div>
+      <div>
+        <div class="label">Response — 200</div>
+        <pre>{
+  "dashboard_order_id": "ord_abc123",
+  "order_code":         "P-53011",
+  "status":             "PENDING",
+  "updated_at":         "2026-07-20T10:00:00Z"
+}</pre>
+        <div class="label" style="margin-top:14px">If already dispatched / terminal — 409</div>
+        <pre>{
+  "error": "ORDER_NOT_EDITABLE",
+  "details": { "status": "COMPLETE" }
+}</pre>
+      </div>
+    </div>
+    <div class="note">Also possible: <code>409 INSUFFICIENT_STOCK</code>, <code>404 ORDER_NOT_FOUND</code>.</div>
+  </div>
+</div>
+
+<!-- Cancel order -->
+<div class="api">
+  <div class="api-title">
+    <span class="method DELETE">DELETE</span>
+    <span class="api-path">/api/v1/orders/:dashboard_order_id</span>
+    <span class="api-desc">Cancel — releases held stock, idempotent</span>
+  </div>
+  <div class="api-body">
+    <div class="cols">
+      <div>
+        <div class="label">Query (optional)</div>
+        <pre>reason = "CUSTOMER_CANCELLED"
+       // or "ORDER_EDIT", "OUT_OF_STOCK"</pre>
+      </div>
+      <div>
+        <div class="label">Response — 200</div>
+        <pre>{
+  "dashboard_order_id": "ord_abc123",
+  "order_code":         "P-53011",
+  "status":             "CANCELLED",
+  "cancelled_at":       "2026-07-20T11:00:00Z"
+}</pre>
+      </div>
+    </div>
+    <div class="note">Cancelling an already-cancelled order returns 200 with the original <code>cancelled_at</code>. <code>409 ORDER_NOT_EDITABLE</code> when already COMPLETE or FAILED.</div>
+  </div>
+</div>
+
+<!-- Set status -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">/api/v1/orders/:dashboard_order_id/status</span>
+    <span class="api-desc">Dashboard-internal: progress fulfillment</span>
+  </div>
+  <div class="api-body">
+    <p class="desc">How the dashboard side moves an order forward (not part of the Scott-facing spec, same bearer key). Every transition fires the <code>order.status_changed</code> webhook.</p>
+    <div class="cols">
+      <div>
+        <div class="label">Request Body</div>
+        <pre>{
+  "status": "PROCESSING",
+  // or "COMPLETE" (+ optional "dispatched_at")
+  // or "FAILED"
+}</pre>
+      </div>
+      <div>
+        <div class="label">Response — 200</div>
+        <pre>{
+  "dashboard_order_id": "ord_abc123",
+  "order_code":         "P-53011",
+  "status":             "COMPLETE",
+  "updated_at":         "2026-07-20T14:00:00Z",
+  "dispatched_at":      "2026-07-20T14:00:00Z"
+}</pre>
+      </div>
+    </div>
+    <table class="info">
+      <tr><th>Transition</th><th>Effect</th></tr>
+      <tr><td><code>PROCESSING</code></td><td>Allowed from PENDING only</td></tr>
+      <tr><td><code>COMPLETE</code></td><td>Terminal — fulfills the reservation (permanent deduction), sets <code>dispatched_at</code> + per-item <code>dispatched_quantity</code></td></tr>
+      <tr><td><code>FAILED</code></td><td>Terminal — releases the stock hold</td></tr>
+    </table>
+    <div class="note">Errors: <code>400 INVALID_STATUS</code>, <code>409 ORDER_NOT_EDITABLE</code> / <code>INVALID_TRANSITION</code>, <code>404 ORDER_NOT_FOUND</code>. Use DELETE to cancel.</div>
+  </div>
+</div>
+
+<h2 id="webhooks">Webhooks (dashboard → Scott backend)</h2>
+
+<p class="desc">
+  Configured via secrets <code>SCOTT_WEBHOOK_BASE_URL</code> + <code>SCOTT_WEBHOOK_SECRET</code>. Until both are set,
+  events queue in an outbox and deliver on the next API call after configuration. Every request is signed:
+</p>
+
+<pre>X-Dashboard-Signature: sha256=&lt;hmac-sha256-hex(rawBody, SCOTT_WEBHOOK_SECRET)&gt;</pre>
+
+<div class="note" style="margin-bottom:20px">
+  Respond <code>2xx</code> (e.g. <code>200 { "received": true }</code>). Anything else — or a timeout — keeps the event
+  queued and it is retried on the next stock/order mutation. Deduplicate on <code>event_id</code>.
+  Verify the signature against the <strong>raw</strong> request body before trusting the payload.
+</div>
+
+<!-- order.status_changed -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">{your_server}/webhooks/orders/status_changed</span>
+    <span class="api-desc">Fired on every order status transition</span>
+  </div>
+  <div class="api-body">
+    <div class="label">Payload</div>
+    <pre>{
+  "event":              "order.status_changed",
+  "event_id":           "evt_pqr678",
+  "occurred_at":        "2026-07-20T14:00:00Z",
+  "dashboard_order_id": "ord_abc123",
+  "order_code":         "P-53011",
+  "previous_status":    "PROCESSING",
+  "status":             "COMPLETE",
+  "dispatched_at":      "2026-07-20T14:00:00Z"
+}</pre>
+    <div class="note"><code>dispatched_at</code> is present only when the new status is <code>COMPLETE</code>.</div>
+  </div>
+</div>
+
+<!-- stock.level_changed -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">{your_server}/webhooks/stock/level_changed</span>
+    <span class="api-desc">Fired whenever available stock changes</span>
+  </div>
+  <div class="api-body">
+    <div class="label">Payload</div>
+    <pre>{
+  "event":         "stock.level_changed",
+  "event_id":      "evt_abc123",
+  "occurred_at":   "2026-07-20T14:00:00Z",
+  "facility_code": "SCOTT_1DAY_01",
+  "trigger":       "RESERVATION",
+  "changed_skus": [
+    {
+      "sku_code":       "SKU-COTTON-WHT-M",
+      "previous_stock": 120,
+      "current_stock":  119
+    }
+  ]
+}</pre>
+    <div class="note"><code>trigger</code> is one of <code>RESERVATION</code> / <code>RELEASE</code> / <code>FULFILLMENT</code> / <code>ADJUST</code>. Stock values are <strong>available</strong> quantity (on-hand − reserved).</div>
+  </div>
+</div>
+
+<!-- stock.low_threshold -->
+<div class="api">
+  <div class="api-title">
+    <span class="method POST">POST</span>
+    <span class="api-path">{your_server}/webhooks/stock/low_threshold</span>
+    <span class="api-desc">Fired when available qty drops below a SKU's reorder point</span>
+  </div>
+  <div class="api-body">
+    <div class="label">Payload</div>
+    <pre>{
+  "event":         "stock.low_threshold",
+  "event_id":      "evt_def456",
+  "occurred_at":   "2026-07-20T14:00:00Z",
+  "facility_code": "SCOTT_1DAY_01",
+  "low_stock_items": [
+    {
+      "sku_code":  "SKU-COTTON-WHT-M",
+      "available": 8,
+      "threshold": 20
+    }
+  ]
+}</pre>
+  </div>
+</div>
+
+<div class="label">Verifying the signature (Node.js)</div>
+<pre>const crypto = require("crypto");
+
+function verify(rawBody, signatureHeader, secret) {
+  const expected = "sha256=" +
+    crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+}</pre>
+
+<div class="note">
+  Connectivity test: dashboard admins can send a signed test <code>stock.level_changed</code> (with
+  <code>"test": true</code>) from the header environment popover → <em>Send test webhook</em>. Use it to verify your
+  receiver before real traffic.
+</div>
+
+<h2 id="realtime">Realtime / Websockets</h2>
+
+<p class="desc">
+  There is no custom websocket server — realtime uses <strong>Supabase Realtime</strong>
+  (websocket under the hood: <code>wss://&lt;project-ref&gt;.supabase.co/realtime/v1/websocket</code>).
+  Backend integration should prefer the webhooks above; realtime is for logged-in clients that want push updates without polling.
+</p>
+
+<div class="api">
+  <div class="api-title">
+    <span class="method WS">WS</span>
+    <span class="api-path">Supabase Realtime — postgres_changes</span>
+    <span class="api-desc">Tables published for live subscriptions</span>
+  </div>
+  <div class="api-body">
+    <table class="info">
+      <tr><th>Table</th><th>What it drives</th></tr>
+      <tr><td><code>scott_orders</code>, <code>scott_order_items</code></td><td>Ready Stock Order tab — app orders appear/update instantly</td></tr>
+      <tr><td><code>inventory_facility_stock</code></td><td>Reserved / Available columns + KPIs refresh on reserve/release/fulfill</td></tr>
+      <tr><td>internal dashboard tables (orders, chat, goals, …)</td><td>Rest of the dashboard live sync</td></tr>
+    </table>
+    <div class="label">Subscribing from a client (requires Supabase login — tables are read-only to clients)</div>
+    <pre>import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// sign in first — scott_orders is readable by authenticated users only
+
+supabase
+  .channel("orders-live")
+  .on("postgres_changes",
+    { event: "*", schema: "public", table: "scott_orders" },
+    (payload) => console.log("order changed:", payload))
+  .subscribe();</pre>
+    <div class="note">All published tables are read-only for clients — mutations only via the REST API above.</div>
+  </div>
+</div>
+
+<h2 id="postman">Postman Collection</h2>
+
+<table class="info">
+  <tr><th>File (in <code>docs/postman/</code>)</th><th>Purpose</th></tr>
+  <tr><td><code>Scott_Dashboard_Stock_API.postman_collection.json</code></td><td>Stock + Orders + happy-path flows + webhook payload examples</td></tr>
+  <tr><td><code>Scott_Dashboard_Stock_API.staging.postman_environment.json</code></td><td>Staging base URL + key variable</td></tr>
+  <tr><td><code>Scott_Dashboard_Stock_API.production.postman_environment.json</code></td><td>Production base URL + key variable</td></tr>
+</table>
+
+<p class="desc">
+  Import all three → select the <strong>staging</strong> environment → paste the API key into
+  <code>DASHBOARD_API_KEY</code> → run. "Create order" / "Reserve stock" auto-save
+  <code>dashboard_order_id</code> / <code>reservation_id</code> for the follow-up requests. The
+  "Webhooks" folder contains the exact payloads the dashboard sends — point
+  <code>scott_webhook_base_url</code> at <a href="https://webhook.site">webhook.site</a> or a mock server to
+  prototype the receiver.
+</p>
+
+</body>
+</html>

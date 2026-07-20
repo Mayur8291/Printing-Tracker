@@ -304,7 +304,31 @@ Audit log for manual +/- deltas via `POST /api/v1/stock/adjust`.
 
 ### `dashboard_webhook_outbox`
 
-Outbound webhook queue (`stock.level_changed`, `stock.low_threshold`). Edge function delivers with HMAC; failed rows stay `pending` for retry on next mutation.
+Outbound webhook queue (`stock.level_changed`, `stock.low_threshold`, `order.status_changed`). Edge function delivers with HMAC; failed rows stay `pending` for retry on next mutation.
+
+### `scott_orders` / `scott_order_items` (since `20260720120000_scott_orders.sql`)
+
+Scott International RMP orders — the external order lifecycle (`order-api-requirements.html`), **not** the internal printing-tracker `orders` table.
+
+| Column (scott_orders) | Notes |
+|--------|-------|
+| `id` | `ord_*` text pk, returned as `dashboard_order_id` |
+| `order_code` | Scott's code; partial unique index allows one open (PENDING/PROCESSING/COMPLETE) order per code |
+| `status` | `PENDING` / `PROCESSING` / `COMPLETE` / `CANCELLED` / `FAILED` (check constraint) |
+| `facility_code`, `due_on`, `customer`, `shipping_address`, `payment`, `comment` | Order payload (JSON columns for the nested objects) |
+| `reservation_id` | FK → `inventory_stock_reservations` (the stock hold; `on delete set null`) |
+| `cancel_reason`, `cancelled_at`, `dispatched_at` | Lifecycle metadata |
+
+`scott_order_items`: `order_id` (cascade), `item_code`, `sku_code`, `quantity`, `unit_price`, `dispatched_quantity` (set to `quantity` on COMPLETE).
+
+Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the outbox on every status transition (includes `dispatched_at` when COMPLETE). Mutations `service_role` only (edge function); `authenticated` has read-only SELECT.
+
+### `dashboard_api_keys` / `dashboard_channels` (since `20260720140000_admin_integrations.sql`)
+
+Admin Panel → Integrations.
+
+- `dashboard_api_keys`: M2M keys for `dashboard-stock-api`. `key_hash` (SHA-256 hex, unique) + `key_prefix` for display — **plaintext never stored**. `status` active/disabled, `last_used_at` bumped by the edge function on successful auth. RLS: all ops require `jwt_user_is_admin()`; service_role has select/update.
+- `dashboard_channels`: order-source registry — unique `code`, `channel_type` (CUSTOM/MOBILE_APP/SHOPIFY/AMAZON/FLIPKART/MYNTRA/JIOMART/OTHER check), `enabled`, optional `api_key_id` FK and `default_facility_code`. RLS: admin-only, service_role read.
 
 ### RPC (stock API)
 

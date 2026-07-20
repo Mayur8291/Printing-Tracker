@@ -10,10 +10,13 @@
 
 | Control | Detail |
 |---------|--------|
-| Auth | Static Bearer token `DASHBOARD_API_KEY` (Edge Function secret only) |
+| Auth | Bearer token: legacy `DASHBOARD_API_KEY` secret **or** per-client keys from `dashboard_api_keys` |
+| Key storage | Admin-generated keys stored as **SHA-256 hash + display prefix only**; plaintext shown once in the UI at creation, never persisted or logged |
+| Key lifecycle | Admin Panel → Integrations → API keys: generate / disable (`401 KEY_DISABLED`) / delete; `last_used_at` tracked per key |
+| Key management RLS | `dashboard_api_keys` / `dashboard_channels`: all operations require `jwt_user_is_admin()` |
 | JWT | Disabled (`verify_jwt = false`); API key checked in function code |
-| Data access | Service role client; tables have RLS with **no** user policies |
-| Rotation | Regenerate key in Supabase secrets; share new value with Scott backend team |
+| Data access | Service role client; partner tables have RLS with no user write policies |
+| Rotation | Preferred: generate a new key in the admin UI, hand over, disable the old one. Legacy: rotate `DASHBOARD_API_KEY` secret |
 
 ## Outbound webhooks
 

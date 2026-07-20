@@ -1,0 +1,31 @@
+---
+description: All changes (code, git, Supabase, deploys) go to staging/develop only — production requires an explicit release request
+alwaysApply: true
+---
+
+# All changes: staging only (mandatory)
+
+**Every change lands in staging first. Never touch production unless the user explicitly asks for a production release** (e.g. "deploy to production", "release to prod", "push to main").
+
+| Layer | Staging (default, always) | Production (explicit request only) |
+|---|---|---|
+| Git branch | `develop` (work + push here) | `main` (merge/push only on release) |
+| Web deploy | Netlify branch deploy `develop--printingtracker.netlify.app` (auto on push to develop) | `printingtracker.netlify.app` (builds from `main`) |
+| Supabase | `scvojtvgnkmbupvyslmb` — migrations, `db push`, edge function deploys, MCP SQL | `levwrmvqdntngeasrtnb` — read-only during dev |
+| Local app | `npm run dev` / `dev:staging` → staging keys | never point dev env at production ref |
+
+## Hard rules
+
+- Commit and push to `develop` only. Never `git push origin main`, never merge develop→main, unless the user explicitly requests a production release.
+- Never `npx supabase link --project-ref levwrmvqdntngeasrtnb`, never `db push` / `functions deploy` / DDL on production without an explicit production request.
+- "commit", "push", "save changes", "fix", "deploy" **without the word production** = staging/develop only.
+- The admin header env toggle may read production; that is a user action in their browser, not permission for the agent to modify production.
+
+## Production release checklist (only when explicitly asked)
+
+1. Verify change already works on staging.
+2. Merge `develop` → `main`, push (Netlify builds production).
+3. If backend changed: link production ref, `db push` / `functions deploy`, then **re-link staging**.
+4. Report exactly what was applied to production.
+
+Details: `.cursor/rules/staging-first-supabase.mdc`, `.cursor/rules/staging-only-dev.mdc`, `docs/ENVIRONMENTS.md`.

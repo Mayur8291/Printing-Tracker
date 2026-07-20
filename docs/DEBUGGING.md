@@ -66,6 +66,26 @@
 - **Fix:** apply the migration (`npx supabase db push` on the linked project), confirm login session, hard refresh. Realtime updates also need `20260716130000_facility_stock_realtime.sql` (adds table to `supabase_realtime`).
 - **Note:** the UI intentionally fails soft — a broken availability query must never blank the inventory page; it just falls back to `stock_qty`.
 
+## Order API: order.status_changed webhook never arrives at Scott backend
+
+- **Symptom:** Order transitions succeed (200 from `/api/v1/orders/:id/status` or DELETE) but Scott's receiver gets nothing.
+- **Root cause:** delivery needs both `SCOTT_WEBHOOK_BASE_URL` and `SCOTT_WEBHOOK_SECRET` edge-function secrets; until set, the trigger still enqueues rows in `dashboard_webhook_outbox` with status `pending` (delivery drained on the next API call once secrets exist). Also check `last_error` on the outbox row — non-2xx from their server keeps it pending with `attempts` incremented.
+- **Fix:** `npx supabase secrets set SCOTT_WEBHOOK_BASE_URL=... SCOTT_WEBHOOK_SECRET=...` (staging link), then any order/stock API call retries delivery. Verify with the admin header popover "Send test webhook".
+- **Queries:** `select event_type, status, attempts, last_error from dashboard_webhook_outbox order by created_at desc limit 20;`
+
+## Ready Stock Order tab empty though app orders exist
+
+- **Symptom:** Orders created via the Order API return 201 but the Ready Stock Order tab shows "No app orders yet".
+- **Root cause:** the connected Supabase project is missing migration `20260720120000_scott_orders.sql` (tables + authenticated SELECT policies) — or the browser is pointed at a different environment than the API calls (check the admin header env toggle). Live updates additionally need `20260720130000_scott_orders_realtime.sql`.
+- **Fix:** `npx supabase db push` on the linked project, confirm the header env matches where the order was created, hard refresh.
+- **Queries:** `select id, order_code, status, created_at from scott_orders order by created_at desc limit 10;`
+
+## Order API: 409 ORDER_EXISTS on create
+
+- **Symptom:** Creating an order returns `ORDER_EXISTS` though Scott's side thinks it's new.
+- **Root cause:** partial unique index allows only one open (PENDING/PROCESSING/COMPLETE) `scott_orders` row per `order_code` — usually a retry of a create whose 201 response was lost.
+- **Fix:** the 409 body includes the existing `dashboard_order_id` and status; Scott's backend should adopt that id instead of retrying. Re-use of an `order_code` is allowed after CANCELLED/FAILED.
+
 ## Dashboard Stock API 409 on reserve under load
 
 | | |

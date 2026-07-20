@@ -76,10 +76,10 @@ const { data, error } = await supabase.rpc('mark_conversation_read', {
 | `complete-password-reset` | Public (anon) | Set new password after admin approval |
 | `admin-promote-production` | Admin JWT | Trigger GitHub release |
 | `admin-test-scott-webhook` | Admin JWT | Send signed test `stock.level_changed` to Scott backend (`base_url` in body; needs `SCOTT_WEBHOOK_SECRET`) |
-| `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International stock M2M API (snapshot, reserve, fulfill, adjust) |
+| `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International M2M API — stock (snapshot, reserve, fulfill, adjust) + order lifecycle (create/edit/cancel/get/status) |
 | `tenor-gif-search` | Optional | Legacy GIF proxy |
 
-Full contract: [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) · OpenAPI: [openapi/dashboard-stock-api.yaml](./openapi/dashboard-stock-api.yaml) · Mobile integration guide (keys, code samples): [MOBILE_API_INTEGRATION.md](./MOBILE_API_INTEGRATION.md)
+Full contracts: [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) · [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md) · **All-in-one handoff:** [SCOTT_INTEGRATION_REFERENCE.md](./SCOTT_INTEGRATION_REFERENCE.md) (APIs + webhooks + realtime) · OpenAPI: [openapi/dashboard-stock-api.yaml](./openapi/dashboard-stock-api.yaml) · Mobile integration guide (keys, code samples): [MOBILE_API_INTEGRATION.md](./MOBILE_API_INTEGRATION.md)
 
 Deploy: `supabase functions deploy <name>`
 

@@ -1,6 +1,6 @@
 # Dashboard Stock API (Scott International)
 
-Machine-to-machine stock API for the Scott International backend (RMP orders, catalogue, UniCommerce replacement).
+Machine-to-machine stock API for the Scott International backend (RMP orders, catalogue, UniCommerce replacement). Order lifecycle routes live on the same function — see [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 **Spec source:** `dashboard-api-requirements.pdf`  
 **Implementation:** Supabase Edge Function `dashboard-stock-api`
@@ -22,7 +22,10 @@ Authorization: Bearer <DASHBOARD_API_KEY>
 Content-Type: application/json
 ```
 
-Set `DASHBOARD_API_KEY` in Supabase → Edge Functions → Secrets. Share the key value with the Scott International backend team once deployed.
+Two ways to issue keys (both accepted):
+
+1. **Admin UI (preferred):** Admin Panel → Integrations → API keys → "Generate a new API key" — per-client keys that can be disabled/deleted individually (stored as SHA-256 hashes; disabled keys get `401 KEY_DISABLED`).
+2. **Legacy secret:** `DASHBOARD_API_KEY` in Supabase → Edge Functions → Secrets.
 
 Optional webhook secrets:
 
@@ -174,6 +177,7 @@ When `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` are set, the edge functio
 |-------|------|
 | Stock level changed | `{BASE}/webhooks/stock/level_changed` |
 | Low threshold | `{BASE}/webhooks/stock/low_threshold` |
+| Order status changed | `{BASE}/webhooks/orders/status_changed` (see [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md)) |
 
 Header: `X-Dashboard-Signature: sha256=<hmac-sha256-hex(body)>`
 

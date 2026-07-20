@@ -31,6 +31,34 @@ External order backend ↔ Scott Dashboard inventory (M2M, not browser).
 
 See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
 
+### Order lifecycle (Scott RMP orders)
+
+1. **Create:** Scott backend → `POST .../api/v1/orders` (`order_code`, `facility_code`, `customer`, `shipping_address`, `payment`, `items[]`).
+2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via the same reservation path as `/stock/reserve` (`409 INSUFFICIENT_STOCK` if short); row in `scott_orders` (`ord_*` id, status `PENDING`) + `scott_order_items`, `reservation_id` linked. If the order insert fails, the hold is rolled back.
+3. **Edit:** `PATCH .../orders/:id` — terminal status → `409 ORDER_NOT_EDITABLE`. Item replace checks feasibility crediting the order's own held stock, then releases the old reservation and creates a new one; items table replaced.
+4. **Cancel:** `DELETE .../orders/:id?reason=...` — idempotent for already-cancelled; releases the reservation, sets `CANCELLED` + `cancel_reason`.
+5. **Progress:** dashboard-internal `POST .../orders/:id/status` — `PROCESSING` (from PENDING), `COMPLETE` (fulfills reservation: on-hand deducted, movements written, `stock_qty` synced, `dispatched_at` + items' `dispatched_quantity` set), `FAILED` (releases reservation).
+6. **Read:** `GET .../orders/:id` returns status + items with `dispatched_quantity`.
+7. **Webhooks:** DB trigger on `scott_orders` enqueues `order.status_changed` (with `previous_status`, and `dispatched_at` on COMPLETE) into `dashboard_webhook_outbox`; delivery drained by the edge function (HMAC `X-Dashboard-Signature`, retry-on-next-call). Stock changes additionally fire `stock.level_changed`.
+
+See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
+
+### Admin Integrations (API keys / Channels / Facilities)
+
+1. **Entry:** Admin Panel → "Integrations" tab (`AdminIntegrationsPanel`, admin-only).
+2. **API keys:** generate → random `scott_*` key created in the browser, SHA-256 hashed, hash+prefix inserted into `dashboard_api_keys`, plaintext shown once with copy. Disable/enable/delete rows; the edge function checks the hash on every M2M request and bumps `last_used_at`.
+3. **Channels:** add/enable/disable/delete rows in `dashboard_channels` (code, type, linked API key, default facility). Connector status badge derived from enabled + linked-key state.
+4. **Facilities:** inline edit of `inventory_warehouses.facility_code` (sanitized uppercase; duplicate code error shown inline). Same field the Stock/Order API keys on.
+5. **Failure:** RLS rejects non-admins; errors shown inline, page never blanks.
+
+### Ready Stock Order tab (app orders in the dashboard)
+
+1. **Trigger:** user opens sidebar → "Ready Stock Order" (`dashboardTab === "regular"` → `ReadyStockOrdersPanel`).
+2. **Fetch:** `scott_orders` (newest first, limit 500) + `scott_order_items` for those ids + SKU display names from `inventory_skus` (authenticated read-only policies).
+3. **Display:** shadcn table like the RMP order list — order code/id, placed time, facility, customer, status badge, payment (method / INR amount = Σ qty × unit_price / COD), item list (name, SKU, quantity, dispatched), due/dispatched date. Status filter tabs with counts + search.
+4. **Realtime:** subscription on `scott_orders` + `scott_order_items` (publication via `20260720130000`) → silent refetch, so an order placed in the app appears without refresh.
+5. **Failure:** load error shows inline message; page never blanks. Panel is read-only — status changes go through the Order API.
+
 ### Inventory UI availability (Reserved / Available)
 
 1. **Trigger:** Inventory tab mounts (`InventoryDataContext`).

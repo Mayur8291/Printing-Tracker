@@ -40,6 +40,8 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { Theme } from "@radix-ui/themes";
 import { cn } from "./lib/utils";
 import SharedLinksPanel from "./SharedLinksPanel";
+import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
+import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
 import DispatchTabPanel from "./DispatchTabPanel";
@@ -5637,14 +5639,7 @@ function App() {
             </div>
           )}
 
-          {dashboardTab === "regular" && (
-            <section className="panel table-panel dashboard-card">
-              <div className="dashboard-placeholder">
-                <h3>Ready Stock Order</h3>
-                <p>Coming soon — feature will be wired up later.</p>
-              </div>
-            </section>
-          )}
+          {dashboardTab === "regular" && <ReadyStockOrdersPanel />}
 
           {dashboardTab === "shared_links" && (
             <SharedLinksPanel isAdmin={isAdmin} canEdit={viewerCanEditCurrentTab} />
@@ -5839,6 +5834,15 @@ function App() {
                     >
                       Password resets
                     </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={masterListView === "integrations"}
+                      className={masterListView === "integrations" ? "master-view-tab is-active" : "master-view-tab"}
+                      onClick={() => setMasterListView("integrations")}
+                    >
+                      Integrations
+                    </button>
                     {showAdminDeployTools && (
                       <button
                         type="button"
@@ -5860,6 +5864,8 @@ function App() {
                       <AdminDeployPanel />
                     </section>
                   )}
+
+                  {masterListView === "integrations" && <AdminIntegrationsPanel />}
 
                   {masterListView === "create" && (
                   <div className="create-user-section">
