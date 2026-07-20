@@ -277,6 +277,9 @@ Master SKU records. Sub SKUs (colorways / variants) link to a parent via `parent
 | Column | Type | Purpose |
 |--------|------|---------|
 | `facility_code` | text | External facility id for Stock API snapshot keys (e.g. `SCOTT_1DAY_01`). Unique when set. |
+| `layout` | jsonb | Bin map for the warehouse page: `{ "zones": [{ "name": "A", "rows": 8, "cols": 10 }] }` (since `20260720150000_warehouse_edit_layout.sql`). |
+
+**Facility code rename:** trigger `inventory_warehouses_propagate_facility_code` rewrites `inventory_facility_stock`, open reservations (`status = RESERVED`), open Scott orders (`PENDING`/`PROCESSING`), and `dashboard_channels.default_facility_code` when the warehouse facility code changes. Stock/Order API request/response shapes are unchanged — callers keep sending `facility_code`; only the value moves. Editable from Inventory → Warehouses → Edit, and Admin → Integrations → Facilities.
 
 ### `inventory_facility_stock`
 

@@ -20,7 +20,9 @@ import {
   rowToSku,
   saveAlertSettings,
   updateSkuFields,
-  updateSkuReorder
+  updateSkuReorder,
+  updateWarehouse,
+  updateWarehouseLayout
 } from "./inventoryDbUtils";
 import { INVENTORY_INITIAL_SKU_BATCH } from "./inventoryQueryFields";
 import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
@@ -392,6 +394,20 @@ export function InventoryDataProvider({ session, children }) {
     await refresh();
   }, [refresh]);
 
+  const editWarehouse = useCallback(async (id, record) => {
+    const row = await updateWarehouse(id, record);
+    setWarehouses((list) => list.map((w) => (w.id === id ? { ...w, ...row, used: w.used } : w)));
+    await refresh();
+    void loadAvailability();
+    return row;
+  }, [refresh, loadAvailability]);
+
+  const editWarehouseLayout = useCallback(async (id, layout) => {
+    const row = await updateWarehouseLayout(id, layout);
+    setWarehouses((list) => list.map((w) => (w.id === id ? { ...w, layout: row.layout } : w)));
+    return row;
+  }, []);
+
   const quickCreateSupplier = useCallback(
     async (name) => {
       const row = await insertSupplier(buildMinimalSupplierRecord(name, suppliers));
@@ -458,6 +474,8 @@ export function InventoryDataProvider({ session, children }) {
     removeSku,
     createSupplier,
     createWarehouse,
+    editWarehouse,
+    editWarehouseLayout,
     quickCreateSupplier,
     quickCreateWarehouse,
     canEdit: true,

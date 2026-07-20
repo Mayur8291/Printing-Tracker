@@ -51,6 +51,14 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 4. **Facilities:** inline edit of `inventory_warehouses.facility_code` (sanitized uppercase; duplicate code error shown inline). Same field the Stock/Order API keys on.
 5. **Failure:** RLS rejects non-admins; errors shown inline, page never blanks.
 
+### Inventory → Warehouses — Edit + Layout
+
+1. **Trigger:** Inventory → Warehouses → select a warehouse → **Edit** or **Layout**.
+2. **Edit:** `EditWarehouseModal` → `editWarehouse` → `updateWarehouse` patches name/city/type/capacity/`facility_code`. Internal warehouse id is read-only.
+3. **Facility rename:** DB trigger `inventory_warehouses_propagate_facility_code` updates facility stock, open reservations, open Scott orders, and channel defaults so Stock/Order APIs keep working with the new code (no API contract change). Availability map is reloaded after save.
+4. **Layout:** `WarehouseLayoutModal` saves `{ zones: [{ name, rows, cols }] }` to `inventory_warehouses.layout`; bin map on the page renders from that layout (default A 8×10). Layout does not affect stock APIs.
+5. **Failure:** duplicate facility code → inline error; page never blanks.
+
 ### Ready Stock Order tab (app orders in the dashboard)
 
 1. **Trigger:** user opens sidebar → "Ready Stock Order" (`dashboardTab === "regular"` → `ReadyStockOrdersPanel`).

@@ -8,7 +8,7 @@ export const INVENTORY_SKU_FULL_SELECT = `${INVENTORY_SKU_LIST_SELECT}, created_
 export const INVENTORY_SUPPLIER_LIST_SELECT =
   "id, name, country, city, lead_days, rating, contact, payment_terms, gstin, address, supplier_type";
 
-export const INVENTORY_WAREHOUSE_LIST_SELECT = "id, name, city, capacity, warehouse_type, facility_code";
+export const INVENTORY_WAREHOUSE_LIST_SELECT = "id, name, city, capacity, warehouse_type, facility_code, layout";
 
 export const INVENTORY_INITIAL_SKU_BATCH = 1000;
 

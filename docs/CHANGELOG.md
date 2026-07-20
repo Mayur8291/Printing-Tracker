@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-20 — Warehouse Edit + Layout editor (facility code stays in sync with APIs)
+
+- **Issue:** Warehouses page had no Edit action, and the Layout button did nothing — facility code could only be set on create (or via Admin → Integrations → Facilities).
+- **Feature:** Inventory → Warehouses now has **Edit** and **Layout** on the detail card.
+  - **Edit warehouse** (`EditWarehouseModal`): name, city, type, capacity, external facility code. Internal warehouse id (`WH-*`) stays read-only (SKU FK). Renaming facility code shows an amber notice.
+  - **Layout** (`WarehouseLayoutModal`): edit zones (name / rows / cols) stored in `inventory_warehouses.layout`; bin map on the page renders from the saved layout (default zone A 8×10 when unset).
+- **Propagation (no API contract change):** migration `20260720150000_warehouse_edit_layout.sql` (already on staging) — trigger `inventory_warehouses_propagate_facility_code` rewrites `inventory_facility_stock`, open `inventory_stock_reservations`, open `scott_orders` (PENDING/PROCESSING), and `dashboard_channels.default_facility_code` when the warehouse facility code changes. Stock snapshot / reserve / order create keep using the same `facility_code` field — partners just see the new code.
+- **Files:** `EditWarehouseModal.jsx`, `WarehouseLayoutModal.jsx` (new), `InventoryWarehousesPage.jsx`, `InventoryDashboard.jsx`, `InventoryDataContext.jsx` (`editWarehouse` / `editWarehouseLayout` exported), `inventoryDbUtils.js`, `inventoryQueryFields.js`, migration.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-07-20 — Postman collection + single integration reference (APIs, webhooks, realtime)
 
 - **Docs:** new `docs/SCOTT_INTEGRATION_REFERENCE.md` — one readable handoff document covering all 10 REST endpoints (5 stock + 5 order) with request/response/error examples, all 3 outbound webhooks with payloads + Node HMAC verification snippet, and the realtime/websocket story (Supabase Realtime channels; subscription example for external clients). Clears the earlier "Postman covers stock only" gap.

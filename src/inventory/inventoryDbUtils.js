@@ -256,7 +256,8 @@ function mapWarehouseRow(w) {
     capacity: Number(w.capacity) || 0,
     used: 0,
     type: w.warehouse_type,
-    facilityCode: w.facility_code || ""
+    facilityCode: w.facility_code || "",
+    layout: w.layout || null
   };
 }
 
@@ -585,6 +586,47 @@ export async function insertSupplier(record) {
   );
   if (error) throw error;
   return mapSupplierRow(data);
+}
+
+/**
+ * Update warehouse fields by id. A facility_code change is propagated to
+ * facility stock / open reservations / open Scott orders / channel defaults
+ * by the DB trigger inventory_warehouses_propagate_facility_code.
+ */
+export async function updateWarehouse(id, record) {
+  const patch = {
+    name: record.name,
+    city: record.city || "",
+    capacity: Number(record.capacity) || 0,
+    warehouse_type: record.type || "",
+    facility_code: record.facilityCode?.trim() || null
+  };
+  if (record.layout !== undefined) patch.layout = record.layout;
+
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_warehouses")
+      .update(patch)
+      .eq("id", id)
+      .select("*")
+      .single()
+  );
+  if (error) throw error;
+  return mapWarehouseRow(data);
+}
+
+/** Update only the bin-map layout (Layout dialog). */
+export async function updateWarehouseLayout(id, layout) {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase
+      .from("inventory_warehouses")
+      .update({ layout })
+      .eq("id", id)
+      .select("*")
+      .single()
+  );
+  if (error) throw error;
+  return mapWarehouseRow(data);
 }
 
 export async function insertWarehouse(record) {

@@ -7,10 +7,22 @@ import { cn } from "@/lib/utils";
 import { useInventory } from "../InventoryDataContext";
 import { PageHeader } from "../inventoryUiUtils";
 
-function buildBins(seed) {
+const DEFAULT_ZONES = [{ name: "A", rows: 8, cols: 10 }];
+
+function zonesFromLayout(layout) {
+  const zones = Array.isArray(layout?.zones) ? layout.zones : null;
+  if (!zones?.length) return DEFAULT_ZONES;
+  return zones.map((z, i) => ({
+    name: String(z?.name ?? String.fromCharCode(65 + i)).slice(0, 4) || "A",
+    rows: Math.min(40, Math.max(1, Number(z?.rows) || 8)),
+    cols: Math.min(40, Math.max(1, Number(z?.cols) || 10))
+  }));
+}
+
+function buildBins(seed, count) {
   const bins = [];
   let r = seed;
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < count; i++) {
     r = (r * 9301 + 49297) % 233280;
     const fillType = r / 233280;
     bins.push(fillType < 0.15 ? "full" : fillType < 0.55 ? "filled" : "empty");
@@ -29,18 +41,25 @@ function BinCell({ state, label }) {
         state === "full" && "border-primary bg-primary/20 font-medium text-primary"
       )}
     >
-      {state === "empty" ? "" : label.replace("A-", "").replace("-", "")}
+      {state === "empty" ? "" : label.replace(/^[A-Z0-9]+-/, "").replace("-", "")}
     </div>
   );
 }
 
-export default function InventoryWarehousesPage({ onAddWarehouse }) {
+export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehouse, onEditLayout }) {
   const { warehouses, skus, pos } = useInventory();
   const [selected, setSelected] = useState(warehouses[0]?.id || "");
   const wh = warehouses.find((w) => w.id === selected) || warehouses[0];
   const skusHere = skus.filter((s) => s.wh === selected);
   const utilPct = wh?.capacity ? Math.round((wh.used / wh.capacity) * 100) : 0;
-  const bins = useMemo(() => buildBins((selected || "x").length * 17), [selected]);
+  const zones = useMemo(() => zonesFromLayout(wh?.layout), [wh?.layout]);
+  const zoneBins = useMemo(() => {
+    const seedBase = (selected || "x").length * 17;
+    return zones.map((zone, zi) => ({
+      zone,
+      bins: buildBins(seedBase + zi * 97, zone.rows * zone.cols)
+    }));
+  }, [zones, selected]);
 
   if (!warehouses.length) {
     return (
@@ -128,11 +147,22 @@ export default function InventoryWarehousesPage({ onAddWarehouse }) {
                 <CardTitle>{wh.name}</CardTitle>
                 <CardDescription>
                   <span className="font-mono">{wh.id}</span> · {wh.city} · {wh.type}
+                  {wh.facilityCode ? (
+                    <>
+                      {" · "}
+                      <span className="font-mono">{wh.facilityCode}</span>
+                    </>
+                  ) : null}
                 </CardDescription>
               </div>
-              <Button type="button" variant="outline" size="sm">
-                Layout
-              </Button>
+              <div className="flex shrink-0 gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => onEditWarehouse?.(wh)}>
+                  Edit
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => onEditLayout?.(wh)}>
+                  Layout
+                </Button>
+              </div>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <div>
@@ -158,16 +188,27 @@ export default function InventoryWarehousesPage({ onAddWarehouse }) {
           </CardHeader>
 
           <CardContent className="border-b py-4">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Bin map · zone A</p>
-            <p className="mb-3 text-xs text-muted-foreground">Hover bins to see contents. Click an empty bin to assign a SKU.</p>
-            <div className="grid grid-cols-10 gap-1">
-              {bins.map((state, i) => {
-                const col = (i % 10) + 1;
-                const row = Math.floor(i / 10) + 1;
-                const label = `A-${row.toString().padStart(2, "0")}-${col.toString().padStart(2, "0")}`;
-                return <BinCell key={i} state={state} label={label} />;
-              })}
-            </div>
+            {zoneBins.map(({ zone, bins }) => (
+              <div key={zone.name} className={cn(zoneBins.length > 1 && "mb-5 last:mb-0")}>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Bin map · zone {zone.name}
+                </p>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  {zone.rows} × {zone.cols} · Hover bins to see contents.
+                </p>
+                <div
+                  className="grid gap-1"
+                  style={{ gridTemplateColumns: `repeat(${zone.cols}, minmax(0, 1fr))` }}
+                >
+                  {bins.map((state, i) => {
+                    const col = (i % zone.cols) + 1;
+                    const row = Math.floor(i / zone.cols) + 1;
+                    const label = `${zone.name}-${row.toString().padStart(2, "0")}-${col.toString().padStart(2, "0")}`;
+                    return <BinCell key={label} state={state} label={label} />;
+                  })}
+                </div>
+              </div>
+            ))}
             <div className="mt-3 flex gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <span className="size-3 rounded border border-dashed bg-muted/30" /> Empty
@@ -200,11 +241,16 @@ export default function InventoryWarehousesPage({ onAddWarehouse }) {
                       {s.name} · {s.color}
                     </TableCell>
                     <TableCell className="font-mono text-xs">{s.bin || "—"}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {(s.stock ?? s.totalStock).toLocaleString()} {s.unit || "pc"}
-                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{Number(s.stock).toLocaleString()}</TableCell>
                   </TableRow>
                 ))}
+                {!skusHere.length ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                      No SKUs assigned to this warehouse yet.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
               </TableBody>
             </Table>
           </CardContent>

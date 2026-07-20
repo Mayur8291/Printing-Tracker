@@ -73,6 +73,13 @@
 - **Fix:** `npx supabase secrets set SCOTT_WEBHOOK_BASE_URL=... SCOTT_WEBHOOK_SECRET=...` (staging link), then any order/stock API call retries delivery. Verify with the admin header popover "Send test webhook".
 - **Queries:** `select event_type, status, attempts, last_error from dashboard_webhook_outbox order by created_at desc limit 20;`
 
+## Warehouse Edit: facility code changed but snapshot still uses old code
+
+- **Symptom:** Admin renamed facility code on a warehouse, but `GET /stock/snapshot?facility=OLD` still returns data / new code returns empty.
+- **Root cause:** migration `20260720150000_warehouse_edit_layout.sql` (propagate trigger) not applied on the connected project — only the warehouse row updated, facility stock still keyed by the old code.
+- **Fix:** `npx supabase db push` on the linked project, then re-save the facility code (or run a one-off update of `inventory_facility_stock.facility_code`). Confirm trigger: `select tgname from pg_trigger where tgname = 'inventory_warehouses_propagate_facility_code';`
+- **Note:** Stock/Order API shapes are unchanged — callers must use the **new** facility code after a rename.
+
 ## Ready Stock Order tab empty though app orders exist
 
 - **Symptom:** Orders created via the Order API return 201 but the Ready Stock Order tab shows "No app orders yet".

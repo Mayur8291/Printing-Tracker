@@ -7,6 +7,8 @@ import NewSkuModal from "./modals/NewSkuModal";
 import ImportSkusModal from "./modals/ImportSkusModal";
 import NewSupplierModal from "./modals/NewSupplierModal";
 import NewWarehouseModal from "./modals/NewWarehouseModal";
+import EditWarehouseModal from "./modals/EditWarehouseModal";
+import WarehouseLayoutModal from "./modals/WarehouseLayoutModal";
 import SkuManagementModal from "./modals/SkuManagementModal";
 import SkuDrawer from "./modals/SkuDrawer";
 import InventoryAlertsPage from "./pages/InventoryAlertsPage";
@@ -23,7 +25,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export default function InventoryDashboard() {
-  const { loading, error, alerts, skus, suppliers, createSku, importSkus, adjustStock, removeSku, createSupplier, createWarehouse, refresh, hydrateSkuDetail, loadMovements } = useInventory();
+  const {
+    loading,
+    error,
+    alerts,
+    skus,
+    suppliers,
+    createSku,
+    importSkus,
+    adjustStock,
+    removeSku,
+    createSupplier,
+    createWarehouse,
+    editWarehouse,
+    editWarehouseLayout,
+    refresh,
+    hydrateSkuDetail,
+    loadMovements
+  } = useInventory();
   const [active, setActive] = useState("overview");
   const [kind, setKind] = useState("apparel");
   const [drawerSku, setDrawerSku] = useState(null);
@@ -40,6 +59,8 @@ export default function InventoryDashboard() {
   const [skuMgmtOpen, setSkuMgmtOpen] = useState(false);
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [warehouseOpen, setWarehouseOpen] = useState(false);
+  const [editingWarehouse, setEditingWarehouse] = useState(null);
+  const [layoutWarehouse, setLayoutWarehouse] = useState(null);
   const [deletingSkuId, setDeletingSkuId] = useState(null);
   const [toasts, setToasts] = useState([]);
 
@@ -189,6 +210,20 @@ export default function InventoryDashboard() {
     }
   };
 
+  const handleEditWarehouseSubmit = async (record) => {
+    if (!editingWarehouse?.id) return;
+    await editWarehouse(editingWarehouse.id, record);
+    setEditingWarehouse(null);
+    toast(`Updated warehouse ${record.name}`);
+  };
+
+  const handleLayoutSubmit = async (layout) => {
+    if (!layoutWarehouse?.id) return;
+    await editWarehouseLayout(layoutWarehouse.id, layout);
+    setLayoutWarehouse(null);
+    toast(`Layout saved for ${layoutWarehouse.name}`);
+  };
+
   const handleImportSkus = async (records, opts) => {
     try {
       const result = await importSkus("apparel", records, opts);
@@ -262,7 +297,13 @@ export default function InventoryDashboard() {
       case "suppliers":
         return <InventorySuppliersPage onAddSupplier={() => setSupplierOpen(true)} />;
       case "warehouses":
-        return <InventoryWarehousesPage onAddWarehouse={() => setWarehouseOpen(true)} />;
+        return (
+          <InventoryWarehousesPage
+            onAddWarehouse={() => setWarehouseOpen(true)}
+            onEditWarehouse={(wh) => setEditingWarehouse(wh)}
+            onEditLayout={(wh) => setLayoutWarehouse(wh)}
+          />
+        );
       default:
         return <InventoryOverview setActive={setActive} openSku={setDrawerSku} openNewSku={openNewSku} openCreatePO={openCreatePO} />;
     }
@@ -363,6 +404,22 @@ export default function InventoryDashboard() {
 
       {warehouseOpen && (
         <NewWarehouseModal onClose={() => setWarehouseOpen(false)} onSubmit={handleNewWarehouseSubmit} />
+      )}
+
+      {editingWarehouse && (
+        <EditWarehouseModal
+          warehouse={editingWarehouse}
+          onClose={() => setEditingWarehouse(null)}
+          onSubmit={handleEditWarehouseSubmit}
+        />
+      )}
+
+      {layoutWarehouse && (
+        <WarehouseLayoutModal
+          warehouse={layoutWarehouse}
+          onClose={() => setLayoutWarehouse(null)}
+          onSubmit={handleLayoutSubmit}
+        />
       )}
 
       <div className="pointer-events-none fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
