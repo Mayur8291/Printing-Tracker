@@ -12,7 +12,13 @@ export default defineConfig({
   server: {
     // Listen on all interfaces so phones / other PCs on same Wi‑Fi can open the app
     host: true,
-    port: 5173
+    port: 5173,
+    proxy: {
+      "/api/picklist": {
+        target: "http://localhost:3001",
+        changeOrigin: true
+      }
+    }
   },
   preview: {
     host: true,

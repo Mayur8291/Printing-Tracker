@@ -1,0 +1,192 @@
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+.picklist-doc {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #000;
+  font-size: 9px;
+  line-height: 1.25;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.picklist-doc *,
+.picklist-doc *::before,
+.picklist-doc *::after {
+  box-sizing: border-box;
+}
+
+.picklist-title {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.picklist-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: start;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 9px;
+}
+
+.picklist-header-left,
+.picklist-header-center,
+.picklist-header-right {
+  vertical-align: top;
+}
+
+.picklist-header-center,
+.picklist-header-right {
+  padding-top: 2px;
+}
+
+.picklist-label {
+  font-weight: 700;
+}
+
+.picklist-barcode {
+  display: block;
+  width: 170px;
+  height: 38px;
+  margin-top: 4px;
+}
+
+.picklist-barcode-caption {
+  width: 170px;
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.picklist-signoff {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 9px;
+}
+
+.picklist-signoff-line {
+  display: inline-block;
+  min-width: 120px;
+  border-bottom: 1px solid #000;
+  vertical-align: bottom;
+  height: 14px;
+}
+
+.picklist-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 9px;
+}
+
+.picklist-items-table th,
+.picklist-items-table td {
+  border: 1px solid #000;
+  padding: 6px;
+  text-align: center;
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+.picklist-items-table th {
+  font-weight: 700;
+}
+
+.picklist-items-table .picklist-sku-name {
+  text-align: center;
+  white-space: normal;
+}
+
+.picklist-banner-row td {
+  background: #d9d9d9;
+  font-weight: 400;
+  text-align: center;
+}
+
+.picklist-brand-row td {
+  text-align: left;
+  padding: 6px 8px;
+}
+
+.picklist-brand-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.picklist-brand-logo {
+  height: 22px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+.picklist-items-table thead {
+  display: table-header-group;
+}
+
+.picklist-items-table tr {
+  page-break-inside: avoid;
+}
+
+.picklist-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-size: 9px;
+  table-layout: fixed;
+}
+
+.picklist-orders-table th,
+.picklist-orders-table td {
+  border: 1px solid #000;
+  padding: 6px;
+  text-align: center;
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+.picklist-orders-table th {
+  font-weight: 700;
+}
+
+.picklist-col-slno { width: 5%; }
+.picklist-col-sku { width: 14%; }
+.picklist-col-name { width: 18%; }
+.picklist-col-shelf { width: 11%; }
+.picklist-col-comment { width: 16%; }
+.picklist-col-pickupdate { width: 30%; }
+.picklist-col-qty { width: 6%; }
+
+.picklist-order-col-number { width: 40%; }
+.picklist-order-col-customer { width: 60%; }
+
+@media screen {
+  .picklist-doc {
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 12mm;
+    background: #fff;
+  }
+}
+
+@media print {
+  .picklist-no-print {
+    display: none !important;
+  }
+}

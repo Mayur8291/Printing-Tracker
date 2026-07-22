@@ -20,8 +20,6 @@ async function withSchemaCacheRetry(run) {
 
 export const INVENTORY_SKU_SELECT = INVENTORY_SKU_FULL_SELECT;
 
-export const INVENTORY_STYLE_PARENT_SELECT = "id, parent_sku_code, style_name, kind, created_at";
-
 export const INVENTORY_MOVEMENT_SELECT =
   "id, sku_id, movement_type, qty, reason, reference, from_warehouse_id, to_warehouse_id, created_by, created_at, inventory_skus(sku_code, name, color, unit)";
 
@@ -32,20 +30,9 @@ export const DEFAULT_ALERT_SETTINGS = {
   out_of_stock_critical: true
 };
 
-function parentFromRow(row) {
-  const p = row.inventory_style_parents;
-  if (!p) return { parentStyleId: "", parentStyleCode: "", parentStyleName: "" };
-  return {
-    parentStyleId: p.id || row.parent_style_id || "",
-    parentStyleCode: p.parent_sku_code || "",
-    parentStyleName: p.style_name || ""
-  };
-}
-
 export function rowToSku(row) {
   if (!row) return null;
   const extra = row.extra && typeof row.extra === "object" ? row.extra : {};
-  const parent = parentFromRow(row);
   const retail =
     extra.retail ?? (row.retail_price != null ? Number(row.retail_price) : 0);
   const base = {
@@ -66,8 +53,7 @@ export function rowToSku(row) {
     tags: Array.isArray(row.tags) ? row.tags : [],
     unit: row.unit || "pc",
     kind: row.kind,
-    created_at: row.created_at || null,
-    ...parent
+    created_at: row.created_at || null
   };
 
   if (row.kind === "apparel") {
@@ -83,17 +69,6 @@ export function rowToSku(row) {
     ...base,
     ...extra,
     stock: Number(row.stock_qty) || 0
-  };
-}
-
-export function mapStyleParentRow(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    parentSkuCode: row.parent_sku_code,
-    styleName: row.style_name,
-    kind: row.kind,
-    createdAt: row.created_at
   };
 }
 
@@ -123,12 +98,7 @@ export function skuToInsertPayload(kind, record, userId) {
     "tags",
     "unit",
     "kind",
-    "retail",
-    "parentStyleId",
-    "parentStyleCode",
-    "parentStyleName",
-    "parentMode",
-    "parentSkuCode"
+    "retail"
   ].forEach((k) => delete extra[k]);
 
   return {
@@ -144,7 +114,7 @@ export function skuToInsertPayload(kind, record, userId) {
     unit: record.unit || (isApparel ? "pc" : record.unit || "pc"),
     unit_cost: Number(record.cost) || 0,
     retail_price: Number(record.retail) || null,
-    parent_style_id: record.parentStyleId || null,
+    parent_style_id: null,
     supplier_id: record.supplier || null,
     warehouse_id: record.wh || null,
     bin_location: record.bin || "",
@@ -315,31 +285,6 @@ async function fetchAllInventorySkuRowsFromOffset(startOffset) {
   return rows;
 }
 
-async function fetchAllStyleParents() {
-  const { data, error } = await withSchemaCacheRetry(() =>
-    supabase.from("inventory_style_parents").select(INVENTORY_STYLE_PARENT_SELECT).order("style_name")
-  );
-  if (error) throw error;
-  return (data || []).map(mapStyleParentRow);
-}
-
-export async function insertStyleParent({ parentSkuCode, styleName, kind }, userId) {
-  const { data, error } = await withSchemaCacheRetry(() =>
-    supabase
-      .from("inventory_style_parents")
-      .insert({
-        parent_sku_code: parentSkuCode,
-        style_name: styleName,
-        kind,
-        created_by: userId || null
-      })
-      .select(INVENTORY_STYLE_PARENT_SELECT)
-      .single()
-  );
-  if (error) throw error;
-  return mapStyleParentRow(data);
-}
-
 export async function fetchInventoryMovements(limit = 100) {
   const { data, error } = await withSchemaCacheRetry(() =>
     supabase
@@ -387,7 +332,7 @@ export async function fetchSkuMovements(skuUuid, limit = 6) {
   return (data || []).map(movementRowToUi);
 }
 
-function buildInventoryBundleFromParts({ settingsRes, suppliersRes, warehousesRes, skuRows, styleParents, movements = [] }) {
+function buildInventoryBundleFromParts({ settingsRes, suppliersRes, warehousesRes, skuRows, movements = [] }) {
   const errors = [settingsRes.error, suppliersRes.error, warehousesRes.error].filter(Boolean);
   if (errors.length) throw errors[0];
 
@@ -398,7 +343,6 @@ function buildInventoryBundleFromParts({ settingsRes, suppliersRes, warehousesRe
     settings,
     suppliers: (suppliersRes.data || []).map(mapSupplierRow),
     warehouses: (warehousesRes.data || []).map(mapWarehouseRow),
-    styleParents: styleParents || [],
     skus,
     fabrics: skus.filter((s) => s.kind === "fabric"),
     trims: skus.filter((s) => s.kind === "trim"),
@@ -409,12 +353,11 @@ function buildInventoryBundleFromParts({ settingsRes, suppliersRes, warehousesRe
 }
 
 export async function fetchInventoryRefreshBundle({ fullSkus = false } = {}) {
-  const [settingsRes, suppliersRes, warehousesRes, skuRows, styleParents] = await Promise.all([
+  const [settingsRes, suppliersRes, warehousesRes, skuRows] = await Promise.all([
     supabase.from("inventory_alert_settings").select("*").eq("id", 1).maybeSingle(),
     supabase.from("inventory_suppliers").select(INVENTORY_SUPPLIER_LIST_SELECT).order("name"),
     supabase.from("inventory_warehouses").select(INVENTORY_WAREHOUSE_LIST_SELECT).order("name"),
-    fullSkus ? fetchAllInventorySkuRows() : fetchInventorySkuRowsInitial(),
-    fetchAllStyleParents().catch(() => [])
+    fullSkus ? fetchAllInventorySkuRows() : fetchInventorySkuRowsInitial()
   ]);
 
   const bundle = buildInventoryBundleFromParts({
@@ -422,7 +365,6 @@ export async function fetchInventoryRefreshBundle({ fullSkus = false } = {}) {
     suppliersRes,
     warehousesRes,
     skuRows,
-    styleParents,
     movements: []
   });
 
@@ -562,6 +504,30 @@ export async function applyStockAdjustment({ skuUuid, type, qty, reason, referen
     toWh,
     userId
   });
+}
+
+/**
+ * Set absolute on-hand qty for one SKU at one warehouse facility.
+ * Recomputes inventory_skus.stock_qty server-side (RPC adjust_sku_facility_stock).
+ */
+export async function applyFacilityStockAdjustment({
+  skuUuid,
+  warehouseId,
+  targetOnHand,
+  reason,
+  reference,
+  userId
+}) {
+  const { data, error } = await supabase.rpc("adjust_sku_facility_stock", {
+    p_sku_id: skuUuid,
+    p_warehouse_id: warehouseId,
+    p_target_on_hand: Math.max(0, Number(targetOnHand)),
+    p_reason: reason || "",
+    p_reference: reference || "",
+    p_user_id: userId || null
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function insertSupplier(record) {

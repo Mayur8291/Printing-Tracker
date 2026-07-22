@@ -40,7 +40,7 @@ export const DASHBOARD_SIDEBAR_FOOTER = [
 
 export const ADMIN_DASHBOARD_TAB = { id: "admin", label: "Admin Panel" };
 
-export const DASHBOARD_SIDEBAR_SOON_TAB_IDS = new Set(["regular", "audit"]);
+export const DASHBOARD_SIDEBAR_SOON_TAB_IDS = new Set(["audit"]);
 
 /** Permission-only tab (Print Queue sub-view inside Printing Orders). */
 export const DASHBOARD_PRINTING_QUEUE_PERMISSION_TAB = {

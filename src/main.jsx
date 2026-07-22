@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "@radix-ui/themes/styles.css";
 import App from "./App";
+import PicklistPreviewPage from "./picklist/PicklistPreviewPage.jsx";
 import "./styles.css";
 import "./responsive-mobile-tablet.css";
 import "./responsive-desktop.css";
@@ -23,6 +24,6 @@ if ("serviceWorker" in navigator) {
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    {window.location.hash === "#/picklist-preview" ? <PicklistPreviewPage /> : <App />}
   </React.StrictMode>
 );

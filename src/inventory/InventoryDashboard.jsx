@@ -5,11 +5,11 @@ import AdjustStockModal from "./modals/AdjustStockModal";
 import CreatePOModal from "./modals/CreatePOModal";
 import NewSkuModal from "./modals/NewSkuModal";
 import ImportSkusModal from "./modals/ImportSkusModal";
+import ImportStockAdjustModal from "./modals/ImportStockAdjustModal";
 import NewSupplierModal from "./modals/NewSupplierModal";
 import NewWarehouseModal from "./modals/NewWarehouseModal";
 import EditWarehouseModal from "./modals/EditWarehouseModal";
 import WarehouseLayoutModal from "./modals/WarehouseLayoutModal";
-import SkuManagementModal from "./modals/SkuManagementModal";
 import SkuDrawer from "./modals/SkuDrawer";
 import InventoryAlertsPage from "./pages/InventoryAlertsPage";
 import InventoryListPage from "./pages/InventoryListPage";
@@ -33,6 +33,7 @@ export default function InventoryDashboard() {
     suppliers,
     createSku,
     importSkus,
+    bulkImportStockAdjust,
     adjustStock,
     removeSku,
     createSupplier,
@@ -41,7 +42,9 @@ export default function InventoryDashboard() {
     editWarehouseLayout,
     refresh,
     hydrateSkuDetail,
-    loadMovements
+    loadMovements,
+    warehouses,
+    availabilityBySku
   } = useInventory();
   const [active, setActive] = useState("overview");
   const [kind, setKind] = useState("apparel");
@@ -54,9 +57,8 @@ export default function InventoryDashboard() {
   const [poInitialSku, setPoInitialSku] = useState(null);
   const [newSkuOpen, setNewSkuOpen] = useState(false);
   const [importSkusOpen, setImportSkusOpen] = useState(false);
+  const [importStockAdjustWarehouse, setImportStockAdjustWarehouse] = useState(null);
   const [newSkuKind, setNewSkuKind] = useState("fabric");
-  const [newSkuInitialParent, setNewSkuInitialParent] = useState(null);
-  const [skuMgmtOpen, setSkuMgmtOpen] = useState(false);
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [warehouseOpen, setWarehouseOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState(null);
@@ -93,9 +95,8 @@ export default function InventoryDashboard() {
         setAdjustOpen(false);
         setPoOpen(false);
         setNewSkuOpen(false);
-        setNewSkuInitialParent(null);
-        setSkuMgmtOpen(false);
         setImportSkusOpen(false);
+        setImportStockAdjustWarehouse(null);
         setSupplierOpen(false);
         setWarehouseOpen(false);
       }
@@ -130,10 +131,9 @@ export default function InventoryDashboard() {
     setAdjustOpen(true);
   };
 
-  const openNewSku = (k, parent = null) => {
+  const openNewSku = (k) => {
     const map = { fabrics: "fabric", trims: "trim", apparel: "apparel" };
     setNewSkuKind(map[k] || k || "fabric");
-    setNewSkuInitialParent(parent);
     setNewSkuOpen(true);
   };
 
@@ -175,19 +175,11 @@ export default function InventoryDashboard() {
     try {
       await createSku(skuKind, record);
       setNewSkuOpen(false);
-      setNewSkuInitialParent(null);
       toast(`Created ${record.id} — ${record.name}${record.color ? ` · ${record.color}` : ""}`);
       setActive(skuKind === "fabric" ? "fabrics" : skuKind === "trim" ? "trims" : "apparel");
     } catch (err) {
       toast(err?.message || "Could not create SKU.");
     }
-  };
-
-  const handleSkuMgmtCreated = (created) => {
-    const tab = created.kind === "fabric" ? "fabrics" : created.kind === "trim" ? "trims" : "apparel";
-    setActive(tab);
-    setKind(tab);
-    toast(`Added ${created.id} to inventory${created.color ? ` · ${created.color}` : ""}`);
   };
 
   const handleNewSupplierSubmit = async (record) => {
@@ -236,6 +228,21 @@ export default function InventoryDashboard() {
     }
   };
 
+  const handleImportStockAdjust = async (records, opts) => {
+    const whLabel = importStockAdjustWarehouse?.name ? ` at ${importStockAdjustWarehouse.name}` : "";
+    try {
+      const result = await bulkImportStockAdjust(records, opts);
+      setImportStockAdjustWarehouse(null);
+      const parts = [];
+      if (result.stockAdjusted) parts.push(`${result.stockAdjusted} stock adjusted`);
+      if (result.metricsUpdated) parts.push(`${result.metricsUpdated} DOC updated`);
+      toast(parts.length ? `${parts.join(" · ")}${whLabel}` : `Upload complete (no changes)${whLabel}.`);
+    } catch (err) {
+      toast(err?.message || "Could not apply bulk upload.");
+      throw err;
+    }
+  };
+
   const handleDeleteSku = async (sku) => {
     if (!sku?._uuid) {
       toast("SKU not found in database.");
@@ -276,7 +283,6 @@ export default function InventoryDashboard() {
           openCreatePO={openCreatePO}
           openNewSku={openNewSku}
           openImportSkus={() => setImportSkusOpen(true)}
-          openSkuManagement={() => setSkuMgmtOpen(true)}
           onDeleteSku={handleDeleteSku}
           deletingSkuId={deletingSkuId}
         />
@@ -302,6 +308,7 @@ export default function InventoryDashboard() {
             onAddWarehouse={() => setWarehouseOpen(true)}
             onEditWarehouse={(wh) => setEditingWarehouse(wh)}
             onEditLayout={(wh) => setLayoutWarehouse(wh)}
+            onUploadBulk={(wh) => setImportStockAdjustWarehouse(wh)}
           />
         );
       default:
@@ -369,24 +376,8 @@ export default function InventoryDashboard() {
       {newSkuOpen && (
         <NewSkuModal
           initialKind={newSkuKind}
-          initialParent={newSkuInitialParent}
-          onClose={() => {
-            setNewSkuOpen(false);
-            setNewSkuInitialParent(null);
-          }}
+          onClose={() => setNewSkuOpen(false)}
           onSubmit={handleNewSkuSubmit}
-        />
-      )}
-
-      {skuMgmtOpen && (
-        <SkuManagementModal
-          tabKind={kind}
-          onClose={() => setSkuMgmtOpen(false)}
-          onSkuCreated={handleSkuMgmtCreated}
-          openSku={(sku) => {
-            setSkuMgmtOpen(false);
-            openSkuDrawer(sku);
-          }}
         />
       )}
 
@@ -395,6 +386,17 @@ export default function InventoryDashboard() {
           onClose={() => setImportSkusOpen(false)}
           onImport={handleImportSkus}
           existingSkuCodes={skus.map((s) => s.id)}
+        />
+      )}
+
+      {importStockAdjustWarehouse && (
+        <ImportStockAdjustModal
+          onClose={() => setImportStockAdjustWarehouse(null)}
+          onImport={handleImportStockAdjust}
+          skus={skus}
+          warehouse={importStockAdjustWarehouse}
+          warehouses={warehouses}
+          availabilityBySku={availabilityBySku}
         />
       )}
 

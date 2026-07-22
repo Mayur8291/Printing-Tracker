@@ -1,5 +1,67 @@
 # Changelog
 
+## 2026-07-22 — Remove parent SKU grouping from dashboard
+
+- **Issue:** Parent style / sub-SKU grouping was dashboard-only complexity; Scott API uses flat `sku_code` only — parent rows never affected integrations.
+- **Change:** Apparel list is flat (no expandable parent groups). Removed **SKU management** modal, **Add sub SKU** flow, parent fields in **New SKU** form, parent display in SKU drawer / adjust stock / CSV export. New SKUs write `parent_style_id = null`. Legacy `inventory_style_parents` table and nullable FK kept in DB (no migration).
+- **Files:** `inventorySkuGrouping.js`, `inventoryQueryFields.js`, `inventoryDbUtils.js`, `InventoryDataContext.jsx`, `InventoryListPage.jsx`, `InventoryDashboard.jsx`, `NewSkuModal.jsx`; deleted `SkuManagementModal.jsx`, `AddSubSkuDialog.jsx`; `SkuDrawer.jsx`, `AdjustStockModal.jsx`, `inventorySkuExportUtils.js`, `sidebarTabActivity.js`, `realtimeUtils.js`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md.
+
+## 2026-07-22 — Warehouse-scoped bulk upload + facility-wise inventory
+
+- **Issue:** Upload Bulk lived on Inventory list and updated global `stock_qty` — stock adjusted at one warehouse could appear everywhere; inventory did not show which warehouses hold each SKU; Overview inventory value had no per-warehouse filter.
+- **Feature:** **Upload Bulk** moved to **Warehouses** page (per selected warehouse). Bulk upload sets on-hand only at that warehouse’s `facility_code` via RPC `adjust_sku_facility_stock`; other facilities unchanged. Manual Adjust stock (IN/OUT) also targets selected warehouse facility when warehouse is chosen.
+- **Inventory list:** New **Warehouses** column (apparel + fabrics/trims) shows warehouse name(s), facility code, and on-hand per location; warehouse filter matches SKUs with stock at that facility.
+- **Overview:** Warehouse dropdown filters **Inventory Value** KPI; when filtered, also shows **Total all warehouses** sum.
+- **Migration:** `20260722180000_warehouse_facility_stock_adjust.sql` — RPC + sync trigger skip flag for total recompute.
+- **Files:** `inventoryFacilityUtils.js`, `ImportStockAdjustModal.jsx`, `InventoryWarehousesPage.jsx`, `InventoryListPage.jsx`, `InventoryOverview.jsx`, `InventoryDataContext.jsx`, `inventoryDbUtils.js`, `inventoryStockAdjustImportUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-22 — Inventory unit cost inline edit
+
+- **Feature:** Unit cost column on Inventory list (apparel, fabrics, trims) is now editable inline — same blur-to-save pattern as Reorder and DOC. SKU drawer pricing section unchanged.
+
+## 2026-07-22 — Inventory DRR auto-calculated from orders (read-only)
+
+- **Issue:** DRR (daily run rate) was manually editable in inventory list, SKU drawer, new SKU form, and bulk upload — should reflect actual order demand.
+- **Feature:** `inventoryDrrUtils.js` computes DRR per SKU from `scott_order_items` on active orders (PENDING/PROCESSING/COMPLETE) in the last 30 days: `DRR = total ordered qty ÷ 30`. Refreshes on inventory load and on `scott_orders` / `scott_order_items` realtime events.
+- **UI:** DRR columns use read-only `SkuMetricReadonly`; SKU drawer shows computed DRR with helper text; manual DRR input removed from New SKU form; `saveSkuFields` ignores DRR patches.
+- **Bulk upload:** template and import no longer include DRR column (Stock Qty + DOC only).
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-22 — Inventory bulk Excel upload (stock + DOC)
+
+- **Feature:** Inventory list page → **Upload Bulk** opens `ImportStockAdjustModal` — download template (`.xlsx`) with columns SKU Code, Stock Qty, DOC, Reason; upload filled file to bulk-apply stock adjustments and DOC updates. DRR is not in the template (auto-calculated from orders).
+- **Stock Qty** sets absolute on-hand (delta computed vs current); movements logged as IN/OUT with reference `BULK-EXCEL`. **DOC** / **DRR** update via `updateSkuFields`.
+- **Files:** `inventoryStockAdjustImportUtils.js`, `ImportStockAdjustModal.jsx`, `InventoryDataContext.bulkImportStockAdjust`, `InventoryDashboard.jsx`, `InventoryListPage.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-07-22 — Pixel-faithful picklist PDF (Puppeteer + bwip-js)
+
+- **Issue:** First picklist used browser print HTML (`scottOrderPicklistPrint.js`) — layout did not match UniCommerce reference PDF (`index.pdf`).
+- **Feature:** New picklist module under `src/picklist/`:
+  - `PicklistTemplate.jsx` + `picklist.css` — exact layout spec (title, 3-col header with Code128 barcode via data URI, sign-off ruled lines, bordered items table with grey `PICK THESE ITEMS` banner, Powered By + Unicommerce logo row, separate sale-order table).
+  - `picklistTypes.js` — `PicklistData` / `PicklistItem` / `PicklistOrder` JSDoc contract + `SAMPLE_PICKLIST_DATA` (matches reference PDF).
+  - `buildPicklistHtml.js` — shared HTML document for preview + PDF.
+  - `picklistApiClient.js` — `POST /api/picklist/pdf`, open/download PDF blob.
+- **Server:** `server/index.js` (Express, port 3001) — `POST /api/picklist/pdf` (validated body → `application/pdf`), `GET /api/picklist/preview` (HTML), `GET /api/picklist/pdf/sample`, `GET /api/picklist/preview-assets`. `generatePicklistPdf()` uses Puppeteer headless Chromium + `bwip-js` Code128 PNG (not font barcode). `@page A4 12mm`, `thead { display: table-header-group }`, `tr { page-break-inside: avoid }`.
+- **Dev:** `npm run dev:picklist-api`, `npm run dev:all` (Vite + picklist API); Vite proxies `/api/picklist/*` → `:3001`. Preview page: `/#/picklist-preview`.
+- **Ready Stock:** Generate Picklist still calls `scott-order-generate-picklist` then maps to `PicklistData` and requests PDF from picklist API.
+- **Assets:** Scott dashboard logo (`public/brand-logo.png`) + **Scott ERP System** footer row (replaces Unicommerce placeholder).
+- **Fix:** shelf/bin now from `inventory_skus.bin_location` only; partner `item_code` no longer shown in Comment column. Client `normalizePicklistLineFields` recovers legacy rows where shelf was wrongly sent as comment.
+- **Removed:** `src/scottOrderPicklistPrint.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEPENDENCIES.md, DEBUGGING.md, API.md.
+
+## 2026-07-22 — Ready Stock order detail + warehouse picklist
+
+- **Issue:** Ready Stock Order list showed orders but order code was not clickable; warehouse had no way to generate a picklist or move PENDING orders to PROCESSING from the dashboard.
+- **Feature:** Click order code → `ReadyStockOrderDetailDialog` (UniCommerce-style ORDER ITEMS tab with line items, facility, qty, in-process/unfulfillable columns). **Generate Picklist** / **Reprint Picklist** button calls edge function `scott-order-generate-picklist`.
+- **Picklist:** Now uses Puppeteer PDF pipeline (`src/picklist/`, `server/index.js`) — see changelog entry "Pixel-faithful picklist PDF" above for current behaviour.
+- **Status:** First picklist generation sets `picklist_no`, `picklist_generated_at`, and moves `PENDING` → `PROCESSING` (fires `order.status_changed` webhook via existing DB trigger).
+- **Migration:** `20260722120000_scott_order_picklist.sql` — `picklist_no` (unique when set), `picklist_generated_at` on `scott_orders`.
+- **Files:** `ReadyStockOrderDetailDialog.jsx`, `src/picklist/*`, `server/index.js`, `ReadyStockOrdersPanel.jsx`, `edgeFunctionUtils.js` (`invokeAuthenticatedEdgeFunction`), `supabase/functions/scott-order-generate-picklist/`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-07-20 — Warehouse Edit + Layout editor (facility code stays in sync with APIs)
 
 - **Issue:** Warehouses page had no Edit action, and the Layout button did nothing — facility code could only be set on create (or via Admin → Integrations → Facilities).

@@ -2,11 +2,13 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import ColorSwatch from "../components/ColorSwatch";
 import Sparkline from "../components/Sparkline";
 import StackedBar from "../components/StackedBar";
 import { useInventory } from "../InventoryDataContext";
+import { computeInventoryValue } from "../inventoryFacilityUtils";
 import { buildInventoryOverviewKpis } from "../inventoryKpiUtils";
 import { exportAllSkusCsv } from "../inventorySkuExportUtils";
 import { MovementTypeBadge, PageHeader } from "../inventoryUiUtils";
@@ -18,14 +20,19 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
   const { fabrics, trims, apparel, alerts, movements, kpiMovements, pos, suppliers, warehouses, skus, settings, availabilityBySku } =
     useInventory();
   const [exporting, setExporting] = useState(false);
-  const availableQty = (sku, fallback) => {
-    const entry = availabilityBySku?.[sku.id];
-    return entry ? Number(entry.available) || 0 : fallback;
-  };
-  const inventoryValueNum =
-    fabrics.reduce((s, f) => s + availableQty(f, f.stock) * f.cost, 0) +
-    trims.reduce((s, t) => s + availableQty(t, t.stock) * t.cost, 0) +
-    apparel.reduce((s, a) => s + availableQty(a, a.totalStock) * a.cost, 0);
+  const [valueWarehouseFilter, setValueWarehouseFilter] = useState("all");
+
+  const allInventoryValueNum = useMemo(
+    () => computeInventoryValue(skus, availabilityBySku, warehouses, "all"),
+    [skus, availabilityBySku, warehouses]
+  );
+
+  const filteredInventoryValueNum = useMemo(() => {
+    if (valueWarehouseFilter === "all") return allInventoryValueNum;
+    return computeInventoryValue(skus, availabilityBySku, warehouses, valueWarehouseFilter);
+  }, [skus, availabilityBySku, warehouses, valueWarehouseFilter, allInventoryValueNum]);
+
+  const selectedWarehouse = warehouses.find((w) => w.id === valueWarehouseFilter);
 
   const openPOValue = pos.filter((p) => p.status !== "Received").reduce((s, p) => s + p.value, 0);
   const openPOCount = pos.filter((p) => p.status !== "Received").length;
@@ -37,13 +44,13 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
         movements: kpiMovements,
         settings,
         pos,
-        inventoryValue: inrFmt(inventoryValueNum),
+        inventoryValue: inrFmt(filteredInventoryValueNum),
         openPOCount,
         openPOValue: inrFmt(openPOValue),
         alertCount: alerts.length,
         availabilityBySku
       }),
-    [skus, kpiMovements, settings, pos, inventoryValueNum, openPOCount, openPOValue, alerts.length, availabilityBySku]
+    [skus, kpiMovements, settings, pos, filteredInventoryValueNum, openPOCount, openPOValue, alerts.length, availabilityBySku]
   );
 
   const fabricBy = fabrics.reduce((acc, f) => {
@@ -108,6 +115,19 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
         }
         actions={
           <>
+            <Select value={valueWarehouseFilter} onValueChange={setValueWarehouseFilter}>
+              <SelectTrigger className="h-9 w-[11rem]" aria-label="Inventory value warehouse filter">
+                <SelectValue placeholder="All warehouses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All warehouses</SelectItem>
+                {warehouses.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button type="button" variant="outline" size="sm" disabled={exporting} onClick={handleExportSkus}>
               {exporting ? "Exporting…" : "Export"}
             </Button>
@@ -122,13 +142,23 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
         {kpis.map((k, i) => (
           <Card key={k.label}>
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardDescription>{k.label}</CardDescription>
+              <CardDescription>
+                {k.label}
+                {i === 0 && valueWarehouseFilter !== "all" && selectedWarehouse ? (
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{selectedWarehouse.name}</span>
+                ) : null}
+              </CardDescription>
               <div className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
                 {KPI_ABBREVS[i]}
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold tracking-tight">{k.value}</div>
+              {i === 0 && valueWarehouseFilter !== "all" ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Total all warehouses: <strong className="text-foreground">{inrFmt(allInventoryValueNum)}</strong>
+                </p>
+              ) : null}
               <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                 {k.delta ? (
                   <span className={cn("font-medium", k.dir === "up" ? "text-emerald-600" : "text-red-600")}>
@@ -151,7 +181,7 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
                 <CardTitle className="text-base">Fabric stock by category</CardTitle>
-                <CardDescription>Total meters in 5 warehouses</CardDescription>
+                <CardDescription>Total meters across {warehouses.length} warehouse{warehouses.length === 1 ? "" : "s"}</CardDescription>
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={() => setActive("fabrics")}>
                 View all

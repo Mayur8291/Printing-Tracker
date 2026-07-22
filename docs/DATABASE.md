@@ -232,9 +232,9 @@ Multiple GRN rows per inward entry. Labels print per GRN row.
 
 ## Inventory
 
-### `inventory_style_parents`
+### `inventory_style_parents` (legacy)
 
-Parent style / SKU group (one row per style family).
+Parent style table from an earlier dashboard grouping feature. **No longer used by the UI** — kept for historical rows only. New SKUs do not link to parents (`parent_style_id` is null).
 
 | Column | Type | Purpose |
 |--------|------|---------|
@@ -247,20 +247,20 @@ Parent style / SKU group (one row per style family).
 
 ### `inventory_skus`
 
-Master SKU records. Sub SKUs (colorways / variants) link to a parent via `parent_style_id`.
+Master SKU records (flat list — one row per `sku_code`).
 
 | Column | Type | Purpose |
 |--------|------|---------|
 | `id` | uuid | Primary key |
-| `sku_code` | text | Unique sub SKU code |
+| `sku_code` | text | Unique SKU code |
 | `kind` | text | `fabric`, `trim`, or `apparel` |
 | `name` | text | Style or material name |
-| `parent_style_id` | uuid | FK → `inventory_style_parents.id` (nullable) |
+| `parent_style_id` | uuid | **Legacy** FK → `inventory_style_parents.id` (nullable; unused for new SKUs) |
 | `unit_cost` | numeric | Cost per unit |
 | `retail_price` | numeric | Sale price (all kinds) |
 | `reorder_point` | numeric | Low-stock threshold |
 | `doc` | numeric | Days of cover |
-| `drr` | numeric | Daily run rate |
+| `drr` | numeric | Daily run rate — **computed in UI** from `scott_order_items` (last 30 days ÷ 30); column kept for export/display sync, not manually edited |
 | `stock_qty` | numeric | On-hand quantity |
 | `extra` | jsonb | Kind-specific fields (sizes, GSM, etc.) |
 
@@ -297,6 +297,8 @@ Constraint: `reserved_qty <= on_hand_qty`.
 
 Sync (since `20260716140000_sync_sku_stock_to_facility.sql`): trigger `inventory_skus_sync_facility_stock` mirrors dashboard-UI `stock_qty` changes into this table (SKU's warehouse facility, `DEFAULT` fallback). Service-role writes are excluded — the `dashboard-stock-api` edge function maintains this table directly and writes back `stock_qty` on fulfill/adjust; syncing those again would double-count.
 
+**Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by Warehouses → Upload Bulk and manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute.
+
 ### `inventory_stock_reservations` / `inventory_stock_reservation_items`
 
 RMP order holds from external backend. Status: `RESERVED` → `RELEASED` or `FULFILLED`.
@@ -321,10 +323,11 @@ Scott International RMP orders — the external order lifecycle (`order-api-requ
 | `facility_code`, `due_on`, `customer`, `shipping_address`, `payment`, `comment` | Order payload (JSON columns for the nested objects) |
 | `reservation_id` | FK → `inventory_stock_reservations` (the stock hold; `on delete set null`) |
 | `cancel_reason`, `cancelled_at`, `dispatched_at` | Lifecycle metadata |
+| `picklist_no`, `picklist_generated_at` | Warehouse picklist (since `20260722120000`); unique index on `picklist_no` when set |
 
 `scott_order_items`: `order_id` (cascade), `item_code`, `sku_code`, `quantity`, `unit_price`, `dispatched_quantity` (set to `quantity` on COMPLETE).
 
-Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the outbox on every status transition (includes `dispatched_at` when COMPLETE). Mutations `service_role` only (edge function); `authenticated` has read-only SELECT.
+Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the outbox on every status transition (includes `dispatched_at` when COMPLETE). Order API mutations use `service_role` via `dashboard-stock-api`; picklist generation uses `scott-order-generate-picklist` (authenticated JWT → service role update). `authenticated` has read-only SELECT on orders/items.
 
 ### `dashboard_api_keys` / `dashboard_channels` (since `20260720140000_admin_integrations.sql`)
 

@@ -62,9 +62,9 @@ async function accessTokenForInvoke() {
 }
 
 /**
- * Invoke an admin Edge Function with a fresh JWT and surfaced error text.
+ * Invoke an authenticated Edge Function with a fresh JWT and surfaced error text.
  */
-export async function invokeAdminEdgeFunction(functionName, body) {
+export async function invokeAuthenticatedEdgeFunction(functionName, body) {
   const accessToken = await accessTokenForInvoke();
   const runtime = getRuntimeEnv();
   const supabaseUrl = runtime.url.replace(/\/$/, "");
@@ -105,3 +105,6 @@ export async function invokeAdminEdgeFunction(functionName, body) {
 
   return data;
 }
+
+/** @deprecated Use invokeAuthenticatedEdgeFunction — same implementation. */
+export const invokeAdminEdgeFunction = invokeAuthenticatedEdgeFunction;

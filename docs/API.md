@@ -1,14 +1,32 @@
 # API
 
-Scott Dashboard does **not** run a custom REST server in this repository. The effective API is:
+Scott Dashboard does **not** run a custom REST server in this repository for production hosting. The effective API is:
 
 1. **Supabase PostgREST** — auto-generated REST for tables/views  
 2. **PostgreSQL RPCs** — `supabase.rpc('function_name', params)`  
 3. **Supabase Edge Functions** — HTTP endpoints for admin operations  
 4. **Supabase Storage** — object upload/download APIs  
 5. **Supabase Auth** — `/auth/v1/*` (via SDK)
+6. **Local picklist PDF API (dev only)** — Express on port 3001, proxied by Vite as `/api/picklist/*`
 
 Base URL (production): `https://levwrmvqdntngeasrtnb.supabase.co`
+
+## Local picklist PDF API (development)
+
+Runs with `npm run dev:picklist-api` or `npm run dev:all`. Vite dev server proxies `/api/picklist` → `http://localhost:3001`.
+
+| Method | Path | Body | Response |
+|--------|------|------|----------|
+| POST | `/api/picklist/pdf` | `PicklistData` JSON (see `src/picklist/picklistTypes.js`) | `application/pdf` — filename `{picklistNo}.pdf` |
+| GET | `/api/picklist/preview` | — | HTML preview (sample data) |
+| GET | `/api/picklist/pdf/sample` | — | Sample PDF (`PK39506`) |
+| GET | `/api/picklist/preview-assets` | `?picklistNo=PK39506` | `{ barcodeDataUri, logoSrc }` for React preview |
+
+Validation: `server/picklist/validatePicklistData.js` — rejects unknown fields like `totalItems` (derived from Σ `items[].qty`).
+
+PDF engine: Puppeteer + `bwip-js` Code128 PNG embedded in HTML (`src/picklist/buildPicklistHtml.js` + `picklist.css`).
+
+**Production:** Netlify static deploy does not include this server — run the picklist API on a Node host or extend deployment separately.
 
 ## Authentication
 

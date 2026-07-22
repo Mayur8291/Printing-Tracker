@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,17 +11,69 @@ import { cn } from "@/lib/utils";
 import SizeDots from "../components/SizeDots";
 import ColorSwatch from "../components/ColorSwatch";
 import SkuMetricInput from "../components/SkuMetricInput";
+import SkuMetricReadonly from "../components/SkuMetricReadonly";
+import { INVENTORY_DRR_LOOKBACK_DAYS } from "../inventoryDrrUtils";
 import { useInventory } from "../InventoryDataContext";
-import { ExpandToggle, PageHeader, SortIndicator, StockStatusBadge } from "../inventoryUiUtils";
+import { PageHeader, SortIndicator, StockStatusBadge } from "../inventoryUiUtils";
 import { formatInr, statusOf } from "../inventoryUtils";
-import { apparelMatchesQuery, buildApparelTopLevelEntries, groupSkusByParent, mergeEmptyStyleParents, skuMatchesQuery } from "../inventorySkuGrouping";
+import { skuMatchesQuery } from "../inventorySkuGrouping";
 import { exportSkusCsv, exportSkuFilename } from "../inventorySkuExportUtils";
+import { onHandAtWarehouse, skuHasStockAtWarehouse, warehouseLocationsForSku } from "../inventoryFacilityUtils";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "../../orderPagination";
 
 const INV_HEAD = "h-11 whitespace-nowrap px-4 text-xs font-medium text-muted-foreground";
 const INV_CELL = "px-4 py-3 align-middle";
 const INV_METRIC_CELL = "min-w-[6.5rem] px-4 py-3 text-right align-middle";
 const INV_ACTIONS_CELL = "min-w-[9rem] px-4 py-3 text-right align-middle";
+
+function WarehouseLocationsCell({ sku, warehouses, availabilityBySku }) {
+  const locations = warehouseLocationsForSku(availabilityBySku, sku.id, warehouses);
+  const home = warehouses.find((w) => w.id === sku.wh);
+
+  if (!locations.length) {
+    return (
+      <span className="text-xs text-muted-foreground">
+        {home?.name || sku.wh || "—"}
+        {sku.bin ? <span className="text-muted-foreground"> · {sku.bin}</span> : null}
+      </span>
+    );
+  }
+
+  if (locations.length === 1) {
+    const loc = locations[0];
+    return (
+      <span className="text-xs">
+        <span className="font-medium">{loc.name}</span>
+        <span className="ml-1 tabular-nums text-muted-foreground">({loc.onHand.toLocaleString()})</span>
+        {loc.facilityCode ? (
+          <span className="ml-1 font-mono text-[10px] text-muted-foreground">{loc.facilityCode}</span>
+        ) : null}
+        {sku.bin ? <span className="block text-muted-foreground">Bin {sku.bin}</span> : null}
+      </span>
+    );
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="cursor-default text-xs">
+          {locations.slice(0, 2).map((loc) => loc.name).join(", ")}
+          {locations.length > 2 ? ` +${locations.length - 2}` : ""}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">
+        <ul className="space-y-1 text-xs">
+          {locations.map((loc) => (
+            <li key={loc.facilityCode}>
+              <strong>{loc.name}</strong> · {loc.onHand.toLocaleString()} on hand
+              {loc.facilityCode ? <span className="ml-1 font-mono text-muted-foreground">({loc.facilityCode})</span> : null}
+            </li>
+          ))}
+        </ul>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 /** Reserved/available from facility stock; falls back to stock_qty when the map is missing an SKU. */
 function availabilityOf(r, availabilityBySku) {
@@ -63,8 +115,14 @@ function StockBar({ pct, kind }) {
   );
 }
 
-function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, Th, suppliers, settings, availabilityBySku }) {
+function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, Th, suppliers, settings, availabilityBySku, warehouses, warehouseFilter }) {
   const supplierOf = (id) => suppliers.find((s) => s.id === id);
+  const filterWh = warehouseFilter !== "all" ? warehouses.find((w) => w.id === warehouseFilter) : null;
+
+  const displayStock = (r) => {
+    if (filterWh) return onHandAtWarehouse(r, filterWh, availabilityBySku);
+    return Number(r.stock ?? 0);
+  };
 
   return (
     <Table>
@@ -111,7 +169,7 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
             DOC
           </Th>
           <Th col="drr" right>
-            DRR
+            <span title={`Auto from orders (last ${INVENTORY_DRR_LOOKBACK_DAYS} days)`}>DRR</span>
           </Th>
           <Th col="value" right>
             Value
@@ -153,7 +211,7 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
                 </span>
               </TableCell>
               <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
-                <strong>{r.stock.toLocaleString()}</strong>{" "}
+                <strong>{displayStock(r).toLocaleString()}</strong>{" "}
                 <span className="text-muted-foreground">{r.unit}</span>
               </TableCell>
               <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
@@ -166,8 +224,8 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
                 <StockBar pct={pct} kind={st.kind} />
                 <StockStatusBadge status={st} />
               </TableCell>
-              <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
-                {formatInr(r.cost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <TableCell className={INV_METRIC_CELL}>
+                <SkuMetricInput sku={r} field="cost" value={r.cost} step="0.01" className="w-24" />
               </TableCell>
               <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
                 {formatInr(r.retail, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -179,13 +237,16 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
                 <SkuMetricInput sku={r} field="doc" value={r.doc} step="0.01" />
               </TableCell>
               <TableCell className={INV_METRIC_CELL}>
-                <SkuMetricInput sku={r} field="drr" value={r.drr} step="0.01" />
+                <SkuMetricReadonly
+                  value={r.drr}
+                  title={`Daily run rate from order transactions (last ${INVENTORY_DRR_LOOKBACK_DAYS} days)`}
+                />
               </TableCell>
               <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
                 {formatInr(r.stock * r.cost, { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell className={cn(INV_CELL, "font-mono text-xs")}>
-                {r.wh} <span className="text-muted-foreground">· {r.bin}</span>
+              <TableCell className={cn(INV_CELL, "min-w-[10rem]")}>
+                <WarehouseLocationsCell sku={r} warehouses={warehouses} availabilityBySku={availabilityBySku} />
               </TableCell>
               <TableCell className={INV_CELL}>{supplierOf(r.supplier)?.name || "—"}</TableCell>
               <TableCell className={INV_ACTIONS_CELL} onClick={(e) => e.stopPropagation()}>
@@ -216,18 +277,18 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
   );
 }
 
-function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, settings, availabilityBySku, indent }) {
+function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, deletingSkuId, settings, availabilityBySku, warehouses, warehouseFilter }) {
   const avail = availabilityOf(r, availabilityBySku);
   const st = statusOf(withAvailableStock(r, availabilityBySku), settings);
+  const filterWh = warehouseFilter !== "all" ? warehouses.find((w) => w.id === warehouseFilter) : null;
+  const displayStock = filterWh ? onHandAtWarehouse(r, filterWh, availabilityBySku) : r.totalStock;
   return (
     <TableRow key={r.id} onClick={() => openSku(r)} className={cn("cursor-pointer", selected.has(r.id) && "bg-muted/50")}>
       <TableCell className={cn(INV_CELL, "w-12")} onClick={(e) => e.stopPropagation()}>
         <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} />
       </TableCell>
-      <TableCell className={cn(INV_CELL, "font-mono text-xs", indent && "pl-10")}>{r.id}</TableCell>
-      <TableCell className={cn(INV_CELL, "min-w-[12rem] font-medium", indent && "pl-6")}>
-        {indent ? r.color || r.name : r.name}
-      </TableCell>
+      <TableCell className={cn(INV_CELL, "font-mono text-xs")}>{r.id}</TableCell>
+      <TableCell className={cn(INV_CELL, "min-w-[12rem] font-medium")}>{r.name}</TableCell>
       <TableCell className={INV_CELL}>
         <Badge variant="secondary">{r.category}</Badge>
       </TableCell>
@@ -242,7 +303,7 @@ function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, 
         <SizeDots sizes={r.sizes} />
       </TableCell>
       <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
-        <strong>{r.totalStock.toLocaleString()}</strong>
+        <strong>{displayStock.toLocaleString()}</strong>
       </TableCell>
       <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
         <ReservedQty reserved={avail.reserved} />
@@ -253,8 +314,8 @@ function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, 
       <TableCell className={INV_CELL}>
         <StockStatusBadge status={st} />
       </TableCell>
-      <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
-        {formatInr(r.cost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      <TableCell className={INV_METRIC_CELL}>
+        <SkuMetricInput sku={r} field="cost" value={r.cost} step="0.01" className="w-24" />
       </TableCell>
       <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
         {formatInr(r.retail, { maximumFractionDigits: 0 })}
@@ -266,10 +327,16 @@ function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, 
         <SkuMetricInput sku={r} field="doc" value={r.doc} step="0.01" />
       </TableCell>
       <TableCell className={INV_METRIC_CELL}>
-        <SkuMetricInput sku={r} field="drr" value={r.drr} step="0.01" />
+        <SkuMetricReadonly
+          value={r.drr}
+          title={`Daily run rate from order transactions (last ${INVENTORY_DRR_LOOKBACK_DAYS} days)`}
+        />
       </TableCell>
       <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
-        {formatInr(r.totalStock * r.cost, { maximumFractionDigits: 0 })}
+        {formatInr(displayStock * r.cost, { maximumFractionDigits: 0 })}
+      </TableCell>
+      <TableCell className={cn(INV_CELL, "min-w-[10rem]")}>
+        <WarehouseLocationsCell sku={r} warehouses={warehouses} availabilityBySku={availabilityBySku} />
       </TableCell>
       <TableCell className={INV_ACTIONS_CELL} onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-end gap-2">
@@ -297,8 +364,6 @@ function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, 
 
 function ApparelTable({
   rows,
-  visibleGroups: visibleGroupsProp,
-  visibleStandalone: visibleStandaloneProp,
   selected,
   toggleSel,
   openSku,
@@ -307,37 +372,10 @@ function ApparelTable({
   deletingSkuId,
   Th,
   settings,
-  query,
-  supplierOf,
-  styleParents,
-  availabilityBySku
+  availabilityBySku,
+  warehouses,
+  warehouseFilter
 }) {
-  const [collapsed, setCollapsed] = useState(() => new Set());
-
-  const { visibleGroups, visibleStandalone } = useMemo(() => {
-    if (visibleGroupsProp != null && visibleStandaloneProp != null) {
-      return { visibleGroups: visibleGroupsProp, visibleStandalone: visibleStandaloneProp };
-    }
-    const { groups, standalone } = groupSkusByParent(rows);
-    const allGroups = mergeEmptyStyleParents(groups, styleParents, "apparel");
-    const visibleGroupsInner = allGroups.filter((g) => apparelMatchesQuery(g, query, supplierOf));
-    const visibleStandaloneInner = !query
-      ? standalone
-      : standalone.filter((r) => skuMatchesQuery(r, String(query).toLowerCase(), supplierOf));
-    return { visibleGroups: visibleGroupsInner, visibleStandalone: visibleStandaloneInner };
-  }, [visibleGroupsProp, visibleStandaloneProp, rows, styleParents, query, supplierOf]);
-
-  const toggleGroup = (id) => {
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const isExpanded = (id) => query.length > 0 || !collapsed.has(id);
-
   return (
     <Table>
       <TableHeader className="sticky top-0 z-10 bg-card">
@@ -346,7 +384,7 @@ function ApparelTable({
             <Checkbox aria-label="select all" />
           </TableHead>
           <Th col="id">SKU</Th>
-          <Th col="name">Style / variant</Th>
+          <Th col="name">Name</Th>
           <Th col="category">Category</Th>
           <Th col="season">Season</Th>
           <Th col="color">Colorway</Th>
@@ -374,80 +412,17 @@ function ApparelTable({
             DOC
           </Th>
           <Th col="drr" right>
-            DRR
+            <span title={`Auto from orders (last ${INVENTORY_DRR_LOOKBACK_DAYS} days)`}>DRR</span>
           </Th>
           <Th col="value" right>
             Inventory value
           </Th>
+          <TableHead className={INV_HEAD}>Warehouses</TableHead>
           <TableHead className={cn(INV_HEAD, INV_ACTIONS_CELL)} />
         </TableRow>
       </TableHeader>
       <TableBody>
-        {visibleGroups.map((group) => {
-          const open = isExpanded(group.id);
-          const groupAvail = group.children.reduce(
-            (acc, child) => {
-              const a = availabilityOf(child, availabilityBySku);
-              return { reserved: acc.reserved + a.reserved, available: acc.available + a.available };
-            },
-            { reserved: 0, available: 0 }
-          );
-          return (
-            <Fragment key={`group-${group.id}`}>
-              <TableRow className="bg-muted/30 hover:bg-muted/50">
-                <TableCell className={INV_CELL} onClick={(e) => e.stopPropagation()} />
-                <TableCell className={cn(INV_CELL, "min-w-[16rem]")} colSpan={2}>
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2 text-left font-medium"
-                    onClick={() => toggleGroup(group.id)}
-                  >
-                    {open ? <ExpandToggle open /> : <ExpandToggle open={false} />}
-                    <span className="font-mono text-xs text-muted-foreground">{group.parentSkuCode}</span>
-                    <span>{group.styleName}</span>
-                    <Badge variant="outline" className="ml-1 font-normal">
-                      {group.variantCount} variant{group.variantCount === 1 ? "" : "s"}
-                    </Badge>
-                  </button>
-                </TableCell>
-                <TableCell className={INV_CELL} colSpan={4} />
-                <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
-                  <strong>{group.totalStock.toLocaleString()}</strong>
-                </TableCell>
-                <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
-                  <ReservedQty reserved={groupAvail.reserved} />
-                </TableCell>
-                <TableCell className={cn(INV_CELL, "text-right tabular-nums")}>
-                  <strong>{groupAvail.available.toLocaleString()}</strong>
-                </TableCell>
-                <TableCell className={INV_CELL} />
-                <TableCell className={INV_CELL} colSpan={5} />
-                <TableCell className={cn(INV_CELL, "text-right tabular-nums whitespace-nowrap")}>
-                  {formatInr(group.totalValue, { maximumFractionDigits: 0 })}
-                </TableCell>
-                <TableCell className={INV_CELL} />
-              </TableRow>
-              {open
-                ? group.children.map((r) => (
-                    <ApparelSkuRow
-                      key={r.id}
-                      r={r}
-                      selected={selected}
-                      toggleSel={toggleSel}
-                      openSku={openSku}
-                      openAdjust={openAdjust}
-                      onDelete={onDelete}
-                      deletingSkuId={deletingSkuId}
-                      settings={settings}
-                      availabilityBySku={availabilityBySku}
-                      indent
-                    />
-                  ))
-                : null}
-            </Fragment>
-          );
-        })}
-        {visibleStandalone.map((r) => (
+        {rows.map((r) => (
           <ApparelSkuRow
             key={r.id}
             r={r}
@@ -459,6 +434,8 @@ function ApparelTable({
             deletingSkuId={deletingSkuId}
             settings={settings}
             availabilityBySku={availabilityBySku}
+            warehouses={warehouses}
+            warehouseFilter={warehouseFilter}
           />
         ))}
       </TableBody>
@@ -474,11 +451,10 @@ export default function InventoryListPage({
   openCreatePO,
   openNewSku,
   openImportSkus,
-  openSkuManagement,
   onDeleteSku,
   deletingSkuId
 }) {
-  const { fabrics, trims, apparel, suppliers, warehouses, settings, styleParents, availabilityBySku } = useInventory();
+  const { fabrics, trims, apparel, suppliers, warehouses, settings, availabilityBySku } = useInventory();
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("id");
   const [sortDir, setSortDir] = useState("asc");
@@ -490,7 +466,10 @@ export default function InventoryListPage({
   const supplierOf = (id) => suppliers.find((s) => s.id === id);
 
   const filtered = rows.filter((r) => {
-    if (warehouseFilter !== "all" && r.wh !== warehouseFilter) return false;
+    if (warehouseFilter !== "all") {
+      const wh = warehouses.find((w) => w.id === warehouseFilter);
+      if (wh && !skuHasStockAtWarehouse(r, wh, availabilityBySku) && r.wh !== warehouseFilter) return false;
+    }
     const st = statusOf(withAvailableStock(r, availabilityBySku), settings);
     if (statusFilter !== "all" && st.kind !== statusFilter) return false;
     if (!query) return true;
@@ -574,13 +553,6 @@ export default function InventoryListPage({
 
   const paginationResetKey = `${kind}|${query}|${warehouseFilter}|${statusFilter}|${sortBy}|${sortDir}`;
 
-  const apparelTopLevel = useMemo(() => {
-    if (kind !== "apparel") return [];
-    return buildApparelTopLevelEntries(sorted, styleParents, query, supplierOf);
-  }, [kind, sorted, styleParents, query, supplierOf]);
-
-  const paginationSource = kind === "apparel" ? apparelTopLevel : sorted;
-
   const {
     visible: pageItems,
     total: paginationTotal,
@@ -589,16 +561,7 @@ export default function InventoryListPage({
     pageSize,
     setPageSize,
     totalPages
-  } = usePagination(paginationSource, `inventory-${kind}`, paginationResetKey, 25);
-
-  const paginatedApparel = useMemo(() => {
-    if (kind !== "apparel") return { visibleGroups: [], visibleStandalone: [] };
-    const visibleGroups = pageItems.filter((e) => e.kind === "group").map((e) => e.group);
-    const visibleStandalone = pageItems.filter((e) => e.kind === "standalone").map((e) => e.sku);
-    return { visibleGroups, visibleStandalone };
-  }, [kind, pageItems]);
-
-  const paginatedFabricTrimRows = kind === "apparel" ? [] : pageItems;
+  } = usePagination(sorted, `inventory-${kind}`, paginationResetKey, 25);
 
   const tabs = [
     { id: "apparel", label: "Apparel", count: apparel.length },
@@ -717,11 +680,6 @@ export default function InventoryListPage({
                 {sorted.length.toLocaleString()} of {rows.length.toLocaleString()}
                 {selected.size > 0 && ` · ${selected.size} selected`}
               </span>
-              {openSkuManagement ? (
-                <Button type="button" variant="outline" size="sm" onClick={openSkuManagement}>
-                  SKU management
-                </Button>
-              ) : null}
               <Button type="button" variant="ghost" size="sm" onClick={handleExportSkus}>
                 Export
               </Button>
@@ -732,9 +690,7 @@ export default function InventoryListPage({
             <div className="min-w-[72rem] overflow-hidden rounded-md border">
               {kind === "apparel" ? (
                 <ApparelTable
-                  rows={sorted}
-                  visibleGroups={paginatedApparel.visibleGroups}
-                  visibleStandalone={paginatedApparel.visibleStandalone}
+                  rows={pageItems}
                   selected={selected}
                   toggleSel={toggleSel}
                   openSku={openSku}
@@ -743,15 +699,14 @@ export default function InventoryListPage({
                   deletingSkuId={deletingSkuId}
                   Th={Th}
                   settings={settings}
-                  query={query}
-                  supplierOf={supplierOf}
-                  styleParents={styleParents}
                   availabilityBySku={availabilityBySku}
+                  warehouses={warehouses}
+                  warehouseFilter={warehouseFilter}
                 />
               ) : (
                 <FabricTrimTable
                   kind={kind}
-                  rows={paginatedFabricTrimRows}
+                  rows={pageItems}
                   selected={selected}
                   toggleSel={toggleSel}
                   openSku={openSku}
@@ -762,6 +717,8 @@ export default function InventoryListPage({
                   suppliers={suppliers}
                   settings={settings}
                   availabilityBySku={availabilityBySku}
+                  warehouses={warehouses}
+                  warehouseFilter={warehouseFilter}
                 />
               )}
             </div>

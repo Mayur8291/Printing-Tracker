@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import ColorSwatch from "../components/ColorSwatch";
 import { useInventory } from "../InventoryDataContext";
+import { INVENTORY_DRR_LOOKBACK_DAYS, formatDrr } from "../inventoryDrrUtils";
 import { MovementTypeBadge, StockStatusBadge } from "../inventoryUiUtils";
 import { formatInr, formatRelative, isApparelSku, statusOf } from "../inventoryUtils";
 
@@ -44,7 +45,6 @@ export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete,
   const metrics = metricsDraft || {
     reorder: String(sku?.reorder ?? 0),
     doc: String(sku?.doc ?? 0),
-    drr: String(sku?.drr ?? 0),
     cost: String(sku?.cost ?? 0),
     retail: String(sku?.retail ?? 0)
   };
@@ -61,7 +61,6 @@ export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete,
       await saveSkuFields(sku._uuid, {
         reorder: metrics.reorder,
         doc: metrics.doc,
-        drr: metrics.drr,
         cost: metrics.cost,
         retail: metrics.retail
       });
@@ -84,12 +83,6 @@ export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete,
                   <SheetDescription>
                     <span className="font-mono">{sku.id}</span>
                     {sku.color && <> · {sku.color}</>}
-                    {sku.parentStyleCode && (
-                      <>
-                        {" "}
-                        · Parent <span className="font-mono">{sku.parentStyleCode}</span>
-                      </>
-                    )}
                   </SheetDescription>
                   <div className="mt-2">
                     <StockStatusBadge status={status} />
@@ -226,7 +219,10 @@ export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete,
                     </div>
                     <div className="space-y-1.5 sm:col-span-2">
                       <Label className="text-xs text-muted-foreground">DRR</Label>
-                      <Input type="number" min={0} step="0.01" className="h-8" value={metrics.drr} onChange={(e) => setMetric("drr", e.target.value)} />
+                      <p className="text-sm font-medium tabular-nums">{formatDrr(sku?.drr)}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Auto from order transactions (last {INVENTORY_DRR_LOOKBACK_DAYS} days)
+                      </p>
                     </div>
                   </div>
                   <Button type="button" size="sm" variant="outline" className="mt-3" disabled={savingMetrics} onClick={saveMetrics}>

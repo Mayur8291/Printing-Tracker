@@ -17,6 +17,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
+import ReadyStockOrderDetailDialog from "./ReadyStockOrderDetailDialog";
 
 const STATUS_FILTERS = [
   { id: "all", label: "All" },
@@ -61,16 +62,17 @@ function orderAmount(items) {
 /**
  * Ready Stock Order tab: live list of Scott International RMP orders created
  * through the Dashboard Order API (scott_orders / scott_order_items).
- * Read-only — orders are mutated by the dashboard-stock-api edge function.
+ * Click order code for detail + picklist generation (PROCESSING status).
  */
 export default function ReadyStockOrdersPanel() {
   const [orders, setOrders] = useState([]);
   const [itemsByOrder, setItemsByOrder] = useState({});
-  const [skuNames, setSkuNames] = useState({});
+  const [skuMeta, setSkuMeta] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const loadOrders = useCallback(async (opts) => {
     const silent = opts?.silent === true;
@@ -79,7 +81,7 @@ export default function ReadyStockOrdersPanel() {
       const { data: orderRows, error: orderErr } = await supabase
         .from("scott_orders")
         .select(
-          "id, order_code, facility_code, status, due_on, customer, shipping_address, payment, comment, cancel_reason, created_at, updated_at, cancelled_at, dispatched_at"
+          "id, order_code, facility_code, status, due_on, customer, shipping_address, payment, comment, cancel_reason, created_at, updated_at, cancelled_at, dispatched_at, picklist_no, picklist_generated_at"
         )
         .order("created_at", { ascending: false })
         .limit(500);
@@ -102,18 +104,23 @@ export default function ReadyStockOrdersPanel() {
       }
 
       const skuCodes = [...new Set(itemRows.map((i) => i.sku_code))];
-      let names = {};
+      let meta = {};
       if (skuCodes.length) {
         const { data: skuRows } = await supabase
           .from("inventory_skus")
-          .select("sku_code, name")
+          .select("sku_code, name, bin_location")
           .in("sku_code", skuCodes);
-        names = Object.fromEntries((skuRows ?? []).map((s) => [s.sku_code, s.name]));
+        meta = Object.fromEntries(
+          (skuRows ?? []).map((s) => [
+            s.sku_code,
+            { name: s.name, bin: s.bin_location || "" }
+          ])
+        );
       }
 
       setOrders(orderRows ?? []);
       setItemsByOrder(grouped);
-      setSkuNames(names);
+      setSkuMeta(meta);
       setError("");
     } catch (e) {
       console.warn("Ready Stock orders load", e);
@@ -159,14 +166,25 @@ export default function ReadyStockOrdersPanel() {
         o.customer?.email,
         o.customer?.phone,
         ...items.map((i) => i.sku_code),
-        ...items.map((i) => skuNames[i.sku_code])
+        ...items.map((i) => skuMeta[i.sku_code]?.name)
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
       return hay.includes(q);
     });
-  }, [orders, itemsByOrder, skuNames, statusFilter, searchQuery]);
+  }, [orders, itemsByOrder, skuMeta, statusFilter, searchQuery]);
+
+  const selectedOrder = useMemo(
+    () => orders.find((o) => o.id === selectedOrderId) ?? null,
+    [orders, selectedOrderId]
+  );
+
+  const selectedItems = selectedOrder ? itemsByOrder[selectedOrder.id] ?? [] : [];
+
+  function handleOrderUpdated(patch) {
+    setOrders((prev) => prev.map((o) => (o.id === patch.id ? { ...o, ...patch } : o)));
+  }
 
   return (
     <Card>
@@ -249,8 +267,19 @@ export default function ReadyStockOrdersPanel() {
                 return (
                   <TableRow key={order.id} className="align-top">
                     <TableCell>
-                      <p className="text-sm font-semibold text-primary">{order.order_code}</p>
+                      <button
+                        type="button"
+                        className="text-left text-sm font-semibold text-primary underline-offset-2 hover:underline"
+                        onClick={() => setSelectedOrderId(order.id)}
+                      >
+                        {order.order_code}
+                      </button>
                       <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{order.id}</p>
+                      {order.picklist_no ? (
+                        <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                          {order.picklist_no}
+                        </p>
+                      ) : null}
                       {items.length > 1 ? (
                         <Badge variant="secondary" className="mt-1 text-[10px] font-normal">
                           +{items.length} ITEMS
@@ -304,7 +333,7 @@ export default function ReadyStockOrdersPanel() {
                         {items.map((item) => (
                           <div key={`${item.order_id}-${item.sku_code}`} className="text-[11px] leading-tight">
                             <p className="font-medium">
-                              Name: {skuNames[item.sku_code] || item.sku_code}
+                              Name: {skuMeta[item.sku_code]?.name || item.sku_code}
                             </p>
                             <p className="text-muted-foreground">
                               SKU: <span className="font-mono italic">{item.sku_code}</span>
@@ -336,6 +365,17 @@ export default function ReadyStockOrdersPanel() {
           </Table>
         )}
       </CardContent>
+
+      <ReadyStockOrderDetailDialog
+        open={Boolean(selectedOrder)}
+        onOpenChange={(next) => {
+          if (!next) setSelectedOrderId(null);
+        }}
+        order={selectedOrder}
+        items={selectedItems}
+        skuMeta={skuMeta}
+        onOrderUpdated={handleOrderUpdated}
+      />
     </Card>
   );
 }

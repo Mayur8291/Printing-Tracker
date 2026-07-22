@@ -9,7 +9,6 @@ export const SIDEBAR_ACTIVITY_TABLE_TABS = {
   inward_entries: ["dispatch"],
   inward_grn_entries: ["dispatch"],
   inventory_skus: ["inventory"],
-  inventory_style_parents: ["inventory"],
   inventory_stock_movements: ["inventory"],
   inventory_alert_settings: ["inventory"],
   inventory_suppliers: ["inventory"],

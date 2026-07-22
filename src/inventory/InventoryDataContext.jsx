@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { POS } from "./inventoryData";
 import { supabase } from "../supabaseClient";
 import {
+  applyFacilityStockAdjustment,
   applyStockAdjustment,
   deriveAlerts,
   deleteSku,
@@ -14,7 +15,6 @@ import {
   insertSku,
   insertSkuBatch,
   insertStockMovement,
-  insertStyleParent,
   insertSupplier,
   insertWarehouse,
   rowToSku,
@@ -28,6 +28,11 @@ import { INVENTORY_INITIAL_SKU_BATCH } from "./inventoryQueryFields";
 import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
 import { subscribePostgresChanges } from "../realtimeUtils";
 import { kpiMovementsSinceIso } from "./inventoryKpiUtils";
+import {
+  applyComputedDrrToSkus,
+  fetchComputedDrrBySkuCode
+} from "./inventoryDrrUtils";
+import { facilityStockForSku, onHandAtWarehouse, resolveFacilityCode } from "./inventoryFacilityUtils";
 
 const InventoryDataContext = createContext(null);
 
@@ -38,7 +43,6 @@ export function InventoryDataProvider({ session, children }) {
   const [suppliers, setSuppliers] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [skus, setSkus] = useState([]);
-  const [styleParents, setStyleParents] = useState([]);
   const [movements, setMovements] = useState([]);
   const [kpiMovements, setKpiMovements] = useState([]);
   const [movementsLoading, setMovementsLoading] = useState(false);
@@ -54,14 +58,26 @@ export function InventoryDataProvider({ session, children }) {
     session?.user?.email?.split("@")[0] ||
     "You";
 
+  const loadComputedDrr = useCallback(async (skuList) => {
+    try {
+      const drrMap = await fetchComputedDrrBySkuCode();
+      setSkus((prev) => {
+        const base = skuList ?? prev;
+        return applyComputedDrrToSkus(base, drrMap);
+      });
+    } catch (err) {
+      console.warn("Inventory DRR compute:", err?.message || err);
+    }
+  }, []);
+
   const applyBundle = useCallback((bundle, { keepMovements = false } = {}) => {
     setSettings(bundle.settings);
     setSuppliers(bundle.suppliers);
     setWarehouses(bundle.warehouses);
-    setStyleParents(bundle.styleParents || []);
     setSkus(bundle.skus);
     if (!keepMovements && Array.isArray(bundle.movements)) setMovements(bundle.movements);
-  }, []);
+    void loadComputedDrr(bundle.skus);
+  }, [loadComputedDrr]);
 
   const loadMovements = useCallback(async ({ silent = true, force = false } = {}) => {
     if (movementsLoadedRef.current && !force) return;
@@ -141,13 +157,14 @@ export function InventoryDataProvider({ session, children }) {
         }
         return merged.sort((a, b) => String(a.id).localeCompare(String(b.id)));
       });
+      void loadComputedDrr();
     } catch (err) {
       console.error("Inventory SKU background load:", err?.message || err);
     } finally {
       loadingMoreSkusRef.current = false;
       setLoadingMoreSkus(false);
     }
-  }, []);
+  }, [loadComputedDrr]);
 
   const refresh = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
@@ -196,8 +213,8 @@ export function InventoryDataProvider({ session, children }) {
         fetchSkuMovements(sku._uuid)
       ]);
       const merged = detail || sku;
-      patchSkuInState(merged);
-      return { sku: merged, movements: skuMovements };
+      patchSkuInState({ ...merged, drr: sku.drr });
+      return { sku: { ...merged, drr: sku.drr }, movements: skuMovements };
     },
     [patchSkuInState]
   );
@@ -213,7 +230,6 @@ export function InventoryDataProvider({ session, children }) {
       channelName: `inventory-bundle-${userId}`,
       tables: [
         "inventory_skus",
-        "inventory_style_parents",
         "inventory_stock_movements",
         "inventory_alert_settings",
         "inventory_suppliers",
@@ -241,6 +257,18 @@ export function InventoryDataProvider({ session, children }) {
     });
   }, [userId, loadAvailability]);
 
+  useEffect(() => {
+    if (!userId) return undefined;
+
+    return subscribePostgresChanges({
+      channelName: `inventory-drr-orders-${userId}`,
+      tables: ["scott_orders", "scott_order_items"],
+      onEvent: () => {
+        void loadComputedDrr();
+      }
+    });
+  }, [userId, loadComputedDrr]);
+
   const fabrics = useMemo(() => skus.filter((s) => s.kind === "fabric"), [skus]);
   const trims = useMemo(() => skus.filter((s) => s.kind === "trim"), [skus]);
   const apparel = useMemo(() => skus.filter((s) => s.kind === "apparel"), [skus]);
@@ -260,12 +288,10 @@ export function InventoryDataProvider({ session, children }) {
 
   const warehousesWithUsage = useMemo(() => {
     return warehouses.map((wh) => {
-      const used = skus
-        .filter((s) => s.wh === wh.id)
-        .reduce((sum, s) => sum + Number(s.stock ?? s.totalStock ?? 0), 0);
+      const used = skus.reduce((sum, sku) => sum + onHandAtWarehouse(sku, wh, availabilityBySku), 0);
       return { ...wh, used };
     });
-  }, [warehouses, skus]);
+  }, [warehouses, skus, availabilityBySku]);
 
   const updateAlertSettings = useCallback(
     async (patch) => {
@@ -283,40 +309,20 @@ export function InventoryDataProvider({ session, children }) {
   }, []);
 
   const saveSkuFields = useCallback(async (skuUuid, patch) => {
-    const updated = await updateSkuFields(skuUuid, patch);
-    setSkus((prev) => prev.map((s) => (s._uuid === updated._uuid ? updated : s)));
+    const { drr: _ignoredDrr, ...rest } = patch;
+    const updated = await updateSkuFields(skuUuid, rest);
+    setSkus((prev) =>
+      prev.map((s) => {
+        if (s._uuid !== updated._uuid) return s;
+        return { ...updated, drr: s.drr };
+      })
+    );
     return updated;
   }, []);
 
-  const createStyleParent = useCallback(
-    async ({ parentSkuCode, styleName, kind }) => {
-      const parent = await insertStyleParent({ parentSkuCode, styleName, kind }, userId);
-      setStyleParents((prev) =>
-        [...prev, parent].sort((a, b) => (a.styleName || "").localeCompare(b.styleName || ""))
-      );
-      return parent;
-    },
-    [userId]
-  );
-
   const createSku = useCallback(
     async (kind, record) => {
-      let parentStyleId = record.parentStyleId || null;
-
-      if (record.parentMode === "new" && record.parentSkuCode && record.parentStyleName) {
-        const parent = await insertStyleParent(
-          {
-            parentSkuCode: record.parentSkuCode,
-            styleName: record.parentStyleName,
-            kind
-          },
-          userId
-        );
-        parentStyleId = parent.id;
-        setStyleParents((prev) => [...prev, parent]);
-      }
-
-      const created = await insertSku(kind, { ...record, parentStyleId }, userId);
+      const created = await insertSku(kind, record, userId);
       setSkus((prev) => [created, ...prev]);
 
       const qty = kind === "apparel" ? created.totalStock : created.stock;
@@ -355,8 +361,96 @@ export function InventoryDataProvider({ session, children }) {
     [refresh, userId]
   );
 
+  const bulkImportStockAdjust = useCallback(
+    async (rows, { warehouseId, onProgress } = {}) => {
+      if (!warehouseId) {
+        throw new Error("Select a warehouse before bulk upload.");
+      }
+
+      let stockAdjusted = 0;
+      let metricsUpdated = 0;
+      let skipped = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.error || !row._uuid) {
+          skipped++;
+          onProgress?.(i + 1, rows.length);
+          continue;
+        }
+
+        let changed = false;
+
+        if (row.willAdjustStock && row.targetStock != null) {
+          await applyFacilityStockAdjustment({
+            skuUuid: row._uuid,
+            warehouseId,
+            targetOnHand: row.targetStock,
+            reason: row.reason || "Bulk Excel stock adjust",
+            reference: "BULK-EXCEL",
+            userId
+          });
+          stockAdjusted++;
+          changed = true;
+        }
+
+        const patch = {};
+        if (row.willUpdateDoc) patch.doc = row.doc;
+        if (Object.keys(patch).length) {
+          await updateSkuFields(row._uuid, patch);
+          metricsUpdated++;
+          changed = true;
+        }
+
+        if (!changed) skipped++;
+        onProgress?.(i + 1, rows.length);
+      }
+
+      await refresh();
+      void loadAvailability();
+      void loadKpiMovements();
+      return { stockAdjusted, metricsUpdated, skipped, total: rows.length };
+    },
+    [refresh, userId, loadKpiMovements, loadAvailability]
+  );
+
   const adjustStock = useCallback(
     async ({ skuUuid, type, qty, reason, reference, fromWh, toWh }) => {
+      const sku = skus.find((s) => s._uuid === skuUuid);
+      const warehouseId = toWh || fromWh || sku?.wh;
+      const signedQty = type === "OUT" ? -Math.abs(qty) : Math.abs(qty);
+
+      if (warehouseId && type !== "TRANSFER") {
+        const whRow = warehouses.find((w) => w.id === warehouseId);
+        const fc = whRow ? resolveFacilityCode(whRow) : "";
+        const fac = facilityStockForSku(availabilityBySku, sku?.id, fc);
+        const currentOnHand = fac ? fac.onHand : sku?.wh === warehouseId ? Number(sku?.stock ?? sku?.totalStock ?? 0) : 0;
+        const targetOnHand = Math.max(0, currentOnHand + signedQty);
+
+        await applyFacilityStockAdjustment({
+          skuUuid,
+          warehouseId,
+          targetOnHand,
+          reason: reason || "",
+          reference: reference || "",
+          userId
+        });
+
+        void loadAvailability();
+        await refresh({ silent: true });
+
+        setSkus((prev) =>
+          prev.map((s) => {
+            if (s._uuid !== skuUuid) return s;
+            const total = Math.max(0, Number(s.stock ?? s.totalStock ?? 0) + signedQty);
+            if (s.totalStock !== undefined) return { ...s, totalStock: total, stock: total };
+            return { ...s, stock: total };
+          })
+        );
+
+        return { skuUuid, type, qty: signedQty, reason, reference, fromWh, toWh };
+      }
+
       const movement = await applyStockAdjustment({
         skuUuid,
         type,
@@ -381,7 +475,7 @@ export function InventoryDataProvider({ session, children }) {
       );
       return movement;
     },
-    [userId, loadKpiMovements]
+    [userId, loadKpiMovements, skus, warehouses, availabilityBySku, refresh, loadAvailability]
   );
 
   const createSupplier = useCallback(async (record) => {
@@ -449,7 +543,6 @@ export function InventoryDataProvider({ session, children }) {
     suppliers,
     warehouses: warehousesWithUsage,
     skus,
-    styleParents,
     fabrics,
     trims,
     apparel,
@@ -467,9 +560,9 @@ export function InventoryDataProvider({ session, children }) {
     updateAlertSettings,
     saveSkuReorder,
     saveSkuFields,
-    createStyleParent,
     createSku,
     importSkus,
+    bulkImportStockAdjust,
     adjustStock,
     removeSku,
     createSupplier,

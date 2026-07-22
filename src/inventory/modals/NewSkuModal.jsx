@@ -29,8 +29,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 
 import { useInventory } from "../InventoryDataContext";
-import { applyExistingParent } from "../inventorySkuGrouping";
-
 import MasterListSelectField from "@/components/admin/MasterListSelectField";
 
 
@@ -91,37 +89,13 @@ function nextId(prefix, pool) {
 
 
 
-function nextParentCode(styleParents, kind) {
-
-  const prefix = kind === "apparel" ? "STY" : kind === "fabric" ? "STY-FAB" : "STY-TRM";
-
-  const nums = styleParents
-
-    .filter((p) => p.kind === kind)
-
-    .map((p) => parseInt((p.parentSkuCode.split("-").pop() || "").replace(/\D/g, ""), 10))
-
-    .filter((n) => !Number.isNaN(n));
-
-  const next = Math.max(...nums, 0) + 1;
-
-  return `${prefix}-${next}`;
-
-}
-
-
-
-function makeBlank(k, { fabrics, trims, apparel, suppliers, warehouses, styleParents }) {
+function makeBlank(k, { fabrics, trims, apparel, suppliers, warehouses }) {
 
   const defaultSupplier = "";
 
   const defaultWh = warehouses[0]?.id || "";
 
   const today = new Date().toISOString().slice(0, 10);
-
-  const parentSkuCode = nextParentCode(styleParents || [], k);
-
-
 
   if (k === "fabric") {
 
@@ -163,15 +137,7 @@ function makeBlank(k, { fabrics, trims, apparel, suppliers, warehouses, stylePar
 
       lastIn: today,
 
-      tags: [],
-
-      parentMode: "new",
-
-      parentStyleId: "",
-
-      parentSkuCode,
-
-      parentStyleName: ""
+      tags: []
 
     };
 
@@ -213,15 +179,7 @@ function makeBlank(k, { fabrics, trims, apparel, suppliers, warehouses, stylePar
 
       bin: "",
 
-      lastIn: today,
-
-      parentMode: "new",
-
-      parentStyleId: "",
-
-      parentSkuCode,
-
-      parentStyleName: ""
+      lastIn: today
 
     };
 
@@ -257,15 +215,7 @@ function makeBlank(k, { fabrics, trims, apparel, suppliers, warehouses, stylePar
 
     sizes: Object.fromEntries(APPAREL_SIZES.map((s) => [s, 0])),
 
-    wh: defaultWh,
-
-    parentMode: "new",
-
-    parentStyleId: "",
-
-    parentSkuCode,
-
-    parentStyleName: ""
+    wh: defaultWh
 
   };
 
@@ -323,283 +273,23 @@ function ColorSwatchField({ hex, onChange }) {
 
 
 
-function ParentStyleSection({ kind, form, set, styleParents, lockToParent = null }) {
+export default function NewSkuModal({ initialKind = "fabric", onClose, onSubmit }) {
 
-  const parentsForKind = useMemo(
-
-    () => (styleParents || []).filter((p) => p.kind === kind),
-
-    [styleParents, kind]
-
-  );
-
-
-
-  const onParentModeChange = (mode) => {
-
-    if (lockToParent) return;
-
-    if (mode === "existing") {
-
-      const first = parentsForKind[0];
-
-      set({
-
-        parentMode: mode,
-
-        parentStyleId: first?.id || "",
-
-        name: first?.styleName || form.name,
-
-        parentStyleName: first?.styleName || ""
-
-      });
-
-    } else {
-
-      set({
-
-        parentMode: mode,
-
-        parentStyleId: "",
-
-        parentSkuCode: nextParentCode(styleParents || [], kind),
-
-        parentStyleName: form.name || ""
-
-      });
-
-    }
-
-  };
-
-
-
-  const onExistingParentPick = (parentId) => {
-
-    const parent = parentsForKind.find((p) => p.id === parentId);
-
-    set({
-
-      parentStyleId: parentId,
-
-      name: parent?.styleName || form.name,
-
-      parentStyleName: parent?.styleName || ""
-
-    });
-
-  };
-
-
-
-  return (
-
-    <div className="space-y-3 rounded-lg border p-4">
-
-      <div>
-
-        <Label className="text-sm font-medium">Parent style / SKU group</Label>
-
-        <p className="text-xs text-muted-foreground">
-
-          {lockToParent
-
-            ? `Adding sub SKU under ${lockToParent.parentSkuCode} — ${lockToParent.styleName}`
-
-            : "Group sub SKUs (colorways) under one parent style code."}
-
-        </p>
-
-      </div>
-
-      {lockToParent ? (
-
-        <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
-
-          <span className="font-mono text-xs text-muted-foreground">{lockToParent.parentSkuCode}</span>
-
-          <span className="ml-2 font-medium">{lockToParent.styleName}</span>
-
-        </div>
-
-      ) : (
-
-        <>
-
-      <div className="inline-flex rounded-lg border p-0.5">
-
-        <Button
-
-          type="button"
-
-          variant={form.parentMode === "new" ? "secondary" : "ghost"}
-
-          size="sm"
-
-          onClick={() => onParentModeChange("new")}
-
-        >
-
-          Create new parent
-
-        </Button>
-
-        <Button
-
-          type="button"
-
-          variant={form.parentMode === "existing" ? "secondary" : "ghost"}
-
-          size="sm"
-
-          onClick={() => onParentModeChange("existing")}
-
-          disabled={parentsForKind.length === 0}
-
-        >
-
-          Add to existing parent
-
-        </Button>
-
-      </div>
-
-
-
-      {form.parentMode === "new" ? (
-
-        <div className="grid gap-4 sm:grid-cols-2">
-
-          <div className="space-y-2">
-
-            <Label>Parent SKU code</Label>
-
-            <Input
-
-              value={form.parentSkuCode}
-
-              onChange={(e) => set({ parentSkuCode: e.target.value })}
-
-              className="font-mono"
-
-              required
-
-            />
-
-          </div>
-
-          <div className="space-y-2">
-
-            <Label>Parent style name</Label>
-
-            <Input
-
-              value={form.parentStyleName}
-
-              onChange={(e) => {
-
-                const v = e.target.value;
-
-                set({ parentStyleName: v, name: v });
-
-              }}
-
-              placeholder="e.g. Essential Crew Tee"
-
-              required
-
-            />
-
-          </div>
-
-        </div>
-
-      ) : (
-
-        <div className="space-y-2">
-
-          <Label>Existing parent style</Label>
-
-          <Select value={form.parentStyleId} onValueChange={onExistingParentPick}>
-
-            <SelectTrigger>
-
-              <SelectValue placeholder="Select parent style" />
-
-            </SelectTrigger>
-
-            <SelectContent>
-
-              {parentsForKind.map((p) => (
-
-                <SelectItem key={p.id} value={p.id}>
-
-                  {p.parentSkuCode} · {p.styleName}
-
-                </SelectItem>
-
-              ))}
-
-            </SelectContent>
-
-          </Select>
-
-        </div>
-
-      )}
-
-        </>
-
-      )}
-
-
-
-      <div className="space-y-2">
-
-        <Label>Sub SKU code</Label>
-
-        <Input value={form.id} onChange={(e) => set({ id: e.target.value })} className="font-mono" required />
-
-        <p className="text-xs text-muted-foreground">Variant code for this colorway / size run.</p>
-
-      </div>
-
-    </div>
-
-  );
-
-}
-
-
-
-export default function NewSkuModal({ initialKind = "fabric", initialParent = null, onClose, onSubmit }) {
-
-  const { fabrics, trims, apparel, suppliers, warehouses, styleParents, quickCreateSupplier, quickCreateWarehouse } =
+  const { fabrics, trims, apparel, suppliers, warehouses, quickCreateSupplier, quickCreateWarehouse } =
 
     useInventory();
 
-  const [kind, setKind] = useState(() => initialParent?.kind || initialKind);
+  const [kind, setKind] = useState(initialKind);
 
-  const [form, setForm] = useState(() => {
-
-    const k = initialParent?.kind || initialKind;
-
-    const blank = makeBlank(k, { fabrics, trims, apparel, suppliers, warehouses, styleParents });
-
-    return initialParent ? applyExistingParent(blank, initialParent) : blank;
-
-  });
+  const [form, setForm] = useState(() => makeBlank(initialKind, { fabrics, trims, apparel, suppliers, warehouses }));
 
 
 
   useEffect(() => {
 
-    if (initialParent) return;
+    setForm(makeBlank(kind, { fabrics, trims, apparel, suppliers, warehouses }));
 
-    setForm(makeBlank(kind, { fabrics, trims, apparel, suppliers, warehouses, styleParents }));
-
-  }, [kind, fabrics, trims, apparel, suppliers, warehouses, styleParents, initialParent]);
+  }, [kind, fabrics, trims, apparel, suppliers, warehouses]);
 
 
 
@@ -643,14 +333,6 @@ export default function NewSkuModal({ initialKind = "fabric", initialParent = nu
 
       record.totalStock = apparelTotal;
 
-      if (form.parentMode === "new") {
-
-        record.parentStyleName = form.parentStyleName || form.name;
-
-        record.name = form.parentStyleName || form.name;
-
-      }
-
     }
 
     onSubmit(kind, record);
@@ -661,25 +343,19 @@ export default function NewSkuModal({ initialKind = "fabric", initialParent = nu
 
   const nameLabel =
 
-    kind === "apparel" && form.parentMode === "existing"
+    kind === "apparel"
 
-      ? "Style name (from parent)"
+      ? "Style name"
 
-      : kind === "apparel"
+      : kind === "trim"
 
-        ? "Style name"
+        ? "Trim name"
 
-        : kind === "trim"
-
-          ? "Trim name"
-
-          : "Material name";
+        : "Material name";
 
   const namePlaceholder =
 
     kind === "fabric" ? "e.g. Combed Cotton Jersey" : kind === "trim" ? "e.g. YKK #5 Metal Zipper" : "e.g. Essential Crew Tee";
-
-  const nameReadOnly = kind === "apparel" && form.parentMode === "existing";
 
 
 
@@ -719,7 +395,7 @@ export default function NewSkuModal({ initialKind = "fabric", initialParent = nu
 
               ].map(([k, l]) => (
 
-                <Button key={k} type="button" variant={kind === k ? "secondary" : "ghost"} size="sm" onClick={() => setKind(k)} disabled={Boolean(initialParent)}>
+                <Button key={k} type="button" variant={kind === k ? "secondary" : "ghost"} size="sm" onClick={() => setKind(k)}>
 
                   {l}
 
@@ -733,49 +409,27 @@ export default function NewSkuModal({ initialKind = "fabric", initialParent = nu
 
 
 
-          {kind === "apparel" ? (
+          <div className="grid gap-4 sm:grid-cols-2">
 
-            <ParentStyleSection kind={kind} form={form} set={set} styleParents={styleParents} lockToParent={initialParent} />
+            <div className="space-y-2">
 
-          ) : (
+              <Label>SKU code</Label>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+              <Input value={form.id} onChange={(e) => set({ id: e.target.value })} className="font-mono" required />
 
-              <div className="space-y-2">
-
-                <Label>SKU code</Label>
-
-                <Input value={form.id} onChange={(e) => set({ id: e.target.value })} className="font-mono" required />
-
-                <p className="text-xs text-muted-foreground">Auto-generated — edit if you need a custom code.</p>
-
-              </div>
-
-              <div className="space-y-2">
-
-                <Label>{nameLabel}</Label>
-
-                <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder={namePlaceholder} required />
-
-              </div>
+              <p className="text-xs text-muted-foreground">Auto-generated — edit if you need a custom code.</p>
 
             </div>
-
-          )}
-
-
-
-          {kind === "apparel" && form.parentMode === "existing" ? (
 
             <div className="space-y-2">
 
               <Label>{nameLabel}</Label>
 
-              <Input value={form.name} readOnly className="bg-muted" />
+              <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder={namePlaceholder} required />
 
             </div>
 
-          ) : null}
+          </div>
 
 
 
@@ -986,16 +640,6 @@ export default function NewSkuModal({ initialKind = "fabric", initialParent = nu
               <Input type="number" min="0" step="0.01" value={form.doc} onChange={(e) => set({ doc: e.target.value })} />
 
               <p className="text-xs text-muted-foreground">Days of cover</p>
-
-            </div>
-
-            <div className="space-y-2">
-
-              <Label>DRR</Label>
-
-              <Input type="number" min="0" step="0.01" value={form.drr} onChange={(e) => set({ drr: e.target.value })} />
-
-              <p className="text-xs text-muted-foreground">Daily run rate</p>
 
             </div>
 

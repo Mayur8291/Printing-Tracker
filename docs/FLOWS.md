@@ -65,7 +65,19 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 2. **Fetch:** `scott_orders` (newest first, limit 500) + `scott_order_items` for those ids + SKU display names from `inventory_skus` (authenticated read-only policies).
 3. **Display:** shadcn table like the RMP order list — order code/id, placed time, facility, customer, status badge, payment (method / INR amount = Σ qty × unit_price / COD), item list (name, SKU, quantity, dispatched), due/dispatched date. Status filter tabs with counts + search.
 4. **Realtime:** subscription on `scott_orders` + `scott_order_items` (publication via `20260720130000`) → silent refetch, so an order placed in the app appears without refresh.
-5. **Failure:** load error shows inline message; page never blanks. Panel is read-only — status changes go through the Order API.
+5. **Order detail:** click order code → `ReadyStockOrderDetailDialog` (ORDER ITEMS tab; SHIPMENTS/INVOICES/RETURNS/ACTIVITIES placeholders disabled).
+6. **Generate picklist:** button on detail header → `scott-order-generate-picklist` edge function (authenticated JWT). First run assigns `picklist_no` (`PK#####`), sets `picklist_generated_at`, moves `PENDING` → `PROCESSING`. Client maps response to `PicklistData` and `POST /api/picklist/pdf` (Puppeteer) → PDF opens in new tab + downloads `{picklistNo}.pdf`. Reprint when already PROCESSING returns same picklist without status change.
+7. **Failure:** load error shows inline message; picklist pop-up blocked → alert; picklist API not running → start `npm run dev:all`; edge function not deployed → surfaced deploy hint; page never blanks.
+
+### Ready Stock picklist generation
+
+1. **Trigger:** user clicks **Generate Picklist** on order detail (Ready Stock Order tab).
+2. **Auth:** browser POST `scott-order-generate-picklist` with Supabase session JWT.
+3. **Order server:** service role loads order + items + SKU names/bin; if no picklist yet → unique `PK#####`, update order (`PROCESSING` if was `PENDING`); DB trigger enqueues `order.status_changed`; `deliverPendingWebhooks` drains outbox.
+4. **PDF server:** client maps to `PicklistData` → `POST /api/picklist/pdf` on local picklist API (`server/index.js`, port 3001; Vite dev proxy `/api/picklist`).
+5. **Render:** `buildPicklistHtml.js` + `picklist.css`; Code128 via `bwip-js` PNG data URI; Puppeteer A4 PDF with print CSS (`@page 12mm`, repeating thead, unbreakable rows).
+6. **Preview (dev):** `/#/picklist-preview` (React + sample data) or `GET /api/picklist/preview` / `GET /api/picklist/pdf/sample`.
+7. **Edge cases:** terminal orders cannot generate; empty items → 400; pop-up blocked → alert; picklist API down → error with start hint.
 
 ### Inventory UI availability (Reserved / Available)
 
@@ -74,6 +86,30 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 3. **Display:** Inventory list shows **Reserved** (amber, tooltip "Held for open orders — not available to sell") and **Available** (= on_hand − reserved) next to On hand; low-stock status, stock bar, alerts, and overview KPIs compare against **available**.
 4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills.
 5. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
+
+### Inventory bulk Excel upload (stock + DOC, warehouse-scoped)
+
+1. **Trigger:** Inventory → **Warehouses** → select warehouse → **Upload Bulk**.
+2. **Template:** **Download template** → `inventory-stock-adjust-template.xlsx` (SKU Code required; Stock Qty, DOC, Reason optional). Stock Qty = on-hand **at that warehouse only**. DRR excluded — computed from Ready Stock order lines.
+3. **Upload:** user fills template → selects file → preview shows stock delta at the selected warehouse and DOC changes; unknown SKUs skipped with error badge.
+4. **Apply:** `bulkImportStockAdjust` — per row: if Stock Qty set, RPC `adjust_sku_facility_stock` sets `inventory_facility_stock.on_hand_qty` for the warehouse's `facility_code` only, then recomputes `inventory_skus.stock_qty` as sum of all facilities; if DOC set, `updateSkuFields`; movements reference `BULK-EXCEL`.
+5. **DRR (read-only):** `inventoryDrrUtils` sets DRR on inventory load = Σ order item qty (last 30 days, non-cancelled Scott orders) ÷ 30; updates live when orders change.
+6. **Exit:** toast with counts; inventory refreshes; movements appear on Movements tab.
+7. **Failure:** missing SKU Code column → parse error; empty file → no rows; target below reserved qty → RPC error; partial errors shown in preview before import.
+
+### Inventory list — warehouse locations
+
+1. **Display:** **Warehouses** column shows name + on-hand per facility (tooltip when SKU spans multiple warehouses). Facility code shown when mapped.
+2. **Filter:** Warehouse cycle filter shows SKUs with stock at that facility (or home `warehouse_id` fallback).
+3. **Overview:** Inventory Value KPI dropdown filters value by warehouse; shows total-all-warehouses when one warehouse selected.
+
+### Inventory SKU create (flat list)
+
+1. **Trigger:** Inventory list → **New SKU** (or Overview shortcut).
+2. **Form:** Single SKU code + name per row for fabric, trim, and apparel — no parent/sub grouping in UI.
+3. **Save:** `insertSku` writes `inventory_skus` with `parent_style_id = null`; opening stock logs movement type **IN**.
+4. **List:** Apparel, fabrics, and trims render as flat paginated tables (search/sort/filter unchanged).
+5. **API:** Scott Stock/Order APIs use `sku_code` only — parent removal is dashboard-only; legacy `inventory_style_parents` rows remain in DB.
 
 ## Home tab
 

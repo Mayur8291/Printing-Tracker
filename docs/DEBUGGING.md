@@ -80,6 +80,25 @@
 - **Fix:** `npx supabase db push` on the linked project, then re-save the facility code (or run a one-off update of `inventory_facility_stock.facility_code`). Confirm trigger: `select tgname from pg_trigger where tgname = 'inventory_warehouses_propagate_facility_code';`
 - **Note:** Stock/Order API shapes are unchanged — callers must use the **new** facility code after a rename.
 
+## Generate Picklist fails or status stays PENDING
+
+- **Symptom:** Click **Generate Picklist** → error, or picklist opens but order status still PENDING.
+- **Root causes:**
+  - Edge function `scott-order-generate-picklist` not deployed on the connected project → deploy hint in UI.
+  - Migration `20260722120000_scott_order_picklist.sql` not applied → update fails on unknown columns.
+  - **Picklist PDF API not running** — `POST /api/picklist/pdf` proxied to `localhost:3001`; start with `npm run dev:all` or `npm run dev:picklist-api` alongside `npm run dev`.
+  - Pop-up blocked → PDF blob tab never opens (allow pop-ups for the dashboard origin).
+  - Order is COMPLETE/CANCELLED/FAILED → function returns 409 (by design).
+- **Fix:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase db push && npx supabase functions deploy scott-order-generate-picklist`. Hard refresh, sign in again, retry.
+- **Queries:** `select id, order_code, status, picklist_no, picklist_generated_at from scott_orders where order_code = 'P-TEST-005';`
+
+## Inventory bulk Excel upload fails or SKUs skipped
+
+- **Symptom:** Upload Excel shows all rows red / "SKU not found".
+- **Root cause:** SKU Code in template must match existing `inventory_skus.sku_code` exactly (case-insensitive). Template example rows must be deleted before upload.
+- **Fix:** Download fresh template, use real SKU codes from inventory export; ensure at least one of Stock Qty, DOC, or DRR is filled per row.
+- **Symptom:** Stock unchanged but DOC updated — Stock Qty blank or already matches on-hand (delta 0).
+
 ## Ready Stock Order tab empty though app orders exist
 
 - **Symptom:** Orders created via the Order API return 201 but the Ready Stock Order tab shows "No app orders yet".

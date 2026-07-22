@@ -31,8 +31,7 @@ const TYPE_LABELS = {
 };
 
 function skuLabel(row) {
-  const style = row.parentStyleName && row.parentStyleName !== row.name ? `${row.parentStyleName} · ` : "";
-  return `${row.id} — ${style}${row.name}${row.color ? ` · ${row.color}` : ""}`;
+  return `${row.id} — ${row.name}${row.color ? ` · ${row.color}` : ""}`;
 }
 
 export default function AdjustStockModal({ sku, onClose, onSubmit }) {

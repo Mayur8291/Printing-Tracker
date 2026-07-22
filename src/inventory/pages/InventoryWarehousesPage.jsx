@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useInventory } from "../InventoryDataContext";
+import { onHandAtWarehouse, skuHasStockAtWarehouse } from "../inventoryFacilityUtils";
 import { PageHeader } from "../inventoryUiUtils";
 
 const DEFAULT_ZONES = [{ name: "A", rows: 8, cols: 10 }];
@@ -46,11 +48,11 @@ function BinCell({ state, label }) {
   );
 }
 
-export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehouse, onEditLayout }) {
-  const { warehouses, skus, pos } = useInventory();
+export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehouse, onEditLayout, onUploadBulk }) {
+  const { warehouses, skus, pos, availabilityBySku } = useInventory();
   const [selected, setSelected] = useState(warehouses[0]?.id || "");
   const wh = warehouses.find((w) => w.id === selected) || warehouses[0];
-  const skusHere = skus.filter((s) => s.wh === selected);
+  const skusHere = skus.filter((s) => skuHasStockAtWarehouse(s, wh, availabilityBySku));
   const utilPct = wh?.capacity ? Math.round((wh.used / wh.capacity) * 100) : 0;
   const zones = useMemo(() => zonesFromLayout(wh?.layout), [wh?.layout]);
   const zoneBins = useMemo(() => {
@@ -101,10 +103,17 @@ export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehous
             const pct = Math.round((w.used / w.capacity) * 100);
             const isActive = w.id === selected;
             return (
-              <button
+              <div
                 key={w.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelected(w.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelected(w.id);
+                  }
+                }}
                 className={cn(
                   "w-full rounded-lg border p-3 text-left transition-colors",
                   isActive ? "border-foreground bg-muted/50" : "border-border bg-card hover:bg-muted/30"
@@ -135,7 +144,23 @@ export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehous
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-              </button>
+                {onUploadBulk ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2 h-7 w-full gap-1.5 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelected(w.id);
+                      onUploadBulk(w);
+                    }}
+                  >
+                    <Upload className="size-3" />
+                    Upload Bulk
+                  </Button>
+                ) : null}
+              </div>
             );
           })}
         </div>
@@ -156,6 +181,12 @@ export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehous
                 </CardDescription>
               </div>
               <div className="flex shrink-0 gap-2">
+                {onUploadBulk ? (
+                  <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => onUploadBulk(wh)}>
+                    <Upload className="size-3.5" />
+                    Upload Bulk
+                  </Button>
+                ) : null}
                 <Button type="button" variant="outline" size="sm" onClick={() => onEditWarehouse?.(wh)}>
                   Edit
                 </Button>
@@ -234,20 +265,23 @@ export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehous
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {skusHere.slice(0, 6).map((s) => (
+                {skusHere.slice(0, 6).map((s) => {
+                  const qty = onHandAtWarehouse(s, wh, availabilityBySku);
+                  return (
                   <TableRow key={s.id}>
                     <TableCell className="font-mono text-xs">{s.id}</TableCell>
                     <TableCell>
                       {s.name} · {s.color}
                     </TableCell>
                     <TableCell className="font-mono text-xs">{s.bin || "—"}</TableCell>
-                    <TableCell className="text-right tabular-nums">{Number(s.stock).toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{qty.toLocaleString()}</TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
                 {!skusHere.length ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
-                      No SKUs assigned to this warehouse yet.
+                      No stock at this warehouse yet. Use Upload Bulk to add inventory here.
                     </TableCell>
                   </TableRow>
                 ) : null}
