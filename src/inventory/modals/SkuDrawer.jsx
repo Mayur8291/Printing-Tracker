@@ -249,7 +249,7 @@ export default function SkuDrawer({ sku, onClose, onAdjust, onReorder, onDelete,
                     </KvValue>
                     {sku.bin ? (
                       <>
-                        <KvLabel>Bin</KvLabel>
+                        <KvLabel>Storage location</KvLabel>
                         <KvValue className="font-mono">{sku.bin}</KvValue>
                       </>
                     ) : null}

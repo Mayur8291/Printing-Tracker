@@ -417,6 +417,7 @@ export async function updateSkuFields(skuUuid, patch) {
   if (patch.drr !== undefined) payload.drr = Number(patch.drr) || 0;
   if (patch.cost !== undefined) payload.unit_cost = Number(patch.cost) || 0;
   if (patch.retail !== undefined) payload.retail_price = Number(patch.retail) || null;
+  if (patch.bin !== undefined) payload.bin_location = String(patch.bin ?? "").trim() || null;
 
   const { data, error } = await supabase
     .from("inventory_skus")

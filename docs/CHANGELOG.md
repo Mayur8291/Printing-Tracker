@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-23 — Overview warehouse filter scopes all widgets
+
+- **Issue:** Overview warehouse dropdown only filtered Inventory Value KPI; movements, alerts, fabric chart, and shipments still showed all warehouses combined.
+- **Fix:** Same dropdown now filters KPIs, recent movements, critical reorder alerts, fabric stock chart, and incoming POs. **All warehouses** shows everything with warehouse name on movement/PO rows; single warehouse shows scoped data and empty states when none.
+- **Files:** `InventoryOverview.jsx`, `inventoryFacilityUtils.js`, `inventoryKpiUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-23 — Storage location on new SKU + bulk upload
+
+- **Feature:** **Create SKU** form shows **Storage location** beside **Warehouse** for all kinds (including apparel). Value saves to `inventory_skus.bin_location`.
+- **Bulk upload:** Excel template adds **Storage Location** column; import updates bin when provided (optional alongside Stock Qty / DOC).
+- **Files:** `NewSkuModal.jsx`, `inventoryStockAdjustImportUtils.js`, `ImportStockAdjustModal.jsx`, `InventoryDataContext.jsx`, `inventoryDbUtils.js`, `inventorySkuExportUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-23 — Warehouse capacity label: units not pallets
+
+- **Fix:** Warehouses page cards, detail panel, and create/edit warehouse forms now say **units** for stock capacity (was incorrectly labeled pallets).
+- **Files:** `InventoryWarehousesPage.jsx`, `NewWarehouseModal.jsx`, `EditWarehouseModal.jsx`.
+
 ## 2026-07-22 — Remove parent SKU grouping from dashboard
 
 - **Issue:** Parent style / sub-SKU grouping was dashboard-only complexity; Scott API uses flat `sku_code` only — parent rows never affected integrations.

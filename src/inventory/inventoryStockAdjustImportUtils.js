@@ -4,7 +4,17 @@ const HEADER_ALIASES = {
   "sku code": ["sku code", "sku", "sku_code", "sku id"],
   "stock qty": ["stock qty", "stock", "stock quantity", "quantity", "on hand", "on_hand"],
   doc: ["doc", "days of cover", "days_of_cover"],
-  reason: ["reason", "note", "notes", "comment"]
+  reason: ["reason", "note", "notes", "comment"],
+  "storage location": [
+    "storage location",
+    "storage_location",
+    "bin location",
+    "bin_location",
+    "bin",
+    "location",
+    "shelf",
+    "shelf location"
+  ]
 };
 
 function cellText(value) {
@@ -49,7 +59,9 @@ function rowFromSheet(row, columns) {
     skuCode,
     stockQty: columns["stock qty"] != null ? parseOptionalNumber(row.getCell(columns["stock qty"]).value) : null,
     doc: columns.doc != null ? parseOptionalNumber(row.getCell(columns.doc).value) : null,
-    reason: columns.reason != null ? cellText(row.getCell(columns.reason).value) : ""
+    reason: columns.reason != null ? cellText(row.getCell(columns.reason).value) : "",
+    storageLocation:
+      columns["storage location"] != null ? cellText(row.getCell(columns["storage location"]).value) : ""
   };
 }
 
@@ -59,7 +71,7 @@ export function parseStockAdjustSheet(sheet) {
   const missing = missingHeaders(columns);
   if (missing.length) {
     throw new Error(
-      `Missing required column: ${missing.join(", ")}. Download the template — required: SKU Code; optional: Stock Qty, DOC, Reason.`
+      `Missing required column: ${missing.join(", ")}. Download the template — required: SKU Code; optional: Stock Qty, DOC, Storage Location, Reason.`
     );
   }
 
@@ -71,12 +83,12 @@ export function parseStockAdjustSheet(sheet) {
     const key = parsed.skuCode.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    if (parsed.stockQty == null && parsed.doc == null) continue;
+    if (parsed.stockQty == null && parsed.doc == null && !parsed.storageLocation) continue;
     records.push(parsed);
   }
 
   if (!records.length) {
-    throw new Error("No adjustment rows found. Fill SKU Code and at least one of Stock Qty or DOC.");
+    throw new Error("No adjustment rows found. Fill SKU Code and at least one of Stock Qty, DOC, or Storage Location.");
   }
 
   return records;
@@ -129,11 +141,19 @@ export function enrichStockAdjustRows(skus, records, scope = {}) {
     if (row.doc != null && row.doc < 0) {
       return { ...row, error: `DOC cannot be negative for ${row.skuCode}` };
     }
-    if (targetStock == null && row.doc == null) {
+    if (targetStock == null && row.doc == null && !row.storageLocation) {
       return { ...row, error: `Nothing to update for ${row.skuCode}` };
     }
-    if (targetStock != null && delta === 0 && row.doc == null) {
+    if (targetStock != null && delta === 0 && row.doc == null && !row.storageLocation) {
       return { ...row, error: `No change for ${row.skuCode} (stock already ${currentStock} at this warehouse)` };
+    }
+
+    const currentBin = String(sku.bin ?? "").trim();
+    const targetBin = String(row.storageLocation ?? "").trim();
+    const willUpdateBin = Boolean(targetBin) && targetBin !== currentBin;
+
+    if (targetStock == null && row.doc == null && row.storageLocation && !willUpdateBin) {
+      return { ...row, error: `Storage location unchanged for ${row.skuCode}` };
     }
 
     return {
@@ -143,10 +163,13 @@ export function enrichStockAdjustRows(skus, records, scope = {}) {
       facilityCode,
       currentStock,
       currentDoc: sku.doc ?? null,
+      currentBin,
+      targetBin: targetBin || null,
       targetStock,
       delta,
       willAdjustStock: targetStock != null && delta !== 0,
-      willUpdateDoc: row.doc != null
+      willUpdateDoc: row.doc != null,
+      willUpdateBin
     };
   });
 }
@@ -157,11 +180,12 @@ export async function downloadStockAdjustTemplate(warehouseName = "") {
   workbook.creator = "Scott Dashboard";
   const sheet = workbook.addWorksheet("Stock Adjust");
 
-  const headers = ["SKU Code", "Stock Qty", "DOC", "Reason"];
+  const headers = ["SKU Code", "Stock Qty", "DOC", "Storage Location", "Reason"];
   sheet.addRow(headers);
-  sheet.addRow(["EXAMPLE-SKU-01", 100, 30, "Cycle count"]);
-  sheet.addRow(["EXAMPLE-SKU-02", 50, 14, "Bulk upload"]);
+  sheet.addRow(["EXAMPLE-SKU-01", 100, 30, "A-12-03", "Cycle count"]);
+  sheet.addRow(["EXAMPLE-SKU-02", 50, 14, "B-04-01", "Bulk upload"]);
   sheet.addRow([
+    "",
     "",
     "",
     "",
@@ -173,7 +197,7 @@ export async function downloadStockAdjustTemplate(warehouseName = "") {
   const headerRow = sheet.getRow(1);
   headerRow.font = { bold: true };
   headerRow.alignment = { vertical: "middle" };
-  sheet.columns = [{ width: 22 }, { width: 12 }, { width: 10 }, { width: 28 }];
+  sheet.columns = [{ width: 22 }, { width: 12 }, { width: 10 }, { width: 18 }, { width: 28 }];
 
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {

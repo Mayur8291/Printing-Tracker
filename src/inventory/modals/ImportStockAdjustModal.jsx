@@ -133,7 +133,7 @@ export default function ImportStockAdjustModal({
               {downloading ? "Preparing…" : "Download template"}
             </Button>
             <p className="text-xs text-muted-foreground">
-              Columns: SKU Code (required), Stock Qty, DOC, Reason — scoped to this warehouse
+              Columns: SKU Code (required), Stock Qty, DOC, Storage Location, Reason — scoped to this warehouse
             </p>
           </div>
 
@@ -173,6 +173,7 @@ export default function ImportStockAdjustModal({
                       <TableHead>SKU</TableHead>
                       <TableHead>Stock at warehouse</TableHead>
                       <TableHead>DOC</TableHead>
+                      <TableHead>Storage</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -201,6 +202,15 @@ export default function ImportStockAdjustModal({
                             : row.willUpdateDoc
                               ? `${row.currentDoc ?? "—"} → ${row.doc}`
                               : "—"}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {row.error
+                            ? "—"
+                            : row.willUpdateBin
+                              ? `${row.currentBin || "—"} → ${row.targetBin}`
+                              : row.targetBin
+                                ? row.currentBin || "—"
+                                : "—"}
                         </TableCell>
                         <TableCell>
                           {row.error ? (

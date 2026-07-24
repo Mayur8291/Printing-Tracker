@@ -215,7 +215,9 @@ function makeBlank(k, { fabrics, trims, apparel, suppliers, warehouses }) {
 
     sizes: Object.fromEntries(APPAREL_SIZES.map((s) => [s, 0])),
 
-    wh: defaultWh
+    wh: defaultWh,
+
+    bin: ""
 
   };
 
@@ -707,17 +709,18 @@ export default function NewSkuModal({ initialKind = "fabric", onClose, onSubmit 
 
             />
 
-            {kind !== "apparel" ? (
+            <div className="space-y-2">
 
-              <div className="space-y-2">
+              <Label>Storage location</Label>
 
-                <Label>Bin location</Label>
+              <Input
+                value={form.bin}
+                onChange={(e) => set({ bin: e.target.value })}
+                placeholder="e.g. A-12-03"
+                className="font-mono"
+              />
 
-                <Input value={form.bin} onChange={(e) => set({ bin: e.target.value })} placeholder="A-12-03" className="font-mono" />
-
-              </div>
-
-            ) : null}
+            </div>
 
           </div>
 

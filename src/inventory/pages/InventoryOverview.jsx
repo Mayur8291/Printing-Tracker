@@ -8,8 +8,16 @@ import ColorSwatch from "../components/ColorSwatch";
 import Sparkline from "../components/Sparkline";
 import StackedBar from "../components/StackedBar";
 import { useInventory } from "../InventoryDataContext";
-import { computeInventoryValue } from "../inventoryFacilityUtils";
+import {
+  computeInventoryValue,
+  movementMatchesWarehouse,
+  onHandAtWarehouse,
+  poMatchesWarehouse,
+  skusWithScopedAvailability,
+  warehouseLabelForMovement
+} from "../inventoryFacilityUtils";
 import { buildInventoryOverviewKpis } from "../inventoryKpiUtils";
+import { deriveAlerts } from "../inventoryDbUtils";
 import { exportAllSkusCsv } from "../inventorySkuExportUtils";
 import { MovementTypeBadge, PageHeader } from "../inventoryUiUtils";
 import { formatRelative, inrFmt } from "../inventoryUtils";
@@ -17,10 +25,13 @@ import { formatRelative, inrFmt } from "../inventoryUtils";
 const KPI_ABBREVS = ["₹", "SKU", "!", "PO"];
 
 export default function InventoryOverview({ setActive, openSku, openNewSku, openCreatePO }) {
-  const { fabrics, trims, apparel, alerts, movements, kpiMovements, pos, suppliers, warehouses, skus, settings, availabilityBySku } =
+  const { fabrics, movements, kpiMovements, pos, suppliers, warehouses, skus, settings, availabilityBySku } =
     useInventory();
   const [exporting, setExporting] = useState(false);
-  const [valueWarehouseFilter, setValueWarehouseFilter] = useState("all");
+  const [warehouseFilter, setWarehouseFilter] = useState("all");
+
+  const selectedWarehouse = warehouses.find((w) => w.id === warehouseFilter) || null;
+  const isAllWarehouses = warehouseFilter === "all";
 
   const allInventoryValueNum = useMemo(
     () => computeInventoryValue(skus, availabilityBySku, warehouses, "all"),
@@ -28,14 +39,21 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
   );
 
   const filteredInventoryValueNum = useMemo(() => {
-    if (valueWarehouseFilter === "all") return allInventoryValueNum;
-    return computeInventoryValue(skus, availabilityBySku, warehouses, valueWarehouseFilter);
-  }, [skus, availabilityBySku, warehouses, valueWarehouseFilter, allInventoryValueNum]);
+    if (isAllWarehouses) return allInventoryValueNum;
+    return computeInventoryValue(skus, availabilityBySku, warehouses, warehouseFilter);
+  }, [skus, availabilityBySku, warehouses, warehouseFilter, allInventoryValueNum, isAllWarehouses]);
 
-  const selectedWarehouse = warehouses.find((w) => w.id === valueWarehouseFilter);
+  const scopedAlerts = useMemo(() => {
+    const adjusted = skusWithScopedAvailability(skus, selectedWarehouse, availabilityBySku);
+    return deriveAlerts(adjusted, settings);
+  }, [skus, selectedWarehouse, availabilityBySku, settings]);
 
-  const openPOValue = pos.filter((p) => p.status !== "Received").reduce((s, p) => s + p.value, 0);
-  const openPOCount = pos.filter((p) => p.status !== "Received").length;
+  const openPOs = useMemo(
+    () => pos.filter((p) => p.status !== "Received" && poMatchesWarehouse(p, warehouseFilter)),
+    [pos, warehouseFilter]
+  );
+  const openPOValue = openPOs.reduce((s, p) => s + p.value, 0);
+  const openPOCount = openPOs.length;
 
   const kpis = useMemo(
     () =>
@@ -47,27 +65,47 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
         inventoryValue: inrFmt(filteredInventoryValueNum),
         openPOCount,
         openPOValue: inrFmt(openPOValue),
-        alertCount: alerts.length,
-        availabilityBySku
+        alertCount: scopedAlerts.length,
+        availabilityBySku,
+        warehouseId: warehouseFilter,
+        warehouses
       }),
-    [skus, kpiMovements, settings, pos, filteredInventoryValueNum, openPOCount, openPOValue, alerts.length, availabilityBySku]
+    [
+      skus,
+      kpiMovements,
+      settings,
+      pos,
+      filteredInventoryValueNum,
+      openPOCount,
+      openPOValue,
+      scopedAlerts.length,
+      availabilityBySku,
+      warehouseFilter,
+      warehouses
+    ]
   );
 
-  const fabricBy = fabrics.reduce((acc, f) => {
-    const cat = f.tags?.includes("denim")
-      ? "Denim"
-      : f.tags?.includes("knit")
-        ? "Knit"
-        : f.tags?.includes("linen")
-          ? "Linen"
-          : f.tags?.includes("wool")
-            ? "Wool"
-            : f.tags?.includes("shirting")
-              ? "Shirting"
-              : "Other Wovens";
-    acc[cat] = (acc[cat] || 0) + f.stock;
-    return acc;
-  }, {});
+  const fabricBy = useMemo(() => {
+    return fabrics.reduce((acc, f) => {
+      const stock = selectedWarehouse
+        ? onHandAtWarehouse(f, selectedWarehouse, availabilityBySku)
+        : Number(f.stock) || 0;
+      if (stock <= 0) return acc;
+      const cat = f.tags?.includes("denim")
+        ? "Denim"
+        : f.tags?.includes("knit")
+          ? "Knit"
+          : f.tags?.includes("linen")
+            ? "Linen"
+            : f.tags?.includes("wool")
+              ? "Wool"
+              : f.tags?.includes("shirting")
+                ? "Shirting"
+                : "Other Wovens";
+      acc[cat] = (acc[cat] || 0) + stock;
+      return acc;
+    }, {});
+  }, [fabrics, selectedWarehouse, availabilityBySku]);
 
   const fabricBars = Object.entries(fabricBy)
     .sort((a, b) => b[1] - a[1])
@@ -89,8 +127,21 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
       ]
     }));
 
-  const recentMoves = movements.slice(0, 7);
-  const topAlerts = alerts.filter((a) => a.severity === "critical").slice(0, 5);
+  const recentMoves = useMemo(
+    () => movements.filter((m) => movementMatchesWarehouse(m, warehouseFilter)).slice(0, 7),
+    [movements, warehouseFilter]
+  );
+
+  const topAlerts = scopedAlerts.filter((a) => a.severity === "critical").slice(0, 5);
+
+  const incomingShipments = useMemo(
+    () => openPOs.filter((p) => p.status === "In Transit").slice(0, 4),
+    [openPOs]
+  );
+
+  const warehouseScopeLabel = isAllWarehouses
+    ? `all ${warehouses.length} warehouse${warehouses.length === 1 ? "" : "s"}`
+    : selectedWarehouse?.name || "warehouse";
 
   async function handleExportSkus() {
     setExporting(true);
@@ -115,8 +166,8 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
         }
         actions={
           <>
-            <Select value={valueWarehouseFilter} onValueChange={setValueWarehouseFilter}>
-              <SelectTrigger className="h-9 w-[11rem]" aria-label="Inventory value warehouse filter">
+            <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+              <SelectTrigger className="h-9 w-[11rem]" aria-label="Warehouse filter">
                 <SelectValue placeholder="All warehouses" />
               </SelectTrigger>
               <SelectContent>
@@ -144,7 +195,7 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardDescription>
                 {k.label}
-                {i === 0 && valueWarehouseFilter !== "all" && selectedWarehouse ? (
+                {!isAllWarehouses && selectedWarehouse ? (
                   <span className="mt-0.5 block text-[11px] text-muted-foreground">{selectedWarehouse.name}</span>
                 ) : null}
               </CardDescription>
@@ -154,7 +205,7 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold tracking-tight">{k.value}</div>
-              {i === 0 && valueWarehouseFilter !== "all" ? (
+              {i === 0 && !isAllWarehouses ? (
                 <p className="mt-1 text-xs text-muted-foreground">
                   Total all warehouses: <strong className="text-foreground">{inrFmt(allInventoryValueNum)}</strong>
                 </p>
@@ -181,14 +232,22 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
                 <CardTitle className="text-base">Fabric stock by category</CardTitle>
-                <CardDescription>Total meters across {warehouses.length} warehouse{warehouses.length === 1 ? "" : "s"}</CardDescription>
+                <CardDescription>
+                  {isAllWarehouses
+                    ? `Total meters across ${warehouses.length} warehouse${warehouses.length === 1 ? "" : "s"}`
+                    : `Total meters at ${selectedWarehouse?.name || "warehouse"}`}
+                </CardDescription>
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={() => setActive("fabrics")}>
                 View all
               </Button>
             </CardHeader>
             <CardContent>
-              <StackedBar rows={fabricBars} />
+              {fabricBars.length ? (
+                <StackedBar rows={fabricBars} />
+              ) : (
+                <p className="text-sm text-muted-foreground">No fabric stock{isAllWarehouses ? "" : " at this warehouse"}.</p>
+              )}
             </CardContent>
           </Card>
 
@@ -196,31 +255,46 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
                 <CardTitle className="text-base">Recent stock movements</CardTitle>
-                <CardDescription>Live feed across all warehouses</CardDescription>
+                <CardDescription>
+                  {isAllWarehouses ? "Live feed across all warehouses" : `Live feed · ${selectedWarehouse?.name} only`}
+                </CardDescription>
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={() => setActive("movements")}>
                 View all
               </Button>
             </CardHeader>
             <CardContent className="space-y-1">
-              {recentMoves.map((m) => {
-                const sign = m.qty > 0 ? "+" : "";
-                return (
-                  <div key={m.id} className="flex items-center gap-3 border-b py-2.5 last:border-0">
-                    <MovementTypeBadge type={m.type} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{m.skuName}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {m.reason} · {m.user} · {formatRelative(new Date(m.ts))} · ref {m.ref}
-                      </p>
+              {recentMoves.length ? (
+                recentMoves.map((m) => {
+                  const sign = m.qty > 0 ? "+" : "";
+                  const whLabel = isAllWarehouses ? warehouseLabelForMovement(m, warehouses) : null;
+                  return (
+                    <div key={m.id} className="flex items-center gap-3 border-b py-2.5 last:border-0">
+                      <MovementTypeBadge type={m.type} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{m.skuName}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {m.reason} · {m.user} · {formatRelative(new Date(m.ts))} · ref {m.ref}
+                          {whLabel ? (
+                            <>
+                              {" "}
+                              · <span className="font-medium text-foreground">{whLabel}</span>
+                            </>
+                          ) : null}
+                        </p>
+                      </div>
+                      <div className={cn("shrink-0 text-sm font-medium tabular-nums", m.qty > 0 ? "text-emerald-600" : "text-red-600")}>
+                        {sign}
+                        {m.qty.toLocaleString()} {m.unit}
+                      </div>
                     </div>
-                    <div className={cn("shrink-0 text-sm font-medium tabular-nums", m.qty > 0 ? "text-emerald-600" : "text-red-600")}>
-                      {sign}
-                      {m.qty.toLocaleString()} {m.unit}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <p className="py-4 text-sm text-muted-foreground">
+                  No recent movements{isAllWarehouses ? "" : ` for ${selectedWarehouse?.name || "this warehouse"}`}.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -230,48 +304,63 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
                 <CardTitle className="text-base text-red-600">Critical reorder alerts</CardTitle>
-                <CardDescription>{topAlerts.length} items need attention</CardDescription>
+                <CardDescription>
+                  {topAlerts.length} items need attention · {warehouseScopeLabel}
+                </CardDescription>
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={() => setActive("alerts")}>
                 All alerts
               </Button>
             </CardHeader>
             <CardContent className="space-y-2">
-              {topAlerts.map((a) => (
-                <div key={a.id} className="flex items-start gap-3 rounded-lg border p-3">
-                  <Badge variant="destructive" className="mt-0.5 shrink-0">
-                    Critical
-                  </Badge>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">
-                      <ColorSwatch color={a.color} hex={a.hex} size="xs" />
-                      {a.name}
-                      {a.color ? ` · ${a.color}` : ""}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {a.id} · {a.message} · on hand <strong>{a.stock.toLocaleString()}</strong> / reorder at{" "}
-                      <strong>{a.reorder.toLocaleString()}</strong>
-                    </p>
+              {topAlerts.length ? (
+                topAlerts.map((a) => (
+                  <div key={a.id} className="flex items-start gap-3 rounded-lg border p-3">
+                    <Badge variant="destructive" className="mt-0.5 shrink-0">
+                      Critical
+                    </Badge>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">
+                        <ColorSwatch color={a.color} hex={a.hex} size="xs" />
+                        {a.name}
+                        {a.color ? ` · ${a.color}` : ""}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {a.id} · {a.message} · on hand <strong>{a.stock.toLocaleString()}</strong> / reorder at{" "}
+                        <strong>{a.reorder.toLocaleString()}</strong>
+                        {!isAllWarehouses && selectedWarehouse ? (
+                          <>
+                            {" "}
+                            · <strong>{selectedWarehouse.name}</strong>
+                          </>
+                        ) : null}
+                      </p>
+                    </div>
+                    <Button type="button" size="sm" onClick={() => openCreatePO()}>
+                      Reorder
+                    </Button>
                   </div>
-                  <Button type="button" size="sm" onClick={() => openCreatePO()}>
-                    Reorder
-                  </Button>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="py-4 text-sm text-muted-foreground">
+                  No critical alerts{isAllWarehouses ? "" : ` for ${selectedWarehouse?.name || "this warehouse"}`}.
+                </p>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Incoming shipments</CardTitle>
-              <CardDescription>{openPOCount} POs · arriving next 30 days</CardDescription>
+              <CardDescription>
+                {openPOCount} POs · arriving next 30 days · {warehouseScopeLabel}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-0">
-              {pos
-                .filter((p) => p.status === "In Transit")
-                .slice(0, 4)
-                .map((p) => {
+              {incomingShipments.length ? (
+                incomingShipments.map((p) => {
                   const sup = suppliers.find((s) => s.id === p.supplier);
+                  const poWh = warehouses.find((w) => w.id === p.warehouse);
                   return (
                     <div key={p.id} className="flex items-center gap-3 border-b py-3 last:border-0">
                       <Badge variant="outline" className="shrink-0">
@@ -281,6 +370,12 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
                         <p className="text-sm font-medium">{p.id}</p>
                         <p className="text-xs text-muted-foreground">
                           {sup?.name} · {sup?.city} · {p.qty.toLocaleString()} units
+                          {poWh ? (
+                            <>
+                              {" "}
+                              · <span className="font-medium">{poWh.name}</span>
+                            </>
+                          ) : null}
                         </p>
                       </div>
                       <div className="text-right text-sm">
@@ -289,7 +384,12 @@ export default function InventoryOverview({ setActive, openSku, openNewSku, open
                       </div>
                     </div>
                   );
-                })}
+                })
+              ) : (
+                <p className="py-4 text-sm text-muted-foreground">
+                  No incoming shipments{isAllWarehouses ? "" : ` for ${selectedWarehouse?.name || "this warehouse"}`}.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

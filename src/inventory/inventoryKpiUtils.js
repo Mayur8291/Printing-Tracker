@@ -1,4 +1,9 @@
 import { deriveAlerts } from "./inventoryDbUtils";
+import {
+  onHandAtWarehouse,
+  poMatchesWarehouse,
+  stockBySkuAtWarehouse
+} from "./inventoryFacilityUtils";
 
 const KPI_DAYS = 14;
 
@@ -70,8 +75,10 @@ function skuCountAt(endMs, skus) {
   }).length;
 }
 
-function alertsCountAt(endMs, skus, settings, movements, availabilityBySku) {
-  const stockMap = stockBySkuAt(endMs, skus, movements, availabilityBySku);
+function alertsCountAt(endMs, skus, settings, movements, availabilityBySku, warehouse = null) {
+  const stockMap = warehouse
+    ? stockBySkuAtWarehouse(endMs, skus, movements, warehouse, availabilityBySku, { metric: "available" })
+    : stockBySkuAt(endMs, skus, movements, availabilityBySku);
   const snapshot = skus
     .filter((sku) => stockMap.has(sku._uuid))
     .map((sku) => ({
@@ -82,12 +89,19 @@ function alertsCountAt(endMs, skus, settings, movements, availabilityBySku) {
   return deriveAlerts(snapshot, settings).length;
 }
 
-function openPoCountAt(endMs, pos) {
+function openPoCountAt(endMs, pos, warehouseId = "all") {
   return pos.filter((po) => {
     if (po.status === "Received") return false;
+    if (!poMatchesWarehouse(po, warehouseId)) return false;
     const created = po.created_at ? new Date(po.created_at).getTime() : endMs;
     return created <= endMs;
   }).length;
+}
+
+function skuCountWithStockAt(endMs, skus, movements, availabilityBySku, warehouse = null) {
+  if (!warehouse) return skuCountAt(endMs, skus);
+  const stockMap = stockBySkuAtWarehouse(endMs, skus, movements, warehouse, availabilityBySku, { metric: "onHand" });
+  return [...stockMap.values()].filter((qty) => qty > 0).length;
 }
 
 function pctChange(current, previous) {
@@ -126,20 +140,38 @@ export function buildInventoryOverviewKpis({
   openPOCount,
   openPOValue,
   alertCount,
-  availabilityBySku = null
+  availabilityBySku = null,
+  warehouseId = "all",
+  warehouses = []
 }) {
+  const warehouse = warehouseId === "all" ? null : warehouses.find((w) => w.id === warehouseId) || null;
+  const scopedMovements = warehouse
+    ? movements.filter((m) => m.fromWh === warehouse.id || m.toWh === warehouse.id)
+    : movements;
+
   const dayEnds = buildKpiDayEnds(KPI_DAYS);
 
   const valueSeries = seriesMinFloor(
-    dayEnds.map((end) =>
-      inventoryValueFromStockMap(stockBySkuAt(end.getTime(), skus, movements, availabilityBySku), skus)
-    )
+    dayEnds.map((end) => {
+      if (!warehouse) {
+        return inventoryValueFromStockMap(
+          stockBySkuAt(end.getTime(), skus, movements, availabilityBySku),
+          skus
+        );
+      }
+      const stockMap = stockBySkuAtWarehouse(end.getTime(), skus, scopedMovements, warehouse, availabilityBySku, {
+        metric: "available"
+      });
+      return inventoryValueFromStockMap(stockMap, skus);
+    })
   );
-  const skuSeries = seriesMinFloor(dayEnds.map((end) => skuCountAt(end.getTime(), skus)));
+  const skuSeries = seriesMinFloor(
+    dayEnds.map((end) => skuCountWithStockAt(end.getTime(), skus, scopedMovements, availabilityBySku, warehouse))
+  );
   const alertSeries = seriesMinFloor(
-    dayEnds.map((end) => alertsCountAt(end.getTime(), skus, settings, movements, availabilityBySku))
+    dayEnds.map((end) => alertsCountAt(end.getTime(), skus, settings, scopedMovements, availabilityBySku, warehouse))
   );
-  const poSeries = seriesMinFloor(dayEnds.map((end) => openPoCountAt(end.getTime(), pos)));
+  const poSeries = seriesMinFloor(dayEnds.map((end) => openPoCountAt(end.getTime(), pos, warehouseId)));
 
   const first = 0;
   const last = dayEnds.length - 1;
@@ -150,7 +182,12 @@ export function buildInventoryOverviewKpis({
   const alertsTodayDelta = alertSeries[last] - alertSeries[prev];
   const poWeekDelta = poSeries[last] - (poSeries[Math.max(0, last - 7)] ?? poSeries[first]);
 
-  const totalUnits = skus.reduce((s, item) => s + skuStock(item, availabilityBySku), 0);
+  const totalUnits = warehouse
+    ? skus.reduce((s, item) => s + onHandAtWarehouse(item, warehouse, availabilityBySku), 0)
+    : skus.reduce((s, item) => s + skuStock(item, availabilityBySku), 0);
+  const skuCount = warehouse
+    ? skus.filter((item) => onHandAtWarehouse(item, warehouse, availabilityBySku) > 0).length
+    : skus.length;
   const fmt = (n) => n.toLocaleString();
 
   return [
@@ -165,10 +202,10 @@ export function buildInventoryOverviewKpis({
     },
     {
       label: "SKUs On Hand",
-      value: fmt(skus.length),
+      value: fmt(skuCount),
       delta: skuDelta,
       dir: (skuSeries[last] ?? 0) >= (skuSeries[first] ?? 0) ? "up" : "down",
-      sub: skus.length ? `· ${fmt(totalUnits)} units on hand` : "· Add SKUs to get started",
+      sub: skuCount ? `· ${fmt(totalUnits)} units on hand` : warehouse ? "· No stock at this warehouse" : "· Add SKUs to get started",
       spark: skuSeries,
       sparkColor: undefined
     },

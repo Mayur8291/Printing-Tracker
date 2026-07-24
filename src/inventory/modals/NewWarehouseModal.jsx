@@ -102,7 +102,7 @@ export default function NewWarehouseModal({ onClose, onSubmit }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Capacity (pallets)</Label>
+            <Label>Capacity (units)</Label>
             <Input type="number" min="0" value={form.capacity} onChange={(e) => set({ capacity: e.target.value })} required />
             <p className="text-xs text-muted-foreground">Used for utilization % on the warehouse dashboard.</p>
           </div>

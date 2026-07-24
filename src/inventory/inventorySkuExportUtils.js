@@ -29,7 +29,7 @@ const EXPORT_HEADERS = [
   "DRR",
   "Supplier",
   "Warehouse",
-  "Bin Location",
+  "Storage Location",
   "Tags",
   "Class Name",
   "Brand",

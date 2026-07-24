@@ -91,7 +91,7 @@ export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehous
     <div className="space-y-6">
       <PageHeader
         title="Warehouses"
-        subtitle={`${warehouses.length} facilities · ${warehouses.reduce((s, w) => s + w.used, 0).toLocaleString()} of ${warehouses.reduce((s, w) => s + w.capacity, 0).toLocaleString()} pallets used.`}
+        subtitle={`${warehouses.length} facilities · ${warehouses.reduce((s, w) => s + w.used, 0).toLocaleString()} of ${warehouses.reduce((s, w) => s + w.capacity, 0).toLocaleString()} units used.`}
         actions={
           <Button type="button" onClick={onAddWarehouse}>Add warehouse</Button>
         }
@@ -136,7 +136,7 @@ export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehous
                   </Badge>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {w.used.toLocaleString()} / {w.capacity.toLocaleString()} pallets · {pct}%
+                  {w.used.toLocaleString()} / {w.capacity.toLocaleString()} units · {pct}%
                 </p>
                 <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
                   <div
@@ -200,7 +200,7 @@ export default function InventoryWarehousesPage({ onAddWarehouse, onEditWarehous
                 <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Utilization</p>
                 <p className="text-2xl font-semibold">{utilPct}%</p>
                 <p className="text-xs text-muted-foreground">
-                  {wh.used.toLocaleString()} of {wh.capacity.toLocaleString()} pallets
+                  {wh.used.toLocaleString()} of {wh.capacity.toLocaleString()} units
                 </p>
               </div>
               <div>

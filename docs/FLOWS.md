@@ -90,9 +90,9 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Inventory bulk Excel upload (stock + DOC, warehouse-scoped)
 
 1. **Trigger:** Inventory → **Warehouses** → select warehouse → **Upload Bulk**.
-2. **Template:** **Download template** → `inventory-stock-adjust-template.xlsx` (SKU Code required; Stock Qty, DOC, Reason optional). Stock Qty = on-hand **at that warehouse only**. DRR excluded — computed from Ready Stock order lines.
-3. **Upload:** user fills template → selects file → preview shows stock delta at the selected warehouse and DOC changes; unknown SKUs skipped with error badge.
-4. **Apply:** `bulkImportStockAdjust` — per row: if Stock Qty set, RPC `adjust_sku_facility_stock` sets `inventory_facility_stock.on_hand_qty` for the warehouse's `facility_code` only, then recomputes `inventory_skus.stock_qty` as sum of all facilities; if DOC set, `updateSkuFields`; movements reference `BULK-EXCEL`.
+2. **Template:** **Download template** → `inventory-stock-adjust-template.xlsx` (SKU Code required; Stock Qty, DOC, Storage Location, Reason optional). Stock Qty = on-hand **at that warehouse only**. DRR excluded — computed from Ready Stock order lines.
+3. **Upload:** user fills template → selects file → preview shows stock delta at the selected warehouse, DOC changes, and storage location updates; unknown SKUs skipped with error badge.
+4. **Apply:** `bulkImportStockAdjust` — per row: if Stock Qty set, RPC `adjust_sku_facility_stock` sets `inventory_facility_stock.on_hand_qty` for the warehouse's `facility_code` only, then recomputes `inventory_skus.stock_qty` as sum of all facilities; if DOC set, `updateSkuFields`; if Storage Location set, updates `bin_location`; movements reference `BULK-EXCEL`.
 5. **DRR (read-only):** `inventoryDrrUtils` sets DRR on inventory load = Σ order item qty (last 30 days, non-cancelled Scott orders) ÷ 30; updates live when orders change.
 6. **Exit:** toast with counts; inventory refreshes; movements appear on Movements tab.
 7. **Failure:** missing SKU Code column → parse error; empty file → no rows; target below reserved qty → RPC error; partial errors shown in preview before import.
@@ -101,13 +101,13 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 1. **Display:** **Warehouses** column shows name + on-hand per facility (tooltip when SKU spans multiple warehouses). Facility code shown when mapped.
 2. **Filter:** Warehouse cycle filter shows SKUs with stock at that facility (or home `warehouse_id` fallback).
-3. **Overview:** Inventory Value KPI dropdown filters value by warehouse; shows total-all-warehouses when one warehouse selected.
+3. **Overview:** Warehouse dropdown filters **all** overview widgets (KPIs, fabric chart, movements, critical alerts, incoming POs). When one warehouse is selected, data is scoped to that facility; **All warehouses** shows combined data with warehouse name on each movement / PO row where applicable. Inventory Value still shows total-all-warehouses subline when filtered.
 
 ### Inventory SKU create (flat list)
 
 1. **Trigger:** Inventory list → **New SKU** (or Overview shortcut).
-2. **Form:** Single SKU code + name per row for fabric, trim, and apparel — no parent/sub grouping in UI.
-3. **Save:** `insertSku` writes `inventory_skus` with `parent_style_id = null`; opening stock logs movement type **IN**.
+2. **Form:** Single SKU code + name per row for fabric, trim, and apparel — no parent/sub grouping in UI. **Warehouse** + **Storage location** (`bin_location`, e.g. `A-12-03`) on same row.
+3. **Save:** `insertSku` writes `inventory_skus` with `parent_style_id = null` and optional `bin_location`; opening stock logs movement type **IN**.
 4. **List:** Apparel, fabrics, and trims render as flat paginated tables (search/sort/filter unchanged).
 5. **API:** Scott Stock/Order APIs use `sku_code` only — parent removal is dashboard-only; legacy `inventory_style_parents` rows remain in DB.
 

@@ -262,6 +262,8 @@ Master SKU records (flat list — one row per `sku_code`).
 | `doc` | numeric | Days of cover |
 | `drr` | numeric | Daily run rate — **computed in UI** from `scott_order_items` (last 30 days ÷ 30); column kept for export/display sync, not manually edited |
 | `stock_qty` | numeric | On-hand quantity |
+| `bin_location` | text | Storage location within warehouse (e.g. aisle/bin code); set on create SKU form or bulk upload |
+| `warehouse_id` | uuid | FK → `inventory_warehouses.id` (home warehouse) |
 | `extra` | jsonb | Kind-specific fields (sizes, GSM, etc.) |
 
 ### Migrations (inventory)

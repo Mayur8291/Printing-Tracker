@@ -118,7 +118,7 @@ export default function EditWarehouseModal({ warehouse, onClose, onSubmit }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Capacity (pallets)</Label>
+            <Label>Capacity (units)</Label>
             <Input type="number" min="0" value={form.capacity} onChange={(e) => set({ capacity: e.target.value })} required />
           </div>
 

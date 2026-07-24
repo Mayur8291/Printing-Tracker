@@ -396,6 +396,7 @@ export function InventoryDataProvider({ session, children }) {
 
         const patch = {};
         if (row.willUpdateDoc) patch.doc = row.doc;
+        if (row.willUpdateBin) patch.bin = row.targetBin;
         if (Object.keys(patch).length) {
           await updateSkuFields(row._uuid, patch);
           metricsUpdated++;
