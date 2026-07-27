@@ -93,3 +93,46 @@ export async function parseApparelSkuWorkbook(file) {
 
   return records;
 }
+
+export async function downloadApparelSkuTemplate() {
+  const { default: ExcelJS } = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Scott Dashboard";
+  const sheet = workbook.addWorksheet("Apparel SKUs");
+
+  const headers = ["SKU", "Size", "Class Name", "Color", "Brand", "Category"];
+  sheet.addRow(headers);
+  sheet.addRow(["EXAMPLE-SKU-01", "M", "Classic Tee", "Navy", "Scott", "T-Shirt"]);
+  sheet.addRow(["EXAMPLE-SKU-02", "L", "Polo", "White", "Scott", "Polo"]);
+  sheet.addRow([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "Delete example rows before upload. SKU must be unique. Supplier is set later in the dashboard."
+  ]);
+
+  const headerRow = sheet.getRow(1);
+  headerRow.font = { bold: true };
+  headerRow.alignment = { vertical: "middle" };
+  sheet.columns = [
+    { width: 22 },
+    { width: 10 },
+    { width: 24 },
+    { width: 14 },
+    { width: 18 },
+    { width: 16 }
+  ];
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "inventory-apparel-sku-import-template.xlsx";
+  link.click();
+  URL.revokeObjectURL(url);
+}

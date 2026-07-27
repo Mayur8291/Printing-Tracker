@@ -531,6 +531,20 @@ export async function applyFacilityStockAdjustment({
   return data;
 }
 
+/** Batch facility stock targets for bulk Excel upload (single DB transaction per batch). */
+export async function bulkAdjustFacilityStock({ warehouseId, adjustments, userId }) {
+  if (!warehouseId || !adjustments?.length) {
+    return { applied: 0, failed: 0, results: [] };
+  }
+  const { data, error } = await supabase.rpc("bulk_adjust_sku_facility_stock", {
+    p_warehouse_id: warehouseId,
+    p_adjustments: adjustments,
+    p_user_id: userId || null
+  });
+  if (error) throw error;
+  return data ?? { applied: 0, failed: 0, results: [] };
+}
+
 export async function insertSupplier(record) {
   const { data, error } = await withSchemaCacheRetry(() =>
     supabase

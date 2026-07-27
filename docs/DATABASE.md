@@ -299,7 +299,9 @@ Constraint: `reserved_qty <= on_hand_qty`.
 
 Sync (since `20260716140000_sync_sku_stock_to_facility.sql`): trigger `inventory_skus_sync_facility_stock` mirrors dashboard-UI `stock_qty` changes into this table (SKU's warehouse facility, `DEFAULT` fallback). Service-role writes are excluded — the `dashboard-stock-api` edge function maintains this table directly and writes back `stock_qty` on fulfill/adjust; syncing those again would double-count.
 
-**Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by Warehouses → Upload Bulk and manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute.
+**Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute.
+
+**Bulk batch adjust (since `20260725180000_bulk_adjust_facility_stock.sql`):** RPC `bulk_adjust_sku_facility_stock(warehouse_id, adjustments jsonb, user_id)` — applies many `{sku_id, target_on_hand, reason, reference}` entries in one transaction (used by Warehouses → Upload Bulk in batches of 100). Returns `{applied, failed, results[]}`.
 
 ### `inventory_stock_reservations` / `inventory_stock_reservation_items`
 

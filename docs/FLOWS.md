@@ -90,12 +90,12 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Inventory bulk Excel upload (stock + DOC, warehouse-scoped)
 
 1. **Trigger:** Inventory → **Warehouses** → select warehouse → **Upload Bulk**.
-2. **Template:** **Download template** → `inventory-stock-adjust-template.xlsx` (SKU Code required; Stock Qty, DOC, Storage Location, Reason optional). Stock Qty = on-hand **at that warehouse only**. DRR excluded — computed from Ready Stock order lines.
-3. **Upload:** user fills template → selects file → preview shows stock delta at the selected warehouse, DOC changes, and storage location updates; unknown SKUs skipped with error badge.
-4. **Apply:** `bulkImportStockAdjust` — per row: if Stock Qty set, RPC `adjust_sku_facility_stock` sets `inventory_facility_stock.on_hand_qty` for the warehouse's `facility_code` only, then recomputes `inventory_skus.stock_qty` as sum of all facilities; if DOC set, `updateSkuFields`; if Storage Location set, updates `bin_location`; movements reference `BULK-EXCEL`.
+2. **Template:** **Download template** → `inventory-stock-adjust-template.xlsx` (SKU Code required; Stock Qty, DOC, Storage Location, Reason optional). Stock Qty = on-hand **at that warehouse only**. DRR excluded — computed from Ready Stock order lines. Duplicate SKUs in one file are merged (last row wins per field).
+3. **Upload:** user fills template → selects file → app loads **all** SKUs from DB → preview shows stock delta at the selected warehouse, DOC/storage changes, breakdown counts, and skipped rows; **Download skipped rows** exports full CSV with reasons.
+4. **Apply:** `bulkImportStockAdjust` — stock rows batched via RPC `bulk_adjust_sku_facility_stock` (100 per transaction, wraps `adjust_sku_facility_stock`); DOC/bin via `updateSkuFields`; movements reference `BULK-EXCEL`. Confirm if zero stock rows but valid DOC/storage rows.
 5. **DRR (read-only):** `inventoryDrrUtils` sets DRR on inventory load = Σ order item qty (last 30 days, non-cancelled Scott orders) ÷ 30; updates live when orders change.
-6. **Exit:** toast with counts; inventory refreshes; movements appear on Movements tab.
-7. **Failure:** missing SKU Code column → parse error; empty file → no rows; target below reserved qty → RPC error; partial errors shown in preview before import.
+6. **Exit:** toast with stock adjusted / DOC updated / failed counts; inventory refreshes; movements appear on Movements tab.
+7. **Failure:** missing SKU Code column → parse error; empty file → no rows; target below reserved qty → RPC error per row (batch continues); partial failures logged to console.
 
 ### Inventory list — warehouse locations
 
@@ -110,6 +110,15 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 3. **Save:** `insertSku` writes `inventory_skus` with `parent_style_id = null` and optional `bin_location`; opening stock logs movement type **IN**.
 4. **List:** Apparel, fabrics, and trims render as flat paginated tables (search/sort/filter unchanged).
 5. **API:** Scott Stock/Order APIs use `sku_code` only — parent removal is dashboard-only; legacy `inventory_style_parents` rows remain in DB.
+
+### Inventory apparel SKU import (Excel)
+
+1. **Trigger:** Inventory → Apparel list → **Import SKUs**.
+2. **Template:** **Download template** → `inventory-apparel-sku-import-template.xlsx` (SKU, Size, Class Name, Color, Brand, Category). Delete example rows before upload.
+3. **Upload:** user selects filled `.xlsx` → preview shows new vs duplicate SKUs (duplicates skipped if `sku_code` already exists).
+4. **Apply:** `importSkus('apparel', records)` inserts new rows via `insertSku` batch; supplier left blank for later edit.
+5. **Exit:** toast with import count; list refreshes.
+6. **Failure:** missing required column → parse error; empty file → no rows; duplicate SKU in file → second row ignored.
 
 ## Home tab
 

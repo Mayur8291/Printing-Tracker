@@ -86,7 +86,7 @@
 - **Root causes:**
   - Edge function `scott-order-generate-picklist` not deployed on the connected project → deploy hint in UI.
   - Migration `20260722120000_scott_order_picklist.sql` not applied → update fails on unknown columns.
-  - **Picklist PDF API not running** — `POST /api/picklist/pdf` proxied to `localhost:3001`; start with `npm run dev:all` or `npm run dev:picklist-api` alongside `npm run dev`.
+  - **Picklist PDF API not running** — `[vite] http proxy error: /api/picklist/pdf` / `ECONNREFUSED` → nothing listening on port 3001. **`npm run dev` now starts Vite + picklist API together.** If you use `npm run dev:vite` only, also run `npm run dev:picklist-api` in a second terminal.
   - Pop-up blocked → PDF blob tab never opens (allow pop-ups for the dashboard origin).
   - Order is COMPLETE/CANCELLED/FAILED → function returns 409 (by design).
 - **Fix:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase db push && npx supabase functions deploy scott-order-generate-picklist`. Hard refresh, sign in again, retry.
@@ -96,8 +96,15 @@
 
 - **Symptom:** Upload Excel shows all rows red / "SKU not found".
 - **Root cause:** SKU Code in template must match existing `inventory_skus.sku_code` exactly (case-insensitive). Template example rows must be deleted before upload.
-- **Fix:** Download fresh template, use real SKU codes from inventory export; ensure at least one of Stock Qty, DOC, or DRR is filled per row.
-- **Symptom:** Stock unchanged but DOC updated — Stock Qty blank or already matches on-hand (delta 0).
+- **Fix:** Download fresh template, use real SKU codes from inventory export; ensure at least one of Stock Qty, DOC, or Storage Location is filled per row. Re-upload after creating missing SKUs via **Import SKUs** if needed.
+- **Symptom:** File has 4000+ rows but preview/process shows ~1700.
+- **Root cause:** Rows without Stock Qty, DOC, or Storage Location are ignored at parse; duplicate SKUs are merged (last row wins); preview **skipped** count excludes invalid SKUs (`SKU not found`, `No change`, etc.). Progress bar counts **valid** rows only.
+- **Fix:** Use **Download skipped rows** CSV in preview to see every rejected SKU and reason. Fill **Stock Qty** column for rows that should change on-hand. Dedupe Excel or rely on merge (last row wins).
+- **Symptom:** Stock unchanged but DOC updated — Stock Qty blank or already matches on-hand (delta 0). Preview shows amber warning when zero stock rows will apply.
+- **Symptom:** Upload fails with RPC / function not found on `bulk_adjust_sku_facility_stock`.
+- **Fix:** Apply migration `20260725180000_bulk_adjust_facility_stock.sql` on staging: `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase db push`.
+- **Symptom:** Stock applied but list still shows 0 at warehouse.
+- **Fix:** Filter inventory list to the same warehouse; hard refresh (`Cmd+Shift+R`); confirm toast shows `N stock adjusted` not only DOC updated.
 
 ## Ready Stock Order tab empty though app orders exist
 

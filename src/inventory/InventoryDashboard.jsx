@@ -235,8 +235,12 @@ export default function InventoryDashboard() {
       setImportStockAdjustWarehouse(null);
       const parts = [];
       if (result.stockAdjusted) parts.push(`${result.stockAdjusted} stock adjusted`);
-      if (result.metricsUpdated) parts.push(`${result.metricsUpdated} DOC updated`);
+      if (result.metricsUpdated) parts.push(`${result.metricsUpdated} DOC/storage updated`);
+      if (result.stockFailed) parts.push(`${result.stockFailed} failed`);
       toast(parts.length ? `${parts.join(" · ")}${whLabel}` : `Upload complete (no changes)${whLabel}.`);
+      if (result.failedRows?.length) {
+        console.warn("Bulk stock upload failures:", result.failedRows);
+      }
     } catch (err) {
       toast(err?.message || "Could not apply bulk upload.");
       throw err;
@@ -393,7 +397,6 @@ export default function InventoryDashboard() {
         <ImportStockAdjustModal
           onClose={() => setImportStockAdjustWarehouse(null)}
           onImport={handleImportStockAdjust}
-          skus={skus}
           warehouse={importStockAdjustWarehouse}
           warehouses={warehouses}
           availabilityBySku={availabilityBySku}

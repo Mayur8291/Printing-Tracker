@@ -3,6 +3,7 @@ import { POS } from "./inventoryData";
 import { supabase } from "../supabaseClient";
 import {
   applyFacilityStockAdjustment,
+  bulkAdjustFacilityStock,
   applyStockAdjustment,
   deriveAlerts,
   deleteSku,
@@ -25,6 +26,7 @@ import {
   updateWarehouseLayout
 } from "./inventoryDbUtils";
 import { INVENTORY_INITIAL_SKU_BATCH } from "./inventoryQueryFields";
+import { STOCK_ADJUST_BATCH_SIZE } from "./inventoryStockAdjustImportUtils";
 import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
 import { subscribePostgresChanges } from "../realtimeUtils";
 import { kpiMovementsSinceIso } from "./inventoryKpiUtils";
@@ -369,48 +371,62 @@ export function InventoryDataProvider({ session, children }) {
 
       let stockAdjusted = 0;
       let metricsUpdated = 0;
-      let skipped = 0;
+      let stockFailed = 0;
+      const failedRows = [];
 
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (row.error || !row._uuid) {
-          skipped++;
-          onProgress?.(i + 1, rows.length);
-          continue;
+      const stockRows = rows.filter((r) => !r.error && r._uuid && r.willAdjustStock && r.targetStock != null);
+      const metricRows = rows.filter((r) => !r.error && r._uuid && (r.willUpdateDoc || r.willUpdateBin));
+
+      let done = 0;
+      const report = () => onProgress?.(done, rows.length);
+
+      for (let i = 0; i < stockRows.length; i += STOCK_ADJUST_BATCH_SIZE) {
+        const chunk = stockRows.slice(i, i + STOCK_ADJUST_BATCH_SIZE);
+        const adjustments = chunk.map((row) => ({
+          sku_id: row._uuid,
+          target_on_hand: row.targetStock,
+          reason: row.reason || "Bulk Excel stock adjust",
+          reference: "BULK-EXCEL"
+        }));
+
+        const result = await bulkAdjustFacilityStock({ warehouseId, adjustments, userId });
+        stockAdjusted += Number(result.applied) || 0;
+        stockFailed += Number(result.failed) || 0;
+
+        for (const entry of result.results || []) {
+          if (entry?.ok === false) {
+            const row = chunk.find((r) => r._uuid === entry.sku_id);
+            failedRows.push({ skuCode: row?.skuCode || entry.sku_id, error: entry.error || "Stock adjust failed" });
+          }
         }
 
-        let changed = false;
+        done = Math.min(rows.length, i + chunk.length);
+        report();
+      }
 
-        if (row.willAdjustStock && row.targetStock != null) {
-          await applyFacilityStockAdjustment({
-            skuUuid: row._uuid,
-            warehouseId,
-            targetOnHand: row.targetStock,
-            reason: row.reason || "Bulk Excel stock adjust",
-            reference: "BULK-EXCEL",
-            userId
-          });
-          stockAdjusted++;
-          changed = true;
-        }
-
+      for (let m = 0; m < metricRows.length; m++) {
+        const row = metricRows[m];
         const patch = {};
         if (row.willUpdateDoc) patch.doc = row.doc;
         if (row.willUpdateBin) patch.bin = row.targetBin;
-        if (Object.keys(patch).length) {
+        try {
           await updateSkuFields(row._uuid, patch);
           metricsUpdated++;
-          changed = true;
+        } catch (err) {
+          failedRows.push({ skuCode: row.skuCode, error: err?.message || "Metrics update failed" });
+          stockFailed++;
         }
-
-        if (!changed) skipped++;
-        onProgress?.(i + 1, rows.length);
+        done = Math.min(rows.length, stockRows.length + m + 1);
+        report();
       }
+
+      done = rows.length;
+      report();
 
       await refresh();
       void loadAvailability();
       void loadKpiMovements();
-      return { stockAdjusted, metricsUpdated, skipped, total: rows.length };
+      return { stockAdjusted, metricsUpdated, stockFailed, failedRows, total: rows.length };
     },
     [refresh, userId, loadKpiMovements, loadAvailability]
   );

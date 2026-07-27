@@ -26,5 +26,8 @@ function shutdown(code = 0) {
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
+console.log("[dev] Starting picklist API (port 3001) + Vite (port 5173)…");
+console.log("[dev] Picklist PDF: POST /api/picklist/pdf (proxied from Vite)");
+
 start("picklist-api", "node", ["server/index.js"]);
 start("vite", "node", ["./node_modules/vite/bin/vite.js"]);

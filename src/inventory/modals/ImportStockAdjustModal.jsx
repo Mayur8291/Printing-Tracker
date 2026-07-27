@@ -20,17 +20,19 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { fetchInventorySkuRowsAll, rowToSku } from "../inventoryDbUtils";
 import { resolveFacilityCode } from "../inventoryFacilityUtils";
 import {
+  downloadStockAdjustSkipReport,
   downloadStockAdjustTemplate,
   enrichStockAdjustRows,
-  parseStockAdjustWorkbook
+  parseStockAdjustWorkbook,
+  summarizeStockAdjustPreview
 } from "../inventoryStockAdjustImportUtils";
 
 export default function ImportStockAdjustModal({
   onClose,
   onImport,
-  skus = [],
   warehouse,
   warehouses = [],
   availabilityBySku
@@ -39,6 +41,7 @@ export default function ImportStockAdjustModal({
   const [preview, setPreview] = useState(null);
   const [parseError, setParseError] = useState("");
   const [importing, setImporting] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const [progress, setProgress] = useState("");
   const [downloading, setDownloading] = useState(false);
 
@@ -63,35 +66,49 @@ export default function ImportStockAdjustModal({
     setParseError("");
     if (!picked) return;
 
+    setParsing(true);
     try {
-      const records = await parseStockAdjustWorkbook(picked);
-      const enriched = enrichStockAdjustRows(skus, records, {
+      const [{ records, parseMeta }, skuRows] = await Promise.all([
+        parseStockAdjustWorkbook(picked),
+        fetchInventorySkuRowsAll()
+      ]);
+      const allSkus = skuRows.map(rowToSku);
+      const enriched = enrichStockAdjustRows(allSkus, records, {
         warehouseId: warehouse?.id,
         warehouses,
         availabilityBySku
       });
-      const valid = enriched.filter((r) => !r.error);
-      const invalid = enriched.filter((r) => r.error);
+      const summary = summarizeStockAdjustPreview(enriched);
       setPreview({
-        total: enriched.length,
-        validCount: valid.length,
-        invalidCount: invalid.length,
+        ...summary,
+        parseMeta,
         sample: enriched.slice(0, 8),
-        records: valid
+        allRows: enriched,
+        records: summary.valid
       });
     } catch (err) {
       setParseError(err?.message || "Could not read the Excel file.");
+    } finally {
+      setParsing(false);
     }
   }
 
   async function handleImport() {
     if (!preview?.records?.length) return;
+
+    if (preview.stockCount === 0 && preview.validCount > 0) {
+      const ok = window.confirm(
+        `None of the ${preview.validCount.toLocaleString()} ready rows will change stock qty (DOC/storage only).\n\nContinue anyway?`
+      );
+      if (!ok) return;
+    }
+
     setImporting(true);
     setProgress("Uploading…");
     try {
       await onImport(preview.records, {
         warehouseId: warehouse?.id,
-        onProgress: (done, total) => setProgress(`Processed ${done} of ${total}…`)
+        onProgress: (done, total) => setProgress(`Processed ${done.toLocaleString()} of ${total.toLocaleString()}…`)
       });
       onClose();
     } catch (err) {
@@ -115,7 +132,8 @@ export default function ImportStockAdjustModal({
                 (<span className="font-mono">{facilityCode}</span>)
               </>
             ) : null}
-            . Other warehouses are not changed. DRR stays auto-calculated from orders.
+            . Other warehouses are not changed. DRR stays auto-calculated from orders. Duplicate SKUs in the file
+            are merged (last row wins).
           </DialogDescription>
         </DialogHeader>
 
@@ -127,7 +145,7 @@ export default function ImportStockAdjustModal({
               size="sm"
               className="gap-1.5"
               onClick={handleDownloadTemplate}
-              disabled={importing || downloading}
+              disabled={importing || downloading || parsing}
             >
               <Download className="size-3.5" />
               {downloading ? "Preparing…" : "Download template"}
@@ -144,11 +162,12 @@ export default function ImportStockAdjustModal({
               type="file"
               accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               onChange={handleFileChange}
-              disabled={importing}
+              disabled={importing || parsing}
             />
             {file ? (
               <p className="text-xs text-muted-foreground">
                 Selected: <strong>{file.name}</strong>
+                {parsing ? " — loading all SKUs and validating…" : null}
               </p>
             ) : null}
           </div>
@@ -157,15 +176,49 @@ export default function ImportStockAdjustModal({
 
           {preview ? (
             <div className="space-y-3 rounded-md border p-4">
-              <p className="text-sm">
-                <strong>{preview.validCount.toLocaleString()}</strong> rows ready at {warehouse?.name || "warehouse"}
-                {preview.invalidCount > 0 ? (
-                  <>
-                    {" "}
-                    · <span className="text-destructive">{preview.invalidCount} skipped</span>
-                  </>
-                ) : null}
-              </p>
+              <div className="space-y-1 text-sm">
+                <p>
+                  <strong>{preview.validCount.toLocaleString()}</strong> rows ready at {warehouse?.name || "warehouse"}
+                  {preview.invalidCount > 0 ? (
+                    <>
+                      {" "}
+                      · <span className="text-destructive">{preview.invalidCount.toLocaleString()} skipped</span>
+                    </>
+                  ) : null}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {preview.stockCount.toLocaleString()} stock adjust
+                  {preview.metricsOnlyCount > 0
+                    ? ` · ${preview.metricsOnlyCount.toLocaleString()} DOC/storage only`
+                    : ""}
+                  {preview.parseMeta?.duplicateMerged > 0
+                    ? ` · ${preview.parseMeta.duplicateMerged.toLocaleString()} duplicate rows merged`
+                    : ""}
+                  {preview.parseMeta?.emptyDataRows > 0
+                    ? ` · ${preview.parseMeta.emptyDataRows.toLocaleString()} empty rows ignored`
+                    : ""}
+                </p>
+              </div>
+
+              {preview.invalidCount > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => downloadStockAdjustSkipReport(preview.allRows, warehouse?.name || "warehouse")}
+                >
+                  <Download className="size-3.5" />
+                  Download skipped rows ({preview.invalidCount.toLocaleString()})
+                </Button>
+              ) : null}
+
+              {preview.stockCount === 0 && preview.validCount > 0 ? (
+                <p className="text-xs text-amber-600">
+                  No rows will change stock qty — fill the Stock Qty column or stock will stay at current values.
+                </p>
+              ) : null}
+
               <div className="max-h-64 overflow-auto rounded border">
                 <Table>
                   <TableHeader>
@@ -179,7 +232,7 @@ export default function ImportStockAdjustModal({
                   </TableHeader>
                   <TableBody>
                     {preview.sample.map((row) => (
-                      <TableRow key={row.skuCode}>
+                      <TableRow key={`${row.skuCode}-${row.error || "ok"}`}>
                         <TableCell className="font-mono text-xs">{row.skuCode}</TableCell>
                         <TableCell className="text-xs">
                           {row.error ? (
@@ -193,7 +246,7 @@ export default function ImportStockAdjustModal({
                               </span>
                             </>
                           ) : (
-                            <span className="text-muted-foreground">No change</span>
+                            <span className="text-muted-foreground">No stock change</span>
                           )}
                         </TableCell>
                         <TableCell className="text-xs">
@@ -238,17 +291,19 @@ export default function ImportStockAdjustModal({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={onClose} disabled={importing}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={importing || parsing}>
             Cancel
           </Button>
           <Button
             type="button"
             className="gap-1.5"
             onClick={handleImport}
-            disabled={importing || !preview?.records?.length}
+            disabled={importing || parsing || !preview?.records?.length}
           >
             <Upload className="size-3.5" />
-            {importing ? "Uploading…" : `Apply ${preview?.validCount?.toLocaleString() || 0} rows`}
+            {importing
+              ? "Uploading…"
+              : `Apply ${preview?.validCount?.toLocaleString() || 0} rows (${preview?.stockCount?.toLocaleString() || 0} stock)`}
           </Button>
         </DialogFooter>
       </DialogContent>

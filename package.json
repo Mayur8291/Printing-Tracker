@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "node ./node_modules/vite/bin/vite.js",
+    "dev": "node scripts/dev-with-picklist-api.mjs",
+    "dev:vite": "node ./node_modules/vite/bin/vite.js",
     "dev:staging": "node ./node_modules/vite/bin/vite.js --mode staging",
     "dev:picklist-api": "node server/index.js",
     "dev:all": "node scripts/dev-with-picklist-api.mjs",

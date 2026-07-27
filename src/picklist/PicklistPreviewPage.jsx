@@ -29,7 +29,7 @@ export default function PicklistPreviewPage() {
         if (!cancelled) {
           setError(
             e?.message ||
-              "Picklist API not running. Start with: npm run dev:picklist (or npm run dev:all)."
+              "Picklist API not running. Restart dev with: npm run dev (Vite + picklist API on port 3001)."
           );
         }
       });

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-07-25 — Import SKUs: download Excel template
+
+- **Feature:** **Import apparel SKUs** modal now has **Download template** → `inventory-apparel-sku-import-template.xlsx` with columns SKU, Size, Class Name, Color, Brand, Category and example rows.
+- **Files:** `inventorySkuImportUtils.js`, `ImportSkusModal.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-07-25 — Bulk stock upload: batch RPC, full SKU match, skip report
+
+- **Issue:** Large warehouse Excel uploads (4000+ rows) showed far fewer rows processing than in the file; many SKUs stayed at 0 because duplicate rows were silently dropped, SKU matching used only the first 1000 loaded SKUs, and stock updates ran one RPC per row (slow / partial failure).
+- **Fix:** Bulk upload now loads **all** SKUs from DB for validation; duplicate SKU rows are **merged** (last row wins); preview shows breakdown (stock vs DOC/storage only vs skipped) and **Download skipped rows** CSV; stock applies via batched RPC `bulk_adjust_sku_facility_stock` (100 rows per transaction); confirm dialog when no stock qty changes; Apply button shows stock count.
+- **Migration:** `20260725180000_bulk_adjust_facility_stock.sql` — `bulk_adjust_sku_facility_stock`.
+- **Files:** `inventoryStockAdjustImportUtils.js`, `ImportStockAdjustModal.jsx`, `InventoryDataContext.jsx`, `inventoryDbUtils.js`, `InventoryDashboard.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-07-24 — Dev: npm run dev starts picklist API automatically
+
+- **Issue:** `npm run dev` (Vite only) caused `[vite] http proxy error: /api/picklist/pdf` / `ECONNREFUSED` when generating Ready Stock picklists — picklist server on port 3001 was not started.
+- **Fix:** `npm run dev` now runs Vite + picklist API via `dev-with-picklist-api.mjs`. Vite-only dev moved to `npm run dev:vite`. Picklist client shows clear hint when API is down.
+- **Files:** `package.json`, `scripts/dev-with-picklist-api.mjs`, `picklistApiClient.js`, `PicklistPreviewPage.jsx`, `DEBUGGING.md`.
+
 ## 2026-07-23 — Overview warehouse filter scopes all widgets
 
 - **Issue:** Overview warehouse dropdown only filtered Inventory Value KPI; movements, alerts, fabric chart, and shipments still showed all warehouses combined.

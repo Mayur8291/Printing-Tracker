@@ -1,5 +1,9 @@
 import { normalizePicklistLineFields } from "./picklistFormat.js";
 
+/** Shown when Vite proxy cannot reach the local picklist API (port 3001). */
+export const PICKLIST_API_DEV_HINT =
+  "Picklist PDF server is not running. Stop dev and restart with: npm run dev (starts Vite + picklist API on port 3001).";
+
 /**
  * Map Scott order picklist API response → PicklistData contract.
  * @param {Record<string, unknown>} api
@@ -38,18 +42,26 @@ export function mapScottOrderToPicklistData(api) {
  * @returns {Promise<Blob>}
  */
 export async function fetchPicklistPdfBlob(data) {
-  const res = await fetch("/api/picklist/pdf", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
+  let res;
+  try {
+    res = await fetch("/api/picklist/pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+  } catch {
+    throw new Error(PICKLIST_API_DEV_HINT);
+  }
   if (!res.ok) {
     let message = `PDF request failed (${res.status})`;
     try {
       const body = await res.json();
       if (body?.error) message = String(body.error);
     } catch {
-      /* ignore */
+      if (res.status >= 500) message = PICKLIST_API_DEV_HINT;
+    }
+    if (res.status >= 500 && message.startsWith("PDF request failed")) {
+      message = PICKLIST_API_DEV_HINT;
     }
     throw new Error(message);
   }

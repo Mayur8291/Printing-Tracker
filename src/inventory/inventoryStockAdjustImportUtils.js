@@ -65,6 +65,18 @@ function rowFromSheet(row, columns) {
   };
 }
 
+/** Merge duplicate SKU rows — later row wins for each non-empty field. */
+function mergeStockAdjustRow(existing, incoming) {
+  return {
+    skuCode: existing.skuCode,
+    stockQty: incoming.stockQty != null ? incoming.stockQty : existing.stockQty,
+    doc: incoming.doc != null ? incoming.doc : existing.doc,
+    reason: incoming.reason || existing.reason,
+    storageLocation: incoming.storageLocation || existing.storageLocation,
+    mergedRowCount: (existing.mergedRowCount || 1) + 1
+  };
+}
+
 /** @param {import("exceljs").Worksheet} sheet */
 export function parseStockAdjustSheet(sheet) {
   const columns = headerMap(sheet.getRow(1));
@@ -75,23 +87,41 @@ export function parseStockAdjustSheet(sheet) {
     );
   }
 
-  const records = [];
-  const seen = new Set();
+  const bySku = new Map();
+  const parseMeta = {
+    sheetRows: Math.max(0, sheet.rowCount - 1),
+    blankSku: 0,
+    emptyDataRows: 0,
+    duplicateMerged: 0
+  };
+
   for (let r = 2; r <= sheet.rowCount; r++) {
     const parsed = rowFromSheet(sheet.getRow(r), columns);
-    if (!parsed) continue;
+    if (!parsed) {
+      parseMeta.blankSku++;
+      continue;
+    }
+    if (parsed.stockQty == null && parsed.doc == null && !parsed.storageLocation) {
+      parseMeta.emptyDataRows++;
+      continue;
+    }
+
     const key = parsed.skuCode.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    if (parsed.stockQty == null && parsed.doc == null && !parsed.storageLocation) continue;
-    records.push(parsed);
+    const existing = bySku.get(key);
+    if (existing) {
+      parseMeta.duplicateMerged++;
+      bySku.set(key, mergeStockAdjustRow(existing, parsed));
+    } else {
+      bySku.set(key, parsed);
+    }
   }
 
+  const records = [...bySku.values()];
   if (!records.length) {
     throw new Error("No adjustment rows found. Fill SKU Code and at least one of Stock Qty, DOC, or Storage Location.");
   }
 
-  return records;
+  return { records, parseMeta };
 }
 
 export async function parseStockAdjustWorkbook(file) {
@@ -174,6 +204,66 @@ export function enrichStockAdjustRows(skus, records, scope = {}) {
   });
 }
 
+/** Summarize enriched rows for preview UI. */
+export function summarizeStockAdjustPreview(enriched) {
+  const valid = enriched.filter((r) => !r.error);
+  const invalid = enriched.filter((r) => r.error);
+  const stockCount = valid.filter((r) => r.willAdjustStock).length;
+  const docOnlyCount = valid.filter((r) => !r.willAdjustStock && r.willUpdateDoc && !r.willUpdateBin).length;
+  const storageOnlyCount = valid.filter((r) => !r.willAdjustStock && !r.willUpdateDoc && r.willUpdateBin).length;
+  const metricsOnlyCount = valid.filter((r) => !r.willAdjustStock && (r.willUpdateDoc || r.willUpdateBin)).length;
+
+  return {
+    total: enriched.length,
+    validCount: valid.length,
+    invalidCount: invalid.length,
+    stockCount,
+    docOnlyCount,
+    storageOnlyCount,
+    metricsOnlyCount,
+    valid,
+    invalid
+  };
+}
+
+/** Download CSV of skipped rows with reasons (and merged-row note when present). */
+export function downloadStockAdjustSkipReport(rows, warehouseName = "warehouse") {
+  const skipped = rows.filter((r) => r.error);
+  if (!skipped.length) return;
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  const header = ["SKU Code", "Stock Qty", "DOC", "Storage Location", "Reason", "Skip reason", "Merged rows"];
+  const escape = (v) => {
+    const s = String(v ?? "");
+    return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  const lines = [
+    header.join(","),
+    ...skipped.map((r) =>
+      [
+        r.skuCode,
+        r.stockQty ?? "",
+        r.doc ?? "",
+        r.storageLocation ?? "",
+        r.reason ?? "",
+        r.error,
+        r.mergedRowCount ?? 1
+      ]
+        .map(escape)
+        .join(",")
+    )
+  ];
+
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `stock-upload-skipped-${warehouseName.replace(/\s+/g, "-").toLowerCase()}-${stamp}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export async function downloadStockAdjustTemplate(warehouseName = "") {
   const { default: ExcelJS } = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
@@ -190,8 +280,8 @@ export async function downloadStockAdjustTemplate(warehouseName = "") {
     "",
     "",
     warehouseName
-      ? `Upload applies to ${warehouseName} only. Stock Qty = on-hand at that warehouse. DRR is auto from orders.`
-      : "Stock Qty = on-hand at the selected warehouse. DOC = days of cover. DRR is auto from orders."
+      ? `Upload applies to ${warehouseName} only. Stock Qty = on-hand at that warehouse. DRR is auto from orders. Duplicate SKUs are merged (last row wins).`
+      : "Stock Qty = on-hand at the selected warehouse. DOC = days of cover. DRR is auto from orders. Duplicate SKUs are merged (last row wins)."
   ]);
 
   const headerRow = sheet.getRow(1);
@@ -210,3 +300,5 @@ export async function downloadStockAdjustTemplate(warehouseName = "") {
   link.click();
   URL.revokeObjectURL(url);
 }
+
+export const STOCK_ADJUST_BATCH_SIZE = 100;

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,14 +12,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { parseApparelSkuWorkbook } from "../inventorySkuImportUtils";
+import { downloadApparelSkuTemplate, parseApparelSkuWorkbook } from "../inventorySkuImportUtils";
 
 export default function ImportSkusModal({ onClose, onImport, existingSkuCodes = [] }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [parseError, setParseError] = useState("");
   const [importing, setImporting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState("");
+
+  async function handleDownloadTemplate() {
+    setDownloading(true);
+    try {
+      await downloadApparelSkuTemplate();
+    } catch (err) {
+      setParseError(err?.message || "Could not generate template.");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   async function handleFileChange(e) {
     const picked = e.target.files?.[0];
@@ -30,8 +43,8 @@ export default function ImportSkusModal({ onClose, onImport, existingSkuCodes = 
 
     try {
       const records = await parseApparelSkuWorkbook(picked);
-      const existing = new Set(existingSkuCodes);
-      const newRows = records.filter((r) => !existing.has(r.id));
+      const existing = new Set(existingSkuCodes.map((c) => String(c).trim().toLowerCase()));
+      const newRows = records.filter((r) => !existing.has(String(r.id).trim().toLowerCase()));
       const duplicateRows = records.length - newRows.length;
       setPreview({
         total: records.length,
@@ -51,7 +64,7 @@ export default function ImportSkusModal({ onClose, onImport, existingSkuCodes = 
     setProgress("Importing…");
     try {
       await onImport(preview.records, {
-        onProgress: (done, total) => setProgress(`Imported ${done} of ${total}…`)
+        onProgress: (done, total) => setProgress(`Imported ${done.toLocaleString()} of ${total.toLocaleString()}…`)
       });
       onClose();
     } catch (err) {
@@ -68,13 +81,31 @@ export default function ImportSkusModal({ onClose, onImport, existingSkuCodes = 
         <DialogHeader>
           <DialogTitle>Import apparel SKUs</DialogTitle>
           <DialogDescription>
-            Upload Excel with columns: SKU, Size, Class Name, Color, Brand, Category. Supplier left blank.
+            Download the template, fill SKU rows, then upload. Columns: SKU, Size, Class Name, Color, Brand,
+            Category. Supplier is set later in the dashboard.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 p-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleDownloadTemplate}
+              disabled={importing || downloading}
+            >
+              <Download className="size-3.5" />
+              {downloading ? "Preparing…" : "Download template"}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Required columns: SKU, Size, Class Name, Color, Brand, Category
+            </p>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="import-skus-file">Excel file (.xlsx)</Label>
+            <Label htmlFor="import-skus-file">Upload filled Excel (.xlsx)</Label>
             <Input
               id="import-skus-file"
               type="file"
@@ -99,28 +130,30 @@ export default function ImportSkusModal({ onClose, onImport, existingSkuCodes = 
                   ? ` · ${preview.duplicateCount.toLocaleString()} already in inventory (skipped)`
                   : ""}
               </p>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Brand</TableHead>
-                    <TableHead>Color</TableHead>
-                    <TableHead>Category</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {preview.sample.map((r) => (
-                    <TableRow key={r.id}>
-                      <TableCell className="font-mono text-xs">{r.id}</TableCell>
-                      <TableCell>{r.sizeLabel || "—"}</TableCell>
-                      <TableCell>{r.name}</TableCell>
-                      <TableCell>{r.color}</TableCell>
-                      <TableCell>{r.category}</TableCell>
+              <div className="max-h-64 overflow-auto rounded border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>SKU</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Brand</TableHead>
+                      <TableHead>Color</TableHead>
+                      <TableHead>Category</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {preview.sample.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-mono text-xs">{r.id}</TableCell>
+                        <TableCell>{r.sizeLabel || "—"}</TableCell>
+                        <TableCell>{r.name}</TableCell>
+                        <TableCell>{r.color}</TableCell>
+                        <TableCell>{r.category}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
               {preview.total > 5 ? (
                 <p className="text-xs text-muted-foreground">Showing 5 of {preview.total.toLocaleString()} rows.</p>
               ) : null}
@@ -134,7 +167,8 @@ export default function ImportSkusModal({ onClose, onImport, existingSkuCodes = 
           <Button type="button" variant="ghost" onClick={onClose} disabled={importing}>
             Cancel
           </Button>
-          <Button type="button" onClick={handleImport} disabled={importing || !preview?.records?.length}>
+          <Button type="button" className="gap-1.5" onClick={handleImport} disabled={importing || !preview?.records?.length}>
+            <Upload className="size-3.5" />
             {importing ? "Importing…" : `Import ${preview?.newCount?.toLocaleString() || 0} SKUs`}
           </Button>
         </DialogFooter>
