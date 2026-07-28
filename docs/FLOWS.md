@@ -34,12 +34,12 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
 ### Order lifecycle (Scott RMP orders)
 
 1. **Create:** Scott backend → `POST .../api/v1/orders` (`order_code`, `facility_code`, `customer`, `shipping_address`, `payment`, `items[]`).
-2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via the same reservation path as `/stock/reserve` (`409 INSUFFICIENT_STOCK` if short); row in `scott_orders` (`ord_*` id, status `PENDING`) + `scott_order_items`, `reservation_id` linked. If the order insert fails, the hold is rolled back.
+2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via idempotent reservation (`reserveStockIdempotent` — reuses existing `RESERVED` row for same `order_code` + `facility_code` if partner already called `/stock/reserve`); duplicate SKU lines in one payload are merged; `409 INSUFFICIENT_STOCK` if short; row in `scott_orders` + items with `reservation_id`. Cancel / FAILED release **all** open holds for that order at the facility.
 3. **Edit:** `PATCH .../orders/:id` — terminal status → `409 ORDER_NOT_EDITABLE`. Item replace checks feasibility crediting the order's own held stock, then releases the old reservation and creates a new one; items table replaced.
 4. **Cancel:** `DELETE .../orders/:id?reason=...` — idempotent for already-cancelled; releases the reservation, sets `CANCELLED` + `cancel_reason`.
 5. **Progress:** dashboard-internal `POST .../orders/:id/status` — `PROCESSING` (from PENDING), `COMPLETE` (fulfills reservation: on-hand deducted, movements written, `stock_qty` synced, `dispatched_at` + items' `dispatched_quantity` set), `FAILED` (releases reservation).
 6. **Read:** `GET .../orders/:id` returns status + items with `dispatched_quantity`.
-7. **Webhooks:** DB trigger on `scott_orders` enqueues `order.status_changed` (with `previous_status`, and `dispatched_at` on COMPLETE) into `dashboard_webhook_outbox`; delivery drained by the edge function (HMAC `X-Dashboard-Signature`, retry-on-next-call). Stock changes additionally fire `stock.level_changed`.
+7. **Webhooks:** DB trigger on `scott_orders` INSERT/UPDATE enqueues `order.status_changed` — INSERT sends `status: CREATED` (`previous_status: null`); updates send `PENDING` / `PROCESSING` / `COMPLETE` / `CANCELLED` / `FAILED` with `previous_status` set. `dispatched_at` included when new status is COMPLETE. Delivered via `dashboard_webhook_outbox` (HMAC `X-Dashboard-Signature`). Stock changes additionally fire `stock.level_changed`.
 
 See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 

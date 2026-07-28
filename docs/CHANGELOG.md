@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-28 — Fix delivery date save failing (owner_name NOT NULL)
+
+- **Issue:** Saving order changes (e.g. delivery date only) failed in production with `null value in column "owner_name" of relation "orders" violates not-null constraint`; list did not update.
+- **Root cause:** Admin saves always merged full `buildAdminOrderFieldsPayload`, which sent `owner_name: null` when empty; partial saves (due date only) still touched admin fields.
+- **Fix:** Admin payload merged only when admin draft was edited; `owner_name` / `customer_name` / `product_name` fall back to existing row values instead of null.
+- **Files:** `orderAdminEditUtils.js`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-07-28 — Order webhook status CREATED on insert
+
+- **Issue:** Partners expect webhook `status` values `CREATED`, `PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`; create previously emitted no webhook (trigger was UPDATE-only) and never sent `CREATED`.
+- **Fix:** `notify_scott_order_status_changed` now fires on INSERT with `status: CREATED`, `previous_status: null`; UPDATE continues to emit the row status. API create response still returns `PENDING`.
+- **Migration:** `20260728110000_order_webhook_created_status.sql`.
+- **Documentation updated:** DASHBOARD_ORDER_API.md, SCOTT_INTEGRATION_REFERENCE.md, FLOWS.md, DATABASE.md, CHANGELOG.md.
+
+## 2026-07-28 — Fix double stock hold on order place / over-release on cancel
+
+- **Issue:** Placing an order could reserve stock twice (legacy `POST /stock/reserve` plus `POST /api/v1/orders`), making inventory look multiplied; cancel only released the order-linked hold, leaving orphan holds or releasing twice when both paths were used.
+- **Fix:** `reserveStockIdempotent` reuses an existing `RESERVED` row for the same `order_code` + `facility_code`; duplicate SKU lines in one request are consolidated; cancel/FAILED release **all** open holds for that order; fulfill/adjust recompute `stock_qty` as sum of all facilities; partial unique index blocks a second open hold at DB level.
+- **Migration:** `20260728100000_reservation_idempotent_index.sql`.
+- **Deploy:** `dashboard-stock-api` edge function (staging).
+- **Files:** `stockCore.ts`, `orders.ts`, `index.ts`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, MOBILE_API_INTEGRATION.md.
+
 ## 2026-07-25 — Import SKUs: download Excel template
 
 - **Feature:** **Import apparel SKUs** modal now has **Download template** → `inventory-apparel-sku-import-template.xlsx` with columns SKU, Size, Class Name, Color, Brand, Category and example rows.

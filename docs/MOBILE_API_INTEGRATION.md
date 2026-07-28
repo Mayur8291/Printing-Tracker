@@ -139,7 +139,7 @@ curl -X POST "$BASE/api/v1/stock/adjust" \
 | 500 | `INTERNAL_ERROR` | Retry with backoff (max 3), then surface error |
 | 503 | `API_NOT_CONFIGURED` | Server-side misconfig — alert dashboard team |
 
-Retry guidance: `GET snapshot` and `DELETE release` are safe to retry. `POST reserve` is **not** blindly retryable (may double-reserve) — check for an existing open reservation for the `order_code` first, or release-then-retry.
+Retry guidance: `GET snapshot`, `DELETE release`, and **`POST /api/v1/orders`** (idempotent when an open `RESERVED` row already exists for the `order_code`) are safe to retry. Prefer **`POST /api/v1/orders` only** — do not also call `POST /stock/reserve` for the same order. Legacy `POST /stock/reserve` returns `200` with `reused: true` when a hold already exists.
 
 ---
 

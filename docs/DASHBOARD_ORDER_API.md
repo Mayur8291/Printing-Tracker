@@ -16,15 +16,18 @@ Authorization: Bearer <DASHBOARD_API_KEY>
 
 ## Order status values
 
-Exactly these strings (Scott's system keys off them, no mapping):
+Exactly these strings in API responses and webhook payloads (Scott's system keys off them, no mapping):
 
-| Status | Meaning | Terminal |
-|--------|---------|----------|
-| `PENDING` | Order received, not started | no |
-| `PROCESSING` | Being picked/packed | no |
-| `COMPLETE` | Dispatched — stock permanently deducted | yes |
-| `CANCELLED` | Cancelled — held stock released | yes |
-| `FAILED` | Could not be placed / fulfilment failed — stock released | yes |
+| Status | Meaning | Terminal | Where |
+|--------|---------|----------|-------|
+| `CREATED` | Order just received (webhook only on insert) | no | Webhook only — DB row is `PENDING` |
+| `PENDING` | Order received, not started | no | API + webhook |
+| `PROCESSING` | Being picked/packed | no | API + webhook |
+| `COMPLETE` | Dispatched — stock permanently deducted | yes | API + webhook |
+| `CANCELLED` | Cancelled — held stock released | yes | API + webhook |
+| `FAILED` | Could not be placed / fulfilment failed — stock released | yes | API + webhook |
+
+**Webhook status set:** `CREATED`, `PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`.
 
 ## Stock behaviour
 
@@ -136,22 +139,27 @@ Not part of the Scott spec — this is how the dashboard side progresses fulfilm
 
 ## Webhook: order.status_changed (dashboard → Scott)
 
-Fired on **every** status transition. Enqueued by a database trigger on `scott_orders` (so any future UI that changes status also fires it) and delivered through `dashboard_webhook_outbox` — same retry contract and HMAC scheme as the stock webhooks.
+Fired on **order create** (`status: CREATED`, `previous_status: null`) and on **every subsequent status transition** (`status` matches the row: `PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`). Enqueued by a database trigger on `scott_orders` INSERT/UPDATE and delivered through `dashboard_webhook_outbox` — same retry contract and HMAC scheme as the stock webhooks.
+
+**Webhook status values:** `CREATED`, `PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`. (`CREATED` is webhook-only at insert; the API row is stored as `PENDING`.)
 
 **POST** `{SCOTT_WEBHOOK_BASE_URL}/webhooks/orders/status_changed`
+
+**On create:**
 
 ```json
 {
   "event": "order.status_changed",
-  "event_id": "evt_pqr678",
-  "occurred_at": "2026-07-20T14:00:00Z",
+  "event_id": "evt_abc123",
+  "occurred_at": "2026-07-20T09:00:00Z",
   "dashboard_order_id": "ord_abc123",
   "order_code": "P-53011",
-  "previous_status": "PROCESSING",
-  "status": "COMPLETE",
-  "dispatched_at": "2026-07-20T14:00:00Z"
+  "previous_status": null,
+  "status": "CREATED"
 }
 ```
+
+**On transition (example COMPLETE):**
 
 Header: `X-Dashboard-Signature: sha256=<hmac-sha256-hex(body, SCOTT_WEBHOOK_SECRET)>`
 

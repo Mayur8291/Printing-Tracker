@@ -331,7 +331,7 @@ Scott International RMP orders — the external order lifecycle (`order-api-requ
 
 `scott_order_items`: `order_id` (cascade), `item_code`, `sku_code`, `quantity`, `unit_price`, `dispatched_quantity` (set to `quantity` on COMPLETE).
 
-Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the outbox on every status transition (includes `dispatched_at` when COMPLETE). Order API mutations use `service_role` via `dashboard-stock-api`; picklist generation uses `scott-order-generate-picklist` (authenticated JWT → service role update). `authenticated` has read-only SELECT on orders/items.
+Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the outbox on **INSERT** (`status: CREATED`, `previous_status: null`) and on **UPDATE** when `status` changes (`PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`). Includes `dispatched_at` when new status is COMPLETE. Order API mutations use `service_role` via `dashboard-stock-api`; picklist generation uses `scott-order-generate-picklist` (authenticated JWT → service role update). `authenticated` has read-only SELECT on orders/items.
 
 ### `dashboard_api_keys` / `dashboard_channels` (since `20260720140000_admin_integrations.sql`)
 

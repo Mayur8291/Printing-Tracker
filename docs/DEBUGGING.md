@@ -66,6 +66,14 @@
 - **Fix:** apply the migration (`npx supabase db push` on the linked project), confirm login session, hard refresh. Realtime updates also need `20260716130000_facility_stock_realtime.sql` (adds table to `supabase_realtime`).
 - **Note:** the UI intentionally fails soft — a broken availability query must never blank the inventory page; it just falls back to `stock_qty`.
 
+## Order save fails: null value in column "owner_name"
+
+| | |
+|--|--|
+| **Symptom** | Alert on Save after changing delivery date only; date not updated in list. |
+| **Root cause** | Admin user save merged full admin field payload; empty `owner_name` became `null` but column is `NOT NULL`. |
+| **Fix (2026-07-28)** | Admin fields only sent when admin draft was edited; required text fields fall back to existing row value. |
+
 ## Order API: order.status_changed webhook never arrives at Scott backend
 
 - **Symptom:** Order transitions succeed (200 from `/api/v1/orders/:id/status` or DELETE) but Scott's receiver gets nothing.
@@ -118,6 +126,15 @@
 - **Symptom:** Creating an order returns `ORDER_EXISTS` though Scott's side thinks it's new.
 - **Root cause:** partial unique index allows only one open (PENDING/PROCESSING/COMPLETE) `scott_orders` row per `order_code` — usually a retry of a create whose 201 response was lost.
 - **Fix:** the 409 body includes the existing `dashboard_order_id` and status; Scott's backend should adopt that id instead of retrying. Re-use of an `order_code` is allowed after CANCELLED/FAILED.
+
+## Order API: inventory multiplied on place / extra stock back on cancel
+
+| | |
+|--|--|
+| **Symptom** | Available drops by 2× order qty on place; cancel restores more than expected, or ghost reserved qty remains. |
+| **Root cause** | Partner called **both** `POST /api/v1/stock/reserve` and `POST /api/v1/orders` for the same `order_code`, or duplicate SKU lines in `items[]`. Cancel only released `scott_orders.reservation_id`, not orphan holds. |
+| **Fix (2026-07-28)** | Deploy `dashboard-stock-api` with idempotent reserve + cancel releases all open holds. DB index `inventory_stock_reservations_one_open_per_order` on staging. Partner should use **order API only** (`POST /api/v1/orders` → cancel `DELETE /api/v1/orders/:id`). |
+| **Queries** | `select id, order_code, status, facility_code from inventory_stock_reservations where order_code = '<code>' order by created_at;` — expect at most one `RESERVED` row per facility after fix. |
 
 ## Dashboard Stock API 409 on reserve under load
 

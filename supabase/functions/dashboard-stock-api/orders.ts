@@ -12,7 +12,9 @@ import {
   newId,
   parseItems,
   releaseReservation,
+  releaseAllOpenReservationsForOrder,
   reserveStock,
+  reserveStockIdempotent,
   type StockChange,
   type SupabaseAdmin
 } from "./stockCore.ts";
@@ -58,7 +60,7 @@ export async function handleCreateOrder(req: Request, client: SupabaseAdmin) {
     });
   }
 
-  const reserved = await reserveStock(client, { order_code, facility_code, items });
+  const reserved = await reserveStockIdempotent(client, { order_code, facility_code, items });
   if (!reserved.ok) {
     return errorResponse(409, "INSUFFICIENT_STOCK", reserved.insufficient);
   }
@@ -82,7 +84,9 @@ export async function handleCreateOrder(req: Request, client: SupabaseAdmin) {
   });
   if (orderErr) {
     // Roll the hold back so a failed insert doesn't strand reserved stock.
-    await releaseReservation(client, reserved.reservation_id, "ORDER_CREATE_FAILED");
+    if (!reserved.reused) {
+      await releaseReservation(client, reserved.reservation_id, "ORDER_CREATE_FAILED");
+    }
     throw orderErr;
   }
 
@@ -99,11 +103,13 @@ export async function handleCreateOrder(req: Request, client: SupabaseAdmin) {
     })
   );
 
-  await fireStockWebhooks(client, {
-    facility_code,
-    trigger: "RESERVATION",
-    changed: reserved.changed
-  });
+  if (!reserved.reused && reserved.changed.length) {
+    await fireStockWebhooks(client, {
+      facility_code,
+      trigger: "RESERVATION",
+      changed: reserved.changed
+    });
+  }
 
   return jsonResponse({ dashboard_order_id: id, order_code, status: "PENDING", created_at }, 201);
 }
@@ -274,10 +280,12 @@ export async function handleCancelOrder(orderId: string, req: Request, client: S
   const cancelled_at = new Date().toISOString();
 
   let changed: StockChange[] = [];
-  if (order.reservation_id) {
-    const released = await releaseReservation(client, order.reservation_id, reason);
-    if (released.ok) changed = released.changed;
-  }
+  changed = await releaseAllOpenReservationsForOrder(
+    client,
+    order.order_code,
+    order.facility_code,
+    reason
+  );
 
   const { error } = await client
     .from("scott_orders")
@@ -353,12 +361,14 @@ export async function handleSetOrderStatus(orderId: string, req: Request, client
     patch.dispatched_at = dispatched_at;
   }
 
-  if (status === "FAILED" && order.reservation_id) {
-    const released = await releaseReservation(client, order.reservation_id, "ORDER_FAILED");
-    if (released.ok) {
-      changed = released.changed;
-      trigger = "RELEASE";
-    }
+  if (status === "FAILED") {
+    changed = await releaseAllOpenReservationsForOrder(
+      client,
+      order.order_code,
+      order.facility_code,
+      "ORDER_FAILED"
+    );
+    if (changed.length) trigger = "RELEASE";
   }
 
   const { error } = await client.from("scott_orders").update(patch).eq("id", orderId);

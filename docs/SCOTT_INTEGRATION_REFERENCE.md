@@ -130,7 +130,18 @@ Manual correction (damage, returns, count errors). Positive or negative deltas.
 
 ## 3. Order API
 
-Order status values (used exactly, no mapping): `PENDING` → `PROCESSING` → `COMPLETE`, or terminal `CANCELLED` / `FAILED`.
+Order status values (used exactly, no mapping):
+
+| Status | API response | Webhook `status` |
+|--------|--------------|------------------|
+| `CREATED` | — (webhook only) | On insert |
+| `PENDING` | Yes | On transition |
+| `PROCESSING` | Yes | On transition |
+| `COMPLETE` | Yes | On transition |
+| `CANCELLED` | Yes | On transition |
+| `FAILED` | Yes | On transition |
+
+Typical flow: webhook `CREATED` → … → `PENDING` → `PROCESSING` → `COMPLETE`, or terminal `CANCELLED` / `FAILED`. Create API returns `PENDING`; first webhook uses `CREATED`.
 
 ### 3.1 `POST /api/v1/orders` — create
 
@@ -229,7 +240,25 @@ Configured via Edge Function secrets `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_S
 
 ### 4.1 `POST {base}/webhooks/orders/status_changed`
 
-Fired on **every** order status transition.
+Fired on **order create** and on **every subsequent status transition**.
+
+**Webhook `status` values:** `CREATED`, `PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`.
+
+**On create** (`previous_status` is `null`):
+
+```json
+{
+  "event": "order.status_changed",
+  "event_id": "evt_abc123",
+  "occurred_at": "2026-07-20T09:00:00Z",
+  "dashboard_order_id": "ord_abc123",
+  "order_code": "P-53011",
+  "previous_status": null,
+  "status": "CREATED"
+}
+```
+
+**On transition** (example COMPLETE):
 
 ```json
 {

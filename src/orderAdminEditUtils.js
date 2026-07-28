@@ -88,6 +88,15 @@ function parseOrderIdTokens(raw) {
   return out;
 }
 
+/** Never emit null for NOT NULL text columns — fall back to existing row value or "". */
+function requiredOrderText(draftVal, orderVal, fallback = "") {
+  const trimmed = String(draftVal ?? "").trim();
+  if (trimmed) return trimmed;
+  const fromOrder = String(orderVal ?? "").trim();
+  if (fromOrder) return fromOrder;
+  return fallback;
+}
+
 export function buildAdminOrderDraftFromOrder(order) {
   const { sizes, extraSizes } = sizeBreakdownToForm(order?.size_breakdown);
   return {
@@ -114,11 +123,11 @@ export function buildAdminOrderFieldsPayload(draft, orderRow = {}) {
   const qtyFromSizes = sumSizeForm(draft.sizes, draft.extraSizes);
   const orderIdJoined = parseOrderIdTokens(draft.order_id).join(", ") || null;
   const base = {
-    order_date: String(draft.order_date ?? "").trim() || null,
-    order_id: orderIdJoined,
-    owner_name: String(draft.owner_name ?? "").trim() || null,
-    customer_name: String(draft.customer_name ?? "").trim() || null,
-    product_name: String(draft.product_name ?? "").trim() || null,
+    order_date: String(draft.order_date ?? orderRow?.order_date ?? "").trim() || orderRow?.order_date || null,
+    order_id: orderIdJoined ?? orderRow?.order_id ?? null,
+    owner_name: requiredOrderText(draft.owner_name, orderRow?.owner_name),
+    customer_name: requiredOrderText(draft.customer_name, orderRow?.customer_name),
+    product_name: requiredOrderText(draft.product_name, orderRow?.product_name),
     colors: Array.isArray(draft.colors) ? draft.colors.filter(Boolean) : [],
     size_breakdown,
     ...(qtyFromSizes > 0 ? { qty: qtyFromSizes } : {}),

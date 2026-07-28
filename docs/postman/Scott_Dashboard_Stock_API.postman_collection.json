@@ -575,7 +575,7 @@
               "host": ["{{scott_webhook_base_url}}"],
               "path": ["webhooks", "orders", "status_changed"]
             },
-            "description": "Fired on EVERY status transition (PENDING → PROCESSING → COMPLETE, or → CANCELLED / FAILED). `dispatched_at` present only when status is COMPLETE. Respond `200 { \"received\": true }`."
+            "description": "Webhook status values: CREATED, PENDING, PROCESSING, COMPLETE, CANCELLED, FAILED. INSERT → status CREATED (previous_status null). Updates → status matches row. dispatched_at present only when status is COMPLETE. Respond 200 { \"received\": true }."
           },
           "response": []
         },

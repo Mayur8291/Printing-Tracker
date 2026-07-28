@@ -14,9 +14,10 @@ import {
   jsonResponse,
   newId,
   parseItems,
+  recomputeSkuStockTotal,
   releaseReservation,
   requireApiKey,
-  reserveStock,
+  reserveStockIdempotent,
   type SupabaseAdmin
 } from "./stockCore.ts";
 import {
@@ -86,25 +87,28 @@ async function handleReserve(req: Request, client: SupabaseAdmin) {
     return errorResponse(400, "INVALID_REQUEST");
   }
 
-  const result = await reserveStock(client, { order_code, facility_code, items });
+  const result = await reserveStockIdempotent(client, { order_code, facility_code, items });
   if (!result.ok) {
     return errorResponse(409, "INSUFFICIENT_STOCK", result.insufficient);
   }
 
-  await fireStockWebhooks(client, {
-    facility_code,
-    trigger: "RESERVATION",
-    changed: result.changed
-  });
+  if (!result.reused && result.changed.length) {
+    await fireStockWebhooks(client, {
+      facility_code,
+      trigger: "RESERVATION",
+      changed: result.changed
+    });
+  }
 
   return jsonResponse(
     {
       reservation_id: result.reservation_id,
       order_code,
       status: "RESERVED",
-      expires_at: result.expires_at
+      expires_at: result.expires_at,
+      reused: result.reused
     },
-    201
+    result.reused ? 200 : 201
   );
 }
 
@@ -227,7 +231,7 @@ async function handleAdjust(req: Request, client: SupabaseAdmin) {
       reference: adjustment_id
     });
 
-    await client.from("inventory_skus").update({ stock_qty: newOnHand }).eq("id", sku.id);
+    await recomputeSkuStockTotal(client, sku.id);
 
     const after = Math.max(0, newOnHand - Number(row.reserved_qty));
     results.push({ sku_code, before, after });

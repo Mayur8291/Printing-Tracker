@@ -116,13 +116,113 @@ export type StockChange = { sku_code: string; previous_stock: number; current_st
 
 export function parseItems(raw: unknown): OrderItemInput[] {
   const items = Array.isArray(raw) ? raw : [];
-  return items
-    .map((i: Record<string, unknown>) => ({
-      sku_code: String(i?.sku_code ?? "").trim(),
-      item_code: String(i?.item_code ?? "").trim(),
-      quantity: Number(i?.quantity)
-    }))
-    .filter((i) => i.sku_code && Number.isFinite(i.quantity) && i.quantity > 0);
+  return consolidateOrderItems(
+    items
+      .map((i: Record<string, unknown>) => ({
+        sku_code: String(i?.sku_code ?? "").trim(),
+        item_code: String(i?.item_code ?? "").trim(),
+        quantity: Number(i?.quantity)
+      }))
+      .filter((i) => i.sku_code && Number.isFinite(i.quantity) && i.quantity > 0)
+  );
+}
+
+/** Sum duplicate sku_code lines so one SKU is not reserved twice in a single request. */
+export function consolidateOrderItems(items: OrderItemInput[]): OrderItemInput[] {
+  const map = new Map<string, OrderItemInput>();
+  for (const item of items) {
+    const prev = map.get(item.sku_code);
+    if (prev) {
+      map.set(item.sku_code, {
+        sku_code: item.sku_code,
+        item_code: prev.item_code || item.item_code,
+        quantity: prev.quantity + item.quantity
+      });
+    } else {
+      map.set(item.sku_code, { ...item });
+    }
+  }
+  return [...map.values()];
+}
+
+export async function findActiveReservation(
+  client: SupabaseAdmin,
+  order_code: string,
+  facility_code: string
+) {
+  const { data } = await client
+    .from("inventory_stock_reservations")
+    .select("id, expires_at, status, created_at")
+    .eq("order_code", order_code)
+    .eq("facility_code", facility_code)
+    .eq("status", "RESERVED")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data;
+}
+
+/** Recompute inventory_skus.stock_qty as the sum of all facility on-hand rows. */
+export async function recomputeSkuStockTotal(client: SupabaseAdmin, skuId: string) {
+  const { data: rows } = await client
+    .from("inventory_facility_stock")
+    .select("on_hand_qty")
+    .eq("sku_id", skuId);
+  const total = (rows ?? []).reduce((sum, r) => sum + Number(r.on_hand_qty), 0);
+  await client.from("inventory_skus").update({ stock_qty: total }).eq("id", skuId);
+  return total;
+}
+
+/** Release every open hold for an order_code at a facility (cleans duplicate legacy reserves). */
+export async function releaseAllOpenReservationsForOrder(
+  client: SupabaseAdmin,
+  order_code: string,
+  facility_code: string,
+  reason: string
+): Promise<StockChange[]> {
+  const { data: rows } = await client
+    .from("inventory_stock_reservations")
+    .select("id")
+    .eq("order_code", order_code)
+    .eq("facility_code", facility_code)
+    .eq("status", "RESERVED");
+
+  const changed: StockChange[] = [];
+  for (const row of rows ?? []) {
+    const released = await releaseReservation(client, row.id, reason);
+    if (released.ok && !released.already) changed.push(...released.changed);
+  }
+  return changed;
+}
+
+type ReserveOk = {
+  ok: true;
+  reservation_id: string;
+  expires_at: string;
+  changed: StockChange[];
+  reused: boolean;
+};
+
+/** Idempotent reserve — reuses an existing RESERVED row for the same order_code + facility. */
+export async function reserveStockIdempotent(
+  client: SupabaseAdmin,
+  opts: { order_code: string; facility_code: string; items: OrderItemInput[] }
+): Promise<{ ok: false; insufficient: Insufficient[] } | ReserveOk> {
+  const items = consolidateOrderItems(opts.items);
+  const existing = await findActiveReservation(client, opts.order_code, opts.facility_code);
+  if (existing) {
+    return {
+      ok: true,
+      reservation_id: existing.id,
+      expires_at: existing.expires_at,
+      changed: [],
+      reused: true
+    };
+  }
+
+  const reserved = await reserveStock(client, { ...opts, items });
+  if (!reserved.ok) return reserved;
+  return { ...reserved, reused: false };
 }
 
 /** Check availability and hold stock. Returns insufficient[] OR the created reservation. */
@@ -133,10 +233,11 @@ export async function reserveStock(
   | { ok: false; insufficient: Insufficient[] }
   | { ok: true; reservation_id: string; expires_at: string; changed: StockChange[] }
 > {
-  const skuMap = await getSkuMap(client, opts.items.map((i) => i.sku_code));
+  const items = consolidateOrderItems(opts.items);
+  const skuMap = await getSkuMap(client, items.map((i) => i.sku_code));
   const insufficient: Insufficient[] = [];
 
-  for (const item of opts.items) {
+  for (const item of items) {
     const sku = skuMap.get(item.sku_code);
     if (!sku) {
       insufficient.push({ sku_code: item.sku_code, requested: item.quantity, available: 0 });
@@ -166,7 +267,7 @@ export async function reserveStock(
   });
   if (resErr) throw resErr;
 
-  for (const item of opts.items) {
+  for (const item of items) {
     const sku = skuMap.get(item.sku_code)!;
     const row = await getOrCreateFacilityStock(client, sku.id, opts.facility_code);
     const prevAvailable = Math.max(0, Number(row.on_hand_qty) - Number(row.reserved_qty));
@@ -335,7 +436,7 @@ export async function fulfillReservation(
       reference: reservation.order_code
     });
 
-    await client.from("inventory_skus").update({ stock_qty: newOnHand }).eq("id", item.sku_id);
+    await recomputeSkuStockTotal(client, item.sku_id);
 
     const remaining = Math.max(0, newOnHand - newReserved);
     stock_deducted.push({ sku_code: item.sku_code, deducted: qty, remaining });

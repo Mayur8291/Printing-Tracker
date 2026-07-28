@@ -4649,9 +4649,9 @@ function App() {
       payload.received_at_printing = datetimeLocalToIsoOrNull(localVal);
     }
 
-    if (isAdmin) {
+    if (isAdmin && adminOrderDrafts[orderId]) {
       const orderRow = orders.find((o) => o.id === orderId);
-      const draft = adminOrderDrafts[orderId] ?? buildAdminOrderDraftFromOrder(orderRow ?? {});
+      const draft = adminOrderDrafts[orderId];
       const adminPayload = buildAdminOrderFieldsPayload(draft, orderRow ?? {});
       if (draft.isJobSheetRow) {
         const advance = adminPayload.job_sheet_advance_amount;
