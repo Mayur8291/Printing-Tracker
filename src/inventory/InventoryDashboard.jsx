@@ -5,6 +5,7 @@ import AdjustStockModal from "./modals/AdjustStockModal";
 import CreatePOModal from "./modals/CreatePOModal";
 import NewSkuModal from "./modals/NewSkuModal";
 import ImportSkusModal from "./modals/ImportSkusModal";
+import ImportSkuMetricsModal from "./modals/ImportSkuMetricsModal";
 import ImportStockAdjustModal from "./modals/ImportStockAdjustModal";
 import NewSupplierModal from "./modals/NewSupplierModal";
 import NewWarehouseModal from "./modals/NewWarehouseModal";
@@ -34,6 +35,7 @@ export default function InventoryDashboard() {
     createSku,
     importSkus,
     bulkImportStockAdjust,
+    bulkImportSkuMetrics,
     adjustStock,
     removeSku,
     createSupplier,
@@ -57,6 +59,7 @@ export default function InventoryDashboard() {
   const [poInitialSku, setPoInitialSku] = useState(null);
   const [newSkuOpen, setNewSkuOpen] = useState(false);
   const [importSkusOpen, setImportSkusOpen] = useState(false);
+  const [importSkuMetricsOpen, setImportSkuMetricsOpen] = useState(false);
   const [importStockAdjustWarehouse, setImportStockAdjustWarehouse] = useState(null);
   const [newSkuKind, setNewSkuKind] = useState("fabric");
   const [supplierOpen, setSupplierOpen] = useState(false);
@@ -96,6 +99,7 @@ export default function InventoryDashboard() {
         setPoOpen(false);
         setNewSkuOpen(false);
         setImportSkusOpen(false);
+        setImportSkuMetricsOpen(false);
         setImportStockAdjustWarehouse(null);
         setSupplierOpen(false);
         setWarehouseOpen(false);
@@ -228,6 +232,22 @@ export default function InventoryDashboard() {
     }
   };
 
+  const handleImportSkuMetrics = async (records, opts) => {
+    try {
+      const result = await bulkImportSkuMetrics(records, opts);
+      setImportSkuMetricsOpen(false);
+      const parts = [`${result.updated.toLocaleString()} updated`];
+      if (result.failed) parts.push(`${result.failed} failed`);
+      toast(`Pricing upload: ${parts.join(" · ")}.`);
+      if (result.failedRows?.length) {
+        console.warn("Bulk pricing upload failures:", result.failedRows);
+      }
+    } catch (err) {
+      toast(err?.message || "Could not apply pricing upload.");
+      throw err;
+    }
+  };
+
   const handleImportStockAdjust = async (records, opts) => {
     const whLabel = importStockAdjustWarehouse?.name ? ` at ${importStockAdjustWarehouse.name}` : "";
     try {
@@ -287,6 +307,7 @@ export default function InventoryDashboard() {
           openCreatePO={openCreatePO}
           openNewSku={openNewSku}
           openImportSkus={() => setImportSkusOpen(true)}
+          openImportSkuMetrics={() => setImportSkuMetricsOpen(true)}
           onDeleteSku={handleDeleteSku}
           deletingSkuId={deletingSkuId}
         />
@@ -391,6 +412,10 @@ export default function InventoryDashboard() {
           onImport={handleImportSkus}
           existingSkuCodes={skus.map((s) => s.id)}
         />
+      )}
+
+      {importSkuMetricsOpen && (
+        <ImportSkuMetricsModal onClose={() => setImportSkuMetricsOpen(false)} onImport={handleImportSkuMetrics} />
       )}
 
       {importStockAdjustWarehouse && (

@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-07-31 — Print calculator on Printing orders tab
+
+- **Feature:** **Print calculator** button next to All orders / Complete orders / Print Queue — upload artwork, set W×H inches, compute DTF cost.
+- **Formula:** `(Height + 1) × (Width + 1) × rate per sq in` (₹). Auto size from image at 150 DPI.
+- **Admin:** Edit and save base **rate per square inch** in `print_calculator_settings` (RLS admin-only write).
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorDb.js`, `printCalculatorUtils.js`, `App.jsx`, migration `20260731140000_print_calculator_settings.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-07-30 — Bulk pricing & reorder Excel upload (separate from Import SKUs)
+
+- **Feature:** Inventory → **Import metrics and pricings** — bulk update unit cost, sale price, reorder point, and DOC for existing SKUs without re-importing master data or stock.
+- **Template columns:** SKU Code (required), Unit Cost (₹), Sale Price (₹), Reorder Point, DOC — fill only columns to change.
+- **RPC:** `bulk_update_sku_metrics` (batches of 100). DRR stays auto from orders.
+- **Files:** `inventorySkuMetricsImportUtils.js`, `ImportSkuMetricsModal.jsx`, `InventoryDataContext.jsx`, migration `20260730220000_bulk_update_sku_metrics.sql`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md.
+
+## 2026-07-30 — Inventory list: SKU column single line
+
+- **Issue:** Long SKU codes (e.g. `2024-AWG-DN-BG-L`) wrapped onto multiple lines in apparel/fabrics/trims tables.
+- **Fix:** `whitespace-nowrap` on SKU cells; table scrolls horizontally when needed. Colorway column also nowrap.
+- **Files:** `InventoryListPage.jsx`.
+
+## 2026-07-30 — Fix apparel SKU import preview showing [object Object]
+
+- **Issue:** Import apparel SKUs preview showed `[object Object]` for Size, Brand, Color, Category even when Excel cells had proper text.
+- **Root cause:** Parser read `cell.value` only; ExcelJS returns rich text, formulas, and hyperlinks as objects. `String(object)` → `[object Object]`.
+- **Fix:** Shared `excelCellUtils.js` — use ExcelJS `cell.text` first, then parse rich text / formula result / hyperlink shapes.
+- **Files:** `excelCellUtils.js`, `inventorySkuImportUtils.js`, `inventoryStockAdjustImportUtils.js`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-07-28 — Fix delivery date save failing (owner_name NOT NULL)
 
 - **Issue:** Saving order changes (e.g. delivery date only) failed in production with `null value in column "owner_name" of relation "orders" violates not-null constraint`; list did not update.

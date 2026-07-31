@@ -23,6 +23,23 @@ Admin-approved forgot-password flow from login screen.
 
 **Migration:** `20260710160000_add_password_reset_requests.sql` — table + RLS (admin select/update only; public writes via Edge Functions).
 
+## Print calculator settings
+
+Singleton config for the Printing orders **Print calculator** modal (DTF cost).
+
+### `print_calculator_settings`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | int | Always `1` (singleton) |
+| `rate_per_sq_in` | numeric | ₹ per square inch — used in `(H+1)×(W+1)×rate` |
+| `updated_at` | timestamptz | Last change |
+| `updated_by` | uuid | Admin who saved rate |
+
+RLS: all authenticated **read**; **write** admin only (`jwt_user_is_admin()`).
+
+**Migration:** `20260731140000_print_calculator_settings.sql`
+
 ## Goal tracker
 
 Annual goals, assignable tasks, and timestamped status remarks.
@@ -302,6 +319,8 @@ Sync (since `20260716140000_sync_sku_stock_to_facility.sql`): trigger `inventory
 **Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute.
 
 **Bulk batch adjust (since `20260725180000_bulk_adjust_facility_stock.sql`):** RPC `bulk_adjust_sku_facility_stock(warehouse_id, adjustments jsonb, user_id)` — applies many `{sku_id, target_on_hand, reason, reference}` entries in one transaction (used by Warehouses → Upload Bulk in batches of 100). Returns `{applied, failed, results[]}`.
+
+**Bulk pricing metrics (since `20260730220000_bulk_update_sku_metrics.sql`):** RPC `bulk_update_sku_metrics(updates jsonb, user_id)` — applies many `{sku_id, unit_cost?, retail_price?, reorder_point?, doc?}` patches in one transaction (Inventory → Import metrics and pricings, batches of 100). Only keys present in each object are updated. DRR unchanged (auto from orders).
 
 ### `inventory_stock_reservations` / `inventory_stock_reservation_items`
 

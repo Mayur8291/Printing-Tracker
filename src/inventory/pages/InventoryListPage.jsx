@@ -23,6 +23,7 @@ import { OrdersPagination, OrdersPerPageControl, usePagination } from "../../ord
 
 const INV_HEAD = "h-11 whitespace-nowrap px-4 text-xs font-medium text-muted-foreground";
 const INV_CELL = "px-4 py-3 align-middle";
+const INV_SKU_CELL = "whitespace-nowrap font-mono text-xs";
 const INV_METRIC_CELL = "min-w-[6.5rem] px-4 py-3 text-right align-middle";
 const INV_ACTIONS_CELL = "min-w-[9rem] px-4 py-3 text-right align-middle";
 
@@ -189,7 +190,7 @@ function FabricTrimTable({ kind, rows, selected, toggleSel, openSku, openAdjust,
               <TableCell className={cn(INV_CELL, "w-12")} onClick={(e) => e.stopPropagation()}>
                 <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} />
               </TableCell>
-              <TableCell className={cn(INV_CELL, "font-mono text-xs")}>{r.id}</TableCell>
+              <TableCell className={cn(INV_CELL, INV_SKU_CELL)}>{r.id}</TableCell>
               <TableCell className={cn(INV_CELL, "min-w-[12rem]")}>
                 <div className="font-medium">{r.name}</div>
                 <div className="text-xs text-muted-foreground">{r.composition || r.size}</div>
@@ -287,13 +288,13 @@ function ApparelSkuRow({ r, selected, toggleSel, openSku, openAdjust, onDelete, 
       <TableCell className={cn(INV_CELL, "w-12")} onClick={(e) => e.stopPropagation()}>
         <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} />
       </TableCell>
-      <TableCell className={cn(INV_CELL, "font-mono text-xs")}>{r.id}</TableCell>
+      <TableCell className={cn(INV_CELL, INV_SKU_CELL)}>{r.id}</TableCell>
       <TableCell className={cn(INV_CELL, "min-w-[12rem] font-medium")}>{r.name}</TableCell>
       <TableCell className={INV_CELL}>
         <Badge variant="secondary">{r.category}</Badge>
       </TableCell>
       <TableCell className={INV_CELL}>{r.season}</TableCell>
-      <TableCell className={cn(INV_CELL, "min-w-[8rem]")}>
+      <TableCell className={cn(INV_CELL, "min-w-[8rem] whitespace-nowrap")}>
         <span className="inline-flex items-center gap-2">
           <ColorSwatch color={r.color} hex={r.hex} />
           {r.color}
@@ -451,6 +452,7 @@ export default function InventoryListPage({
   openCreatePO,
   openNewSku,
   openImportSkus,
+  openImportSkuMetrics,
   onDeleteSku,
   deletingSkuId
 }) {
@@ -599,6 +601,11 @@ export default function InventoryListPage({
             {kind === "apparel" && openImportSkus ? (
               <Button type="button" variant="outline" size="sm" onClick={openImportSkus}>
                 Import SKUs
+              </Button>
+            ) : null}
+            {openImportSkuMetrics ? (
+              <Button type="button" variant="outline" size="sm" onClick={openImportSkuMetrics}>
+                Import metrics and pricings
               </Button>
             ) : null}
             <Button type="button" size="sm" onClick={() => openNewSku(kind)}>

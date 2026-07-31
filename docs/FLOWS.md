@@ -120,6 +120,23 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **Exit:** toast with import count; list refreshes.
 6. **Failure:** missing required column → parse error; empty file → no rows; duplicate SKU in file → second row ignored.
 
+### Inventory SKU pricing import (Excel, separate from Import SKUs)
+
+1. **Trigger:** Inventory → Apparel / Fabrics / Trims list → **Import metrics and pricings**.
+2. **Template:** **Download template** → `inventory-sku-pricing-import-template.xlsx` (SKU Code required; Unit Cost, Sale Price, Reorder Point, DOC optional). Fill only columns to update — blank columns leave existing values unchanged. DRR excluded (auto from orders).
+3. **Upload:** user selects filled `.xlsx` → app loads all SKUs → preview shows per-field update counts, sample rows, and skipped rows (unknown SKU, no change, negative values).
+4. **Apply:** `bulkImportSkuMetrics` batches via RPC `bulk_update_sku_metrics` (100 per transaction); only present JSON keys are patched on `inventory_skus`.
+5. **Exit:** toast with updated / failed counts; list refreshes with new cost, sale price, reorder, DOC.
+6. **Failure:** missing SKU Code column → parse error; row with no metric columns → ignored; SKU not in DB → skipped with CSV reason.
+
+### Print calculator (DTF cost)
+
+1. **Trigger:** Printing orders tab → **Print calculator** button (next to All orders / Complete orders / Print Queue).
+2. **Usage:** Upload artwork images → set width/height in inches (auto-filled at 150 DPI from pixels) → per-artwork and total cost in ₹.
+3. **Formula:** `(Height + 1) × (Width + 1) × rate_per_sq_in` — rate stored in `print_calculator_settings`.
+4. **Admin:** Save new **rate per square inch** (admin RLS only); all users see updated rate on next open.
+5. **Failure:** invalid rate ≤ 0 blocked on save; missing settings row defaults to rate `1`.
+
 ## Home tab
 
 ### Admin home

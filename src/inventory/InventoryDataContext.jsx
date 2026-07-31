@@ -4,6 +4,7 @@ import { supabase } from "../supabaseClient";
 import {
   applyFacilityStockAdjustment,
   bulkAdjustFacilityStock,
+  bulkUpdateSkuMetrics,
   applyStockAdjustment,
   deriveAlerts,
   deleteSku,
@@ -27,6 +28,7 @@ import {
 } from "./inventoryDbUtils";
 import { INVENTORY_INITIAL_SKU_BATCH } from "./inventoryQueryFields";
 import { STOCK_ADJUST_BATCH_SIZE } from "./inventoryStockAdjustImportUtils";
+import { SKU_METRICS_BATCH_SIZE } from "./inventorySkuMetricsImportUtils";
 import { buildMinimalSupplierRecord, buildMinimalWarehouseRecord } from "./inventoryMasterQuickAdd";
 import { subscribePostgresChanges } from "../realtimeUtils";
 import { kpiMovementsSinceIso } from "./inventoryKpiUtils";
@@ -431,6 +433,44 @@ export function InventoryDataProvider({ session, children }) {
     [refresh, userId, loadKpiMovements, loadAvailability]
   );
 
+  const bulkImportSkuMetrics = useCallback(
+    async (rows, { onProgress } = {}) => {
+      const validRows = rows.filter((r) => !r.error && r._uuid && r.hasUpdates);
+      let updated = 0;
+      let failed = 0;
+      const failedRows = [];
+
+      for (let i = 0; i < validRows.length; i += SKU_METRICS_BATCH_SIZE) {
+        const chunk = validRows.slice(i, i + SKU_METRICS_BATCH_SIZE);
+        const updates = chunk.map((row) => {
+          const entry = { sku_id: row._uuid };
+          if (row.willUpdateCost) entry.unit_cost = row.unitCost;
+          if (row.willUpdateRetail) entry.retail_price = row.salePrice;
+          if (row.willUpdateReorder) entry.reorder_point = row.reorderPoint;
+          if (row.willUpdateDoc) entry.doc = row.doc;
+          return entry;
+        });
+
+        const result = await bulkUpdateSkuMetrics(updates, userId);
+        updated += Number(result.applied) || 0;
+        failed += Number(result.failed) || 0;
+
+        for (const entry of result.results || []) {
+          if (entry?.ok === false) {
+            const row = chunk.find((r) => r._uuid === entry.sku_id);
+            failedRows.push({ skuCode: row?.skuCode || entry.sku_id, error: entry.error || "Update failed" });
+          }
+        }
+
+        onProgress?.(Math.min(validRows.length, i + chunk.length), rows.length);
+      }
+
+      await refresh();
+      return { updated, failed, failedRows, total: rows.length };
+    },
+    [refresh, userId]
+  );
+
   const adjustStock = useCallback(
     async ({ skuUuid, type, qty, reason, reference, fromWh, toWh }) => {
       const sku = skus.find((s) => s._uuid === skuUuid);
@@ -580,6 +620,7 @@ export function InventoryDataProvider({ session, children }) {
     createSku,
     importSkus,
     bulkImportStockAdjust,
+    bulkImportSkuMetrics,
     adjustStock,
     removeSku,
     createSupplier,

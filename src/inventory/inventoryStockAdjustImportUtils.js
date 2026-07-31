@@ -17,15 +17,10 @@ const HEADER_ALIASES = {
   ]
 };
 
-function cellText(value) {
-  if (value == null) return "";
-  if (typeof value === "object" && value.text != null) return String(value.text).trim();
-  if (typeof value === "object" && value.result != null) return String(value.result).trim();
-  return String(value).trim();
-}
+import { cellText, excelCellString } from "./excelCellUtils";
 
-function parseOptionalNumber(value) {
-  const text = cellText(value).replace(/,/g, "");
+function parseOptionalNumber(cell) {
+  const text = excelCellString(cell).replace(/,/g, "");
   if (!text) return null;
   const n = Number(text);
   return Number.isFinite(n) ? n : null;
@@ -34,7 +29,7 @@ function parseOptionalNumber(value) {
 function headerMap(row) {
   const map = {};
   row.eachCell({ includeEmpty: true }, (cell, col) => {
-    const key = cellText(cell.value).toLowerCase();
+    const key = excelCellString(cell).toLowerCase();
     if (!key) return;
     for (const [canonical, aliases] of Object.entries(HEADER_ALIASES)) {
       if (aliases.includes(key)) {
@@ -52,16 +47,16 @@ function missingHeaders(map) {
 }
 
 function rowFromSheet(row, columns) {
-  const skuCode = cellText(row.getCell(columns["sku code"]).value);
+  const skuCode = excelCellString(row.getCell(columns["sku code"]));
   if (!skuCode) return null;
 
   return {
     skuCode,
-    stockQty: columns["stock qty"] != null ? parseOptionalNumber(row.getCell(columns["stock qty"]).value) : null,
-    doc: columns.doc != null ? parseOptionalNumber(row.getCell(columns.doc).value) : null,
-    reason: columns.reason != null ? cellText(row.getCell(columns.reason).value) : "",
+    stockQty: columns["stock qty"] != null ? parseOptionalNumber(row.getCell(columns["stock qty"])) : null,
+    doc: columns.doc != null ? parseOptionalNumber(row.getCell(columns.doc)) : null,
+    reason: columns.reason != null ? excelCellString(row.getCell(columns.reason)) : "",
     storageLocation:
-      columns["storage location"] != null ? cellText(row.getCell(columns["storage location"]).value) : ""
+      columns["storage location"] != null ? excelCellString(row.getCell(columns["storage location"])) : ""
   };
 }
 

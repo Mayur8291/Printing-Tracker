@@ -545,6 +545,19 @@ export async function bulkAdjustFacilityStock({ warehouseId, adjustments, userId
   return data ?? { applied: 0, failed: 0, results: [] };
 }
 
+/** Batch SKU pricing / reorder / DOC updates for bulk Excel upload. */
+export async function bulkUpdateSkuMetrics(updates, userId) {
+  if (!updates?.length) {
+    return { applied: 0, failed: 0, results: [] };
+  }
+  const { data, error } = await supabase.rpc("bulk_update_sku_metrics", {
+    p_updates: updates,
+    p_user_id: userId || null
+  });
+  if (error) throw error;
+  return data ?? { applied: 0, failed: 0, results: [] };
+}
+
 export async function insertSupplier(record) {
   const { data, error } = await withSchemaCacheRetry(() =>
     supabase

@@ -1,12 +1,7 @@
-const EXPECTED_HEADERS = ["sku", "size", "class name", "color", "brand", "category"];
-
-function cellText(value) {
-  if (value == null) return "";
-  if (typeof value === "object" && value.text != null) return String(value.text).trim();
-  return String(value).trim();
-}
-
 import { colorLabelToHex } from "./inventoryColorUtils";
+import { cellText, excelCellString } from "./excelCellUtils";
+
+const EXPECTED_HEADERS = ["sku", "size", "class name", "color", "brand", "category"];
 
 function normalizeSize(size) {
   const s = cellText(size).toUpperCase();
@@ -18,7 +13,7 @@ function normalizeSize(size) {
 function headerMap(row) {
   const map = {};
   row.eachCell({ includeEmpty: true }, (cell, col) => {
-    const key = cellText(cell.value).toLowerCase();
+    const key = excelCellString(cell).toLowerCase();
     if (key) map[key] = col;
   });
   return map;
@@ -29,14 +24,15 @@ function missingHeaders(map) {
 }
 
 export function apparelRecordFromImportRow(row, columns) {
-  const skuCode = cellText(row.getCell(columns.sku).value);
+  const skuCode = excelCellString(row.getCell(columns.sku));
   if (!skuCode) return null;
 
-  const size = normalizeSize(row.getCell(columns.size).value);
-  const className = cellText(row.getCell(columns["class name"]).value);
-  const color = cellText(row.getCell(columns.color).value);
-  const brand = cellText(row.getCell(columns.brand).value);
-  const category = cellText(row.getCell(columns.category).value);
+  const sizeRaw = excelCellString(row.getCell(columns.size));
+  const size = normalizeSize(sizeRaw);
+  const className = excelCellString(row.getCell(columns["class name"]));
+  const color = excelCellString(row.getCell(columns.color));
+  const brand = excelCellString(row.getCell(columns.brand));
+  const category = excelCellString(row.getCell(columns.category));
 
   return {
     id: skuCode,
@@ -54,7 +50,7 @@ export function apparelRecordFromImportRow(row, columns) {
     sizes: { [size]: 0 },
     className,
     brand,
-    sizeLabel: cellText(row.getCell(columns.size).value)
+    sizeLabel: sizeRaw || size
   };
 }
 

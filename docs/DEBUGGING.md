@@ -66,6 +66,14 @@
 - **Fix:** apply the migration (`npx supabase db push` on the linked project), confirm login session, hard refresh. Realtime updates also need `20260716130000_facility_stock_realtime.sql` (adds table to `supabase_realtime`).
 - **Note:** the UI intentionally fails soft — a broken availability query must never blank the inventory page; it just falls back to `stock_qty`.
 
+## Apparel SKU import preview shows [object Object]
+
+| | |
+|--|--|
+| **Symptom** | Size, Brand, Color, Category columns show `[object Object]` in import preview; SKU column may look fine. |
+| **Root cause** | Excel cells stored as rich text / formula objects; parser used `cell.value` + `String(obj)`. |
+| **Fix (2026-07-30)** | Use `excelCellString()` (`cell.text` + rich-text/formula fallbacks) in `inventorySkuImportUtils.js`. |
+
 ## Order save fails: null value in column "owner_name"
 
 | | |

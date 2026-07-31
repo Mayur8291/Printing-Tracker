@@ -94,7 +94,8 @@ import {
   mergePendingOrders
 } from "./orderPendingUtils";
 import ViewerUserEditModal from "./ViewerUserEditModal";
-import { Pencil, Trash2 } from "lucide-react";
+import { Calculator, Pencil, Trash2 } from "lucide-react";
+import PrintCalculatorModal from "./printCalculator/PrintCalculatorModal";
 import { filterViewerProfiles, formatProfileAccessLabel, profileAccessRole, viewerIsActive } from "./viewerUserListUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
 import NotificationBellButton from "./NotificationBellButton";
@@ -749,6 +750,7 @@ function App() {
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const [masterListView, setMasterListView] = useState("list");
   const [showMockupStudio, setShowMockupStudio] = useState(false);
+  const [printCalculatorOpen, setPrintCalculatorOpen] = useState(false);
   const [masterTableMissing, setMasterTableMissing] = useState(false);
   const [salesInchargeTableMissing, setSalesInchargeTableMissing] = useState(false);
   const [teamProfiles, setTeamProfiles] = useState([]);
@@ -5421,15 +5423,27 @@ function App() {
 
           {dashboardTab === "printing" && (
             <div className="space-y-4">
-              <Tabs value={ordersTab} onValueChange={setOrdersTab} aria-label="Printing orders views">
-                <TabsList>
-                  <TabsTrigger value="active">All orders</TabsTrigger>
-                  <TabsTrigger value="complete">Complete orders</TabsTrigger>
-                  {canAccessPrintQueue ? (
-                    <TabsTrigger value="print_queue">{PRINTING_QUEUE_SUBTAB.label}</TabsTrigger>
-                  ) : null}
-                </TabsList>
-              </Tabs>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <Tabs value={ordersTab} onValueChange={setOrdersTab} aria-label="Printing orders views">
+                  <TabsList>
+                    <TabsTrigger value="active">All orders</TabsTrigger>
+                    <TabsTrigger value="complete">Complete orders</TabsTrigger>
+                    {canAccessPrintQueue ? (
+                      <TabsTrigger value="print_queue">{PRINTING_QUEUE_SUBTAB.label}</TabsTrigger>
+                    ) : null}
+                  </TabsList>
+                </Tabs>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setPrintCalculatorOpen(true)}
+                >
+                  <Calculator className="size-4" aria-hidden />
+                  Print calculator
+                </Button>
+              </div>
 
               {ordersTab === "print_queue" ? (
                 <PrintingDepartmentPanel
@@ -7630,6 +7644,12 @@ function App() {
       </CreateOrderModal>
 
       <MockupStudio open={showMockupStudio} onClose={() => setShowMockupStudio(false)} />
+      <PrintCalculatorModal
+        open={printCalculatorOpen}
+        onClose={() => setPrintCalculatorOpen(false)}
+        isAdmin={isAdmin}
+        userId={session?.user?.id}
+      />
       {activeViewOrder && (
         <Dialog
           open
