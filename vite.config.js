@@ -20,6 +20,12 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    exclude: ["@imgly/background-removal"]
+  },
+  build: {
+    chunkSizeWarningLimit: 1200
+  },
   preview: {
     host: true,
     port: 4173

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-31 — Print calculator: non-admin rate display
+
+- **UI:** Non-admin users see only **Rate per square inch is ₹X.XX** (value bold); no input or helper text. Admins keep edit + save. Modal subtitle (workflow/formula/DPI blurb) removed.
+
+## 2026-07-31 — Print calculator: size from PNG after background removal
+
+- **Fix:** After **Remove background**, crop to opaque pixels and auto-update width/height inches from result PNG dimensions at 150 DPI (cost uses trimmed artwork size).
+
+## 2026-07-31 — Print calculator: background removal
+
+- **Feature:** **Remove background** on each artwork (same flow as DTF Calculator — imgly segmentation, mask refine, alpha smooth, download PNG).
+- **Deps:** `@imgly/background-removal`, `onnxruntime-web` (dynamic import; ~40MB model on first use).
+- **Files:** `printCalculatorBackgroundRemoval.js`, `PrintCalculatorModal.jsx`, `vite.config.js`, `package.json`.
+
 ## 2026-07-31 — Print calculator on Printing orders tab
 
 - **Feature:** **Print calculator** button next to All orders / Complete orders / Print Queue — upload artwork, set W×H inches, compute DTF cost.

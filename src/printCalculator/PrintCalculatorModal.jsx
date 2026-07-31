@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Calculator, Download, ImagePlus, Trash2 } from "lucide-react";
+import { Calculator, Download, Eraser, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { removeArtworkBackground } from "./printCalculatorBackgroundRemoval";
 import { fetchPrintCalculatorSettings, savePrintCalculatorRate } from "./printCalculatorDb";
 import {
   computePrintCost,
@@ -21,11 +21,16 @@ import {
   pixelsToInches
 } from "./printCalculatorUtils";
 
-function ArtworkCard({ artwork, ratePerSqIn, onChange, onRemove }) {
+function revokePreviewUrl(url) {
+  if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+}
+
+function ArtworkCard({ artwork, ratePerSqIn, onChange, onRemove, onRemoveBackground }) {
   const cost = computePrintCost(artwork.heightInches, artwork.widthInches, ratePerSqIn);
 
   const handleImageLoad = (e) => {
     const img = e.currentTarget;
+    if (artwork.backgroundRemoved) return;
     if (artwork.widthInches || artwork.heightInches) return;
     const w = pixelsToInches(img.naturalWidth);
     const h = pixelsToInches(img.naturalHeight);
@@ -35,9 +40,26 @@ function ArtworkCard({ artwork, ratePerSqIn, onChange, onRemove }) {
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm">
+    <div
+      className={cn(
+        "rounded-lg border bg-card p-4 shadow-sm",
+        artwork.backgroundRemoved && "ring-1 ring-primary/30"
+      )}
+    >
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex shrink-0 items-center justify-center rounded-md border bg-muted/30 p-2 sm:w-40">
+        <div
+          className={cn(
+            "relative flex shrink-0 items-center justify-center rounded-md border p-2 sm:w-40",
+            artwork.backgroundRemoved
+              ? "bg-[linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%,#ccc),linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%,#ccc)] bg-[length:12px_12px] bg-[position:0_0,6px_6px]"
+              : "bg-muted/30"
+          )}
+        >
+          {artwork.removingBg ? (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/70">
+              <Loader2 className="size-6 animate-spin text-primary" />
+            </div>
+          ) : null}
           <img
             src={artwork.previewUrl}
             alt={artwork.fileName || "Artwork preview"}
@@ -57,6 +79,7 @@ function ArtworkCard({ artwork, ratePerSqIn, onChange, onRemove }) {
                 step="0.01"
                 value={artwork.widthInches}
                 onChange={(e) => onChange(artwork.id, { widthInches: e.target.value })}
+                disabled={artwork.removingBg}
               />
             </div>
             <div className="space-y-1.5">
@@ -68,35 +91,54 @@ function ArtworkCard({ artwork, ratePerSqIn, onChange, onRemove }) {
                 step="0.01"
                 value={artwork.heightInches}
                 onChange={(e) => onChange(artwork.id, { heightInches: e.target.value })}
+                disabled={artwork.removingBg}
               />
             </div>
           </div>
           <p className="text-sm">
             Cost: <strong>{formatInrAmount(cost)}</strong>
           </p>
+          {artwork.bgStatus ? (
+            <p className="text-xs text-muted-foreground" aria-live="polite">
+              {artwork.bgStatus}
+            </p>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              variant="outline"
               size="sm"
               className="gap-1.5"
-              onClick={() => {
-                const base = (artwork.fileName || "artwork").replace(/\.[^.]+$/, "");
-                downloadImageUrl(artwork.previewUrl, `${base}.png`);
-              }}
+              disabled={artwork.removingBg || artwork.backgroundRemoved}
+              onClick={() => onRemoveBackground(artwork.id)}
             >
-              <Download className="size-3.5" />
-              Download PNG
+              <Eraser className="size-3.5" />
+              {artwork.removingBg ? "Removing…" : "Remove background"}
             </Button>
+            {artwork.backgroundRemoved ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  const base = (artwork.fileName || "artwork").replace(/\.[^.]+$/, "");
+                  downloadImageUrl(artwork.previewUrl, `${base}_nobg.png`);
+                }}
+              >
+                <Download className="size-3.5" />
+                Download PNG
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="gap-1.5 text-destructive hover:text-destructive"
               onClick={() => onRemove(artwork.id)}
+              disabled={artwork.removingBg}
             >
               <Trash2 className="size-3.5" />
-              Remove
+              Remove artwork
             </Button>
           </div>
         </div>
@@ -137,9 +179,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
   useEffect(() => {
     if (!open) {
       setArtworks((prev) => {
-        prev.forEach((a) => {
-          if (a.previewUrl?.startsWith("blob:")) URL.revokeObjectURL(a.previewUrl);
-        });
+        prev.forEach((a) => revokePreviewUrl(a.previewUrl));
         return [];
       });
       setDragOver(false);
@@ -166,7 +206,10 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
         fileName: file.name,
         previewUrl: URL.createObjectURL(file),
         widthInches: "",
-        heightInches: ""
+        heightInches: "",
+        backgroundRemoved: false,
+        removingBg: false,
+        bgStatus: ""
       }))
     ]);
   }
@@ -178,9 +221,47 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
   function removeArtwork(id) {
     setArtworks((prev) => {
       const target = prev.find((a) => a.id === id);
-      if (target?.previewUrl?.startsWith("blob:")) URL.revokeObjectURL(target.previewUrl);
+      revokePreviewUrl(target?.previewUrl);
       return prev.filter((a) => a.id !== id);
     });
+  }
+
+  async function handleRemoveBackground(id) {
+    const artwork = artworks.find((a) => a.id === id);
+    if (!artwork || artwork.removingBg) return;
+
+    updateArtwork(id, { removingBg: true, bgStatus: "Starting…" });
+    try {
+      const result = await removeArtworkBackground(artwork, (msg) => {
+        updateArtwork(id, { bgStatus: msg });
+      });
+      setArtworks((prev) =>
+        prev.map((a) => {
+          if (a.id !== id) return a;
+          revokePreviewUrl(a.previewUrl);
+          return {
+            ...a,
+            originalPreviewUrl: a.originalPreviewUrl || a.previewUrl,
+            previewUrl: result.dataUrl,
+            widthInches: result.widthInches,
+            heightInches: result.heightInches,
+            widthPx: result.widthPx,
+            heightPx: result.heightPx,
+            backgroundRemoved: true,
+            removingBg: false,
+            bgStatus: `Background removed · ${result.widthPx}×${result.heightPx}px`
+          };
+        })
+      );
+    } catch (err) {
+      const msg = err?.message || String(err);
+      const hint =
+        msg.includes("fetch") || msg.includes("Failed to fetch")
+          ? " First run downloads the model (~40MB). Check your network and try again."
+          : "";
+      updateArtwork(id, { removingBg: false, bgStatus: "" });
+      window.alert(`Background removal failed: ${msg}${hint}`);
+    }
   }
 
   async function handleSaveRate() {
@@ -206,44 +287,49 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
             <Calculator className="size-5" />
             Print calculator
           </DialogTitle>
-          <DialogDescription>
-            Upload artwork, set print size in inches, and get DTF print cost. Formula: (Height + 1) × (Width + 1) ×
-            rate per sq in.
-          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-6 py-4">
           <div className="space-y-6 pb-2">
             <div className="rounded-lg border bg-muted/20 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div className="space-y-1.5">
-                  <Label htmlFor="print-calc-rate">Rate per square inch (₹)</Label>
-                  <Input
-                    id="print-calc-rate"
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    className="max-w-[10rem]"
-                    value={rateDraft}
-                    onChange={(e) => setRateDraft(e.target.value)}
-                    disabled={!isAdmin || loadingSettings || savingRate}
-                  />
-                  {!isAdmin ? (
-                    <p className="text-xs text-muted-foreground">Only admins can change the base rate.</p>
+              {isAdmin ? (
+                <>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="print-calc-rate">Rate per square inch (₹)</Label>
+                      <Input
+                        id="print-calc-rate"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        className="max-w-[10rem]"
+                        value={rateDraft}
+                        onChange={(e) => setRateDraft(e.target.value)}
+                        disabled={loadingSettings || savingRate}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => void handleSaveRate()}
+                      disabled={savingRate || loadingSettings}
+                    >
+                      {savingRate ? "Saving…" : "Save rate"}
+                    </Button>
+                  </div>
+                  {settingsError ? <p className="mt-2 text-sm text-destructive">{settingsError}</p> : null}
+                  {!loadingSettings ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Auto size uses 150 DPI from image pixels after background removal.
+                    </p>
                   ) : null}
-                </div>
-                {isAdmin ? (
-                  <Button type="button" size="sm" onClick={() => void handleSaveRate()} disabled={savingRate || loadingSettings}>
-                    {savingRate ? "Saving…" : "Save rate"}
-                  </Button>
-                ) : null}
-              </div>
-              {settingsError ? <p className="mt-2 text-sm text-destructive">{settingsError}</p> : null}
-              {!loadingSettings ? (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Current rate: {formatInrAmount(ratePerSqIn)} per sq in · Auto size uses {150} DPI from image pixels.
+                </>
+              ) : (
+                <p className="text-sm text-foreground">
+                  Rate per square inch is{" "}
+                  <strong className="font-semibold">{formatInrAmount(ratePerSqIn)}</strong>
                 </p>
-              ) : null}
+              )}
             </div>
 
             <div
@@ -297,6 +383,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
                     ratePerSqIn={ratePerSqIn}
                     onChange={updateArtwork}
                     onRemove={removeArtwork}
+                    onRemoveBackground={handleRemoveBackground}
                   />
                 ))}
               </div>
