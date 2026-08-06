@@ -290,6 +290,8 @@ Master SKU records (flat list — one row per `sku_code`).
 | `20260620120000_add_inventory_tables.sql` | Core inventory tables |
 | `20260708120000_inventory_sku_parent_pricing_doc_drr.sql` | Parent styles, `doc`, `drr`, `parent_style_id` |
 | `20260710120000_dashboard_stock_api.sql` | Facility stock, reservations, adjustments, webhook outbox, `inventory_warehouses.facility_code` |
+| `20260725180000_bulk_adjust_facility_stock.sql` | RPC `bulk_adjust_sku_facility_stock` for Excel bulk upload |
+| `20260806110948_sync_apparel_sizes_with_stock.sql` | Trigger `inventory_skus_sync_apparel_sizes` — sync `extra.sizes` with `stock_qty`; backfill; warehouse_id on bulk adjust |
 
 ### `inventory_warehouses.facility_code`
 
@@ -316,7 +318,9 @@ Constraint: `reserved_qty <= on_hand_qty`.
 
 Sync (since `20260716140000_sync_sku_stock_to_facility.sql`): trigger `inventory_skus_sync_facility_stock` mirrors dashboard-UI `stock_qty` changes into this table (SKU's warehouse facility, `DEFAULT` fallback). Service-role writes are excluded — the `dashboard-stock-api` edge function maintains this table directly and writes back `stock_qty` on fulfill/adjust; syncing those again would double-count.
 
-**Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute.
+**Apparel `extra.sizes` sync (since `20260806110948_sync_apparel_sizes_with_stock.sql`):** Bulk warehouse upload and facility adjust update `stock_qty` and `inventory_facility_stock` but previously left `extra.sizes` at import defaults (`0`). UI **Stock by size** reads `extra.sizes`; **On hand** reads `stock_qty`. Trigger `sync_apparel_sizes_on_stock_change` runs BEFORE insert/update of `stock_qty` on apparel rows and rewrites `extra.sizes` via `build_apparel_sizes_for_stock()`.
+
+**Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute. Since `20260806110948`, also sets `warehouse_id = coalesce(warehouse_id, p_warehouse_id)`.
 
 **Bulk batch adjust (since `20260725180000_bulk_adjust_facility_stock.sql`):** RPC `bulk_adjust_sku_facility_stock(warehouse_id, adjustments jsonb, user_id)` — applies many `{sku_id, target_on_hand, reason, reference}` entries in one transaction (used by Warehouses → Upload Bulk in batches of 100). Returns `{applied, failed, results[]}`.
 

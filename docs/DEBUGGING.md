@@ -122,6 +122,14 @@
 - **Symptom:** Stock applied but list still shows 0 at warehouse.
 - **Fix:** Filter inventory list to the same warehouse; hard refresh (`Cmd+Shift+R`); confirm toast shows `N stock adjusted` not only DOC updated.
 
+## Apparel SKU drawer: Stock by size 0 but On hand shows total
+
+- **Symptom:** SKU detail shows **XXXL: 0** in the size grid but **On hand 200** and **Total 200 units** (e.g. after bulk warehouse upload).
+- **Root cause:** SKU import sets `extra.sizes` to `{Size: 0}`; bulk upload only updated `stock_qty` and `inventory_facility_stock`, not `extra.sizes`.
+- **Fix:** Apply migration `20260806110948_sync_apparel_sizes_with_stock.sql` (trigger + backfill). Hard refresh SKU drawer after deploy.
+- **Check:** `select sku_code, stock_qty, extra->'sizes' as sizes, warehouse_id from inventory_skus where sku_code = '<SKU>';` — sizes sum should equal `stock_qty`.
+- **External API:** Stock for partners is in `inventory_facility_stock` / `GET /stock/snapshot` keyed `FACILITY:SKU` — not `extra.sizes`. If API returns empty, verify `facility` param and exact `sku_code`.
+
 ## Ready Stock Order tab empty though app orders exist
 
 - **Symptom:** Orders created via the Order API return 201 but the Ready Stock Order tab shows "No app orders yet".

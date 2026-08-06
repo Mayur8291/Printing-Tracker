@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-06 — Apparel stock-by-size sync with bulk upload
+
+- **Issue:** After bulk warehouse upload, **Stock by size** showed 0 while **On hand** showed correct total (e.g. `NF-BSHM-BL-XXXL`: sizes `{XXXL:0}` vs `stock_qty` 200).
+- **Fix:** Migration `20260806110948_sync_apparel_sizes_with_stock.sql` — trigger keeps `extra.sizes` aligned with `stock_qty` on insert/update; backfill for existing SKUs; bulk facility adjust also sets `warehouse_id` when null.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-07-31 — Print calculator: non-admin rate display
 
 - **UI:** Non-admin users see only **Rate per square inch is ₹X.XX** (value bold); no input or helper text. Admins keep edit + save. Modal subtitle (workflow/formula/DPI blurb) removed.
