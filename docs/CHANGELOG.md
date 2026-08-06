@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-06 — Stock API snapshot: remove DEFAULT facility keys
+
+- **Issue:** `GET /stock/snapshot` returned `DEFAULT:SKU` (often `0`) instead of `SCOTT_1DAY_01:SKU` — legacy backfill rows when SKUs had no warehouse.
+- **Fix:** Migration `20260806120436_cleanup_default_facility_stock.sql` removes idle DEFAULT rows; sync trigger no longer writes DEFAULT. Snapshot API skips DEFAULT keys; with `facility` param, missing SKUs return explicit `0` at that facility.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, DEBUGGING.md, DASHBOARD_STOCK_API.md.
+
 ## 2026-08-06 — Apparel stock-by-size sync with bulk upload
 
 - **Issue:** After bulk warehouse upload, **Stock by size** showed 0 while **On hand** showed correct total (e.g. `NF-BSHM-BL-XXXL`: sizes `{XXXL:0}` vs `stock_qty` 200).

@@ -69,9 +69,19 @@ async function handleSnapshot(req: Request, client: SupabaseAdmin) {
   for (const row of data ?? []) {
     const skuCode = (row as { inventory_skus?: { sku_code?: string } }).inventory_skus?.sku_code;
     if (!skuCode || !requested.has(skuCode)) continue;
+    const facilityCode = String(row.facility_code ?? "").trim();
+    if (!facilityCode || facilityCode === "DEFAULT") continue;
     const available = Math.max(0, Number(row.on_hand_qty) - Number(row.reserved_qty));
-    const key = `${row.facility_code}:${skuCode}`;
+    const key = `${facilityCode}:${skuCode}`;
     snapshot[key] = available;
+  }
+
+  if (facilityFilter) {
+    for (const skuCode of skuCodes) {
+      if (!skuMap.has(skuCode)) continue;
+      const key = `${facilityFilter}:${skuCode}`;
+      if (!(key in snapshot)) snapshot[key] = 0;
+    }
   }
 
   return jsonResponse({ snapshot });

@@ -292,6 +292,7 @@ Master SKU records (flat list — one row per `sku_code`).
 | `20260710120000_dashboard_stock_api.sql` | Facility stock, reservations, adjustments, webhook outbox, `inventory_warehouses.facility_code` |
 | `20260725180000_bulk_adjust_facility_stock.sql` | RPC `bulk_adjust_sku_facility_stock` for Excel bulk upload |
 | `20260806110948_sync_apparel_sizes_with_stock.sql` | Trigger `inventory_skus_sync_apparel_sizes` — sync `extra.sizes` with `stock_qty`; backfill; warehouse_id on bulk adjust |
+| `20260806120436_cleanup_default_facility_stock.sql` | Remove legacy `DEFAULT` facility stock rows; sync trigger skips unassigned warehouses; Stock API never returns `DEFAULT:` keys |
 
 ### `inventory_warehouses.facility_code`
 

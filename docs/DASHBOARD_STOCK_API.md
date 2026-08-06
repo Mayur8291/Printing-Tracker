@@ -51,7 +51,7 @@ Fetch available stock for multiple SKUs (on_hand − reserved), optionally filte
 | Param | Required | Example |
 |-------|----------|---------|
 | `skus` | yes | `SKU-COTTON-WHT-M,SKU-COTTON-WHT-L` |
-| `facility` | no | `SCOTT_1DAY_01` |
+| `facility` | no | `SCOTT_1DAY_01` — **recommended** for partner apps |
 
 **200**
 
@@ -63,6 +63,12 @@ Fetch available stock for multiple SKUs (on_hand − reserved), optionally filte
   }
 }
 ```
+
+**Behaviour (since `20260806120436`):**
+
+- Keys always use real warehouse `facility_code` values (e.g. `SCOTT_1DAY_01`) — legacy `DEFAULT:SKU` keys are never returned.
+- When `facility` is set, every requested SKU that exists in `inventory_skus` gets a key — missing facility stock returns **`0`** (e.g. `"SCOTT_1DAY_01:NF-BSHM-BL-S": 0`).
+- When `facility` is omitted, only SKUs with stock rows at mapped facilities appear (unknown SKUs omitted).
 
 ---
 

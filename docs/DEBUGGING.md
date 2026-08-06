@@ -130,6 +130,13 @@
 - **Check:** `select sku_code, stock_qty, extra->'sizes' as sizes, warehouse_id from inventory_skus where sku_code = '<SKU>';` — sizes sum should equal `stock_qty`.
 - **External API:** Stock for partners is in `inventory_facility_stock` / `GET /stock/snapshot` keyed `FACILITY:SKU` — not `extra.sizes`. If API returns empty, verify `facility` param and exact `sku_code`.
 
+## Stock API snapshot returns DEFAULT:SKU instead of SCOTT_1DAY_01:SKU
+
+- **Symptom:** Postman shows `"DEFAULT:NF-BSHM-BL-S": 0` instead of `"SCOTT_1DAY_01:NF-BSHM-BL-S": 0`.
+- **Root cause:** Early backfill (`20260710120000`) created `inventory_facility_stock` rows with `facility_code = DEFAULT` when SKUs had no `warehouse_id`. Bulk upload later wrote real facility rows but stale DEFAULT zeros remained.
+- **Fix:** Apply `20260806120436_cleanup_default_facility_stock.sql` and redeploy `dashboard-stock-api`. Partners should pass `?facility=SCOTT_1DAY_01` on snapshot — zero stock SKUs then return explicit `0` at that facility.
+- **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — expect mapped facility codes only, no `DEFAULT`.
+
 ## Ready Stock Order tab empty though app orders exist
 
 - **Symptom:** Orders created via the Order API return 201 but the Ready Stock Order tab shows "No app orders yet".
