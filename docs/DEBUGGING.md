@@ -1,5 +1,7 @@
 # Debugging
 
+Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
+
 ## Goals: ownership column missing / create goal fails
 
 | | |

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-17 — Vulnerability audit document
+
+- **Docs:** New [VULNERABILITIES.md](./VULNERABILITIES.md) — whole-build security review (edge functions, RLS, stock RPCs, password reset, advisors). Linked from SECURITY.md.
+- **No code patch** in this pass; High items: Ready Stock status/picklist JWT-only auth, authenticated stock-adjust RPCs.
+
 ## 2026-08-17 — Enquiry dashboard (monitor + assign)
 
 - **Feature:** **Enquiry** tab — list customer enquiries, status filters, admin assignee picker, create enquiry, detail dialog (status, notes, product).
