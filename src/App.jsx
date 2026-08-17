@@ -41,6 +41,7 @@ import { Theme } from "@radix-ui/themes";
 import { cn } from "./lib/utils";
 import SharedLinksPanel from "./SharedLinksPanel";
 import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
+import EnquiryPanel from "./EnquiryPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
@@ -5686,13 +5687,13 @@ function App() {
             />
           )}
 
-          {dashboardTab === "enquiry" && (
-            <section className="panel table-panel dashboard-card">
-              <div className="dashboard-placeholder">
-                <h3>Enquiry</h3>
-                <p>Customer and product enquiries will appear here.</p>
-              </div>
-            </section>
+          {dashboardTab === "enquiry" && session?.user && (
+            <EnquiryPanel
+              isAdmin={isAdmin}
+              canEdit={viewerCanEditCurrentTab}
+              sessionUserId={session.user.id}
+              teamProfiles={teamProfiles}
+            />
           )}
 
           {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (

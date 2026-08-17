@@ -79,6 +79,17 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Preview (dev):** `/#/picklist-preview` (React + sample data) or `GET /api/picklist/preview` / `GET /api/picklist/pdf/sample`.
 7. **Edge cases:** terminal orders cannot generate; empty items → 400; pop-up blocked → alert; picklist API down → error with start hint.
 
+### Enquiry dashboard
+
+1. **Trigger:** user opens sidebar → **Enquiry** (`dashboardTab === "enquiry"` → `EnquiryPanel`).
+2. **Fetch:** `enquiries` (newest first, limit 500) — RLS returns all rows for admin; assignee sees assigned rows; creator sees rows they logged.
+3. **Display:** status filter tabs with counts, search, admin-only assignee filter + summary cards; shadcn table (code, customer, product, source, status, priority, assignee, created).
+4. **Create:** **New enquiry** dialog (admin or tab editor) → insert with `created_by = auth.uid()`, auto `ENQ-#####` code.
+5. **Assign (admin):** detail dialog → pick team member from `teamProfiles` → updates `assignee_id`, `assigned_by`, `assigned_at`, status `assigned` if was `new`; inserts `enquiry_assignment_notifications` for assignee (skip self-assign).
+6. **Work:** assignee (or admin) updates status / notes in detail dialog; assignee RLS allows update on own rows only.
+7. **Realtime:** subscription on `enquiries` → silent refetch; sidebar activity dot on `enquiry` tab when changes on other tabs.
+8. **Failure:** missing migration → inline message with migration name; RLS deny → Supabase error in panel; page never blanks.
+
 ### Inventory UI availability (Reserved / Available)
 
 1. **Trigger:** Inventory tab mounts (`InventoryDataContext`).

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-17 — Enquiry dashboard (monitor + assign)
+
+- **Feature:** **Enquiry** tab — list customer enquiries, status filters, admin assignee picker, create enquiry, detail dialog (status, notes, product).
+- **Database:** `enquiries`, `enquiry_assignment_notifications`, RLS (admin all; assignee/creator scoped), realtime. Migration `20260817130922_add_enquiries_dashboard.sql` (applied staging).
+- **Files:** `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `enquiryUtils.js`, `enquiryNotificationUtils.js`, `App.jsx`, `sidebarTabActivity.js`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md.
+
 ## 2026-08-17 — Sidebar: Enquiry tab under Inventory
 
 - **UI:** New **Enquiry** sidebar item below Distributor (Inventory section) with mail-question icon; placeholder panel until feature is wired.
