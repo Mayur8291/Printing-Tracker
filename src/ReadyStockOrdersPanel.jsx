@@ -184,6 +184,7 @@ export default function ReadyStockOrdersPanel() {
 
   function handleOrderUpdated(patch) {
     setOrders((prev) => prev.map((o) => (o.id === patch.id ? { ...o, ...patch } : o)));
+    void loadOrders({ silent: true });
   }
 
   return (

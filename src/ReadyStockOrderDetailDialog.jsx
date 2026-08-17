@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { invokeAuthenticatedEdgeFunction } from "./edgeFunctionUtils";
 import { mapScottOrderToPicklistData, openPicklistPdf } from "./picklist/picklistApiClient";
+import {
+  SCOTT_ORDER_STATUS_HINTS,
+  SCOTT_ORDER_STATUS_LABELS,
+  scottOrderStatusActions
+} from "./readyStockOrderStatusUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +15,14 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -63,12 +76,44 @@ export default function ReadyStockOrderDetailDialog({
 }) {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [statusDraft, setStatusDraft] = useState("");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   if (!order) return null;
 
   const payment = order.payment ?? {};
   const totalAmount = items.reduce((sum, i) => sum + lineTotal(i), 0);
   const canGeneratePicklist = !["COMPLETE", "CANCELLED", "FAILED"].includes(order.status);
+  const statusActions = scottOrderStatusActions(order.status);
+  const selectedAction = statusActions.find((a) => a.value === statusDraft) ?? null;
+
+  async function applyStatusUpdate() {
+    if (!selectedAction) return;
+    if (selectedAction.confirm && !window.confirm(selectedAction.confirm)) return;
+
+    setUpdatingStatus(true);
+    setError("");
+    try {
+      const payload =
+        selectedAction.action === "cancel"
+          ? { order_id: order.id, action: "cancel", reason: "CUSTOMER_CANCELLED" }
+          : { order_id: order.id, status: selectedAction.value };
+
+      const data = await invokeAuthenticatedEdgeFunction("scott-order-update-status", payload);
+      onOrderUpdated?.({
+        id: order.id,
+        status: data.status,
+        updated_at: data.updated_at,
+        dispatched_at: data.dispatched_at ?? order.dispatched_at,
+        cancelled_at: data.cancelled_at ?? order.cancelled_at
+      });
+      setStatusDraft("");
+    } catch (e) {
+      setError(e?.message || "Failed to update order status.");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  }
 
   async function handleGeneratePicklist() {
     setGenerating(true);
@@ -156,6 +201,54 @@ export default function ReadyStockOrderDetailDialog({
             </div>
           </div>
           {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
+          {statusActions.length ? (
+            <div className="mt-4 rounded-lg border bg-muted/20 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Label htmlFor="ready-stock-status-action" className="text-xs text-muted-foreground">
+                    Update status (syncs to app)
+                  </Label>
+                  <Select value={statusDraft || undefined} onValueChange={setStatusDraft}>
+                    <SelectTrigger id="ready-stock-status-action" className="h-9 bg-background">
+                      <SelectValue placeholder="Choose next status…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusActions.map((action) => (
+                        <SelectItem key={action.value} value={action.value}>
+                          {action.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedAction ? (
+                    <p className="text-[11px] text-muted-foreground">{selectedAction.hint}</p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">
+                      Current: <strong>{SCOTT_ORDER_STATUS_LABELS[order.status] ?? order.status}</strong>
+                      {SCOTT_ORDER_STATUS_HINTS[order.status]
+                        ? ` — ${SCOTT_ORDER_STATUS_HINTS[order.status]}`
+                        : null}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={selectedAction?.destructive ? "destructive" : "default"}
+                  disabled={!selectedAction || updatingStatus}
+                  onClick={() => void applyStatusUpdate()}
+                >
+                  {updatingStatus ? "Updating…" : "Apply status"}
+                </Button>
+              </div>
+            </div>
+          ) : order.status ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {SCOTT_ORDER_STATUS_LABELS[order.status] ?? order.status}
+              {order.dispatched_at ? ` · Dispatched ${formatDateTime(order.dispatched_at)}` : null}
+              {order.cancelled_at ? ` · Cancelled ${formatDateTime(order.cancelled_at)}` : null}
+            </p>
+          ) : null}
         </DialogHeader>
 
         <Tabs defaultValue="items" className="flex min-h-0 flex-1 flex-col">

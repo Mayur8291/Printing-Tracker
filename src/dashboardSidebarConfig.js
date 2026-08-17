@@ -16,7 +16,8 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "inventory", label: "Inventory" },
   { id: "regular", label: "Ready Stock Order" },
   { id: "production_tracker", label: "Production tracker" },
-  { id: "distributor", label: "Distributor" }
+  { id: "distributor", label: "Distributor" },
+  { id: "enquiry", label: "Enquiry" }
 ];
 
 export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
@@ -26,7 +27,7 @@ export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
   },
   {
     label: "Inventory",
-    ids: ["inventory", "regular", "production_tracker", "distributor"]
+    ids: ["inventory", "regular", "production_tracker", "distributor", "enquiry"]
   }
 ];
 

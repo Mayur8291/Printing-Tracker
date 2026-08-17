@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-17 — Sidebar: Enquiry tab under Inventory
+
+- **UI:** New **Enquiry** sidebar item below Distributor (Inventory section) with mail-question icon; placeholder panel until feature is wired.
+
+## 2026-08-06 — Ready Stock: update order status in UI (app sync)
+
+- **Feature:** Ready Stock Order detail → **Update status (syncs to app)** — warehouse can set `PROCESSING`, `COMPLETE`, `FAILED`, or `CANCELLED` after picklist; fires `order.status_changed` webhook.
+- **Edge function:** `scott-order-update-status` (authenticated JWT wrapper around order status/cancel handlers).
+- **Files:** `ReadyStockOrderDetailDialog.jsx`, `readyStockOrderStatusUtils.js`, `scott-order-update-status/index.ts`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DASHBOARD_ORDER_API.md, DEBUGGING.md.
+
 ## 2026-08-06 — Stock API snapshot: remove DEFAULT facility keys
 
 - **Issue:** `GET /stock/snapshot` returned `DEFAULT:SKU` (often `0`) instead of `SCOTT_1DAY_01:SKU` — legacy backfill rows when SKUs had no warehouse.

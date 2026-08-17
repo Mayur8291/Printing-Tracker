@@ -5686,6 +5686,15 @@ function App() {
             />
           )}
 
+          {dashboardTab === "enquiry" && (
+            <section className="panel table-panel dashboard-card">
+              <div className="dashboard-placeholder">
+                <h3>Enquiry</h3>
+                <p>Customer and product enquiries will appear here.</p>
+              </div>
+            </section>
+          )}
+
           {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (
             <NotificationsPanel
               userId={session.user.id}

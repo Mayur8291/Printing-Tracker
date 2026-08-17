@@ -77,6 +77,13 @@ const SIDEBAR_ICONS = {
       <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" />
     </SidebarIcon>
   ),
+  enquiry: (
+    <SidebarIcon>
+      <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" />
+      <path d="M12 11v2" />
+      <path d="M12 7h.01" />
+    </SidebarIcon>
+  ),
   shared_links: (
     <SidebarIcon>
       <path d="M10 13a5 5 0 007.07 0l1.41-1.41a5 5 0 00-7.07-7.07L10 5" />
