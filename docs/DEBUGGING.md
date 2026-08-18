@@ -1,5 +1,14 @@
 # Debugging
 
+## Support: delay alert section missing or send fails
+
+| | |
+|--|--|
+| **Symptom** | Support tab has no **Send production delay alert**, or Send says table not found. |
+| **Root cause** | Card was not copied from Concierge at first. After the card landed, send needs staging table `support_delay_alerts` and nullable `enquiry_outbound_messages.enquiry_id`. Stale PostgREST cache also hides the table. |
+| **Fix** | Hard refresh. Confirm `SupportDelayAlertCard` sits above the sub-tabs (admin and staff). Apply `20260818180000_support_delay_alerts.sql` on **staging** `scvojtvgnkmbupvyslmb`, then `NOTIFY pgrst, 'reload schema';`. |
+| **Verify** | Fill order + phone + new date → Send. Recent sent lists the order. WhatsApp simulator with that phone shows the apology text. |
+
 ## Support Complaints: table empty after simulator ticket
 
 | | |

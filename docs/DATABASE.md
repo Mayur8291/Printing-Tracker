@@ -73,25 +73,54 @@ Staff/admin actions on an enquiry so admin can see pick, status, notes, close.
 
 ### `enquiry_outbound_messages`
 
-One queued customer text per enquiry. First Close inserts Concierge close-survey copy + Feedback button.
+Queued customer texts for the WhatsApp simulator.
 
 | Column | Type | Purpose |
 |--------|------|---------|
 | `id` | uuid | Primary key |
-| `enquiry_id` | uuid | FK → `enquiries.id` (unique — one outbound row per case) |
-| `phone` | text | Customer phone at close |
-| `kind` | text | `buttons` |
-| `text` | text | Concierge close copy |
-| `buttons` | jsonb | `[{ id: "case_feedback", title: "Feedback" }]` |
+| `enquiry_id` | uuid | FK → `enquiries.id` (nullable). Close survey rows have an enquiry; delay-alert rows are `null` |
+| `phone` | text | Customer phone |
+| `kind` | text | `buttons` (close survey / next-step menu) or `delay_alert` |
+| `text` | text | Concierge copy |
+| `buttons` | jsonb | Close: Feedback. Delay: Track / Help / Access |
 | `created_at` | timestamptz | When queued |
 
-**Triggers:** `enquiries_mark_feedback_requested` (BEFORE UPDATE) sets `feedback_requested_at`. `enquiries_queue_close_survey` (AFTER UPDATE, security definer) inserts the row if phone is present.
+**Unique:** one outbound row per non-null `enquiry_id` (close survey). Delay rows skip that unique because `enquiry_id` is null.
 
-**RLS:** Admin / assignee / creator / SLA fallback can select and insert.
+**Triggers:** `enquiries_mark_feedback_requested` (BEFORE UPDATE) sets `feedback_requested_at`. `enquiries_queue_close_survey` (AFTER UPDATE, security definer) inserts the close-survey row if phone is present.
 
-**Rollback:** drop triggers/functions/table; drop `enquiries.feedback_requested_at`.
+**RLS:** Admin / assignee / creator / SLA fallback can select and insert rows tied to an enquiry. Rows with `enquiry_id` null (delay alerts) are readable and insertable by any authenticated user.
+
+**Rollback:** drop triggers/functions/table; drop `enquiries.feedback_requested_at`. Restore `enquiry_id` NOT NULL only after delay rows are gone.
 
 **Realtime:** table added to `supabase_realtime`.
+
+**Migrations:** `20260818113000_enquiry_close_survey_message.sql`, `20260818180000_support_delay_alerts.sql` (nullable `enquiry_id`).
+
+### `support_delay_alerts`
+
+Production delay notices sent from Support (admin and staff).
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `order_id` | text | Order number shown in the customer text |
+| `customer_name` | text | Optional; used in greeting |
+| `phone` | text | Queue key for the WhatsApp simulator |
+| `old_delivery_date` | date | Optional old date |
+| `new_delivery_date` | date | Required new date |
+| `reason` | text | Default `Production delay` |
+| `message` | text | Full Concierge delay copy |
+| `sent_by` | uuid | FK → `profiles.id` |
+| `created_at` | timestamptz | When sent |
+
+**RLS:** Authenticated select all. Insert only when `sent_by = auth.uid()`.
+
+**Realtime:** table added to `supabase_realtime`.
+
+**Rollback:** drop table; restore previous outbound unique/NOT NULL if no delay rows remain.
+
+**Migration:** `20260818180000_support_delay_alerts.sql` (staging).
 
 ### `enquiry_assignment_notifications`
 

@@ -9,6 +9,8 @@
 - Enquiry photos go to bucket `enquiry-attachments`; upload path must start with `auth.uid()`.
 - SLA messages go to Gargi (or first admin). The **customer is never told** about a missed pick.
 - Close queues customer survey copy in `enquiry_outbound_messages` (Feedback button). The SPA does not hold WhatsApp Cloud API keys; live Meta send is not from this app.
+- **Production delay alerts:** admin and staff can send from Support. Insert requires `sent_by = auth.uid()`. Queued outbound rows use `enquiry_id` null so any authenticated user can insert/read them for the simulator. No Cloud API secrets in the browser.
+- **Concerns** (`product_details`) and **customer feedback** are customer-originated. Detail UI is read-only for admin and staff after receive; staff save only notes/priority.
 
 ## Authentication (web / mobile)
 

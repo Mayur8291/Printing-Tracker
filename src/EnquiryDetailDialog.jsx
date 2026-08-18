@@ -30,14 +30,12 @@ import {
   updateEnquiryStatus
 } from "./enquiryUtils";
 import {
-  ENQUIRY_FEEDBACK_RATINGS,
   ENQUIRY_FALLBACK_MANAGER_NAME,
   UNKNOWN_ACCOUNT_MANAGER_VALUE,
   complaintsHelpPathLabel,
   findFallbackManagerProfile,
   isEnquiryUnpicked,
-  pickEnquiry,
-  saveEnquiryFeedback
+  pickEnquiry
 } from "./enquiryConciergeUtils";
 import { normalizeEnquiryAttachments } from "./enquiryAttachmentUtils";
 import { ENQUIRY_ACTIVITY_LABEL, fetchEnquiryActivity, logEnquiryActivity } from "./enquiryActivityUtils";
@@ -88,9 +86,6 @@ export default function EnquiryDetailDialog({
   const [statusDraft, setStatusDraft] = useState("new");
   const [priorityDraft, setPriorityDraft] = useState("normal");
   const [notesDraft, setNotesDraft] = useState("");
-  const [productDraft, setProductDraft] = useState("");
-  const [feedbackRating, setFeedbackRating] = useState("");
-  const [feedbackComment, setFeedbackComment] = useState("");
   const [saving, setSaving] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -111,9 +106,6 @@ export default function EnquiryDetailDialog({
     setStatusDraft(enquiry.status || "new");
     setPriorityDraft(enquiry.priority || "normal");
     setNotesDraft(enquiry.notes || "");
-    setProductDraft(enquiry.product_details || "");
-    setFeedbackRating(enquiry.feedback_rating || "");
-    setFeedbackComment(enquiry.feedback_comment || "");
     setError("");
     void fetchEnquiryActivity(enquiry.id)
       .then(setActivity)
@@ -205,32 +197,12 @@ export default function EnquiryDetailDialog({
     }
   }
 
-  async function handleFeedback() {
-    setSaving(true);
-    setError("");
-    try {
-      const updated = await saveEnquiryFeedback({
-        enquiry,
-        rating: feedbackRating,
-        comment: feedbackComment,
-        sessionUserId,
-        isAdmin
-      });
-      await emitUpdated(updated);
-    } catch (e) {
-      setError(e.message || "Could not save feedback.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function handleSaveDetails() {
     if (!mayEditDetails) return;
     setSaving(true);
     setError("");
     try {
       const updated = await updateEnquiryFields(enquiry.id, {
-        product_details: productDraft.trim() || null,
         notes: notesDraft.trim() || null,
         priority: priorityDraft
       });
@@ -330,6 +302,13 @@ export default function EnquiryDetailDialog({
             <dd>{complaintsHelpPathLabel(enquiry)}</dd>
           </div>
           <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <dt className="text-muted-foreground">Concerns</dt>
+            <dd className="whitespace-pre-wrap">
+              {enquiry.product_details || "—"}
+              <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
+            </dd>
+          </div>
+          <div className="grid grid-cols-[7rem_1fr] gap-2">
             <dt className="text-muted-foreground">Ownership</dt>
             <dd>
               {enquiry.ownership_verified
@@ -374,6 +353,9 @@ export default function EnquiryDetailDialog({
                       ? "Closed — waiting for survey send"
                       : "No customer phone — survey text not sent"
                   : "Not asked yet"}
+              <span className="mt-1 block text-xs text-muted-foreground">
+                Customer feedback is locked after receive. Not editable.
+              </span>
             </dd>
           </div>
         </dl>
@@ -426,46 +408,8 @@ export default function EnquiryDetailDialog({
           </div>
         ) : null}
 
-        {enquiry.status === "closed" && mayUpdateStatus ? (
-          <div className="space-y-2 border-t pt-4">
-            <Label>Customer feedback</Label>
-            <Select value={feedbackRating || "__none__"} onValueChange={(v) => setFeedbackRating(v === "__none__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="How was the experience?" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Pick rating</SelectItem>
-                {ENQUIRY_FEEDBACK_RATINGS.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Textarea
-              value={feedbackComment}
-              onChange={(e) => setFeedbackComment(e.target.value)}
-              rows={2}
-              placeholder="Optional extra comment…"
-            />
-            <Button type="button" variant="secondary" disabled={saving || !feedbackRating} onClick={() => void handleFeedback()}>
-              {saving ? "Saving…" : "Save feedback"}
-            </Button>
-          </div>
-        ) : null}
-
         {mayEditDetails ? (
           <div className="space-y-3 border-t pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="enquiry-product">Concerns</Label>
-              <Textarea
-                id="enquiry-product"
-                value={productDraft}
-                onChange={(e) => setProductDraft(e.target.value)}
-                rows={3}
-                placeholder="What the customer said on Help with order…"
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="enquiry-notes">Notes</Label>
               <Textarea
@@ -497,10 +441,6 @@ export default function EnquiryDetailDialog({
           </div>
         ) : (
           <div className="space-y-2 border-t pt-4 text-sm">
-            <p>
-              <span className="text-muted-foreground">Concerns: </span>
-              {enquiry.product_details || "—"}
-            </p>
             <p>
               <span className="text-muted-foreground">Notes: </span>
               {enquiry.notes || "—"}

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-18 — Support: production delay alert for admin and staff
+
+- **Issue:** Support had no Concierge delay-alert sender. Earlier copy skipped it.
+- **Fix:** **Send production delay alert** card on Support (admin and non-admin). Same Concierge copy. Queues text + next-step buttons for the WhatsApp simulator. Staging table `support_delay_alerts`.
+- **Files:** `SupportDelayAlertCard.jsx`, `supportDelayAlertUtils.js`, `EnquiryPanel.jsx`, `enquiryConciergeUtils.js`, `sidebarTabActivity.js`, migration `20260818180000_support_delay_alerts.sql` (staging).
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, FLOWCHARTS.md, DEBUGGING.md, SECURITY.md, DECISIONS.md, ARCHITECTURE.md, OVERVIEW.md.
+
+## 2026-08-18 — Complaints: lock Concerns and customer feedback
+
+- **Issue:** Admin and staff could edit Concerns and customer feedback after the customer sent them.
+- **Fix:** Detail view shows both as read-only for everyone. Notes and priority still save. Feedback still arrives from the WhatsApp simulator.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, SECURITY.md, DECISIONS.md.
+
 ## 2026-08-18 — Simulator: New member has no welcome or home menu
 
 - **Issue:** New member tap showed placeholder signup copy plus home options.

@@ -110,10 +110,11 @@ export default function EnquiryWhatsAppSimulator({
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
       .map((row) => bot(row.text, Array.isArray(row.buttons) ? row.buttons : []));
     const last = fresh[fresh.length - 1];
+    const isCloseSurvey = Boolean(last.enquiry_id);
     setSession((prev) => ({
       ...prev,
       surveyEnquiryId: last.enquiry_id || prev.surveyEnquiryId,
-      state: prev.state === "idle" ? "survey_awaiting_feedback" : prev.state
+      state: isCloseSurvey && prev.state === "idle" ? "survey_awaiting_feedback" : prev.state
     }));
     setMessages((prev) => [...prev, ...extra]);
   }

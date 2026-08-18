@@ -2,6 +2,30 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-08-18 — Production delay alert on Support for admin and staff
+
+**Context:** Concierge `/admin` has “Send production delay alert”. Dashboard Support copied the desk but skipped that sender. User asked for it on Support for both admin and non-admin.
+
+**Options:** (1) Keep delay-alert only in Concierge. (2) Admin-only card on Support. (3) Same Concierge form on Support for every signed-in user who can open the tab; queue simulator text (no Meta keys in the SPA).
+
+**Decision:** Option 3. Card sits above Enquiry / Complaints / Report. Required: order number, phone, new delivery date. Copy matches Concierge. Staging table `support_delay_alerts` plus two `enquiry_outbound_messages` rows (`delay_alert` text + next-step buttons).
+
+**Why:** User asked for the missing section and for both roles.
+
+**Tradeoffs:** Authenticated users can insert delay rows (RLS `sent_by = auth.uid()`). Live WhatsApp Cloud API still not sent from this dashboard.
+
+## 2026-08-18 — Lock Concerns and customer feedback in Complaints
+
+**Context:** Staff/admin could rewrite customer Concerns and survey feedback in the ticket dialog.
+
+**Options:** (1) Keep editable. (2) Read-only after receive for all roles.
+
+**Decision:** Option 2. Show Concerns and feedback as frozen text. Notes and priority stay editable. Simulator still writes feedback.
+
+**Why:** User asked freeze for both admin and non-admin.
+
+**Tradeoffs:** Staff cannot correct a typo in Concerns from the desk; must live with what the customer sent.
+
 ## 2026-08-18 — Complaints list is Help-with-order paths only
 
 **Context:** Complaints table mixed all enquiry rows and showed Product instead of Order ID / Concerns.
@@ -48,6 +72,6 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Why:** User asked to keep New/Assigned/Pending format as present and only replicate functions.
 
-**Tradeoffs:** Live Meta WhatsApp bot and production delay alerts stay in Concierge. Dashboard Close queues the same survey copy for the WhatsApp simulator (and future Edge Function). SLA persist needs someone with write RLS to open the tab.
+**Tradeoffs:** Live Meta WhatsApp bot stays in Concierge. Dashboard Close and delay alerts queue the same copy for the WhatsApp simulator (and a future Edge Function). SLA persist needs someone with write RLS to open the tab.
 
 **Future:** Optional pg_cron SLA watcher; Edge Function + WhatsApp Cloud API if secrets are stored on Supabase, not in the SPA.

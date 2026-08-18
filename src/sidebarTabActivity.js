@@ -24,6 +24,7 @@ export const SIDEBAR_ACTIVITY_TABLE_TABS = {
   enquiry_sla_escalations: ["enquiry"],
   enquiry_activity_log: ["enquiry"],
   enquiry_outbound_messages: ["enquiry"],
+  support_delay_alerts: ["enquiry"],
   contact_book_entries: ["contact_book"],
   shared_resource_links: ["shared_links"],
   profiles: ["admin"],

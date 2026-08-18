@@ -111,8 +111,8 @@ function phoneFromCustomerJson(customer) {
   return String(customer.phone ?? customer.mobile ?? customer.contact_number ?? "").trim();
 }
 
-function orderMatchResult({ found, orderId, customerName, phone, status, source }) {
-  return { found, orderId, customerName, phone, status, source };
+function orderMatchResult({ found, orderId, customerName, phone, status, source, dueDate }) {
+  return { found, orderId, customerName, phone, status, source, dueDate: dueDate || "" };
 }
 
 /** Staff lookup: Ready Stock (scott_orders) then printing tracker orders. */
@@ -161,7 +161,7 @@ export async function lookupOrderForEnquiry(orderIdRaw) {
 
   const { data: tracker, error: trackerErr } = await supabase
     .from("orders")
-    .select("id, order_id, customer_name, status")
+    .select("id, order_id, customer_name, status, due_date")
     .eq("order_id", code)
     .limit(1)
     .maybeSingle();
@@ -175,7 +175,8 @@ export async function lookupOrderForEnquiry(orderIdRaw) {
       customerName: String(tracker.customer_name ?? "").trim(),
       phone: "",
       status: tracker.status || "",
-      source: "orders"
+      source: "orders",
+      dueDate: tracker.due_date ? String(tracker.due_date).slice(0, 10) : ""
     });
   }
 

@@ -17,6 +17,7 @@ flowchart TD
   E --> F
   F --> G{User action}
   G -->|WhatsApp simulator| S[Fake chat files WhatsApp enquiry]
+  G -->|Delay alert| DA[Queue delay text + next buttons]
   G -->|Create| H[Order lookup + photos + insert]
   G -->|Assign| I[Team member or unknown to Gargi]
   G -->|Mark verified| J[picked_at]
@@ -54,14 +55,29 @@ sequenceDiagram
 ```
 
 ```mermaid
+sequenceDiagram
+  participant Staff
+  participant Card as Delay alert card
+  participant SB as Supabase
+  participant Sim as WhatsApp simulator
+  Staff->>Card: Order number, phone, new date
+  Card->>SB: insert support_delay_alerts
+  Card->>SB: insert enquiry_outbound_messages delay + buttons
+  SB-->>Sim: realtime outbound
+  Sim->>Sim: show Concierge delay copy
+```
+
+```mermaid
 flowchart LR
   subgraph ui [Support tab]
     Cards[New Assigned In progress Resolved Closed]
     Pending[Pending badge if unpicked]
     Detail[Detail dialog Concierge actions]
     Sub[Enquiry Complaints Report]
+    Delay[Send production delay alert]
     Cols[Customer Order ID Concerns]
   end
+  Delay --> Sub
   Sub --> Cards
   Cards --> Cols
   Cols --> Detail

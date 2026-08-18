@@ -66,7 +66,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `2026071012
 | Module | Path | Depends on |
 |--------|------|------------|
 | Shell / routing | `App.jsx` | Most feature panels |
-| Support desk | `EnquiryPanel.jsx`, `enquiryConciergeUtils.js` | Sub-tabs Enquiry / Complaints / Report; Complaints uses `enquiries` + SLA + storage |
+| Support desk | `EnquiryPanel.jsx`, `enquiryConciergeUtils.js`, `SupportDelayAlertCard.jsx` | Sub-tabs Enquiry / Complaints / Report; delay-alert card for admin and staff; Complaints uses `enquiries` + SLA + storage |
 | Inventory | `src/inventory/*` | `inventoryDbUtils`, Supabase |
 | Chat | `TeamChatPanel`, `teamChatService.js` | Supabase + Storage |
 | Goals | `GoalTrackerPanel`, `goalTrackerUtils.js` | Supabase RPC/tables |
@@ -99,7 +99,7 @@ Recommended: introduce **BFF** before mobile production launch; keep RLS as last
 
 ## Background jobs
 
-Today: **PostgreSQL triggers** (notifications, status change, Enquiry close-survey queue), **scheduled purge** RPCs (chat attachment expiry), **GitHub Actions** (prod migrations + optional Netlify hook). Enquiry **2-hour SLA** is a **client pass** when the Support tab loads (same timings as Scott Concierge; no WhatsApp to Gargi from this app). Close survey is queued in Postgres; the temporary WhatsApp simulator displays it.
+Today: **PostgreSQL triggers** (notifications, status change, Enquiry close-survey queue), **scheduled purge** RPCs (chat attachment expiry), **GitHub Actions** (prod migrations + optional Netlify hook). Enquiry **2-hour SLA** is a **client pass** when the Support tab loads (same timings as Scott Concierge; no WhatsApp to Gargi from this app). Close survey and production delay alerts are queued in Postgres; the temporary WhatsApp simulator displays them.
 
 Future: dedicated **worker service** for Uniware sync, reports, bulk imports.
 

@@ -60,6 +60,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import EnquiryWhatsAppSimulator from "./EnquiryWhatsAppSimulator";
+import SupportDelayAlertCard from "./SupportDelayAlertCard";
 import { viewerIsActive } from "./viewerUserListUtils";
 import { AlertCircle, Clock, Headphones, MessageCircle, Plus, RefreshCw } from "lucide-react";
 
@@ -498,6 +499,8 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
         <Headphones className="h-5 w-5" aria-hidden />
         Support
       </h2>
+
+      <SupportDelayAlertCard sessionUserId={sessionUserId} />
 
       <Tabs value={supportSubTab} onValueChange={setSupportSubTab}>
         <TabsList aria-label="Support views">

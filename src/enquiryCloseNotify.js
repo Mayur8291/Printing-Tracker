@@ -54,6 +54,7 @@ export async function fetchOutboundForPhone(phone) {
   const { data, error } = await supabase
     .from("enquiry_outbound_messages")
     .select("id, enquiry_id, phone, kind, text, buttons, created_at")
+    .ilike("phone", `%${digits}`)
     .order("created_at", { ascending: false })
     .limit(30);
   if (error) {
