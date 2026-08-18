@@ -79,16 +79,37 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Preview (dev):** `/#/picklist-preview` (React + sample data) or `GET /api/picklist/preview` / `GET /api/picklist/pdf/sample`.
 7. **Edge cases:** terminal orders cannot generate; empty items → 400; pop-up blocked → alert; picklist API down → error with start hint.
 
-### Enquiry dashboard
+### Support dashboard (Enquiry data)
 
-1. **Trigger:** user opens sidebar → **Enquiry** (`dashboardTab === "enquiry"` → `EnquiryPanel`).
-2. **Fetch:** `enquiries` (newest first, limit 500) — RLS returns all rows for admin; assignee sees assigned rows; creator sees rows they logged.
-3. **Display:** status filter tabs with counts, search, admin-only assignee filter + summary cards; shadcn table (code, customer, product, source, status, priority, assignee, created).
-4. **Create:** **New enquiry** dialog (admin or tab editor) → insert with `created_by = auth.uid()`, auto `ENQ-#####` code.
-5. **Assign (admin):** detail dialog → pick team member from `teamProfiles` → updates `assignee_id`, `assigned_by`, `assigned_at`, status `assigned` if was `new`; inserts `enquiry_assignment_notifications` for assignee (skip self-assign).
-6. **Work:** assignee (or admin) updates status / notes in detail dialog; assignee RLS allows update on own rows only.
-7. **Realtime:** subscription on `enquiries` → silent refetch; sidebar activity dot on `enquiry` tab when changes on other tabs.
-8. **Failure:** missing migration → inline message with migration name; RLS deny → Supabase error in panel; page never blanks.
+1. **Trigger:** user opens sidebar → **Support** (`dashboardTab === "enquiry"` → `EnquiryPanel`). Default sub-tab is **Complaints**.
+2. **Sub-tabs:** **Enquiry** (blank, later), **Complaints** (current ticket desk), **Report** (blank, later).
+3. **Fetch:** `enquiries` (newest first, limit 500) — RLS returns all rows for admin; assignee sees assigned rows; creator sees rows they logged; Gargi sees SLA-escalated rows (`escalated_to_id`).
+4. **Display (Complaints):** only Help with order → **Regular Order** (`order_type=regular`, `help_topic=regular`) and Help with order → **Customized order** (`order_type=customized` + `help_topic=enquiry` or `product_issue`). Columns: Code, Customer, **Order ID**, **Concerns**, Source, Status, Priority, Assignee, Created. No Track Order / Customer Access / Delay tickets.
+5. **Create:** **New enquiry** — customer, phone, order ID (lookup Ready Stock `scott_orders` then tracker `orders.order_id`), help topic, photos, ownership check (last 10 phone digits vs order customer phone).
+6. **Assign (admin only):** detail dialog → pick team member. Non-admin cannot assign (UI hidden, insert RLS blocks assignee, update trigger blocks assignee fields).
+7. **Pick (assignee):** Mark verified / contacted / Close, notes, status. Each action writes `enquiry_activity_log`. Admin list refreshes live; admin detail **Activity** shows who did what.
+8. **SLA:** unpicked = still `new`/`assigned` and no `picked_at`. 1 hour → ops-only waiting banner. 2 hours → escalate to Gargi, red banner, customer not told. Client pass on Enquiry tab load writes `enquiry_sla_escalations` once.
+9. **Realtime:** `enquiries` + `enquiry_sla_escalations` + `enquiry_activity_log` + `enquiry_outbound_messages` → silent refetch so admin sees staff work without refresh.
+10. **Close survey:** First Close queues Concierge copy into `enquiry_outbound_messages` (Feedback button). WhatsApp simulator with the same phone shows that text. No Meta Cloud API send from this SPA.
+11. **Not copied from Concierge:** live WhatsApp Cloud API and production delay-alert sender (wrong tab). Temporary in-app simulator is on this tab.
+12. **Failure:** missing Concierge migration → inline message with `20260818082754_enquiry_concierge_desk.sql`; close survey missing → apply `20260818113000_enquiry_close_survey_message.sql`; RLS deny → error in panel; page never blanks.
+
+### Enquiry WhatsApp simulator (temporary)
+
+1. **Trigger:** Support → **Complaints** → **WhatsApp simulator** (admin or tab editor).
+2. **UI:** Right sheet, fake WhatsApp phone. Default customer John / `+919876543210`.
+3. **Flow:** Same Concierge buttons except **New member** — no welcome/placeholder text and no home buttons on that tap. Admin simulator may pick AM. **Non-admin cannot assign** — ticket is created as **New** for admin to assign.
+4. **Test bypass (default on):** If order/phone does not match, still continue so the Enquiry list can be tested. Turn off to mimic live Concierge deny copy.
+5. **Exit:** Ticket appears on the Enquiry table (Assigned + Pending until pick).
+6. **Close survey:** Keep the sheet open (same chat phone). When AM taps Close, bot sends “I hope your issue has been resolved…” + Feedback. Customer taps Feedback → stars → optional comment or Skip. That writes `feedback_rating` on the enquiry.
+7. **Failure:** No Gargi profile + unknown AM → bot asks to pick another name. Photo type/size errors stay in chat. Close with empty phone → no survey text.
+
+### Enquiry Concierge ownership lookup
+
+- **Trigger:** create form Order ID blur, or save.
+- **Services:** `lookupOrderForEnquiry` → `scott_orders.order_code` / `id`, else `orders.order_id`.
+- **Business logic:** staff see whether the order exists. `ownership_verified` true only when order has a phone and last-10 digits match enquiry phone.
+- **Edge:** tracker `orders` often have no phone → not verified even if code matches. Empty Order ID → skip lookup.
 
 ### Inventory UI availability (Reserved / Available)
 

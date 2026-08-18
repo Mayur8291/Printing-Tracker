@@ -1,5 +1,15 @@
 # Security
 
+- Enquiry **assign** is admin-only (RLS insert + update trigger). Non-admin cannot set `assignee_id`.
+- Enquiry activity log is scoped; admin sees all staff actions on the Support tab.
+
+## Enquiry Concierge desk
+
+- Order ownership is a **staff** flag (`ownership_verified`). The dashboard does not expose order data to customers.
+- Enquiry photos go to bucket `enquiry-attachments`; upload path must start with `auth.uid()`.
+- SLA messages go to Gargi (or first admin). The **customer is never told** about a missed pick.
+- Close queues customer survey copy in `enquiry_outbound_messages` (Feedback button). The SPA does not hold WhatsApp Cloud API keys; live Meta send is not from this app.
+
 ## Authentication (web / mobile)
 
 - Users sign in via Supabase Auth (email + password).

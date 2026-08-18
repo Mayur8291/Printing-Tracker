@@ -1,5 +1,57 @@
 # Debugging
 
+## Support Complaints: table empty after simulator ticket
+
+| | |
+|--|--|
+| **Symptom** | Simulator filed a ticket but Complaints list is empty. |
+| **Root cause** | Complaints only shows Help with order → Regular Order, or Help with order → Customized (Enquiries / Concerns). Track Order, Customer Access, and Delay do not list here. |
+| **Fix** | Use **Help with order → Regular Order** or **Help with order → Customized order**. Confirm Order ID was sent in chat. |
+| **Verify** | Order ID column filled; Concerns shows the customer message. |
+
+## Enquiry: non-admin cannot assign
+
+| | |
+|--|--|
+| **Symptom** | Assign picker missing, or error “Only an admin can assign enquiries”. |
+| **Root cause** | Assign is admin-only. Simulator as non-admin creates **New** (unassigned) for admin. |
+| **Fix** | Sign in as admin to assign. Staff use Mark verified / Contacted / Close on tickets already assigned to them. Admin opens the row → **Activity** to see staff work. |
+
+## Enquiry: WhatsApp simulator does not create a ticket
+
+| | |
+|--|--|
+| **Symptom** | Chat works but Enquiry table empty. |
+| **Root cause** | Path was Track/Access/Delay (no ticket), or AM pick failed (no Gargi / no team names), or create RLS error. |
+| **Fix** | Use **Help → Customized → Enquiries**, type 8+ chars, pick an AM. Keep **Test bypass** on if the order phone does not match. Need at least one active team profile. |
+| **Verify** | Support → Complaints shows row with Order ID beside Customer, Concerns = the typed issue. |
+
+## Enquiry: Concierge columns missing / create fails
+
+| | |
+|--|--|
+| **Symptom** | Support → Complaints error about schema cache / missing column (`order_id`, `picked_at`, `attachments`). Create enquiry fails. |
+| **Root cause** | Migration `20260818082754_enquiry_concierge_desk.sql` not on this Supabase project, or PostgREST schema cache stale. |
+| **Fix** | Apply that migration on **staging** (`scvojtvgnkmbupvyslmb`). Then `NOTIFY pgrst, 'reload schema';`. Hard refresh the app. |
+| **Verify** | New enquiry with Order ID + photo; detail shows Mark verified / Contacted / Close. |
+
+## Enquiry: Close does not send automatic text
+
+| | |
+|--|--|
+| **Symptom** | AM taps Close; customer (WhatsApp simulator) never gets “I hope your issue has been resolved…”. |
+| **Root cause** | Close used to only set `status=closed`. Survey now queues in `enquiry_outbound_messages`. Simulator must stay open with the **same phone**. Empty phone skips send. Migration not on staging → no table/trigger. |
+| **Fix** | Apply `20260818113000_enquiry_close_survey_message.sql` on **staging**. Open Enquiry → WhatsApp simulator with the ticket phone → AM Close. Hard refresh if schema cache stale (`NOTIFY pgrst, 'reload schema'`). |
+| **Verify** | Detail shows **Customer message sent**. Simulator shows Feedback button. |
+| **Note** | This dashboard does not send live Meta WhatsApp. Real phone SMS/WA stays in `Scott_concierge` unless an Edge Function is added later. |
+
+| | |
+|--|--|
+| **Symptom** | Assigned ticket older than 2 hours, no red SLA banner. |
+| **Root cause** | Ticket already has `picked_at`, or no profile named **Gargi** (fallback is first admin), or opener has no write RLS so persist is skipped. |
+| **Fix** | Confirm status is still New/Assigned and Pending badge shows. Add a user whose `full_name` is Gargi. Open Enquiry as admin so the client SLA pass can write `enquiry_sla_escalations`. |
+| **Note** | Missed-pick SLA still does not message the customer. Close **does** queue the Concierge feedback text for the ticket phone (simulator). Live WhatsApp Cloud API stays in `Scott_concierge`. |
+
 ## Goals: ownership column missing / create goal fails
 
 | | |

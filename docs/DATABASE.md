@@ -15,16 +15,83 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | `product_details` | text | What customer asked for |
 | `source` | text | Phone, Email, Walk-in, etc. |
 | `notes` | text | Internal notes |
-| `status` | text | `new`, `assigned`, `in_progress`, `resolved`, `closed` |
+| `status` | text | `new`, `assigned`, `in_progress`, `resolved`, `closed` (UI format unchanged) |
 | `priority` | text | `low`, `normal`, `high`, `urgent` |
+| `order_id` | text | Optional linked order code (Ready Stock or tracker) |
+| `order_type` | text | `regular` or `customized` |
+| `help_topic` | text | `enquiry`, `product_issue`, `regular` |
+| `ownership_verified` | boolean | Phone last-10 match vs order customer phone |
+| `assigned_because_unknown` | boolean | True when admin chose “I don’t know AM” → Gargi |
+| `picked_at` | timestamptz | First Verified / Contacted / Close (or in_progress+) |
+| `sla_escalated_at` / `escalated_to_id` | timestamptz / uuid | 2-hour unpicked escalation (usually Gargi) |
+| `closed_at` | timestamptz | First Close |
+| `feedback_rating` / `feedback_comment` / `feedback_at` | text / text / timestamptz | Customer feedback after Close (simulator or staff form) |
+| `feedback_requested_at` | timestamptz | Set on first Close (survey queued) |
+| `attachments` | jsonb | Photo objects `{path,name,mime,size}` |
 | `assignee_id` | uuid | FK → `profiles.id` — who works on it |
 | `assigned_by` / `assigned_at` | uuid / timestamptz | Admin assignment audit |
 | `created_by` | uuid | FK → `profiles.id` — who logged enquiry |
 | `created_at` / `updated_at` | timestamptz | Audit |
 
-**RLS:** Admin full access; assignee and creator can read; assignee can update status on own rows; insert any authenticated (`created_by = auth.uid()`).
+**RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields**; insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits.
 
-**Migration:** `20260817130922_add_enquiries_dashboard.sql`
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql` (staging).
+
+### `enquiry_sla_escalations`
+
+One row per enquiry after 2 hours unpicked. Admin and `recipient_user_id` (Gargi) can read. Insert by admin/assignee/creator of the enquiry.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `enquiry_id` | uuid | FK → `enquiries.id` (unique) |
+| `enquiry_code` / `customer_name` / `order_id` | text | Banner copy |
+| `assignee_id` / `assignee_name` | uuid / text | Who missed the pick |
+| `recipient_user_id` | uuid | Gargi (or first admin if no Gargi profile) |
+| `message` | text | `{Name} has not picked ENQ-#####.` |
+
+**Storage bucket:** `enquiry-attachments` (public URLs, authenticated upload to `{auth.uid()}/…`).
+
+**Query pattern:** list newest 500 enquiries; unpicked SLA partial index `(created_at) WHERE picked_at IS NULL AND status IN ('new','assigned')`.
+
+**Rollback:** drop new columns / table / bucket policies; restore prior `enquiries select scoped` policy (no `escalated_to_id`).
+
+### `enquiry_activity_log`
+
+Staff/admin actions on an enquiry so admin can see pick, status, notes, close.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `enquiry_id` | uuid | FK → `enquiries.id` |
+| `actor_id` | uuid | Who did the action |
+| `action` | text | `created`, `assigned`, `verified`, `contacted`, `closed`, `status`, `details`, `feedback` |
+| `detail` | text | Extra (status value, code) |
+| `created_at` | timestamptz | When |
+
+**RLS:** Admin reads all; actor reads own; assignee/creator/SLA fallback read for that enquiry. Insert only as self (`actor_id = auth.uid()`).
+
+**Migration:** `20260818100000_enquiry_admin_assign_activity.sql`
+
+### `enquiry_outbound_messages`
+
+One queued customer text per enquiry. First Close inserts Concierge close-survey copy + Feedback button.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `enquiry_id` | uuid | FK → `enquiries.id` (unique — one outbound row per case) |
+| `phone` | text | Customer phone at close |
+| `kind` | text | `buttons` |
+| `text` | text | Concierge close copy |
+| `buttons` | jsonb | `[{ id: "case_feedback", title: "Feedback" }]` |
+| `created_at` | timestamptz | When queued |
+
+**Triggers:** `enquiries_mark_feedback_requested` (BEFORE UPDATE) sets `feedback_requested_at`. `enquiries_queue_close_survey` (AFTER UPDATE, security definer) inserts the row if phone is present.
+
+**RLS:** Admin / assignee / creator / SLA fallback can select and insert.
+
+**Rollback:** drop triggers/functions/table; drop `enquiries.feedback_requested_at`.
+
+**Realtime:** table added to `supabase_realtime`.
 
 ### `enquiry_assignment_notifications`
 

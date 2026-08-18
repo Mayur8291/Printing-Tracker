@@ -17,7 +17,7 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "regular", label: "Ready Stock Order" },
   { id: "production_tracker", label: "Production tracker" },
   { id: "distributor", label: "Distributor" },
-  { id: "enquiry", label: "Enquiry" }
+  { id: "enquiry", label: "Support" }
 ];
 
 export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [

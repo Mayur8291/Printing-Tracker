@@ -1,5 +1,62 @@
 # Changelog
 
+## 2026-08-18 — Simulator: New member has no welcome or home menu
+
+- **Issue:** New member tap showed placeholder signup copy plus home options.
+- **Fix:** New member tap logs the customer choice only. No welcome text. No home buttons.
+- **Files:** `EnquiryWhatsAppSimulator.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-18 — Complaints: Order ID + Concerns; Help-with-order paths only
+
+- **Issue:** Complaints table had no Order ID, column said Product, and listed tickets from other paths.
+- **Fix:** Order ID sits beside Customer. Product column is **Concerns** (customer issue text). List only Help with order → Regular Order and Help with order → Customized order (Enquiries / Concerns). Track/Access/Delay stay out.
+- **Files:** `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `enquiryConciergeUtils.js`, `enquiryUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-18 — Support sub-tabs: Enquiry / Complaints / Report
+
+- **Issue:** Support was one page. User wants three sub-tabs.
+- **Fix:** Support now has **Enquiry**, **Complaints**, **Report**. Current desk is **Complaints** (default). Enquiry and Report are blank placeholders.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-08-18 — Sidebar tab Enquiry renamed Support
+
+- **Issue:** Side panel still said Enquiry.
+- **Fix:** Tab label is **Support**. Icon is headphones (support). Permission id stays `enquiry`.
+- **Files:** `dashboardSidebarConfig.js`, `DashboardAppSidebar.jsx`, `dashboardSidebarIcons.jsx`, `EnquiryPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-08-18 — Close case auto feedback text
+
+- **Issue:** Account manager Close did not send the Concierge customer text.
+- **Reason:** Dashboard Close only set `status=closed`. No outbound queue and simulator never listened.
+- **Fix:** Staging trigger queues close-survey copy into `enquiry_outbound_messages`. Simulator shows it for the same phone (Feedback → stars → Skip/comment). Detail shows queued text. Still no Meta WhatsApp keys in the SPA.
+- **Files:** `enquiryCloseNotify.js`, `enquiryConciergeUtils.js`, `enquiryUtils.js`, `EnquiryWhatsAppSimulator.jsx`, `EnquiryDetailDialog.jsx`, `EnquiryPanel.jsx`, `sidebarTabActivity.js`, migration `20260818113000_enquiry_close_survey_message.sql` (staging).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, SECURITY.md, DECISIONS.md, ARCHITECTURE.md.
+
+## 2026-08-18 — Enquiry: admin-only assign; staff actions visible to admin
+
+- **Issue:** Non-admin could assign (WhatsApp simulator / insert assignee). Admin had no action history.
+- **Fix:** Assign is admin-only (UI + RLS + trigger). Non-admin tickets stay New until admin assigns. Staff pick/status/notes/close write `enquiry_activity_log`; admin detail shows Activity; realtime refreshes the admin list.
+- **Files:** `EnquiryDetailDialog.jsx`, `EnquiryPanel.jsx`, `EnquiryWhatsAppSimulator.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `enquiryActivityUtils.js`, migration `20260818100000_enquiry_admin_assign_activity.sql` (staging).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, SECURITY.md.
+
+## 2026-08-18 — Temporary WhatsApp simulator on Enquiry tab
+
+- **Feature:** Enquiry → **WhatsApp simulator** (temporary fake Concierge chat). Files real tickets onto the Enquiry list. Test bypass on by default so unmatched phone/order still creates a row.
+- **Files:** `EnquiryWhatsAppSimulator.jsx`, `enquiryWhatsAppSimulatorFlow.js`, `EnquiryPanel.jsx`, `enquiryUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-18 — Enquiry tab: Scott Concierge desk functions
+
+- **Feature:** Enquiry tab keeps **New / Assigned / In progress / Resolved / Closed** cards and table. Concierge desk functions added: order ID + ownership check, help topic, photos, Mark verified / contacted / Close, 1h ops wait + 2h Gargi SLA, unknown-AM → Gargi, in-app close feedback.
+- **Database (staging):** `20260818082754_enquiry_concierge_desk.sql` — extra `enquiries` columns, `enquiry_sla_escalations`, bucket `enquiry-attachments`.
+- **Files:** `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `enquiryAttachmentUtils.js`, `sidebarTabActivity.js`.
+- **Cursor:** shadcn MCP at `.cursor/mcp.json` (enable in Cursor Settings → MCP).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, ARCHITECTURE.md, OVERVIEW.md, SECURITY.md, DECISIONS.md.
+
 ## 2026-08-17 — Enquiry dashboard (monitor + assign)
 
 - **Feature:** **Enquiry** tab — list customer enquiries, status filters, admin assignee picker, create enquiry, detail dialog (status, notes, product).

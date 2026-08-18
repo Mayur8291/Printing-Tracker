@@ -62,6 +62,7 @@ flowchart LR
 | Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js` | DMs, groups, attachments, GIFs |
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
+| Support (Enquiry / Complaints / Report) | `src/EnquiryPanel.jsx` | Complaints desk: tickets, assign, pick, SLA. Enquiry and Report blank for later. |
 | Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
 
 ### Data flow (typical)

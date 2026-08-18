@@ -1,5 +1,7 @@
 import { supabase } from "./supabaseClient";
 import { insertEnquiryAssignmentNotification } from "./enquiryNotificationUtils";
+import { logEnquiryActivity } from "./enquiryActivityUtils";
+import { queueCloseSurveyIfNeeded } from "./enquiryCloseNotify";
 
 export const ENQUIRY_STATUSES = ["new", "assigned", "in_progress", "resolved", "closed"];
 
@@ -21,12 +23,12 @@ export const ENQUIRY_PRIORITY_LABEL = {
 };
 
 export const ENQUIRY_SOURCES = [
+  "WhatsApp",
   "Phone",
   "Email",
   "Walk-in",
   "Website",
   "Distributor",
-  "WhatsApp",
   "Other"
 ];
 
@@ -35,13 +37,16 @@ export const EMPTY_ENQUIRY_FORM = {
   customer_phone: "",
   customer_email: "",
   product_details: "",
-  source: "Phone",
+  source: "WhatsApp",
   priority: "normal",
-  notes: ""
+  notes: "",
+  order_id: "",
+  order_type: "regular",
+  help_topic: "regular"
 };
 
 const ENQUIRY_SELECT =
-  "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at";
+  "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at, order_id, order_type, help_topic, ownership_verified, assigned_because_unknown, picked_at, sla_escalated_at, escalated_to_id, closed_at, feedback_rating, feedback_comment, feedback_at, feedback_requested_at, attachments";
 
 export function profileDisplayName(profile) {
   if (!profile) return "—";
@@ -82,14 +87,43 @@ export async function createEnquiry({ createdBy, form }) {
     priority: normalizeEnquiryPriority(form.priority),
     notes: String(form.notes ?? "").trim() || null,
     status: "new",
-    created_by: createdBy
+    created_by: createdBy,
+    order_id: String(form.order_id ?? "").trim() || null,
+    order_type: form.order_type === "customized" ? "customized" : "regular",
+    help_topic: ["enquiry", "product_issue", "regular"].includes(form.help_topic)
+      ? form.help_topic
+      : "enquiry",
+    ownership_verified: Boolean(form.ownership_verified),
+    attachments: Array.isArray(form.attachments) ? form.attachments : []
   };
   if (!payload.customer_name) {
     throw new Error("Customer name is required.");
   }
 
+  if (form.allowAssign === true && form.assignee_id) {
+    payload.assignee_id = form.assignee_id;
+    payload.assigned_by = createdBy;
+    payload.assigned_at = new Date().toISOString();
+    payload.status = "assigned";
+    payload.assigned_because_unknown = Boolean(form.assigned_because_unknown);
+  }
+
   const { data, error } = await supabase.from("enquiries").insert(payload).select(ENQUIRY_SELECT).single();
   if (error) throw error;
+  await logEnquiryActivity({
+    enquiryId: data.id,
+    actorId: createdBy,
+    action: "created",
+    detail: data.enquiry_code
+  });
+  if (data.assignee_id) {
+    await logEnquiryActivity({
+      enquiryId: data.id,
+      actorId: createdBy,
+      action: "assigned",
+      detail: "Assigned on create"
+    });
+  }
   return data;
 }
 
@@ -104,7 +138,14 @@ export async function updateEnquiryFields(enquiryId, patch) {
   return data;
 }
 
-export async function assignEnquiry({ enquiry, assigneeId, assignedByUserId }) {
+export async function assignEnquiry({
+  enquiry,
+  assigneeId,
+  assignedByUserId,
+  assignedBecauseUnknown = false,
+  isAdmin = false
+}) {
+  if (!isAdmin) throw new Error("Only an admin can assign enquiries.");
   if (!enquiry?.id) throw new Error("Enquiry not found.");
   if (!assigneeId) throw new Error("Pick someone to assign.");
 
@@ -112,7 +153,8 @@ export async function assignEnquiry({ enquiry, assigneeId, assignedByUserId }) {
     assignee_id: assigneeId,
     assigned_by: assignedByUserId,
     assigned_at: new Date().toISOString(),
-    status: enquiry.status === "new" ? "assigned" : enquiry.status
+    status: enquiry.status === "new" ? "assigned" : enquiry.status,
+    assigned_because_unknown: Boolean(assignedBecauseUnknown)
   };
 
   const updated = await updateEnquiryFields(enquiry.id, patch);
@@ -125,15 +167,40 @@ export async function assignEnquiry({ enquiry, assigneeId, assignedByUserId }) {
     assignedByUserId
   });
 
+  await logEnquiryActivity({
+    enquiryId: updated.id,
+    actorId: assignedByUserId,
+    action: "assigned",
+    detail: updated.enquiry_code
+  });
+
   return updated;
 }
 
-export async function updateEnquiryStatus({ enquiryId, status, isAdmin, assigneeId, sessionUserId }) {
+export async function updateEnquiryStatus({ enquiryId, status, isAdmin, assigneeId, sessionUserId, enquiry }) {
   const next = normalizeEnquiryStatus(status);
-  if (!isAdmin && assigneeId !== sessionUserId) {
-    throw new Error("Only the assignee or an admin can update status.");
+  if (!isAdmin && assigneeId !== sessionUserId && enquiry?.escalated_to_id !== sessionUserId) {
+    throw new Error("Only the assignee, SLA fallback, or an admin can update status.");
   }
-  return updateEnquiryFields(enquiryId, { status: next });
+  const patch = { status: next };
+  const now = new Date().toISOString();
+  if ((next === "in_progress" || next === "resolved" || next === "closed") && !enquiry?.picked_at) {
+    patch.picked_at = now;
+  }
+  if (next === "closed" && !enquiry?.closed_at) {
+    patch.closed_at = now;
+  }
+  const updated = await updateEnquiryFields(enquiryId, patch);
+  await logEnquiryActivity({
+    enquiryId,
+    actorId: sessionUserId,
+    action: "status",
+    detail: next
+  });
+  if (next === "closed" && enquiry?.status !== "closed") {
+    await queueCloseSurveyIfNeeded(updated, sessionUserId);
+  }
+  return updated;
 }
 
 export function filterEnquiries(enquiries, { statusFilter, searchQuery, assigneeFilter }) {
@@ -154,7 +221,9 @@ export function filterEnquiries(enquiries, { statusFilter, searchQuery, assignee
       row.product_details,
       row.source,
       row.notes,
-      row.status
+      row.status,
+      row.order_id,
+      row.help_topic
     ]
       .map((v) => String(v ?? "").toLowerCase())
       .join(" ");
