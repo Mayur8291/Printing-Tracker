@@ -8,6 +8,7 @@
 # npx supabase functions deploy complete-password-reset
 # npx supabase functions deploy admin-review-password-reset
 # npx supabase functions deploy admin-list-password-reset-requests
+# npx supabase functions deploy scott-dashboard-masters
 
 [functions.admin-create-user]
 verify_jwt = true
@@ -40,4 +41,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.admin-test-scott-webhook]
+verify_jwt = true
+
+[functions.scott-dashboard-masters]
 verify_jwt = true

@@ -76,6 +76,7 @@ import {
 } from "./components/ui/select";
 import {
   ADMIN_DASHBOARD_TAB,
+  DASHBOARD_GRANTABLE_SIDEBAR,
   DASHBOARD_SIDEBAR,
   DASHBOARD_SIDEBAR_FOOTER,
   DASHBOARD_SIDEBAR_MAIN,
@@ -128,6 +129,9 @@ import {
 } from "./stickerOrderUtils";
 import DistributorTabPanel from "./DistributorTabPanel";
 import InventoryTabPanel from "./InventoryTabPanel";
+import ScottCustomersTabPanel from "./scott/ScottCustomersTabPanel";
+import ScottReportsTabPanel from "./scott/ScottReportsTabPanel";
+import ScottMastersTabPanel from "./scott/ScottMastersTabPanel";
 import {
   computeNextJobSheetOrderId,
   emptyJobSheetForm,
@@ -215,6 +219,7 @@ import {
   hydrateSidebarEditTabFlagsFromPermission,
   hydrateSidebarTabFlagsFromPermission,
   viewerCanAccessDashboardTab,
+  viewerMayReachTab,
   viewerCanEditDashboardTab
 } from "./dashboardSidebarPermissions";
 import {
@@ -469,6 +474,15 @@ function OrderColorsCell({ colors }) {
 
 const DASHBOARD_TAB_STORAGE_KEY = "printing-tracker-dashboard-tab";
 
+/** Tabs whose panel owns its own padding + scrolling (shadcn-only, no legacy-ui wrapper). */
+const FULL_BLEED_TABS = new Set([
+  "asset_management",
+  "inventory",
+  "scott_customers",
+  "scott_reports",
+  "scott_masters"
+]);
+
 const PRINTING_ORDERS_TAB_STORAGE_KEY = "printing-orders-tab";
 
 function readStoredOrdersTab() {
@@ -505,7 +519,7 @@ function resolveDashboardTabForUser(tabId, permissions, isAdmin) {
     }
     return firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, permissions, isAdmin) ?? "home";
   }
-  if (isAdmin || viewerCanAccessDashboardTab(permissions, tabId)) return tabId;
+  if (viewerMayReachTab(permissions, tabId, isAdmin)) return tabId;
   const fallback = firstAllowedDashboardTabId(DASHBOARD_SIDEBAR, permissions, isAdmin);
   return fallback ?? "home";
 }
@@ -524,7 +538,7 @@ const DEFAULT_NEW_USER_PERMISSIONS = {
 };
 
 function defaultNewUserPermissions() {
-  const viewTabs = defaultSidebarTabFlags(DASHBOARD_SIDEBAR);
+  const viewTabs = defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR);
   return {
     ...DEFAULT_NEW_USER_PERMISSIONS,
     sidebar_tabs: viewTabs,
@@ -554,16 +568,16 @@ function hydrateDraftFromPermission(p) {
         can_create_orders: Boolean(p.can_create_orders)
       }
     : { ...DEFAULT_NEW_USER_PERMISSIONS };
-  const sidebar_tabs = hydrateSidebarTabFlagsFromPermission(p, DASHBOARD_SIDEBAR);
+  const sidebar_tabs = hydrateSidebarTabFlagsFromPermission(p, DASHBOARD_GRANTABLE_SIDEBAR);
   return {
     ...orderDefaults,
     sidebar_tabs,
-    sidebar_edit_tabs: hydrateSidebarEditTabFlagsFromPermission(p, DASHBOARD_SIDEBAR)
+    sidebar_edit_tabs: hydrateSidebarEditTabFlagsFromPermission(p, DASHBOARD_GRANTABLE_SIDEBAR)
   };
 }
 
 function permissionRowFromDraft(draft) {
-  const sidebarTabs = draft.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR);
+  const sidebarTabs = draft.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR);
   const sidebarEditTabs = draft.sidebar_edit_tabs ?? { ...sidebarTabs };
   return {
     can_edit_status: draft.can_edit_status !== false,
@@ -576,11 +590,11 @@ function permissionRowFromDraft(draft) {
     can_edit_received_at_printing: Boolean(draft.can_edit_received_at_printing),
     can_edit_payment_method: Boolean(draft.can_edit_payment_method),
     can_create_orders: Boolean(draft.can_create_orders),
-    allowed_dashboard_tabs: allowedDashboardTabsFromFlags(sidebarTabs, DASHBOARD_SIDEBAR),
+    allowed_dashboard_tabs: allowedDashboardTabsFromFlags(sidebarTabs, DASHBOARD_GRANTABLE_SIDEBAR),
     editable_dashboard_tabs: editableDashboardTabsFromFlags(
       sidebarEditTabs,
       sidebarTabs,
-      DASHBOARD_SIDEBAR
+      DASHBOARD_GRANTABLE_SIDEBAR
     )
   };
 }
@@ -3194,11 +3208,11 @@ function App() {
     setPermissionDrafts((prev) => {
       const base = prev[viewerId] ?? hydrateDraftFromPermission(viewerPermissions[viewerId] ?? {});
       const sidebar_tabs = {
-        ...(base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        ...(base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR)),
         [tabId]: checked
       };
       const sidebar_edit_tabs = {
-        ...(base.sidebar_edit_tabs ?? base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        ...(base.sidebar_edit_tabs ?? base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR)),
         [tabId]: checked ? base.sidebar_edit_tabs?.[tabId] !== false : false
       };
       if (checked && base.sidebar_edit_tabs?.[tabId] !== false) {
@@ -3219,7 +3233,7 @@ function App() {
         [viewerId]: {
           ...base,
           sidebar_edit_tabs: {
-            ...(base.sidebar_edit_tabs ?? base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+            ...(base.sidebar_edit_tabs ?? base.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR)),
             [tabId]: checked
           }
         }
@@ -3230,11 +3244,11 @@ function App() {
   function updateNewUserSidebarTab(tabId, checked) {
     setNewUserForm((prev) => {
       const sidebar_tabs = {
-        ...(prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        ...(prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR)),
         [tabId]: checked
       };
       const sidebar_edit_tabs = {
-        ...(prev.permissions.sidebar_edit_tabs ?? prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+        ...(prev.permissions.sidebar_edit_tabs ?? prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR)),
         [tabId]: checked ? prev.permissions.sidebar_edit_tabs?.[tabId] !== false : false
       };
       if (checked) sidebar_edit_tabs[tabId] = true;
@@ -3251,7 +3265,7 @@ function App() {
       permissions: {
         ...prev.permissions,
         sidebar_edit_tabs: {
-          ...(prev.permissions.sidebar_edit_tabs ?? prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_SIDEBAR)),
+          ...(prev.permissions.sidebar_edit_tabs ?? prev.permissions.sidebar_tabs ?? defaultSidebarTabFlags(DASHBOARD_GRANTABLE_SIDEBAR)),
           [tabId]: checked
         }
       }
@@ -5327,7 +5341,7 @@ function App() {
             </Button>
           </>
         }
-        fullBleed={dashboardTab === "asset_management" || dashboardTab === "inventory"}
+        fullBleed={FULL_BLEED_TABS.has(dashboardTab)}
       >
           {profileError && (
             <Alert variant="destructive" className="mb-4">
@@ -5347,10 +5361,8 @@ function App() {
           <div
             className={cn(
               "flex min-h-0 flex-1 flex-col",
-              dashboardTab === "asset_management" || dashboardTab === "inventory"
-                ? "overflow-hidden"
-                : "gap-4",
-              dashboardTab !== "asset_management" && dashboardTab !== "inventory" && "legacy-ui"
+              FULL_BLEED_TABS.has(dashboardTab) ? "overflow-hidden" : "gap-4",
+              !FULL_BLEED_TABS.has(dashboardTab) && "legacy-ui"
             )}
           >
           {isAdmin && masterTableMissing && (
@@ -5799,6 +5811,30 @@ function App() {
           )}
           {dashboardTab === "inventory" && (
             <InventoryTabPanel session={session} />
+          )}
+          {/* Scott tabs are admin-only (DASHBOARD_ADMIN_ONLY_TAB_IDS): the Scott proxy 403s
+              non-admins, so guard the render too — sessionStorage can otherwise restore a
+              Scott tab for a user who has since lost admin. */}
+          {dashboardTab === "scott_customers" && isAdmin && (
+            <ScottCustomersTabPanel
+              isAdmin={isAdmin}
+              canEdit={viewerCanEditCurrentTab}
+              sessionUserId={session?.user?.id}
+            />
+          )}
+          {dashboardTab === "scott_reports" && isAdmin && (
+            <ScottReportsTabPanel
+              isAdmin={isAdmin}
+              canEdit={viewerCanEditCurrentTab}
+              sessionUserId={session?.user?.id}
+            />
+          )}
+          {dashboardTab === "scott_masters" && isAdmin && (
+            <ScottMastersTabPanel
+              isAdmin={isAdmin}
+              canEdit={viewerCanEditCurrentTab}
+              sessionUserId={session?.user?.id}
+            />
           )}
           {dashboardTab === "admin" && isAdmin && (
             <section className="panel table-panel dashboard-card dashboard-card--flat">

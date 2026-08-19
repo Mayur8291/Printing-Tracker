@@ -2,6 +2,9 @@ import {
   BarChart3,
   Briefcase,
   ClipboardList,
+  Contact,
+  Database,
+  FileBarChart2,
   FileText,
   Globe,
   Home,
@@ -47,7 +50,10 @@ const TAB_ICONS = {
   chat: MessageSquare,
   asset_management: Briefcase,
   audit: ClipboardList,
-  admin: Settings
+  admin: Settings,
+  scott_customers: Contact,
+  scott_reports: FileBarChart2,
+  scott_masters: Database
 };
 
 function NavItem({ item, isActive, onSelect, showSoon, badgeCount = 0, showActivityDot = false }) {

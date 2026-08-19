@@ -758,8 +758,11 @@ table[data-shadcn-table] {
   min-width: 0 !important;
 }
 
-table[data-shadcn-table] th,
-table[data-shadcn-table] td {
+/* `:not([data-scott-bulk-grid])` lets an editable grid keep per-cell backgrounds
+   (dirty / invalid tints, pinned column). Every existing table is unaffected —
+   only tables that explicitly opt in with the attribute are excluded. */
+table[data-shadcn-table]:not([data-scott-bulk-grid]) th,
+table[data-shadcn-table]:not([data-scott-bulk-grid]) td {
   border: none !important;
   background: transparent !important;
   font-weight: inherit;
@@ -768,9 +771,24 @@ table[data-shadcn-table] td {
   color: inherit;
 }
 
-html.theme-dark table[data-shadcn-table] th,
-html.theme-dark table[data-shadcn-table] td {
+table[data-shadcn-table][data-scott-bulk-grid] th,
+table[data-shadcn-table][data-scott-bulk-grid] td {
+  border: none !important;
+  font-weight: inherit;
+  text-align: inherit;
+  vertical-align: middle;
+  color: inherit;
+}
+
+html.theme-dark table[data-shadcn-table]:not([data-scott-bulk-grid]) th,
+html.theme-dark table[data-shadcn-table]:not([data-scott-bulk-grid]) td {
   background: transparent !important;
+  border: none !important;
+  color: inherit;
+}
+
+html.theme-dark table[data-shadcn-table][data-scott-bulk-grid] th,
+html.theme-dark table[data-shadcn-table][data-scott-bulk-grid] td {
   border: none !important;
   color: inherit;
 }

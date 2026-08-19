@@ -1,5 +1,18 @@
 /** Sidebar tab view + edit access (profile_order_permissions allowed_/editable_dashboard_tabs). */
 
+import { isAdminOnlyDashboardTab } from "./dashboardSidebarConfig";
+
+/**
+ * Admin-only tabs (see DASHBOARD_ADMIN_ONLY_TAB_IDS) are hidden from non-admins even
+ * when their permission row says "all tabs" (`allowed_dashboard_tabs === null`), because
+ * their backend 403s non-admins and the tab would only show errors.
+ */
+export function viewerMayReachTab(permissions, tabId, isAdmin) {
+  if (isAdmin) return true;
+  if (isAdminOnlyDashboardTab(tabId)) return false;
+  return viewerCanAccessDashboardTab(permissions, tabId);
+}
+
 export function allDashboardTabIds(sidebarItems) {
   return sidebarItems.map((item) => item.id);
 }
@@ -70,13 +83,11 @@ export function viewerCanEditDashboardTab(permissions, tabId) {
 export function prepareVisibleMainSidebarItems(items, permissions, isAdmin) {
   return items
     .map((item) => {
-      const visibleChildren = (item.children ?? []).filter(
-        (child) => isAdmin || viewerCanAccessDashboardTab(permissions, child.id)
+      const visibleChildren = (item.children ?? []).filter((child) =>
+        viewerMayReachTab(permissions, child.id, isAdmin)
       );
       const showParent =
-        isAdmin ||
-        viewerCanAccessDashboardTab(permissions, item.id) ||
-        visibleChildren.length > 0;
+        viewerMayReachTab(permissions, item.id, isAdmin) || visibleChildren.length > 0;
       if (!showParent) return null;
       return {
         ...item,
@@ -88,7 +99,7 @@ export function prepareVisibleMainSidebarItems(items, permissions, isAdmin) {
 
 export function filterSidebarItemsForViewer(items, permissions, isAdmin) {
   if (isAdmin) return items;
-  return items.filter((item) => viewerCanAccessDashboardTab(permissions, item.id));
+  return items.filter((item) => viewerMayReachTab(permissions, item.id, isAdmin));
 }
 
 export function firstAllowedDashboardTabId(sidebarItems, permissions, isAdmin) {
