@@ -136,5 +136,7 @@ See [ENVIRONMENTS.md](./ENVIRONMENTS.md) and [RELEASE_AUTOMATION.md](./RELEASE_A
 | [ENVIRONMENTS.md](./ENVIRONMENTS.md) | Staging vs production |
 | [RELEASE_AUTOMATION.md](./RELEASE_AUTOMATION.md) | Deploy pipeline |
 | [DEBUGGING.md](./DEBUGGING.md) | Common failures |
+| [SECURITY.md](./SECURITY.md) | Auth, secrets, API keys |
+| [VULNERABILITIES.md](./VULNERABILITIES.md) | Whole-build vulnerability audit (2026-08-17) |
 
 For a **Word-friendly export**, open `docs/export/Scott_Dashboard_Platform_Overview.html` in Microsoft Word → **Save As → .docx**.

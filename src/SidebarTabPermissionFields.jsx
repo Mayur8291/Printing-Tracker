@@ -1,4 +1,10 @@
-import { DASHBOARD_SIDEBAR, DASHBOARD_TAB_PARENT } from "./dashboardSidebarConfig";
+// Admin-only tabs (the Scott API section) can never be granted to a viewer — their backend
+// 403s non-admins — so they are excluded from the grant grid. App.jsx builds, hydrates and
+// saves flags over this SAME list; using the unfiltered one anywhere writes phantom grants.
+import {
+  DASHBOARD_GRANTABLE_SIDEBAR as DASHBOARD_SIDEBAR,
+  DASHBOARD_TAB_PARENT
+} from "./dashboardSidebarConfig";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";

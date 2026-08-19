@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-19 — Merge Scott API into Support develop
+
+- **Issue:** `git push origin develop` rejected (`fetch first`). Remote had Scott API tabs plus vulnerability audit docs.
+- **Fix:** Merge `origin/develop`. Sidebar keeps **Support** plus Customers / Reports / Masters. Keep Support Close/CS/ENQ work.
+- **Files:** `dashboardSidebarConfig.js`, `CHANGELOG.md`, `DEBUGGING.md`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-08-19 — Close Enquiry and Complaints without waiting for SQL push
 
 - **Issue:** Closed status failed on Enquiry and Complaints with ON CONFLICT / feedback-queue error.
@@ -147,6 +154,11 @@
 - **Files:** `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `enquiryAttachmentUtils.js`, `sidebarTabActivity.js`.
 - **Cursor:** shadcn MCP at `.cursor/mcp.json` (enable in Cursor Settings → MCP).
 - **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, ARCHITECTURE.md, OVERVIEW.md, SECURITY.md, DECISIONS.md.
+
+## 2026-08-17 — Vulnerability audit document
+
+- **Docs:** New [VULNERABILITIES.md](./VULNERABILITIES.md) — whole-build security review (edge functions, RLS, stock RPCs, password reset, advisors). Linked from SECURITY.md.
+- **No code patch** in this pass; High items: Ready Stock status/picklist JWT-only auth, authenticated stock-adjust RPCs.
 
 ## 2026-08-17 — Enquiry dashboard (monitor + assign)
 

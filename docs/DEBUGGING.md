@@ -115,6 +115,8 @@
 | **Fix** | Confirm status is still New/Assigned and Pending badge shows. Add a user whose `full_name` is Gargi. Open Enquiry as admin so the client SLA pass can write `enquiry_sla_escalations`. |
 | **Note** | Missed-pick SLA still does not message the customer. Close **does** queue the Concierge feedback text for the ticket phone (simulator). Live WhatsApp Cloud API stays in `Scott_concierge`. |
 
+Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
+
 ## Goals: ownership column missing / create goal fails
 
 | | |
