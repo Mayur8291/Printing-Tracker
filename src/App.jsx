@@ -41,6 +41,7 @@ import { Theme } from "@radix-ui/themes";
 import { cn } from "./lib/utils";
 import SharedLinksPanel from "./SharedLinksPanel";
 import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
+import EnquiryPanel from "./EnquiryPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
@@ -5695,6 +5696,15 @@ function App() {
               canEdit={viewerCanEditCurrentTab}
               isAdmin={isAdmin}
               sessionUserId={session?.user?.id}
+            />
+          )}
+
+          {dashboardTab === "enquiry" && session?.user && (
+            <EnquiryPanel
+              isAdmin={isAdmin}
+              canEdit={viewerCanEditCurrentTab}
+              sessionUserId={session.user.id}
+              teamProfiles={teamProfiles}
             />
           )}
 

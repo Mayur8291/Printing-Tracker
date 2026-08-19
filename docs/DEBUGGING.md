@@ -1,5 +1,7 @@
 # Debugging
 
+Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
+
 ## Goals: ownership column missing / create goal fails
 
 | | |
@@ -136,6 +138,13 @@
 - **Root cause:** Early backfill (`20260710120000`) created `inventory_facility_stock` rows with `facility_code = DEFAULT` when SKUs had no `warehouse_id`. Bulk upload later wrote real facility rows but stale DEFAULT zeros remained.
 - **Fix:** Apply `20260806120436_cleanup_default_facility_stock.sql` and redeploy `dashboard-stock-api`. Partners should pass `?facility=SCOTT_1DAY_01` on snapshot — zero stock SKUs then return explicit `0` at that facility.
 - **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — expect mapped facility codes only, no `DEFAULT`.
+
+## Ready Stock: no way to mark order dispatched after picklist
+
+- **Symptom:** Picklist generates and status becomes PROCESSING, but no UI to move to COMPLETE / FAILED / CANCELLED for app sync.
+- **Fix:** Ready Stock Order detail → **Update status (syncs to app)** → choose status → **Apply status**. Requires edge function `scott-order-update-status` deployed on the connected project.
+- **Deploy:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase functions deploy scott-order-update-status`
+- **Statuses (exact strings for app):** `PENDING` → `PROCESSING` → `COMPLETE` | `FAILED` | `CANCELLED`. Webhook `order.status_changed` fires on each transition.
 
 ## Ready Stock Order tab empty though app orders exist
 

@@ -1,5 +1,44 @@
 # Database
 
+## Enquiries
+
+Customer/product enquiries logged in the dashboard; admin assigns team members to follow up.
+
+### `enquiries`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `enquiry_code` | text | Auto `ENQ-00001` via sequence trigger |
+| `customer_name` | text | Required |
+| `customer_phone` / `customer_email` | text | Optional contact |
+| `product_details` | text | What customer asked for |
+| `source` | text | Phone, Email, Walk-in, etc. |
+| `notes` | text | Internal notes |
+| `status` | text | `new`, `assigned`, `in_progress`, `resolved`, `closed` |
+| `priority` | text | `low`, `normal`, `high`, `urgent` |
+| `assignee_id` | uuid | FK → `profiles.id` — who works on it |
+| `assigned_by` / `assigned_at` | uuid / timestamptz | Admin assignment audit |
+| `created_by` | uuid | FK → `profiles.id` — who logged enquiry |
+| `created_at` / `updated_at` | timestamptz | Audit |
+
+**RLS:** Admin full access; assignee and creator can read; assignee can update status on own rows; insert any authenticated (`created_by = auth.uid()`).
+
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`
+
+### `enquiry_assignment_notifications`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `recipient_user_id` | uuid | Assignee inbox |
+| `enquiry_id` | uuid | FK → `enquiries.id` |
+| `enquiry_code` / `customer_name` | text | Denormalized for notification list |
+| `assigned_by_user_id` | uuid | Admin who assigned |
+| `created_at` | timestamptz | When assigned |
+
+**Migration:** same as above. Realtime publication enabled for both tables.
+
 ## Password reset requests
 
 Admin-approved forgot-password flow from login screen.

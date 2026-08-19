@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-08-17 — Vulnerability audit document
+
+- **Docs:** New [VULNERABILITIES.md](./VULNERABILITIES.md) — whole-build security review (edge functions, RLS, stock RPCs, password reset, advisors). Linked from SECURITY.md.
+- **No code patch** in this pass; High items: Ready Stock status/picklist JWT-only auth, authenticated stock-adjust RPCs.
+
+## 2026-08-17 — Enquiry dashboard (monitor + assign)
+
+- **Feature:** **Enquiry** tab — list customer enquiries, status filters, admin assignee picker, create enquiry, detail dialog (status, notes, product).
+- **Database:** `enquiries`, `enquiry_assignment_notifications`, RLS (admin all; assignee/creator scoped), realtime. Migration `20260817130922_add_enquiries_dashboard.sql` (applied staging).
+- **Files:** `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `enquiryUtils.js`, `enquiryNotificationUtils.js`, `App.jsx`, `sidebarTabActivity.js`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md.
+
+## 2026-08-17 — Sidebar: Enquiry tab under Inventory
+
+- **UI:** New **Enquiry** sidebar item below Distributor (Inventory section) with mail-question icon; placeholder panel until feature is wired.
+
+## 2026-08-06 — Ready Stock: update order status in UI (app sync)
+
+- **Feature:** Ready Stock Order detail → **Update status (syncs to app)** — warehouse can set `PROCESSING`, `COMPLETE`, `FAILED`, or `CANCELLED` after picklist; fires `order.status_changed` webhook.
+- **Edge function:** `scott-order-update-status` (authenticated JWT wrapper around order status/cancel handlers).
+- **Files:** `ReadyStockOrderDetailDialog.jsx`, `readyStockOrderStatusUtils.js`, `scott-order-update-status/index.ts`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DASHBOARD_ORDER_API.md, DEBUGGING.md.
+
 ## 2026-08-06 — Stock API snapshot: remove DEFAULT facility keys
 
 - **Issue:** `GET /stock/snapshot` returned `DEFAULT:SKU` (often `0`) instead of `SCOTT_1DAY_01:SKU` — legacy backfill rows when SKUs had no warehouse.

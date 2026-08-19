@@ -17,6 +17,7 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "regular", label: "Ready Stock Order" },
   { id: "production_tracker", label: "Production tracker" },
   { id: "distributor", label: "Distributor" },
+  { id: "enquiry", label: "Enquiry" },
   // --- Scott API (migrated from the standalone ScottOne dashboard) ---
   { id: "scott_customers", label: "Customers" },
   { id: "scott_reports", label: "Reports" },
@@ -30,7 +31,7 @@ export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
   },
   {
     label: "Inventory",
-    ids: ["inventory", "regular", "production_tracker", "distributor"]
+    ids: ["inventory", "regular", "production_tracker", "distributor", "enquiry"]
   },
   {
     label: "Scott API",

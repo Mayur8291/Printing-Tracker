@@ -41,3 +41,9 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | Edge functions (platform) | DB access from functions |
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for env setup on Netlify (frontend) vs Supabase (backend).
+
+## Vulnerability audit
+
+Full-build findings (High / Medium / advisors, fix order, re-run steps): **[VULNERABILITIES.md](./VULNERABILITIES.md)** (2026-08-17).
+
+Known High until patched: Ready Stock edge functions (JWT only, no role), and `adjust_sku_facility_stock` / bulk variants granted to any authenticated user.

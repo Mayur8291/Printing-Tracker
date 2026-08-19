@@ -37,7 +37,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
 2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via idempotent reservation (`reserveStockIdempotent` — reuses existing `RESERVED` row for same `order_code` + `facility_code` if partner already called `/stock/reserve`); duplicate SKU lines in one payload are merged; `409 INSUFFICIENT_STOCK` if short; row in `scott_orders` + items with `reservation_id`. Cancel / FAILED release **all** open holds for that order at the facility.
 3. **Edit:** `PATCH .../orders/:id` — terminal status → `409 ORDER_NOT_EDITABLE`. Item replace checks feasibility crediting the order's own held stock, then releases the old reservation and creates a new one; items table replaced.
 4. **Cancel:** `DELETE .../orders/:id?reason=...` — idempotent for already-cancelled; releases the reservation, sets `CANCELLED` + `cancel_reason`.
-5. **Progress:** dashboard-internal `POST .../orders/:id/status` — `PROCESSING` (from PENDING), `COMPLETE` (fulfills reservation: on-hand deducted, movements written, `stock_qty` synced, `dispatched_at` + items' `dispatched_quantity` set), `FAILED` (releases reservation).
+5. **Progress:** dashboard-internal `POST .../orders/:id/status` — `PROCESSING` (from PENDING), `COMPLETE` (fulfills reservation: on-hand deducted, movements written, `stock_qty` synced, `dispatched_at` + items' `dispatched_quantity` set), `FAILED` (releases reservation). **Dashboard UI:** Ready Stock Order detail → **Update status (syncs to app)** dropdown calls edge function `scott-order-update-status` (same transitions + cancel); webhooks fire via `scott_orders` trigger.
 6. **Read:** `GET .../orders/:id` returns status + items with `dispatched_quantity`.
 7. **Webhooks:** DB trigger on `scott_orders` INSERT/UPDATE enqueues `order.status_changed` — INSERT sends `status: CREATED` (`previous_status: null`); updates send `PENDING` / `PROCESSING` / `COMPLETE` / `CANCELLED` / `FAILED` with `previous_status` set. `dispatched_at` included when new status is COMPLETE. Delivered via `dashboard_webhook_outbox` (HMAC `X-Dashboard-Signature`). Stock changes additionally fire `stock.level_changed`.
 
@@ -78,6 +78,17 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **Render:** `buildPicklistHtml.js` + `picklist.css`; Code128 via `bwip-js` PNG data URI; Puppeteer A4 PDF with print CSS (`@page 12mm`, repeating thead, unbreakable rows).
 6. **Preview (dev):** `/#/picklist-preview` (React + sample data) or `GET /api/picklist/preview` / `GET /api/picklist/pdf/sample`.
 7. **Edge cases:** terminal orders cannot generate; empty items → 400; pop-up blocked → alert; picklist API down → error with start hint.
+
+### Enquiry dashboard
+
+1. **Trigger:** user opens sidebar → **Enquiry** (`dashboardTab === "enquiry"` → `EnquiryPanel`).
+2. **Fetch:** `enquiries` (newest first, limit 500) — RLS returns all rows for admin; assignee sees assigned rows; creator sees rows they logged.
+3. **Display:** status filter tabs with counts, search, admin-only assignee filter + summary cards; shadcn table (code, customer, product, source, status, priority, assignee, created).
+4. **Create:** **New enquiry** dialog (admin or tab editor) → insert with `created_by = auth.uid()`, auto `ENQ-#####` code.
+5. **Assign (admin):** detail dialog → pick team member from `teamProfiles` → updates `assignee_id`, `assigned_by`, `assigned_at`, status `assigned` if was `new`; inserts `enquiry_assignment_notifications` for assignee (skip self-assign).
+6. **Work:** assignee (or admin) updates status / notes in detail dialog; assignee RLS allows update on own rows only.
+7. **Realtime:** subscription on `enquiries` → silent refetch; sidebar activity dot on `enquiry` tab when changes on other tabs.
+8. **Failure:** missing migration → inline message with migration name; RLS deny → Supabase error in panel; page never blanks.
 
 ### Inventory UI availability (Reserved / Available)
 

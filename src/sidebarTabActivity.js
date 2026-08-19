@@ -19,6 +19,8 @@ export const SIDEBAR_ACTIVITY_TABLE_TABS = {
   printing_utilization_entries: ["production_tracker"],
   dealers: ["distributor"],
   dealer_daily_reports: ["distributor"],
+  enquiries: ["enquiry"],
+  enquiry_assignment_notifications: ["enquiry"],
   contact_book_entries: ["contact_book"],
   shared_resource_links: ["shared_links"],
   profiles: ["admin"],

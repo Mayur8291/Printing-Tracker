@@ -182,6 +182,8 @@ Distinct from the internal printing-tracker `orders` table. Mutations are servic
 
 Incoming app orders appear live in the **Ready Stock Order** sidebar tab (`src/ReadyStockOrdersPanel.jsx`) — status filters, search, customer/payment/item breakdown. Realtime via the `supabase_realtime` publication (`20260720130000_scott_orders_realtime.sql`).
 
+**Status updates (warehouse):** Open an order → **Update status (syncs to app)** — choose `Processing`, `Complete (dispatched)`, `Failed`, or `Cancel order` → **Apply status**. Picklist generation auto-sets `PROCESSING` on first run. Each change fires `order.status_changed` webhook to the app (`PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`).
+
 ## Deploy
 
 ```bash
