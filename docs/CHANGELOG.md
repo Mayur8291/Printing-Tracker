@@ -1,5 +1,167 @@
 # Changelog
 
+## 2026-08-19 — Fix Vercel EBADPLATFORM on Windows Rollup
+
+- **Issue:** Vercel `develop` build failed at `npm install` with `EBADPLATFORM` for `@rollup/rollup-win32-x64-msvc`.
+- **Fix:** Remove that Windows-only package from `dependencies`. Vite/Rollup already install the matching OS binary as an optional dependency.
+- **Files:** `package.json`, `package-lock.json`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-19 — Merge Scott API into Support develop
+
+- **Issue:** `git push origin develop` rejected (`fetch first`). Remote had Scott API tabs plus vulnerability audit docs.
+- **Fix:** Merge `origin/develop`. Sidebar keeps **Support** plus Customers / Reports / Masters. Keep Support Close/CS/ENQ work.
+- **Files:** `dashboardSidebarConfig.js`, `CHANGELOG.md`, `DEBUGGING.md`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-08-19 — Close Enquiry and Complaints without waiting for SQL push
+
+- **Issue:** Closed status failed on Enquiry and Complaints with ON CONFLICT / feedback-queue error.
+- **Fix:** If the staging close trigger still errors, Close saves with phone cleared for one update (trigger skips), then restores the phone and queues the survey from the app. Same dialog for both desks.
+- **Files:** `enquiryUtils.js`, `enquiryConciergeUtils.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, DECISIONS.md.
+
+## 2026-08-19 — Close enquiry no longer fails on ON CONFLICT
+
+- **Issue:** Updating an enquiry to Closed showed `there is no unique or exclusion constraint matching the ON CONFLICT specification`. Status stayed In progress.
+- **Fix:** Close-survey trigger no longer uses `ON CONFLICT (enquiry_id)`. It skips if a message already exists, and never aborts the status update. Partial unique index for non-null `enquiry_id` stays for delay/status rows.
+- **Files:** `supabase/migrations/20260819062942_fix_close_survey_conflict.sql`, `enquiryUtils.js`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DATABASE.md, FLOWS.md.
+
+## 2026-08-19 — Complaints CS- codes, Enquiries ENQ- codes
+
+- **Issue:** Complaints and Enquiries both used `ENQ-#####`, which would collide as two desks.
+- **Fix:** New complaints get `CS-#####`. New enquiries get `ENQ-#####`. Existing complaint `ENQ-` rows relabel to `CS-` when Support loads. Staging trigger migration `20260819100000_enquiry_complaint_code_prefixes.sql` still required for DB-side sequences.
+- **Files:** `enquiryUtils.js`, `20260819100000_enquiry_complaint_code_prefixes.sql`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DATABASE.md, FLOWS.md, DECISIONS.md.
+
+## 2026-08-19 — Simulator Done no longer shows coerce error
+
+- **Issue:** WhatsApp simulator after photo **Done** showed `Cannot coerce the result to a single JSON object`.
+- **Fix:** Photos upload first, then insert (no staff UPDATE). Customer chat files the ticket on Done and does not ask for an account manager. Raw PostgREST coerce text is mapped to a short retry line.
+- **Files:** `enquiryUtils.js`, `EnquiryWhatsAppSimulator.jsx`, `EnquiryPanel.jsx`, migration `20260819120000_enquiries_creator_update.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md, SECURITY.md, DECISIONS.md, FLOWCHARTS.md.
+
+## 2026-08-19 — Delay alert and Order status as Support tabs
+
+- **Issue:** Delay alert and production status cards sat on top of Enquiry/Complaints and cluttered those desks.
+- **Fix:** They are their own shadcn tabs after Complaints and before Report: **Delay alert**, **Order status**.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md, FLOWCHARTS.md, ARCHITECTURE.md.
+
+## 2026-08-19 — Hide production status texts on Support Report
+
+- **Issue:** **Production status texts** still showed on Support → Report.
+- **Fix:** Card only renders on Enquiry and Complaints, same as delay alert. Report stays blank.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md, FLOWCHARTS.md, ARCHITECTURE.md.
+
+## 2026-08-19 — Hide delay alert on Support Report
+
+- **Issue:** **Send production delay alert** showed on Support → Report even though Report is blank.
+- **Fix:** Card only renders on Enquiry and Complaints.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md, FLOWCHARTS.md.
+
+## 2026-08-19 — Auto WhatsApp on production status; remove Track Order from simulator
+
+- **Issue:** Simulator had a manual Track Order path. Production status changes did not text the customer.
+- **Fix:** Home menu is Customer Access + Help with order only. Backend trigger on `orders.status` queues Concierge copy into `enquiry_outbound_messages`. Phone from matching enquiry, contact book, or Ready Stock order. Support shows **Production status texts**.
+- **Files:** `enquiryWhatsAppSimulatorFlow.js`, `EnquiryWhatsAppSimulator.jsx`, `supportDelayAlertUtils.js`, `SupportProductionStatusCard.jsx`, `supportProductionStatusUtils.js`, `EnquiryPanel.jsx`, `sidebarTabActivity.js`, migration `20260819113000_production_status_whatsapp.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, ARCHITECTURE.md, OVERVIEW.md.
+
+## 2026-08-19 — Support desks: whole row color by priority
+
+- **Issue:** Enquiry and Complaints rows looked the same except a small Priority badge.
+- **Fix:** Whole table row tint + left edge by priority (urgent red, high amber, normal sky, low zinc) for admin and staff. Shared `SupportTicketDesk`.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-08-19 — Fix enquiry assign/status when ticket_kind column missing
+
+- **Issue:** Assign and status update failed: `column enquiries.ticket_kind does not exist`.
+- **Fix:** `updateEnquiryFields` (assign + status + pick) retries without `ticket_kind`. Apply `20260819100000_enquiry_complaint_code_prefixes.sql` on staging so the column exists (`enquiry` / `complaint`).
+- **Files:** `enquiryUtils.js`, `enquiryConciergeUtils.js`
+- **Documentation updated:** DEBUGGING.md, CHANGELOG.md
+
+## 2026-08-19 — Support Enquiry tab (ENQ-) and Complaints codes (CS-)
+
+- **Issue:** Enquiry tab was blank. Customized → Enquiries tickets sat in Complaints with `ENQ-` codes.
+- **Fix:** Same desk UI for Enquiry and Complaints (`SupportTicketDesk`). Enquiries `ENQ-#####`, complaints `CS-#####`. Simulator collects name, phone, optional order ID, details, then confirms the ENQ code. Staging migration `20260819100000_enquiry_complaint_code_prefixes.sql` (`ticket_kind` + relabel).
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `EnquiryWhatsAppSimulator.jsx`, `enquiryWhatsAppSimulatorFlow.js`, `EnquiryDetailDialog.jsx`, migration above.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-18 — Support: production delay alert for admin and staff
+
+- **Issue:** Support had no Concierge delay-alert sender. Earlier copy skipped it.
+- **Fix:** **Send production delay alert** card on Support (admin and non-admin). Same Concierge copy. Queues text + next-step buttons for the WhatsApp simulator. Staging table `support_delay_alerts`.
+- **Files:** `SupportDelayAlertCard.jsx`, `supportDelayAlertUtils.js`, `EnquiryPanel.jsx`, `enquiryConciergeUtils.js`, `sidebarTabActivity.js`, migration `20260818180000_support_delay_alerts.sql` (staging).
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, FLOWCHARTS.md, DEBUGGING.md, SECURITY.md, DECISIONS.md, ARCHITECTURE.md, OVERVIEW.md.
+
+## 2026-08-18 — Complaints: lock Concerns and customer feedback
+
+- **Issue:** Admin and staff could edit Concerns and customer feedback after the customer sent them.
+- **Fix:** Detail view shows both as read-only for everyone. Notes and priority still save. Feedback still arrives from the WhatsApp simulator.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, SECURITY.md, DECISIONS.md.
+
+## 2026-08-18 — Simulator: New member has no welcome or home menu
+
+- **Issue:** New member tap showed placeholder signup copy plus home options.
+- **Fix:** New member tap logs the customer choice only. No welcome text. No home buttons.
+- **Files:** `EnquiryWhatsAppSimulator.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-18 — Complaints: Order ID + Concerns; Help-with-order paths only
+
+- **Issue:** Complaints table had no Order ID, column said Product, and listed tickets from other paths.
+- **Fix:** Order ID sits beside Customer. Product column is **Concerns** (customer issue text). List only Help with order → Regular Order and Help with order → Customized order (Enquiries / Concerns). Track/Access/Delay stay out.
+- **Files:** `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `enquiryConciergeUtils.js`, `enquiryUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-18 — Support sub-tabs: Enquiry / Complaints / Report
+
+- **Issue:** Support was one page. User wants three sub-tabs.
+- **Fix:** Support now has **Enquiry**, **Complaints**, **Report**. Current desk is **Complaints** (default). Enquiry and Report are blank placeholders.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-08-18 — Sidebar tab Enquiry renamed Support
+
+- **Issue:** Side panel still said Enquiry.
+- **Fix:** Tab label is **Support**. Icon is headphones (support). Permission id stays `enquiry`.
+- **Files:** `dashboardSidebarConfig.js`, `DashboardAppSidebar.jsx`, `dashboardSidebarIcons.jsx`, `EnquiryPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-08-18 — Close case auto feedback text
+
+- **Issue:** Account manager Close did not send the Concierge customer text.
+- **Reason:** Dashboard Close only set `status=closed`. No outbound queue and simulator never listened.
+- **Fix:** Staging trigger queues close-survey copy into `enquiry_outbound_messages`. Simulator shows it for the same phone (Feedback → stars → Skip/comment). Detail shows queued text. Still no Meta WhatsApp keys in the SPA.
+- **Files:** `enquiryCloseNotify.js`, `enquiryConciergeUtils.js`, `enquiryUtils.js`, `EnquiryWhatsAppSimulator.jsx`, `EnquiryDetailDialog.jsx`, `EnquiryPanel.jsx`, `sidebarTabActivity.js`, migration `20260818113000_enquiry_close_survey_message.sql` (staging).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, SECURITY.md, DECISIONS.md, ARCHITECTURE.md.
+
+## 2026-08-18 — Enquiry: admin-only assign; staff actions visible to admin
+
+- **Issue:** Non-admin could assign (WhatsApp simulator / insert assignee). Admin had no action history.
+- **Fix:** Assign is admin-only (UI + RLS + trigger). Non-admin tickets stay New until admin assigns. Staff pick/status/notes/close write `enquiry_activity_log`; admin detail shows Activity; realtime refreshes the admin list.
+- **Files:** `EnquiryDetailDialog.jsx`, `EnquiryPanel.jsx`, `EnquiryWhatsAppSimulator.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `enquiryActivityUtils.js`, migration `20260818100000_enquiry_admin_assign_activity.sql` (staging).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, SECURITY.md.
+
+## 2026-08-18 — Temporary WhatsApp simulator on Enquiry tab
+
+- **Feature:** Enquiry → **WhatsApp simulator** (temporary fake Concierge chat). Files real tickets onto the Enquiry list. Test bypass on by default so unmatched phone/order still creates a row.
+- **Files:** `EnquiryWhatsAppSimulator.jsx`, `enquiryWhatsAppSimulatorFlow.js`, `EnquiryPanel.jsx`, `enquiryUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-18 — Enquiry tab: Scott Concierge desk functions
+
+- **Feature:** Enquiry tab keeps **New / Assigned / In progress / Resolved / Closed** cards and table. Concierge desk functions added: order ID + ownership check, help topic, photos, Mark verified / contacted / Close, 1h ops wait + 2h Gargi SLA, unknown-AM → Gargi, in-app close feedback.
+- **Database (staging):** `20260818082754_enquiry_concierge_desk.sql` — extra `enquiries` columns, `enquiry_sla_escalations`, bucket `enquiry-attachments`.
+- **Files:** `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `enquiryAttachmentUtils.js`, `sidebarTabActivity.js`.
+- **Cursor:** shadcn MCP at `.cursor/mcp.json` (enable in Cursor Settings → MCP).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, ARCHITECTURE.md, OVERVIEW.md, SECURITY.md, DECISIONS.md.
+
 ## 2026-08-17 — Vulnerability audit document
 
 - **Docs:** New [VULNERABILITIES.md](./VULNERABILITIES.md) — whole-build security review (edge functions, RLS, stock RPCs, password reset, advisors). Linked from SECURITY.md.

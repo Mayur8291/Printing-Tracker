@@ -17,7 +17,7 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "regular", label: "Ready Stock Order" },
   { id: "production_tracker", label: "Production tracker" },
   { id: "distributor", label: "Distributor" },
-  { id: "enquiry", label: "Enquiry" },
+  { id: "enquiry", label: "Support" },
   // --- Scott API (migrated from the standalone ScottOne dashboard) ---
   { id: "scott_customers", label: "Customers" },
   { id: "scott_reports", label: "Reports" },

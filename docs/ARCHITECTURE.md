@@ -11,7 +11,7 @@
 | **Data** | Business entities, RLS, triggers | PostgreSQL |
 | **Files** | Designs, invoices, media | Supabase Storage |
 | **Realtime** | Chat, notifications, live updates | Supabase Realtime |
-| **Static hosting** | Built SPA assets | Netlify CDN |
+| **Static hosting** | Built SPA assets | Netlify CDN (and Vercel Linux builds). No OS-only native packages in `dependencies`. |
 
 There is **no application server** in-repo between the browser and Supabase (except Edge Functions for admin).
 
@@ -66,6 +66,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `2026071012
 | Module | Path | Depends on |
 |--------|------|------------|
 | Shell / routing | `App.jsx` | Most feature panels |
+| Support desk | `EnquiryPanel.jsx`, `SupportTicketDesk.jsx`, `enquiryConciergeUtils.js`, `SupportDelayAlertCard.jsx`, `SupportProductionStatusCard.jsx` | Enquiry + Complaints desks; Delay alert and Order status tabs after Complaints; Report blank |
 | Inventory | `src/inventory/*` | `inventoryDbUtils`, Supabase |
 | Chat | `TeamChatPanel`, `teamChatService.js` | Supabase + Storage |
 | Goals | `GoalTrackerPanel`, `goalTrackerUtils.js` | Supabase RPC/tables |
@@ -98,7 +99,7 @@ Recommended: introduce **BFF** before mobile production launch; keep RLS as last
 
 ## Background jobs
 
-Today: **PostgreSQL triggers** (notifications, status change), **scheduled purge** RPCs (chat attachment expiry), **GitHub Actions** (prod migrations + optional Netlify hook).
+Today: **PostgreSQL triggers** (notifications, status change, Enquiry close-survey queue, production-status WhatsApp queue), **scheduled purge** RPCs (chat attachment expiry), **GitHub Actions** (prod migrations + optional Netlify hook). Enquiry **2-hour SLA** is a **client pass** when the Support tab loads (same timings as Scott Concierge; no WhatsApp to Gargi from this app). Close survey, delay alerts, and production status texts are queued in Postgres; the temporary WhatsApp simulator displays them.
 
 Future: dedicated **worker service** for Uniware sync, reports, bulk imports.
 

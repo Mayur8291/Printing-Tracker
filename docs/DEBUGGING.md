@@ -1,5 +1,129 @@
 # Debugging
 
+## Vercel: npm install EBADPLATFORM for @rollup/rollup-win32-x64-msvc
+
+| | |
+|--|--|
+| **Symptom** | Vercel (Linux) build on `develop` fails during `npm install`. Log: `EBADPLATFORM` / `@rollup/rollup-win32-x64-msvc` wanted `os: win32`, actual `os: linux`. |
+| **Root cause** | That native Rollup binary was listed under `package.json` `dependencies`, so npm must install it. Linux CI cannot. Vite already pulls the correct `@rollup/rollup-*` binary via Rollup optional deps. |
+| **Fix** | Do not add OS-specific `@rollup/rollup-*` packages as required deps. Keep them optional through `vite`/`rollup`. |
+| **Verify** | Vercel install succeeds on Linux. Local Windows `npm run build` still works (optional win32 binary installs on Windows). |
+
+## Support: Close enquiry fails with ON CONFLICT unique constraint
+
+| | |
+|--|--|
+| **Symptom** | Activity dialog: set Status to Closed → Update status. Red text: `there is no unique or exclusion constraint matching the ON CONFLICT specification`. Row stays In progress. |
+| **Root cause** | Close trigger `enquiries_queue_close_survey` did `ON CONFLICT (enquiry_id)`. Delay-alert migration dropped that unique index and left a **partial** unique index (`enquiry_id IS NOT NULL`). Postgres cannot use that for `ON CONFLICT (enquiry_id)`, so the whole status update rolls back. |
+| **Fix** | Apply `20260819062942_fix_close_survey_conflict.sql` on staging when CLI login works. Until then the app Close path skips the broken trigger (blank phone for one save, then restore phone, then queue survey). |
+| **Verify** | Open an in-progress enquiry with a phone → Status Closed → Update status. Badge becomes Closed. Simulator with that phone shows the feedback text. |
+
+## Support: Complaints still show ENQ codes
+
+| | |
+|--|--|
+| **Symptom** | Complaints tab codes look like `ENQ-00012`. Enquiry tab uses the same prefix. |
+| **Root cause** | Staging trigger `set_enquiry_code` still stamps every row `ENQ-`. Prefix split migration was not on staging. |
+| **Fix** | App now allocates `CS-` for complaints and `ENQ-` for enquiries on insert, and rewrites leftover complaint `ENQ-` rows to `CS-`. Also apply `20260819100000_enquiry_complaint_code_prefixes.sql` on staging `scvojtvgnkmbupvyslmb`. |
+| **Verify** | File a Concerns ticket → confirmation `CS-#####`. File Customized → Enquiries → `ENQ-#####`. Complaints list uses CS. Enquiry list uses ENQ. |
+
+## Support: WhatsApp simulator Done shows Cannot coerce JSON
+
+| | |
+|--|--|
+| **Symptom** | After sending a photo and tapping **Done**, red text: `Cannot coerce the result to a single JSON object`. Ticket may exist without photos. |
+| **Root cause** | App inserted the enquiry, then `UPDATE` attachments with `.single()`. Creator is not admin/assignee, so RLS returns 0 rows. PostgREST then fails coerce. |
+| **Fix** | Photos upload first, then one insert with attachments (`createEnquiryWithPhotos`). Chat files on Done (no AM picker). Creator UPDATE policy `20260819120000_enquiries_creator_update.sql` for other attach paths. |
+| **Verify** | Help with order → Customized → Concerns → Product issues → order ID → issue text → photo → Done. Confirmation with ticket code. Complaints lists the row with photo. No coerce error. |
+
+## Support: delay alert section missing or send fails
+
+| | |
+|--|--|
+| **Symptom** | Support → **Delay alert** has no send form, or Send says table not found. |
+| **Root cause** | Card was not copied from Concierge at first. After the card landed, send needs staging table `support_delay_alerts` and nullable `enquiry_outbound_messages.enquiry_id`. Stale PostgREST cache also hides the table. |
+| **Fix** | Hard refresh. Open Support → **Delay alert**. Apply `20260818180000_support_delay_alerts.sql` on **staging** `scvojtvgnkmbupvyslmb`, then `NOTIFY pgrst, 'reload schema';`. |
+| **Verify** | Fill order + phone + new date → Send. Recent sent lists the order. WhatsApp simulator with that phone shows the apology text. |
+
+## Support: production status WhatsApp not arriving
+
+| | |
+|--|--|
+| **Symptom** | Production changes order status; simulator never gets a text. Support **Production status texts** empty or says skipped. |
+| **Root cause** | Track Order was removed. Texts come from trigger `orders_queue_production_status_whatsapp`. Tracker orders have no phone. No matching enquiry/contact book/Ready Stock phone → skip. Migration not on staging. |
+| **Fix** | Apply `20260819113000_production_status_whatsapp.sql` on staging. Put the customer phone on an enquiry with the same Order ID (or contact book / Ready Stock). Open simulator with that phone. Change Printing status. |
+| **Verify** | On Support → **Order status**, card lists the order as queued. Simulator shows “Status is now: …”. Home menu has no Track Order. |
+
+## Support: assign or status fails with ticket_kind does not exist
+
+| | |
+|--|--|
+| **Symptom** | Assign user or update status on an enquiry: `column enquiries.ticket_kind does not exist`. |
+| **Root cause** | App returns the row with `ticket_kind` after update. Staging table did not have that column until `20260819100000_enquiry_complaint_code_prefixes.sql`. List fetch had a fallback; assign/status did not. |
+| **Fix** | Apply that migration on staging `scvojtvgnkmbupvyslmb`, then `NOTIFY pgrst, 'reload schema'`. Assign/status also retry without `ticket_kind` if the column is still missing. |
+| **Verify** | Open Enquiry → assign a user. Change status. No `ticket_kind` error. |
+
+## Support: Enquiry tab empty after WhatsApp Enquiries path
+
+| | |
+|--|--|
+| **Symptom** | Simulator Customized → Enquiries saved a ticket but Enquiry tab is empty, or it still sits in Complaints with `ENQ-`. |
+| **Root cause** | Before `ticket_kind`, that path was listed as a complaint. After the split, Enquiry tab only shows `ticket_kind=enquiry`. Missing `ticket_kind` column also blanks both lists. |
+| **Fix** | Apply `20260819100000_enquiry_complaint_code_prefixes.sql` on staging, then `NOTIFY pgrst, 'reload schema'`. Hard refresh. Complaints codes become `CS-#####`. |
+| **Verify** | Simulator: Home → Help with order → Customized → Enquiries → name → phone → skip or order ID → details. Confirmation shows `ENQ-#####`. Enquiry tab lists it. |
+
+## Support Complaints: table empty after simulator ticket
+
+| | |
+|--|--|
+| **Symptom** | Simulator filed a ticket but Complaints list is empty. |
+| **Root cause** | Complaints only shows Help with order → Regular Order, or Help with order → Customized → Concerns. Track, Access, Delay, and Customized → Enquiries do not list here (Enquiries go to the Enquiry tab as `ENQ-`). |
+| **Fix** | Use **Help with order → Regular Order** or **Help with order → Customized → Concerns**. Confirm Order ID was sent in chat. |
+| **Verify** | Code starts with `CS-`. Order ID column filled; Concerns shows the customer message. |
+
+## Enquiry: non-admin cannot assign
+
+| | |
+|--|--|
+| **Symptom** | Assign picker missing, or error “Only an admin can assign enquiries”. |
+| **Root cause** | Assign is admin-only. Simulator as non-admin creates **New** (unassigned) for admin. |
+| **Fix** | Sign in as admin to assign. Staff use Mark verified / Contacted / Close on tickets already assigned to them. Admin opens the row → **Activity** to see staff work. |
+
+## Enquiry: WhatsApp simulator does not create a ticket
+
+| | |
+|--|--|
+| **Symptom** | Chat works but Enquiry table empty. |
+| **Root cause** | Path was Track/Access/Delay (no ticket), or AM pick failed (no Gargi / no team names), or create RLS error. |
+| **Fix** | Use **Help → Customized → Enquiries**, type 8+ chars, pick an AM. Keep **Test bypass** on if the order phone does not match. Need at least one active team profile. |
+| **Verify** | Support → Complaints shows row with Order ID beside Customer, Concerns = the typed issue. |
+
+## Enquiry: Concierge columns missing / create fails
+
+| | |
+|--|--|
+| **Symptom** | Support → Complaints error about schema cache / missing column (`order_id`, `picked_at`, `attachments`). Create enquiry fails. |
+| **Root cause** | Migration `20260818082754_enquiry_concierge_desk.sql` not on this Supabase project, or PostgREST schema cache stale. |
+| **Fix** | Apply that migration on **staging** (`scvojtvgnkmbupvyslmb`). Then `NOTIFY pgrst, 'reload schema';`. Hard refresh the app. |
+| **Verify** | New enquiry with Order ID + photo; detail shows Mark verified / Contacted / Close. |
+
+## Enquiry: Close does not send automatic text
+
+| | |
+|--|--|
+| **Symptom** | AM taps Close; customer (WhatsApp simulator) never gets “I hope your issue has been resolved…”. |
+| **Root cause** | Close used to only set `status=closed`. Survey now queues in `enquiry_outbound_messages`. Simulator must stay open with the **same phone**. Empty phone skips send. Migration not on staging → no table/trigger. |
+| **Fix** | Apply `20260818113000_enquiry_close_survey_message.sql` on **staging**. Open Enquiry → WhatsApp simulator with the ticket phone → AM Close. Hard refresh if schema cache stale (`NOTIFY pgrst, 'reload schema'`). |
+| **Verify** | Detail shows **Customer message sent**. Simulator shows Feedback button. |
+| **Note** | This dashboard does not send live Meta WhatsApp. Real phone SMS/WA stays in `Scott_concierge` unless an Edge Function is added later. |
+
+| | |
+|--|--|
+| **Symptom** | Assigned ticket older than 2 hours, no red SLA banner. |
+| **Root cause** | Ticket already has `picked_at`, or no profile named **Gargi** (fallback is first admin), or opener has no write RLS so persist is skipped. |
+| **Fix** | Confirm status is still New/Assigned and Pending badge shows. Add a user whose `full_name` is Gargi. Open Enquiry as admin so the client SLA pass can write `enquiry_sla_escalations`. |
+| **Note** | Missed-pick SLA still does not message the customer. Close **does** queue the Concierge feedback text for the ticket phone (simulator). Live WhatsApp Cloud API stays in `Scott_concierge`. |
+
 Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
 
 ## Goals: ownership column missing / create goal fails

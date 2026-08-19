@@ -21,7 +21,7 @@
 | **Frontend** | **React 18** + **Vite 5** (JavaScript/JSX) |
 | **UI** | **Tailwind CSS**, **Radix UI** / **shadcn-style** components, **Radix Themes** |
 | **Backend** | **Supabase** (managed PostgreSQL + Auth + Storage + Realtime + Edge Functions) |
-| **Hosting** | **Netlify** (static SPA build from `main` / `develop`) |
+| **Hosting** | **Netlify** (static SPA from `main` / `develop`) and **Vercel** (Linux `npm install` + Vite build). Do not pin OS-only native packages such as `@rollup/rollup-win32-*` in `dependencies`. |
 | **Source control** | **GitHub** — [Mayur8291/Printing-Tracker](https://github.com/Mayur8291/Printing-Tracker) |
 
 The app runs in the **browser** as a Single Page Application (SPA). A future **mobile app** would be a **separate client** talking to the same backend (recommended: via a dedicated API layer — see [PLATFORM_OVERVIEW.md](./PLATFORM_OVERVIEW.md)).
@@ -62,6 +62,7 @@ flowchart LR
 | Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js` | DMs, groups, attachments, GIFs |
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
+| Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Delay alert and production status texts are their own tabs after Complaints. Report blank. |
 | Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
 
 ### Data flow (typical)
