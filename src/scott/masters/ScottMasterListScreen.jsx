@@ -324,7 +324,21 @@ export default function ScottMasterListScreen({ config: master, mayEdit = false,
       // drained list instead — hence the row-shaped prefill above while this runs.
       const full = await service.getById(id);
       if (seq !== detailSeqRef.current) return;
-      if (full) setDialogRecord(full);
+      // MERGE, never replace. The row we already showed is real data; the show response is
+      // only ever meant to ADD to it (relations, fields the list omits). Replacing outright
+      // means any key the show payload lacks blanks a field the user was already looking at —
+      // which is exactly how "the edit dialog fills in, then empties" happens. Undefined and
+      // null values are skipped for the same reason; a real clear comes back as "" or false.
+      if (full) {
+        setDialogRecord((current) => {
+          const base = current ?? row ?? {};
+          const merged = { ...base };
+          for (const [key, value] of Object.entries(full)) {
+            if (value !== undefined && value !== null) merged[key] = value;
+          }
+          return merged;
+        });
+      }
     } catch (err) {
       if (seq !== detailSeqRef.current) return;
       onError?.(`Could not load the latest ${config.labelSingular || "record"}: ${messageOf(err)}`);

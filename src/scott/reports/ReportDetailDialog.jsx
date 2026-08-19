@@ -116,7 +116,18 @@ export default function ReportDetailDialog({
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   // Detail wins where it has a value; the list row backfills what the show endpoint omits.
-  const merged = record ? { ...(row ?? {}), ...record } : (row ?? null);
+  // Merge skipping undefined/null: a plain spread lets a detail payload that omits a key
+  // (or returns it as null) blank a field the row already displayed. Same rule the masters
+  // edit dialog uses — the detail response is only ever meant to ADD to the row.
+  const merged = record
+    ? Object.entries(record).reduce(
+        (acc, [key, value]) => {
+          if (value !== undefined && value !== null) acc[key] = value;
+          return acc;
+        },
+        { ...(row ?? {}) }
+      )
+    : (row ?? null);
   const extras = extraFields(merged, columns);
 
   return (
