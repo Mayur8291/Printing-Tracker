@@ -1,7 +1,6 @@
 import { supabase } from "./supabaseClient";
 
 const DELAY_NEXT_BUTTONS = [
-  { id: "menu_track", title: "Track Order" },
   { id: "menu_help", title: "Help with order" },
   { id: "menu_access", title: "Customer Access" }
 ];

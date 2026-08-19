@@ -2,35 +2,30 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { subscribePostgresChanges } from "./realtimeUtils";
 import EnquiryDetailDialog from "./EnquiryDetailDialog";
 import {
+  EMPTY_ENQUIRY_DESK_FORM,
   EMPTY_ENQUIRY_FORM,
   ENQUIRY_PRIORITIES,
   ENQUIRY_PRIORITY_LABEL,
   ENQUIRY_SOURCES,
-  ENQUIRY_STATUSES,
-  ENQUIRY_STATUS_LABEL,
-  createEnquiry,
-  enquiryStatusCounts,
+  createEnquiryWithPhotos,
   fetchEnquiries,
-  filterEnquiries,
-  profileDisplayName,
-  updateEnquiryFields
+  friendlyEnquiryDbError,
+  profileDisplayName
 } from "./enquiryUtils";
 import {
   ENQUIRY_ORDER_TYPE_LABEL,
   ENQUIRY_ORDER_TYPES,
   fetchEnquirySlaEscalations,
   isComplaintsHelpPath,
+  isEnquiryHelpPath,
   isEnquiryUnpicked,
   listWaitingAlerts,
   lookupOrderForEnquiry,
   ownershipFromLookup,
   runEnquirySlaPass
 } from "./enquiryConciergeUtils";
-import { uploadEnquiryPhotos, validateEnquiryPhotoFile } from "./enquiryAttachmentUtils";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { validateEnquiryPhotoFile } from "./enquiryAttachmentUtils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -47,64 +42,30 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import EnquiryWhatsAppSimulator from "./EnquiryWhatsAppSimulator";
 import SupportDelayAlertCard from "./SupportDelayAlertCard";
+import SupportProductionStatusCard from "./SupportProductionStatusCard";
+import SupportTicketDesk from "./SupportTicketDesk";
 import { viewerIsActive } from "./viewerUserListUtils";
-import { AlertCircle, Clock, Headphones, MessageCircle, Plus, RefreshCw } from "lucide-react";
+import { Headphones, MessageCircle, Plus } from "lucide-react";
 
 const SUPPORT_SUBTABS = [
   { id: "enquiry", label: "Enquiry" },
   { id: "complaints", label: "Complaints" },
+  { id: "delay_alert", label: "Delay alert" },
+  { id: "order_status", label: "Order status" },
   { id: "report", label: "Report" }
 ];
 
-const STATUS_FILTERS = [{ id: "all", label: "All" }, ...ENQUIRY_STATUSES.map((id) => ({
-  id,
-  label: ENQUIRY_STATUS_LABEL[id]
-}))];
-
-const STATUS_BADGE_CLASS = {
-  new: "bg-slate-100 text-slate-700 border-slate-200",
-  assigned: "bg-violet-50 text-violet-700 border-violet-200",
-  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
-  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  closed: "bg-zinc-100 text-zinc-600 border-zinc-200"
-};
-
-const PRIORITY_BADGE_CLASS = {
-  low: "bg-zinc-50 text-zinc-600 border-zinc-200",
-  normal: "bg-slate-50 text-slate-700 border-slate-200",
-  high: "bg-amber-50 text-amber-700 border-amber-200",
-  urgent: "bg-red-50 text-red-700 border-red-200"
-};
-
-function formatDateTime(iso) {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
-  });
+function emptyFormForDesk(deskKind) {
+  return deskKind === "enquiry" ? { ...EMPTY_ENQUIRY_DESK_FORM } : { ...EMPTY_ENQUIRY_FORM };
 }
 
-function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
-  const [form, setForm] = useState({ ...EMPTY_ENQUIRY_FORM });
+function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, deskKind = "complaint" }) {
+  const isEnquiryDesk = deskKind === "enquiry";
+  const [form, setForm] = useState(() => emptyFormForDesk(deskKind));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [photoFiles, setPhotoFiles] = useState([]);
@@ -112,19 +73,27 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
 
   useEffect(() => {
     if (open) {
-      setForm({ ...EMPTY_ENQUIRY_FORM });
+      setForm(emptyFormForDesk(deskKind));
       setError("");
       setPhotoFiles([]);
       setOwnershipHint("");
     }
-  }, [open]);
+  }, [open, deskKind]);
 
   function setField(key, value) {
     setForm((prev) => {
       const next = { ...prev, [key]: value };
       if (key === "order_type") {
-        if (value === "regular") next.help_topic = "regular";
-        else if (prev.help_topic === "regular") next.help_topic = "product_issue";
+        if (value === "regular") {
+          next.help_topic = "regular";
+          next.ticket_kind = "complaint";
+        } else if (prev.help_topic === "regular") {
+          next.help_topic = "product_issue";
+          next.ticket_kind = "complaint";
+        }
+      }
+      if (key === "help_topic") {
+        next.ticket_kind = value === "enquiry" ? "enquiry" : "complaint";
       }
       return next;
     });
@@ -165,26 +134,25 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
         const ownership = ownershipFromLookup(lookup, form.customer_phone);
         ownershipVerified = ownership.verified;
       }
-      const row = await createEnquiry({
+      const row = await createEnquiryWithPhotos({
         createdBy: sessionUserId,
-        form: { ...form, ownership_verified: ownershipVerified }
+        files: photoFiles,
+        form: {
+          ...form,
+          ownership_verified: ownershipVerified,
+          ticket_kind: isEnquiryDesk ? "enquiry" : "complaint",
+          help_topic: isEnquiryDesk
+            ? "enquiry"
+            : form.order_type === "customized"
+              ? "product_issue"
+              : "regular",
+          order_type: isEnquiryDesk ? "customized" : form.order_type
+        }
       });
-      if (photoFiles.length) {
-        const uploaded = await uploadEnquiryPhotos({
-          userId: sessionUserId,
-          enquiryId: row.id,
-          files: photoFiles
-        });
-        const updated = await updateEnquiryFields(row.id, {
-          attachments: uploaded.map(({ path, name, mime, size }) => ({ path, name, mime, size }))
-        });
-        onCreated?.(updated);
-      } else {
-        onCreated?.(row);
-      }
+      onCreated?.(row);
       onOpenChange(false);
     } catch (e) {
-      setError(e.message || "Could not create enquiry.");
+      setError(friendlyEnquiryDbError(e) || (isEnquiryDesk ? "Could not create enquiry." : "Could not create complaint."));
     } finally {
       setSaving(false);
     }
@@ -194,7 +162,7 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>New enquiry</DialogTitle>
+          <DialogTitle>{isEnquiryDesk ? "New enquiry" : "New complaint"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-2">
@@ -260,18 +228,22 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-enquiry-product">Concerns</Label>
+            <Label htmlFor="new-enquiry-product">{isEnquiryDesk ? "Enquiry details" : "Concerns"}</Label>
             <Textarea
               id="new-enquiry-product"
               value={form.product_details}
               onChange={(e) => setField("product_details", e.target.value)}
               rows={3}
-              placeholder="What the customer said on Help with order…"
+              placeholder={
+                isEnquiryDesk
+                  ? "What the customer asked on Customized → Enquiries…"
+                  : "What the customer said on Help with order…"
+              }
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="new-enquiry-order">Order ID</Label>
+              <Label htmlFor="new-enquiry-order">Order ID{isEnquiryDesk ? " (optional)" : ""}</Label>
               <Input
                 id="new-enquiry-order"
                 value={form.order_id}
@@ -280,62 +252,65 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
                 placeholder="SC123456"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Order type</Label>
-              <Select value={form.order_type} onValueChange={(v) => setField("order_type", v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENQUIRY_ORDER_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {ENQUIRY_ORDER_TYPE_LABEL[t]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Help path</Label>
-            {form.order_type === "regular" ? (
-              <p className="text-sm text-muted-foreground">Help with order → Regular Order</p>
+            {isEnquiryDesk ? (
+              <div className="space-y-2">
+                <Label>Help path</Label>
+                <p className="text-sm text-muted-foreground">Help with order → Customized → Enquiries</p>
+              </div>
             ) : (
-              <Select value={form.help_topic} onValueChange={(v) => setField("help_topic", v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="enquiry">Help with order → Customized → Enquiries</SelectItem>
-                  <SelectItem value="product_issue">Help with order → Customized → Concerns</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label>Order type</Label>
+                <Select value={form.order_type} onValueChange={(v) => setField("order_type", v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ENQUIRY_ORDER_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {ENQUIRY_ORDER_TYPE_LABEL[t]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
+          {isEnquiryDesk ? null : (
+            <div className="space-y-2">
+              <Label>Help path</Label>
+              {form.order_type === "regular" ? (
+                <p className="text-sm text-muted-foreground">Help with order → Regular Order</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Help with order → Customized → Concerns</p>
+              )}
+            </div>
+          )}
           {ownershipHint ? <p className="text-xs text-muted-foreground">{ownershipHint}</p> : null}
-          <div className="space-y-2">
-            <Label htmlFor="new-enquiry-photos">Photos (product issues)</Label>
-            <Input
-              id="new-enquiry-photos"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                const bad = files.map(validateEnquiryPhotoFile).find(Boolean);
-                if (bad) {
-                  setError(bad);
-                  e.target.value = "";
-                  return;
-                }
-                setError("");
-                setPhotoFiles(files);
-              }}
-            />
-            {photoFiles.length ? (
-              <p className="text-xs text-muted-foreground">{photoFiles.length} photo(s) ready</p>
-            ) : null}
-          </div>
+          {isEnquiryDesk ? null : (
+            <div className="space-y-2">
+              <Label htmlFor="new-enquiry-photos">Photos (product issues)</Label>
+              <Input
+                id="new-enquiry-photos"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  const bad = files.map(validateEnquiryPhotoFile).find(Boolean);
+                  if (bad) {
+                    setError(bad);
+                    e.target.value = "";
+                    return;
+                  }
+                  setError("");
+                  setPhotoFiles(files);
+                }}
+              />
+              {photoFiles.length ? (
+                <p className="text-xs text-muted-foreground">{photoFiles.length} photo(s) ready</p>
+              ) : null}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="new-enquiry-notes">Notes</Label>
             <Textarea
@@ -353,7 +328,7 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
             Cancel
           </Button>
           <Button type="button" disabled={saving} onClick={() => void handleSave()}>
-            {saving ? "Saving…" : "Create enquiry"}
+            {saving ? "Saving…" : isEnquiryDesk ? "Create enquiry" : "Create complaint"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -362,20 +337,17 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated }) {
 }
 
 /**
- * Support tab — sub-tabs Enquiry (blank), Complaints (current desk), Report (blank).
- * Assignees see tickets assigned to them; creators see what they logged.
+ * Support tab — Enquiry and Complaints desks share SupportTicketDesk (pills, search, table, roles).
  */
 export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, teamProfiles }) {
   const mayCreate = isAdmin || canEdit;
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createDeskKind, setCreateDeskKind] = useState("complaint");
   const [simulatorOpen, setSimulatorOpen] = useState(false);
   const [slaEscalations, setSlaEscalations] = useState([]);
   const [supportSubTab, setSupportSubTab] = useState("complaints");
@@ -424,9 +396,9 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
       setError("");
     } catch (e) {
       const msg = e.message || "Could not load enquiries.";
-      if (msg.includes("Could not find the table") || msg.includes("schema cache") || msg.includes("column")) {
+      if (msg.includes("ticket_kind") || msg.includes("Could not find the table") || msg.includes("schema cache") || msg.includes("column")) {
         setError(
-          "Enquiry Concierge columns not on database yet — apply migration 20260818082754_enquiry_concierge_desk.sql on staging."
+          "Support ticket columns not on database yet — apply migrations 20260818082754_enquiry_concierge_desk.sql and 20260819100000_enquiry_complaint_code_prefixes.sql on staging."
         );
       } else {
         setError(msg);
@@ -452,14 +424,18 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
   }, [loadEnquiries]);
 
   const complaintRows = useMemo(() => enquiries.filter(isComplaintsHelpPath), [enquiries]);
+  const enquiryRows = useMemo(() => enquiries.filter(isEnquiryHelpPath), [enquiries]);
 
-  const counts = useMemo(() => enquiryStatusCounts(complaintRows), [complaintRows]);
-
-  const waitingAlerts = useMemo(
+  const complaintWaiting = useMemo(
     () => (isAdmin ? listWaitingAlerts(complaintRows) : []),
     [complaintRows, isAdmin]
   );
-  const openEscalations = useMemo(
+  const enquiryWaiting = useMemo(
+    () => (isAdmin ? listWaitingAlerts(enquiryRows) : []),
+    [enquiryRows, isAdmin]
+  );
+
+  const complaintEscalations = useMemo(
     () =>
       (slaEscalations ?? []).filter((row) => {
         const enquiry = complaintRows.find((e) => e.id === row.enquiry_id);
@@ -467,15 +443,13 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
       }),
     [slaEscalations, complaintRows]
   );
-
-  const visibleEnquiries = useMemo(
+  const enquiryEscalations = useMemo(
     () =>
-      filterEnquiries(complaintRows, {
-        statusFilter,
-        searchQuery,
-        assigneeFilter: isAdmin ? assigneeFilter : "all"
+      (slaEscalations ?? []).filter((row) => {
+        const enquiry = enquiryRows.find((e) => e.id === row.enquiry_id);
+        return enquiry ? isEnquiryUnpicked(enquiry) : false;
       }),
-    [complaintRows, statusFilter, searchQuery, assigneeFilter, isAdmin]
+    [slaEscalations, enquiryRows]
   );
 
   function openDetail(row) {
@@ -493,6 +467,32 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
     openDetail(row);
   }
 
+  function deskActions(kind) {
+    return (
+      <>
+        {mayCreate ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => setSimulatorOpen(true)}>
+            <MessageCircle className="mr-1 h-4 w-4" aria-hidden />
+            WhatsApp simulator
+          </Button>
+        ) : null}
+        {mayCreate ? (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => {
+              setCreateDeskKind(kind);
+              setCreateOpen(true);
+            }}
+          >
+            <Plus className="mr-1 h-4 w-4" aria-hidden />
+            {kind === "enquiry" ? "New enquiry" : "New complaint"}
+          </Button>
+        ) : null}
+      </>
+    );
+  }
+
   return (
     <section className="panel table-panel dashboard-card space-y-4">
       <h2 className="dashboard-section-title flex items-center gap-2">
@@ -500,10 +500,8 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
         Support
       </h2>
 
-      <SupportDelayAlertCard sessionUserId={sessionUserId} />
-
       <Tabs value={supportSubTab} onValueChange={setSupportSubTab}>
-        <TabsList aria-label="Support views">
+        <TabsList aria-label="Support views" className="h-auto w-full flex-wrap justify-start">
           {SUPPORT_SUBTABS.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id}>
               {tab.label}
@@ -511,211 +509,56 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
           ))}
         </TabsList>
 
-        <TabsContent value="enquiry">
-          <div className="min-h-[12rem]" />
+        <TabsContent value="enquiry" className="space-y-4">
+          <SupportTicketDesk
+            rows={enquiryRows}
+            profileById={profileById}
+            activeProfiles={activeProfiles}
+            isAdmin={isAdmin}
+            loading={loading}
+            error={error}
+            emptyMessage="No enquiries from Help with order → Customized → Enquiries."
+            description={
+              isAdmin
+                ? "Assign team members. Staff pick, notes, and close show here live."
+                : "Work enquiries assigned to you. You cannot assign. Admin sees your updates."
+            }
+            headerActions={deskActions("enquiry")}
+            waitingAlerts={enquiryWaiting}
+            openEscalations={enquiryEscalations}
+            onRefresh={() => void loadEnquiries()}
+            onOpenDetail={openDetail}
+          />
         </TabsContent>
 
         <TabsContent value="complaints" className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {isAdmin
+          <SupportTicketDesk
+            rows={complaintRows}
+            profileById={profileById}
+            activeProfiles={activeProfiles}
+            isAdmin={isAdmin}
+            loading={loading}
+            error={error}
+            emptyMessage="No complaints from Help with order → Regular Order or Customized → Concerns."
+            description={
+              isAdmin
                 ? "Assign team members. Staff pick, notes, and close show here live."
-                : "Work complaints assigned to you. You cannot assign. Admin sees your updates."}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => void loadEnquiries()}>
-                <RefreshCw className="mr-1 h-4 w-4" aria-hidden />
-                Refresh
-              </Button>
-              {mayCreate ? (
-                <Button type="button" variant="outline" size="sm" onClick={() => setSimulatorOpen(true)}>
-                  <MessageCircle className="mr-1 h-4 w-4" aria-hidden />
-                  WhatsApp simulator
-                </Button>
-              ) : null}
-              {mayCreate ? (
-                <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-                  <Plus className="mr-1 h-4 w-4" aria-hidden />
-                  New enquiry
-                </Button>
-              ) : null}
-            </div>
-          </div>
+                : "Work complaints assigned to you. You cannot assign. Admin sees your updates."
+            }
+            headerActions={deskActions("complaint")}
+            waitingAlerts={complaintWaiting}
+            openEscalations={complaintEscalations}
+            onRefresh={() => void loadEnquiries()}
+            onOpenDetail={openDetail}
+          />
+        </TabsContent>
 
-      {openEscalations.map((row) => (
-        <Alert
-          key={row.id}
-          variant="destructive"
-          className="cursor-pointer"
-          onClick={() => {
-            const match = enquiries.find((e) => e.id === row.enquiry_id);
-            if (match) openDetail(match);
-          }}
-        >
-          <AlertCircle className="h-4 w-4" aria-hidden />
-          <AlertTitle>SLA escalation</AlertTitle>
-          <AlertDescription>
-            {row.message} Customer {row.customer_name}
-            {row.order_id ? ` · Order ${row.order_id}` : ""}. Customer is not told.
-          </AlertDescription>
-        </Alert>
-      ))}
+        <TabsContent value="delay_alert">
+          <SupportDelayAlertCard sessionUserId={sessionUserId} />
+        </TabsContent>
 
-      {isAdmin
-        ? waitingAlerts.map((row) => (
-            <Alert
-              key={`wait-${row.enquiryId}`}
-              className="cursor-pointer"
-              onClick={() => {
-                const match = enquiries.find((e) => e.id === row.enquiryId);
-                if (match) openDetail(match);
-              }}
-            >
-              <Clock className="h-4 w-4" aria-hidden />
-              <AlertTitle>Waiting over 1 hour (ops)</AlertTitle>
-              <AlertDescription>
-                {row.message} {row.customerName}
-                {row.orderId ? ` · Order ${row.orderId}` : ""}. Not shown to the assignee desk copy.
-              </AlertDescription>
-            </Alert>
-          ))
-        : null}
-
-      {isAdmin ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {[
-            { key: "new", label: "New" },
-            { key: "assigned", label: "Assigned" },
-            { key: "in_progress", label: "In progress" },
-            { key: "resolved", label: "Resolved" },
-            { key: "closed", label: "Closed" }
-          ].map(({ key, label }) => (
-            <Card key={key}>
-              <CardHeader className="pb-2 pt-4">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-              </CardHeader>
-              <CardContent className="pb-4 text-2xl font-semibold">{counts[key] ?? 0}</CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-          <TabsList className="h-auto flex-wrap">
-            {STATUS_FILTERS.map((f) => (
-              <TabsTrigger key={f.id} value={f.id} className="text-xs sm:text-sm">
-                {f.label}
-                {f.id !== "all" && counts[f.id] != null ? ` (${counts[f.id]})` : ""}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        <Input
-          className="max-w-sm"
-          placeholder="Search code, customer, order ID, concerns…"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        {isAdmin ? (
-          <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="All assignees" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All assignees</SelectItem>
-              <SelectItem value="unassigned">Unassigned</SelectItem>
-              {activeProfiles.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {profileDisplayName(p)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-      </div>
-
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-      {loading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Concerns</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Assignee</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleEnquiries.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
-                    No complaints from Help with order → Regular Order or Customized order.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                visibleEnquiries.map((row) => {
-                  const assignee = row.assignee_id ? profileById[row.assignee_id] : null;
-                  return (
-                    <TableRow
-                      key={row.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => openDetail(row)}
-                    >
-                      <TableCell className="font-medium">{row.enquiry_code}</TableCell>
-                      <TableCell>{row.customer_name}</TableCell>
-                      <TableCell className="whitespace-nowrap font-medium">
-                        {row.order_id || "—"}
-                      </TableCell>
-                      <TableCell className="max-w-[220px] truncate" title={row.product_details || ""}>
-                        {row.product_details || "—"}
-                      </TableCell>
-                      <TableCell>{row.source || "—"}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[row.status])}>
-                            {ENQUIRY_STATUS_LABEL[row.status] ?? row.status}
-                          </Badge>
-                          {isEnquiryUnpicked(row) ? (
-                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                              Pending
-                            </Badge>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={cn(PRIORITY_BADGE_CLASS[row.priority])}>
-                          {ENQUIRY_PRIORITY_LABEL[row.priority] ?? row.priority}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{assignee ? profileDisplayName(assignee) : "—"}</TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">
-                        {formatDateTime(row.created_at)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+        <TabsContent value="order_status">
+          <SupportProductionStatusCard />
         </TabsContent>
 
         <TabsContent value="report">
@@ -728,6 +571,7 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
         onOpenChange={setCreateOpen}
         sessionUserId={sessionUserId}
         onCreated={handleEnquiryCreated}
+        deskKind={createDeskKind}
       />
 
       <EnquiryDetailDialog

@@ -2,6 +2,66 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-08-19 — Close works without waiting for ON CONFLICT migration
+
+**Context:** Staging close trigger still uses `ON CONFLICT (enquiry_id)`. CLI cannot `db push` without login. Enquiry and Complaints both failed Closed.
+
+**Options:** (1) Wait for SQL. (2) On that error, Close with phone blank so the trigger skips, restore phone, queue survey in the app.
+
+**Decision:** Option 2 in `applyEnquiryClosePatch`. Keep migration `20260819062942` for when staging can be pushed.
+
+**Why:** User needed Close to work now on both desks.
+
+**Tradeoffs:** Two updates on Close while the old trigger remains. Harmless after the trigger is fixed (first update succeeds, no retry).
+
+## 2026-08-19 — Complaints CS- vs Enquiries ENQ-
+
+**Context:** Both desks used `ENQ-#####`. User asked for CS on Complaints and ENQ on Enquiries so the codes never clash.
+
+**Options:** (1) Wait for staging trigger only. (2) Allocate prefix on insert and relabel old complaint ENQ rows; keep the SQL migration.
+
+**Decision:** Option 2. `allocateTicketCode` / `relabelComplaintCodes` in `enquiryUtils.js`. Trigger migration still preferred for sequences.
+
+**Why:** Staging still had the old ENQ-only trigger.
+
+**Tradeoffs:** Until the migration is applied, codes come from the app (max existing number + 1), not Postgres sequences.
+
+## 2026-08-19 — Simulator files tickets without customer AM pick
+
+**Context:** After product photos, Done asked admin users to pick an account manager. Staff-only UPDATE after insert also threw PostgREST coerce errors.
+
+**Options:** (1) Keep AM pick in chat. (2) File as New, assign from Complaints desk. Upload photos before insert.
+
+**Decision:** Option 2. Customer flow is Order ID → issue → photos → Done → confirmation. Admin assigns later. Creator UPDATE RLS added for other attach paths.
+
+**Why:** User asked for a smooth customer flow. Chat should not expose staff assignment.
+
+**Tradeoffs:** Simulator no longer assigns on create. Complaints rows start as New.
+
+## 2026-08-19 — Track Order is automatic from production status
+
+**Context:** Simulator had Home → Track Order. User asked to remove it and send WhatsApp when production updates status.
+
+**Options:** (1) Keep Track Order chat. (2) Client JS after status save. (3) Postgres trigger on `orders.status`.
+
+**Decision:** Option 3. Remove Track Order from the home menu. Trigger queues simulator copy. Phone from enquiry / contact book / Ready Stock. No Meta keys in the SPA.
+
+**Why:** User asked for backend automation on production updates.
+
+**Tradeoffs:** Tracker `orders` have no phone column. No matching phone → log skip, no WhatsApp. Live Meta still not sent from this dashboard.
+
+## 2026-08-19 — Enquiry tab reuses Complaints desk; ENQ vs CS codes
+
+**Context:** Enquiry tab was blank. Complaints already used `public.enquiries`. User asked for a matching enquiries table, ENQ codes, CS codes for complaints, and the same UI.
+
+**Options:** (1) Second table duplicating RLS/SLA/activity. (2) Keep one `enquiries` table, add `ticket_kind`, two sequences.
+
+**Decision:** Option 2. Enquiry = Customized → Enquiries (`ENQ-`). Complaints = Regular + Concerns (`CS-`). Relabel existing complaint `ENQ-00002` → `CS-00002`. Shared `SupportTicketDesk`. Same admin-assign / staff-pick rules.
+
+**Why:** User asked to reuse the same components, API patterns, and role rules.
+
+**Tradeoffs:** `product_details` still stores enquiry text (UI “Concerns” / “Enquiry details”). Live WhatsApp bot in `Scott_concierge` is not updated here — dashboard simulator is.
+
 ## 2026-08-18 — Production delay alert on Support for admin and staff
 
 **Context:** Concierge `/admin` has “Send production delay alert”. Dashboard Support copied the desk but skipped that sender. User asked for it on Support for both admin and non-admin.

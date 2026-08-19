@@ -25,6 +25,7 @@ import {
   ENQUIRY_STATUSES,
   ENQUIRY_STATUS_LABEL,
   assignEnquiry,
+  friendlyEnquiryDbError,
   profileDisplayName,
   updateEnquiryFields,
   updateEnquiryStatus
@@ -191,7 +192,7 @@ export default function EnquiryDetailDialog({
         setError("Case closed. No customer phone — survey text not sent.");
       }
     } catch (e) {
-      setError(e.message || "Could not update enquiry.");
+      setError(friendlyEnquiryDbError(e));
     } finally {
       setPicking(false);
     }
@@ -235,7 +236,7 @@ export default function EnquiryDetailDialog({
       });
       await emitUpdated(updated);
     } catch (e) {
-      setError(e.message || "Could not update status.");
+      setError(friendlyEnquiryDbError(e));
     } finally {
       setSaving(false);
     }
@@ -302,7 +303,9 @@ export default function EnquiryDetailDialog({
             <dd>{complaintsHelpPathLabel(enquiry)}</dd>
           </div>
           <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Concerns</dt>
+            <dt className="text-muted-foreground">
+              {String(enquiry.ticket_kind ?? "") === "enquiry" ? "Enquiry details" : "Concerns"}
+            </dt>
             <dd className="whitespace-pre-wrap">
               {enquiry.product_details || "—"}
               <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>

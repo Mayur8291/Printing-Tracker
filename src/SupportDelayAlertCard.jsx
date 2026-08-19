@@ -109,7 +109,7 @@ export default function SupportDelayAlertCard({ sessionUserId }) {
         <CardDescription>
           Production updates the delivery date. Customer gets the Concierge apology text. Admin and staff
           can send. Live Meta WhatsApp is not sent from this dashboard — the WhatsApp simulator shows the
-          queued message.
+          queued message. Track Order is automatic from production status updates, not this form.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

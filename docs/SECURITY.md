@@ -1,6 +1,6 @@
 # Security
 
-- Enquiry **assign** is admin-only (RLS insert + update trigger). Non-admin cannot set `assignee_id`.
+- Enquiry **assign** is admin-only (RLS insert + update trigger). Non-admin cannot set `assignee_id`. Creator may update their own row (attach photos). Guard trigger still blocks assignee changes.
 - Enquiry activity log is scoped; admin sees all staff actions on the Support tab.
 
 ## Enquiry Concierge desk
@@ -9,7 +9,8 @@
 - Enquiry photos go to bucket `enquiry-attachments`; upload path must start with `auth.uid()`.
 - SLA messages go to Gargi (or first admin). The **customer is never told** about a missed pick.
 - Close queues customer survey copy in `enquiry_outbound_messages` (Feedback button). The SPA does not hold WhatsApp Cloud API keys; live Meta send is not from this app.
-- **Production delay alerts:** admin and staff can send from Support. Insert requires `sent_by = auth.uid()`. Queued outbound rows use `enquiry_id` null so any authenticated user can insert/read them for the simulator. No Cloud API secrets in the browser.
+- **Production delay alerts:** admin and staff can send from Support. Insert requires `sent_by = auth.uid()`. Queued outbound rows use `enquiry_id` null. No Cloud API secrets in the browser.
+- **Production status texts:** Postgres trigger on `orders.status` queues Concierge copy. No customer phone on the tracker order row — phone comes from enquiry / contact book / Ready Stock. Trigger is security definer. SPA still has no Cloud API keys.
 - **Concerns** (`product_details`) and **customer feedback** are customer-originated. Detail UI is read-only for admin and staff after receive; staff save only notes/priority.
 
 ## Authentication (web / mobile)

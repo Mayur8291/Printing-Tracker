@@ -9,7 +9,8 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | Column | Type | Purpose |
 |--------|------|---------|
 | `id` | uuid | Primary key |
-| `enquiry_code` | text | Auto `ENQ-00001` via sequence trigger |
+| `enquiry_code` | text | `ENQ-#####` for enquiries, `CS-#####` for complaints. App allocates the prefix on insert (old trigger still stamps ENQ if the code is empty). Staging migration `20260819100000` adds `complaint_code_seq` and relabels leftover complaint ENQ rows. |
+| `ticket_kind` | text | `enquiry` or `complaint` — Support tab split |
 | `customer_name` | text | Required |
 | `customer_phone` / `customer_email` | text | Optional contact |
 | `product_details` | text | What customer asked for |
@@ -33,9 +34,9 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | `created_by` | uuid | FK → `profiles.id` — who logged enquiry |
 | `created_at` / `updated_at` | timestamptz | Audit |
 
-**RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields**; insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits.
+**RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields**; creator can update own rows (photos after insert); insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits. Migration `20260819120000_enquiries_creator_update.sql`.
 
-**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql` (staging).
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql`, code prefixes `20260819100000_enquiry_complaint_code_prefixes.sql` (staging: `ticket_kind`, `complaint_code_seq`, relabel complaint `ENQ-` → `CS-`).
 
 ### `enquiry_sla_escalations`
 
@@ -80,14 +81,14 @@ Queued customer texts for the WhatsApp simulator.
 | `id` | uuid | Primary key |
 | `enquiry_id` | uuid | FK → `enquiries.id` (nullable). Close survey rows have an enquiry; delay-alert rows are `null` |
 | `phone` | text | Customer phone |
-| `kind` | text | `buttons` (close survey / next-step menu) or `delay_alert` |
+| `kind` | text | `buttons`, `delay_alert`, or `production_status` |
 | `text` | text | Concierge copy |
-| `buttons` | jsonb | Close: Feedback. Delay: Track / Help / Access |
+| `buttons` | jsonb | Close: Feedback. Delay/status: Help / Access |
 | `created_at` | timestamptz | When queued |
 
 **Unique:** one outbound row per non-null `enquiry_id` (close survey). Delay rows skip that unique because `enquiry_id` is null.
 
-**Triggers:** `enquiries_mark_feedback_requested` (BEFORE UPDATE) sets `feedback_requested_at`. `enquiries_queue_close_survey` (AFTER UPDATE, security definer) inserts the close-survey row if phone is present.
+**Triggers:** `enquiries_mark_feedback_requested` (BEFORE UPDATE) sets `feedback_requested_at`. `enquiries_queue_close_survey` (AFTER UPDATE, security definer) inserts the close-survey row if phone is present and no outbound row exists for that enquiry. It must **not** use `ON CONFLICT (enquiry_id)` after the delay-alert partial unique index. Survey insert errors are swallowed so Close still saves.
 
 **RLS:** Admin / assignee / creator / SLA fallback can select and insert rows tied to an enquiry. Rows with `enquiry_id` null (delay alerts) are readable and insertable by any authenticated user.
 
@@ -95,7 +96,7 @@ Queued customer texts for the WhatsApp simulator.
 
 **Realtime:** table added to `supabase_realtime`.
 
-**Migrations:** `20260818113000_enquiry_close_survey_message.sql`, `20260818180000_support_delay_alerts.sql` (nullable `enquiry_id`).
+**Migrations:** `20260818113000_enquiry_close_survey_message.sql`, `20260818180000_support_delay_alerts.sql` (nullable `enquiry_id`), `20260819062942_fix_close_survey_conflict.sql`, `20260819113000_production_status_whatsapp.sql`.
 
 ### `support_delay_alerts`
 
@@ -121,6 +122,32 @@ Production delay notices sent from Support (admin and staff).
 **Rollback:** drop table; restore previous outbound unique/NOT NULL if no delay rows remain.
 
 **Migration:** `20260818180000_support_delay_alerts.sql` (staging).
+
+### `support_production_status_alerts`
+
+Automatic Concierge texts when `orders.status` changes.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `order_uuid` | uuid | FK → `orders.id` |
+| `order_id` | text | Human order code |
+| `customer_name` | text | Greeting name |
+| `phone` | text | Null when skipped |
+| `old_status` / `new_status` | text | Stage keys |
+| `message` | text | Queued Concierge copy |
+| `skipped_reason` | text | Set when no phone found |
+| `created_at` | timestamptz | When production updated |
+
+**Trigger:** `orders_queue_production_status_whatsapp` AFTER UPDATE OF `status` on `orders`. Security definer. Phone from enquiry Order ID, contact book name, or `scott_orders.customer`.
+
+**RLS:** Authenticated select all. Inserts only from the trigger.
+
+**Realtime:** table added to `supabase_realtime`.
+
+**Rollback:** drop trigger/function/table.
+
+**Migration:** `20260819113000_production_status_whatsapp.sql` (staging).
 
 ### `enquiry_assignment_notifications`
 

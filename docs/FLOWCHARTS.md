@@ -7,17 +7,22 @@ Status UI stays **New / Assigned / In progress / Resolved / Closed**. Concierge 
 ```mermaid
 flowchart TD
   A[Open Support tab] --> ST{Sub-tab}
-  ST -->|Enquiry| BL1[Blank placeholder]
+  ST -->|Enquiry| ENQ[Enquiry desk ENQ codes]
+  ST -->|Complaints| B[Complaints desk CS codes]
+  ST -->|Delay alert| DATab[Send delay WhatsApp]
+  ST -->|Order status| OSTab[Queued production status texts]
   ST -->|Report| BL2[Blank placeholder]
-  ST -->|Complaints| B[Load enquiries RLS]
-  B --> C[Client SLA pass]
+  ENQ --> C[Client SLA pass]
+  B --> C
   C --> D{Unpicked over 2h?}
   D -->|yes| E[Write sla_escalated_at + notify Gargi]
   D -->|no| F[Show table + cards]
   E --> F
   F --> G{User action}
-  G -->|WhatsApp simulator| S[Fake chat files WhatsApp enquiry]
+  G -->|WhatsApp simulator| S[Fake chat files ticket]
+  G -->|Enquiry path| EP[Name phone optional order details then ENQ code]
   G -->|Delay alert| DA[Queue delay text + next buttons]
+  G -->|Prod status auto| PS[Backend queues status WhatsApp]
   G -->|Create| H[Order lookup + photos + insert]
   G -->|Assign| I[Team member or unknown to Gargi]
   G -->|Mark verified| J[picked_at]
@@ -68,16 +73,68 @@ sequenceDiagram
 ```
 
 ```mermaid
+sequenceDiagram
+  participant Prod as Production
+  participant SB as Supabase
+  participant Sim as WhatsApp simulator
+  Prod->>SB: update orders.status
+  SB->>SB: trigger queue_production_status_customer_message
+  SB->>SB: lookup phone enquiry / contact / Ready Stock
+  alt phone found
+    SB->>SB: insert support_production_status_alerts queued
+    SB->>SB: insert enquiry_outbound_messages
+    SB-->>Sim: realtime outbound
+    Sim->>Sim: show Status is now
+  else no phone
+    SB->>SB: insert support_production_status_alerts skipped
+  end
+```
+
+```mermaid
+sequenceDiagram
+  participant Cust as WhatsApp simulator
+  participant App as EnquiryWhatsAppSimulator
+  participant SB as Supabase
+  Cust->>App: Home then Help then Customized then Enquiries
+  App->>Cust: Ask name
+  Cust->>App: Name
+  App->>Cust: Ask phone
+  Cust->>App: Phone
+  App->>Cust: Optional order ID or Skip
+  Cust->>App: Details
+  App->>SB: insert enquiries ticket_kind enquiry
+  SB-->>App: ENQ-#####
+  App->>Cust: Enquiry logged confirmation
+```
+
+```mermaid
+sequenceDiagram
+  participant Cust as WhatsApp simulator
+  participant App as EnquiryWhatsAppSimulator
+  participant SB as Supabase
+  Cust->>App: Help then Concerns then Product issues
+  App->>Cust: Ask Order ID
+  Cust->>App: Order ID
+  App->>Cust: Ask issue then photos
+  Cust->>App: Photo then Done
+  App->>SB: upload photos then insert enquiries
+  SB-->>App: CS-#####
+  App->>Cust: Ticket created confirmation
+```
+
+```mermaid
 flowchart LR
   subgraph ui [Support tab]
     Cards[New Assigned In progress Resolved Closed]
     Pending[Pending badge if unpicked]
     Detail[Detail dialog Concierge actions]
-    Sub[Enquiry Complaints Report]
-    Delay[Send production delay alert]
+    Sub[Enquiry Complaints Delay alert Order status Report]
+    Delay[Delay alert tab]
+    Status[Order status tab]
     Cols[Customer Order ID Concerns]
   end
   Delay --> Sub
+  Status --> Sub
   Sub --> Cards
   Cards --> Cols
   Cols --> Detail

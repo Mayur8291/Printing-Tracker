@@ -82,39 +82,52 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Support dashboard (Enquiry data)
 
 1. **Trigger:** user opens sidebar → **Support** (`dashboardTab === "enquiry"` → `EnquiryPanel`). Default sub-tab is **Complaints**.
-2. **Sub-tabs:** **Enquiry** (blank, later), **Complaints** (current ticket desk), **Report** (blank, later). **Send production delay alert** card sits above the sub-tabs for admin and staff.
+2. **Sub-tabs:** **Enquiry** → **Complaints** → **Delay alert** → **Order status** → **Report**. Desks use `SupportTicketDesk`. Whole row tint follows priority. Delay form and production-status log are their own tabs (after Complaints, before Report). Report stays blank.
 3. **Fetch:** `enquiries` (newest first, limit 500) — RLS returns all rows for admin; assignee sees assigned rows; creator sees rows they logged; Gargi sees SLA-escalated rows (`escalated_to_id`).
-4. **Display (Complaints):** only Help with order → **Regular Order** (`order_type=regular`, `help_topic=regular`) and Help with order → **Customized order** (`order_type=customized` + `help_topic=enquiry` or `product_issue`). Columns: Code, Customer, **Order ID**, **Concerns**, Source, Status, Priority, Assignee, Created. No Track Order / Customer Access / Delay tickets.
-5. **Create:** **New enquiry** — customer, phone, order ID (lookup Ready Stock `scott_orders` then tracker `orders.order_id`), help topic, photos, ownership check (last 10 phone digits vs order customer phone).
-6. **Assign (admin only):** detail dialog → pick team member. Non-admin cannot assign (UI hidden, insert RLS blocks assignee, update trigger blocks assignee fields).
-7. **Pick (assignee):** Mark verified / contacted / Close, notes, status. **Concerns** and **customer feedback** are read-only for admin and staff after receive. Each action writes `enquiry_activity_log`. Admin list refreshes live; admin detail **Activity** shows who did what.
-8. **SLA:** unpicked = still `new`/`assigned` and no `picked_at`. 1 hour → ops-only waiting banner. 2 hours → escalate to Gargi, red banner, customer not told. Client pass on Enquiry tab load writes `enquiry_sla_escalations` once.
-9. **Realtime:** `enquiries` + `enquiry_sla_escalations` + `enquiry_activity_log` + `enquiry_outbound_messages` → silent refetch so admin sees staff work without refresh.
-10. **Close survey:** First Close queues Concierge copy into `enquiry_outbound_messages` (Feedback button). WhatsApp simulator with the same phone shows that text. No Meta Cloud API send from this SPA.
-11. **Production delay alert:** Card above the sub-tabs (admin and staff). Order number + phone + new date required. Lookup fills name/phone/old date from Ready Stock or tracker. Insert `support_delay_alerts` plus two outbound rows (apology text + Track / Help / Access). Simulator with that phone shows the copy. Live Meta WhatsApp is not sent from this SPA.
-12. **Not copied from Concierge:** live WhatsApp Cloud API.
-13. **Failure:** missing Concierge migration → inline message with `20260818082754_enquiry_concierge_desk.sql`; close survey missing → apply `20260818113000_enquiry_close_survey_message.sql`; delay send fails on missing table → apply `20260818180000_support_delay_alerts.sql` on staging then `NOTIFY pgrst, 'reload schema'`; RLS deny → error in panel; page never blanks.
+4. **Display (Enquiry):** `ticket_kind=enquiry` / Help with order → Customized → Enquiries. Codes `ENQ-#####`. Same columns as Complaints. Order ID optional.
+5. **Display (Complaints):** Help with order → **Regular Order** (`order_type=regular`, `help_topic=regular`) and Help with order → **Customized → Concerns** (`product_issue`). Codes `CS-#####`. Columns: Code, Customer, **Order ID**, **Concerns**, Source, Status, Priority, Assignee, Created. No Track / Access / Delay / Enquiries tickets.
+6. **Create:** **New enquiry** on Enquiry tab; **New complaint** on Complaints. Customer, phone, optional/required order ID, details. Ownership check when order ID present.
+7. **Assign (admin only):** detail dialog → pick team member. Same for both desks. Non-admin cannot assign.
+8. **Pick (assignee):** Mark verified / contacted / Close, notes, status. **Concerns** / enquiry details and **customer feedback** are read-only for admin and staff after receive. Each action writes `enquiry_activity_log`. Admin list refreshes live; admin detail **Activity** shows who did what.
+9. **SLA:** unpicked = still `new`/`assigned` and no `picked_at`. 1 hour → ops-only waiting banner. 2 hours → escalate to Gargi, red banner, customer not told. Client pass on Support tab load writes `enquiry_sla_escalations` once.
+10. **Realtime:** `enquiries` + `enquiry_sla_escalations` + `enquiry_activity_log` + `enquiry_outbound_messages` → silent refetch so admin sees staff work without refresh.
+11. **Close survey:** First Close queues Concierge copy into `enquiry_outbound_messages` (Feedback button). If staging still has `ON CONFLICT (enquiry_id)`, the app Close path blanks phone for one save so the trigger skips, restores the phone, then inserts the survey row. WhatsApp simulator with the same phone shows that text. No Meta Cloud API send from this SPA.
+12. **Production delay alert:** Support sub-tab **Delay alert** (after Complaints). Order number + phone + new date required. Lookup fills name/phone/old date from Ready Stock or tracker. Insert `support_delay_alerts` plus two outbound rows (apology text + Help / Access). Simulator with that phone shows the copy. Live Meta WhatsApp is not sent from this SPA.
+13. **Production status texts:** Backend trigger `orders_queue_production_status_whatsapp` on `orders.status` change. Queues Concierge copy if a phone is found (enquiry Order ID match, contact book name, or Ready Stock customer JSON). Support sub-tab **Order status** lists recent sends/skips. No Track Order button in the simulator.
+14. **Not copied from Concierge:** live WhatsApp Cloud API.
+15. **Failure:** missing Concierge migration → inline message with `20260818082754_enquiry_concierge_desk.sql`; code prefixes missing → apply `20260819100000_enquiry_complaint_code_prefixes.sql`; Close fails with ON CONFLICT → apply `20260819062942_fix_close_survey_conflict.sql`; close survey missing → apply `20260818113000_enquiry_close_survey_message.sql`; delay send fails on missing table → apply `20260818180000_support_delay_alerts.sql`; production status texts missing → apply `20260819113000_production_status_whatsapp.sql` on staging then `NOTIFY pgrst, 'reload schema'`; RLS deny → error in panel; page never blanks.
 
 ### Support production delay alert
 
-1. **Trigger:** Admin or staff opens **Support**. Card **Send production delay alert** is visible on every sub-tab.
+1. **Trigger:** Admin or staff opens **Support** → **Delay alert**.
 2. **Lookup:** Blur Order number → `lookupOrderForEnquiry` (Ready Stock then tracker). Tracker `due_date` fills old date when present.
 3. **Required:** order number, customer phone, new delivery date. Name and old date optional.
 4. **Database:** insert `support_delay_alerts` (`sent_by = auth.uid()`). Insert two `enquiry_outbound_messages` with `enquiry_id` null: `kind=delay_alert` text, then next-step buttons.
-5. **Customer view:** WhatsApp simulator open with the **same phone** shows the Concierge delay copy and Track / Help / Access.
+5. **Customer view:** WhatsApp simulator open with the **same phone** shows the Concierge delay copy and Help / Access.
 6. **Realtime:** `support_delay_alerts` refreshes Recent sent. `enquiry_outbound_messages` pushes into the simulator.
 7. **Failure:** empty phone/new date → form error. Schema cache stale → apply delay migration + reload schema. Simulator closed or different phone → text is queued but not shown until that phone is used.
 
+### Production status WhatsApp (automatic)
+
+1. **Trigger:** Production (or any staff) changes `orders.status` on Printing Orders / Production tracker / job sheet.
+2. **Backend:** AFTER UPDATE trigger `queue_production_status_customer_message` (security definer).
+3. **Phone lookup:** latest enquiry with the same Order ID and a phone; else contact book name match; else Ready Stock `scott_orders.customer` phone.
+4. **Send:** If phone found, insert `support_production_status_alerts` + two `enquiry_outbound_messages` rows (`production_status` text + Help / Access). If no phone, log the row with `skipped_reason` and do not queue WhatsApp.
+5. **Customer view:** WhatsApp simulator with that phone shows the status copy. Support **Order status** tab lists queued vs skipped. Live Meta WhatsApp is not sent from this SPA.
+6. **Failure:** Migration `20260819113000_production_status_whatsapp.sql` not on staging → no automatic text. Tracker orders have no phone of their own — link an enquiry or contact book first.
+
 ### Enquiry WhatsApp simulator (temporary)
 
-1. **Trigger:** Support → **Complaints** → **WhatsApp simulator** (admin or tab editor).
+1. **Trigger:** Support → Enquiry or Complaints → **WhatsApp simulator** (admin or tab editor).
 2. **UI:** Right sheet, fake WhatsApp phone. Default customer John / `+919876543210`.
-3. **Flow:** Same Concierge buttons except **New member** — no welcome/placeholder text and no home buttons on that tap. Admin simulator may pick AM. **Non-admin cannot assign** — ticket is created as **New** for admin to assign.
-4. **Test bypass (default on):** If order/phone does not match, still continue so the Enquiry list can be tested. Turn off to mimic live Concierge deny copy.
-5. **Exit:** Ticket appears on the Enquiry table (Assigned + Pending until pick).
-6. **Close survey:** Keep the sheet open (same chat phone). When AM taps Close, bot sends “I hope your issue has been resolved…” + Feedback. Customer taps Feedback → stars → optional comment or Skip. That writes `feedback_rating` on the enquiry.
-7. **Delay alert:** Keep the sheet open with the delay-alert phone. Support send queues apology text + next-step buttons into the same chat.
-8. **Failure:** No Gargi profile + unknown AM → bot asks to pick another name. Photo type/size errors stay in chat. Close with empty phone → no survey text. Delay send with empty phone → form blocks send.
+3. **Enquiry path:** Home → Help with order → Customized → Enquiries. Bot collects name, phone, optional Order ID (Skip allowed), then enquiry details. Saves `ticket_kind=enquiry` and replies with `ENQ-#####`. Row shows on the Enquiry tab. Admin assigns later from the desk (same role rules as Complaints).
+4. **Complaint path:** Regular Order or Customized → Concerns still require Order ID (+ photos for product issues). Customer tap **Done** files the ticket (`CS-#####`) as New. Admin assigns later from Complaints. Chat never asks the customer to pick an account manager. **New member** — no welcome text, no home buttons.
+5. **Test bypass (default on):** If order/phone does not match on complaint paths, still continue so the desk can be tested. Turn off to mimic live Concierge deny copy. There is no Track Order menu — production status texts arrive automatically.
+6. **Exit:** Enquiry lands on Enquiry tab as New. Complaint lands on Complaints as New. Admin assigns from the desk.
+7. **Close survey:** Keep the sheet open (same chat phone). When AM taps Close, bot sends “I hope your issue has been resolved…” + Feedback. Customer taps Feedback → stars → optional comment or Skip. That writes `feedback_rating` on the enquiry.
+8. **Delay alert:** Keep the sheet open with the delay-alert phone. Support send queues apology text + next-step buttons into the same chat.
+9. **Production status:** Keep the sheet open with the enquiry/contact phone. When production changes that order’s status, the bot shows the automatic update.
+10. **Failure:** Photo type/size errors stay in chat. Close with empty phone → no survey text. Delay send with empty phone → form blocks send. Enquiry path with short details → bot asks for more. Status change with no phone → Support Order status tab shows skipped. Ticket save with no returning row used to show PostgREST “Cannot coerce…” — photos now upload before insert; chat shows a short retry line instead of the raw error.
 
 ### Enquiry Concierge ownership lookup
 

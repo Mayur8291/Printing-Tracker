@@ -1,5 +1,82 @@
 # Changelog
 
+## 2026-08-19 — Close Enquiry and Complaints without waiting for SQL push
+
+- **Issue:** Closed status failed on Enquiry and Complaints with ON CONFLICT / feedback-queue error.
+- **Fix:** If the staging close trigger still errors, Close saves with phone cleared for one update (trigger skips), then restores the phone and queues the survey from the app. Same dialog for both desks.
+- **Files:** `enquiryUtils.js`, `enquiryConciergeUtils.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, DECISIONS.md.
+
+## 2026-08-19 — Close enquiry no longer fails on ON CONFLICT
+
+- **Issue:** Updating an enquiry to Closed showed `there is no unique or exclusion constraint matching the ON CONFLICT specification`. Status stayed In progress.
+- **Fix:** Close-survey trigger no longer uses `ON CONFLICT (enquiry_id)`. It skips if a message already exists, and never aborts the status update. Partial unique index for non-null `enquiry_id` stays for delay/status rows.
+- **Files:** `supabase/migrations/20260819062942_fix_close_survey_conflict.sql`, `enquiryUtils.js`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DATABASE.md, FLOWS.md.
+
+## 2026-08-19 — Complaints CS- codes, Enquiries ENQ- codes
+
+- **Issue:** Complaints and Enquiries both used `ENQ-#####`, which would collide as two desks.
+- **Fix:** New complaints get `CS-#####`. New enquiries get `ENQ-#####`. Existing complaint `ENQ-` rows relabel to `CS-` when Support loads. Staging trigger migration `20260819100000_enquiry_complaint_code_prefixes.sql` still required for DB-side sequences.
+- **Files:** `enquiryUtils.js`, `20260819100000_enquiry_complaint_code_prefixes.sql`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DATABASE.md, FLOWS.md, DECISIONS.md.
+
+## 2026-08-19 — Simulator Done no longer shows coerce error
+
+- **Issue:** WhatsApp simulator after photo **Done** showed `Cannot coerce the result to a single JSON object`.
+- **Fix:** Photos upload first, then insert (no staff UPDATE). Customer chat files the ticket on Done and does not ask for an account manager. Raw PostgREST coerce text is mapped to a short retry line.
+- **Files:** `enquiryUtils.js`, `EnquiryWhatsAppSimulator.jsx`, `EnquiryPanel.jsx`, migration `20260819120000_enquiries_creator_update.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md, SECURITY.md, DECISIONS.md, FLOWCHARTS.md.
+
+## 2026-08-19 — Delay alert and Order status as Support tabs
+
+- **Issue:** Delay alert and production status cards sat on top of Enquiry/Complaints and cluttered those desks.
+- **Fix:** They are their own shadcn tabs after Complaints and before Report: **Delay alert**, **Order status**.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md, FLOWCHARTS.md, ARCHITECTURE.md.
+
+## 2026-08-19 — Hide production status texts on Support Report
+
+- **Issue:** **Production status texts** still showed on Support → Report.
+- **Fix:** Card only renders on Enquiry and Complaints, same as delay alert. Report stays blank.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md, FLOWCHARTS.md, ARCHITECTURE.md.
+
+## 2026-08-19 — Hide delay alert on Support Report
+
+- **Issue:** **Send production delay alert** showed on Support → Report even though Report is blank.
+- **Fix:** Card only renders on Enquiry and Complaints.
+- **Files:** `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md, FLOWCHARTS.md.
+
+## 2026-08-19 — Auto WhatsApp on production status; remove Track Order from simulator
+
+- **Issue:** Simulator had a manual Track Order path. Production status changes did not text the customer.
+- **Fix:** Home menu is Customer Access + Help with order only. Backend trigger on `orders.status` queues Concierge copy into `enquiry_outbound_messages`. Phone from matching enquiry, contact book, or Ready Stock order. Support shows **Production status texts**.
+- **Files:** `enquiryWhatsAppSimulatorFlow.js`, `EnquiryWhatsAppSimulator.jsx`, `supportDelayAlertUtils.js`, `SupportProductionStatusCard.jsx`, `supportProductionStatusUtils.js`, `EnquiryPanel.jsx`, `sidebarTabActivity.js`, migration `20260819113000_production_status_whatsapp.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, ARCHITECTURE.md, OVERVIEW.md.
+
+## 2026-08-19 — Support desks: whole row color by priority
+
+- **Issue:** Enquiry and Complaints rows looked the same except a small Priority badge.
+- **Fix:** Whole table row tint + left edge by priority (urgent red, high amber, normal sky, low zinc) for admin and staff. Shared `SupportTicketDesk`.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-08-19 — Fix enquiry assign/status when ticket_kind column missing
+
+- **Issue:** Assign and status update failed: `column enquiries.ticket_kind does not exist`.
+- **Fix:** `updateEnquiryFields` (assign + status + pick) retries without `ticket_kind`. Apply `20260819100000_enquiry_complaint_code_prefixes.sql` on staging so the column exists (`enquiry` / `complaint`).
+- **Files:** `enquiryUtils.js`, `enquiryConciergeUtils.js`
+- **Documentation updated:** DEBUGGING.md, CHANGELOG.md
+
+## 2026-08-19 — Support Enquiry tab (ENQ-) and Complaints codes (CS-)
+
+- **Issue:** Enquiry tab was blank. Customized → Enquiries tickets sat in Complaints with `ENQ-` codes.
+- **Fix:** Same desk UI for Enquiry and Complaints (`SupportTicketDesk`). Enquiries `ENQ-#####`, complaints `CS-#####`. Simulator collects name, phone, optional order ID, details, then confirms the ENQ code. Staging migration `20260819100000_enquiry_complaint_code_prefixes.sql` (`ticket_kind` + relabel).
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `EnquiryWhatsAppSimulator.jsx`, `enquiryWhatsAppSimulatorFlow.js`, `EnquiryDetailDialog.jsx`, migration above.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-08-18 — Support: production delay alert for admin and staff
 
 - **Issue:** Support had no Concierge delay-alert sender. Earlier copy skipped it.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,16 +13,15 @@ import {
   SheetTitle
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { createEnquiry, profileDisplayName, updateEnquiryFields } from "./enquiryUtils";
-import { insertEnquiryAssignmentNotification } from "./enquiryNotificationUtils";
+import { createEnquiryWithPhotos, friendlyEnquiryDbError } from "./enquiryUtils";
 import {
-  findFallbackManagerProfile,
   lookupOrderForEnquiry,
+  lastTenDigits,
   normalizeOrderCode,
   ownershipFromLookup,
   saveEnquiryFeedback
 } from "./enquiryConciergeUtils";
-import { uploadEnquiryPhotos, validateEnquiryPhotoFile } from "./enquiryAttachmentUtils";
+import { validateEnquiryPhotoFile } from "./enquiryAttachmentUtils";
 import {
   CLOSE_SURVEY_FEEDBACK_BTN,
   CLOSE_SURVEY_RATINGS,
@@ -33,14 +32,12 @@ import {
   fetchOutboundForPhone
 } from "./enquiryCloseNotify";
 import { subscribePostgresChanges } from "./realtimeUtils";
-import { viewerIsActive } from "./viewerUserListUtils";
 import {
   SIM_BTN,
   emptySimSession,
   isGreeting,
   looksLikeOrderId,
   mainMenu,
-  managerListMessage,
   resetSimDraft
 } from "./enquiryWhatsAppSimulatorFlow";
 import { MessageCircle, Send } from "lucide-react";
@@ -83,14 +80,6 @@ export default function EnquiryWhatsAppSimulator({
   const fileRef = useRef(null);
   const bottomRef = useRef(null);
   const seenOutboundRef = useRef(new Set());
-
-  const activeProfiles = useMemo(
-    () =>
-      [...(teamProfiles ?? [])]
-        .filter((p) => viewerIsActive(p) && profileDisplayName(p) !== "—")
-        .sort((a, b) => profileDisplayName(a).localeCompare(profileDisplayName(b))),
-    [teamProfiles]
-  );
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -156,17 +145,21 @@ export default function EnquiryWhatsAppSimulator({
     void pullOutbound();
   }
 
-  async function fileTicket(nextSession, assignee, unknown) {
+  async function fileTicket(nextSession) {
     const helpKind = nextSession.draft.helpKind || "regular";
     const helpTopic = helpKind === "custom_enquiry" ? "enquiry" : helpKind === "custom_product" ? "product_issue" : "regular";
     const orderType = helpKind === "regular" ? "regular" : "customized";
+    const ticketKind = helpKind === "custom_enquiry" ? "enquiry" : "complaint";
     const imageFiles = nextSession.draft.imageFiles || [];
+    const collectedName = String(nextSession.draft.collectedName ?? "").trim();
+    const collectedPhone = String(nextSession.draft.collectedPhone ?? "").trim();
 
-    let row = await createEnquiry({
+    const row = await createEnquiryWithPhotos({
       createdBy: sessionUserId,
+      files: imageFiles,
       form: {
-        customer_name: nextSession.customerName || customerName,
-        customer_phone: phone,
+        customer_name: collectedName || nextSession.customerName || customerName,
+        customer_phone: collectedPhone || phone,
         product_details: nextSession.draft.issue,
         source: "WhatsApp",
         priority: "normal",
@@ -174,37 +167,10 @@ export default function EnquiryWhatsAppSimulator({
         order_id: nextSession.draft.orderId,
         order_type: orderType,
         help_topic: helpTopic,
-        ownership_verified: Boolean(nextSession.draft.ownershipVerified),
-        ...(assignee?.id && isAdmin
-          ? {
-              allowAssign: true,
-              assignee_id: assignee.id,
-              assigned_because_unknown: Boolean(unknown)
-            }
-          : {})
+        ticket_kind: ticketKind,
+        ownership_verified: Boolean(nextSession.draft.ownershipVerified)
       }
     });
-
-    if (imageFiles.length) {
-      const uploaded = await uploadEnquiryPhotos({
-        userId: sessionUserId,
-        enquiryId: row.id,
-        files: imageFiles
-      });
-      row = await updateEnquiryFields(row.id, {
-        attachments: uploaded.map(({ path, name, mime, size }) => ({ path, name, mime, size }))
-      });
-    }
-
-    if (assignee?.id && isAdmin) {
-      await insertEnquiryAssignmentNotification({
-        enquiryId: row.id,
-        enquiryCode: row.enquiry_code,
-        customerName: row.customer_name,
-        assigneeId: assignee.id,
-        assignedByUserId: sessionUserId
-      });
-    }
 
     onCreated?.(row);
     return row;
@@ -348,9 +314,11 @@ export default function EnquiryWhatsAppSimulator({
       }
 
       if (buttonId === SIM_BTN.track) {
-        next.state = "awaiting_track_order_id";
-        next.draft = { ...emptySimSession(customerName).draft };
-        push(next, [bot("Please send your Order ID (example: SC123456).")]);
+        push(resetSimDraft(next, customerName), [
+          afterHome(
+            "Order tracking is automatic. When production updates your order status, we send you a WhatsApp message."
+          )
+        ]);
         return;
       }
 
@@ -382,9 +350,9 @@ export default function EnquiryWhatsAppSimulator({
         return;
       }
       if (buttonId === SIM_BTN.helpCustomEnquiries) {
-        next.state = "help_awaiting_order_id";
+        next.state = "enquiry_awaiting_name";
         next.draft = { ...emptySimSession(customerName).draft, helpKind: "custom_enquiry" };
-        push(next, [bot("Customized enquiry. First send your Order ID.")]);
+        push(next, [bot("Enquiry. Please send your name.")]);
         return;
       }
       if (buttonId === SIM_BTN.helpCustomConcerns) {
@@ -410,30 +378,85 @@ export default function EnquiryWhatsAppSimulator({
         return;
       }
 
-      if (next.state === "awaiting_track_order_id" && type === "text") {
+      if (next.state === "enquiry_awaiting_name" && type === "text") {
+        if (inboundText.length < 2) {
+          push(next, [bot("Please send your name so we can log this enquiry.")]);
+          return;
+        }
+        next.draft.collectedName = inboundText;
+        next.customerName = inboundText;
+        next.state = "enquiry_awaiting_phone";
+        push(next, [bot("Thanks. Please send your phone number.")]);
+        return;
+      }
+
+      if (next.state === "enquiry_awaiting_phone" && type === "text") {
+        const digits = lastTenDigits(inboundText);
+        if (digits.length < 10) {
+          push(next, [bot("Please send a valid phone number (at least 10 digits).")]);
+          return;
+        }
+        next.draft.collectedPhone = inboundText.trim();
+        next.state = "enquiry_awaiting_order_id";
+        push(next, [
+          bot("Order ID is optional. Send it now, or tap Skip.", [
+            { id: SIM_BTN.enquirySkipOrder, title: "Skip" },
+            { id: SIM_BTN.mainMenu, title: "Main menu" }
+          ])
+        ]);
+        return;
+      }
+
+      if (next.state === "enquiry_awaiting_order_id") {
+        const skipOrder =
+          buttonId === SIM_BTN.enquirySkipOrder || /^(skip|none|no|n\/a|-)$/i.test(inboundText);
+        if (skipOrder) {
+          next.draft.orderId = "";
+          next.draft.ownershipVerified = false;
+          next.state = "enquiry_awaiting_details";
+          push(next, [bot("Please type your enquiry in one message.")]);
+          return;
+        }
+        if (type !== "text") {
+          push(next, [bot("Send an Order ID like SC123456, or tap Skip.")]);
+          return;
+        }
         if (!looksLikeOrderId(inboundText)) {
-          push(next, [bot("Please send a valid Order ID like SC123456, or type menu.")]);
+          push(next, [bot("That does not look like an Order ID. Send one like SC123456, or tap Skip.")]);
           return;
         }
-        const lookup = await lookupOrderForEnquiry(inboundText);
-        const ownership = ownershipFromLookup(lookup, phone);
-        if (lookup.found && ownership.verified) {
-          push(resetSimDraft(next, lookup.customerName || customerName), [
-            afterHome(
-              `Order ${lookup.orderId}\nName: ${lookup.customerName || customerName}\nStatus: ${lookup.status || "—"}\nPhone matched this chat.`
-            )
-          ]);
+        const orderId = normalizeOrderCode(inboundText);
+        const lookup = await lookupOrderForEnquiry(orderId);
+        const ownership = ownershipFromLookup(lookup, next.draft.collectedPhone || phone);
+        next.draft.orderId = orderId;
+        next.draft.ownershipVerified = Boolean(lookup.found && ownership.verified);
+        if (lookup.found && lookup.customerName && !next.draft.collectedName) {
+          next.draft.collectedName = lookup.customerName;
+          next.customerName = lookup.customerName;
+        }
+        next.state = "enquiry_awaiting_details";
+        push(next, [
+          bot(
+            lookup.found
+              ? `Got order ${orderId}. Please type your enquiry in one message.`
+              : `Logged order ${orderId} (not found in dashboard). Please type your enquiry in one message.`
+          )
+        ]);
+        return;
+      }
+
+      if (next.state === "enquiry_awaiting_details" && type === "text") {
+        if (inboundText.length < 8) {
+          push(next, [bot("Please type a bit more about your enquiry.")]);
           return;
         }
-        if (testBypass) {
-          push(resetSimDraft(next, lookup.customerName || customerName), [
-            afterHome(
-              `Test bypass: ${lookup.found ? "order found but phone did not match" : "order not in dashboard"}. Showing sample track anyway for ${normalizeOrderCode(inboundText)}.`
-            )
-          ]);
-          return;
-        }
-        await denyOrder(next);
+        next.draft.issue = inboundText;
+        const row = await fileTicket(next);
+        push(resetSimDraft(next, next.customerName), [
+          afterHome(
+            `Enquiry logged: ${row.enquiry_code}.\nWe received your enquiry and will get back to you.`
+          )
+        ]);
         return;
       }
 
@@ -484,16 +507,12 @@ export default function EnquiryWhatsAppSimulator({
         }
         next.draft.issue = inboundText;
         if (next.draft.helpKind === "custom_enquiry") {
-          if (!isAdmin) {
-            const row = await fileTicket(next, null, false);
-            push(resetSimDraft(next, next.customerName), [
-              afterHome(`Ticket created: ${row.enquiry_code}. Admin will assign. Non-admin cannot assign.`)
-            ]);
-            return;
-          }
-          next.state = "help_awaiting_manager";
-          const list = managerListMessage(activeProfiles);
-          push(next, [bot(list.text, list.buttons)]);
+          const row = await fileTicket(next);
+          push(resetSimDraft(next, next.customerName), [
+            afterHome(
+              `Enquiry logged: ${row.enquiry_code}.\nWe received your enquiry and will get back to you.`
+            )
+          ]);
           return;
         }
         next.state = "help_awaiting_images";
@@ -527,16 +546,12 @@ export default function EnquiryWhatsAppSimulator({
             push(next, [bot("I still need at least one valid photo of the issue (jpg, png, or webp).")]);
             return;
           }
-          if (!isAdmin) {
-            const row = await fileTicket(next, null, false);
-            push(resetSimDraft(next, next.customerName), [
-              afterHome(`Ticket created: ${row.enquiry_code}. Admin will assign. Non-admin cannot assign.`)
-            ]);
-            return;
-          }
-          next.state = "help_awaiting_manager";
-          const list = managerListMessage(activeProfiles);
-          push(next, [bot(list.text, list.buttons)]);
+          const row = await fileTicket(next);
+          push(resetSimDraft(next, next.customerName), [
+            afterHome(
+              `Ticket created: ${row.enquiry_code}. We received your photos and will get back to you.`
+            )
+          ]);
           return;
         }
         if (type === "text") {
@@ -546,43 +561,10 @@ export default function EnquiryWhatsAppSimulator({
       }
 
       if (next.state === "help_awaiting_manager") {
-        if (!isAdmin) {
-          const row = await fileTicket(next, null, false);
-          push(resetSimDraft(next, next.customerName), [
-            afterHome(`Ticket created: ${row.enquiry_code}. Admin will assign. Non-admin cannot assign.`)
-          ]);
-          return;
-        }
-        const unknown = buttonId === SIM_BTN.managerUnknown;
-        let assignee = null;
-        if (unknown) {
-          assignee = findFallbackManagerProfile(teamProfiles);
-        } else if (buttonId?.startsWith("manager_")) {
-          const id = buttonId.slice("manager_".length);
-          assignee = activeProfiles.find((p) => p.id === id) || null;
-        } else if (type === "text") {
-          const q = inboundText.toLowerCase();
-          assignee = activeProfiles.find((p) => profileDisplayName(p).toLowerCase() === q) || null;
-        }
-        if (!assignee || !next.draft.orderId || !next.draft.issue) {
-          const list = managerListMessage(activeProfiles);
-          push(next, [
-            bot(
-              assignee
-                ? "Something missing in this help request. Type menu and start Help with order again."
-                : `Please pick your account manager from the list, or type their name. Need a team user named Gargi for unknown-AM.`,
-              assignee ? null : list.buttons
-            )
-          ]);
-          return;
-        }
-        const row = await fileTicket(next, assignee, unknown);
-        const reset = resetSimDraft(next, next.customerName);
-        push(reset, [
+        const row = await fileTicket(next);
+        push(resetSimDraft(next, next.customerName), [
           afterHome(
-            unknown
-              ? `Ticket created: ${row.enquiry_code}. We assigned this to Gargi, who will verify the issue and contact you. Status: Assigned (pending pick).`
-              : `Ticket created: ${row.enquiry_code}. ${profileDisplayName(assignee)} will verify the issue and contact you. Status: Assigned (pending pick).`
+            `Ticket created: ${row.enquiry_code}. We received your request and will get back to you.`
           )
         ]);
         return;
@@ -595,7 +577,9 @@ export default function EnquiryWhatsAppSimulator({
 
       push(next, [afterHome("I did not catch that. How can I help you?")]);
     } catch (e) {
-      setError(e.message || "Simulator failed.");
+      const msg = friendlyEnquiryDbError(e);
+      setError(msg);
+      setMessages((prev) => [...prev, bot(msg)]);
     } finally {
       setBusy(false);
     }

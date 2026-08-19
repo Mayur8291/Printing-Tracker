@@ -14,6 +14,7 @@ export const SIM_BTN = {
   helpCustomProduct: "help_custom_product",
   imagesDone: "help_images_done",
   imagesMore: "help_images_more",
+  enquirySkipOrder: "enquiry_skip_order",
   mainMenu: "menu_home",
   managerUnknown: "manager_unknown"
 };
@@ -29,7 +30,6 @@ export function isGreeting(text) {
 function homeButtons() {
   return [
     { id: SIM_BTN.access, title: "Customer Access" },
-    { id: SIM_BTN.track, title: "Track Order" },
     { id: SIM_BTN.help, title: "Help with order" }
   ];
 }
@@ -53,7 +53,9 @@ export function emptySimSession(customerName = "John Smith") {
       orderId: "",
       issue: "",
       ownershipVerified: false,
-      imageFiles: []
+      imageFiles: [],
+      collectedName: "",
+      collectedPhone: ""
     }
   };
 }

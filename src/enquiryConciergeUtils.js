@@ -2,19 +2,10 @@ import { supabase } from "./supabaseClient";
 import { insertEnquiryAssignmentNotification } from "./enquiryNotificationUtils";
 import { logEnquiryActivity } from "./enquiryActivityUtils";
 import { queueCloseSurveyIfNeeded } from "./enquiryCloseNotify";
-
-const ENQUIRY_SELECT =
-  "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at, order_id, order_type, help_topic, ownership_verified, assigned_because_unknown, picked_at, sla_escalated_at, escalated_to_id, closed_at, feedback_rating, feedback_comment, feedback_at, feedback_requested_at, attachments";
+import { applyEnquiryClosePatch, updateEnquiryFields } from "./enquiryUtils";
 
 async function patchEnquiry(enquiryId, patch) {
-  const { data, error } = await supabase
-    .from("enquiries")
-    .update(patch)
-    .eq("id", enquiryId)
-    .select(ENQUIRY_SELECT)
-    .single();
-  if (error) throw error;
-  return data;
+  return updateEnquiryFields(enquiryId, patch);
 }
 
 function displayName(profile) {
@@ -45,20 +36,31 @@ export const ENQUIRY_ORDER_TYPE_LABEL = {
   customized: "Customized"
 };
 
-/** Help with order → Regular Order, or Help with order → Customized order (Enquiries / Product issues). Delay does not file a ticket. */
+export function isEnquiryHelpPath(row) {
+  if (String(row?.ticket_kind ?? "") === "complaint") return false;
+  if (String(row?.ticket_kind ?? "") === "enquiry") return true;
+  const orderType = String(row?.order_type ?? "");
+  const help = String(row?.help_topic ?? "");
+  return orderType === "customized" && help === "enquiry";
+}
+
+/** Help with order → Regular Order, or Customized → Concerns. Delay does not file a ticket. Enquiries go to the Enquiry tab. */
 export function isComplaintsHelpPath(row) {
+  if (isEnquiryHelpPath(row)) return false;
   const orderType = String(row?.order_type ?? "");
   const help = String(row?.help_topic ?? "");
   if (orderType === "regular" && help === "regular") return true;
-  if (orderType === "customized" && (help === "enquiry" || help === "product_issue")) return true;
-  return false;
+  if (orderType === "customized" && help === "product_issue") return true;
+  return String(row?.ticket_kind ?? "") === "complaint";
 }
 
 export function complaintsHelpPathLabel(row) {
   const orderType = String(row?.order_type ?? "");
   const help = String(row?.help_topic ?? "");
+  if (isEnquiryHelpPath(row) || (orderType === "customized" && help === "enquiry")) {
+    return "Help with order → Customized → Enquiries";
+  }
   if (orderType === "regular" && help === "regular") return "Help with order → Regular Order";
-  if (orderType === "customized" && help === "enquiry") return "Help with order → Customized → Enquiries";
   if (orderType === "customized" && help === "product_issue") return "Help with order → Customized → Concerns";
   return "—";
 }
@@ -268,7 +270,10 @@ export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin }) {
     throw new Error("Unknown pick action.");
   }
 
-  const updated = await patchEnquiry(enquiry.id, patch);
+  const updated =
+    action === "closed"
+      ? await applyEnquiryClosePatch(enquiry.id, patch, enquiry.customer_phone)
+      : await patchEnquiry(enquiry.id, patch);
   await logEnquiryActivity({
     enquiryId: enquiry.id,
     actorId: sessionUserId,

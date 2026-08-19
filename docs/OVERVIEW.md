@@ -62,7 +62,7 @@ flowchart LR
 | Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js` | DMs, groups, attachments, GIFs |
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
-| Support (Enquiry / Complaints / Report) | `src/EnquiryPanel.jsx`, `src/SupportDelayAlertCard.jsx` | Complaints desk: tickets, assign, pick, SLA. Production delay alert for admin and staff (simulator queue). Enquiry and Report blank for later. |
+| Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Delay alert and production status texts are their own tabs after Complaints. Report blank. |
 | Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
 
 ### Data flow (typical)
