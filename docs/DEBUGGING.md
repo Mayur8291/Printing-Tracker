@@ -1,5 +1,14 @@
 # Debugging
 
+## Vercel: npm install EBADPLATFORM for @rollup/rollup-win32-x64-msvc
+
+| | |
+|--|--|
+| **Symptom** | Vercel (Linux) build on `develop` fails during `npm install`. Log: `EBADPLATFORM` / `@rollup/rollup-win32-x64-msvc` wanted `os: win32`, actual `os: linux`. |
+| **Root cause** | That native Rollup binary was listed under `package.json` `dependencies`, so npm must install it. Linux CI cannot. Vite already pulls the correct `@rollup/rollup-*` binary via Rollup optional deps. |
+| **Fix** | Do not add OS-specific `@rollup/rollup-*` packages as required deps. Keep them optional through `vite`/`rollup`. |
+| **Verify** | Vercel install succeeds on Linux. Local Windows `npm run build` still works (optional win32 binary installs on Windows). |
+
 ## Support: Close enquiry fails with ON CONFLICT unique constraint
 
 | | |

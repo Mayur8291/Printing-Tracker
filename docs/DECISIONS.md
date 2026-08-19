@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-08-19 — No Windows-only Rollup package in dependencies
+
+**Context:** Vercel Linux `npm install` failed because `@rollup/rollup-win32-x64-msvc` was a required dependency.
+
+**Options:** (1) Keep it and force Linux to ignore platform. (2) Remove it and let Vite/Rollup optional deps pick the host OS binary.
+
+**Decision:** Option 2. Never list `@rollup/rollup-win32-*` (or other OS-only native packages) in `dependencies`.
+
+**Why:** Staging/Vercel and Netlify build on Linux. Local Windows still gets the win32 binary as an optional install.
+
+**Tradeoffs:** A broken local Vite on Windows is fixed with `npm install` (optional dep), not by pinning a win32 package for every CI machine.
+
 ## 2026-08-19 — Close works without waiting for ON CONFLICT migration
 
 **Context:** Staging close trigger still uses `ON CONFLICT (enquiry_id)`. CLI cannot `db push` without login. Enquiry and Complaints both failed Closed.

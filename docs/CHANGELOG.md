@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-19 — Fix Vercel EBADPLATFORM on Windows Rollup
+
+- **Issue:** Vercel `develop` build failed at `npm install` with `EBADPLATFORM` for `@rollup/rollup-win32-x64-msvc`.
+- **Fix:** Remove that Windows-only package from `dependencies`. Vite/Rollup already install the matching OS binary as an optional dependency.
+- **Files:** `package.json`, `package-lock.json`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-08-19 — Merge Scott API into Support develop
 
 - **Issue:** `git push origin develop` rejected (`fetch first`). Remote had Scott API tabs plus vulnerability audit docs.

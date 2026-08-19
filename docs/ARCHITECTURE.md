@@ -11,7 +11,7 @@
 | **Data** | Business entities, RLS, triggers | PostgreSQL |
 | **Files** | Designs, invoices, media | Supabase Storage |
 | **Realtime** | Chat, notifications, live updates | Supabase Realtime |
-| **Static hosting** | Built SPA assets | Netlify CDN |
+| **Static hosting** | Built SPA assets | Netlify CDN (and Vercel Linux builds). No OS-only native packages in `dependencies`. |
 
 There is **no application server** in-repo between the browser and Supabase (except Edge Functions for admin).
 

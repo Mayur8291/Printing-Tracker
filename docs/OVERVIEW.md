@@ -21,7 +21,7 @@
 | **Frontend** | **React 18** + **Vite 5** (JavaScript/JSX) |
 | **UI** | **Tailwind CSS**, **Radix UI** / **shadcn-style** components, **Radix Themes** |
 | **Backend** | **Supabase** (managed PostgreSQL + Auth + Storage + Realtime + Edge Functions) |
-| **Hosting** | **Netlify** (static SPA build from `main` / `develop`) |
+| **Hosting** | **Netlify** (static SPA from `main` / `develop`) and **Vercel** (Linux `npm install` + Vite build). Do not pin OS-only native packages such as `@rollup/rollup-win32-*` in `dependencies`. |
 | **Source control** | **GitHub** — [Mayur8291/Printing-Tracker](https://github.com/Mayur8291/Printing-Tracker) |
 
 The app runs in the **browser** as a Single Page Application (SPA). A future **mobile app** would be a **separate client** talking to the same backend (recommended: via a dedicated API layer — see [PLATFORM_OVERVIEW.md](./PLATFORM_OVERVIEW.md)).
