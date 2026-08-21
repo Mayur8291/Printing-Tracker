@@ -79,6 +79,14 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Preview (dev):** `/#/picklist-preview` (React + sample data) or `GET /api/picklist/preview` / `GET /api/picklist/pdf/sample`.
 7. **Edge cases:** terminal orders cannot generate; empty items → 400; pop-up blocked → alert; picklist API down → error with start hint.
 
+### Purchase Order tab
+
+1. **Trigger:** user opens sidebar → **Purchase Order** (`dashboardTab === "purchase_order"` → `PurchaseOrderPanel`).
+2. **Auth:** same dashboard session. Admin always sees the tab. Viewers need `purchase_order` in `allowed_dashboard_tabs` (or null = all tabs).
+3. **Display:** placeholder card. No PO list yet. Not Inventory POs.
+4. **Icon:** Lucide `FileSpreadsheet` in the shadcn sidebar; matching document SVG in `dashboardSidebarIcons.jsx`.
+5. **Exit:** switch to another sidebar tab.
+
 ### Support dashboard (Enquiry data)
 
 1. **Trigger:** user opens sidebar → **Support** (`dashboardTab === "enquiry"` → `EnquiryPanel`). Default sub-tab is **Complaints**.

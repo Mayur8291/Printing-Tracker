@@ -60,6 +60,12 @@ const SIDEBAR_ICONS = {
       <path d="M3.5 8.5L12 13l8.5-4.5M12 22V13" />
     </SidebarIcon>
   ),
+  purchase_order: (
+    <SidebarIcon>
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+      <path d="M14 2v6h6M8 13h8M8 17h5" />
+    </SidebarIcon>
+  ),
   regular: (
     <SidebarIcon>
       <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z" />

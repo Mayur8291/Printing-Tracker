@@ -1,5 +1,14 @@
 # Debugging
 
+## Purchase Order tab missing for a viewer
+
+| | |
+|--|--|
+| **Symptom** | Admin sees **Purchase Order** in the sidebar. A viewer with a saved tab list does not. |
+| **Root cause** | New tab id `purchase_order` is grantable. Explicit `allowed_dashboard_tabs` arrays from before this tab do not include it. `null` still means all tabs. |
+| **Fix** | Admin Panel → that viewer → enable **Purchase Order** view (and edit if needed) → save. |
+| **Verify** | Sign in as that viewer. Sidebar Inventory section shows Purchase Order with the spreadsheet icon. |
+
 ## Vercel: npm install EBADPLATFORM for @rollup/rollup-win32-x64-msvc
 
 | | |

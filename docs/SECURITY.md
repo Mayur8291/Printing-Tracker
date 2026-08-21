@@ -2,6 +2,7 @@
 
 - Enquiry **assign** is admin-only (RLS insert + update trigger). Non-admin cannot set `assignee_id`. Creator may update their own row (attach photos). Guard trigger still blocks assignee changes.
 - Enquiry activity log is scoped; admin sees all staff actions on the Support tab.
+- **Purchase Order** sidebar tab (`purchase_order`) is grantable like Inventory. Admins always see it. Viewers with an explicit allowed-tab list need that id granted.
 
 ## Enquiry Concierge desk
 

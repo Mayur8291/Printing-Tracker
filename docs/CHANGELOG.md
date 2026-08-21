@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-20 — Purchase Order as main sidebar tab
+
+- **Issue:** Purchase Order was a sub-tab inside Support. User wants a main Scott Dashboard tab with an icon.
+- **Fix:** Remove it from Support. Add sidebar **Purchase Order** (`purchase_order`) after Inventory with Lucide `FileSpreadsheet` icon. Placeholder panel until PO workflow is defined. Grantable like other workspace tabs.
+- **Files:** `dashboardSidebarConfig.js`, `DashboardAppSidebar.jsx`, `dashboardSidebarIcons.jsx`, `PurchaseOrderPanel.jsx`, `App.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md, DECISIONS.md, DEBUGGING.md, SECURITY.md.
+
 ## 2026-08-19 — Fix Vercel EBADPLATFORM on Windows Rollup
 
 - **Issue:** Vercel `develop` build failed at `npm install` with `EBADPLATFORM` for `@rollup/rollup-win32-x64-msvc`.

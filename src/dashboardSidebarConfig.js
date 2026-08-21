@@ -14,6 +14,7 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "billing", label: "Billing" },
   { id: "dispatch", label: "Dispatch" },
   { id: "inventory", label: "Inventory" },
+  { id: "purchase_order", label: "Purchase Order" },
   { id: "regular", label: "Ready Stock Order" },
   { id: "production_tracker", label: "Production tracker" },
   { id: "distributor", label: "Distributor" },
@@ -31,7 +32,7 @@ export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
   },
   {
     label: "Inventory",
-    ids: ["inventory", "regular", "production_tracker", "distributor", "enquiry"]
+    ids: ["inventory", "purchase_order", "regular", "production_tracker", "distributor", "enquiry"]
   },
   {
     label: "Scott API",

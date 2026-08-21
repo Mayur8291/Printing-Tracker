@@ -140,3 +140,21 @@ flowchart LR
   Cols --> Detail
   Pending --> Detail
 ```
+
+## Purchase Order main tab
+
+```mermaid
+flowchart TD
+  User[Open sidebar] --> PO[Purchase Order tab]
+  PO --> Panel[PurchaseOrderPanel]
+  Panel --> Card[Placeholder card]
+```
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant App
+  User->>App: Select Purchase Order
+  App->>App: dashboardTab purchase_order
+  App-->>User: PurchaseOrderPanel
+```

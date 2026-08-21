@@ -42,6 +42,7 @@ import { cn } from "./lib/utils";
 import SharedLinksPanel from "./SharedLinksPanel";
 import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
 import EnquiryPanel from "./EnquiryPanel";
+import PurchaseOrderPanel from "./PurchaseOrderPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
@@ -5706,6 +5707,10 @@ function App() {
               sessionUserId={session.user.id}
               teamProfiles={teamProfiles}
             />
+          )}
+
+          {dashboardTab === "purchase_order" && (
+            <PurchaseOrderPanel />
           )}
 
           {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (
