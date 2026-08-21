@@ -521,10 +521,34 @@ export function createMastersService(config) {
     return rows.find((row) => matchesId(row, id)) ?? null;
   }
 
+  /**
+   * Unwrap a show response.
+   *
+   * The configured extractor wins, but it is ASSUMED shape — several show endpoints nest a
+   * level deeper than their list counterpart (e.g. `{data:{rmp_brand:{…}}}`), and ScottOne
+   * never exercised most of them: its pages prefill the edit dialog straight from the list
+   * row, so `getById` was dead code upstream. When the extractor yields something that is not
+   * a record, fall back to `extractScottEntity`, which already scans `body.data`'s values and
+   * deep-scans for the first record-shaped object.
+   *
+   * Getting this wrong is not a silent no-op: `normalize()` would read a WRAPPER, produce a
+   * record of blanks, and the edit dialog would visibly clear itself a moment after opening.
+   */
   function pickShowRecord(body) {
-    if (typeof cfg.pickShowRecord === "function") return cfg.pickShowRecord(body);
-    if (typeof cfg.detail?.extract === "function") return cfg.detail.extract(body);
-    return body?.data;
+    const configured =
+      typeof cfg.pickShowRecord === "function"
+        ? cfg.pickShowRecord(body)
+        : typeof cfg.detail?.extract === "function"
+          ? cfg.detail.extract(body)
+          : body?.data;
+
+    if (isRecordLike(configured)) return configured;
+    return extractScottEntity(body);
+  }
+
+  /** A usable show payload: a plain object carrying at least one own key. */
+  function isRecordLike(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
   }
 
   async function getById(id) {
@@ -540,8 +564,13 @@ export function createMastersService(config) {
       pathSuffix: rid
     });
     const raw = pickShowRecord(body);
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-    return finishRow(cfg.normalize(raw));
+    if (!isRecordLike(raw)) return null;
+
+    const normalized = finishRow(cfg.normalize(raw));
+    // An id-less result means the shape was not what `normalize` expected. Returning it would
+    // let the caller replace a good row-shaped prefill with a record of blanks.
+    if (!rowId(normalized)) return null;
+    return normalized;
   }
 
   // -- writes ---------------------------------------------------------------
