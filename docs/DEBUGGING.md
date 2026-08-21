@@ -1,5 +1,59 @@
 # Debugging
 
+## Purchase Order Terms of Delivery is in the small R21 cell
+
+| | |
+|--|--|
+| **Symptom** | Looking at the tiny cell left of Mode/terms of Payment. No Terms of Delivery box. |
+| **Root cause** | Sketch reused **R21** for the large block opposite Consignee. Code id is **R21B**. Small R21 stays empty. |
+| **Fix** | Type in the large cell next to Consignee / Supplier. |
+| **Verify** | First line **Terms of Delivery**. Second line is an input. Plus clears it. |
+
+## Purchase Order R12 dated is wrong day
+
+| | |
+|--|--|
+| **Symptom** | Dated shows tomorrow/yesterday, or stays blank, or changes on every refresh. |
+| **Root cause** | Display uses `created_at` of the voucher in `Asia/Kolkata`, format `DD-Mmm-YY`. Refresh should reload that same timestamp. Plus should insert a new row (today). |
+| **Fix** | Confirm R12 reads `formatPurchaseOrderDated(created_at)`. Hard refresh. New PO = Plus. |
+| **Verify** | Create today → `21-Aug-26` (on 21 Aug 2026 IST). Refresh keeps that day. Plus → today again for the new voucher. |
+
+## Purchase Order R11 voucher does not increment
+
+| | |
+|--|--|
+| **Symptom** | Plus keeps the same `PO/26-27/392`, or number jumps then resets. |
+| **Root cause** | `dashboard_purchase_orders` missing on the linked project, or this browser is on the localStorage fallback while another user uses the table. |
+| **Fix** | Apply `supabase/migrations/20260821064834_dashboard_purchase_order_vouchers.sql` on **staging** (`scvojtvgnkmbupvyslmb`). Hard refresh. Do not apply to production unless asked. |
+| **Verify** | Open Purchase Order. R11 shows **Voucher No.** then `PO/26-27/392` (or next). Plus → 393, 394. After 1 Apr 2027 IST → `PO/27-28/1`. |
+
+## Purchase Order R11 year looks wrong
+
+| | |
+|--|--|
+| **Symptom** | Code shows `25-26` in April, or `27-28` in March 2027. |
+| **Root cause** | FY is 1 Apr–31 Mar in `Asia/Kolkata`, not the PC timezone and not Jan–Dec. |
+| **Fix** | Check `purchaseOrderFinancialYearCode`. 31 Mar 2027 = `26-27`. 1 Apr 2027 = `27-28`. |
+| **Verify** | R11 second line matches the Indian books year. |
+
+## Purchase Order R3 supplier dropdown is empty
+
+| | |
+|--|--|
+| **Symptom** | R3 heading shows. Dropdown has no names. |
+| **Root cause** | List is `inventory_suppliers` (same as Inventory → Suppliers). No rows, or RLS hides them. |
+| **Fix** | Inventory → Suppliers → add a vendor. Hard refresh Purchase Order. |
+| **Verify** | Dropdown shows the supplier **name**. Pick it. Address/contact/GSTIN appear under it. No extra labels. |
+
+## Purchase Order sheet shows cell names like R1
+
+| | |
+|--|--|
+| **Symptom** | Purchase Order grid prints R1, R11, etc. inside cells. |
+| **Root cause** | Labels were only for the layout sketch. UI must stay blank. |
+| **Fix** | Ids live in `purchaseOrderLayout.js` and `data-po-cell`. Do not put those strings in cell text. Large bottom-right is `R21B`. |
+| **Verify** | Sidebar → Purchase Order. Compact card, empty muted tiles, same shape as the sketch. No R-codes. Not full-page. |
+
 ## Purchase Order tab missing for a viewer
 
 | | |

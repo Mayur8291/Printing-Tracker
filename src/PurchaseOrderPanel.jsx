@@ -1,10 +1,5 @@
 import { FileSpreadsheet } from "lucide-react";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import PurchaseOrderLayoutGrid from "./PurchaseOrderLayoutGrid";
 
 export default function PurchaseOrderPanel() {
   return (
@@ -13,12 +8,7 @@ export default function PurchaseOrderPanel() {
         <FileSpreadsheet className="h-5 w-5" aria-hidden />
         Purchase Order
       </h2>
-      <Card>
-        <CardHeader>
-          <CardTitle>Purchase Order</CardTitle>
-          <CardDescription>Purchase orders will show here.</CardDescription>
-        </CardHeader>
-      </Card>
+      <PurchaseOrderLayoutGrid />
     </section>
   );
 }

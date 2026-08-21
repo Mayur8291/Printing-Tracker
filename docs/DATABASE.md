@@ -424,6 +424,27 @@ Parent style table from an earlier dashboard grouping feature. **No longer used 
 | `created_by` | uuid | Auth user |
 | `created_at` | timestamptz | Insert time |
 
+### `dashboard_purchase_orders`
+
+Scott Dashboard Purchase Order sheet vouchers (cell **R11**) and create day (cell **R12**). Not Inventory POs.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `voucher_code` | text | Unique display code, e.g. `PO/26-27/392` |
+| `fy_code` | text | Indian FY `YY-YY+1` (1 Apr–31 Mar) |
+| `seq` | integer | Serial in that FY. Unique with `fy_code` |
+| `created_by` | uuid | Auth user, nullable |
+| `created_at` | timestamptz | Insert time. R12 Dated uses this in IST as `DD-Mmm-YY` |
+
+**Query pattern:** max `seq` for current `fy_code`, then insert `seq+1`. First FY `26-27` starts at 392 if the table is empty. Later FYs start at 1.
+
+**Migration:** `20260821064834_dashboard_purchase_order_vouchers.sql` — staging first. Rollback: drop table (loses reserved voucher numbers).
+
+### `inventory_suppliers`
+
+Vendor master used by Inventory → Suppliers and Purchase Order **R3** (`fetchInventorySuppliers`). Select: `id, name, country, city, lead_days, rating, contact, payment_terms, gstin, address, supplier_type`.
+
 ### `inventory_skus`
 
 Master SKU records (flat list — one row per `sku_code`).

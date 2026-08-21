@@ -83,9 +83,17 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 1. **Trigger:** user opens sidebar → **Purchase Order** (`dashboardTab === "purchase_order"` → `PurchaseOrderPanel`).
 2. **Auth:** same dashboard session. Admin always sees the tab. Viewers need `purchase_order` in `allowed_dashboard_tabs` (or null = all tabs).
-3. **Display:** placeholder card. No PO list yet. Not Inventory POs.
-4. **Icon:** Lucide `FileSpreadsheet` in the shadcn sidebar; matching document SVG in `dashboardSidebarIcons.jsx`.
-5. **Exit:** switch to another sidebar tab.
+3. **Display:** compact shadcn **Card**. **R1** Invoice To. **R2** Consignee. **R3** heading **Supplier (Bill form)** + dropdown of Inventory supplier names; after pick, stored supplier details (no extra labels). **R11** first line **Voucher No.** (normal) then bold `PO/{yy}-{yy+1}/{seq}` (example `PO/26-27/392`). **R12** first line **Dated** (normal) then bold create day `DD-Mmm-YY` (example `21-Aug-26`). **R22** first line **Mode/terms of Payment** (normal) then bold **30 days**. **R31** first line **Reference No. & date.** (normal) then the same bold voucher as R11. **R21B** (large cell opposite R2) first line **Terms of Delivery** then a typable shadcn Input. Other cells empty. Plus button on the card. Not Inventory POs.
+4. **Cell ids:** stored in `purchaseOrderLayout.js` / `data-po-cell`. Fill later by id. Sketch labeled the large bottom-right **R21**; code uses **R21B** so it does not clash with small **R21**.
+5. **Icon:** Lucide `FileSpreadsheet` in the shadcn sidebar; matching document SVG in `dashboardSidebarIcons.jsx`.
+6. **Exit:** switch to another sidebar tab.
+7. **R3 supplier:** `fetchInventorySuppliers()` reads `inventory_suppliers` (same columns as Inventory). Dropdown items are **name** only. On change, R3 prints name (bold) then address, contact, gstin, city/country, payment terms — values only.
+8. **R11 voucher:** `allocatePurchaseOrderVoucher()` in `purchaseOrderVoucherUtils.js`. Indian FY 1 Apr–31 Mar in `Asia/Kolkata`. Code `PO/26-27/392` means FY 2026-27 serial 392. First open of the sheet in a browser session reserves a number. Plus reserves the next (`seq+1`) and clears R3. FY 26-27 starts at 392 if empty; a new FY starts at 1 (`PO/27-28/1` from 1 Apr 2027). Insert `dashboard_purchase_orders`. Unique `(fy_code, seq)` with retry. If the table is missing, localStorage keeps the sequence until the staging migration is applied.
+9. **R12 dated:** Same voucher row `created_at`, shown in `Asia/Kolkata` as `DD-Mmm-YY` (`formatPurchaseOrderDated`). Refresh keeps the create day. Plus allocates a new row so Dated is today.
+10. **R31 reference:** Same voucher string as R11 (not a new number). Heading **Reference No. & date.** Value bold.
+11. **R22 payment:** Fixed copy **Mode/terms of Payment** / bold **30 days**.
+12. **R21B delivery terms:** Large cell opposite Consignee. Heading **Terms of Delivery**. Second line is a shadcn Input (`type="text"`). Plus clears it with the rest of the new PO.
+13. **Failure:** empty dropdown → no supplier rows or RLS. Add a vendor in Inventory → Suppliers. Select realtime refreshes when that table changes. Voucher stuck / duplicate → apply `20260821064834_dashboard_purchase_order_vouchers.sql` on staging.
 
 ### Support dashboard (Enquiry data)
 

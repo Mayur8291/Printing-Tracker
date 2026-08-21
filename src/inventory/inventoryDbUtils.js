@@ -218,6 +218,14 @@ function mapSupplierRow(s) {
   };
 }
 
+export async function fetchInventorySuppliers() {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase.from("inventory_suppliers").select(INVENTORY_SUPPLIER_LIST_SELECT).order("name")
+  );
+  if (error) throw error;
+  return (data || []).map(mapSupplierRow);
+}
+
 function mapWarehouseRow(w) {
   return {
     id: w.id,

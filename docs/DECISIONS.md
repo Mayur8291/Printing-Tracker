@@ -2,6 +2,66 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-08-21 — Sketch R21 opposite Consignee is R21B
+
+**Context:** User asked for Terms of Delivery in **R21 opposite R2**. The sketch also used R21 for a small top-right cell.
+
+**Options:** (1) Fill small R21. (2) Fill the large block next to Consignee (`R21B`).
+
+**Decision:** Option 2. Heading **Terms of Delivery**. Second line shadcn Input. Plus clears. Small R21 stays empty.
+
+**Why:** That large cell sits beside R2. Delivery terms need type space.
+
+**Tradeoffs:** Sketch name R21 vs code R21B. UI still does not print those ids.
+
+## 2026-08-21 — Purchase Order Dated is create day, not a picker
+
+**Context:** R12 must show `Dated` then `17-Aug-26` style. User wants the day the PO was created (today → `21-Aug-26`).
+
+**Options:** (1) Live clock that changes every day. (2) Date picker. (3) Freeze `created_at` of the voucher row, format IST `DD-Mmm-YY`.
+
+**Decision:** Option 3. Same row as R11. Plus = new voucher = new Dated (today). Refresh keeps the old create day.
+
+**Why:** Matches Tally-style PO header. Date is the books date of that voucher.
+
+**Tradeoffs:** Staff cannot back-date from R12 yet. IST so a late-night US clock does not show the wrong calendar day.
+
+## 2026-08-21 — Purchase Order voucher uses Indian FY and a per-year sequence
+
+**Context:** R11 must show `Voucher No.` then `PO/26-27/392`. Serial +1 on each new PO. `26-27` is 1 Apr 2026–31 Mar 2027; from 1 Apr 2027 it becomes `27-28`.
+
+**Options:** (1) Client-only counter. (2) One global sequence forever. (3) Per-FY sequence in `dashboard_purchase_orders`, calendar in `Asia/Kolkata`.
+
+**Decision:** Option 3. Format `PO/{yy}-{yy+1}/{seq}`. FY 26-27 first unused seq is **392** so the first sheet matches the sample. Later FYs start at **1**. Plus button allocates the next row. Same browser session keeps the current voucher on refresh.
+
+**Why:** Matches Indian books and the sample number. IST so the year does not flip at local midnight on a US/EU PC.
+
+**Tradeoffs:** Opening the tab the first time in a session reserves a number. Two people clicking Plus at once rely on unique `(fy_code, seq)` + retry. Production does not get this table until an explicit prod release.
+
+## 2026-08-21 — Purchase Order sheet is compact, not a giant table
+
+**Context:** First grid filled the viewport. User still wants the same placing, but smaller and more like other dashboard cards — not a raw table.
+
+**Options:** (1) Keep full-bleed table. (2) Compact Card with muted tiles and the same CSS grid placing.
+
+**Decision:** Option 2. `max-w-2xl`, short rows, `gap-2`, rounded muted cells. Full-bleed off. Labels stay hidden. `R21B` still the large bottom-right.
+
+**Why:** Same map, dashboard look.
+
+**Tradeoffs:** Sheet is denser; content later must fit the compact cells.
+
+## 2026-08-21 — Purchase Order sheet cells stay unlabeled
+
+**Context:** User gave a cell map (R1, R11…R42, R2, R3, plus a large R21) and asked to build that layout without showing the names. Table size should follow the dashboard, not a tiny fixed box.
+
+**Options:** (1) Show labels in cells. (2) Empty cells with ids only in code/`data-po-cell`.
+
+**Decision:** Option 2. Grid fills the Purchase Order panel (full-bleed). Large bottom-right is `R21B` because the sketch reused R21. Plus button now allocates the next voucher (R11) and clears R3.
+
+**Why:** User will name the values later by cell id.
+
+**Tradeoffs:** Empty sheet until content is assigned. Duplicate sketch label R21 is disambiguated in code.
+
 ## 2026-08-20 — Purchase Order is a main sidebar tab
 
 **Context:** User asked for **Purchase Order** as a main Scott Dashboard tab with an icon, not a Support sub-tab.

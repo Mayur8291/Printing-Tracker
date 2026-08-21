@@ -1,5 +1,90 @@
 # Changelog
 
+## 2026-08-21 — Purchase Order R21B terms of delivery
+
+- **Issue:** Large cell opposite Consignee (R2) empty. User asked R21 there: **Terms of Delivery** plus a typable second line.
+- **Fix:** That sketch cell is **R21B** (small top R21 stays empty). First line **Terms of Delivery**. Second line shadcn **Input**. Plus clears the text.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-21 — Purchase Order R22 payment terms
+
+- **Issue:** R22 empty. Needed **Mode/terms of Payment** plus **30 days**.
+- **Fix:** First line that heading (normal). Second line **30 days** bold.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-08-21 — Purchase Order R31 reference
+
+- **Issue:** R31 empty. Needed **Reference No. & date.** plus the same voucher as R11.
+- **Fix:** First line that heading (normal). Second line copies R11 voucher, bold (`PO/26-27/393`). Plus updates both together.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderVoucherUtils.js`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-08-21 — Purchase Order R11 R12 value bold
+
+- **Issue:** R11 and R12 text all same weight. User wants everything bold except first lines.
+- **Fix:** Labels **Voucher No.** and **Dated** stay normal. Voucher code and date use `font-bold`.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-21 — Purchase Order R12 dated
+
+- **Issue:** R12 empty. Needed **Dated** plus PO create day like `17-Aug-26`.
+- **Fix:** R12 first line **Dated**. Second line is create day in IST `DD-Mmm-YY` (today → `21-Aug-26`). Same `created_at` as the R11 voucher. Plus makes a new PO so Dated becomes today.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderVoucherUtils.js`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DATABASE.md, DECISIONS.md.
+
+## 2026-08-21 — Purchase Order R11 voucher number
+
+- **Issue:** R11 empty. Needed Voucher No. plus `PO/26-27/392`, +1 each new PO, Indian FY Apr–Mar.
+- **Fix:** R11 first line **Voucher No.** Second line `PO/{yy}-{yy+1}/{seq}`. FY from 1 Apr IST. FY 26-27 first seq is 392; later years start at 1. Plus allocates the next number and clears supplier. Numbers stored in `dashboard_purchase_orders` on staging.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderVoucherUtils.js`, `purchaseOrderLayout.js`, `supabase/migrations/20260821064834_dashboard_purchase_order_vouchers.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, ARCHITECTURE.md, OVERVIEW.md.
+- **Migration:** staging only (`scvojtvgnkmbupvyslmb`). Not production.
+
+## 2026-08-21 — Purchase Order R3 supplier picker
+
+- **Issue:** R3 needed Supplier (Bill form) plus Inventory suppliers.
+- **Fix:** First line is that heading. Dropdown lists supplier **name** only (the bold name from Inventory). After pick, R3 shows stored name/address/contact/GSTIN/city/country/payment terms. No extra labels. List comes from `inventory_suppliers`.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `inventoryDbUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, SECURITY.md, DATABASE.md.
+
+## 2026-08-21 — Purchase Order R2 Consignee block
+
+- **Issue:** R2 was empty. User asked for Consignee (Ship to) copy there.
+- **Fix:** R2 shows Consignee (Ship to), bold **SCOTT INTERNATIONAL**, then address / contact / email / GST / state as normal text.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-21 — Fix Nagappa Street spelling in PO R1
+
+- **Issue:** Invoice address said Nagappa Steet.
+- **Fix:** Correct to Nagappa Street.
+- **Files:** `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-08-21 — Purchase Order R1 Invoice To block
+
+- **Issue:** R1 was empty. User asked for Scott invoice-to copy there.
+- **Fix:** R1 shows Invoice To, bold **SCOTT INTERNATIONAL**, then address / contact / GST / state as normal text. Other cells stay blank. Grid rows can grow so the block fits.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-21 — Purchase Order sheet is a compact card
+
+- **Issue:** Sheet filled the page like a giant empty table.
+- **Fix:** Same cell placing, smaller card like other panels (`max-w-2xl`, short rows, muted rounded tiles, gap). Not full-bleed. Still no R-labels.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-21 — Purchase Order sheet layout (blank cells)
+
+- **Issue:** Purchase Order tab needed the sketched sheet layout, without showing cell names.
+- **Fix:** CSS grid matching R1 + 4×2 top-right + R2/R3 + large bottom-right. Cells stay empty. Ids live in `purchaseOrderLayout.js` (`data-po-cell`). Large bottom-right is `R21B` because the sketch reused R21. Plus button is outline icon only. Sheet fills the panel (full-bleed).
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md, DECISIONS.md, DEBUGGING.md.
+
 ## 2026-08-20 — Purchase Order as main sidebar tab
 
 - **Issue:** Purchase Order was a sub-tab inside Support. User wants a main Scott Dashboard tab with an icon.

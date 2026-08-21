@@ -147,14 +147,35 @@ flowchart LR
 flowchart TD
   User[Open sidebar] --> PO[Purchase Order tab]
   PO --> Panel[PurchaseOrderPanel]
-  Panel --> Card[Placeholder card]
+  Panel --> Plus[Plus new PO]
+  Panel --> Grid[Compact unlabeled sheet]
+  Grid --> L[R1 invoice To Scott address]
+  Grid --> R2[R2 Consignee ship to]
+  Grid --> R3[R3 supplier dropdown]
+  Grid --> R11[R11 Voucher No plus PO FY seq]
+  Grid --> R12[R12 Dated plus create day]
+  Grid --> R31[R31 Reference copies R11 voucher]
+  Grid --> R22[R22 Mode terms of Payment 30 days]
+  Grid --> TR[R21 R32 R41 R42]
+  Grid --> BR[R21B Terms of Delivery plus input]
+  Plus --> Alloc[Next seq for current FY]
+  Alloc --> R11
+  Alloc --> R12
+  Alloc --> R31
 ```
 
 ```mermaid
 sequenceDiagram
   participant User
   participant App
+  participant SB as Staging Supabase
   User->>App: Select Purchase Order
   App->>App: dashboardTab purchase_order
-  App-->>User: PurchaseOrderPanel
+  App->>SB: max seq for FY then insert next voucher
+  SB-->>App: PO/26-27/392 plus created_at
+  App-->>User: R11 voucher, R12 Dated, R31 same voucher
+  User->>App: Plus
+  App->>SB: insert next seq
+  SB-->>App: PO/26-27/393 plus today
+  App-->>User: New voucher on R11 and R31, new Dated, empty delivery terms
 ```
