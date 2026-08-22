@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-22 — Purchase Order tab label All PO Orders; tabs sit apart
+
+- **Issue:** First tab said Open POs. The three tabs sat in one attached pill.
+- **Fix:** Label is **All PO Orders**. TabsList is transparent with gap so each name is its own button.
+- **Files:** `PurchaseOrderPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — Generate is PO sent; History is Completed only; open panel shows open POs
+
+- **Issue:** Generate wrote Pending. History showed every PO. Panel opened on History. Create sheet was too easy to hit first.
+- **Fix:** Generate writes **PO sent**. Open panel on **Open POs** (Pending / PO sent / PO Approved). **Create new PO** mounts the heading + table. **PO History** lists only **Completed** after the backend updates status.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — Purchase Order opens on History; status is Completed only
+
+- **Issue:** Opening Purchase Order landed on Create. History hid four statuses. User wants History first and Status = Completed only.
+- **Fix:** Default sub-tab is **PO History** with all History details. Status column shows only **Completed**. **Create new PO** still shows the PURCHASE ORDER heading and table.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderHistoryTable.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
 ## 2026-08-22 — PO History From/To, search, coordinator, View N / page
 
 - **Issue:** PO History listed every generated PO. No date range, search, coordinator pick, or page size.

@@ -101,6 +101,15 @@ export const PO_HISTORY_STATUS_ORDER = [
   PO_HISTORY_STATUS_COMPLETED
 ];
 
+/** Open panel list — not Completed (Completed is History after backend update). */
+export const PO_OPEN_STATUSES = [
+  PO_HISTORY_STATUS_PENDING,
+  PO_HISTORY_STATUS_PO_SENT,
+  PO_HISTORY_STATUS_PO_APPROVED
+];
+
+export const PO_HISTORY_VISIBLE_STATUSES = [PO_HISTORY_STATUS_COMPLETED];
+
 export function purchaseOrderHistoryStatusMeta(status) {
   return PO_HISTORY_STATUS_META[status] || PO_HISTORY_STATUS_META[PO_HISTORY_STATUS_PENDING];
 }
@@ -136,7 +145,7 @@ function historyPayload(snapshot, coordinatorName) {
     coordinator_name: coordinatorName || null,
     po_date: String(snapshot?.datedLabel || "").trim() || null,
     quantity: Number.isFinite(qty) ? qty : null,
-    status: PO_HISTORY_STATUS_PENDING,
+    status: PO_HISTORY_STATUS_PO_SENT,
     sheet_snapshot: snapshot || null
   };
 }
@@ -311,9 +320,18 @@ export function uniquePurchaseOrderHistoryCoordinators(rows) {
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
-export function filterPurchaseOrderHistoryRows(rows, { dateFrom, dateTo, searchQuery, coordinator } = {}) {
+export function purchaseOrderHistoryMatchesStatuses(row, statuses) {
+  if (!Array.isArray(statuses) || statuses.length === 0) return true;
+  return statuses.includes(row?.status);
+}
+
+export function filterPurchaseOrderHistoryRows(
+  rows,
+  { dateFrom, dateTo, searchQuery, coordinator, statuses } = {}
+) {
   return (rows || []).filter(
     (row) =>
+      purchaseOrderHistoryMatchesStatuses(row, statuses) &&
       purchaseOrderHistoryInDateRange(row, dateFrom, dateTo) &&
       purchaseOrderHistoryMatchesSearch(row, searchQuery) &&
       purchaseOrderHistoryMatchesCoordinator(row, coordinator)

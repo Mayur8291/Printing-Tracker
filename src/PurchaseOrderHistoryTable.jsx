@@ -12,14 +12,6 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -36,12 +28,12 @@ import {
   PO_HISTORY_STATUS_PENDING,
   PO_HISTORY_STATUS_PO_APPROVED,
   PO_HISTORY_STATUS_PO_SENT,
-  PO_HISTORY_STATUS_ORDER,
+  PO_HISTORY_VISIBLE_STATUSES,
+  PO_OPEN_STATUSES,
   filterPurchaseOrderHistoryRows,
   listGeneratedPurchaseOrders,
   purchaseOrderHistoryStatusMeta,
-  uniquePurchaseOrderHistoryCoordinators,
-  updatePurchaseOrderHistoryStatus
+  uniquePurchaseOrderHistoryCoordinators
 } from "./purchaseOrderHistoryUtils";
 import { formatPurchaseOrderC42Display } from "./purchaseOrderLayout";
 import { subscribePostgresChanges } from "./realtimeUtils";
@@ -97,7 +89,9 @@ function PurchaseOrderViewDialog({ row, open, onOpenChange }) {
   );
 }
 
-export default function PurchaseOrderHistoryTable() {
+export default function PurchaseOrderHistoryTable({ list = "open" }) {
+  const isHistory = list === "history";
+  const statuses = isHistory ? PO_HISTORY_VISIBLE_STATUSES : PO_OPEN_STATUSES;
   const [rows, setRows] = useState([]);
   const [loadError, setLoadError] = useState("");
   const [viewRow, setViewRow] = useState(null);
@@ -120,13 +114,14 @@ export default function PurchaseOrderHistoryTable() {
         dateFrom,
         dateTo,
         searchQuery,
-        coordinator
+        coordinator,
+        statuses
       }),
-    [rows, dateFrom, dateTo, searchQuery, coordinator]
+    [rows, dateFrom, dateTo, searchQuery, coordinator, statuses]
   );
 
-  const filterResetSignal = `${dateFrom}|${dateTo}|${searchQuery}|${coordinator}`;
-  const pagination = usePagination(filteredRows, "po-history", filterResetSignal);
+  const filterResetSignal = `${list}|${dateFrom}|${dateTo}|${searchQuery}|${coordinator}`;
+  const pagination = usePagination(filteredRows, isHistory ? "po-history" : "po-open", filterResetSignal);
   const visibleRows = pagination.visible;
 
   useEffect(() => {
@@ -139,7 +134,7 @@ export default function PurchaseOrderHistoryTable() {
           setLoadError("");
         }
       } catch (e) {
-        if (!cancelled) setLoadError(e.message || "Could not load PO history.");
+        if (!cancelled) setLoadError(e.message || "Could not load purchase orders.");
       }
     }
     void load();
@@ -156,23 +151,13 @@ export default function PurchaseOrderHistoryTable() {
     };
   }, []);
 
-  async function handleStatusChange(id, status) {
-    const previous = rows;
-    setRows((curr) => curr.map((row) => (row.id === id ? { ...row, status } : row)));
-    try {
-      await updatePurchaseOrderHistoryStatus(id, status);
-    } catch (e) {
-      setRows(previous);
-      setLoadError(e.message || "Could not update status.");
-    }
-  }
-
   const hasFilters = Boolean(dateFrom || dateTo || searchQuery.trim() || coordinator !== "all");
-  const emptyCopy = rows.length
-    ? hasFilters
-      ? "No purchase orders match these filters."
-      : "No generated purchase orders yet. Use Generate PO on Create new PO."
-    : "No generated purchase orders yet. Use Generate PO on Create new PO.";
+  const emptyNone = isHistory
+    ? "No completed purchase orders yet. Backend marks Completed, then they show here."
+    : "No open purchase orders. Use Generate PO on Create new PO.";
+  const emptyCopy = hasFilters && rows.some((row) => statuses.includes(row.status))
+    ? "No purchase orders match these filters."
+    : emptyNone;
 
   return (
     <Card className="shadow-sm">
@@ -229,20 +214,9 @@ export default function PurchaseOrderHistoryTable() {
                   <TableCell className="font-medium">{row.voucherCode || "—"}</TableCell>
                   <TableCell className="font-bold">{row.supplierName || "—"}</TableCell>
                   <TableCell>
-                    <Select value={row.status} onValueChange={(value) => void handleStatusChange(row.id, value)}>
-                      <SelectTrigger className="h-8 w-[11.5rem] bg-background">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {PO_HISTORY_STATUS_ORDER.map((value) => (
-                            <SelectItem key={value} value={value}>
-                              <PurchaseOrderStatusBadge status={value} />
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <PurchaseOrderStatusBadge
+                      status={isHistory ? PO_HISTORY_STATUS_COMPLETED : row.status}
+                    />
                   </TableCell>
                   <TableCell>{row.coordinatorName || "—"}</TableCell>
                   <TableCell>{row.poDate || "—"}</TableCell>

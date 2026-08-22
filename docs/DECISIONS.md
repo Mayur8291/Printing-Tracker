@@ -2,6 +2,30 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-08-22 — Open POs vs History; Generate is PO sent
+
+**Context:** User wants Generate to land as **PO sent**. Completed comes from the backend and then appears only in **PO History**. Opening the panel should list Pending / PO Approved / PO sent. Create new PO should open the sheet only after that click.
+
+**Options:** (1) One History list with all statuses. (2) Split Open POs (in progress) and History (Completed); Generate writes `po_sent`; Create sheet mounts on the Create tab.
+
+**Decision:** Option 2. Tabs: **All PO Orders** (default), **Create new PO**, **PO History**. Status is display-only. Tab names sit apart (gap, not one pill).
+
+**Why:** Staff see live POs first. Completed archive stays clean. Sheet does not allocate a voucher until Create is opened.
+
+**Tradeoffs:** A PO disappears from All PO Orders when the backend marks Completed.
+
+## 2026-08-22 — Purchase Order opens on History; History status is Completed
+
+**Context:** User wants the panel to open on full PO History. History should display only **Completed**. Create new PO should show the heading and table.
+
+**Options:** (1) Keep Create as default and four status picks. (2) Default History; Status column is Completed only; Create still mounts the A4 heading + table.
+
+**Decision:** Option 2. Backend may still store other status keys. History UI does not show or edit them.
+
+**Why:** Staff see History details immediately. Create stays a sheet they open on purpose.
+
+**Tradeoffs:** Pending / PO sent / PO Approved no longer appear in History.
+
 ## 2026-08-22 — PO History filters are exact and date-only Clear
 
 **Context:** User wanted a History filter bar like the mock: From/To, Clear, Search, Coordinator, View N / page.

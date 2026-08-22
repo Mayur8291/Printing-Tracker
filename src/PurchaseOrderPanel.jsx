@@ -11,11 +11,12 @@ import {
 } from "./purchaseOrderHistoryUtils";
 import { allocatePurchaseOrderVoucher } from "./purchaseOrderVoucherUtils";
 
+const PO_OPEN_TAB = "open";
 const PO_CREATE_TAB = "create";
 const PO_HISTORY_TAB = "history";
 
 export default function PurchaseOrderPanel() {
-  const [subTab, setSubTab] = useState(PO_CREATE_TAB);
+  const [subTab, setSubTab] = useState(PO_OPEN_TAB);
   const [generateError, setGenerateError] = useState("");
   const [generating, setGenerating] = useState(false);
   const sheetRef = useRef(null);
@@ -35,7 +36,7 @@ export default function PurchaseOrderPanel() {
     try {
       await generatePurchaseOrderHistory(snapshot);
       await allocatePurchaseOrderVoucher();
-      setSubTab(PO_HISTORY_TAB);
+      setSubTab(PO_OPEN_TAB);
     } catch (e) {
       setGenerateError(e.message || "Could not generate purchase order.");
     } finally {
@@ -51,9 +52,25 @@ export default function PurchaseOrderPanel() {
           Purchase Order
         </h2>
         <Tabs value={subTab} onValueChange={setSubTab}>
-          <TabsList aria-label="Purchase Order views">
-            <TabsTrigger value={PO_CREATE_TAB}>Create new PO</TabsTrigger>
-            <TabsTrigger value={PO_HISTORY_TAB}>PO History</TabsTrigger>
+          <TabsList aria-label="Purchase Order views" className="h-auto gap-2 bg-transparent p-0">
+            <TabsTrigger
+              value={PO_OPEN_TAB}
+              className="border bg-background shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              All PO Orders
+            </TabsTrigger>
+            <TabsTrigger
+              value={PO_CREATE_TAB}
+              className="border bg-background shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              Create new PO
+            </TabsTrigger>
+            <TabsTrigger
+              value={PO_HISTORY_TAB}
+              className="border bg-background shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              PO History
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -78,7 +95,7 @@ export default function PurchaseOrderPanel() {
           </div>
         </div>
       ) : (
-        <PurchaseOrderHistoryTable />
+        <PurchaseOrderHistoryTable list={subTab === PO_HISTORY_TAB ? "history" : "open"} />
       )}
     </section>
   );

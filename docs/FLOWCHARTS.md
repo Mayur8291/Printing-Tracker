@@ -146,18 +146,20 @@ flowchart LR
 ```mermaid
 flowchart TD
   User[Open sidebar] --> PO[Purchase Order tab]
-  PO --> CreateTab[Create new PO sheet]
+  PO --> OpenTab[All PO Orders Pending PO sent PO Approved]
+  PO --> CreateTab[Create new PO sheet after click]
   CreateTab --> Title[PURCHASE ORDER heading]
   CreateTab --> Actions[Generate PO and Print under sheet]
   Actions --> Must[Supplier Description Due Quantity Unit Rate]
   Must -->|empty| Err[Mandatory details are Missing plus red cells]
-  Must -->|filled| SaveHist[Write generated_at snapshot]
-  SaveHist --> HistTab
-  PO --> HistTab[PO History table]
-  HistTab --> HistFilter[From To Clear Search Coordinator View N page]
+  Must -->|filled| SaveSent[Write generated_at status po_sent]
+  SaveSent --> OpenTab
+  PO --> HistTab[PO History Completed only]
+  OpenTab --> HistFilter[From To Clear Search Coordinator View N page]
+  HistTab --> HistFilter
   HistFilter --> HistRows[Filtered paginated rows]
   HistRows --> ViewPo[View PO A4 heading and table]
-  HistRows --> StatusPick[Pending PO sent PO Approved Completed]
+  Backend[Backend status Completed] --> HistTab
   PO --> Panel[PurchaseOrderPanel]
   Panel --> Plus[Plus new PO]
   Panel --> Grid[Compact unlabeled sheet]
@@ -210,9 +212,11 @@ sequenceDiagram
   participant SB as Staging Supabase
   User->>App: Select Purchase Order
   App->>App: dashboardTab purchase_order
+  App-->>User: All PO Orders Pending PO sent PO Approved
+  User->>App: Create new PO
   App->>SB: max seq for FY then insert next voucher
   SB-->>App: PO/26-27/392 plus created_at
-  App-->>User: R11 voucher, R12 Dated, R31 same voucher
+  App-->>User: PURCHASE ORDER heading and table
   User->>App: Plus
   App->>SB: insert next seq
   SB-->>App: PO/26-27/393 plus today
@@ -221,15 +225,13 @@ sequenceDiagram
   alt Missing supplier or line fields
     App-->>User: Mandatory details are Missing, red cells
   else All mandatory filled
-    App->>SB: update voucher generated_at supplier coordinator po_date qty pending snapshot
+    App->>SB: update voucher generated_at supplier coordinator po_date qty po_sent snapshot
     App->>SB: insert next unused voucher
-    SB-->>App: History row ready
-    App-->>User: Switch to PO History table
+    SB-->>App: Open PO row ready
+    App-->>User: Switch to All PO Orders
   end
-  User->>App: From To Search Coordinator View N page
-  App-->>User: Filtered paginated History rows
+  SB-->>App: Backend sets status completed
+  App-->>User: Row leaves All PO Orders, shows in PO History
   User->>App: View PO
   App-->>User: A4 PURCHASE ORDER heading and table
-  User->>App: Change status
-  App->>SB: update status
 ```

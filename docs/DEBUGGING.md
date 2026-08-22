@@ -69,8 +69,8 @@
 |--|--|
 | **Symptom** | No Create new PO / PO History, or the A4 sheet is gone after a tab click. |
 | **Root cause** | Those sub-tabs live in `PurchaseOrderPanel`, opposite the heading. Create unmounts History and vice versa. |
-| **Fix** | Default tab is `create`. History is the generated-PO table. |
-| **Verify** | Heading left, two tabs right. Create shows the full sheet. History shows generated rows. |
+| **Fix** | Default tab is `open` (Pending / PO sent / PO Approved). Create mounts the sheet on click. History shows Completed only after backend update. |
+| **Verify** | Open Purchase Order → All PO Orders. Create new PO → heading + table. Generate → PO sent on All PO Orders. History empty until status is Completed. |
 
 ## Purchase Order C13 heading or height is wrong
 
