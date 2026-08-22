@@ -154,8 +154,10 @@ flowchart TD
   Must -->|filled| SaveHist[Write generated_at snapshot]
   SaveHist --> HistTab
   PO --> HistTab[PO History table]
-  HistTab --> ViewPo[View PO A4 heading and table]
-  HistTab --> StatusPick[Pending PO sent PO Approved Completed]
+  HistTab --> HistFilter[From To Clear Search Coordinator View N page]
+  HistFilter --> HistRows[Filtered paginated rows]
+  HistRows --> ViewPo[View PO A4 heading and table]
+  HistRows --> StatusPick[Pending PO sent PO Approved Completed]
   PO --> Panel[PurchaseOrderPanel]
   Panel --> Plus[Plus new PO]
   Panel --> Grid[Compact unlabeled sheet]
@@ -224,6 +226,8 @@ sequenceDiagram
     SB-->>App: History row ready
     App-->>User: Switch to PO History table
   end
+  User->>App: From To Search Coordinator View N page
+  App-->>User: Filtered paginated History rows
   User->>App: View PO
   App-->>User: A4 PURCHASE ORDER heading and table
   User->>App: Change status

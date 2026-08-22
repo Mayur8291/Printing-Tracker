@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-22 — PO History From/To, search, coordinator, View N / page
+
+- **Issue:** PO History listed every generated PO. No date range, search, coordinator pick, or page size.
+- **Fix:** Filter bar on History: **From** / **To** (PO date, inclusive), **Clear** (dates only), **Search** (exact match on voucher seq after last `/`, full PO number, supplier, or coordinator), **Coordinator** dropdown (or All coordinators), **View N / page** (default 10). Table paginates the filtered list.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderHistoryFilters.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-08-22 — View PO Print matches Create Print
 
 - **Issue:** View PO Print did not follow Create new PO Print. Sheet stayed trapped in the dialog. C23 easy to miss.

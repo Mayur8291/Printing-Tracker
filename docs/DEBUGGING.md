@@ -1,5 +1,14 @@
 # Debugging
 
+## Purchase Order History filters miss rows or stay empty
+
+| | |
+|--|--|
+| **Symptom** | From/To, Search, or Coordinator hide a PO that should show. Or History looks empty after filters. |
+| **Root cause** | Date uses `po_date` (`DD-Mmm-YY`). Search is **exact** (trim + case-insensitive): seq after last `/`, full voucher, supplier, or coordinator. Partial `39` does not match `392`. Coordinator dropdown uses names on generated rows. |
+| **Fix** | Clear dates with **Clear**. Empty the search box. Set Coordinator to **All coordinators**. Type the full seq (`392`), full name, or full coordinator. Widen From/To. |
+| **Verify** | Generate a PO. History → type only the number after the last `/`. Row shows. Pick that coordinator. Same row. Set From/To around Dated. **Clear** brings all dates back. |
+
 ## Purchase Order print includes the app chrome
 
 | | |

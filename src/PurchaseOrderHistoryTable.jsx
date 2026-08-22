@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BadgeCheck, CheckCircle2, Clock, FileSpreadsheet, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { OrdersPagination, usePagination } from "@/orderPagination";
+import PurchaseOrderHistoryFilters from "./PurchaseOrderHistoryFilters";
 import PurchaseOrderPrintSheet from "./PurchaseOrderPrintSheet";
 import {
   PO_HISTORY_STATUS_COMPLETED,
@@ -35,8 +37,10 @@ import {
   PO_HISTORY_STATUS_PO_APPROVED,
   PO_HISTORY_STATUS_PO_SENT,
   PO_HISTORY_STATUS_ORDER,
+  filterPurchaseOrderHistoryRows,
   listGeneratedPurchaseOrders,
   purchaseOrderHistoryStatusMeta,
+  uniquePurchaseOrderHistoryCoordinators,
   updatePurchaseOrderHistoryStatus
 } from "./purchaseOrderHistoryUtils";
 import { formatPurchaseOrderC42Display } from "./purchaseOrderLayout";
@@ -97,6 +101,33 @@ export default function PurchaseOrderHistoryTable() {
   const [rows, setRows] = useState([]);
   const [loadError, setLoadError] = useState("");
   const [viewRow, setViewRow] = useState(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [coordinator, setCoordinator] = useState("all");
+
+  const coordinatorOptions = useMemo(() => {
+    const names = uniquePurchaseOrderHistoryCoordinators(rows);
+    if (coordinator && coordinator !== "all" && !names.includes(coordinator)) {
+      return [coordinator, ...names].sort((a, b) => a.localeCompare(b));
+    }
+    return names;
+  }, [rows, coordinator]);
+
+  const filteredRows = useMemo(
+    () =>
+      filterPurchaseOrderHistoryRows(rows, {
+        dateFrom,
+        dateTo,
+        searchQuery,
+        coordinator
+      }),
+    [rows, dateFrom, dateTo, searchQuery, coordinator]
+  );
+
+  const filterResetSignal = `${dateFrom}|${dateTo}|${searchQuery}|${coordinator}`;
+  const pagination = usePagination(filteredRows, "po-history", filterResetSignal);
+  const visibleRows = pagination.visible;
 
   useEffect(() => {
     let cancelled = false;
@@ -136,11 +167,35 @@ export default function PurchaseOrderHistoryTable() {
     }
   }
 
+  const hasFilters = Boolean(dateFrom || dateTo || searchQuery.trim() || coordinator !== "all");
+  const emptyCopy = rows.length
+    ? hasFilters
+      ? "No purchase orders match these filters."
+      : "No generated purchase orders yet. Use Generate PO on Create new PO."
+    : "No generated purchase orders yet. Use Generate PO on Create new PO.";
+
   return (
     <Card className="shadow-sm">
       <CardContent className="p-0">
+        <PurchaseOrderHistoryFilters
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          onClearDates={() => {
+            setDateFrom("");
+            setDateTo("");
+          }}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          coordinator={coordinator}
+          coordinatorOptions={coordinatorOptions}
+          onCoordinatorChange={setCoordinator}
+          pageSize={pagination.pageSize}
+          onPageSizeChange={pagination.setPageSize}
+        />
         {loadError ? (
-          <p className="px-4 pt-4 text-sm text-destructive">{loadError}</p>
+          <p className="px-4 pt-3 text-sm text-destructive">{loadError}</p>
         ) : null}
         <Table>
           <TableHeader>
@@ -155,8 +210,8 @@ export default function PurchaseOrderHistoryTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.length ? (
-              rows.map((row) => (
+            {visibleRows.length ? (
+              visibleRows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -199,12 +254,23 @@ export default function PurchaseOrderHistoryTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  No generated purchase orders yet. Use Generate PO on Create new PO.
+                  {emptyCopy}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+        {filteredRows.length ? (
+          <div className="border-t px-4 py-3">
+            <OrdersPagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={pagination.setPage}
+              total={pagination.total}
+              pageSize={pagination.pageSize}
+            />
+          </div>
+        ) : null}
         <PurchaseOrderViewDialog
           row={viewRow}
           open={Boolean(viewRow)}

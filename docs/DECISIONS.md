@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-08-22 — PO History filters are exact and date-only Clear
+
+**Context:** User wanted a History filter bar like the mock: From/To, Clear, Search, Coordinator, View N / page.
+
+**Options:** (1) Substring search like orders. (2) Exact match on seq after last `/`, full voucher, supplier, or coordinator. Clear all filters vs dates only.
+
+**Decision:** Option 2. Dates filter `po_date` inclusive. **Clear** only empties From/To. Coordinator list comes from generated History names. View N / page uses shared `usePagination` (default 10).
+
+**Why:** Staff type `392` not the full `PO/26-27/392`. Exact match avoids accidental partial hits.
+
+**Tradeoffs:** Typing `39` shows nothing until the full seq or name is entered.
+
 ## 2026-08-22 — View PO Print uses Create Print rules
 
 **Context:** User wants History → View PO → Print to print the same sheet they see, plus C23, same as Create new PO Print.

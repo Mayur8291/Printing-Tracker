@@ -2,7 +2,8 @@ import { profileDisplayName } from "./coordinatorSelectUtils";
 import { PURCHASE_ORDER_C_BASE_LINE_KEY } from "./purchaseOrderLayout";
 import {
   firstSeqForPurchaseOrderFy,
-  purchaseOrderFinancialYearCode
+  purchaseOrderFinancialYearCode,
+  purchaseOrderIstYmd
 } from "./purchaseOrderVoucherUtils";
 import { supabase } from "./supabaseClient";
 
@@ -230,4 +231,91 @@ export async function updatePurchaseOrderHistoryStatus(id, status) {
     .update({ status })
     .eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+const PO_DATED_MONTHS = {
+  jan: 0,
+  feb: 1,
+  mar: 2,
+  apr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  aug: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dec: 11
+};
+
+/** Dated face (`22-Aug-26`) or `generated_at` → `YYYY-MM-DD` for From/To compare. */
+export function purchaseOrderHistoryDateKey(row) {
+  const label = String(row?.poDate || "").trim();
+  const match = /^(\d{1,2})-([A-Za-z]{3})\.?-(\d{2})$/.exec(label);
+  if (match) {
+    const month = PO_DATED_MONTHS[match[2].toLowerCase()];
+    if (month != null) {
+      const year = 2000 + Number(match[3]);
+      const day = Number(match[1]);
+      if (year >= 2000 && day >= 1 && day <= 31) {
+        return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      }
+    }
+  }
+  if (row?.generatedAt) return purchaseOrderIstYmd(row.generatedAt);
+  return "";
+}
+
+/** Token after the last `/` — `392` from `PO/26-27/392`. */
+export function purchaseOrderVoucherSeqToken(code) {
+  const text = String(code || "").trim();
+  if (!text) return "";
+  const parts = text.split("/");
+  return parts[parts.length - 1] || "";
+}
+
+/** Exact match (trim + case-insensitive) on seq, full voucher, supplier, or coordinator. */
+export function purchaseOrderHistoryMatchesSearch(row, query) {
+  const q = String(query || "").trim().toLowerCase();
+  if (!q) return true;
+  const seq = purchaseOrderVoucherSeqToken(row?.voucherCode).toLowerCase();
+  const full = String(row?.voucherCode || "").trim().toLowerCase();
+  const supplier = String(row?.supplierName || "").trim().toLowerCase();
+  const coordinator = String(row?.coordinatorName || "").trim().toLowerCase();
+  return seq === q || full === q || supplier === q || coordinator === q;
+}
+
+export function purchaseOrderHistoryInDateRange(row, dateFrom, dateTo) {
+  const from = String(dateFrom || "").trim();
+  const to = String(dateTo || "").trim();
+  if (!from && !to) return true;
+  const key = purchaseOrderHistoryDateKey(row);
+  if (!key) return false;
+  if (from && key < from) return false;
+  if (to && key > to) return false;
+  return true;
+}
+
+export function purchaseOrderHistoryMatchesCoordinator(row, coordinator) {
+  const wanted = String(coordinator || "").trim();
+  if (!wanted || wanted === "all") return true;
+  return String(row?.coordinatorName || "").trim() === wanted;
+}
+
+export function uniquePurchaseOrderHistoryCoordinators(rows) {
+  const names = new Set();
+  for (const row of rows || []) {
+    const name = String(row?.coordinatorName || "").trim();
+    if (name) names.add(name);
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
+export function filterPurchaseOrderHistoryRows(rows, { dateFrom, dateTo, searchQuery, coordinator } = {}) {
+  return (rows || []).filter(
+    (row) =>
+      purchaseOrderHistoryInDateRange(row, dateFrom, dateTo) &&
+      purchaseOrderHistoryMatchesSearch(row, searchQuery) &&
+      purchaseOrderHistoryMatchesCoordinator(row, coordinator)
+  );
 }
