@@ -52,18 +52,50 @@ export function formatPurchaseOrderVoucher(fyCode, seq) {
   return `PO/${fyCode}/${seq}`;
 }
 
-/** PO creation date in IST, e.g. 21-Aug-26. */
-export function formatPurchaseOrderDated(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-GB", {
+function purchaseOrderIstDateParts(date = new Date()) {
+  return new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kolkata",
     day: "2-digit",
     month: "short",
     year: "2-digit"
   }).formatToParts(new Date(date));
+}
+
+/** PO creation date in IST, e.g. 21-Aug-26. */
+export function formatPurchaseOrderDated(date = new Date()) {
+  const parts = purchaseOrderIstDateParts(date);
   const day = parts.find((part) => part.type === "day")?.value;
   const month = (parts.find((part) => part.type === "month")?.value || "").replace(".", "");
   const year = parts.find((part) => part.type === "year")?.value;
   return `${day}-${month}-${year}`;
+}
+
+/** Due on cell, e.g. 14-Aug -26. */
+export function formatPurchaseOrderDueOn(date = new Date()) {
+  const parts = purchaseOrderIstDateParts(date);
+  const day = parts.find((part) => part.type === "day")?.value;
+  const month = (parts.find((part) => part.type === "month")?.value || "").replace(".", "");
+  const year = parts.find((part) => part.type === "year")?.value;
+  return `${day}-${month} -${year}`;
+}
+
+export function purchaseOrderIstYmd(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date(date));
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+  return `${year}-${month}-${day}`;
+}
+
+/** Due on may be today (IST) or later. Past IST days are blocked. */
+export function isPurchaseOrderDueOnAllowed(date) {
+  if (!date) return false;
+  return purchaseOrderIstYmd(date) >= purchaseOrderIstYmd(new Date());
 }
 
 export function firstSeqForPurchaseOrderFy(fyCode) {
@@ -130,6 +162,16 @@ async function insertVoucherRow(fyCode, seq, userId) {
 
 export async function loadPurchaseOrderByVoucher(code) {
   if (!code) return null;
+  const withGenerated = await supabase
+    .from("dashboard_purchase_orders")
+    .select("voucher_code, created_at, generated_at")
+    .eq("voucher_code", code)
+    .maybeSingle();
+  if (!withGenerated.error && withGenerated.data) {
+    const record = voucherRecord(withGenerated.data.voucher_code, withGenerated.data.created_at);
+    record.generatedAt = withGenerated.data.generated_at || null;
+    return record;
+  }
   const { data, error } = await supabase
     .from("dashboard_purchase_orders")
     .select("voucher_code, created_at")

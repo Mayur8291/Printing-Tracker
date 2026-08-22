@@ -67,7 +67,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `2026071012
 |--------|------|------------|
 | Shell / routing | `App.jsx` | Most feature panels |
 | Support desk | `EnquiryPanel.jsx`, `SupportTicketDesk.jsx`, `enquiryConciergeUtils.js`, `SupportDelayAlertCard.jsx`, `SupportProductionStatusCard.jsx` | Enquiry + Complaints desks; Delay alert and Order status tabs after Complaints; Report blank |
-| Purchase Order | `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `purchaseOrderVoucherUtils.js` | Main sidebar tab `purchase_order`; FileSpreadsheet icon; compact unlabeled sheet; R11 voucher from `dashboard_purchase_orders` |
+| Purchase Order | `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderPrintSheet.jsx`, `purchaseOrderLayout.js`, `purchaseOrderVoucherUtils.js`, `purchaseOrderHistoryUtils.js`, `purchaseOrderAmountWords.js` | Main sidebar tab `purchase_order`; FileSpreadsheet icon; A4 unlabeled sheet; Generate PO stamps `dashboard_purchase_orders.generated_at` + snapshot; History table; View PO = A4 heading + table print; print-only C23 signature |
 | Inventory | `src/inventory/*` | `inventoryDbUtils`, Supabase |
 | Chat | `TeamChatPanel`, `teamChatService.js` | Supabase + Storage |
 | Goals | `GoalTrackerPanel`, `goalTrackerUtils.js` | Supabase RPC/tables |

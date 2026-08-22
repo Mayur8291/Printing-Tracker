@@ -426,7 +426,7 @@ Parent style table from an earlier dashboard grouping feature. **No longer used 
 
 ### `dashboard_purchase_orders`
 
-Scott Dashboard Purchase Order sheet vouchers (cell **R11**) and create day (cell **R12**). Not Inventory POs.
+Scott Dashboard Purchase Order sheet vouchers (cell **R11**) and create day (cell **R12**). After **Generate PO**, the same row holds History fields. Not Inventory POs.
 
 | Column | Type | Purpose |
 |--------|------|---------|
@@ -435,11 +435,18 @@ Scott Dashboard Purchase Order sheet vouchers (cell **R11**) and create day (cel
 | `fy_code` | text | Indian FY `YY-YY+1` (1 Apr–31 Mar) |
 | `seq` | integer | Serial in that FY. Unique with `fy_code` |
 | `created_by` | uuid | Auth user, nullable |
-| `created_at` | timestamptz | Insert time. R12 Dated uses this in IST as `DD-Mmm-YY` |
+| `created_at` | timestamptz | Voucher reserve time. R12 Dated no longer uses this — Create sheet shows today |
+| `generated_at` | timestamptz | Set on Generate PO. History lists only non-null |
+| `supplier_name` | text | Bold R3 Supplier (Bill form) name |
+| `coordinator_name` | text | Signed-in profile name at generate |
+| `po_date` | text | R12 Dated face at Generate (`DD-Mmm-YY`, today IST) |
+| `quantity` | integer | C42 quantity total |
+| `status` | text | `pending` \| `po_sent` \| `po_approved` \| `completed` (default `pending`) |
+| `sheet_snapshot` | jsonb | Sheet fields at generate for View PO |
 
-**Query pattern:** max `seq` for current `fy_code`, then insert `seq+1`. First FY `26-27` starts at 392 if the table is empty. Later FYs start at 1.
+**Query pattern:** max `seq` for current `fy_code`, then insert `seq+1`. First FY `26-27` starts at 392 if the table is empty. Later FYs start at 1. History: `generated_at IS NOT NULL` order `generated_at desc`. Generate: UPDATE that voucher.
 
-**Migration:** `20260821064834_dashboard_purchase_order_vouchers.sql` — staging first. Rollback: drop table (loses reserved voucher numbers).
+**Migrations:** `20260821064834_dashboard_purchase_order_vouchers.sql` (create). `20260822104145_dashboard_purchase_order_history.sql` (history columns + authenticated UPDATE). Staging first. Rollback history: drop the new columns and UPDATE policy. Rollback vouchers: drop table (loses reserved numbers).
 
 ### `inventory_suppliers`
 

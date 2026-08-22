@@ -1,5 +1,322 @@
 # Changelog
 
+## 2026-08-22 — View PO Print matches Create Print
+
+- **Issue:** View PO Print did not follow Create new PO Print. Sheet stayed trapped in the dialog. C23 easy to miss.
+- **Fix:** View PO Print uses the same A4 rules: print the open sheet, fill the page, show C23. Dialog transform/overflow flatten on print.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Print fills the A4 page again; C13 stays complete
+
+- **Issue:** Packed print made the table look small. User wants the old full-page fill, with C13 fully visible.
+- **Fix:** Print again uses the 210mm × 297mm sheet (`@page` A4, margin 0). C table stretches like the screen. C13 keeps full R2 height. C23 overlays C13 bottom-right so it does not clip the words row.
+- **Files:** `styles.css`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPrintSheet.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Print shows full table and C23
+
+- **Issue:** Create Print preview clipped the sheet. C23 missing. Big empty goods band.
+- **Fix:** Print packs the C table (`height: auto`). C23 sits after C13 in flow. Hide C23 only on `@media screen`. `@page` A4 with 8mm margin.
+- **Files:** `styles.css`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPrintSheet.jsx`, `PurchaseOrderC23Signature.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Print-only C23 signature cell
+
+- **Issue:** Print had no signature box at the bottom-right of C13.
+- **Fix:** Print-only **C23** (hidden on screen). Width C42–C82, height R22. Top-right **for SCOTT INTERNATIONAL**. Bottom-right **Authorised Signatory**. Shows only after Print.
+- **Files:** `PurchaseOrderC23Signature.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPrintSheet.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — View PO shows the printed sheet
+
+- **Issue:** View PO was a field summary, not the PO print.
+- **Fix:** View PO opens the saved A4 print: **PURCHASE ORDER** heading plus the R/C table (same face as Create / Print).
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderPrintSheet.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — Quantity unit mandatory; Dated is always today
+
+- **Issue:** Generate allowed empty Quantity unit. R12 Dated stayed on voucher reserve day.
+- **Fix:** Unit is mandatory (same error + red). R12 Dated is today's IST date and flips when the day changes. Generate stores that today as PO date.
+- **Files:** `purchaseOrderHistoryUtils.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md.
+
+## 2026-08-22 — Generate PO error is one line only
+
+- **Issue:** Generate error also listed which fields to fill.
+- **Fix:** Show only **Mandatory details are Missing**.
+- **Files:** `PurchaseOrderPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md.
+
+## 2026-08-22 — Generate PO mandatory fields
+
+- **Issue:** Generate PO saved empty Supplier / Description / Due on / Quantity / Rate.
+- **Fix:** Generate blocks until those are filled. Error **Mandatory details are Missing**. Empty cells turn red. Fill them, then Generate saves to PO History.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — PO History after Generate PO
+
+- **Issue:** PO History was empty. Generate PO did not save a row.
+- **Fix:** Generate PO writes history fields on the reserved voucher (`generated_at`, bold supplier name, coordinator, R12 date, C42 qty, status `pending`, sheet snapshot). History table columns: PO (print + View PO), PO Number (voucher only), Supplier (bold name), Status (Pending / PO sent / PO Approved / Completed with color + icon), Coordinator, PO date, Quantity. Staging migration `20260822104145_dashboard_purchase_order_history.sql`.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`, `purchaseOrderVoucherUtils.js`, `supabase/migrations/20260822104145_dashboard_purchase_order_history.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md.
+
+## 2026-08-22 — Create PO title plus Generate / Print
+
+- **Issue:** Create new PO had no sheet title and no Generate/Print under the table.
+- **Fix:** **PURCHASE ORDER** sits on top of the A4 sheet (prints with it). **Generate PO** and **Print** sit in a separate row under the table (not printed). Print hides chrome and the Plus control.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Purchase Order Create / History tabs
+
+- **Issue:** Purchase Order was one sheet with no Create vs History split. Tabs need to sit opposite the heading.
+- **Fix:** Header row: **Purchase Order** left, shadcn Tabs right (**Create new PO** / **PO History**). Create shows the A4 sheet. History is an empty card until save-list exists.
+- **Files:** `PurchaseOrderPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — C13 heading and height match R2
+
+- **Issue:** C13 said "Amount in words" and was shorter than Consignee (R2).
+- **Fix:** Heading is **Amount Chargable (in words):**. C13 height copies R2. C11–C81 rows can shrink (`minmax(1.25rem)`) so the A4 sheet still fits.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C42 qty total bold; C82 one-line bold
+
+- **Issue:** C42 empty. C82 wrapped and was not bold.
+- **Fix:** C42 shows the sum of Quantity numbers in bold. C82 stays ` ₹ 1000.00` on one line and bold. Amount column a bit wider so the rupee total fits.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C82 is the Amount column total
+
+- **Issue:** C82 empty. Need the sum of every goods-line Amount as ` ₹ 1000.00`.
+- **Fix:** `sumPurchaseOrderLineAmounts` adds each row’s qty × rate. C82 shows ` ₹ ` + 2 decimals. C13 words now read that same total.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderAmountWords.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Quantity is whole numbers only
+
+- **Issue:** Quantity still took decimals (`3.5`).
+- **Fix:** `sanitizePurchaseOrderQty` keeps digits only. No `.`. Rate still allows 2 decimals. Amount is still qty × rate.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Amount is Quantity × Rate, 2 decimals
+
+- **Issue:** Amount (C81) empty. Need qty × rate on every goods line, 2 decimals.
+- **Fix:** C81 / `C81:L*` show `formatPurchaseOrderLineAmount` as normal top text (no box). Blank until both Quantity and Rate have numbers. Extra rows each compute their own.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Rate same open number as Quantity, 450.00
+
+- **Issue:** Rate (C51) empty. Need the same no-box number input as Quantity, money face `450.00`, 2 decimals, every goods line.
+- **Fix:** C51 / `C51:L*` use the same open Input. Digits only, max 2 decimals while typing. Blur formats to `450.00`. Plus / delete-row clears that line’s rate.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Quantity drop the ___ lines
+
+- **Issue:** Extra underscore lines sat under Quantity after the number/unit layout was right.
+- **Fix:** Removed the `___` row. Number + unit box stay the same.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md.
+
+## 2026-08-22 — Quantity number visible, no box, full cell width
+
+- **Issue:** Typed qty (e.g. 3) sat in a tiny black box and looked missing. Number + unit bunched top-left; empty space beside the unit.
+- **Fix:** Number uses a 1.25rem open field (no border/outline) so the digit is readable. `___` runs under that field. Number area grows; unit stays on the right of the same top row.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Quantity ___ always shown; unit normal and visible
+
+- **Issue:** After pick, unit looked bold / clipped. `___` under the number was gone.
+- **Fix:** `___` sits under the number (grows if more digits). Unit is shown as `font-normal` text in a small box that is wide enough to read. per stays normal text.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Quantity __ stays visible; smaller unit box
+
+- **Issue:** Dash hid after typing. Unit box too big. Unit text not plain.
+- **Fix:** `__` sits under the number and stays. Unit Select is a small box, `font-normal`. Same on every goods line.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Quantity dash and unit same size, no number box
+
+- **Issue:** Quantity number looked boxed or bigger than PCS/Kg. New rows must match.
+- **Fix:** Number is dash `---` only (no box, no stretch). Number + unit + per share the same 11px face. Same control on every extra goods line.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — Quantity ___ plus unit box; per copies unit
+
+- **Issue:** Quantity (C41) empty. Need a number blank and a unit pick. per (C61) must show that unit, not the number.
+- **Fix:** Each goods line: `___` numeric Input (digits / one decimal) at the top, then a boxed Select (PCS, Kg, Mtr, Nos, Roll, Set). per shows the same unit as normal top text, no box. Plus / delete-row clears that line’s qty and unit.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — Due on date stays one line
+
+- **Issue:** `14-Aug -26` wrapped in the skinny Due on column.
+- **Fix:** Date is `whitespace-nowrap`. C table cols: Due on min `5.5rem`, Description still wide, other cols share the rest.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-22 — Due on calendar icon, today-or-later
+
+- **Issue:** Due on (C31) empty. Need a calendar, not an inner box.
+- **Fix:** Calendar icon in each goods-line Due on cell. Pick date → **14-Aug -26** at the top. Past IST days disabled. Plus / delete-row clears that line’s date.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `purchaseOrderVoucherUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-22 — Description cell is the type area
+
+- **Issue:** Description looked like a small box inside C21.
+- **Fix:** Textarea fills the whole cell. No inner box, no grow-to-content leftover.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Description of Goods typeable on every line
+
+- **Issue:** C21 (Description of Goods body) was empty.
+- **Fix:** Each goods line has a normal-text type box in C21 / C21:L*. Plus clears them. Extra-row delete drops that line’s text.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-22 — Sl No. sits at top of cell
+
+- **Issue:** 1. 2. were vertically centered in C11.
+- **Fix:** Align serials to the top of the cell (`items-start`).
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-22 — Sl No. auto 1. 2. 3.
+
+- **Issue:** Sl No. column empty. Need 1. on one row, then 2. 3. when lines are added, and renumber if a line is inserted in the middle.
+- **Fix:** C11 (and extra C11:L* cells) show `lineIndex + 1` plus a dot. Add/delete/insert recounts.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-22 — Extra-line − pinned; same table borders
+
+- **Issue:** − followed the mouse. New row split was a blue double line.
+- **Fix:** − only at the left end of that extra row’s join. Split uses the same cell border as the rest of the sheet.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — C11–C81 + follows the full left outline
+
+- **Issue:** + only sat at the bottom of a row, so inserting between lines was hard.
+- **Fix:** One full-height left rail. **+** follows the mouse on that outline. Click inserts after the row under the cursor. Rows still split the band equally. **−** when the pointer is near an extra-row join.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — C11–C81 hover + / − sub-rows
+
+- **Issue:** User wants extra goods lines only when needed, with a blue circle + / − on the left outline like the sheet sketch.
+- **Fix:** C11–C81 stays one tall row. Hover the left edge → **+** on the bottom line; click inserts a row under it (blue double line). Extra rows: hover left edge → **−** on the top connector to delete. First row cannot be deleted. Plus on the card resets extra rows. Max 8 extra lines. Ids stay in `data-po-cell` only.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C22 Total
+
+- **Issue:** C22 empty.
+- **Fix:** Bold **Total** in C22. No C-code on screen.
+- **Files:** `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-08-22 — Restore C12–C82; add C13 words row under it
+
+- **Issue:** C12–C82 row was removed. User wanted that row kept, plus a new long row under it.
+- **Fix:** Put C12–C82 back (8 empty tiles). New row **C13** under them: **Amount in words** from C82. Do not print C13 on screen.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `purchaseOrderAmountWords.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — C12–C82 one long amount-in-words row
+
+## 2026-08-22 — R32 R41 R42 type fields; no cell gaps
+
+- **Issue:** R32/R41/R42 empty. User wants type space, bold typed words, no scroll, no holes between cells.
+- **Fix:** Headings **Other References**, **Dispatched through**, **Destination** (normal). Auto-grow shadcn Textarea, typed text bold. Sheet gaps `0`, cells `rounded-none`. Plus clears the three fields.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C1–C8 goods-table headings
+
+- **Issue:** Top C row was empty.
+- **Fix:** C1 **Sl No.**, C2 **Description of Goods**, C3 **Due on**, C4 **Quantity**, C5 **Rate**, C6 **per**, C7 **Disc %**, C8 **Amount**. Still no C-codes on screen.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — No hole after R3 supplier pick
+
+- **Issue:** After picking a supplier in R3, empty space opened between cells.
+- **Fix:** Left stack (R1/R2/R3) no longer shares CSS rows with the right 4×2. Voucher tiles stay short. R21B only fills leftover beside R2/R3.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md.
+
+## 2026-08-22 — Close the gap between R1 and R2
+
+- **Issue:** Empty band between Invoice To (R1) and Consignee (R2).
+- **Fix:** Stack R1, R2, R3 in one left column with the same `gap-1` as other cells. No leftover grid hole under R1.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — R1 R2 R3 hug content, no R2 scrollbar
+
+- **Issue:** R2 had a scrollbar. R2/R3 sat in a rigid split and felt too low.
+- **Fix:** Only R1/R2/R3: height follows the text, align top, `overflow-visible`. Other cells unchanged.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Restore C-table row sizes
+
+- **Issue:** After shrinking C11 and growing C1/C12, the C-table looked worse.
+- **Fix:** Put C rows back: short C1/C12, tall middle C11 (`1fr`) like the previous A4 sheet.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — PO R1–R3 wider, A4 sheet shorter
+
+- **Issue:** R1/R2/R3 looked short. Whole sheet too tall.
+- **Fix:** Those cells stretch farther right (~3.2fr vs the small right tiles). Text `11px`, tight padding. Terms box and C-rows shorter. Card is fixed A4 `210mm × 297mm`.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Purchase Order C-table under the R sheet, A4 page
+
+- **Issue:** Need a second unlabeled table under the current PO sheet, same as the C1–C82 sketch, whole page A4 size.
+- **Fix:** A4 card (`210mm × 297mm`). C-grid attached under R-grid. Col 2 wide, middle row tall. Ids in `data-po-cell` / `purchaseOrderLayout.js`. No C-labels on screen. Cells stay empty for later fill.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-21 — Terms of Delivery is a tall box, not one line
+
+- **Issue:** Down R21 type field still looked like a one-line Input.
+- **Fix:** Sit that cell beside Consignee/Supplier in its own row. Textarea uses `rows={12}` and `min-height: 18rem` so it cannot collapse to one line. Fills the leftover height of that cell.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-21 — Terms of Delivery box fills down R21
+
+- **Issue:** Text box in down R21 still looked small inside the large cell.
+- **Fix:** R21B uses a min height. Textarea is in a `1fr` row so it fills the leftover cell (full width and remaining height) under **Terms of Delivery**.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-21 — Purchase Order delivery box fills the cell
+
+- **Issue:** Terms of Delivery type box was a short line. Rest of the large cell looked empty.
+- **Fix:** Use a shadcn **Textarea** that stretches to fill the remaining R21B cell (full width and leftover height). Heading stays on the first line.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-08-21 — Purchase Order R21B terms of delivery
 
 - **Issue:** Large cell opposite Consignee (R2) empty. User asked R21 there: **Terms of Delivery** plus a typable second line.

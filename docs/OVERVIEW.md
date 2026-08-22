@@ -63,7 +63,7 @@ flowchart LR
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
 | Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Delay alert and production status texts are their own tabs after Complaints. Report blank. |
-| Purchase Order | `src/PurchaseOrderPanel.jsx`, `src/PurchaseOrderLayoutGrid.jsx`, `src/purchaseOrderLayout.js`, `src/purchaseOrderVoucherUtils.js` | Main sidebar tab after Inventory. Compact unlabeled sheet card. R11 voucher `PO/YY-YY/N`. Spreadsheet icon. Not Inventory POs. |
+| Purchase Order | `src/PurchaseOrderPanel.jsx`, `src/PurchaseOrderLayoutGrid.jsx`, `src/PurchaseOrderHistoryTable.jsx`, `src/purchaseOrderLayout.js`, `src/purchaseOrderVoucherUtils.js`, `src/purchaseOrderHistoryUtils.js` | Main sidebar tab after Inventory. Heading left, **Create new PO** / **PO History** tabs right. Create = A4 unlabeled sheet. Generate PO saves History (voucher, bold supplier, status, coordinator, Dated, C42). History table + View PO (A4 heading + table print). Spreadsheet icon. Not Inventory POs. |
 | Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
 
 ### Data flow (typical)

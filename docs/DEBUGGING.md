@@ -1,5 +1,221 @@
 # Debugging
 
+## Purchase Order print includes the app chrome
+
+| | |
+|--|--|
+| **Symptom** | Print shows sidebar / Generate PO / Plus, or misses **PURCHASE ORDER**. |
+| **Root cause** | Only `[data-po-print-root]` (title + A4 card) should print. Buttons are `data-po-no-print`. |
+| **Fix** | `@media print` in `styles.css` hides chrome when the print root exists. |
+| **Verify** | Create tab: title on the sheet. Buttons under the card. Print preview = title + table only. |
+
+## Purchase Order Generate blocked for empty mandatory fields
+
+| | |
+|--|--|
+| **Symptom** | Generate PO shows only **Mandatory details are Missing**. Supplier / Description / Due on / Quantity / Rate cells turn red. |
+| **Root cause** | Those fields are required before a History row is written. |
+| **Fix** | Pick a supplier. Fill Description of Goods, Due on, Quantity, Quantity unit, and Rate on every goods line. Red clears as each field is filled. Generate again. |
+| **Verify** | Empty Generate → red alert + red cells. Fill all → Generate → PO History row. |
+
+## Purchase Order View PO Print differs from Create Print
+
+| | |
+|--|--|
+| **Symptom** | History → View PO → Print is clipped, tiny, or missing C23. |
+| **Root cause** | The sheet lives in a Dialog (`transform` + `overflow`). That traps `[data-po-print-root]` so Create Print CSS cannot fill A4. |
+| **Fix** | Print flattens `[data-po-view-dialog]`. Same A4 + C23 rules as Create new PO. |
+| **Verify** | Open a History row → View PO → Print. Preview matches Create Print: full sheet, C13, C23. |
+
+## Purchase Order C23 shows on screen or missing on print
+
+| | |
+|--|--|
+| **Symptom** | Print preview cuts the table, or no C23. Screen must stay without C23. |
+| **Root cause** | Packed `height: auto` print made the table small. A4 + margins can clip C13 if C23 is an extra row. |
+| **Fix** | Print fills 210mm × 297mm (`@page` margin 0). C13 keeps full height. C23 overlays C13 bottom-right. Hide C23 only in `@media screen`. |
+| **Verify** | Create → Print. Sheet fills the page like the screen. C13 words fully visible. C23 at bottom-right. Screen still has no C23. |
+
+## Purchase Order View PO is a summary, not the sheet
+
+| | |
+|--|--|
+| **Symptom** | View PO shows a field list, not **PURCHASE ORDER** plus the table. |
+| **Root cause** | View PO must mount `PurchaseOrderPrintSheet` from `sheet_snapshot`. |
+| **Fix** | Hard refresh. Open History → View PO. |
+| **Verify** | Dialog shows the A4 heading and the same R/C table as Create / Print. |
+
+## Purchase Order History empty after Generate PO
+
+| | |
+|--|--|
+| **Symptom** | Generate PO does nothing, or History stays empty. |
+| **Root cause** | History lists only rows with `generated_at`. That column (and UPDATE RLS) comes from `20260822104145_dashboard_purchase_order_history.sql`. |
+| **Fix** | Apply that migration on staging. Confirm Generate writes the current voucher, then History shows PO / PO Number / Supplier / Status / Coordinator / PO date / Quantity. |
+| **Verify** | Create a sheet → Generate PO → History row. PO Number = voucher. Supplier = bold R3 name. PO date = Dated. Quantity = C42. View PO opens the A4 **PURCHASE ORDER** heading and table. |
+
+## Purchase Order Create / History tabs missing
+
+| | |
+|--|--|
+| **Symptom** | No Create new PO / PO History, or the A4 sheet is gone after a tab click. |
+| **Root cause** | Those sub-tabs live in `PurchaseOrderPanel`, opposite the heading. Create unmounts History and vice versa. |
+| **Fix** | Default tab is `create`. History is the generated-PO table. |
+| **Verify** | Heading left, two tabs right. Create shows the full sheet. History shows generated rows. |
+
+## Purchase Order C13 heading or height is wrong
+
+| | |
+|--|--|
+| **Symptom** | C13 still says Amount in words, or the row is a thin strip vs Consignee. |
+| **Root cause** | Old heading. C13 hugged text while C11–C81 took leftover height. |
+| **Fix** | Heading `Amount Chargable (in words):`. ResizeObserver copies R2 height onto C13. Goods rows `minmax(1.25rem, 1fr)`. |
+| **Verify** | C13 label matches. C13 box is as tall as R2 Consignee. Goods row still usable. |
+
+## Purchase Order C42 qty total missing or C82 wraps
+
+| | |
+|--|--|
+| **Symptom** | C42 empty, or C82 wraps / looks normal weight. |
+| **Root cause** | C42 is the Quantity sum. C82 had `font-weight: 400` and spaces that wrapped. |
+| **Fix** | `sumPurchaseOrderQuantities` on C42 (bold). C82 uses nowrap + bold + non-breaking spaces. |
+| **Verify** | Qty 3 + 2 → C42 **5**. C82 ** ₹ 1550.00** on one line, bold. |
+
+## Purchase Order C82 total is blank or missing ₹
+
+| | |
+|--|--|
+| **Symptom** | C82 empty after line Amounts, or not ` ₹ 1000.00`. |
+| **Root cause** | C82 is the sum of goods-line Amounts (qty × rate), not a typed field. |
+| **Fix** | `sumPurchaseOrderLineAmounts` + `formatPurchaseOrderC82Display`. C13 words read the same number. |
+| **Verify** | One row 3 × 450.00 → Amount 1350.00 and C82 ** ₹ 1350.00**. Add a second line 2 × 100.00 → C82 ** ₹ 1550.00**. Clear all rates → C82 empty. |
+
+## Purchase Order Amount is blank or wrong
+
+| | |
+|--|--|
+| **Symptom** | Amount stays empty after qty + rate, or has more than 2 decimals, or is a typed box. |
+| **Root cause** | C81 is computed, not typed. Need both Quantity and Rate numbers. |
+| **Fix** | `formatPurchaseOrderLineAmount` = qty × rate, `toFixed(2)`. Plain text at the top. Extra `C81:L*` rows use that line’s qty/rate. |
+| **Verify** | Qty `3`, Rate `450.00` → Amount **1350.00**. Clear qty → Amount empty. New + row has its own product. |
+
+## Purchase Order Rate will not take 450.00
+
+| | |
+|--|--|
+| **Symptom** | Rate empty, letters type in, more than 2 decimals, or a boxed field. |
+| **Root cause** | C51 was blank. Rate must match Quantity’s open Input and money face. |
+| **Fix** | `sanitizePurchaseOrderRate` (digits + 2 decimals). Blur `formatPurchaseOrderRate` → `450.00`. Same no-box CSS as C41. Extra `C51:L*` rows reuse it. |
+| **Verify** | Type `450a` → `450`. Type `450.999` → `450.99`. Leave field → **450.99**. New + rows have their own rate. Plus clears. |
+
+## Purchase Order Quantity or per is wrong
+
+| | |
+|--|--|
+| **Symptom** | Typed qty sits in a tiny black box / looks missing, or number+unit bunch in the corner. |
+| **Root cause** | Input height collapsed (`min-height: 0`) so the digit clipped; browser focus outline looked like a box; width was only a few `ch`. |
+| **Fix** | Open 1.25rem field, `outline: none`, number `flex-1`, unit on the right. No `___` row. |
+| **Verify** | Type `3` — you see **3**, no black box, no underscore lines. Type `3.5` → stays **35** (no decimal). Unit (Roll) at the right of the top row. |
+
+## Purchase Order Due on shows past days or a date box
+
+| | |
+|--|--|
+| **Symptom** | Due on is a full date field, or yesterday can be picked. |
+| **Root cause** | C31 was empty. A boxed DatePicker would look like a second cell. |
+| **Fix** | Icon-only shadcn Calendar in a Popover. `isPurchaseOrderDueOnAllowed` blocks IST days before today. Label `formatPurchaseOrderDueOn` sits at the top. |
+| **Verify** | Click the calendar icon. Yesterday is off. Pick today → **14-Aug -26** on one line at the top. New rows have their own icon. |
+
+## Purchase Order Description of Goods is not typeable
+
+| | |
+|--|--|
+| **Symptom** | Cannot type under Description of Goods. Extra lines also blank. |
+| **Root cause** | C21 was an empty tile. |
+| **Fix** | Each goods line has a normal-text Textarea that fills C21 / `C21:L*`. No inner box. Plus clears. Delete extra row drops that text. |
+| **Verify** | Click anywhere in the Description cell and type. No second box inside the cell. |
+
+## Purchase Order Sl No. stays blank or out of order
+
+| | |
+|--|--|
+| **Symptom** | C11 has no 1. or numbers stay 1. 1. after insert. |
+| **Root cause** | Serial comes from the current line index, not a stored number. |
+| **Fix** | `purchaseOrderSlNoText(lineIndex)` on C11 / `C11:L*`. Insert or delete rebuilds 1. 2. 3. |
+| **Verify** | One row → **1.** at the top of C11. Add below → **1.** **2.** Insert between → **1.** **2.** **3.** in order. |
+
+## Purchase Order C11–C81 cannot add a line
+
+| | |
+|--|--|
+| **Symptom** | No + / − on the left of the goods line. Cannot add or delete a sub-row. |
+| **Root cause** | C11–C81 was one fixed grid row. |
+| **Fix** | Hover anywhere on the left outline. **+** follows the pointer. Click adds a row after the line under the pointer. **−** only at the left end of an extra row’s join. Split lines match other cell borders. First row stays. |
+| **Verify** | **−** does not travel with the mouse. New row line looks like the other table lines. |
+
+## Purchase Order C12–C82 row missing
+
+| | |
+|--|--|
+| **Symptom** | C12–C82 row gone. Words sat where those eight tiles should be. |
+| **Root cause** | First pass merged C12–C82. User wanted that row kept, plus a new row under it. |
+| **Fix** | Restore C12–C82. New long **C13** under them for amount in words. Do not print C13. |
+| **Verify** | Eight tiles C12–C82. Under them one long words cell. No C-codes. |
+
+## Purchase Order R32 R41 R42 scroll or sit away from neighbors
+
+| | |
+|--|--|
+| **Symptom** | Other References / Dispatched through / Destination scroll, or holes between tiles. |
+| **Root cause** | Those cells used `overflow` + sheet `gap-1`. Textarea default `min-height` 60px also boxed them. |
+| **Fix** | Auto-grow textarea (`height = scrollHeight`, overflow hidden). Sheet `gap-0`, cells `rounded-none`. Typed text `font-bold`. |
+| **Verify** | Type a long line in R32. Cell grows. No scrollbar. No empty band between tiles. Heading stays normal. |
+
+## Purchase Order empty space after R3 supplier pick
+
+| | |
+|--|--|
+| **Symptom** | After choosing a supplier in R3, holes open between cells (voucher tiles and/or under R3). |
+| **Root cause** | R1+R2+R3 spanned the same 5 grid rows as R11–R42. R3 grew with address lines, so those rows stretched. |
+| **Fix** | Two columns: left stack hugs R1/R2/R3. Right 4×2 is its own short grid. R21B `flex-1` only fills leftover. |
+| **Verify** | Pick a supplier. R3 grows. R11–R42 stay tight. No empty band between tiles. |
+
+## Purchase Order empty space between R1 and R2
+
+| | |
+|--|--|
+| **Symptom** | Hole between Invoice To (R1) and Consignee (R2). |
+| **Root cause** | R1 hugged its text, but the top grid stayed as tall as the four voucher rows. R2 started under that whole grid. |
+| **Fix** | Stack R1, R2, R3 in one left column. Same `gap-1` as other tiles. |
+| **Verify** | R2 sits tight under R1. Right 4x2 and R21B stay. |
+
+## Purchase Order R2 shows a scrollbar
+
+| | |
+|--|--|
+| **Symptom** | Consignee block (R2) has a scroll bar. Text is clipped. |
+| **Root cause** | R2 was `overflow-auto` inside a fixed-height stack with R3. |
+| **Fix** | R1/R2/R3 are `h-auto overflow-visible` and sit at the top. |
+| **Verify** | Full Consignee text visible. No scroll bar. R2 sits tight under R1 (same gap as other cells). |
+
+## Purchase Order C table shows C1 C21 labels
+
+| | |
+|--|--|
+| **Symptom** | Second table prints C1, C21, etc. |
+| **Root cause** | Those names are only for the sketch. UI must stay blank. |
+| **Fix** | Ids live in `PURCHASE_ORDER_C_CELL_IDS` and `data-po-cell`. C1–C8 show goods headings only (`PURCHASE_ORDER_C_HEADINGS`). Never print C1/C21. |
+| **Verify** | Top C row: Sl No., Description of Goods, Due on, Quantity, Rate, per, Disc %, Amount. No C-codes. |
+
+## Purchase Order Terms of Delivery is a one-line box
+
+| | |
+|--|--|
+| **Symptom** | Down R21 type field looks like a single-line Input. |
+| **Root cause** | Percent height / `min-h-0` on the textarea collapsed it. Global `textarea { min-height: 44px }` on tablet also looks like one line. |
+| **Fix** | R21B sits beside Consignee. Compact Textarea `rows={4}` and `[data-po-cell="R21B"] textarea { min-height: 4.5rem }`. Hard refresh. |
+| **Verify** | Big type area, same block as Consignee + Supplier stacked on the left. |
+
 ## Purchase Order Terms of Delivery is in the small R21 cell
 
 | | |
@@ -7,16 +223,16 @@
 | **Symptom** | Looking at the tiny cell left of Mode/terms of Payment. No Terms of Delivery box. |
 | **Root cause** | Sketch reused **R21** for the large block opposite Consignee. Code id is **R21B**. Small R21 stays empty. |
 | **Fix** | Type in the large cell next to Consignee / Supplier. |
-| **Verify** | First line **Terms of Delivery**. Second line is an input. Plus clears it. |
+| **Verify** | Down-right large cell. First line **Terms of Delivery**. Textarea fills that whole remaining box. Plus clears it. |
 
 ## Purchase Order R12 dated is wrong day
 
 | | |
 |--|--|
-| **Symptom** | Dated shows tomorrow/yesterday, or stays blank, or changes on every refresh. |
-| **Root cause** | Display uses `created_at` of the voucher in `Asia/Kolkata`, format `DD-Mmm-YY`. Refresh should reload that same timestamp. Plus should insert a new row (today). |
-| **Fix** | Confirm R12 reads `formatPurchaseOrderDated(created_at)`. Hard refresh. New PO = Plus. |
-| **Verify** | Create today → `21-Aug-26` (on 21 Aug 2026 IST). Refresh keeps that day. Plus → today again for the new voucher. |
+| **Symptom** | Dated is yesterday, blank, or not today. |
+| **Root cause** | R12 is today's IST date (`formatPurchaseOrderDated(new Date())`), not voucher `created_at`. Day flip is checked every minute. |
+| **Fix** | Hard refresh. Confirm PC/IST day. Leave the sheet open past midnight IST → date should change within a minute. |
+| **Verify** | Create tab Dated = today (`22-Aug-26` on 22 Aug 2026 IST). Generate → History **PO date** matches that today. |
 
 ## Purchase Order R11 voucher does not increment
 

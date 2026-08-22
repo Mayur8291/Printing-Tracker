@@ -146,18 +146,55 @@ flowchart LR
 ```mermaid
 flowchart TD
   User[Open sidebar] --> PO[Purchase Order tab]
+  PO --> CreateTab[Create new PO sheet]
+  CreateTab --> Title[PURCHASE ORDER heading]
+  CreateTab --> Actions[Generate PO and Print under sheet]
+  Actions --> Must[Supplier Description Due Quantity Unit Rate]
+  Must -->|empty| Err[Mandatory details are Missing plus red cells]
+  Must -->|filled| SaveHist[Write generated_at snapshot]
+  SaveHist --> HistTab
+  PO --> HistTab[PO History table]
+  HistTab --> ViewPo[View PO A4 heading and table]
+  HistTab --> StatusPick[Pending PO sent PO Approved Completed]
   PO --> Panel[PurchaseOrderPanel]
   Panel --> Plus[Plus new PO]
   Panel --> Grid[Compact unlabeled sheet]
-  Grid --> L[R1 invoice To Scott address]
-  Grid --> R2[R2 Consignee ship to]
+  Grid --> L[R1 R2 R3 stacked left]
+  Grid --> R2[R2 tight under R1]
+  Grid --> V[Right 4x2 own short rows]
   Grid --> R3[R3 supplier dropdown]
   Grid --> R11[R11 Voucher No plus PO FY seq]
-  Grid --> R12[R12 Dated plus create day]
+  Grid --> R12[R12 Dated plus today IST]
   Grid --> R31[R31 Reference copies R11 voucher]
+  Grid --> R32[R32 Other References type bold]
+  Grid --> R41[R41 Dispatched through type bold]
+  Grid --> R42[R42 Destination type bold]
   Grid --> R22[R22 Mode terms of Payment 30 days]
   Grid --> TR[R21 R32 R41 R42]
-  Grid --> BR[R21B Terms of Delivery plus input]
+  Grid --> BR[R21B Terms of Delivery plus full textarea]
+  Grid --> CTab[C table under R sheet]
+  CTab --> CHead[C1 to C8 Sl No Description Due Quantity Rate per Disc Amount]
+  CTab --> C21[C21 wide tall empty cell]
+  CTab --> SlNo[C11 Sl No 1. 2. 3.]
+  CTab --> Desc[C21 type description normal]
+  CTab --> Due[C31 calendar icon due date]
+  CTab --> Qty[C41 number plus small unit box]
+  CTab --> Rate[C51 rate 450.00]
+  CTab --> Per[C61 per unit text]
+  CTab --> Amt[C81 qty times rate]
+  Qty --> Amt
+  Rate --> Amt
+  Qty --> C42[C42 bold qty total]
+  Amt --> C82[C82 bold one line rupee total]
+  C82 --> C13
+  Qty --> Per
+  CTab --> LineAdd[Hover left + add line row]
+  CTab --> LineDel[Hover extra row left minus]
+  CTab --> C12[C12 to C82 eight tiles]
+  CTab --> C22[C22 bold Total]
+  CTab --> C13[C13 Amount Chargable in words height like R2]
+  CTab --> C23[Print-only C23 signature C42 to C82 height R22]
+  C23 --> PrintBtn[Print button]
   Plus --> Alloc[Next seq for current FY]
   Alloc --> R11
   Alloc --> R12
@@ -178,4 +215,17 @@ sequenceDiagram
   App->>SB: insert next seq
   SB-->>App: PO/26-27/393 plus today
   App-->>User: New voucher on R11 and R31, new Dated, empty delivery terms
+  User->>App: Generate PO
+  alt Missing supplier or line fields
+    App-->>User: Mandatory details are Missing, red cells
+  else All mandatory filled
+    App->>SB: update voucher generated_at supplier coordinator po_date qty pending snapshot
+    App->>SB: insert next unused voucher
+    SB-->>App: History row ready
+    App-->>User: Switch to PO History table
+  end
+  User->>App: View PO
+  App-->>User: A4 PURCHASE ORDER heading and table
+  User->>App: Change status
+  App->>SB: update status
 ```

@@ -16097,3 +16097,192 @@ html.theme-dark .orders-pagination-btn:hover:not(:disabled),
   box-shadow: none !important;
 }
 
+/* Purchase Order down R21 (R21B): keep Terms of Delivery tall, not a one-line field. */
+[data-po-cell="R21B"] textarea {
+  min-height: 4.5rem;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* C11–C81 line insert: blue handle like the sheet sketch. */
+[data-po-c-table] {
+  --po-line-handle: 211 56% 42%;
+}
+
+[data-po-line-handle] {
+  border-color: hsl(var(--po-line-handle));
+  color: hsl(var(--po-line-handle));
+}
+
+[data-po-line-handle] svg {
+  width: 0.65rem;
+  height: 0.65rem;
+}
+
+/* C41 Quantity / C51 Rate: readable number, no box. Extra rows use C41:L* / C51:L*. */
+[data-po-cell="C41"] input,
+[data-po-cell^="C41:"] input,
+[data-po-cell="C51"] input,
+[data-po-cell^="C51:"] input {
+  appearance: none;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  height: 1.25rem !important;
+  min-height: 1.25rem !important;
+  max-height: 1.25rem !important;
+  padding: 0 !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  line-height: 1.25rem !important;
+}
+
+[data-po-cell="C41"] [data-po-qty-unit],
+[data-po-cell="C41"] [data-po-qty-unit] span,
+[data-po-cell^="C41:"] [data-po-qty-unit],
+[data-po-cell^="C41:"] [data-po-qty-unit] span,
+[data-po-cell="C61"] p,
+[data-po-cell^="C61:"] p,
+[data-po-cell="C81"] p,
+[data-po-cell^="C81:"] p,
+[data-po-qty-unit-menu],
+[data-po-qty-unit-menu] * {
+  font-weight: 400 !important;
+}
+
+[data-po-cell="C42"] p,
+[data-po-cell="C82"] p {
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+
+/* C21 Description: the cell itself is the type area, not an inner box. */
+[data-po-cell="C21"] textarea,
+[data-po-cell^="C21:"] textarea {
+  min-height: 0 !important;
+  height: 100%;
+  overflow: hidden !important;
+  resize: none;
+  font-weight: 400;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* R32 / R41 / R42: type area grows with words. No scrollbar. */
+
+[data-po-cell="R32"] textarea,
+[data-po-cell="R41"] textarea,
+[data-po-cell="R42"] textarea {
+  min-height: 1.35rem !important;
+  height: auto;
+  overflow: hidden !important;
+  resize: none;
+  font-weight: 700;
+}
+
+/* C23 signature: hide on screen. Print media shows it (do not use display:none here). */
+@media screen {
+  [data-po-print-only] {
+    display: none !important;
+  }
+}
+
+/* Create / View PO print: fill the A4 sheet like the on-screen card. C13 stays full height. */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    height: 297mm !important;
+    overflow: hidden !important;
+    background: #fff !important;
+  }
+
+  body:has([data-po-print-root]) * {
+    visibility: hidden !important;
+  }
+
+  body:has([data-po-print-root]) [data-po-print-root],
+  body:has([data-po-print-root]) [data-po-print-root] * {
+    visibility: visible !important;
+  }
+
+  body:has([data-po-print-root]) [data-po-no-print],
+  body:has([data-po-print-root]) [data-po-no-print] *,
+  body:has([data-po-print-root]) [data-po-line-rail],
+  body:has([data-po-print-root]) [data-po-line-handle] {
+    visibility: hidden !important;
+    display: none !important;
+  }
+
+  body:has([data-po-print-root]) [data-po-print-only] {
+    display: grid !important;
+    visibility: visible !important;
+  }
+
+  body:has([data-po-print-root]) [data-po-print-only] * {
+    visibility: visible !important;
+  }
+
+  /* View PO dialog must flatten so print matches Create new PO (A4 + C23). */
+  body:has([data-po-print-root]) [data-po-view-dialog],
+  body:has([data-po-print-root]) [role="dialog"] {
+    position: static !important;
+    inset: auto !important;
+    left: 0 !important;
+    top: 0 !important;
+    transform: none !important;
+    width: 210mm !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    background: transparent !important;
+  }
+
+  body:has([data-po-print-root]) [data-po-view-scroll] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body:has([data-po-print-root]) [role="dialog"] > button {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  body:has([data-po-print-root]) [data-po-print-root] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-width: 210mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+  }
+
+  /* Keep C13 the full words row. Words stay left of C23. */
+  body:has([data-po-print-root]) [data-po-c13] {
+    overflow: visible !important;
+  }
+
+  body:has([data-po-print-root]) [data-po-c13] [data-po-cell="C13"] {
+    overflow: hidden !important;
+    padding-right: 42% !important;
+  }
+}
+
+
