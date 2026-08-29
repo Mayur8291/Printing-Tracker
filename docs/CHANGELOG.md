@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-29 — Redeploy develop so Vercel picks up Kundan Scott API
+
+- **Why:** Kundan already merged Scott API + edit-prefill fix into `develop` (`ea91dcc`, `e316dd2`). A later push was a no-op (`Everything up-to-date`), so Vercel may not have rebuilt.
+- **This commit:** New SHA on `develop` to trigger Git-connected Vercel. No app behavior change.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md.
+
 ## 2026-08-22 — Purchase Order tab label All PO Orders; tabs sit apart
 
 - **Issue:** First tab said Open POs. The three tabs sat in one attached pill.

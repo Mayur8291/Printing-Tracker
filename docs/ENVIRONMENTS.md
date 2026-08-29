@@ -198,3 +198,7 @@ Then refresh **List users** in Admin. Redeploy edge function after code changes:
 npx supabase link --project-ref levwrmvqdntngeasrtnb   # production
 npx supabase functions deploy admin-create-user
 ```
+
+## Vercel (staging site)
+
+GitHub `develop` is the source for the staging Vercel project. Production Branch should be **`develop`**. A new push to `develop` starts a build. If Git already matches remote (`Everything up-to-date`), Vercel will not rebuild until there is a new commit — use **Deployments → Redeploy**, or push a new `develop` commit.
