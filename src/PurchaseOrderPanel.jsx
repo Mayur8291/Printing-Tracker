@@ -15,7 +15,7 @@ const PO_OPEN_TAB = "open";
 const PO_CREATE_TAB = "create";
 const PO_HISTORY_TAB = "history";
 
-export default function PurchaseOrderPanel() {
+export default function PurchaseOrderPanel({ isAdmin = false }) {
   const [subTab, setSubTab] = useState(PO_OPEN_TAB);
   const [generateError, setGenerateError] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -95,7 +95,10 @@ export default function PurchaseOrderPanel() {
           </div>
         </div>
       ) : (
-        <PurchaseOrderHistoryTable list={subTab === PO_HISTORY_TAB ? "history" : "open"} />
+        <PurchaseOrderHistoryTable
+          list={subTab === PO_HISTORY_TAB ? "history" : "open"}
+          isAdmin={isAdmin}
+        />
       )}
     </section>
   );

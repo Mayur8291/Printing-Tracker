@@ -26,6 +26,7 @@ export function isPetsJobSheetGender(gender) {
 
 /** Production tracker job sheet — not a printing-floor order. */
 export function isJobSheetOrder(order) {
+  if ((order?.order_kind ?? "") === "sample_job_sheet") return false;
   if ((order?.order_kind ?? "printing") === "job_sheet") return true;
   if (!order?.is_production_order) return false;
   if (String(order.job_sheet_payment_mode ?? "").trim()) return true;

@@ -1,5 +1,112 @@
 # Changelog
 
+## 2026-08-31 — Production / Sampling tabs match All / Complete pill
+
+- **Issue:** Production Tracker and Sampling Tracker buttons used apart green / orange. User wants the same look as All orders / Complete orders, no extra colour.
+- **Fix:** Both rows use the default muted shadcn TabsList pill. Green / orange and bold-apart styling removed.
+- **Files:** `ProductionTrackerPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-31 — Hide Due In on Sampling Complete orders
+
+- **Issue:** Sampling Complete still showed Due In. Finished jobs do not need a clock.
+- **Fix:** Due In column only on Sampling **All orders**. Complete orders table has no Due In.
+- **Files:** `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md.
+
+## 2026-08-31 — Sample SLA follows Delivery Required On, else 2 days
+
+- **Issue:** Due In always used 2 days from save. User wants the filled **Delivery required on** date when present.
+- **Fix:** If `due_date` is set, deadline is end of that day. If blank, keep 2 days from save. Create Sample Jobsheet does not require Delivery required on. Production job sheet still requires it.
+- **Files:** `sampleJobSheetSlaUtils.js`, `CreateJobSheetForm.jsx`, `App.jsx`, `orderPendingUtils.js`, `OrderDetailPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-31 — Sampling Tracker Due In column after Order date
+
+- **Issue:** Due In only showed in View Sample Order. List after Order date had no timeline.
+- **Fix:** Sampling Tracker table adds **Due In** after Order date. Same 2-day clock: live `HH:MM Hrs Left` or red **SLA Breached**. Closed samples show —. Production Tracker still has Handover, no Due In.
+- **Files:** `SampleJobSheetDueIn.jsx`, `App.jsx`, `LinkedOrdersTabPanel.jsx` (existing extraColumn)
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, OVERVIEW.md.
+
+## 2026-08-31 — Sampling Tracker 2-day SLA in View Sample Order
+
+- **Issue:** Sample jobs had no due clock after save. Need 2 days to reach Dispatched Successfully, with a live countdown and a red SLA Breached mark if late.
+- **Fix:** View Sample Order **Due In** starts at save (`created_at` + 48h). Open jobs show `HH:MM Hrs Left` (Badge colours by time left). Past the deadline and not Dispatched Successfully → red **SLA Breached**, timer gone. Dispatched Successfully / complete hides Due In. No new DB column. Production Tracker unchanged.
+- **Files:** `sampleJobSheetSlaUtils.js`, `SampleJobSheetDueIn.jsx`, `OrderDetailPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-31 — Production / Sampling tab colours
+
+- **Issue:** Production Tracker and Sampling Tracker tab buttons looked the same.
+- **Fix:** Production = very light green. Sampling = very light orange. Selected tab text is bold. All / Complete pill unchanged.
+- **Files:** `ProductionTrackerPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-31 — Sampling Complete locks Dispatched Successfully
+
+- **Issue:** Sampling Complete only followed Mark as complete. Dispatched Successfully stayed on All. Complete still let users change Status.
+- **Fix:** Status **Dispatched Successfully** or **Mark as complete** moves the sample to Complete, shows Dispatched Successfully, and Status becomes a badge (not a dropdown). Viewers write status only (RLS blocks `is_complete`); admin Mark as complete writes both.
+- **Files:** `sampleJobSheetStages.js`, `orderTabUtils.js`, `App.jsx`, `OrderListStatusCell.jsx`, `OrderDetailPanel.jsx`, `globalSearchUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, FLOWCHARTS.md.
+
+## 2026-08-31 — Production and Sampling All / Complete orders tabs
+
+- **Issue:** Production Tracker and Sampling Tracker had no Complete list. Finished jobs stayed mixed with open ones, or vanished.
+- **Fix:** Same All orders / Complete orders pill (Printing style) under both trackers. Production / Sampling switch sits apart so it does not look like that pill. Complete Production and Complete Sampling stay separate lists. Mark as complete on a tracker job opens that tracker’s Complete tab.
+- **Files:** `ProductionTrackerPanel.jsx`, `App.jsx`, `orderTabUtils.js`, `globalSearchUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-31 — Sampling Tracker status pipeline
+
+- **Issue:** Sampling Tracker Status used printing/production dropdown options.
+- **Fix:** Sampling-only stages with the same Select UI and symbols: Pattern Making, Sample Cutting, Sample Stitching, Trim + Iron, Branding, QC, Packaging, Ready to Dispatch, Dispatched Successfully. New sample jobs start at Pattern Making. Staging constraint updated.
+- **Files:** `sampleJobSheetStages.js`, `OrderListStatusCell.jsx`, `OrderDetailPanel.jsx`, `OrderStatusBadge.jsx`, `stickerOrderUtils.js`, `App.jsx`, `orderPendingUtils.js`, `notificationsUtils.js`, `supabase/migrations/20260831065000_sample_job_sheet_statuses.sql`
+- **Migration:** staging `20260831065000_sample_job_sheet_statuses.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md.
+
+## 2026-08-31 — Sampling Tracker history list after Create Sample Jobsheet
+
+- **Issue:** Saved sample job sheets had no list. Sampling Tracker was only a filter bar.
+- **Fix:** Same `LinkedOrdersTabPanel` table as Production Tracker. Sampling-only words: **View Sample Order**, **Sample Order** badge, **Order date** from job-sheet `order_date`. No Production jobs count, no Qty, no Handover to printing. After save, stay on Sampling Tracker.
+- **Files:** `LinkedOrdersTabPanel.jsx`, `ProductionTrackerPanel.jsx`, `App.jsx`, `orderTabUtils.js`, `orderPendingUtils.js`, `OrderViewActionCell.jsx`, `SampleJobSheetOrderIdBadge.jsx`, `globalSearchUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, DATABASE.md.
+
+## 2026-08-31 — Create Sample Jobsheet (SA-0001 sequential, no Total quantity)
+
+- **Issue:** Create Sample Jobsheet had no form. Need the Production job-sheet layout, without Total quantity, with sequential SA-#### IDs.
+- **Fix:** Same `CreateJobSheetForm` layout and Cancel / Save. Hide Total quantity. Allocate `SA-0001` then `SA-0002` from existing sample rows. Staging kind `sample_job_sheet` + unique `order_id`.
+- **Files:** `CreateJobSheetForm.jsx`, `App.jsx`, `ProductionTrackerPanel.jsx`, `sampleJobSheetUtils.js`, `orderTabUtils.js`, `jobSheetUtils.js`, `sidebarTabActivity.js`, `supabase/migrations/20260831060510_add_order_kind_sample_job_sheet.sql`
+- **Migration:** staging `20260831060510_add_order_kind_sample_job_sheet.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, OVERVIEW.md, FLOWCHARTS.md.
+
+## 2026-08-31 — Sampling Tracker filter bar (From, To, Clear, Create Sample Jobsheet, View)
+
+- **Issue:** Sampling Tracker was blank. User wants the same top controls as Production Tracker.
+- **Fix:** Reuse `OrdersListFilters` + outline **Create Sample Jobsheet**. No job-sheet form or prefill. View N / page works locally.
+- **Files:** `ProductionTrackerPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-31 — Production Tracker has Production / Sampling tabs
+
+- **Issue:** Production Tracker was one list. User wants Production Tracker and Sampling Tracker tabs.
+- **Fix:** Same Printing-orders `Tabs` / `TabsList` / `TabsTrigger` format. Current job-sheet list stays under **Production Tracker**. **Sampling Tracker** is empty. List UI and `cn()` row classes unchanged.
+- **Files:** `ProductionTrackerPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-24 — All PO Orders status dropdown includes Completed
+
+- **Issue:** Admin status dropdown on All PO Orders had no Completed.
+- **Fix:** Add Completed. Admin pick it → row leaves All PO Orders and shows in PO History. History still has no picker.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, FLOWCHARTS.md.
+
+## 2026-08-24 — PO status change is admin-only; none on History
+
+- **Issue:** Status change must be admin-only. History must never offer a status pick.
+- **Fix:** All PO Orders: admin gets Pending / PO sent / PO Approved dropdown. Non-admin see a badge. Update checks `profiles.role`. PO History always shows Completed badge only.
+- **Files:** `App.jsx`, `PurchaseOrderPanel.jsx`, `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md.
+
 ## 2026-08-29 — Redeploy develop so Vercel picks up Kundan Scott API
 
 - **Why:** Kundan already merged Scott API + edit-prefill fix into `develop` (`ea91dcc`, `e316dd2`). A later push was a no-op (`Everything up-to-date`), so Vercel may not have rebuilt.

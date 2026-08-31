@@ -55,6 +55,34 @@ export function createPendingProductionOrder({
   };
 }
 
+export function createPendingSampleJobSheet({
+  orderId,
+  customerName,
+  productName,
+  coordinatorName,
+  orderDate,
+  dueDate,
+  qty
+}) {
+  return {
+    clientKey: newClientKey(),
+    id: null,
+    _isPending: true,
+    targetTab: "sampling_tracker",
+    order_id: orderId || null,
+    customer_name: customerName || "—",
+    product_name: productName || "—",
+    coordinator_name: coordinatorName || "—",
+    order_date: orderDate || null,
+    due_date: dueDate || null,
+    created_at: new Date().toISOString(),
+    qty: qty ?? 0,
+    status: "pattern_making",
+    order_kind: "sample_job_sheet",
+    is_production_order: false
+  };
+}
+
 export function orderMatchesPending(realOrder, pending) {
   if (!realOrder || !pending) return false;
   const realOrderId = String(realOrder.order_id ?? "").trim();

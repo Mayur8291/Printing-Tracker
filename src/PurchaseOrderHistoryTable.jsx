@@ -12,6 +12,14 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,6 +33,7 @@ import PurchaseOrderHistoryFilters from "./PurchaseOrderHistoryFilters";
 import PurchaseOrderPrintSheet from "./PurchaseOrderPrintSheet";
 import {
   PO_HISTORY_STATUS_COMPLETED,
+  PO_HISTORY_STATUS_ORDER,
   PO_HISTORY_STATUS_PENDING,
   PO_HISTORY_STATUS_PO_APPROVED,
   PO_HISTORY_STATUS_PO_SENT,
@@ -33,7 +42,8 @@ import {
   filterPurchaseOrderHistoryRows,
   listGeneratedPurchaseOrders,
   purchaseOrderHistoryStatusMeta,
-  uniquePurchaseOrderHistoryCoordinators
+  uniquePurchaseOrderHistoryCoordinators,
+  updatePurchaseOrderHistoryStatus
 } from "./purchaseOrderHistoryUtils";
 import { formatPurchaseOrderC42Display } from "./purchaseOrderLayout";
 import { subscribePostgresChanges } from "./realtimeUtils";
@@ -89,8 +99,9 @@ function PurchaseOrderViewDialog({ row, open, onOpenChange }) {
   );
 }
 
-export default function PurchaseOrderHistoryTable({ list = "open" }) {
+export default function PurchaseOrderHistoryTable({ list = "open", isAdmin = false }) {
   const isHistory = list === "history";
+  const canChangeStatus = Boolean(isAdmin) && !isHistory;
   const statuses = isHistory ? PO_HISTORY_VISIBLE_STATUSES : PO_OPEN_STATUSES;
   const [rows, setRows] = useState([]);
   const [loadError, setLoadError] = useState("");
@@ -150,6 +161,18 @@ export default function PurchaseOrderHistoryTable({ list = "open" }) {
       unsub();
     };
   }, []);
+
+  async function handleStatusChange(id, status) {
+    if (!canChangeStatus) return;
+    const previous = rows;
+    setRows((curr) => curr.map((row) => (row.id === id ? { ...row, status } : row)));
+    try {
+      await updatePurchaseOrderHistoryStatus(id, status);
+    } catch (e) {
+      setRows(previous);
+      setLoadError(e.message || "Could not update status.");
+    }
+  }
 
   const hasFilters = Boolean(dateFrom || dateTo || searchQuery.trim() || coordinator !== "all");
   const emptyNone = isHistory
@@ -214,9 +237,29 @@ export default function PurchaseOrderHistoryTable({ list = "open" }) {
                   <TableCell className="font-medium">{row.voucherCode || "—"}</TableCell>
                   <TableCell className="font-bold">{row.supplierName || "—"}</TableCell>
                   <TableCell>
-                    <PurchaseOrderStatusBadge
-                      status={isHistory ? PO_HISTORY_STATUS_COMPLETED : row.status}
-                    />
+                    {canChangeStatus ? (
+                      <Select
+                        value={row.status}
+                        onValueChange={(value) => void handleStatusChange(row.id, value)}
+                      >
+                        <SelectTrigger className="h-8 w-[11.5rem] bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {PO_HISTORY_STATUS_ORDER.map((value) => (
+                              <SelectItem key={value} value={value}>
+                                <PurchaseOrderStatusBadge status={value} />
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <PurchaseOrderStatusBadge
+                        status={isHistory ? PO_HISTORY_STATUS_COMPLETED : row.status}
+                      />
+                    )}
                   </TableCell>
                   <TableCell>{row.coordinatorName || "—"}</TableCell>
                   <TableCell>{row.poDate || "—"}</TableCell>

@@ -1,4 +1,6 @@
 import { isJobSheetOrder } from "./jobSheetUtils";
+import { isSampleJobSheetOrder } from "./sampleJobSheetUtils";
+import { sampleJobSheetIsClosed } from "./sampleJobSheetStages";
 
 export const PAYMENT_METHODS = [
   { value: "paid", label: "Paid" },
@@ -80,13 +82,28 @@ export function suggestDispatchIssueType({ sizesQtyOk, productNameOk, colorsOk }
   return "count_mismatch";
 }
 
-export function filterProductionTrackerOrders(orders) {
-  return orders.filter((o) => !o.is_complete && Boolean(o.is_production_order));
+export function isProductionTrackerOrder(order) {
+  return Boolean(order?.is_production_order) && !isSampleJobSheetOrder(order);
 }
 
-/** Printing orders tab — excludes production tracker job sheets. */
+export function filterProductionTrackerOrders(orders, listTab = "active") {
+  const wantComplete = listTab === "complete";
+  return orders.filter(
+    (o) => isProductionTrackerOrder(o) && Boolean(o.is_complete) === wantComplete
+  );
+}
+
+/** Sampling Tracker — saved sample job sheets only (not Production Tracker or Printing). */
+export function filterSampleJobSheetOrders(orders, listTab = "active") {
+  const wantComplete = listTab === "complete";
+  return orders.filter(
+    (o) => isSampleJobSheetOrder(o) && sampleJobSheetIsClosed(o) === wantComplete
+  );
+}
+
+/** Printing orders tab — excludes production tracker job sheets and sample job sheets. */
 export function filterPrintingTabOrders(orders) {
-  return orders.filter((o) => !isJobSheetOrder(o));
+  return orders.filter((o) => !isJobSheetOrder(o) && !isSampleJobSheetOrder(o));
 }
 
 /** Billing tab lists all orders (date range still applied in App). */
@@ -168,6 +185,7 @@ export function filterPrintingDepartmentOrders(orders) {
     (o) =>
       !o.is_complete &&
       !isJobSheetOrder(o) &&
+      !isSampleJobSheetOrder(o) &&
       PRINTING_DEPARTMENT_STATUSES.has(o.status ?? "")
   );
 }

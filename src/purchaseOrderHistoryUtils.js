@@ -232,8 +232,20 @@ export async function listGeneratedPurchaseOrders() {
 }
 
 export async function updatePurchaseOrderHistoryStatus(id, status) {
-  if (!PO_HISTORY_STATUS_META[status]) {
+  if (!PO_HISTORY_STATUS_ORDER.includes(status)) {
     throw new Error("Unknown purchase-order status.");
+  }
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth?.user?.id;
+  if (!userId) throw new Error("Only admin can change purchase-order status.");
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  if (profileError) throw new Error(profileError.message);
+  if (String(profile?.role ?? "").trim().toLowerCase() !== "admin") {
+    throw new Error("Only admin can change purchase-order status.");
   }
   const { error } = await supabase
     .from("dashboard_purchase_orders")

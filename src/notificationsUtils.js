@@ -1,5 +1,6 @@
 import { supabase } from "./supabaseClient";
-import { jobSheetProductionStageLabel } from "./jobSheetProductionStages";
+import { JOB_SHEET_PRODUCTION_STAGE_LABEL } from "./jobSheetProductionStages";
+import { SAMPLE_JOB_SHEET_STAGE_LABEL } from "./sampleJobSheetStages";
 import { STAGE_LABEL } from "./orderViewUtils";
 
 export const NOTIFICATIONS_DASHBOARD_TAB = { id: "notifications", label: "Notifications" };
@@ -95,7 +96,9 @@ export function normalizeOrderStatusNotification(row) {
 function orderStatusLabel(code) {
   const key = String(code ?? "").trim();
   if (!key) return "—";
-  return jobSheetProductionStageLabel(key) || STAGE_LABEL[key] || key;
+  if (SAMPLE_JOB_SHEET_STAGE_LABEL[key]) return SAMPLE_JOB_SHEET_STAGE_LABEL[key];
+  if (JOB_SHEET_PRODUCTION_STAGE_LABEL[key]) return JOB_SHEET_PRODUCTION_STAGE_LABEL[key];
+  return STAGE_LABEL[key] || key;
 }
 
 export function formatOrderStatusCode(code) {

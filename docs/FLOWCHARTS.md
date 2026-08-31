@@ -1,5 +1,37 @@
 # Flowcharts
 
+## Production Tracker sidebar tabs
+
+```mermaid
+flowchart TD
+  User[Open Production tracker] --> Switch[Production Tracker or Sampling Tracker pill]
+  Switch --> ListTabs[All orders or Complete orders pill]
+  ListTabs -->|Production All| ProdOpen[Production job sheets open]
+  ListTabs -->|Production Complete| ProdDone[Production job sheets complete]
+  ListTabs -->|Sampling All| SampleOpen[Sample job sheets open]
+  ListTabs -->|Sampling Complete| SampleDone[Sample job sheets complete]
+  SampleOpen --> StatusPick[Sampling status Pattern Making to Dispatched Successfully]
+  StatusPick -->|Dispatched Successfully| SampleDone
+  SampleOpen --> ViewSample[View Sample Order Mark as complete]
+  ViewSample --> SampleDone
+  SampleDone --> LockedStatus[Badge Dispatched Successfully status locked]
+  SampleOpen --> SampleForm[Create Sample Jobsheet]
+  SampleForm --> SampleSave[Save sample_job_sheet Pattern Making]
+  SampleSave --> SampleOpen
+  SampleSave --> SlaClock{Delivery required on filled?}
+  SlaClock -->|yes| DueDateSla[Due In end of that date]
+  SlaClock -->|no| DefaultSla[Due In created_at plus 2 days]
+  SampleOpen --> ListDueIn[Due In column after Order date]
+  DueDateSla --> ListDueIn
+  DefaultSla --> ListDueIn
+  SampleDone --> NoListDueIn[Complete orders no Due In column]
+  ViewSample --> DueIn{Still open?}
+  ListDueIn --> DueIn
+  DueIn -->|yes and time left| Countdown[HH MM Hrs Left Badge]
+  DueIn -->|yes and past deadline| Breach[SLA Breached red no timer]
+  DueIn -->|Dispatched Successfully| SampleDone
+```
+
 ## Enquiry Concierge desk (Dashboard Support tab)
 
 Status UI stays **New / Assigned / In progress / Resolved / Closed**. Concierge pick/SLA runs on top.
@@ -159,6 +191,7 @@ flowchart TD
   HistTab --> HistFilter
   HistFilter --> HistRows[Filtered paginated rows]
   HistRows --> ViewPo[View PO A4 heading and table]
+  OpenTab --> AdminStatus[Admin status pick Pending PO sent PO Approved Completed]
   Backend[Backend status Completed] --> HistTab
   PO --> Panel[PurchaseOrderPanel]
   Panel --> Plus[Plus new PO]
@@ -229,6 +262,10 @@ sequenceDiagram
     App->>SB: insert next unused voucher
     SB-->>App: Open PO row ready
     App-->>User: Switch to All PO Orders
+  end
+  alt Admin on All PO Orders
+    User->>App: Change status Pending PO sent PO Approved Completed
+    App->>SB: update status after role check
   end
   SB-->>App: Backend sets status completed
   App-->>User: Row leaves All PO Orders, shows in PO History

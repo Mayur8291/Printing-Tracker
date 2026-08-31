@@ -41,6 +41,7 @@ const ORDER_KIND_TAB = {
   sticker: "printing",
   sampling: "printing",
   job_sheet: "production_tracker",
+  sample_job_sheet: "production_tracker",
   regular_stock: "regular"
 };
 

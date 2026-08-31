@@ -1,5 +1,77 @@
 # Debugging
 
+## Sample Due In missing, wrong time, or SLA Breached too early
+
+| | |
+|--|--|
+| **Symptom** | Sampling list has no **Due In** after Order date, View Sample Order has no Due In, countdown ignores **Delivery required on**, stays 48h when a date was filled, or **SLA Breached** shows while still inside the deadline. |
+| **Root cause** | If `due_date` is set, SLA is end of that local day. If blank, SLA is `created_at` + 48 hours. List column is Sampling `extraColumn` after Order date. Closed samples show — on the list and hide Due In in the view. Browser clock drives the tick. |
+| **Fix** | Hard refresh. Open **Sampling Tracker** → **All orders**. Check `due_date` and `created_at`. Create Sample Jobsheet can save without Delivery required on. Complete orders has no Due In column. |
+| **Verify** | Save with a delivery date → All orders Due In counts to end of that day. Save with no date → near `48:00 Hrs Left`. Sampling Complete has no Due In. After Dispatched Successfully, view hides Due In. Past the deadline still open → red **SLA Breached**, no timer. |
+
+## Sampling Complete still shows a Status dropdown or wrong status
+
+| | |
+|--|--|
+| **Symptom** | Complete sample still has a Status picker, or the badge is not Dispatched Successfully. Dispatched Successfully row stays on All orders. |
+| **Root cause** | Sampling Complete is `is_complete` **or** status `dispatched_successfully`. Closed samples always display Dispatched Successfully. Status Select is off on Complete and in View Sample Order when closed. |
+| **Fix** | Hard refresh. Open Sampling Tracker → Complete orders. Pick Dispatched Successfully on All, or Mark as complete in View Sample Order. |
+| **Verify** | Row leaves All, appears on Complete with locked Dispatched Successfully badge. Production Complete Status is unchanged. |
+
+## Marked complete job missing from Production or Sampling Complete
+
+| | |
+|--|--|
+| **Symptom** | Mark as complete, then the job is gone from All orders and not on Complete, or it shows under the other tracker. |
+| **Root cause** | All = not complete. Complete = `is_complete`. Production Complete only has production job sheets. Sampling Complete only has `sample_job_sheet`. Each tracker remembers its own All/Complete tab. |
+| **Fix** | Open the same tracker (Production vs Sampling). Click **Complete orders**. Clear From/To. |
+| **Verify** | Complete a production job → Production Tracker → Complete orders. Complete a sample job → Sampling Tracker → Complete orders. The other tracker list does not gain that row. |
+
+## Sampling Tracker status still shows printing or production stages
+
+| | |
+|--|--|
+| **Symptom** | Sampling Status dropdown still has New Orders / Quotation approval / Cutting, or save fails on a new sample stage. |
+| **Root cause** | Sampling uses `sampleJobSheetStages.js`. Staging needs the extra `orders.status` codes. Old sample rows were `quotation_approval` until backfill. |
+| **Fix** | Apply `20260831065000_sample_job_sheet_statuses.sql` on staging. Hard refresh. Open **Sampling Tracker**, not Production Tracker. |
+| **Verify** | Dropdown is Pattern Making \to Dispatched Successfully with icons. Production Tracker dropdown is unchanged. |
+
+## Sampling Tracker list missing after save
+
+| | |
+|--|--|
+| **Symptom** | Create Sample Jobsheet saves, but Sampling Tracker still looks empty, or user lands on Production Tracker. |
+| **Root cause** | List is `filterSampleJobSheetOrders` (`order_kind = sample_job_sheet`). **All orders** hides complete rows. Date From/To uses `order_date`. After save, App keeps the **Sampling Tracker** sub-tab on All. |
+| **Fix** | Open **Sampling Tracker**. Clear From/To. Hard refresh. Confirm the row is `sample_job_sheet` and not complete. |
+| **Verify** | Save a sample job sheet → stay on Sampling Tracker → row shows with **View Sample Order**, **Sample Order**, **Order date**. Production Tracker does not show that row. |
+
+## Production Tracker list missing after adding Sampling tab
+
+| | |
+|--|--|
+| **Symptom** | Opening Production tracker shows a blank Sampling view, or the job-sheet table looks restyled. |
+| **Root cause** | Default sub-tab is **Production Tracker**. Sampling has its own list. Production list is still `LinkedOrdersTabPanel` with Qty + Handover. |
+| **Fix** | Click **Production Tracker**. Hard refresh. |
+| **Verify** | Production Tracker = same table as before (count, Qty, Handover, View order, Production order, Delivery date). Sampling Tracker = sample list without count/Qty/Handover. |
+
+## Create Sample Jobsheet fails or ID is not SA-0001
+
+| | |
+|--|--|
+| **Symptom** | Save says order type is not enabled, or Order ID is not `SA-0001` / next number. |
+| **Root cause** | Staging needs `sample_job_sheet` on `orders.order_kind`. IDs come from existing `sample_job_sheet` rows only. |
+| **Fix** | Apply `20260831060510_add_order_kind_sample_job_sheet.sql` on staging. Next ID is max SA-#### + 1. |
+| **Verify** | First save → `SA-0001`. Next → `SA-0002`. Production Tracker list does not show that row. |
+
+## Purchase Order status change missing or available to staff
+
+| | |
+|--|--|
+| **Symptom** | Non-admin sees a status dropdown, or admin cannot change status on All PO Orders, or History has a status pick. |
+| **Root cause** | Status pick is admin-only on **All PO Orders**. PO History is always a Completed badge. Update checks `profiles.role === admin`. |
+| **Fix** | Sign in as admin to change Pending / PO sent / PO Approved / Completed. Staff only see the badge. History never has a picker. |
+| **Verify** | Admin → All PO Orders → dropdown works. Viewer → badge only. Both → History badge only. |
+
 ## Purchase Order History filters miss rows or stay empty
 
 | | |

@@ -606,12 +606,14 @@ Production tracker job sheets store payment and approval data on the same `order
 | `printing` | Standard printing floor order |
 | `job_sheet` | Production tracker job sheet only — **excluded** from Printing orders tab |
 | `sticker`, `sampling`, `regular_stock` | Other specialized flows |
+| `sample_job_sheet` | Sampling Tracker history list. Order ID `SA-0001`, `SA-0002`, … sequential. Not listed on Production Tracker or Printing Orders. Date column is `order_date`. SLA: `due_date` end of day when set, else `created_at` + 2 days (no extra column). |
 
-Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet`.
+Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet` and `sample_job_sheet`.
 
 | Migration | Change |
 |-----------|--------|
 | `20260703200000_add_order_kind_job_sheet.sql` | Add `job_sheet` to check constraint; backfill existing job sheet rows |
+| `20260831060510_add_order_kind_sample_job_sheet.sql` | Add `sample_job_sheet`; unique `order_id` among sample job sheets |
 
 ## Job sheet production status (`orders.status`)
 
@@ -635,6 +637,28 @@ Garment pipeline for Production tracker (`order_kind = job_sheet`). Updated by p
 | Migration | Change |
 |-----------|--------|
 | `20260703183000_job_sheet_production_stages.sql` | Extend `orders_status_check`; update `status_label()`; backfill `new` → `quotation_approval` for job sheets |
+
+## Sample job sheet status (`orders.status`)
+
+Sampling Tracker pipeline (`order_kind = sample_job_sheet`). Same Status Select UI as Production Tracker; different options. New rows start at `pattern_making`. `qc` and `ready` are shared codes with Production (same labels). `dispatched_successfully` is sampling-only so rows do not enter Dispatch.
+
+| Code | Label |
+|------|-------|
+| `pattern_making` | Pattern Making |
+| `sample_cutting` | Sample Cutting |
+| `sample_stitching` | Sample Stitching |
+| `trim_iron` | Trim + Iron |
+| `branding` | Branding |
+| `qc` | QC |
+| `packaging` | Packaging |
+| `ready` | Ready to Dispatch |
+| `dispatched_successfully` | Dispatched Successfully |
+
+Sampling Complete lists rows with `is_complete` **or** `status = dispatched_successfully`. Closed samples always display that status; Status is not editable. Admin Mark as complete also writes `is_complete` and this status.
+
+| Migration | Change |
+|-----------|--------|
+| `20260831065000_sample_job_sheet_statuses.sql` | Add sampling status codes; update `status_label()`; backfill sample rows to `pattern_making` |
 
 ## `order_activity_log`
 

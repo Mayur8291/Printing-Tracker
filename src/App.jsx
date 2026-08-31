@@ -12,6 +12,13 @@ import ProductRevenuePanel from "./ProductRevenuePanel";
 import OrderDetailPanel from "./OrderDetailPanel";
 import MonthlyArchivePanel from "./MonthlyArchivePanel";
 import LinkedOrdersTabPanel from "./LinkedOrdersTabPanel";
+import { SampleJobSheetDueInCell } from "./SampleJobSheetDueIn";
+import ProductionTrackerPanel, {
+  PRODUCTION_SUBTAB,
+  SAMPLING_SUBTAB,
+  TRACKER_LIST_ACTIVE,
+  TRACKER_LIST_COMPLETE
+} from "./ProductionTrackerPanel";
 import TeamChatPanel from "./TeamChatPanel";
 import ContactBookPanel from "./ContactBookPanel";
 import GoalTrackerPanel from "./GoalTrackerPanel";
@@ -94,6 +101,7 @@ import OrderViewActionCell from "./components/orders/OrderViewActionCell";
 import {
   createPendingPrintingOrder,
   createPendingProductionOrder,
+  createPendingSampleJobSheet,
   mergePendingOrders
 } from "./orderPendingUtils";
 import ViewerUserEditModal from "./ViewerUserEditModal";
@@ -147,6 +155,16 @@ import {
   sumJobSheetSizes
 } from "./jobSheetUtils";
 import {
+  SAMPLE_JOB_SHEET_ORDER_KIND,
+  fetchNextSampleJobSheetOrderId,
+  isSampleJobSheetOrder,
+  isSampleJobSheetOrderIdConflict
+} from "./sampleJobSheetUtils";
+import {
+  SAMPLE_JOB_SHEET_COMPLETE_STATUS,
+  sampleJobSheetIsClosed
+} from "./sampleJobSheetStages";
+import {
   calcJobSheetBalanceAmount,
   calcJobSheetPendingAmount,
   calcJobSheetTotalAmount,
@@ -172,6 +190,7 @@ import {
   filterOrdersInDateRange,
   filterPrintingTabOrders,
   filterProductionTrackerOrders,
+  filterSampleJobSheetOrders,
   parsePaymentProofUrls,
   paymentMethodLabel,
   paymentMethodRequiresProof,
@@ -248,6 +267,7 @@ import {
   ORDERS_LIST_SELECT
 } from "./orderQueryFields";
 import { JOB_SHEET_PRODUCTION_STAGE_ICON } from "./jobSheetProductionStages";
+import { SAMPLE_JOB_SHEET_STAGE_ICON } from "./sampleJobSheetStages";
 
 const STAGE_ICON = {
   new: "🆕",
@@ -263,7 +283,8 @@ const STAGE_ICON = {
   sent_to_dispatch: "🚚",
   dispatch_fail: "⛔",
   dispatched: "📤",
-  ...JOB_SHEET_PRODUCTION_STAGE_ICON
+  ...JOB_SHEET_PRODUCTION_STAGE_ICON,
+  ...SAMPLE_JOB_SHEET_STAGE_ICON
 };
 
 /**
@@ -787,6 +808,9 @@ function App() {
   const [pendingInwardEntryId, setPendingInwardEntryId] = useState(null);
   const [pendingPrintingSubview, setPendingPrintingSubview] = useState(null);
   const [dashboardTab, setDashboardTab] = useState(readStoredDashboardTab);
+  const [productionSubTab, setProductionSubTab] = useState(PRODUCTION_SUBTAB);
+  const [productionListTab, setProductionListTab] = useState(TRACKER_LIST_ACTIVE);
+  const [samplingListTab, setSamplingListTab] = useState(TRACKER_LIST_ACTIVE);
   const dashboardTabRef = useRef(readStoredDashboardTab());
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
@@ -2431,6 +2455,7 @@ function App() {
 
   async function openCreateProductionJobSheet(sourceOrder = null) {
     setCreateFormMode("job_sheet");
+    setProductionSubTab(PRODUCTION_SUBTAB);
     setOrderForm(emptyOrder);
     setOrderIdDraft("");
     setDesignFiles([]);
@@ -2460,6 +2485,35 @@ function App() {
     setShowCreateForm(true);
   }
 
+  async function openCreateSampleJobSheet() {
+    setCreateFormMode("sample_job_sheet");
+    setProductionSubTab(SAMPLING_SUBTAB);
+    setOrderForm(emptyOrder);
+    setOrderIdDraft("");
+    setDesignFiles([]);
+    setPaymentScreenshotFiles([]);
+    setCustomerAssetFiles([]);
+    setJobSheetAdvanceProofFiles([]);
+    setJobSheetPaymentProofFiles([]);
+    setJobSheetApprovalImageFile(null);
+
+    const today = todayLocalISODate();
+    let nextOrderId = "SA-0001";
+    try {
+      nextOrderId = await fetchNextSampleJobSheetOrderId(supabase);
+    } catch (e) {
+      console.error(e);
+    }
+
+    setJobSheetForm({
+      ...emptyJobSheetForm(),
+      order_id: nextOrderId,
+      order_date: today
+    });
+    void fetchInventoryProducts();
+    setShowCreateForm(true);
+  }
+
   async function handleCreateJobSheet(e) {
     e.preventDefault();
     if (orderSubmitLockRef.current) return;
@@ -2483,7 +2537,7 @@ function App() {
       alert("Please enter product name.");
       return;
     }
-    if (!jobSheetForm.delivery_required_on) {
+    if (createFormMode !== "sample_job_sheet" && !jobSheetForm.delivery_required_on) {
       alert("Please set delivery required on date.");
       return;
     }
@@ -2510,6 +2564,7 @@ function App() {
       }
     }
 
+    const isSampleJobSheet = createFormMode === "sample_job_sheet";
     const formSnapshot = { ...jobSheetForm };
     const fromPrintingForm = jobSheetFromPrintingFormRef.current;
     const sizeBreakdown = jobSheetSizesToBreakdown(
@@ -2560,9 +2615,9 @@ function App() {
     const payload = {
       order_date: formSnapshot.order_date || todayLocalISODate(),
       order_id: formSnapshot.order_id,
-      order_kind: "job_sheet",
-      is_production_order: true,
-      status: "quotation_approval",
+      order_kind: isSampleJobSheet ? SAMPLE_JOB_SHEET_ORDER_KIND : "job_sheet",
+      is_production_order: !isSampleJobSheet,
+      status: isSampleJobSheet ? "pattern_making" : "quotation_approval",
       customer_name: formSnapshot.customer_name.trim(),
       sales_incharge_name: formSnapshot.sales_incharge_name,
       coordinator_name: formSnapshot.sales_incharge_name,
@@ -2590,7 +2645,7 @@ function App() {
           ? serializeJobSheetRegularStockItems(formSnapshot.regularStockItems)
           : [],
       remarks: String(formSnapshot.comments ?? "").trim() || null,
-      due_date: formSnapshot.delivery_required_on,
+      due_date: String(formSnapshot.delivery_required_on ?? "").trim() || null,
       order_cost: totalAmount,
       job_sheet_payment_mode: String(formSnapshot.payment_mode ?? "").trim() || null,
       job_sheet_advance_amount: advanceAmount,
@@ -2611,24 +2666,37 @@ function App() {
     orderSubmitLockRef.current = true;
     setSavingJobSheet(true);
 
-    const pendingRow = createPendingProductionOrder({
-      orderId: payload.order_id,
-      customerName: payload.customer_name,
-      productName: payload.product_name,
-      coordinatorName: payload.coordinator_name,
-      dueDate: payload.due_date,
-      qty: payload.qty,
-      handoverDate: formSnapshot.delivery_required_on
-    });
-    const { clientKey } = pendingRow;
+    const pendingRow = isSampleJobSheet
+      ? createPendingSampleJobSheet({
+          orderId: payload.order_id,
+          customerName: payload.customer_name,
+          productName: payload.product_name,
+          coordinatorName: payload.coordinator_name,
+          orderDate: payload.order_date,
+          dueDate: payload.due_date,
+          qty: payload.qty
+        })
+      : createPendingProductionOrder({
+          orderId: payload.order_id,
+          customerName: payload.customer_name,
+          productName: payload.product_name,
+          coordinatorName: payload.coordinator_name,
+          dueDate: payload.due_date,
+          qty: payload.qty,
+          handoverDate: formSnapshot.delivery_required_on
+        });
+    const clientKey = pendingRow?.clientKey;
 
-    setPendingOrders((prev) => [pendingRow, ...prev]);
+    if (pendingRow) {
+      setPendingOrders((prev) => [pendingRow, ...prev]);
+    }
     if (!fromPrintingForm) {
       resetCreateOrderFormFields();
       setShowCreateForm(false);
       setCreateFormMode("printing");
       setDashboardTab("production_tracker");
-      setOrdersTab("active");
+      setProductionSubTab(isSampleJobSheet ? SAMPLING_SUBTAB : PRODUCTION_SUBTAB);
+      if (!isSampleJobSheet) setOrdersTab("active");
     }
 
     try {
@@ -2680,19 +2748,32 @@ function App() {
         payload.job_sheet_approval_image_url = approvalUrlData?.publicUrl ?? null;
       }
 
-      const { data: insertedOrder, error } = await supabase
-        .from("orders")
-        .insert(payload)
-        .select("id")
-        .single();
+      let insertedOrder = null;
+      let insertError = null;
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const { data, error } = await supabase.from("orders").insert(payload).select("id").single();
+        if (!error) {
+          insertedOrder = data;
+          insertError = null;
+          break;
+        }
+        insertError = error;
+        if (isSampleJobSheet && isSampleJobSheetOrderIdConflict(error.message)) {
+          payload.order_id = await fetchNextSampleJobSheetOrderId(supabase);
+          continue;
+        }
+        break;
+      }
 
-      if (error) {
-        if (error.message?.includes("orders_order_kind_check")) {
+      if (insertError) {
+        if (insertError.message?.includes("orders_order_kind_check")) {
           alert(
-            "Job sheet order type is not enabled on the database. Apply migration 20260703200000_add_order_kind_job_sheet.sql."
+            isSampleJobSheet
+              ? "Sample job sheet order type is not enabled on the database. Apply migration 20260831060510_add_order_kind_sample_job_sheet.sql on staging."
+              : "Job sheet order type is not enabled on the database. Apply migration 20260703200000_add_order_kind_job_sheet.sql."
           );
         } else {
-          alert(error.message);
+          alert(insertError.message);
         }
         return;
       }
@@ -2722,7 +2803,7 @@ function App() {
     } catch (err) {
       alert(err instanceof Error ? err.message : String(err));
     } finally {
-      removePendingOrder(clientKey);
+      if (clientKey) removePendingOrder(clientKey);
       orderSubmitLockRef.current = false;
       setSavingJobSheet(false);
     }
@@ -3857,18 +3938,30 @@ function App() {
       `Mark this job as complete? It will move to the Complete orders tab.\n${order.customer_name} · ${order.order_date} · Qty ${order.qty}`
     );
     if (!ok) return;
-    const { error } = await supabase
-      .from("orders")
-      .update({ is_complete: true })
-      .eq("id", order.id);
+    const completeSample = isSampleJobSheetOrder(order);
+    const payload = completeSample
+      ? { is_complete: true, status: SAMPLE_JOB_SHEET_COMPLETE_STATUS }
+      : { is_complete: true };
+    const { error } = await supabase.from("orders").update(payload).eq("id", order.id);
     if (error) {
       alert(error.message);
       return;
     }
     setOrders((prev) =>
-      prev.map((o) => (o.id === order.id ? { ...o, is_complete: true } : o))
+      prev.map((o) => (o.id === order.id ? { ...o, ...payload } : o))
     );
-    setOrdersTab("complete");
+    if (completeSample) {
+      setStatusUpdates((prev) => ({ ...prev, [order.id]: SAMPLE_JOB_SHEET_COMPLETE_STATUS }));
+      setDashboardTab("production_tracker");
+      setProductionSubTab(SAMPLING_SUBTAB);
+      setSamplingListTab(TRACKER_LIST_COMPLETE);
+    } else if (isJobSheetOrder(order) || order.is_production_order) {
+      setDashboardTab("production_tracker");
+      setProductionSubTab(PRODUCTION_SUBTAB);
+      setProductionListTab(TRACKER_LIST_COMPLETE);
+    } else {
+      setOrdersTab("complete");
+    }
     if (viewOrderTarget?.id === order.id) closeViewOrder();
     fetchOrders();
   }
@@ -4326,13 +4419,33 @@ function App() {
   );
 
   const productionTrackerOrders = useMemo(
-    () => sortOrdersNewestFirst(filterProductionTrackerOrders(ordersInDateRangeAll)),
-    [ordersInDateRangeAll]
+    () =>
+      sortOrdersNewestFirst(
+        filterProductionTrackerOrders(ordersInDateRangeAll, productionListTab)
+      ),
+    [ordersInDateRangeAll, productionListTab]
   );
 
   const productionTrackerOrdersWithPending = useMemo(
-    () => mergePendingOrders(pendingOrders, productionTrackerOrders, "production_tracker"),
-    [pendingOrders, productionTrackerOrders]
+    () =>
+      productionListTab === TRACKER_LIST_COMPLETE
+        ? productionTrackerOrders
+        : mergePendingOrders(pendingOrders, productionTrackerOrders, "production_tracker"),
+    [pendingOrders, productionTrackerOrders, productionListTab]
+  );
+
+  const sampleJobSheetOrders = useMemo(
+    () =>
+      sortOrdersNewestFirst(filterSampleJobSheetOrders(ordersInDateRangeAll, samplingListTab)),
+    [ordersInDateRangeAll, samplingListTab]
+  );
+
+  const sampleJobSheetOrdersWithPending = useMemo(
+    () =>
+      samplingListTab === TRACKER_LIST_COMPLETE
+        ? sampleJobSheetOrders
+        : mergePendingOrders(pendingOrders, sampleJobSheetOrders, "sampling_tracker"),
+    [pendingOrders, sampleJobSheetOrders, samplingListTab]
   );
 
   const billingOrders = useMemo(
@@ -4576,6 +4689,24 @@ function App() {
     } else {
       selectDashboardTab(item.tabId);
     }
+    if (item.productionSubTab) {
+      setProductionSubTab(item.productionSubTab);
+    } else if (item.tabId === "production_tracker") {
+      setProductionSubTab(PRODUCTION_SUBTAB);
+    }
+    if (item.trackerListTab === TRACKER_LIST_COMPLETE) {
+      if (item.productionSubTab === SAMPLING_SUBTAB) {
+        setSamplingListTab(TRACKER_LIST_COMPLETE);
+      } else {
+        setProductionListTab(TRACKER_LIST_COMPLETE);
+      }
+    } else if (item.tabId === "production_tracker") {
+      if (item.productionSubTab === SAMPLING_SUBTAB) {
+        setSamplingListTab(TRACKER_LIST_ACTIVE);
+      } else {
+        setProductionListTab(TRACKER_LIST_ACTIVE);
+      }
+    }
     if (item.dispatchSubview) {
       setPendingDispatchSubview(item.dispatchSubview);
     }
@@ -4600,24 +4731,39 @@ function App() {
 
   async function persistOrderStatus(order, newStatus) {
     if (!canCurrentUserEdit("status") || !newStatus) return;
+    if (isSampleJobSheetOrder(order) && sampleJobSheetIsClosed(order)) return;
     if (newStatus === order.status) return;
 
     const orderId = order.id;
     const previousStatus = order.status;
+    const previousComplete = order.is_complete;
+    const closingSample =
+      isSampleJobSheetOrder(order) && newStatus === SAMPLE_JOB_SHEET_COMPLETE_STATUS;
+    const payload =
+      closingSample && isAdmin
+        ? { status: newStatus, is_complete: true }
+        : { status: newStatus };
 
     setStatusUpdates((prev) => ({ ...prev, [orderId]: newStatus }));
     setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      prev.map((o) => (o.id === orderId ? { ...o, ...payload } : o))
     );
 
-    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
+    const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
     if (error) {
       setStatusUpdates((prev) => ({ ...prev, [orderId]: previousStatus }));
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: previousStatus } : o))
+        prev.map((o) =>
+          o.id === orderId ? { ...o, status: previousStatus, is_complete: previousComplete } : o
+        )
       );
       alert(error.message);
       return;
+    }
+    if (closingSample) {
+      setDashboardTab("production_tracker");
+      setProductionSubTab(SAMPLING_SUBTAB);
+      setSamplingListTab(TRACKER_LIST_COMPLETE);
     }
     fetchOrders();
   }
@@ -4640,7 +4786,18 @@ function App() {
     const nextReceivedAtLocal = receivedAtPrintingUpdates[orderId];
     const payload = {};
 
-    if (canCurrentUserEdit("status") && nextStatus) payload.status = nextStatus;
+    if (isSampleJobSheetOrder(orderRow) && sampleJobSheetIsClosed(orderRow)) {
+      /* Status locked after sample complete. */
+    } else if (canCurrentUserEdit("status") && nextStatus) {
+      payload.status = nextStatus;
+      if (
+        isSampleJobSheetOrder(orderRow) &&
+        nextStatus === SAMPLE_JOB_SHEET_COMPLETE_STATUS &&
+        isAdmin
+      ) {
+        payload.is_complete = true;
+      }
+    }
     if (canCurrentUserEdit("remarks") && typeof nextRemarks === "string") {
       payload.remarks = nextRemarks.trim() || null;
     }
@@ -5710,7 +5867,7 @@ function App() {
           )}
 
           {dashboardTab === "purchase_order" && (
-            <PurchaseOrderPanel />
+            <PurchaseOrderPanel isAdmin={isAdmin} />
           )}
 
           {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (
@@ -5741,41 +5898,119 @@ function App() {
           )}
 
           {dashboardTab === "production_tracker" && (
-            <LinkedOrdersTabPanel
-            tabTitle="Production Tracker"
-            paginationKey="production-tracker"
-            summaryLabel="Production jobs"
-            orders={productionTrackerOrdersWithPending}
-            loadingOrders={loadingOrders}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            onDateFromChange={setDateFrom}
-            onDateToChange={setDateTo}
-            onClearDates={() => {
-              setDateFrom("");
-              setDateTo("");
-            }}
-            extraColumn={{
-              header: "Handover to printing",
-              render: (order) => {
-                if (isJobSheetOrder(order)) {
-                  return order.due_date ? formatDeliveryDate(order.due_date) : "—";
-                }
-                return order.expected_handover_to_printing
-                  ? formatDeliveryDate(order.expected_handover_to_printing)
-                  : "—";
+            <ProductionTrackerPanel
+              subTab={productionSubTab}
+              onSubTabChange={setProductionSubTab}
+              listTab={
+                productionSubTab === SAMPLING_SUBTAB ? samplingListTab : productionListTab
               }
-            }}
-            emptyMessage="No production orders."
-            onViewOrder={openViewOrder}
-            renderStageIcon={renderStageIcon}
-            canCreateJobSheet={isAdmin || viewerCanCreateOrders}
-            onCreateJobSheet={openCreateProductionJobSheet}
-            canEditStatus={canUseOrderControls && canCurrentUserEdit("status")}
-            isAdmin={isAdmin}
-            statusUpdates={statusUpdates}
-            onStatusChange={persistOrderStatus}
-          />
+              onListTabChange={(next) => {
+                if (productionSubTab === SAMPLING_SUBTAB) setSamplingListTab(next);
+                else setProductionListTab(next);
+              }}
+              samplingContent={
+                <LinkedOrdersTabPanel
+                  tabTitle="Sampling Tracker"
+                  paginationKey={`sampling-tracker-${samplingListTab}`}
+                  summaryLabel={
+                    samplingListTab === TRACKER_LIST_COMPLETE
+                      ? "Complete sample orders"
+                      : "Sample orders"
+                  }
+                  orders={sampleJobSheetOrdersWithPending}
+                  loadingOrders={loadingOrders}
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateFromChange={setDateFrom}
+                  onDateToChange={setDateTo}
+                  onClearDates={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  showSummary={false}
+                  showQty={false}
+                  dateColumnLabel="Order date"
+                  getDateValue={(order) => formatDeliveryDate(order.order_date)}
+                  extraColumn={
+                    samplingListTab === TRACKER_LIST_COMPLETE
+                      ? undefined
+                      : {
+                          header: "Due In",
+                          render: (order) => <SampleJobSheetDueInCell order={order} />
+                        }
+                  }
+                  viewOrderLabel="View Sample Order"
+                  emptyMessage={
+                    samplingListTab === TRACKER_LIST_COMPLETE
+                      ? "No complete sample orders."
+                      : "No sample orders."
+                  }
+                  onViewOrder={openViewOrder}
+                  renderStageIcon={renderStageIcon}
+                  canCreateJobSheet={
+                    samplingListTab !== TRACKER_LIST_COMPLETE &&
+                    (isAdmin || viewerCanCreateOrders)
+                  }
+                  createJobSheetLabel="Create Sample Jobsheet"
+                  onCreateJobSheet={openCreateSampleJobSheet}
+                  canEditStatus={
+                    samplingListTab !== TRACKER_LIST_COMPLETE &&
+                    canUseOrderControls &&
+                    canCurrentUserEdit("status")
+                  }
+                  isAdmin={isAdmin}
+                  statusUpdates={statusUpdates}
+                  onStatusChange={persistOrderStatus}
+                />
+              }
+            >
+              <LinkedOrdersTabPanel
+                tabTitle="Production Tracker"
+                paginationKey={`production-tracker-${productionListTab}`}
+                summaryLabel={
+                  productionListTab === TRACKER_LIST_COMPLETE
+                    ? "Complete production jobs"
+                    : "Production jobs"
+                }
+                orders={productionTrackerOrdersWithPending}
+                loadingOrders={loadingOrders}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onDateFromChange={setDateFrom}
+                onDateToChange={setDateTo}
+                onClearDates={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                extraColumn={{
+                  header: "Handover to printing",
+                  render: (order) => {
+                    if (isJobSheetOrder(order)) {
+                      return order.due_date ? formatDeliveryDate(order.due_date) : "—";
+                    }
+                    return order.expected_handover_to_printing
+                      ? formatDeliveryDate(order.expected_handover_to_printing)
+                      : "—";
+                  }
+                }}
+                emptyMessage={
+                  productionListTab === TRACKER_LIST_COMPLETE
+                    ? "No complete production orders."
+                    : "No production orders."
+                }
+                onViewOrder={openViewOrder}
+                renderStageIcon={renderStageIcon}
+                canCreateJobSheet={
+                  productionListTab !== TRACKER_LIST_COMPLETE &&
+                  (isAdmin || viewerCanCreateOrders)
+                }
+                onCreateJobSheet={openCreateProductionJobSheet}
+                canEditStatus={canUseOrderControls && canCurrentUserEdit("status")}
+                isAdmin={isAdmin}
+                statusUpdates={statusUpdates}
+                onStatusChange={persistOrderStatus}
+              />
+            </ProductionTrackerPanel>
           )}
 
           {dashboardTab === "billing" && (
@@ -7057,7 +7292,9 @@ function App() {
           if (!open) closeCreateOrderForm();
         }}
         title={
-          createFormMode === "job_sheet"
+          createFormMode === "sample_job_sheet"
+            ? "Create Sample Jobsheet"
+            : createFormMode === "job_sheet"
             ? "Create Job sheet"
             : createFormMode === "sticker"
               ? isAdmin
@@ -7072,7 +7309,7 @@ function App() {
                   : "Create New Order"
         }
       >
-              {createFormMode === "job_sheet" ? (
+              {createFormMode === "job_sheet" || createFormMode === "sample_job_sheet" ? (
                 <CreateJobSheetForm
                   form={jobSheetForm}
                   onChange={setJobSheetForm}
@@ -7089,6 +7326,8 @@ function App() {
                   onApprovalImageFileChange={setJobSheetApprovalImageFile}
                   inventoryProducts={inventoryProducts}
                   loadingInventoryProducts={loadingInventoryProducts}
+                  hideTotalQuantity={createFormMode === "sample_job_sheet"}
+                  requireDeliveryDate={createFormMode !== "sample_job_sheet"}
                 />
               ) : createFormMode === "sticker" ? (
                 <CreateStickerOrderForm

@@ -1,9 +1,14 @@
 import { STAGE_LABEL } from "./orderViewUtils";
 import { isJobSheetOrder } from "./jobSheetUtils";
+import { isSampleJobSheetOrder } from "./sampleJobSheetUtils";
 import {
   jobSheetProductionStageLabel,
   JOB_SHEET_PRODUCTION_STAGE_ICON
 } from "./jobSheetProductionStages";
+import {
+  sampleJobSheetStageLabel,
+  SAMPLE_JOB_SHEET_STAGE_ICON
+} from "./sampleJobSheetStages";
 
 export const STICKER_ASSET_ACCEPT =
   ".png,.pdf,.jpeg,.jpg,.ai,.cdr,.psd,image/png,image/jpeg,application/pdf";
@@ -59,6 +64,9 @@ export function stickerStageLabel(status) {
 }
 
 export function stageLabelForOrder(order, status) {
+  if (isSampleJobSheetOrder(order)) {
+    return sampleJobSheetStageLabel(status);
+  }
   if (isJobSheetOrder(order)) {
     return jobSheetProductionStageLabel(status);
   }
@@ -69,6 +77,9 @@ export function stageLabelForOrder(order, status) {
 }
 
 export function stageIconForOrder(order, status) {
+  if (isSampleJobSheetOrder(order)) {
+    return SAMPLE_JOB_SHEET_STAGE_ICON[status] ?? SAMPLE_JOB_SHEET_STAGE_ICON.pattern_making;
+  }
   if (isJobSheetOrder(order)) {
     return JOB_SHEET_PRODUCTION_STAGE_ICON[status] ?? JOB_SHEET_PRODUCTION_STAGE_ICON.new;
   }

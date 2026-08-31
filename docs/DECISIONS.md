@@ -2,6 +2,124 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-08-31 — Production / Sampling tabs match the All / Complete pill
+
+**Context:** User wants Production Tracker and Sampling Tracker buttons to look like All orders / Complete orders, and to drop the green / orange colours.
+
+**Options:** (1) Keep apart coloured tabs. (2) Same default muted TabsList pill as All / Complete, two stacked rows.
+
+**Decision:** Option 2. No custom trigger colours. Lists still stay split by kind.
+
+**Why:** Same visibility and format as the list pill. Colour was extra.
+
+**Tradeoffs:** The two pill rows now look alike. Labels still tell them apart.
+
+## 2026-08-31 — Sampling SLA is Delivery Required On, else 2 days from save
+
+**Context:** After Create Sample Jobsheet save, Due In must follow **Delivery required on** when the user filled it. If they left it blank, keep a 2-day default to Dispatched Successfully.
+
+**Options:** (1) Always 2 days from save. (2) Always `due_date`. (3) `due_date` end-of-day when set, else `created_at` + 48h.
+
+**Decision:** Option 3. Sample create does not require Delivery required on. Production job sheet still does. Sampling **All orders** has **Due In** after Order date. Sampling **Complete orders** has no Due In. Hide Due In in the view when closed. Breach uses destructive Badge on the list and Alert in the view.
+
+**Why:** User asked for the filled date, and 2 days only as the fallback.
+
+**Tradeoffs:** Browser clock can drift. End of local day means a same-day delivery date still has hours left that evening. Editing `order_date` does not move the default SLA.
+
+## 2026-08-31 — Sampling Complete is Dispatched Successfully and status is locked
+
+**Context:** Sampling Complete must take jobs that are Dispatched Successfully or Mark as complete. After that, status must show Dispatched Successfully and must not change.
+
+**Options:** (1) Only `is_complete`. (2) Treat `dispatched_successfully` as closed too, because viewers cannot write `is_complete` (RLS). Display overlay + hide Select.
+
+**Decision:** Option 2. Admin Mark as complete also writes `status = dispatched_successfully` and `is_complete`. Viewer status pick writes status only. Complete tab `canEditStatus` is false.
+
+**Why:** Both user paths work. RLS stays as-is. Production Complete is unchanged.
+
+**Tradeoffs:** A viewer-closed sample may have `is_complete = false` until an admin marks complete; the list still treats it as complete.
+
+## 2026-08-31 — Tracker All / Complete pill is separate from Production / Sampling switch
+
+**Context:** User wants All orders / Complete orders under both trackers (Printing pill). Production and Sampling lists must not mix.
+
+**Options:** (1) Same TabsList for both rows. (2) Tracker switch as apart bordered tabs (PO style); All/Complete as muted pill TabsList. Separate `is_complete` filters per `order_kind`.
+
+**Decision:** Independent All/Complete state per tracker. Mark complete routes to that tracker’s Complete tab. Visual later matched the All/Complete pill (no colour).
+
+**Why:** Same Complete UI. Sample complete never appears in Production Complete.
+
+**Tradeoffs:** Two list-tab states in App.
+
+## 2026-08-31 — Sampling Tracker has its own status pipeline
+
+**Context:** Sampling Tracker Status must not use Production or Printing stages. User listed nine sample stages with symbols, same dropdown UI.
+
+**Options:** (1) Reuse Production codes with different labels (breaks Production labels for shared codes). (2) New sampling codes; reuse only `qc` and `ready` where the label already matches.
+
+**Decision:** Option 2. Dedicated codes for Pattern Making, Sample Cutting, Sample Stitching, Trim + Iron, Branding, Packaging, Dispatched Successfully. Reuse `qc` and `ready`. Do not use `dispatched` (that is Dispatch tab). Same shadcn Select + `renderStageIcon` as Production. New sample jobs start at `pattern_making`.
+
+**Why:** Production dropdown stays the same. Sample jobs never land in Dispatch Processed.
+
+**Tradeoffs:** `orders_status_check` grows. Existing sample rows backfill to Pattern Making.
+
+## 2026-08-31 — Sampling Tracker reuses Production list with different words and fewer columns
+
+**Context:** After Create Sample Jobsheet, Sampling Tracker needs a saved-job list like Production Tracker. Words and a few columns must differ. Production Tracker must stay the same.
+
+**Options:** (1) New table component. (2) Reuse `LinkedOrdersTabPanel` with optional props (hide summary/Qty/extra column; relabel view/date/badge).
+
+**Decision:** Option 2. Date column reads `order.order_date`. Badge text **Sample Order**. Action **View Sample Order**. No count card, no Qty, no Handover. Sub-tab state lives in App so save can stay on Sampling.
+
+**Why:** Same table look. Production defaults unchanged.
+
+**Tradeoffs:** From/To is the shared App date range (same as Production), filtered on `order_date`.
+
+## 2026-08-31 — Sample job sheets use SA-0001 and a new order_kind
+
+**Context:** Sampling Tracker needs the Production job-sheet form without Total quantity. Order IDs must be sequential `SA-0001` and must not mix with Production job sheets.
+
+**Options:** (1) Reuse `job_sheet` + SA- prefix. (2) New `sample_job_sheet` kind, `is_production_order = false`, unique `order_id` among samples.
+
+**Decision:** Option 2. Next ID = max existing SA number + 1. Retry on unique conflict.
+
+**Why:** Production list stays clean. Numbers stay in order.
+
+**Tradeoffs:** Sampling list later reused `LinkedOrdersTabPanel`; this ADR kept the create-ID choice.
+
+## 2026-08-31 — Production Tracker sub-tabs; Sampling left empty
+
+**Context:** User wants Production Tracker and Sampling Tracker under the Production tracker sidebar tab. Current list must stay as-is. Sampling stays empty.
+
+**Options:** (1) Restyle like Purchase Order separated pills. (2) Reuse Printing Orders `TabsList` format; wrap the existing list without changing `LinkedOrdersTabPanel`.
+
+**Decision:** Option 2. `ProductionTrackerPanel` wraps children. Sampling renders nothing yet.
+
+**Why:** No list UI change. Shared tab `cn()` / Tabs format stays.
+
+**Tradeoffs:** Sampling list was empty at first; history list landed in a later ADR.
+
+## 2026-08-31 — Sampling Tracker bar is a stub, same shadcn filters
+
+**Context:** User wants From / To / Clear / Create Sample Jobsheet / View on Sampling Tracker, matching Production Tracker. Create must not fill a form yet.
+
+**Decision:** Reuse `OrdersListFilters` and an outline `Button`. Create Sample Jobsheet has no handler.
+
+**Why:** Same CN / shadcn format as Production Tracker. Form comes later.
+
+**Tradeoffs:** Dates and View N later filter the Sampling history list (see later ADR).
+
+## 2026-08-24 — Admin-only PO status; History has no picker
+
+**Context:** User wants status change on Purchase Order for admin only, and no status change on PO History for anyone.
+
+**Options:** (1) Dropdown for every signed-in user. (2) Admin dropdown on All PO Orders only; History always a Completed badge.
+
+**Decision:** Option 2. `isAdmin` from App (`profiles.role`). Update helper re-checks admin. All PO Orders dropdown includes Pending / PO sent / PO Approved / Completed.
+
+**Why:** Completed still comes from the backend. Non-admin must not change workflow status.
+
+**Tradeoffs:** RLS still allows authenticated UPDATE of the row; the SPA and helper block non-admin status writes.
+
 ## 2026-08-22 — Open POs vs History; Generate is PO sent
 
 **Context:** User wants Generate to land as **PO sent**. Completed comes from the backend and then appears only in **PO History**. Opening the panel should list Pending / PO Approved / PO sent. Create new PO should open the sheet only after that click.

@@ -49,7 +49,10 @@ export default function CreateJobSheetForm({
   approvalImageFile = null,
   onApprovalImageFileChange,
   inventoryProducts = [],
-  loadingInventoryProducts = false
+  loadingInventoryProducts = false,
+  hideTotalQuantity = false,
+  requireDeliveryDate = true,
+  submitLabel = "Save job sheet"
 }) {
   const sizesSum = sumJobSheetSizes(form.sizes, form.extraSizes, form.size_type, form.gender);
   const sizeColumns = getJobSheetActiveColumns({ gender: form.gender, sizeType: form.size_type });
@@ -258,20 +261,22 @@ export default function CreateJobSheetForm({
           onChange={(e) => setField({ rate_per_piece: e.target.value })}
         />
       </div>
-      <div className="order-form-cell">
-        <Label htmlFor="job-sheet-total-qty">Total quantity</Label>
-        <Input
-          id="job-sheet-total-qty"
-          readOnly
-          className="order-form-readonly-input bg-muted"
-          placeholder="0"
-          value={sizesSum > 0 ? String(sizesSum) : ""}
-          aria-label="Total quantity from size breakdown"
-        />
-        {sizesSum > 0 ? (
-          <p className="job-sheet-form-hint text-xs text-muted-foreground">Sum of sizes below</p>
-        ) : null}
-      </div>
+      {hideTotalQuantity ? null : (
+        <div className="order-form-cell">
+          <Label htmlFor="job-sheet-total-qty">Total quantity</Label>
+          <Input
+            id="job-sheet-total-qty"
+            readOnly
+            className="order-form-readonly-input bg-muted"
+            placeholder="0"
+            value={sizesSum > 0 ? String(sizesSum) : ""}
+            aria-label="Total quantity from size breakdown"
+          />
+          {sizesSum > 0 ? (
+            <p className="job-sheet-form-hint text-xs text-muted-foreground">Sum of sizes below</p>
+          ) : null}
+        </div>
+      )}
       <div className="order-form-cell order-form-span-3">
         <div className="order-size-compact" aria-labelledby="job-sheet-size-heading">
           <span id="job-sheet-size-heading" className="order-size-compact-heading text-sm font-medium">
@@ -518,7 +523,7 @@ export default function CreateJobSheetForm({
           id="job-sheet-delivery-date"
           value={form.delivery_required_on}
           onChange={(next) => setField({ delivery_required_on: next })}
-          required
+          required={requireDeliveryDate}
         />
       </div>
       <div className="order-form-cell">
@@ -740,7 +745,7 @@ export default function CreateJobSheetForm({
           Cancel
         </Button>
         <Button type="submit" variant="success" disabled={saving}>
-          {saving ? "Saving…" : "Save job sheet"}
+          {saving ? "Saving…" : submitLabel}
         </Button>
       </div>
     </form>

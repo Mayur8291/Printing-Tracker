@@ -66,6 +66,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `2026071012
 | Module | Path | Depends on |
 |--------|------|------------|
 | Shell / routing | `App.jsx` | Most feature panels |
+| Production tracker | `ProductionTrackerPanel.jsx`, `LinkedOrdersTabPanel.jsx`, `sampleJobSheetUtils.js`, `sampleJobSheetStages.js`, `sampleJobSheetSlaUtils.js`, `SampleJobSheetDueIn.jsx` | Sidebar `production_tracker`; Production vs Sampling switch (same muted pill as All/Complete); All/Complete pill per tracker; sample history (`SA-####`, sampling status, Order date, Due In on All only, no Qty/Handover/count); Due In from `due_date` end of day when set, else `created_at` + 2 days (All orders list + View Sample Order while open) |
 | Support desk | `EnquiryPanel.jsx`, `SupportTicketDesk.jsx`, `enquiryConciergeUtils.js`, `SupportDelayAlertCard.jsx`, `SupportProductionStatusCard.jsx` | Enquiry + Complaints desks; Delay alert and Order status tabs after Complaints; Report blank |
 | Purchase Order | `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderHistoryFilters.jsx`, `PurchaseOrderPrintSheet.jsx`, `purchaseOrderLayout.js`, `purchaseOrderVoucherUtils.js`, `purchaseOrderHistoryUtils.js`, `purchaseOrderAmountWords.js` | Main sidebar tab `purchase_order`; FileSpreadsheet icon; A4 unlabeled sheet; Generate PO stamps `generated_at` + `status=po_sent`; All PO Orders vs History (Completed); View PO print; print-only C23 signature |
 | Inventory | `src/inventory/*` | `inventoryDbUtils`, Supabase |

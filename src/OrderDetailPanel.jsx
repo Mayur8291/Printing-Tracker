@@ -43,8 +43,15 @@ import {
   jobSheetProductionStatusOptions,
   jobSheetProductionStageLabel
 } from "./jobSheetProductionStages";
+import {
+  sampleJobSheetStatusOptions,
+  sampleJobSheetStageLabel,
+  sampleJobSheetIsClosed,
+  sampleJobSheetDisplayStatus
+} from "./sampleJobSheetStages";
 import { formatJobSheetMoneyDisplay } from "./jobSheetPaymentUtils";
 import { isJobSheetOrder, getJobSheetGenderLabel, getJobSheetProductTypeLabel, getJobSheetSizeTypeLabel } from "./jobSheetUtils";
+import { isSampleJobSheetOrder } from "./sampleJobSheetUtils";
 import { supabase } from "./supabaseClient";
 import { DatePicker } from "@/components/ui/date-picker";
 import MasterListSelectField from "@/components/admin/MasterListSelectField";
@@ -69,6 +76,7 @@ import {
   stageLabelForOrder
 } from "./stickerOrderUtils";
 import { formatSamplingOrderIdDisplay, samplingSizeFromBreakdown } from "./samplingOrderUtils";
+import SampleJobSheetDueIn from "./SampleJobSheetDueIn";
 
 function DetailField({ label, children, wide }) {
   return (
@@ -247,6 +255,8 @@ export default function OrderDetailPanel({
   const designActionsBusy = isArchivingDesigns || isUploadingDesigns;
   const paymentProofUrls = parsePaymentProofUrls(order.payment_screenshot_url);
   const compactPrinting = isCompactPrintingOrder(order);
+  const sampleJobSheet = isSampleJobSheetOrder(order);
+  const sampleClosed = sampleJobSheet && sampleJobSheetIsClosed(order);
   const jobSheet = isJobSheetOrder(order);
   const sticker = isStickerOrder(order);
   const sampling = isSamplingOrder(order);
@@ -257,10 +267,11 @@ export default function OrderDetailPanel({
     ? adminOrderDrafts?.[order.id] ?? buildAdminOrderDraftFromOrder(order)
     : null;
   const statusOptionStages = useMemo(() => {
+    if (sampleJobSheet) return sampleJobSheetStatusOptions(order.status);
     if (jobSheet) return jobSheetProductionStatusOptions(order.status);
     if (compactPrinting && !isAdmin) return STICKER_STAGES;
     return FORM_STAGES;
-  }, [jobSheet, compactPrinting, isAdmin, order.status]);
+  }, [sampleJobSheet, jobSheet, compactPrinting, isAdmin, order.status]);
   const statusSelectOptions = useMemo(() => {
     const current = String(statusUpdates[order.id] ?? order.status ?? "").trim();
     const stages = [...statusOptionStages];
@@ -269,16 +280,31 @@ export default function OrderDetailPanel({
     }
     return stages.map((stage) => ({
       value: stage,
-      label: jobSheet
-        ? jobSheetProductionStageLabel(stage)
-        : compactPrinting
-          ? `${STICKER_STAGE_LABEL[stage] ?? STAGE_LABEL[stage]}`
-          : STAGE_LABEL[stage] ?? stage
+      label: sampleJobSheet
+        ? sampleJobSheetStageLabel(stage)
+        : jobSheet
+          ? jobSheetProductionStageLabel(stage)
+          : compactPrinting
+            ? `${STICKER_STAGE_LABEL[stage] ?? STAGE_LABEL[stage]}`
+            : STAGE_LABEL[stage] ?? stage
     }));
-  }, [statusOptionStages, statusUpdates, order.id, order.status, jobSheet, compactPrinting]);
-  const statusDisplayLabel = jobSheet
-    ? jobSheetProductionStageLabel(order.status)
-    : stageLabelForOrder(order, order.status);
+  }, [
+    statusOptionStages,
+    statusUpdates,
+    order.id,
+    order.status,
+    sampleJobSheet,
+    jobSheet,
+    compactPrinting
+  ]);
+  const sampleDisplayStatus = sampleJobSheet
+    ? sampleJobSheetDisplayStatus(order, statusUpdates[order.id] ?? order.status)
+    : null;
+  const statusDisplayLabel = sampleJobSheet
+    ? sampleJobSheetStageLabel(sampleDisplayStatus)
+    : jobSheet
+      ? jobSheetProductionStageLabel(order.status)
+      : stageLabelForOrder(order, order.status);
 
   const coordinatorValue = coordinatorUpdates[order.id] ?? order.coordinator_name ?? "";
   const coordinatorSelectOptions = useMemo(
@@ -417,7 +443,7 @@ export default function OrderDetailPanel({
                 order.coordinator_name
               )}
             </DetailField>
-            <DetailField label={jobSheet ? "Delivery required on" : "Delivery date"}>
+            <DetailField label={jobSheet || sampleJobSheet ? "Delivery required on" : "Delivery date"}>
               {canCurrentUserEdit("due_date") ? (
                 <DatePicker
                   id={`order-detail-due-date-${order.id}`}
@@ -1062,15 +1088,27 @@ export default function OrderDetailPanel({
         </section>
         ) : null}
 
+        {sampleJobSheet ? (
+          <SampleJobSheetDueIn
+            order={{
+              ...order,
+              due_date: dueDateUpdates[order.id] ?? order.due_date
+            }}
+          />
+        ) : null}
+
         <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
           <h4 className="text-sm font-semibold tracking-tight">Status &amp; remarks</h4>
           <div className="flex flex-wrap items-center gap-2">
             <OrderStatusBadge
-              status={order.status}
+              status={sampleJobSheet ? sampleDisplayStatus : order.status}
               label={statusDisplayLabel}
-              icon={renderStageIcon(order.status, statusDisplayLabel)}
+              icon={renderStageIcon(
+                sampleJobSheet ? sampleDisplayStatus : order.status,
+                statusDisplayLabel
+              )}
             />
-            {canUseOrderControls && canCurrentUserEdit("status") && (
+            {canUseOrderControls && canCurrentUserEdit("status") && !sampleClosed && (
               <DetailSelect
                 value={statusUpdates[order.id] ?? order.status}
                 onValueChange={(next) => {
@@ -1125,7 +1163,7 @@ export default function OrderDetailPanel({
                 Save changes
               </Button>
             )}
-            {isAdmin && !order.is_complete && (
+            {isAdmin && !order.is_complete && !(sampleJobSheet && sampleClosed) && (
               <Button
                 type="button"
                 variant="secondary"

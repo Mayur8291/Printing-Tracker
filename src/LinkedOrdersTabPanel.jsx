@@ -19,6 +19,8 @@ import OrderViewActionCell from "./components/orders/OrderViewActionCell";
 import { formatDeliveryDate } from "./orderViewUtils";
 import { OrdersPagination, usePagination } from "./orderPagination";
 import { cn } from "@/lib/utils";
+import SampleJobSheetOrderIdBadge from "./SampleJobSheetOrderIdBadge";
+import { isSampleJobSheetOrder } from "./sampleJobSheetUtils";
 
 /**
  * Shared list UI for Production Tracker and similar linked-order tabs.
@@ -40,10 +42,16 @@ export default function LinkedOrdersTabPanel({
   paginationKey: paginationKeyProp,
   onCreateJobSheet,
   canCreateJobSheet = false,
+  createJobSheetLabel = "Create Job sheet",
   canEditStatus = false,
   isAdmin = false,
   statusUpdates = {},
-  onStatusChange
+  onStatusChange,
+  showSummary = true,
+  showQty = true,
+  dateColumnLabel = "Delivery date",
+  getDateValue,
+  viewOrderLabel = "View order"
 }) {
   const safeOrders = Array.isArray(orders) ? orders : [];
   const totalQty = safeOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
@@ -63,7 +71,8 @@ export default function LinkedOrdersTabPanel({
     totalPages
   } = usePagination(safeOrders, storageKey, `${dateFrom}|${dateTo}`);
 
-  const colSpan = extraColumn ? 9 : 8;
+  const colSpan = (extraColumn ? 9 : 8) - (showQty ? 0 : 1);
+  const dateFn = getDateValue || ((order) => formatDeliveryDate(order.due_date));
 
   return (
     <div className="space-y-4">
@@ -80,7 +89,7 @@ export default function LinkedOrdersTabPanel({
         extraActions={
           canCreateJobSheet && onCreateJobSheet ? (
             <Button type="button" variant="outline" size="sm" onClick={onCreateJobSheet}>
-              Create Job sheet
+              {createJobSheetLabel}
             </Button>
           ) : null
         }
@@ -92,12 +101,14 @@ export default function LinkedOrdersTabPanel({
         </div>
       ) : (
         <>
-          <OrdersListSummary
-            label={summaryLabel}
-            count={totalFiltered}
-            totalQty={totalQty}
-            filterBits={filterBits}
-          />
+          {showSummary ? (
+            <OrdersListSummary
+              label={summaryLabel}
+              count={totalFiltered}
+              totalQty={totalQty}
+              filterBits={filterBits}
+            />
+          ) : null}
           <div className="rounded-xl border bg-card shadow-sm">
             <Table data-orders-table>
               <TableHeader>
@@ -108,9 +119,9 @@ export default function LinkedOrdersTabPanel({
                   <TableHead>Product name</TableHead>
                   <TableHead className="min-w-[11rem]">Status</TableHead>
                   <TableHead>Coordinator</TableHead>
-                  <TableHead>Delivery date</TableHead>
+                  <TableHead>{dateColumnLabel}</TableHead>
                   {extraColumn ? <TableHead>{extraColumn.header}</TableHead> : null}
-                  <TableHead className="text-right">Qty</TableHead>
+                  {showQty ? <TableHead className="text-right">Qty</TableHead> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -121,11 +132,19 @@ export default function LinkedOrdersTabPanel({
                       className={cn(orderListRowClassName(order), order._isPending && "opacity-70")}
                     >
                       <TableCell>
-                        <OrderViewActionCell order={order} onViewOrder={onViewOrder} />
+                        <OrderViewActionCell
+                          order={order}
+                          onViewOrder={onViewOrder}
+                          viewLabel={viewOrderLabel}
+                        />
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          {isJobSheetOrder(order) ? <JobSheetOrderIdBadge /> : null}
+                          {isSampleJobSheetOrder(order) ? (
+                            <SampleJobSheetOrderIdBadge />
+                          ) : isJobSheetOrder(order) ? (
+                            <JobSheetOrderIdBadge />
+                          ) : null}
                           <OrderIdBadges orderId={order.order_id} />
                         </div>
                       </TableCell>
@@ -146,9 +165,11 @@ export default function LinkedOrdersTabPanel({
                         />
                       </TableCell>
                       <TableCell>{order.coordinator_name || "—"}</TableCell>
-                      <TableCell>{formatDeliveryDate(order.due_date)}</TableCell>
+                      <TableCell>{dateFn(order)}</TableCell>
                       {extraColumn ? <TableCell>{extraColumn.render(order)}</TableCell> : null}
-                      <TableCell className="text-right tabular-nums">{order.qty}</TableCell>
+                      {showQty ? (
+                        <TableCell className="text-right tabular-nums">{order.qty}</TableCell>
+                      ) : null}
                     </TableRow>
                   );
                 })}

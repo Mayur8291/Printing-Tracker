@@ -56,14 +56,14 @@ flowchart LR
 | Module | Location | Purpose |
 |--------|----------|---------|
 | Core shell & routing | `src/App.jsx` | Tab navigation, auth, orders, admin (~7.6k lines — refactor candidate) |
-| Printing / production | `src/App.jsx`, `src/PrintingDepartmentPanel.jsx` | Orders, job sheets, status workflow |
+| Printing / production | `src/App.jsx`, `src/PrintingDepartmentPanel.jsx`, `src/ProductionTrackerPanel.jsx`, `src/LinkedOrdersTabPanel.jsx` | Orders, job sheets, status workflow. Production tracker sidebar has **Production Tracker** / **Sampling Tracker** and **All orders** / **Complete orders** as the same muted pill under each. Lists stay split by kind. Create Sample Jobsheet = Production layout, no Total quantity, IDs `SA-0001`+. Sampling **All orders** **Due In** after Order date = SLA to Dispatched Successfully (`due_date` end of day if filled, else 2 days from save). Sampling Complete has no Due In. Same clock in View Sample Order while open. |
 | Dispatch & logistics | `src/DispatchTabPanel.jsx`, inward/outward modals | GRN, challans, verification |
 | Inventory | `src/inventory/*` | SKUs, warehouses, POs, suppliers, alerts |
 | Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js` | DMs, groups, attachments, GIFs |
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
 | Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Delay alert and production status texts are their own tabs after Complaints. Report blank. |
-| Purchase Order | `src/PurchaseOrderPanel.jsx`, `src/PurchaseOrderLayoutGrid.jsx`, `src/PurchaseOrderHistoryTable.jsx`, `src/PurchaseOrderHistoryFilters.jsx`, `src/purchaseOrderLayout.js`, `src/purchaseOrderVoucherUtils.js`, `src/purchaseOrderHistoryUtils.js` | Main sidebar tab after Inventory. Heading left, separate tabs **All PO Orders** / **Create new PO** / **PO History**. Open panel = All PO Orders (Pending, PO sent, PO Approved). Create = A4 heading + table after click. Generate writes `po_sent`. History = Completed only after backend update. Filters + View PO print. Spreadsheet icon. Not Inventory POs. |
+| Purchase Order | `src/PurchaseOrderPanel.jsx`, `src/PurchaseOrderLayoutGrid.jsx`, `src/PurchaseOrderHistoryTable.jsx`, `src/PurchaseOrderHistoryFilters.jsx`, `src/purchaseOrderLayout.js`, `src/purchaseOrderVoucherUtils.js`, `src/purchaseOrderHistoryUtils.js` | Main sidebar tab after Inventory. Heading left, separate tabs **All PO Orders** / **Create new PO** / **PO History**. Open panel = All PO Orders (Pending, PO sent, PO Approved; admin can change those plus Completed). Create = A4 heading + table after click. Generate writes `po_sent`. History = Completed only after backend update; no status pick. Filters + View PO print. Spreadsheet icon. Not Inventory POs. |
 | Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
 
 ### Data flow (typical)
