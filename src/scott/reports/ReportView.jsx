@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  INVENTORY_DEMAND_READY_EVENT,
   isInventoryReportApiPending,
   isWhConfigPending
 } from "@/scott/data/reports/totalInventoryService";
@@ -353,6 +354,19 @@ export default function ReportView({
     setStatsToken((token) => token + 1);
     refresh();
   }, [refresh]);
+
+  // Total Inventory paints stock immediately while its large DRR order drain runs in the
+  // background. Refresh this report once that cached aggregation becomes available.
+  useEffect(() => {
+    if (report?.key !== "total_inventory") return undefined;
+    const handleDemandReady = () => {
+      resetReportDrainCache();
+      setStatsToken((token) => token + 1);
+      refresh({ silent: true });
+    };
+    window.addEventListener(INVENTORY_DEMAND_READY_EVENT, handleDemandReady);
+    return () => window.removeEventListener(INVENTORY_DEMAND_READY_EVENT, handleDemandReady);
+  }, [report?.key, refresh]);
 
   // `ScottListPage` calls `list.refresh` itself (header button + the error card's Retry),
   // so the cache-clearing version has to be swapped in rather than sat beside it.
