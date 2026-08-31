@@ -415,7 +415,8 @@ export const REPORT_REGISTRY = Object.freeze([
     key: "total_inventory",
     label: "Total Inventory Report",
     group: "Inventory",
-    description: "SKU stock with DRR, days of cover and OOS sales loss. POST get_inventory.",
+    description:
+      "Current Scott stock. DRR uses qualifying RMP order quantities from the trailing 90 days ending on the applied period end date; Days of Cover is inventory divided by DRR.",
     module: "src/scott/data/reports/totalInventoryService.js",
     implemented: true,
     resource: TOTAL_INVENTORY_RESOURCE,
