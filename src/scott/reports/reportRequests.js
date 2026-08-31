@@ -209,8 +209,8 @@ export function buildReportRequest({ report, tab, values }) {
   const drain = () =>
     cachedDrain(cacheKey, async () => {
       if (reportKey === "total_inventory") {
-        // Positional `(filters, daysInPeriod)` — the days figure drives DRR, days-of-cover
-        // and the OOS sales-loss column, so it must follow the selected period.
+        // Positional `(filters, daysInPeriod)` — DRR/cover use the fixed trailing 90-day
+        // demand window; this selected-period length still drives the OOS sales-loss metric.
         return fetchAllTotalInventory(apiFilters, inventoryDaysInPeriod(values?.period));
       }
 

@@ -17,11 +17,13 @@
 // it. `rowHasInventoryMetrics` / `isScottSkuCatalogOnlyResponse` exist to detect it so the UI
 // can say "Scott returned a SKU catalogue, not inventory" instead of rendering a wall of zeros.
 
-import { callScottDashboard, extractRecords } from "../../scottClient";
+import { buildScottPaginatedMeta, callScottDashboard, extractRecords } from "../../scottClient";
+import { fetchAllScottPages } from "../../scottPagination";
 import {
   buildReportExportConfig,
   buildScottDateParams,
   daysInPeriod as periodDays,
+  enrichRowsByOrderId,
   isPlainObject,
   monthRange,
   parseScottNumber,
@@ -32,6 +34,19 @@ import {
   reportExportHeaders,
   resolveReportPeriodRange
 } from "./reportShared";
+import {
+  RMP_ORDER_REPORTS_RESOURCE,
+  buildRmpOrderReportsQuery,
+  normalizeRmpOrderReport
+} from "./rmpOrderReportsService";
+import {
+  buildInventoryDrrWindow,
+  buildOrderQuantityBySku,
+  enrichInventoryWithOrderDemand,
+  enrichInventoryWithQuantityMap
+} from "./inventoryDemand";
+
+export { buildInventoryDrrWindow, enrichInventoryWithOrderDemand } from "./inventoryDemand";
 
 export const TOTAL_INVENTORY_RESOURCE = "ready_made_products";
 export const TOTAL_INVENTORY_PATH_SUFFIX = "get_inventory";
@@ -373,7 +388,7 @@ export function computeInventoryReportMetrics(raw, daysInPeriod = 30) {
     apiDrr !== undefined && apiDrr >= 0
       ? apiDrr
       : threeMonthSales !== undefined && threeMonthSales > 0
-        ? Math.round((threeMonthSales / DRR_WINDOW_DAYS) * 10) / 10
+        ? threeMonthSales / DRR_WINDOW_DAYS
         : 0;
 
   const price = parseScottNumber(row.price);
@@ -416,18 +431,20 @@ export function toTotalInventoryRows(rawRows, daysInPeriod = 30) {
   });
 }
 
-/** `12.3` / `-`. */
-export function formatDaysOfCover(value) {
+/** `12.3` / `-`; cover is undefined when the row has no positive demand rate. */
+export function formatDaysOfCover(value, drr) {
+  const rate = parseScottNumber(drr);
+  if (drr !== undefined && (rate === undefined || rate <= 0)) return "-";
   const num = parseScottNumber(value);
   if (num === undefined || value === null) return "-";
   return num.toFixed(1);
 }
 
-/** `1.5` / `-` (a DRR of 0 or less is not a rate). */
+/** Up to two decimal places / `-` (a DRR of 0 or less is not a rate). */
 export function formatDrr(value) {
   const num = parseScottNumber(value);
   if (num === undefined || num <= 0) return "-";
-  return num.toFixed(1);
+  return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 // ---------------------------------------------------------------------------
@@ -443,9 +460,52 @@ export const MOCK_INVENTORY_RAW_ROWS = Object.freeze([
 
 const inventoryFetchCache = new Map();
 const INVENTORY_CACHE_TTL_MS = 30 * 1000;
+const demandFetchCache = new Map();
+const DEMAND_CACHE_TTL_MS = 5 * 60 * 1000;
+const INVENTORY_DEMAND_ORDER_FIELDS = Object.freeze([
+  "order_date",
+  "status",
+  "order_status",
+  "order_id",
+  "order_number",
+  "dispatch_date",
+  "actual_delivery_date"
+]);
 
 export function resetInventoryFetchCache() {
   inventoryFetchCache.clear();
+  demandFetchCache.clear();
+}
+
+async function fetchInventoryDemand(window) {
+  const key = `${window.startDate}|${window.endDate}`;
+  const cached = demandFetchCache.get(key);
+  if (cached && Date.now() - cached.at < DEMAND_CACHE_TTL_MS) return cached.promise;
+
+  const filters = { start_date: window.start_date, end_date: window.end_date };
+  const promise = fetchAllScottPages(async ({ page, items }) => {
+    const { body } = await callScottDashboard({
+      resource: RMP_ORDER_REPORTS_RESOURCE,
+      method: "GET",
+      query: buildRmpOrderReportsQuery({ page, items }, filters)
+    });
+    const records = extractRecords(body);
+    return {
+      data: records.map((record) => normalizeRmpOrderReport(record)),
+      ...buildScottPaginatedMeta(body, { page, items }, records.length)
+    };
+  })
+    // Order-level date/status fields may be present on only one sibling line. SKU fields are
+    // deliberately not donated: each line's own SKU is essential to an accurate DRR join.
+    .then((rows) => enrichRowsByOrderId(rows, INVENTORY_DEMAND_ORDER_FIELDS))
+    .then((rows) => buildOrderQuantityBySku(rows, window))
+    .catch((error) => {
+      demandFetchCache.delete(key);
+      throw error;
+    });
+
+  demandFetchCache.set(key, { at: Date.now(), promise });
+  return promise;
 }
 
 /**
@@ -468,12 +528,16 @@ export async function fetchAllTotalInventory(filters = {}, daysInPeriod = 30) {
     if (filters?.start_date) body.start_date = filters.start_date;
     if (filters?.end_date) body.end_date = filters.end_date;
 
-    const response = await callScottDashboard({
-      resource: TOTAL_INVENTORY_RESOURCE,
-      method: "POST",
-      pathSuffix: TOTAL_INVENTORY_PATH_SUFFIX,
-      body
-    });
+    const drrWindow = buildInventoryDrrWindow(filters?.end_date);
+    const [response, quantityBySku] = await Promise.all([
+      callScottDashboard({
+        resource: TOTAL_INVENTORY_RESOURCE,
+        method: "POST",
+        pathSuffix: TOTAL_INVENTORY_PATH_SUFFIX,
+        body
+      }),
+      fetchInventoryDemand(drrWindow)
+    ]);
 
     const records = extractRecords(response.body);
     if (isScottSkuCatalogOnlyResponse(records)) {
@@ -482,7 +546,12 @@ export async function fetchAllTotalInventory(filters = {}, daysInPeriod = 30) {
           "check that get_inventory is enabled for this environment."
       );
     }
-    return toTotalInventoryRows(records, daysInPeriod);
+    const normalized = records.map((record) => normalizeTotalInventoryRow(record));
+    const enriched = enrichInventoryWithQuantityMap(normalized, quantityBySku);
+    return enriched.map((row, index) => {
+      const computed = computeInventoryReportMetrics(row, daysInPeriod);
+      return { ...computed, id: computed.id || String(index) };
+    });
   })().catch((error) => {
     inventoryFetchCache.delete(cacheKey);
     throw error;
@@ -544,6 +613,13 @@ const STOCK_STATUS_OPTIONS = Object.freeze([
 export const TOTAL_INVENTORY_TABLE_COLUMNS = Object.freeze([
   { label: "SKU", keys: ["sku"] },
   { label: "Inventory", keys: ["inventory"], format: "number" },
+  { label: "DRR", keys: ["drr"], format: "number", formatValue: (row) => formatDrr(row?.drr) },
+  {
+    label: "Days of Cover",
+    keys: ["daysOfCover"],
+    format: "number",
+    formatValue: (row) => formatDaysOfCover(row?.daysOfCover, row?.drr)
+  },
   {
     label: "Status",
     keys: ["status"],
@@ -556,7 +632,7 @@ export const TOTAL_INVENTORY_TABLE_COLUMNS = Object.freeze([
 
 export const TOTAL_INVENTORY_FILTER_SOURCES = TOTAL_INVENTORY_TABLE_COLUMNS;
 
-/** 3 headers — matches the slimmed table. */
+/** Export mirrors the five visible report columns. */
 export const TOTAL_INVENTORY_EXPORT_HEADERS = Object.freeze(
   reportExportHeaders(TOTAL_INVENTORY_TABLE_COLUMNS)
 );
@@ -564,14 +640,11 @@ export const TOTAL_INVENTORY_EXPORT_HEADERS = Object.freeze(
 /**
  * The richer 7-column set the upstream export used to have. Spec §13 records a STALE upstream
  * test still asserting 7 headers against the slimmed 3-column component; reconciled here by
- * keeping 3 as the shipped export and exposing the extended set explicitly for callers that
- * want DRR / cover / loss in the file.
+ * keeping the visible set as the shipped export and exposing value/loss fields separately.
  */
 export const TOTAL_INVENTORY_EXTENDED_COLUMNS = Object.freeze([
   ...TOTAL_INVENTORY_TABLE_COLUMNS,
-  { label: "DRR", keys: ["drr"], formatValue: (row) => formatDrr(row?.drr) },
   { label: "DRR Value", keys: ["drrValue"], format: "currency" },
-  { label: "Days of Cover", keys: ["daysOfCover"], formatValue: (row) => formatDaysOfCover(row?.daysOfCover) },
   { label: "Sales Loss Due to OOS", keys: ["salesLossDueToOos"], format: "currency" }
 ]);
 
