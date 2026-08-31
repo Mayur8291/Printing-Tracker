@@ -18,7 +18,6 @@
 // can say "Scott returned a SKU catalogue, not inventory" instead of rendering a wall of zeros.
 
 import { buildScottPaginatedMeta, callScottDashboard, extractRecords } from "../../scottClient";
-import { fetchAllScottPages } from "../../scottPagination";
 import {
   buildReportExportConfig,
   buildScottDateParams,
@@ -43,7 +42,8 @@ import {
   buildInventoryDrrWindow,
   buildOrderQuantityBySku,
   enrichInventoryWithOrderDemand,
-  enrichInventoryWithQuantityMap
+  enrichInventoryWithQuantityMap,
+  inventoryDemandRowsReachWindowStart
 } from "./inventoryDemand";
 
 export { buildInventoryDrrWindow, enrichInventoryWithOrderDemand } from "./inventoryDemand";
@@ -397,6 +397,8 @@ export function computeInventoryReportMetrics(raw, daysInPeriod = 30) {
 
   const apiDaysOfCover = parseScottNumber(row.days_of_cover);
   const daysOfCover = apiDaysOfCover !== undefined ? apiDaysOfCover : drr > 0 ? inventory / drr : null;
+  const demandMetricsReady =
+    apiDrr !== undefined || threeMonthSales !== undefined || apiDaysOfCover !== undefined;
 
   const status =
     normalizeStatusLabel(row.status) ??
@@ -417,6 +419,7 @@ export function computeInventoryReportMetrics(raw, daysInPeriod = 30) {
     drr,
     drrValue,
     daysOfCover,
+    demandMetricsReady,
     status,
     salesLossDueToOos
   };
@@ -431,19 +434,21 @@ export function toTotalInventoryRows(rawRows, daysInPeriod = 30) {
   });
 }
 
-/** `12.3` / `-`; cover is undefined when the row has no positive demand rate. */
-export function formatDaysOfCover(value, drr) {
-  const rate = parseScottNumber(drr);
-  if (drr !== undefined && (rate === undefined || rate <= 0)) return "-";
+/** `12.3`, `∞` for stocked/no-demand, `0.0` for no-stock/no-demand, or `-` while loading. */
+export function formatDaysOfCover(value, drr, demandMetricsReady = true, inventory) {
+  if (!demandMetricsReady) return "-";
   const num = parseScottNumber(value);
-  if (num === undefined || value === null) return "-";
-  return num.toFixed(1);
+  if (num !== undefined && value !== null) return num.toFixed(1);
+  const rate = parseScottNumber(drr);
+  if (rate === 0) return parseScottNumber(inventory) === 0 ? "0.0" : "∞";
+  return "-";
 }
 
-/** Up to two decimal places / `-` (a DRR of 0 or less is not a rate). */
-export function formatDrr(value) {
+/** Up to two decimal places, including a real zero; `-` is reserved for not-yet-loaded. */
+export function formatDrr(value, demandMetricsReady = true) {
+  if (!demandMetricsReady) return "-";
   const num = parseScottNumber(value);
-  if (num === undefined || num <= 0) return "-";
+  if (num === undefined || num < 0) return "-";
   return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
@@ -462,6 +467,10 @@ const inventoryFetchCache = new Map();
 const INVENTORY_CACHE_TTL_MS = 30 * 1000;
 const demandFetchCache = new Map();
 const DEMAND_CACHE_TTL_MS = 5 * 60 * 1000;
+const demandPlanCache = new Map();
+const DEMAND_PLAN_CACHE_TTL_MS = 30 * 1000;
+export const INVENTORY_DEMAND_PAGE_SIZE = 2000;
+export const INVENTORY_DEMAND_BATCH_SIZE = 4;
 export const INVENTORY_DEMAND_READY_EVENT = "scott:inventory-demand-ready";
 const INVENTORY_DEMAND_ORDER_FIELDS = Object.freeze([
   "order_date",
@@ -476,6 +485,7 @@ const INVENTORY_DEMAND_ORDER_FIELDS = Object.freeze([
 export function resetInventoryFetchCache() {
   inventoryFetchCache.clear();
   demandFetchCache.clear();
+  demandPlanCache.clear();
 }
 
 export function inventoryRowsNeedDemand(rows) {
@@ -504,32 +514,84 @@ function announceInventoryDemandReady(key) {
   window.dispatchEvent(new CustomEvent(INVENTORY_DEMAND_READY_EVENT, { detail: { key } }));
 }
 
-async function fetchInventoryDemand(window) {
+function inventoryDemandFilters(window) {
+  // Scott currently ignores these on rmp_order_reports, but keep sending the documented
+  // DD-MM-YYYY contract so this path automatically benefits when the upstream fixes it.
+  return { start_date: window.start_date, end_date: window.end_date };
+}
+
+async function fetchInventoryDemandPage(page, items, filters) {
+  const { body } = await callScottDashboard({
+    resource: RMP_ORDER_REPORTS_RESOURCE,
+    method: "GET",
+    query: buildRmpOrderReportsQuery({ page, items }, filters)
+  });
+  const records = extractRecords(body);
+  return {
+    data: records.map((record) => normalizeRmpOrderReport(record)),
+    ...buildScottPaginatedMeta(body, { page, items }, records.length)
+  };
+}
+
+/** Start the tiny count request while stock is loading; the large tail fetch waits for stock. */
+function prepareInventoryDemand(window) {
+  const key = demandCacheKey(window);
+  const cached = demandPlanCache.get(key);
+  if (cached && Date.now() - cached.at < DEMAND_PLAN_CACHE_TTL_MS) return cached.promise;
+
+  const filters = inventoryDemandFilters(window);
+  const promise = fetchInventoryDemandPage(1, 1, filters)
+    .then((first) => ({
+      filters,
+      totalCount: Number(first.totalCount) || first.data.length,
+      totalCountIsExact: first.totalCountIsExact === true
+    }))
+    .catch((error) => {
+      demandPlanCache.delete(key);
+      throw error;
+    });
+  demandPlanCache.set(key, { at: Date.now(), promise });
+  return promise;
+}
+
+/**
+ * Scott returns RMP order lines oldest-first and ignores its date filters. Fetching from page
+ * one therefore pulled ~96k historic rows and exhausted the Edge Function. Walk backward from
+ * the newest page in small parallel batches and stop as soon as the oldest fetched row crosses
+ * the exact 90-day boundary; the final aggregation still applies date/status predicates.
+ */
+async function fetchRecentInventoryDemandRows(window, preparedPlan) {
+  const plan = await (preparedPlan ?? prepareInventoryDemand(window));
+  if (plan.totalCount <= 0) return [];
+
+  let page = Math.max(1, Math.ceil(plan.totalCount / INVENTORY_DEMAND_PAGE_SIZE));
+  const pages = [];
+
+  while (page >= 1) {
+    const firstPage = Math.max(1, page - INVENTORY_DEMAND_BATCH_SIZE + 1);
+    const pageNumbers = Array.from({ length: page - firstPage + 1 }, (_, index) => firstPage + index);
+    const batch = await Promise.all(
+      pageNumbers.map((pageNumber) =>
+        fetchInventoryDemandPage(pageNumber, INVENTORY_DEMAND_PAGE_SIZE, plan.filters)
+      )
+    );
+    const batchRows = batch.flatMap((result) => result.data);
+    pages.unshift(batchRows);
+
+    const datedBatchRows = enrichRowsByOrderId(batchRows, INVENTORY_DEMAND_ORDER_FIELDS);
+    if (inventoryDemandRowsReachWindowStart(datedBatchRows, window)) break;
+    page = firstPage - 1;
+  }
+
+  return enrichRowsByOrderId(pages.flat(), INVENTORY_DEMAND_ORDER_FIELDS);
+}
+
+async function fetchInventoryDemand(window, preparedPlan) {
   const key = demandCacheKey(window);
   const cached = demandFetchCache.get(key);
   if (cached && Date.now() - cached.at < DEMAND_CACHE_TTL_MS) return cached.promise;
 
-  const filters = { start_date: window.start_date, end_date: window.end_date };
-  const promise = fetchAllScottPages(
-    async ({ page, items }) => {
-      const { body } = await callScottDashboard({
-        resource: RMP_ORDER_REPORTS_RESOURCE,
-        method: "GET",
-        query: buildRmpOrderReportsQuery({ page, items }, filters)
-      });
-      const records = extractRecords(body);
-      return {
-        data: records.map((record) => normalizeRmpOrderReport(record)),
-        ...buildScottPaginatedMeta(body, { page, items }, records.length)
-      };
-    },
-    // Ten-thousand-row pages are heavy. Serializing them avoids exhausting the Edge
-    // Function's compute pool while still finishing the ~95k-row history in about ten calls.
-    { concurrency: 1 }
-  )
-    // Order-level date/status fields may be present on only one sibling line. SKU fields are
-    // deliberately not donated: each line's own SKU is essential to an accurate DRR join.
-    .then((rows) => enrichRowsByOrderId(rows, INVENTORY_DEMAND_ORDER_FIELDS))
+  const promise = fetchRecentInventoryDemandRows(window, preparedPlan)
     .then((rows) => buildOrderQuantityBySku(rows, window))
     .then((quantityBySku) => {
       const entry = demandFetchCache.get(key);
@@ -550,8 +612,8 @@ async function fetchInventoryDemand(window) {
 }
 
 /** Start the expensive order drain without holding up the inventory endpoint. */
-function preloadInventoryDemand(window) {
-  void fetchInventoryDemand(window).catch((error) => {
+function preloadInventoryDemand(window, preparedPlan) {
+  void fetchInventoryDemand(window, preparedPlan).catch((error) => {
     console.warn("[total-inventory] DRR demand data is unavailable; stock remains usable.", error);
   });
 }
@@ -577,6 +639,11 @@ export async function fetchAllTotalInventory(filters = {}, daysInPeriod = 30) {
     if (filters?.end_date) body.end_date = filters.end_date;
 
     const drrWindow = buildInventoryDrrWindow(filters?.end_date);
+    const cachedDemand = getCachedInventoryDemand(drrWindow);
+    const demandPlan = cachedDemand ? null : prepareInventoryDemand(drrWindow);
+    // A rejected preparation will be surfaced by the background demand fetch below, not as
+    // an unhandled promise while the inventory snapshot is still rendering.
+    void demandPlan?.catch(() => {});
     // Fetch stock before starting the very large order drain. Launching both together lets
     // the multi-page demand requests monopolize the connection pool and delays this snapshot.
     const response = await callScottDashboard({
@@ -593,8 +660,8 @@ export async function fetchAllTotalInventory(filters = {}, daysInPeriod = 30) {
       );
     }
     const normalized = records.map((record) => normalizeTotalInventoryRow(record));
-    if (inventoryRowsNeedDemand(normalized)) preloadInventoryDemand(drrWindow);
-    const quantityBySku = getCachedInventoryDemand(drrWindow);
+    if (inventoryRowsNeedDemand(normalized) && !cachedDemand) preloadInventoryDemand(drrWindow, demandPlan);
+    const quantityBySku = cachedDemand ?? getCachedInventoryDemand(drrWindow);
     const enriched = quantityBySku ? enrichInventoryWithQuantityMap(normalized, quantityBySku) : normalized;
     return enriched.map((row, index) => {
       const computed = computeInventoryReportMetrics(row, daysInPeriod);
@@ -607,6 +674,12 @@ export async function fetchAllTotalInventory(filters = {}, daysInPeriod = 30) {
 
   inventoryFetchCache.set(cacheKey, { at: Date.now(), promise });
   return promise;
+}
+
+/** Await the same cached aggregation before CSV export so exports never contain loading dashes. */
+export async function ensureInventoryDemand(filters = {}) {
+  const drrWindow = buildInventoryDrrWindow(filters?.end_date);
+  return fetchInventoryDemand(drrWindow, prepareInventoryDemand(drrWindow));
 }
 
 export function paginateRows(rows, page, pageSize) {
@@ -661,12 +734,18 @@ const STOCK_STATUS_OPTIONS = Object.freeze([
 export const TOTAL_INVENTORY_TABLE_COLUMNS = Object.freeze([
   { label: "SKU", keys: ["sku"] },
   { label: "Inventory", keys: ["inventory"], format: "number" },
-  { label: "DRR", keys: ["drr"], format: "number", formatValue: (row) => formatDrr(row?.drr) },
+  {
+    label: "DRR",
+    keys: ["drr"],
+    format: "number",
+    formatValue: (row) => formatDrr(row?.drr, row?.demandMetricsReady)
+  },
   {
     label: "Days of Cover",
     keys: ["daysOfCover"],
     format: "number",
-    formatValue: (row) => formatDaysOfCover(row?.daysOfCover, row?.drr)
+    formatValue: (row) =>
+      formatDaysOfCover(row?.daysOfCover, row?.drr, row?.demandMetricsReady, row?.inventory)
   },
   {
     label: "Status",

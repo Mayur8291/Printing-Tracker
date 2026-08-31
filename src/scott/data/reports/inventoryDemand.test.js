@@ -5,6 +5,7 @@ import {
   buildInventoryDrrWindow,
   buildOrderQuantityBySku,
   enrichInventoryWithOrderDemand,
+  inventoryDemandRowsReachWindowStart,
   isCompletedInventoryDemand
 } from "./inventoryDemand.js";
 
@@ -75,4 +76,21 @@ test("zero qualifying demand is represented as zero 90-day sales", () => {
     WINDOW
   );
   assert.equal(row.three_month_sales, 0);
+});
+
+test("newest-first paging stops only after crossing the window start", () => {
+  assert.equal(
+    inventoryDemandRowsReachWindowStart(
+      [order({ order_date: "29-08-2026" }), order({ order_date: "02-06-2026" })],
+      WINDOW
+    ),
+    false
+  );
+  assert.equal(
+    inventoryDemandRowsReachWindowStart(
+      [order({ order_date: "29-08-2026" }), order({ order_date: "01-06-2026" })],
+      WINDOW
+    ),
+    true
+  );
 });
