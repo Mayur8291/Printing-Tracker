@@ -416,7 +416,7 @@ export const REPORT_REGISTRY = Object.freeze([
     label: "Total Inventory Report",
     group: "Inventory",
     description:
-      "Current Scott stock. DRR uses qualifying RMP order quantities from the trailing 90 days ending on the applied period end date; Days of Cover is inventory divided by DRR.",
+      "Current Scott stock loads first. DRR then uses qualifying RMP order quantities from the trailing 90 days ending on the applied period end date; Days of Cover is inventory divided by DRR.",
     module: "src/scott/data/reports/totalInventoryService.js",
     implemented: true,
     resource: TOTAL_INVENTORY_RESOURCE,

@@ -462,6 +462,7 @@ const inventoryFetchCache = new Map();
 const INVENTORY_CACHE_TTL_MS = 30 * 1000;
 const demandFetchCache = new Map();
 const DEMAND_CACHE_TTL_MS = 5 * 60 * 1000;
+export const INVENTORY_DEMAND_READY_EVENT = "scott:inventory-demand-ready";
 const INVENTORY_DEMAND_ORDER_FIELDS = Object.freeze([
   "order_date",
   "status",
@@ -477,35 +478,82 @@ export function resetInventoryFetchCache() {
   demandFetchCache.clear();
 }
 
+export function inventoryRowsNeedDemand(rows) {
+  return (rows ?? []).some(
+    (row) =>
+      (row?.drr === undefined || row?.drr === null) &&
+      (row?.three_month_sales === undefined || row?.three_month_sales === null) &&
+      (row?.sales_qty_90d === undefined || row?.sales_qty_90d === null)
+  );
+}
+
+function demandCacheKey(window) {
+  return `${window.startDate}|${window.endDate}`;
+}
+
+/** Return a completed, fresh demand map without waiting for an in-flight drain. */
+export function getCachedInventoryDemand(window) {
+  const cached = demandFetchCache.get(demandCacheKey(window));
+  if (!cached || Date.now() - cached.at >= DEMAND_CACHE_TTL_MS) return null;
+  return cached.value instanceof Map ? cached.value : null;
+}
+
+function announceInventoryDemandReady(key) {
+  // The service also loads under SSR/test runners, where `window` does not exist.
+  if (typeof window === "undefined" || typeof window.dispatchEvent !== "function") return;
+  window.dispatchEvent(new CustomEvent(INVENTORY_DEMAND_READY_EVENT, { detail: { key } }));
+}
+
 async function fetchInventoryDemand(window) {
-  const key = `${window.startDate}|${window.endDate}`;
+  const key = demandCacheKey(window);
   const cached = demandFetchCache.get(key);
   if (cached && Date.now() - cached.at < DEMAND_CACHE_TTL_MS) return cached.promise;
 
   const filters = { start_date: window.start_date, end_date: window.end_date };
-  const promise = fetchAllScottPages(async ({ page, items }) => {
-    const { body } = await callScottDashboard({
-      resource: RMP_ORDER_REPORTS_RESOURCE,
-      method: "GET",
-      query: buildRmpOrderReportsQuery({ page, items }, filters)
-    });
-    const records = extractRecords(body);
-    return {
-      data: records.map((record) => normalizeRmpOrderReport(record)),
-      ...buildScottPaginatedMeta(body, { page, items }, records.length)
-    };
-  })
+  const promise = fetchAllScottPages(
+    async ({ page, items }) => {
+      const { body } = await callScottDashboard({
+        resource: RMP_ORDER_REPORTS_RESOURCE,
+        method: "GET",
+        query: buildRmpOrderReportsQuery({ page, items }, filters)
+      });
+      const records = extractRecords(body);
+      return {
+        data: records.map((record) => normalizeRmpOrderReport(record)),
+        ...buildScottPaginatedMeta(body, { page, items }, records.length)
+      };
+    },
+    // Ten-thousand-row pages are heavy. Serializing them avoids exhausting the Edge
+    // Function's compute pool while still finishing the ~95k-row history in about ten calls.
+    { concurrency: 1 }
+  )
     // Order-level date/status fields may be present on only one sibling line. SKU fields are
     // deliberately not donated: each line's own SKU is essential to an accurate DRR join.
     .then((rows) => enrichRowsByOrderId(rows, INVENTORY_DEMAND_ORDER_FIELDS))
     .then((rows) => buildOrderQuantityBySku(rows, window))
+    .then((quantityBySku) => {
+      const entry = demandFetchCache.get(key);
+      if (entry?.promise === promise) entry.value = quantityBySku;
+      // Initial inventory rows may already be cached without DRR. Drop only that short cache;
+      // the completed demand map stays hot for the automatic refresh and later visits.
+      inventoryFetchCache.clear();
+      announceInventoryDemandReady(key);
+      return quantityBySku;
+    })
     .catch((error) => {
       demandFetchCache.delete(key);
       throw error;
     });
 
-  demandFetchCache.set(key, { at: Date.now(), promise });
+  demandFetchCache.set(key, { at: Date.now(), promise, value: null });
   return promise;
+}
+
+/** Start the expensive order drain without holding up the inventory endpoint. */
+function preloadInventoryDemand(window) {
+  void fetchInventoryDemand(window).catch((error) => {
+    console.warn("[total-inventory] DRR demand data is unavailable; stock remains usable.", error);
+  });
 }
 
 /**
@@ -529,16 +577,14 @@ export async function fetchAllTotalInventory(filters = {}, daysInPeriod = 30) {
     if (filters?.end_date) body.end_date = filters.end_date;
 
     const drrWindow = buildInventoryDrrWindow(filters?.end_date);
-    const [response, quantityBySku] = await Promise.all([
-      callScottDashboard({
-        resource: TOTAL_INVENTORY_RESOURCE,
-        method: "POST",
-        pathSuffix: TOTAL_INVENTORY_PATH_SUFFIX,
-        body
-      }),
-      fetchInventoryDemand(drrWindow)
-    ]);
-
+    // Fetch stock before starting the very large order drain. Launching both together lets
+    // the multi-page demand requests monopolize the connection pool and delays this snapshot.
+    const response = await callScottDashboard({
+      resource: TOTAL_INVENTORY_RESOURCE,
+      method: "POST",
+      pathSuffix: TOTAL_INVENTORY_PATH_SUFFIX,
+      body
+    });
     const records = extractRecords(response.body);
     if (isScottSkuCatalogOnlyResponse(records)) {
       console.warn(
@@ -547,7 +593,9 @@ export async function fetchAllTotalInventory(filters = {}, daysInPeriod = 30) {
       );
     }
     const normalized = records.map((record) => normalizeTotalInventoryRow(record));
-    const enriched = enrichInventoryWithQuantityMap(normalized, quantityBySku);
+    if (inventoryRowsNeedDemand(normalized)) preloadInventoryDemand(drrWindow);
+    const quantityBySku = getCachedInventoryDemand(drrWindow);
+    const enriched = quantityBySku ? enrichInventoryWithQuantityMap(normalized, quantityBySku) : normalized;
     return enriched.map((row, index) => {
       const computed = computeInventoryReportMetrics(row, daysInPeriod);
       return { ...computed, id: computed.id || String(index) };
