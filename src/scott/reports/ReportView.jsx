@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  ensureInventoryDemand,
   INVENTORY_DEMAND_READY_EVENT,
   isInventoryReportApiPending,
   isWhConfigPending
@@ -75,11 +76,13 @@ export function mergeTabFilterValues(values, overrides, keys) {
 }
 
 /** Banners that explain an empty table before the user files a bug about it. */
-function ReportNotices({ reportKey }) {
+function ReportNotices({ reportKey, rows }) {
   if (reportKey !== "total_inventory") return null;
   const apiPending = isInventoryReportApiPending();
   const whPending = isWhConfigPending();
-  if (!apiPending && !whPending) return null;
+  const demandPending =
+    (rows?.length ?? 0) > 0 && rows.some((row) => row?.demandMetricsReady === false);
+  if (!apiPending && !whPending && !demandPending) return null;
 
   return (
     <Alert>
@@ -94,6 +97,12 @@ function ReportNotices({ reportKey }) {
           <p>
             Warehouse names are not configured (<code>VITE_INVENTORY_REPORT_WH1_NAME</code> /
             <code> VITE_INVENTORY_REPORT_WH2_NAME</code>); per-warehouse stock falls back to the total.
+          </p>
+        ) : null}
+        {demandPending ? (
+          <p role="status">
+            Inventory is ready. Calculating DRR and Days of Cover from the newest Scott order
+            pages; the table and export will update automatically.
           </p>
         ) : null}
       </AlertDescription>
@@ -375,9 +384,16 @@ export default function ReportView({
   const handleExport = useCallback(async () => {
     if (!exportConfig) return;
     try {
+      if (report?.key === "total_inventory") {
+        await ensureInventoryDemand(request.apiFilters);
+        resetReportDrainCache();
+      }
       // `processedRows` is the filtered+sorted set; in server mode it is empty, so the
       // drained dataset is the honest source — never just the visible page.
-      const rows = list.mode === "full" ? list.processedRows : await request.fetchAll();
+      const rows =
+        report?.key !== "total_inventory" && list.mode === "full"
+          ? list.processedRows
+          : await request.fetchAll();
       const count = exportReportCsv({
         exportConfig,
         rows,
@@ -389,7 +405,16 @@ export default function ReportView({
     } catch (error) {
       toastError?.(error);
     }
-  }, [exportConfig, list.mode, list.processedRows, request, effectiveValues?.reportType, toast, toastError]);
+  }, [
+    exportConfig,
+    report?.key,
+    list.mode,
+    list.processedRows,
+    request,
+    effectiveValues?.reportType,
+    toast,
+    toastError
+  ]);
 
   const openDetail = useCallback((row) => {
     setDetailRow(row);
@@ -443,7 +468,7 @@ export default function ReportView({
           </div>
         ) : null}
 
-        <ReportNotices reportKey={report?.key} />
+        <ReportNotices reportKey={report?.key} rows={list.rows} />
 
         <ReportFilterBar
           fields={report?.filters}

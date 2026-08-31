@@ -73,6 +73,18 @@ export function buildInventoryDrrWindow(reportEndDate, today = new Date()) {
   };
 }
 
+/** True once a newest-to-oldest batch has crossed the requested demand boundary. */
+export function inventoryDemandRowsReachWindowStart(rows, window) {
+  const start = parseInventoryDemandDate(window?.startDate);
+  if (!start) return false;
+  let oldest = null;
+  for (const row of rows ?? []) {
+    const date = parseInventoryDemandDate(row?.order_date ?? row?.date);
+    if (date && (!oldest || date < oldest)) oldest = date;
+  }
+  return Boolean(oldest && oldest <= start);
+}
+
 function normalizeSkuKey(value) {
   const text = asString(value);
   return text ? text.toLowerCase().replace(/\s+/g, " ") : null;
