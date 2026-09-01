@@ -1,5 +1,33 @@
 # Flowcharts
 
+## Step 0 masters — entity relationships (One Source of Truth)
+
+```mermaid
+flowchart TD
+  core_entity --> core_gstin
+  core_entity --> core_sequence
+  core_gstin --> core_sequence
+  cat_brand --> cat_style
+  cat_style --> cat_colour
+  cat_colour --> cat_sku
+  cat_gst_slab --> cat_sku
+  cat_sku --> cat_kit
+  cat_sku --> cat_channel_listing
+  core_entity --> cat_channel_listing
+  crm_party --> crm_party_gstin
+  crm_party --> crm_address
+  crm_party --> crm_contact
+  crm_party --> crm_party_bank
+  crm_party --> crm_vendor_item
+  cat_sku --> crm_vendor_item
+  crm_party --> core_location
+  core_location --> core_location
+  profiles --> crm_party
+  profiles --> hr_employee
+  hr_employee --> hr_employee
+  Masters[All masters] -->|insert update delete| audit_log
+```
+
 ## Tools Internal Support Platform
 
 ```mermaid

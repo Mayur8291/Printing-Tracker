@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-01 — Step 0 masters schema on staging (One Source of Truth)
+
+- **What:** Migration `20260901180000_step0_masters_and_entities.sql` — 19 tables: `core_entity`/`core_gstin`/`core_sequence`/`core_location`, `cat_*` catalog (brand→style→colour→sku, kits, channel listings, GST slabs), `crm_*` party master (+GSTIN, address, contact, bank, vendor-item), `hr_employee`, `audit_log` with triggers on every master. `core_next_sequence()` gapless numbering (locked, smoke-tested TST/0001→0002). RLS: read authenticated, write admin; bank + audit admin-only.
+- **Where:** STAGING only (`scvojtvgnkmbupvyslmb`). No UI, no data except 8 seeded brands. Scott API untouched.
+- **Docs:** DATABASE.md (table reference + rollback), DECISIONS.md (6 schema decisions), FLOWCHARTS.md (ERD), CHANGELOG.md.
+
 ## 2026-09-01 — One Source of Truth roadmap + laws + Cursor rule (docs only)
 
 - **What:** Captured the full Scott Ops Platform build roadmap in [ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md); the nine binding laws + six-question gate in [laws.md](./laws.md); new always-apply rule `.cursor/rules/single-source-of-truth.mdc`.

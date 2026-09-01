@@ -1,5 +1,31 @@
 # Database
 
+## Step 0 masters — One Source of Truth (2026-09-01)
+
+Foundation masters for the Scott Ops Platform roadmap ([ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md), laws in [laws.md](./laws.md)). Migration `20260901180000_step0_masters_and_entities.sql`, applied on **staging**. No UI yet; no data loaded except the 8 seeded brands. Scott API tables untouched.
+
+| Table | Purpose |
+|---|---|
+| `core_entity` / `core_gstin` | Legal entities and every seller GSTIN (15). Every future document carries `entity_id` + `gstin_id`. |
+| `core_sequence` | Gapless doc numbering per entity × gstin × doc type × FY. Allocate **only** via `core_next_sequence()` (SECURITY DEFINER, `FOR UPDATE` row lock, raises if no sequence configured). |
+| `core_location` | Warehouses, zones, bins, virtual locations (`qc_hold`, `damaged`, `in_transit`, `job_worker`, `amazon_fc`, `distributor`, `uniware_facility`); `owner_system` = platform \| uniware \| external (law 5); `party_id` links job-worker/distributor locations. Check: `kind='virtual'` ⇔ `virtual_kind` set. |
+| `cat_brand` → `cat_style` → `cat_colour` → `cat_sku` | Catalog. `cat_sku.sku_code` unique, **inherited as-is** (incl. Scott integration codes). `colour_id` nullable until legacy import is structured (must be filled before Step 1 go-live). `item_kind` finished_good \| raw_material \| packaging \| consumable. |
+| `cat_gst_slab` | GST rate by price band as data, with effective dates. |
+| `cat_kit` | Kit SKU → component SKUs × qty (kit ≠ component, qty > 0). |
+| `cat_channel_listing` | SKU ↔ channel + ASIN/FSN/seller-SKU + entity. Unique (sku, channel, entity). |
+| `crm_party` | One party master: customer \| vendor \| job_worker \| transporter \| principal. Owner, credit days/limit, PAN, `parent_id` (branches), `merged_into_id` (dedupe keeps history), MSME/Udyam fields, lead time, payment terms, `default_qc_required`. Unique normalized name per kind among unmerged rows. |
+| `crm_party_gstin` / `crm_address` / `crm_contact` | Party detail rows (cascade delete with party). |
+| `crm_party_bank` | Bank details, **admin-only RLS** (even select). |
+| `crm_vendor_item` | Vendor × SKU: last rate, MOQ, lead time, `qc_exempt`, preferred rank. Rate history comes in Step 2. |
+| `hr_employee` | People master linked to `profiles`; department, tier 1–6, manager, in-time, status. |
+| `audit_log` | Who/when/what for every master change, written by `audit_row_change()` trigger (SECURITY DEFINER) on all Step 0 tables except `core_sequence`. Admin-only read; no direct writes. |
+
+**RLS pattern:** select for `authenticated`; insert/update/delete admin-only via `jwt_user_is_admin()`. Exceptions: `crm_party_bank` (admin-only everything), `audit_log` (admin read only).
+
+**Triggers:** `set_updated_at()` before update on all; `audit_row_change()` after insert/update/delete on all except `core_sequence` (a number allocation per document would flood the log — the documents are the trail).
+
+**Rollback:** drop the 19 tables + `core_next_sequence`, `audit_row_change`, `set_updated_at`. No existing table was altered.
+
 ## Enquiries
 
 Customer/product enquiries logged in the dashboard; admin assigns team members to follow up.

@@ -2,6 +2,21 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-01 — Step 0 masters schema choices (One Source of Truth)
+
+**Context:** First migration of the roadmap ([ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md)). Schema only, staging only, no UI.
+
+**Decisions:**
+
+1. **`cat_sku.colour_id` nullable at first.** Legacy/Uniware SKUs import before styles/colours are structured; the column must be filled before Step 1 (stock ledger) goes live. Alternative (not null from day one) would block the import-then-reconcile flow the roadmap prescribes.
+2. **No audit trigger on `core_sequence`.** Every allocated number is an update; auditing it means one audit row per invoice. The numbered documents are the audit trail.
+3. **Bank details in `crm_party_bank`, admin-only RLS.** There is no `accounts` DB role yet; admin gate now, dedicated accounts role when Step 4 lands. Masking in-row was rejected — separate table keeps RLS simple and provable.
+4. **`core_next_sequence()` is SECURITY DEFINER, granted to `authenticated`.** Non-admin billing users must allocate numbers while the sequence table itself stays admin-write-only. Function only increments a locked counter; `search_path` pinned; revoked from `anon`/`public`.
+5. **Unique normalized names** (`lower`, collapsed whitespace) per kind on `crm_party` (unmerged rows only), `core_entity`, `cat_brand` — law 1's typo-split protection at the index level.
+6. **Existing SKU codes inherited as-is.** Nothing the Scott integration maps on is renamed (hard guard in laws.md).
+
+**Tradeoffs:** admin-only writes are coarse until per-department roles exist; acceptable while there is no masters UI.
+
 ## 2026-09-01 — Hide Floor row for Food, Asset, Biometric, Lost belongings
 
 **Context:** User does not want Floor on screen for Food, Issue with Asset, Issue with Biometric, Lost Personnal Belongings. If they also pick another issue, Floor must show.
