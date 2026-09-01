@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-01 — One Source of Truth roadmap + laws + Cursor rule (docs only)
+
+- **What:** Captured the full Scott Ops Platform build roadmap in [ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md); the nine binding laws + six-question gate in [laws.md](./laws.md); new always-apply rule `.cursor/rules/single-source-of-truth.mdc`.
+- **Scott API freeze:** the rule and laws hard-guard `src/scott/**`, `scott_customers`/`scott_reports`/`scott_masters` tabs, `scott-*` edge functions, and the existing inventory-fetch integration — never modified by roadmap work.
+- **No code / schema change** in this pass. Step 0 (masters) starts only after scope confirmation.
+- **Documentation updated:** CHANGELOG.md, OVERVIEW.md, laws.md, ONE_SOURCE_OF_TRUTH_ROADMAP.md.
+
 ## 2026-09-01 — Hide Floor for Food, Asset, Biometric, Lost belongings
 
 - **Issue:** Floor still showed for Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings.
