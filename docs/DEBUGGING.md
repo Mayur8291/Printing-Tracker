@@ -531,6 +531,13 @@
 
 Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
 
+## Platform Masters: "Masters tables not on this database yet"
+
+- **Symptom:** Platform Masters tab shows the inline message naming migration `20260901180000_step0_masters_and_entities.sql`.
+- **Root cause:** the environment the app points at (check `VITE_SUPABASE_URL`) does not have the Step 0 migration — applied on staging 2026-09-01; production gets it only on an explicit release.
+- **Fix:** apply the migration to that environment (staging default), then Refresh.
+- **Also check:** duplicate-name save errors are the DB unique indexes working (`crm_party_norm_name_idx`, `cat_sku` unique code) — not a bug; merge or rename instead.
+
 ## Goals: ownership column missing / create goal fails
 
 | | |

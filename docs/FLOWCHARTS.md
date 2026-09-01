@@ -28,6 +28,34 @@ flowchart TD
   Masters[All masters] -->|insert update delete| audit_log
 ```
 
+## Platform Masters CSV import (dedupe report)
+
+```mermaid
+flowchart TD
+  Admin[Admin opens Platform Masters] --> Tab{Parties or SKUs tab}
+  Tab --> Import[Import CSV button]
+  Import --> Template[Optional template download]
+  Import --> File[Choose CSV file]
+  File --> Parse[Parse quoted CSV to objects]
+  Parse --> HeaderOK{Required header present?}
+  HeaderOK -->|no| ParseError[Show error no import]
+  HeaderOK -->|yes| Classify[Classify each row]
+  Classify --> New[New]
+  Classify --> DupDb[Already in masters]
+  Classify --> DupFile[Duplicate in file]
+  Classify --> Invalid[Invalid]
+  New --> Preview[Preview table with counts]
+  DupDb --> Preview
+  DupFile --> Preview
+  Invalid --> Preview
+  Preview --> Go[Import N new rows]
+  Go --> Insert[Insert chunks of 100 into crm_party or cat_sku]
+  Insert --> RowFail{Chunk failed?}
+  RowFail -->|yes| PerRow[Retry row by row list failures]
+  RowFail -->|no| Done[Report inserted count refetch]
+  PerRow --> Done
+```
+
 ## Tools Internal Support Platform
 
 ```mermaid

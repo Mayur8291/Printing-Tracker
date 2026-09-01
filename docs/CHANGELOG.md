@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-01 — Platform Masters tab: screens + CSV import with dedupe report
+
+- **What:** New admin-only sidebar tab **Platform Masters** (`ops_masters`, group "Ops Platform") over the Step 0 tables: Parties, SKUs, Entities & GSTINs, Locations — list/search/create/edit dialogs, plus CSV import for Parties and SKUs with a dedupe report (New / Already in masters / Duplicate in file / Invalid; only New rows import). Templates downloadable.
+- **Files:** `MastersPanel.jsx`, `MastersImportDialog.jsx`, `mastersUtils.js` (standalone CSV parser — no dependency on frozen Scott code), `dashboardSidebarConfig.js`, `App.jsx`.
+- **Guard:** distinct from the Scott API "Masters" tab, which is untouched. `check:ui` passed.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-09-01 — Step 0 masters schema on staging (One Source of Truth)
 
 - **What:** Migration `20260901180000_step0_masters_and_entities.sql` — 19 tables: `core_entity`/`core_gstin`/`core_sequence`/`core_location`, `cat_*` catalog (brand→style→colour→sku, kits, channel listings, GST slabs), `crm_*` party master (+GSTIN, address, contact, bank, vendor-item), `hr_employee`, `audit_log` with triggers on every master. `core_next_sequence()` gapless numbering (locked, smoke-tested TST/0001→0002). RLS: read authenticated, write admin; bank + audit admin-only.

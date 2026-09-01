@@ -1,5 +1,17 @@
 # Flows
 
+## Platform Masters (Step 0, One Source of Truth)
+
+Admin-only tab **Platform Masters** (`ops_masters`, sidebar group "Ops Platform" — distinct from the frozen Scott API "Masters" tab).
+
+1. **Trigger:** admin opens sidebar → Platform Masters (`MastersPanel`). Non-admin never sees the tab (`DASHBOARD_ADMIN_ONLY_TAB_IDS`) and render is `isAdmin`-guarded.
+2. **Fetch:** parallel load of `crm_party` (unmerged, 2000), `cat_sku` (5000), `core_entity` + nested `core_gstin`, `core_location`. Missing tables → inline message naming migration `20260901180000`.
+3. **Tabs:** Parties (search + kind filter), SKUs (search), Entities & GSTINs, Locations — shadcn Tabs/Table/Dialog throughout.
+4. **Create/edit:** dialogs write through `mastersUtils.js` (`saveParty`, `saveSku`, `saveEntity`, `addGstin`, `saveLocation`). RLS: writes admin-only; DB unique indexes reject duplicate normalized names / codes and surface as inline errors.
+5. **CSV import (Parties, SKUs):** template download → file parse (standalone quoted-CSV parser) → **dedupe report** classifying each row `New` / `Already in masters` / `Duplicate in file` / `Invalid` (law 1) → import writes only `New` rows, chunked 100 with per-row fallback so one bad row fails alone → failed rows listed with reasons.
+6. **Edge cases:** header missing (`legal_name`/`sku_code`) → parse error, no import; GSTIN must be 15 chars; virtual location requires `virtual_kind`; SKU code is immutable on edit (inherited codes never renamed); zero-ready file disables the import button.
+7. **Exit:** panel refetches after import; row edits update in place.
+
 ## Dashboard Stock API (Scott International)
 
 External order backend ↔ Scott Dashboard inventory (M2M, not browser).
