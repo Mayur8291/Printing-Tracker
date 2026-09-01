@@ -2,6 +2,20 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-01 — Step 1 stock ledger design choices
+
+**Context:** Second roadmap migration (`20260901191500_step1_stock_ledger.sql`), staging only.
+
+**Decisions:**
+
+1. **Role gate pattern `auth.uid() is not null and not jwt_user_is_admin()`.** Blocks non-admin app users while allowing admin users and server contexts (SQL/service, where `auth.uid()` is null). Warehouse-department roles come with the scanner flow; the gate lives in one helper (`inv_assert_can_post`) so widening it is a one-line change.
+2. **Append-only enforced by trigger, not just policy.** RLS alone would not stop the table owner; the trigger raises for everyone. Corrections are reversing movements.
+3. **Balances maintained synchronously by the posting function** (not by a trigger on `inv_movement`) so the negative-stock check and the lock happen in one place; the nightly recompute is the safety net (drift alerts, pg_cron 02:30 IST).
+4. **Reservations are generic (`ref_type`/`ref_id`)**, not FK'd to order lines — `so_order` arrives in Step 3 and will pass its own refs. `inv_allocate(order_id)` lands then.
+5. **Count sessions/lines are admin-writable directly** — they are working documents; only `inv_count_post` moves stock. Expected qty snapshots at line insert via trigger.
+6. **Smoke test by rollback:** the whole scenario ran in one transaction ending in a deliberate raise, so staging keeps zero test rows while the assertions (balances, blocked over-issue/over-reserve/edit, drift 0) are proven.
+7. **Existing Inventory tab and Scott stock integration untouched** — the new ledger runs beside them until cutover; nothing reads or writes the frozen integration tables.
+
 ## 2026-09-01 — Step 0 masters schema choices (One Source of Truth)
 
 **Context:** First migration of the roadmap ([ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md)). Schema only, staging only, no UI.

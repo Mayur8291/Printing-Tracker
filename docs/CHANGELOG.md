@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-01 — Step 1 stock ledger: append-only movements + Stock Ledger tab
+
+- **DB (staging):** migration `20260901191500_step1_stock_ledger.sql` — `inv_movement` (append-only, trigger-enforced), `inv_balance` (locked upserts, never negative), `inv_reservation`, cycle-count tables, `inv_drift_alert`; functions `inv_post_movement`, `inv_reserve`/`inv_release_reservation`, `inv_kit_build`/`inv_kit_break`, `inv_count_post`, `inv_recompute_drift` (pg_cron nightly 02:30 IST). All stock mutations in SECURITY DEFINER functions with `FOR UPDATE`. Smoke-tested via rolled-back transaction — all guards held, drift 0.
+- **UI:** new admin-only **Stock Ledger** tab (`ops_stock`, Ops Platform group): stock by location (on-hand/reserved/available), movement history, post-movement dialog (GRN/transfer/issue/return/adjustment±), drift banner. `check:ui` passed.
+- **Untouched:** Scott API section, existing Inventory tab, Scott stock integration.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md.
+
 ## 2026-09-01 — Platform Masters tab: screens + CSV import with dedupe report
 
 - **What:** New admin-only sidebar tab **Platform Masters** (`ops_masters`, group "Ops Platform") over the Step 0 tables: Parties, SKUs, Entities & GSTINs, Locations — list/search/create/edit dialogs, plus CSV import for Parties and SKUs with a dedupe report (New / Already in masters / Duplicate in file / Invalid; only New rows import). Templates downloadable.

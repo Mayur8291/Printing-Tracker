@@ -21,6 +21,7 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "enquiry", label: "Support" },
   // --- Ops Platform (One Source of Truth roadmap; NOT the Scott API Masters tab) ---
   { id: "ops_masters", label: "Platform Masters" },
+  { id: "ops_stock", label: "Stock Ledger" },
   // --- Scott API (migrated from the standalone ScottOne dashboard) ---
   { id: "scott_customers", label: "Customers" },
   { id: "scott_reports", label: "Reports" },
@@ -38,7 +39,7 @@ export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
   },
   {
     label: "Ops Platform",
-    ids: ["ops_masters"]
+    ids: ["ops_masters", "ops_stock"]
   },
   {
     label: "Scott API",
@@ -72,9 +73,10 @@ export const DASHBOARD_ADMIN_ONLY_TAB_IDS = new Set([
   "scott_customers",
   "scott_reports",
   "scott_masters",
-  // Platform Masters (Step 0): master-data writes are admin-only in RLS; the
-  // screens are for admin during the masters build-out.
-  "ops_masters"
+  // Ops Platform (Steps 0–1): master-data and stock-ledger writes are
+  // admin-only in RLS; the screens are for admin during the build-out.
+  "ops_masters",
+  "ops_stock"
 ]);
 
 export function isAdminOnlyDashboardTab(tabId) {

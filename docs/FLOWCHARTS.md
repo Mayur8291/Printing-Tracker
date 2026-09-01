@@ -28,6 +28,32 @@ flowchart TD
   Masters[All masters] -->|insert update delete| audit_log
 ```
 
+## Stock Ledger movement posting (Step 1)
+
+```mermaid
+flowchart TD
+  Admin[Admin Stock Ledger tab] --> Dialog[Post movement dialog]
+  Dialog --> Type{Type}
+  Type -->|Receive GRN| ToOnly[to location]
+  Type -->|Transfer| Both[from and to]
+  Type -->|Issue dispatch| FromOnly[from location]
+  Type -->|Adjustment| NoteReq[note required]
+  ToOnly --> RPC[rpc inv_post_movement]
+  Both --> RPC
+  FromOnly --> RPC
+  NoteReq --> RPC
+  RPC --> Gate{inv_assert_can_post}
+  Gate -->|non admin user| Deny[error raised]
+  Gate -->|admin or server| Lock[Lock balance rows FOR UPDATE]
+  Lock --> Neg{Would go below zero?}
+  Neg -->|yes| Deny2[Insufficient stock error]
+  Neg -->|no| Apply[Update balances]
+  Apply --> Insert[Insert append-only inv_movement row]
+  Insert --> Done[Return movement id refresh panel]
+  Nightly[pg_cron 0230 IST] --> Drift[inv_recompute_drift ledger vs balance]
+  Drift -->|mismatch| AlertRow[inv_drift_alert row banner in panel]
+```
+
 ## Platform Masters CSV import (dedupe report)
 
 ```mermaid

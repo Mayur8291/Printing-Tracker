@@ -531,6 +531,14 @@
 
 Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
 
+## Stock Ledger: drift alert banner / wrong stock number
+
+- **Symptom:** red "Stock drift detected" banner on the Stock Ledger tab, or a balance that looks wrong.
+- **Root cause candidates:** (1) someone wrote `inv_balance` directly with service role bypassing the functions — never do this; (2) a partially failed manual SQL session.
+- **Investigation:** `select * from inv_drift_alert where resolved_at is null;` then rebuild the truth for that sku/location: `select sum(case when to_location_id = :loc then qty else -qty end) from inv_movement where sku_id = :sku and (to_location_id = :loc or from_location_id = :loc) and state = :state;`
+- **Fix:** post a corrective `adjustment` movement with a note (never edit `inv_balance`), then set `resolved_at` on the alert. `inv_recompute_drift()` can be run ad hoc as postgres.
+- **Note:** `inv_movement` UPDATE/DELETE always raises "append-only" — that is by design, not a bug.
+
 ## Platform Masters: "Masters tables not on this database yet"
 
 - **Symptom:** Platform Masters tab shows the inline message naming migration `20260901180000_step0_masters_and_entities.sql`.

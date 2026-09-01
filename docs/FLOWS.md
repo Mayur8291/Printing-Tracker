@@ -12,6 +12,18 @@ Admin-only tab **Platform Masters** (`ops_masters`, sidebar group "Ops Platform"
 6. **Edge cases:** header missing (`legal_name`/`sku_code`) → parse error, no import; GSTIN must be 15 chars; virtual location requires `virtual_kind`; SKU code is immutable on edit (inherited codes never renamed); zero-ready file disables the import button.
 7. **Exit:** panel refetches after import; row edits update in place.
 
+## Stock Ledger (Step 1, One Source of Truth)
+
+Admin-only tab **Stock Ledger** (`ops_stock`, sidebar group "Ops Platform"). Distinct from the existing Inventory tab and the Scott stock integration — those keep running unchanged.
+
+1. **Trigger:** admin opens Stock Ledger (`StockLedgerPanel`); loads balances, latest 200 movements, active reservations, unresolved drift alerts, plus SKU/location masters for the dialog.
+2. **Views:** Stock by location (on-hand / reserved / available per sku × location × state, search + state filter) and Movements (ledger rows with from→to, reason, note/ref).
+3. **Post movement:** dialog types — Receive (GRN), Transfer, Issue/dispatch, Return in, Adjustment ± (note required). SKU typed by code and resolved against masters; calls RPC `inv_post_movement` — the DB function validates, locks balances, blocks negatives, writes the ledger row.
+4. **Guarantees (DB, not UI):** ledger is append-only (UPDATE/DELETE raise); balance can never go below zero; adjustments without a note are rejected; non-admin app users are rejected by `inv_assert_can_post`.
+5. **Drift:** nightly `inv_recompute_drift` (pg_cron 02:30 IST) compares ledger sums to balances; unresolved alerts render as a destructive banner in the panel.
+6. **Failure:** missing migration → inline message naming `20260901191500`; RPC errors (insufficient stock, missing note) surface in the dialog; page never blanks.
+7. **Deferred:** cycle-count screens and reservation UI (functions exist; UI lands with the barcode/scanner flow); Uniware mirror panel waits for Uniware API access (Step 5).
+
 ## Dashboard Stock API (Scott International)
 
 External order backend ↔ Scott Dashboard inventory (M2M, not browser).
