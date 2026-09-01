@@ -2,6 +2,126 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-01 — Hide Floor row for Food, Asset, Biometric, Lost belongings
+
+**Context:** User does not want Floor on screen for Food, Issue with Asset, Issue with Biometric, Lost Personnal Belongings. If they also pick another issue, Floor must show.
+
+**Options:** (1) Always show Floor, optional for those four. (2) Hide Floor unless any selected issue needs a location.
+
+**Decision:** Option 2. `floorRequired` gates both visibility and Submit. Mix with Internet shows Floor again.
+
+**Why:** Those four go straight to Comment. Other issues still need a floor.
+
+**Tradeoffs:** First load has no Floor until a floor-required issue is picked.
+
+## 2026-09-01 — Internal Support Submit thank-you copy
+
+**Context:** User does not want the check + Submitted + “ticket save comes next” Alert.
+
+**Options:** (1) Keep that placeholder. (2) One-line thank-you in AlertDescription.
+
+**Decision:** Option 2. Exact copy: Thank you. Your issue has been submitted and the concerned team will look into it shortly.
+
+**Why:** That is the message staff should see after Submit.
+
+**Tradeoffs:** Still no database ticket; the words say submitted.
+
+## 2026-09-01 — Floor optional for Food, Asset, Biometric, Lost belongings
+
+**Context:** Floor should be mandatory before Comment, except Food, Issue with Asset, Issue with Biometric, Lost Personnal Belongings.
+
+**Options:** (1) Always require floor. (2) Require floor only when a non-exception issue is selected. Mixed picks still require floor.
+
+**Decision:** Option 2. Comment + Submit wait for a floor unless every selected issue is in the exception list. Labels match the Buttons (including Personnal).
+
+**Why:** Those four are not tied to a floor the same way Internet / Lift / Hygiene are.
+
+**Tradeoffs:** Food + Internet still needs a floor. Floor row still shows for exception-only picks; it is just optional.
+
+## 2026-09-01 — Internal Support floor is a single pick under issues
+
+**Context:** User wants heading **Select your Floor** under the issue list, with Ground Floor through 5th Floor.
+
+**Options:** (1) ToggleGroup. (2) Same shadcn Buttons as issues, one selected at a time.
+
+**Decision:** Option 2. Match the issue Buttons. Floor sits under issues, before Comment. Submit needs a floor.
+
+**Why:** Same shadcn Button look as the issue row. One person is on one floor.
+
+**Tradeoffs:** ToggleGroup is not installed; Buttons stay consistent with this panel.
+
+## 2026-09-01 — Internal Support Comment waits for one issue pick
+
+**Context:** User wants the Comment box only after at least one issue Button is selected.
+
+**Options:** (1) Always show Comment. (2) Show Comment + Submit only when `selectedIssues.length > 0`.
+
+**Decision:** Option 2. Un-pick the last issue hides Comment again. Typed text stays in state.
+
+**Why:** No comment until they say what kind of problem.
+
+**Tradeoffs:** After Submit, picks clear so Comment hides; success Alert still shows.
+
+## 2026-09-01 — Internal Support comment + Submit are local only
+
+**Context:** User wants a comment box under the issue Buttons and a Submit button under that.
+
+**Options:** (1) Textarea + Submit, no save. (2) Write a tickets table now.
+
+**Decision:** Option 1. shadcn Field + Textarea + Submit. Require at least one issue and a comment. Alert tells them save is not wired.
+
+**Why:** User asked for the box and the button. Ticket backend was not in this step.
+
+**Tradeoffs:** Submit feels done but nothing lands in Supabase yet.
+
+## 2026-09-01 — Internal Support issue Buttons are multi-select
+
+**Context:** User wants more than one issue type on at the same time.
+
+**Options:** (1) Keep single string. (2) Toggle membership in a local array.
+
+**Decision:** Option 2. Click on = add. Click again = remove. Still shadcn Buttons, no ticket save.
+
+**Why:** One person can have Internet and Lift not working at once.
+
+**Tradeoffs:** Heading still says “the option”. Refresh still clears the list.
+
+## 2026-09-01 — Internal Support issue types are shadcn Buttons
+
+**Context:** User wants a heading and ten clickable issue options on Internal Support Platform.
+
+**Options:** (1) ToggleGroup. (2) RadioGroup / FieldSet. (3) shadcn `Button` outline grid, selected = `variant="default"`.
+
+**Decision:** Option 3. Labels kept as given (including Hygeine / Personnal). Local select only.
+
+**Why:** User asked for Clickable Button. Ten options is more than ToggleGroup’s 2–7 range. Ticket save is not in this step.
+
+**Tradeoffs:** Refresh loses the pick. Spelling matches the request, not dictionary.
+
+## 2026-09-01 — Internal Support Platform is a Tools tab, not Support Enquiry
+
+**Context:** User wants an Internal Support Platform panel under Tools, with a relevant symbol.
+
+**Options:** (1) Reuse Support (`enquiry`). (2) New Tools tab `internal_support` with LifeBuoy icon and a Card shell.
+
+**Decision:** Option 2. Grantable like other Tools. No tickets yet.
+
+**Why:** Support Enquiry is customer-facing desks. This is an internal workspace. LifeBuoy is distinct from Headphones.
+
+**Tradeoffs:** Viewers with a frozen allowed-tab list will not see it until an admin grants `internal_support`.
+
+## 2026-08-31 — Job sheet Delivery required on is today or later
+
+**Context:** Create Job sheet and Create Sample Jobsheet must not offer past days for Delivery required on.
+
+**Options:** (1) Allow any date. (2) Calendar min = today; save also rejects past.
+
+**Decision:** Option 2. Same DatePicker on both forms. Sample date still optional.
+
+**Why:** User asked only running day and future days.
+
+**Tradeoffs:** Uses the device local calendar day, same as order date. View order can still change an existing due date.
+
 ## 2026-08-31 — Production / Sampling tabs match the All / Complete pill
 
 **Context:** User wants Production Tracker and Sampling Tracker buttons to look like All orders / Complete orders, and to drop the green / orange colours.

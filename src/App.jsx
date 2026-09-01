@@ -21,6 +21,7 @@ import ProductionTrackerPanel, {
 } from "./ProductionTrackerPanel";
 import TeamChatPanel from "./TeamChatPanel";
 import ContactBookPanel from "./ContactBookPanel";
+import InternalSupportPlatformPanel from "./InternalSupportPlatformPanel";
 import GoalTrackerPanel from "./GoalTrackerPanel";
 import AdminRolesGoalsPanel from "./AdminRolesGoalsPanel";
 import AdminPasswordResetRequestsPanel from "./AdminPasswordResetRequestsPanel";
@@ -151,6 +152,7 @@ import {
   jobSheetSizesToBreakdown,
   parseJobSheetRate,
   parseJobSheetSizeQty,
+  isJobSheetDeliveryDateAllowed,
   serializeJobSheetRegularStockItems,
   sumJobSheetSizes
 } from "./jobSheetUtils";
@@ -500,6 +502,7 @@ const DASHBOARD_TAB_STORAGE_KEY = "printing-tracker-dashboard-tab";
 /** Tabs whose panel owns its own padding + scrolling (shadcn-only, no legacy-ui wrapper). */
 const FULL_BLEED_TABS = new Set([
   "asset_management",
+  "internal_support",
   "inventory",
   "scott_customers",
   "scott_reports",
@@ -2539,6 +2542,13 @@ function App() {
     }
     if (createFormMode !== "sample_job_sheet" && !jobSheetForm.delivery_required_on) {
       alert("Please set delivery required on date.");
+      return;
+    }
+    if (
+      jobSheetForm.delivery_required_on &&
+      !isJobSheetDeliveryDateAllowed(jobSheetForm.delivery_required_on)
+    ) {
+      alert("Delivery required on must be today or a future date.");
       return;
     }
     for (const row of jobSheetForm.extraSizes ?? []) {
@@ -5839,6 +5849,8 @@ function App() {
           )}
 
           {dashboardTab === "asset_management" && <AssetManagementPanel isAdmin={isAdmin} />}
+
+          {dashboardTab === "internal_support" && <InternalSupportPlatformPanel />}
 
           {dashboardTab === "audit" && (
             <section className="panel table-panel dashboard-card">

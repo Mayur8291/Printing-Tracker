@@ -1,5 +1,31 @@
 # Flowcharts
 
+## Tools Internal Support Platform
+
+```mermaid
+flowchart TD
+  User[Open Tools] --> Item[Internal Support Platform LifeBuoy]
+  Item --> Panel[InternalSupportPlatformPanel Card]
+  Panel --> Heading[Facing an issue heading]
+  Heading --> Pick[Click issue Button]
+  Pick --> Toggle{Already selected?}
+  Toggle -->|no| Add[Add to selected list]
+  Toggle -->|yes| Remove[Remove from selected list]
+  Add --> NeedFloor{Any pick needs floor?}
+  Remove --> NeedFloor
+  NeedFloor -->|no Food Asset Biometric Lost| HideFloor[Hide Floor]
+  HideFloor --> ShowComment[Comment and Submit show]
+  NeedFloor -->|yes Internet etc| ShowFloor[Show Select your Floor]
+  ShowFloor --> HasFloor{Floor picked?}
+  HasFloor -->|no| HideComment[Hide Comment and Submit]
+  HasFloor -->|yes| ShowComment
+  ShowComment --> Submit[Submit]
+  Submit --> Valid{Issue comment and floor if needed?}
+  Valid -->|no| Error[FieldError stay]
+  Valid -->|yes| Clear[Thank you Alert]
+  Clear --> Wait[Ticket save later]
+```
+
 ## Production Tracker sidebar tabs
 
 ```mermaid
@@ -16,7 +42,8 @@ flowchart TD
   ViewSample --> SampleDone
   SampleDone --> LockedStatus[Badge Dispatched Successfully status locked]
   SampleOpen --> SampleForm[Create Sample Jobsheet]
-  SampleForm --> SampleSave[Save sample_job_sheet Pattern Making]
+  SampleForm --> DeliveryPick[Delivery required on today or later]
+  DeliveryPick --> SampleSave[Save sample_job_sheet Pattern Making]
   SampleSave --> SampleOpen
   SampleSave --> SlaClock{Delivery required on filled?}
   SlaClock -->|yes| DueDateSla[Due In end of that date]

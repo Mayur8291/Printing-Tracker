@@ -1,5 +1,50 @@
 # Debugging
 
+## Internal Support Platform missing from Tools
+
+| | |
+|--|--|
+| **Symptom** | Tools has no Internal Support Platform, or click does nothing. |
+| **Root cause** | Tab id is `internal_support`. Viewer with an explicit allowed-tab list must be granted that id. Support (Enquiry) is a different tab (`enquiry`). |
+| **Fix** | Hard refresh. Admin: Tools list after Chat. Viewer: Admin Panel → grant **Internal Support Platform**. |
+| **Verify** | LifeBuoy icon. Heading **Facing an issue? Select the option below that best describes your problem.** Ten issue Buttons. Enquiry Support still under Inventory. |
+
+## Internal Support Platform issue buttons missing or not clickable
+
+| | |
+|--|--|
+| **Symptom** | Tools Internal Support Platform has no heading, no buttons, or click does nothing visible. |
+| **Root cause** | Panel must render `INTERNAL_SUPPORT_ISSUE_OPTIONS` as shadcn `Button`. Click toggles local `selectedIssues` array (outline vs default). Many can be on. No database. |
+| **Fix** | Hard refresh. Open Tools → Internal Support Platform. Click a few options; they stay filled. Click one again to clear it. Refresh clears all picks. |
+| **Verify** | Ten labels: Internet, Power Cut, Water Issue, Machinery, Food, Issue with Asset, Lift not working, Issue with Biometric, Floor Hygeine, Lost Personnal Belongings. |
+
+## Internal Support Floor options missing
+
+| | |
+|--|--|
+| **Symptom** | No **Select your Floor** heading, or floor Buttons missing / more than one stay filled. |
+| **Root cause** | Floor list only renders when a picked issue needs a floor (`internalSupportNeedsFloor`). Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings hide Floor. Mix with Internet (etc.) shows Floor. One `selectedFloor` string. |
+| **Fix** | Hard refresh. Open Tools → Internal Support Platform. Pick Food: no Floor, Comment only. Pick Internet: Floor appears. Food + Internet: Floor appears. |
+| **Verify** | Ground Floor through 5th Floor only after a floor-required issue is on. |
+
+## Internal Support comment or Submit missing / Submit does nothing
+
+| | |
+|--|--|
+| **Symptom** | No Comment box, no Submit, Submit does nothing, or Submit “works” but no ticket in the database. |
+| **Root cause** | Comment and Submit show when there is at least one issue **and** (a floor is picked **or** every picked issue is Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings). Those four hide Floor. Empty comment shows FieldError. Floor-required issues with no floor hide Comment. Success clears the form, logs `[internal-support] submit`, and shows the thank-you Alert. No table yet. |
+| **Fix** | Hard refresh. Floor-required issue: Floor appears, pick a floor, then Comment. Food / Asset / Biometric / Lost belongings: no Floor, Comment only. Mix with Internet: Floor shows again. |
+| **Verify** | Internet alone: Floor then Comment after a floor. Food alone: no Floor, Comment only. Food + Internet: Floor shows, Comment waits for a floor. After Submit: thank-you sentence. |
+
+## Delivery required on still lets pick a past day
+
+| | |
+|--|--|
+| **Symptom** | Create Job sheet or Create Sample Jobsheet calendar still has yesterday and older days. |
+| **Root cause** | DatePicker must get `minDate` = today. Save also rejects `due_date` before today. |
+| **Fix** | Hard refresh. Open Create Job sheet or Create Sample Jobsheet → Delivery required on. |
+| **Verify** | Today and future days click. Past days grey / not selectable. Production still requires a date. Sample can leave it blank. |
+
 ## Sample Due In missing, wrong time, or SLA Breached too early
 
 | | |

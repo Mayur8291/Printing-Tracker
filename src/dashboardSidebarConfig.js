@@ -44,6 +44,7 @@ export const DASHBOARD_SIDEBAR_FOOTER = [
   { id: "shared_links", label: "Shared Links" },
   { id: "contact_book", label: "Contact Book" },
   { id: "chat", label: "Chat" },
+  { id: "internal_support", label: "Internal Support Platform" },
   { id: "asset_management", label: "Asset Management" },
   { id: "audit", label: "Audit" }
 ];

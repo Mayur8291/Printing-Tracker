@@ -39,6 +39,22 @@ export function isJobSheetOrder(order) {
   return false;
 }
 
+/** Local calendar YYYY-MM-DD for the device. */
+export function jobSheetTodayLocalISODate() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Delivery required on may be today or later. Past days are blocked. */
+export function isJobSheetDeliveryDateAllowed(raw) {
+  const day = String(raw ?? "").trim().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
+  return day >= jobSheetTodayLocalISODate();
+}
+
 
 
 export function getJobSheetActiveColumns({ gender = "", sizeType = "" } = {}) {

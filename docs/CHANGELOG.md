@@ -1,5 +1,75 @@
 # Changelog
 
+## 2026-09-01 — Hide Floor for Food, Asset, Biometric, Lost belongings
+
+- **Issue:** Floor still showed for Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings.
+- **Fix:** Those four hide **Select your Floor**. Only Comment. If they also pick Internet (or any other issue), Floor shows again and is required.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support thank-you after Submit
+
+- **Issue:** Submit showed a check, **Submitted**, and “ticket save comes next.”
+- **Fix:** After Submit, shadcn Alert only shows: **Thank you. Your issue has been submitted and the concerned team will look into it shortly.** No check icon, no Submitted heading.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-01 — Internal Support floor required except four issue types
+
+- **Issue:** Comment showed after any issue. Floor was always required, even for Food / Asset / Biometric / Lost belongings.
+- **Fix:** Comment + Submit wait for a floor when any picked issue needs a floor. Floor not required for **Food**, **Issue with Asset**, **Issue with Biometric**, **Lost Personnal Belongings**. Mix with Internet (etc.) still needs a floor.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support Select your Floor
+
+- **Issue:** After issue Buttons, no floor pick.
+- **Fix:** Heading **Select your Floor**. shadcn Buttons: Ground Floor, 1st–5th Floor. One floor at a time. Submit needs a floor.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support Comment shows after one issue pick
+
+- **Issue:** Comment box showed before anyone picked an issue.
+- **Fix:** Comment (and Submit under it) only render after at least one issue Button is selected. Clear all picks → Comment hides again. Typed comment stays in memory if they pick again.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support comment box and Submit
+
+- **Issue:** After issue Buttons, no place to explain the problem, and no Submit.
+- **Fix:** shadcn Textarea **Comment** under the Buttons (`Explain the issue in detail`). **Submit** under that. Need at least one issue and a comment. Local only; form clears; Alert says ticket save comes next.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `src/components/ui/field.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md.
+
+## 2026-09-01 — Internal Support issue buttons are multi-select
+
+- **Issue:** Issue Buttons only kept one pick. Click a second option, first one dropped.
+- **Fix:** Click toggles. Many Buttons can stay filled at once. Click again to clear that one. Still local only; no ticket save.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support Platform issue buttons
+
+- **Issue:** Internal Support Platform was an empty Card. Need a heading plus clickable issue types.
+- **Fix:** Heading **Facing an issue? Select the option below that best describes your problem.** Under it, shadcn outline Buttons: Internet, Power Cut, Water Issue, Machinery, Food, Issue with Asset, Lift not working, Issue with Biometric, Floor Hygeine, Lost Personnal Belongings. Click highlights the pick. No ticket save yet.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Tools Internal Support Platform panel
+
+- **Issue:** Tools had no Internal Support Platform. Need a panel with a support symbol.
+- **Fix:** Tools item **Internal Support Platform** with LifeBuoy icon. Opens a shadcn Card workspace. Separate from Support (Enquiry). Grantable like other Tools tabs.
+- **Files:** `dashboardSidebarConfig.js`, `DashboardAppSidebar.jsx`, `dashboardSidebarIcons.jsx`, `InternalSupportPlatformPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md.
+
+## 2026-08-31 — Job sheet Delivery required on is today or later
+
+- **Issue:** Create Job sheet and Create Sample Jobsheet let people pick past days for Delivery required on.
+- **Fix:** Calendar only today and future. Save also blocks a past date. Same rule on both forms.
+- **Files:** `CreateJobSheetForm.jsx`, `jobSheetUtils.js`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-08-31 — Production / Sampling tabs match All / Complete pill
 
 - **Issue:** Production Tracker and Sampling Tracker buttons used apart green / orange. User wants the same look as All orders / Complete orders, no extra colour.

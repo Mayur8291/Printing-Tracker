@@ -106,6 +106,16 @@ const SIDEBAR_ICONS = {
       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" />
     </SidebarIcon>
   ),
+  internal_support: (
+    <SidebarIcon>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="m4.93 4.93 4.24 4.24" />
+      <path d="m14.83 9.17 4.24-4.24" />
+      <path d="m14.83 14.83 4.24 4.24" />
+      <path d="m9.17 14.83-4.24 4.24" />
+    </SidebarIcon>
+  ),
   asset_management: (
     <SidebarIcon>
       <rect x="2" y="7" width="20" height="14" rx="2" />

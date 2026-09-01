@@ -7,6 +7,7 @@ import {
   getJobSheetSizeColumnsForType,
   isPetsJobSheetGender,
   JOB_SHEET_GENDERS,
+  jobSheetTodayLocalISODate,
   newJobSheetExtraSizeRow,
   sumJobSheetSizes
 } from "./jobSheetUtils";
@@ -79,6 +80,8 @@ export default function CreateJobSheetForm({
     return calcJobSheetBalanceAmount(totalAmountValue, form.advance_amount);
   }, [totalAmountValue, form.advance_amount, form.full_paid]);
   const paymentProofRequired = form.full_paid === "yes";
+  const deliveryMinDate = jobSheetTodayLocalISODate();
+  const deliveryFromYear = Number(deliveryMinDate.slice(0, 4));
 
   function applySizeType(sizeType) {
     const cols = getJobSheetSizeColumnsForType(sizeType);
@@ -524,6 +527,8 @@ export default function CreateJobSheetForm({
           value={form.delivery_required_on}
           onChange={(next) => setField({ delivery_required_on: next })}
           required={requireDeliveryDate}
+          minDate={deliveryMinDate}
+          fromYear={deliveryFromYear}
         />
       </div>
       <div className="order-form-cell">
