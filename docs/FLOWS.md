@@ -1,5 +1,16 @@
 # Flows
 
+## Uniware Bridge (Step 5, One Source of Truth)
+
+Admin-only tab **Uniware Bridge** (`ops_uniware`, Ops Platform). Distinct from Inventory and Stock Ledger. Boundary: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).
+
+1. **Trigger:** admin opens Uniware Bridge (`UniwareBridgePanel`). Loads feed health, inventory mirror, ecom orders, transfers, settings, locations/entities/SKUs, plus edge `status`.
+2. **Sync inventory:** Sync inventory → `uniware-bridge` `sync_inventory` → Uniware snapshot → upsert `uni_inventory_mirror`. These qty are **never** added to `inv_balance` or Inventory on-hand.
+3. **Sync orders:** Sync orders → sale-order search/get (last 180 minutes) → upsert `uni_sale_order`. Platform does not edit ecom orders.
+4. **Transfer:** pick direction, SKU code, qty, from/to locations → draft `uni_transfer` → `uni_post_transfer` (owner_system must match direction) → edge `adjust` (`ADD` or `REMOVE`). Ledger posts even if the API fails (`api_failed` + message).
+5. **Settings:** default entity + Uniware marker location. API login is edge secrets only.
+6. **Failure:** missing secrets → banner, tables still load. Stale feed (no success in 2 hours) → amber badge. Transfer location mismatch → DB exception.
+
 ## Billing & Receivables (Step 4, One Source of Truth)
 
 Admin-only tab **Billing & AR** (`ops_ar`, Ops Platform). Distinct from the existing Workspace **Billing** tab, which stays as-is.
@@ -67,7 +78,7 @@ Admin-only tab **Stock Ledger** (`ops_stock`, sidebar group "Ops Platform"). Dis
 4. **Guarantees (DB, not UI):** ledger is append-only (UPDATE/DELETE raise); balance can never go below zero; adjustments without a note are rejected; non-admin app users are rejected by `inv_assert_can_post`.
 5. **Drift:** nightly `inv_recompute_drift` (pg_cron 02:30 IST) compares ledger sums to balances; unresolved alerts render as a destructive banner in the panel.
 6. **Failure:** missing migration → inline message naming `20260901191500`; RPC errors (insufficient stock, missing note) surface in the dialog; page never blanks.
-7. **Deferred:** cycle-count screens and reservation UI (functions exist; UI lands with the barcode/scanner flow); Uniware mirror panel waits for Uniware API access (Step 5).
+7. **Deferred:** cycle-count screens and reservation UI (functions exist; UI lands with the barcode/scanner flow). Uniware mirror is Step 5 (`ops_uniware`).
 
 ## Dashboard Stock API (Scott International)
 
@@ -233,8 +244,9 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 1. **Trigger:** Inventory tab mounts (`InventoryDataContext`).
 2. **Fetch:** `inventory_sku_availability` view (paged 1000/req, authenticated read via `20260716120000`), aggregated per `sku_code` + per-facility breakdown → `availabilityBySku`.
 3. **Display:** Inventory list shows **Reserved** (amber, tooltip "Held for open orders — not available to sell") and **Available** (= on_hand − reserved) next to On hand; low-stock status, stock bar, alerts, and overview KPIs compare against **available**.
-4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills.
-5. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
+4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills. `refresh()` (including silent Adjust/SKU events) **awaits** that map so the list cannot keep the old qty.
+5. **Adjust:** writes `adjust_sku_facility_stock` at the warehouse the user picked (OUT/ADJUST use `fromWh`). Then silent refresh + availability reload. This is **not** the Ops Stock Ledger.
+6. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
 
 ### Inventory bulk Excel upload (stock + DOC, warehouse-scoped)
 

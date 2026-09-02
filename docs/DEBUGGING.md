@@ -1,5 +1,25 @@
 # Debugging
 
+## Inventory Adjust succeeds but list still shows old qty
+
+- **Symptom:** Adjust / IN / OUT toast says recorded; Inventory list, overview, and warehouse qty stay the same on staging.
+- **Root cause:** The list paints `inventory_sku_availability` (facility on-hand − reserved), not `inventory_skus.stock_qty`. After Adjust, silent refresh reloaded SKU rows only. The stale availability map overwrote the new number. A second bug: OUT/ADJUST wrote the SKU home warehouse when the user picked another bin.
+- **Fix (2026-09-02):** `refresh()` awaits `loadAvailability()`; Adjust uses the picked warehouse; subscribe to `inventory_facility_stock`.
+- **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — expect the new on-hand. Hard refresh after deploy.
+- **Do not confuse:** Inventory tab (`inventory_facility_stock`) vs Ops **Stock Ledger** (`inv_balance`). Adjust on Inventory does not change Stock Ledger.
+
+## Uniware Bridge: "Uniware secrets not set"
+
+- **Symptom:** Sync inventory / Sync orders / Post transfer API step fails naming `UNIWARE_BASE_URL` (or the yellow banner).
+- **Root cause:** Staging edge has no Uniware login secrets yet. By design the mirror tables stay empty until the first successful sync.
+- **Fix:** Dashboard → Edge Functions → `uniware-bridge` → Secrets: `UNIWARE_BASE_URL`, `UNIWARE_USERNAME`, `UNIWARE_PASSWORD`, `UNIWARE_FACILITY`. Then Sync inventory. Ledger transfers still need a Platform Masters entity + a platform location + `UNIWARE-ECOM`.
+
+## Uniware Bridge tab empty / missing tables
+
+- **Symptom:** panel error naming `uni_settings` or `uni_inventory_mirror`.
+- **Root cause:** local/staging schema missing `20260902180000_step5_uniware_bridge.sql`.
+- **Fix:** confirm `npm run check:env` points at staging `scvojtvgnkmbupvyslmb`; migration already applied there. Production does not have this schema until an explicit release.
+
 ## Billing: "This dispatch is already invoiced"
 
 - **Symptom:** Generate invoice fails naming the dispatch.

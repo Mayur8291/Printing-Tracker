@@ -1,5 +1,29 @@
 # Database
 
+## Step 5 Uniware bridge — One Source of Truth (2026-09-02)
+
+Uniware owns ecom-facility on-hand. The platform stores a **read-only mirror**. Migration `20260902180000_step5_uniware_bridge.sql`, applied on **staging**. Contract: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).
+
+| Object | Purpose |
+|---|---|
+| `uni_settings` | Singleton: default entity, Uniware marker location, optional facility code. Admin RLS write. |
+| `uni_sync_log` | Per-feed run log (`inventory`, `sale_orders`, `shipments`, `invoices`, `returns`, `adjust_out`). Watermark on success. |
+| `uni_inventory_mirror` | Facility × SKU × inventory_type qty from Uniware snapshot. No client write. |
+| `uni_sale_order` / `uni_shipment` / `uni_invoice` / `uni_return` | Idempotent upserts keyed on Uniware code. Not `so_order`. |
+| `uni_transfer` | Draft → posted (platform ledger) → `api_ok` / `api_failed`. Number `UTR/<FY>/nnnn`. |
+| `uni_feed_health_view` | Last finished run per feed; `stale` if missing, error, or older than 2 hours. `security_invoker`. |
+| `core_location` `UNIWARE-ECOM` | Seeded virtual `uniware_facility` marker (`owner_system=uniware`). Never counted as platform stock. |
+
+**Functions** (`ops_assert_admin()` except `uni_finish_sync`):
+
+- `uni_begin_sync(feed)` / `uni_finish_sync(log, ok, rows, error)` — edge bookkeeping.
+- `uni_post_transfer(id)` — posts `inv_post_movement` only when from/to `owner_system` matches direction. Does **not** call Uniware.
+- `uni_mark_transfer_api(id, ok, ref, error)` — records the adjust API result.
+
+**RLS:** authenticated SELECT on all `uni_*`. Admin write on `uni_settings` + `uni_transfer` only. Mirror tables: edge service role.
+
+**Rollback:** drop `uni_*` tables/views/functions; keep `UNIWARE-ECOM` location or mark inactive.
+
 ## Step 4 billing & receivables — One Source of Truth (2026-09-02)
 
 Invoices generated from dispatch; money is a document (law 3). Migration `20260902170000_step4_billing_receivables.sql`, applied on **staging**. Money tables have **no direct write policies** — `bill_generate_from_dispatch`, `ar_issue_credit_note`, `ar_record_receipt` are the only doors. Documents are immutable once numbered (`bill_block_change`; totals write uses `ops.allow_status_change`).

@@ -1,5 +1,26 @@
 # Flowcharts
 
+## Uniware bridge (Step 5)
+
+```mermaid
+flowchart TD
+  Admin[Admin Uniware Bridge] --> Status[edge status]
+  Status -->|secrets missing| Banner[Banner tables still load]
+  Admin --> SyncInv[sync_inventory]
+  SyncInv --> Snap[Uniware inventory snapshot]
+  Snap --> Mirror[uni_inventory_mirror]
+  Admin --> SyncOrd[sync_orders]
+  SyncOrd --> So[uni_sale_order]
+  Admin --> Draft[Draft uni_transfer]
+  Draft --> Post[rpc uni_post_transfer]
+  Post --> Owners{owner_system match direction?}
+  Owners -->|no| Block[Blocked]
+  Owners -->|yes| Move[inv_post_movement]
+  Move --> Adj[edge inventory/adjust]
+  Adj -->|ok| ApiOk[api_ok]
+  Adj -->|fail| ApiFail[api_failed ledger already posted]
+```
+
 ## Billing lifecycle (Step 4)
 
 ```mermaid

@@ -47,7 +47,7 @@ Cross-user updates propagate without manual refresh:
 
 Notifications (bell/toasts) remain separate INSERT subscriptions; they alert users but do not replace source-panel refetch.
 
-| **Edge Function invoke** | Admin-only | `supabase.functions.invoke('admin-create-user')` |
+| **Edge Function invoke** | Admin-only | `supabase.functions.invoke('admin-create-user')`, `uniware-bridge` (Step 5 Uniware sync/adjust) |
 | **Partner HTTP API** | Scott International stock sync | `dashboard-stock-api` (Bearer API key, service role DB) |
 
 ## Dashboard Stock API (2026-07-10)

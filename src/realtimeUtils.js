@@ -60,6 +60,7 @@ export const DASHBOARD_REALTIME_TABLES = [
   "dealers",
   "dealer_daily_reports",
   "inventory_skus",
+  "inventory_facility_stock",
   "inventory_stock_movements",
   "inventory_alert_settings",
   "inventory_suppliers",

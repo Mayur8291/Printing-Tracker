@@ -179,6 +179,9 @@ export function InventoryDataProvider({ session, children }) {
     try {
       const bundle = await fetchInventoryRefreshBundle({ fullSkus: silent });
       applyBundle(bundle, { keepMovements: silent && movementsLoadedRef.current });
+      // List/overview read facility on-hand (availability map), not sku.stock_qty.
+      // Await the map so a silent refresh after Adjust cannot paint the old qty.
+      await loadAvailability();
       if (!silent && bundle.hasMoreSkus) {
         void loadRemainingSkus();
       }
@@ -194,7 +197,7 @@ export function InventoryDataProvider({ session, children }) {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [applyBundle, loadMovements, loadKpiMovements, loadRemainingSkus]);
+  }, [applyBundle, loadMovements, loadKpiMovements, loadRemainingSkus, loadAvailability]);
 
   useEffect(() => {
     void loadKpiMovements();
@@ -474,7 +477,9 @@ export function InventoryDataProvider({ session, children }) {
   const adjustStock = useCallback(
     async ({ skuUuid, type, qty, reason, reference, fromWh, toWh }) => {
       const sku = skus.find((s) => s._uuid === skuUuid);
-      const warehouseId = toWh || fromWh || sku?.wh;
+      // OUT/ADJUST use the warehouse the user picked (fromWh). Preferring toWh
+      // used to write the SKU's home warehouse and leave the selected bin unchanged.
+      const warehouseId = type === "OUT" || type === "ADJUST" ? fromWh || toWh || sku?.wh : toWh || fromWh || sku?.wh;
       const signedQty = type === "OUT" ? -Math.abs(qty) : Math.abs(qty);
 
       if (warehouseId && type !== "TRANSFER") {
@@ -493,17 +498,7 @@ export function InventoryDataProvider({ session, children }) {
           userId
         });
 
-        void loadAvailability();
         await refresh({ silent: true });
-
-        setSkus((prev) =>
-          prev.map((s) => {
-            if (s._uuid !== skuUuid) return s;
-            const total = Math.max(0, Number(s.stock ?? s.totalStock ?? 0) + signedQty);
-            if (s.totalStock !== undefined) return { ...s, totalStock: total, stock: total };
-            return { ...s, stock: total };
-          })
-        );
 
         return { skuUuid, type, qty: signedQty, reason, reference, fromWh, toWh };
       }
@@ -532,7 +527,7 @@ export function InventoryDataProvider({ session, children }) {
       );
       return movement;
     },
-    [userId, loadKpiMovements, skus, warehouses, availabilityBySku, refresh, loadAvailability]
+    [userId, loadKpiMovements, skus, warehouses, availabilityBySku, refresh]
   );
 
   const createSupplier = useCallback(async (record) => {

@@ -2,6 +2,30 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-02 — Inventory list follows facility availability, not sku.stock_qty
+
+**Context:** Adjust updated the DB; staging UI looked unchanged.
+
+**Options:** (1) Paint `stock_qty` again. (2) Keep availability as truth and reload it after every refresh/adjust.
+
+**Decision:** Option 2. Await `loadAvailability()` inside `refresh()`. Adjust writes the warehouse the user picked.
+
+**Why:** Reserved qty only lives on `inventory_facility_stock`. Showing `stock_qty` would lie about sellable stock.
+
+**Tradeoffs:** Extra availability fetch on silent refresh. Correct qty beats a cheap stale paint.
+
+## 2026-09-02 — Step 5 Uniware mirror is a separate ledger
+
+**Context:** Roadmap Step 5. Risk of double-counting ecom stock if the snapshot is summed into `inv_balance` or Inventory.
+
+**Options:** (1) Pull Uniware qty into `inv_balance`. (2) Separate `uni_*` mirror + transfer document; never sum.
+
+**Decision:** Option 2. Ecom orders stay on `uni_sale_order`, not mixed into `so_order`. Cross-boundary only via `uni_transfer` + Uniware adjust API. Contract in `docs/UNIWARE_BOUNDARY.md`.
+
+**Why:** Law 5 — one owner per location. Uniware owns the ecom facility.
+
+**Tradeoffs:** Two order lists (B2B `so_order` vs ecom mirror). WBR ecom rows wait until reporting reads the mirror. Sync is empty until edge secrets are set.
+
 ## 2026-09-02 — Support table rows stay readable in Dark Mode
 
 **Context:** Support desk rows use pale priority backgrounds. Dark Mode panel text is light. Values disappear.

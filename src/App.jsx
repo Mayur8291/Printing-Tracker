@@ -55,6 +55,7 @@ import StockLedgerPanel from "./StockLedgerPanel";
 import ProcurementPanel from "./ProcurementPanel";
 import SalesOrdersPanel from "./SalesOrdersPanel";
 import BillingArPanel from "./BillingArPanel";
+import UniwareBridgePanel from "./UniwareBridgePanel";
 import PurchaseOrderPanel from "./PurchaseOrderPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
@@ -6096,6 +6097,8 @@ function App() {
           {dashboardTab === "ops_sales" && isAdmin && <SalesOrdersPanel />}
           {/* Billing & AR (Step 4) — invoices from dispatch, credit notes, receipts, ageing. */}
           {dashboardTab === "ops_ar" && isAdmin && <BillingArPanel />}
+          {/* Uniware Bridge (Step 5) — admin-only read-only ecom mirror + transfer docs. */}
+          {dashboardTab === "ops_uniware" && isAdmin && <UniwareBridgePanel />}
           {/* Scott tabs are admin-only (DASHBOARD_ADMIN_ONLY_TAB_IDS): the Scott proxy 403s
               non-admins, so guard the render too — sessionStorage can otherwise restore a
               Scott tab for a user who has since lost admin. */}

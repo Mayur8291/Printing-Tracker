@@ -155,8 +155,8 @@ export default function InventoryDashboard() {
         qty: data.qty,
         reason: data.reason || "",
         reference: data.note || data.ref || "",
-        fromWh: data.type === "OUT" ? data.wh || sku.wh : sku.wh,
-        toWh: data.type === "IN" ? data.wh || sku.wh : data.type === "TRANSFER" ? data.wh || sku.wh : sku.wh
+        fromWh: ["OUT", "ADJUST", "TRANSFER"].includes(data.type) ? data.wh || sku.wh : sku.wh,
+        toWh: ["IN", "ADJUST", "TRANSFER"].includes(data.type) ? data.wh || sku.wh : sku.wh
       });
       setAdjustOpen(false);
       toast(

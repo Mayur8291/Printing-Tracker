@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-02 — Inventory Adjust looked stuck + Step 5 Uniware bridge
+
+- **Bug fix:** Inventory Adjust wrote facility stock, but the list kept the old qty. List reads `inventory_sku_availability`, not `inventory_skus.stock_qty`. Silent refresh after Adjust never reloaded that map, and OUT/ADJUST ignored the warehouse you picked (wrote the SKU home bin). Fix: `refresh()` awaits `loadAvailability()`; Adjust uses the chosen warehouse; realtime also watches `inventory_facility_stock`.
+- **Feature:** One Source of Truth Step 5 Uniware bridge. Read-only `uni_inventory_mirror` / `uni_sale_order`. Cross-boundary stock only via `uni_transfer` + Uniware `inventory/adjust`. Mirror qty never enter Stock Ledger or Inventory on-hand. Admin tab **Uniware Bridge** (`ops_uniware`). Edge `uniware-bridge` (admin JWT). Secrets stay on the function, not in the SPA.
+- **Files:** `src/inventory/InventoryDataContext.jsx`, `src/inventory/InventoryDashboard.jsx`, `src/realtimeUtils.js`, `supabase/migrations/20260902180000_step5_uniware_bridge.sql`, `supabase/functions/uniware-bridge/index.ts`, `src/UniwareBridgePanel.jsx`, `src/uniwareUtils.js`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Seeds marker location `UNIWARE-ECOM` (`owner_system=uniware`). Production untouched.
+- **Deferred:** live Uniware pull needs edge secrets `UNIWARE_BASE_URL` / `UNIWARE_USERNAME` / `UNIWARE_PASSWORD` / `UNIWARE_FACILITY`. Marketplace labels/manifests stay in Uniware. Ecom orders stay in `uni_sale_order` (not mixed into `so_order`).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, API.md, SECURITY.md, UNIWARE_BOUNDARY.md, ENVIRONMENTS.md.
+
 ## 2026-09-02 — Step 4 billing & receivables: invoice from dispatch, credit notes, ageing
 
 - **Feature:** One Source of Truth Step 4 money path. `bill_invoice` / `bill_invoice_line` generated from a dispatch (one invoice per dispatch); gapless `INV/<FY>/nnnn` per entity × GSTIN × FY; HSN from SKU, GST from the order line, IGST vs CGST+SGST from place of supply vs GSTIN state. Invoice immutable once numbered — corrections are `bill_credit_note`. `ar_receipt` + `ar_allocation` all-or-nothing; allocation cannot exceed invoice outstanding or receipt amount. Ageing view `ar_invoice_outstanding_view` (NOT DUE / 0–30 / 31–60 / 61–90 / 90+ / PAID); due date = invoice date + party credit days. `ar_customer_ledger_view`. `ar_followup` collections trail. Soft credit warning on Sales Order confirm (`ar_credit_check`); hard block deferred until department roles.
