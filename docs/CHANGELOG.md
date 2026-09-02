@@ -59,6 +59,33 @@
 - **Files:** `InternalSupportPlatformPanel.jsx`
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
 
+## 2026-09-01 — Step 1 stock ledger: append-only movements + Stock Ledger tab
+
+- **DB (staging):** migration `20260901191500_step1_stock_ledger.sql` — `inv_movement` (append-only, trigger-enforced), `inv_balance` (locked upserts, never negative), `inv_reservation`, cycle-count tables, `inv_drift_alert`; functions `inv_post_movement`, `inv_reserve`/`inv_release_reservation`, `inv_kit_build`/`inv_kit_break`, `inv_count_post`, `inv_recompute_drift` (pg_cron nightly 02:30 IST). All stock mutations in SECURITY DEFINER functions with `FOR UPDATE`. Smoke-tested via rolled-back transaction — all guards held, drift 0.
+- **UI:** new admin-only **Stock Ledger** tab (`ops_stock`, Ops Platform group): stock by location (on-hand/reserved/available), movement history, post-movement dialog (GRN/transfer/issue/return/adjustment±), drift banner. `check:ui` passed.
+- **Untouched:** Scott API section, existing Inventory tab, Scott stock integration.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-09-01 — Platform Masters tab: screens + CSV import with dedupe report
+
+- **What:** New admin-only sidebar tab **Platform Masters** (`ops_masters`, group "Ops Platform") over the Step 0 tables: Parties, SKUs, Entities & GSTINs, Locations — list/search/create/edit dialogs, plus CSV import for Parties and SKUs with a dedupe report (New / Already in masters / Duplicate in file / Invalid; only New rows import). Templates downloadable.
+- **Files:** `MastersPanel.jsx`, `MastersImportDialog.jsx`, `mastersUtils.js` (standalone CSV parser — no dependency on frozen Scott code), `dashboardSidebarConfig.js`, `App.jsx`.
+- **Guard:** distinct from the Scott API "Masters" tab, which is untouched. `check:ui` passed.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-09-01 — Step 0 masters schema on staging (One Source of Truth)
+
+- **What:** Migration `20260901180000_step0_masters_and_entities.sql` — 19 tables: `core_entity`/`core_gstin`/`core_sequence`/`core_location`, `cat_*` catalog (brand→style→colour→sku, kits, channel listings, GST slabs), `crm_*` party master (+GSTIN, address, contact, bank, vendor-item), `hr_employee`, `audit_log` with triggers on every master. `core_next_sequence()` gapless numbering (locked, smoke-tested TST/0001→0002). RLS: read authenticated, write admin; bank + audit admin-only.
+- **Where:** STAGING only (`scvojtvgnkmbupvyslmb`). No UI, no data except 8 seeded brands. Scott API untouched.
+- **Docs:** DATABASE.md (table reference + rollback), DECISIONS.md (6 schema decisions), FLOWCHARTS.md (ERD), CHANGELOG.md.
+
+## 2026-09-01 — One Source of Truth roadmap + laws + Cursor rule (docs only)
+
+- **What:** Captured the full Scott Ops Platform build roadmap in [ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md); the nine binding laws + six-question gate in [laws.md](./laws.md); new always-apply rule `.cursor/rules/single-source-of-truth.mdc`.
+- **Scott API freeze:** the rule and laws hard-guard `src/scott/**`, `scott_customers`/`scott_reports`/`scott_masters` tabs, `scott-*` edge functions, and the existing inventory-fetch integration — never modified by roadmap work.
+- **No code / schema change** in this pass. Step 0 (masters) starts only after scope confirmation.
+- **Documentation updated:** CHANGELOG.md, OVERVIEW.md, laws.md, ONE_SOURCE_OF_TRUTH_ROADMAP.md.
+
 ## 2026-09-01 — Hide Floor for Food, Asset, Biometric, Lost belongings
 
 - **Issue:** Floor still showed for Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings.

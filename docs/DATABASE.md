@@ -28,6 +28,57 @@ Staff-raised tickets from Tools → Internal Support Platform → **Raise an Iss
 
 **Rollback:** drop trigger, function, policies, then `internal_support_issues`.
 
+## Step 1 stock ledger — One Source of Truth (2026-09-01)
+
+Append-only stock ledger (law 2). Migration `20260901191500_step1_stock_ledger.sql`, applied on **staging**. All mutations go through SECURITY DEFINER functions with `FOR UPDATE` locks — no client code ever writes these tables. Role gate v1: admin app users + server contexts (`inv_assert_can_post`); department roles later.
+
+| Object | Purpose |
+|---|---|
+| `inv_movement` | Append-only ledger: sku, from/to location, qty>0, state (good/qc_hold/damaged), reason (grn, qc_pass, qc_fail, putaway, transfer, pick, dispatch, return_in, adjustment, kit_build, kit_break, consumption, production_out, cycle_count), ref, lot, note, actor. UPDATE/DELETE blocked by trigger — corrections are reversing movements. |
+| `inv_balance` | sku × location × state → qty (≥ 0), maintained only by `inv_apply_balance()` under row lock. |
+| `inv_reservation` | Active reservations; available = balance − active reservations. |
+| `inv_count_session` / `inv_count_line` | Cycle counts; `expected_qty` snapshots from balance on line insert (trigger); posting turns variances into `cycle_count` movements. Admin may write these two directly (working documents). |
+| `inv_drift_alert` | Ledger-vs-balance mismatches found by the nightly recompute. |
+| `inv_post_movement(...)` | The only door for stock changes. Validates qty/locations, requires a note for adjustments/cycle counts, applies balances under lock (never negative), inserts the ledger row. Returns movement id. |
+| `inv_reserve` / `inv_release_reservation` | Reservation under lock against available; idempotent release. |
+| `inv_kit_build` / `inv_kit_break` | Paired movements from `cat_kit` sharing one ref. |
+| `inv_count_post(session)` | Posts count variances as movements, marks session posted. |
+| `inv_recompute_drift()` | Full ledger recompute vs balances → `inv_drift_alert` rows. pg_cron `inv-drift-nightly` at 21:00 UTC (02:30 IST). |
+
+**RLS:** select for `authenticated` on all; **no direct write policies** on movement/balance/reservation (functions only); count tables admin-write; drift admin-update. Function grants: `authenticated` may execute the public functions; `inv_apply_balance` and `inv_recompute_drift` are internal (no authenticated grant).
+
+**Smoke-tested on staging** (rolled-back transaction): GRN → transfer → kit build → cycle count produced exact balances; over-issue, note-less adjustment, over-reserve and ledger UPDATE all blocked; drift = 0.
+
+**Rollback:** drop the 6 `inv_*` tables + 9 functions, `cron.unschedule('inv-drift-nightly')`.
+
+## Step 0 masters — One Source of Truth (2026-09-01)
+
+Foundation masters for the Scott Ops Platform roadmap ([ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md), laws in [laws.md](./laws.md)). Migration `20260901180000_step0_masters_and_entities.sql`, applied on **staging**. No UI yet; no data loaded except the 8 seeded brands. Scott API tables untouched.
+
+| Table | Purpose |
+|---|---|
+| `core_entity` / `core_gstin` | Legal entities and every seller GSTIN (15). Every future document carries `entity_id` + `gstin_id`. |
+| `core_sequence` | Gapless doc numbering per entity × gstin × doc type × FY. Allocate **only** via `core_next_sequence()` (SECURITY DEFINER, `FOR UPDATE` row lock, raises if no sequence configured). |
+| `core_location` | Warehouses, zones, bins, virtual locations (`qc_hold`, `damaged`, `in_transit`, `job_worker`, `amazon_fc`, `distributor`, `uniware_facility`); `owner_system` = platform \| uniware \| external (law 5); `party_id` links job-worker/distributor locations. Check: `kind='virtual'` ⇔ `virtual_kind` set. |
+| `cat_brand` → `cat_style` → `cat_colour` → `cat_sku` | Catalog. `cat_sku.sku_code` unique, **inherited as-is** (incl. Scott integration codes). `colour_id` nullable until legacy import is structured (must be filled before Step 1 go-live). `item_kind` finished_good \| raw_material \| packaging \| consumable. |
+| `cat_gst_slab` | GST rate by price band as data, with effective dates. |
+| `cat_kit` | Kit SKU → component SKUs × qty (kit ≠ component, qty > 0). |
+| `cat_channel_listing` | SKU ↔ channel + ASIN/FSN/seller-SKU + entity. Unique (sku, channel, entity). |
+| `crm_party` | One party master: customer \| vendor \| job_worker \| transporter \| principal. Owner, credit days/limit, PAN, `parent_id` (branches), `merged_into_id` (dedupe keeps history), MSME/Udyam fields, lead time, payment terms, `default_qc_required`. Unique normalized name per kind among unmerged rows. |
+| `crm_party_gstin` / `crm_address` / `crm_contact` | Party detail rows (cascade delete with party). |
+| `crm_party_bank` | Bank details, **admin-only RLS** (even select). |
+| `crm_vendor_item` | Vendor × SKU: last rate, MOQ, lead time, `qc_exempt`, preferred rank. Rate history comes in Step 2. |
+| `hr_employee` | People master linked to `profiles`; department, tier 1–6, manager, in-time, status. |
+| `audit_log` | Who/when/what for every master change, written by `audit_row_change()` trigger (SECURITY DEFINER) on all Step 0 tables except `core_sequence`. Admin-only read; no direct writes. |
+
+**RLS pattern:** select for `authenticated`; insert/update/delete admin-only via `jwt_user_is_admin()`. Exceptions: `crm_party_bank` (admin-only everything), `audit_log` (admin read only).
+
+**Triggers:** `set_updated_at()` before update on all; `audit_row_change()` after insert/update/delete on all except `core_sequence` (a number allocation per document would flood the log — the documents are the trail).
+
+**Rollback:** drop the 19 tables + `core_next_sequence`, `audit_row_change`, `set_updated_at`. No existing table was altered.
+
+**UI:** admin-only **Platform Masters** tab (`MastersPanel.jsx`) — Parties / SKUs / Entities & GSTINs / Locations, with CSV import + dedupe report for Parties and SKUs (see FLOWS.md → Platform Masters).
+
 ## Enquiries
 
 Customer/product enquiries logged in the dashboard; admin assigns team members to follow up.

@@ -1,5 +1,87 @@
 # Flowcharts
 
+## Step 0 masters — entity relationships (One Source of Truth)
+
+```mermaid
+flowchart TD
+  core_entity --> core_gstin
+  core_entity --> core_sequence
+  core_gstin --> core_sequence
+  cat_brand --> cat_style
+  cat_style --> cat_colour
+  cat_colour --> cat_sku
+  cat_gst_slab --> cat_sku
+  cat_sku --> cat_kit
+  cat_sku --> cat_channel_listing
+  core_entity --> cat_channel_listing
+  crm_party --> crm_party_gstin
+  crm_party --> crm_address
+  crm_party --> crm_contact
+  crm_party --> crm_party_bank
+  crm_party --> crm_vendor_item
+  cat_sku --> crm_vendor_item
+  crm_party --> core_location
+  core_location --> core_location
+  profiles --> crm_party
+  profiles --> hr_employee
+  hr_employee --> hr_employee
+  Masters[All masters] -->|insert update delete| audit_log
+```
+
+## Stock Ledger movement posting (Step 1)
+
+```mermaid
+flowchart TD
+  Admin[Admin Stock Ledger tab] --> Dialog[Post movement dialog]
+  Dialog --> Type{Type}
+  Type -->|Receive GRN| ToOnly[to location]
+  Type -->|Transfer| Both[from and to]
+  Type -->|Issue dispatch| FromOnly[from location]
+  Type -->|Adjustment| NoteReq[note required]
+  ToOnly --> RPC[rpc inv_post_movement]
+  Both --> RPC
+  FromOnly --> RPC
+  NoteReq --> RPC
+  RPC --> Gate{inv_assert_can_post}
+  Gate -->|non admin user| Deny[error raised]
+  Gate -->|admin or server| Lock[Lock balance rows FOR UPDATE]
+  Lock --> Neg{Would go below zero?}
+  Neg -->|yes| Deny2[Insufficient stock error]
+  Neg -->|no| Apply[Update balances]
+  Apply --> Insert[Insert append-only inv_movement row]
+  Insert --> Done[Return movement id refresh panel]
+  Nightly[pg_cron 0230 IST] --> Drift[inv_recompute_drift ledger vs balance]
+  Drift -->|mismatch| AlertRow[inv_drift_alert row banner in panel]
+```
+
+## Platform Masters CSV import (dedupe report)
+
+```mermaid
+flowchart TD
+  Admin[Admin opens Platform Masters] --> Tab{Parties or SKUs tab}
+  Tab --> Import[Import CSV button]
+  Import --> Template[Optional template download]
+  Import --> File[Choose CSV file]
+  File --> Parse[Parse quoted CSV to objects]
+  Parse --> HeaderOK{Required header present?}
+  HeaderOK -->|no| ParseError[Show error no import]
+  HeaderOK -->|yes| Classify[Classify each row]
+  Classify --> New[New]
+  Classify --> DupDb[Already in masters]
+  Classify --> DupFile[Duplicate in file]
+  Classify --> Invalid[Invalid]
+  New --> Preview[Preview table with counts]
+  DupDb --> Preview
+  DupFile --> Preview
+  Invalid --> Preview
+  Preview --> Go[Import N new rows]
+  Go --> Insert[Insert chunks of 100 into crm_party or cat_sku]
+  Insert --> RowFail{Chunk failed?}
+  RowFail -->|yes| PerRow[Retry row by row list failures]
+  RowFail -->|no| Done[Report inserted count refetch]
+  PerRow --> Done
+```
+
 ## Tools Internal Support Platform
 
 ```mermaid

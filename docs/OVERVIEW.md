@@ -140,5 +140,7 @@ See [ENVIRONMENTS.md](./ENVIRONMENTS.md) and [RELEASE_AUTOMATION.md](./RELEASE_A
 | [DEBUGGING.md](./DEBUGGING.md) | Common failures |
 | [SECURITY.md](./SECURITY.md) | Auth, secrets, API keys |
 | [VULNERABILITIES.md](./VULNERABILITIES.md) | Whole-build vulnerability audit (2026-08-17) |
+| [ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md) | Scott Ops Platform build roadmap (Steps 0–10) |
+| [laws.md](./laws.md) | Nine binding laws + six-question gate + Scott API freeze |
 
 For a **Word-friendly export**, open `docs/export/Scott_Dashboard_Platform_Overview.html` in Microsoft Word → **Save As → .docx**.

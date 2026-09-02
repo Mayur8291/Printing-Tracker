@@ -86,6 +86,35 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Only one tab for now.
 
+## 2026-09-01 — Step 1 stock ledger design choices
+
+**Context:** Second roadmap migration (`20260901191500_step1_stock_ledger.sql`), staging only.
+
+**Decisions:**
+
+1. **Role gate pattern `auth.uid() is not null and not jwt_user_is_admin()`.** Blocks non-admin app users while allowing admin users and server contexts (SQL/service, where `auth.uid()` is null). Warehouse-department roles come with the scanner flow; the gate lives in one helper (`inv_assert_can_post`) so widening it is a one-line change.
+2. **Append-only enforced by trigger, not just policy.** RLS alone would not stop the table owner; the trigger raises for everyone. Corrections are reversing movements.
+3. **Balances maintained synchronously by the posting function** (not by a trigger on `inv_movement`) so the negative-stock check and the lock happen in one place; the nightly recompute is the safety net (drift alerts, pg_cron 02:30 IST).
+4. **Reservations are generic (`ref_type`/`ref_id`)**, not FK'd to order lines — `so_order` arrives in Step 3 and will pass its own refs. `inv_allocate(order_id)` lands then.
+5. **Count sessions/lines are admin-writable directly** — they are working documents; only `inv_count_post` moves stock. Expected qty snapshots at line insert via trigger.
+6. **Smoke test by rollback:** the whole scenario ran in one transaction ending in a deliberate raise, so staging keeps zero test rows while the assertions (balances, blocked over-issue/over-reserve/edit, drift 0) are proven.
+7. **Existing Inventory tab and Scott stock integration untouched** — the new ledger runs beside them until cutover; nothing reads or writes the frozen integration tables.
+
+## 2026-09-01 — Step 0 masters schema choices (One Source of Truth)
+
+**Context:** First migration of the roadmap ([ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md)). Schema only, staging only, no UI.
+
+**Decisions:**
+
+1. **`cat_sku.colour_id` nullable at first.** Legacy/Uniware SKUs import before styles/colours are structured; the column must be filled before Step 1 (stock ledger) goes live. Alternative (not null from day one) would block the import-then-reconcile flow the roadmap prescribes.
+2. **No audit trigger on `core_sequence`.** Every allocated number is an update; auditing it means one audit row per invoice. The numbered documents are the audit trail.
+3. **Bank details in `crm_party_bank`, admin-only RLS.** There is no `accounts` DB role yet; admin gate now, dedicated accounts role when Step 4 lands. Masking in-row was rejected — separate table keeps RLS simple and provable.
+4. **`core_next_sequence()` is SECURITY DEFINER, granted to `authenticated`.** Non-admin billing users must allocate numbers while the sequence table itself stays admin-write-only. Function only increments a locked counter; `search_path` pinned; revoked from `anon`/`public`.
+5. **Unique normalized names** (`lower`, collapsed whitespace) per kind on `crm_party` (unmerged rows only), `core_entity`, `cat_brand` — law 1's typo-split protection at the index level.
+6. **Existing SKU codes inherited as-is.** Nothing the Scott integration maps on is renamed (hard guard in laws.md).
+
+**Tradeoffs:** admin-only writes are coarse until per-department roles exist; acceptable while there is no masters UI.
+
 ## 2026-09-01 — Hide Floor row for Food, Asset, Biometric, Lost belongings
 
 **Context:** User does not want Floor on screen for Food, Issue with Asset, Issue with Biometric, Lost Personnal Belongings. If they also pick another issue, Floor must show.

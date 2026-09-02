@@ -50,6 +50,8 @@ import { cn } from "./lib/utils";
 import SharedLinksPanel from "./SharedLinksPanel";
 import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
 import EnquiryPanel from "./EnquiryPanel";
+import MastersPanel from "./MastersPanel";
+import StockLedgerPanel from "./StockLedgerPanel";
 import PurchaseOrderPanel from "./PurchaseOrderPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
@@ -6080,6 +6082,11 @@ function App() {
           {dashboardTab === "inventory" && (
             <InventoryTabPanel session={session} />
           )}
+          {/* Platform Masters (Step 0, One Source of Truth) — admin-only; separate from
+              the Scott API Masters tab below. */}
+          {dashboardTab === "ops_masters" && isAdmin && <MastersPanel />}
+          {/* Stock Ledger (Step 1) — admin-only append-only movements over Step 0 masters. */}
+          {dashboardTab === "ops_stock" && isAdmin && <StockLedgerPanel />}
           {/* Scott tabs are admin-only (DASHBOARD_ADMIN_ONLY_TAB_IDS): the Scott proxy 403s
               non-admins, so guard the render too — sessionStorage can otherwise restore a
               Scott tab for a user who has since lost admin. */}
