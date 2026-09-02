@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-02 — Step 3 sales orders: order → reserve → dispatch, job work, SLA
+
+- **Feature:** One Source of Truth Step 3. `so_order`/`so_line` with a DB status machine (draft → confirmed → in_production → ready → partially_dispatched → dispatched → invoiced → closed, + cancelled); confirming assigns a gapless `SO/<FY>/nnnn` and reserves available stock (`so_allocate`, partial allowed, re-runnable); **ready requires full reservation** and **dispatch can never exceed reserved qty** (roadmap laws, enforced in the DB). `so_dispatch`/`so_dispatch_line` are append-only, written only by `so_post_dispatch` (consumes reservations, posts `dispatch` movements, rolls the order status). `jw_job` job work (printing/embroidery/sublimation/stitching): issue = challan out (transfer to worker location), receive = outputs in (`production_out`) + consumed inputs burned (`consumption`); leftover input at the worker location is the visible loss. `sla_policy` stage targets measured in business hours (Mon–Sat 09:30–18:30 IST, `ops_business_hours_between`) via `so_sla_view`. Views `so_open_view`, `so_sla_view`. Counter sales = `channel='counter'` on the same table.
+- **UI:** new admin-only tab **Sales Orders** (`ops_sales`, Ops Platform group): Orders (create draft, confirm & reserve, allocate, start production, mark ready, dispatch dialog capped at reserved, cancel with reason), Dispatches list, Job work (create/issue/receive/close), SLA (target editor + breach table).
+- **Files:** `supabase/migrations/20260902150000_step3_sales_orders.sql`, `src/salesOrdersUtils.js`, `src/SalesOrdersPanel.jsx`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Smoke test (rolled back): partial allocation, ready-block, over-dispatch block, append-only dispatches, job-work round trip, SLA hours, drift 0.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-02 — Support desk tables readable in Dark Mode
 
 - **Issue:** Support Enquiry / Complaints table values vanished in Dark Mode.

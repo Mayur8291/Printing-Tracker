@@ -9,6 +9,36 @@
 | **Fix** | Hard refresh. `PRIORITY_ROW_CLASS` and badges include `dark:` backgrounds and `text-foreground`. |
 | **Verify** | Dark Mode: Code, Customer, Order ID, Concerns, Source, Assignee, Created all readable. Priority tint still there. |
 
+## Sales order: "Order cannot be ready: N line(s) not fully reserved"
+
+- **Symptom:** Mark ready fails naming the number of short lines.
+- **Root cause:** by design (roadmap law) — `so_set_status` refuses `ready` unless every line has `qty_reserved + qty_dispatched ≥ qty`. Stock ran out at confirm time, so allocation was partial.
+- **Fix:** get stock into the order's fulfilment location (GRN, production, job-work receipt, transfer), then Allocate stock on the order; repeat Mark ready.
+
+## Sales order: "Dispatch X exceeds reserved Y for this line"
+
+- **Symptom:** posting a dispatch fails naming the line's reserved qty.
+- **Root cause:** by design — a dispatch can never exceed reserved qty (`so_post_dispatch` checks under lock; the dialog caps inputs too, but the DB is the authority).
+- **Fix:** allocate more stock first (order must be re-set to ready is *not* needed — allocation works on confirmed/in_production; ready orders keep their reservations), or dispatch the reserved quantity only.
+
+## Sales order / job work: "status changes only through …" / "append-only" errors
+
+- **Symptom:** direct updates to `so_order`, `so_dispatch`, `jw_job` raise "status changes only through so_confirm / so_set_status / so_post_dispatch / so_cancel" or "Dispatches are append-only".
+- **Root cause:** by design. Guard triggers allow status flips only inside the definer functions; dispatch documents freeze at creation.
+- **Fix:** use the RPCs. Dispatch corrections are `return_in` movements + a note, never edits.
+
+## Job work: worker location still shows input stock after receive
+
+- **Symptom:** Stock Ledger shows leftover input SKUs at the job-worker location after a job is received/closed.
+- **Root cause:** not a bug — receive only burns what was declared consumed. The leftover **is** the pending/loss figure the roadmap wants visible.
+- **Fix:** if pieces physically came back, post a `transfer` movement worker → source (ref the job). If they are lost, leave them (or consume with a note) so the loss stays on record.
+
+## SLA tab empty / no breaches shown
+
+- **Symptom:** SLA tab shows "Nothing here" although orders exist.
+- **Root cause:** no `sla_policy` rows for the order's channel (orders are unmeasured without a target), or all measured stages are within target while "breaches only" is on.
+- **Fix:** save stage targets for the channels in use; toggle "Show all" to see running stages. Hours count Mon–Sat 09:30–18:30 IST only (`ops_business_hours_between`).
+
 ## Procurement: "status changes only through …" / "immutable" errors
 
 - **Symptom:** direct updates to `po_purchase_order`, `po_grn` or `ap_bill` raise "status changes only through po_approve / po_post_grn / ap_approve_bill" or "… is immutable".

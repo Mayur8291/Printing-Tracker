@@ -1,5 +1,20 @@
 # Flows
 
+## Sales Orders (Step 3, One Source of Truth)
+
+Admin-only tab **Sales Orders** (`ops_sales`, sidebar group "Ops Platform"). Counter sales use the same screen with channel = Counter sale.
+
+1. **Trigger:** admin opens Sales Orders (`SalesOrdersPanel`); parallel load of orders (+lines), dispatches, job-work orders, SLA policies + `so_sla_view`, and parties/entities/locations/SKUs from the Step 0 masters.
+2. **New order:** dialog (customer, channel, entity, fulfilment location, promised date, lines by SKU code — one row per SKU/size) → draft rows in `so_order`/`so_line` (admin RLS). Drafts have no number.
+3. **Confirm & reserve:** order detail → Confirm → RPC `so_confirm` assigns the gapless `SO/<FY>/nnnn` and runs `so_allocate`: reserves whatever is available (balance − active reservations) per line. Shortfall stays visible as Reserved < Ordered.
+4. **Allocate again:** after production or new receipts, Allocate stock re-runs `so_allocate` and reports the newly reserved pieces.
+5. **Stage moves:** Start production / Mark ready → `so_set_status`. **Ready is blocked by the DB until reservations cover every line.** Stage timestamps recorded for the SLA clock.
+6. **Dispatch:** ready/partially dispatched only → dialog pre-fills each line at min(reserved, open), caps at reserved (DB enforces too) → `so_post_dispatch` consumes reservations FIFO, posts `dispatch` movements from the order's location, writes the append-only `so_dispatch` document (`DISP/<FY>/nnnn`), rolls status to partially_dispatched or dispatched. Partial dispatch allowed; repeat until done.
+7. **Cancel:** reason required; only before any dispatch. Releases all active reservations.
+8. **Job work:** New job (kind, worker party or in-house, source + worker locations, input/output lines) → Issue = `jw_issue` (challan out: transfers inputs to the worker location, assigns `JW/<FY>/nnnn`) → Receive = `jw_receive` (outputs into the source location as `production_out`, consumed inputs burned at the worker location) → Close. Leftover input at the worker location is the loss, visible in the Stock Ledger.
+9. **SLA:** targets per channel × stage in business hours (Mon–Sat 09:30–18:30 IST) saved to `sla_policy`; the tab lists breaches (or all measured stages) from `so_sla_view` — elapsed vs target, still-open stages measured against now.
+10. **Failure cases:** every rule lives in the DB (ready gate, dispatch cap, immutable documents, status matrix, undeclared job outputs) — the UI surfaces the raised messages inline.
+
 ## Procurement (Step 2, One Source of Truth)
 
 Admin-only tab **Procurement** (`ops_procurement`, sidebar group "Ops Platform") — distinct from the existing Purchase Order voucher tab, which keeps running unchanged.

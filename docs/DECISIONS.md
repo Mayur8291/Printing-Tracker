@@ -134,6 +134,18 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Only one tab for now.
 
+## 2026-09-02 — Step 3 sales orders design choices
+
+- **Context:** roadmap Step 3 — orders that reserve stock, drive dispatch, job work, SLA. Same DB-first discipline as Steps 1–2.
+- **Partial allocation on confirm:** `so_confirm` reserves whatever is available instead of failing on shortfall — production fills the rest and `so_allocate` re-runs (top-up, idempotent). The hard gates sit later: ready requires full reservation, dispatch caps at reserved. Alternative (all-or-nothing confirm) rejected: real orders confirm before stock exists.
+- **Reservation consumption splits rows:** dispatch consumes reservations FIFO; a partially used row is shrunk and a consumed row inserted for the used grain, so the reservation trail stays complete for audit instead of silently mutating quantities.
+- **Dispatches append-only, no direct write policies:** like payments in Step 2 — `so_post_dispatch` is the only writer; corrections are `return_in` movements + note. LR/e-way fields live on the document for Step 4 invoicing.
+- **Job-work loss = worker-location balance:** receive burns declared consumption and books declared outputs; whatever input remains at the worker location is the visible pending/loss (no separate loss ledger to maintain, the stock ledger already is one). Issued jobs cannot cancel — stock must come back through movements.
+- **SLA measured from stage timestamps** (`confirmed_at` → `production_started_at` → `ready_at` → `dispatched_at`) against `sla_policy` targets in business hours (Mon–Sat 09:30–18:30 IST) — never typed dates. Escalation/notification deferred; the view carries `breached` for a later job.
+- **Counter sales are a channel, not a module:** `channel='counter'` on `so_order`, per roadmap ("the walk-in register becomes a quick-order screen writing to the same so_order").
+- **Enquiry hand-off deferred:** the roadmap's "won enquiry creates a draft so_order" needs the live Support module's enquiry schema; wiring it now risks the running module. Revisit as a small follow-up (create draft `so_order` + convert contact to `crm_party` from an enquiry action).
+- **UI stays admin-only** (`ops_sales` in `DASHBOARD_ADMIN_ONLY_TAB_IDS`) during the build-out, same as Steps 0–2; existing SALES_MASTER/Job Sheet workflows untouched until cutover.
+
 ## 2026-09-02 — Step 2 procurement design choices
 
 **Context:** Third roadmap migration (`20260902120000_step2_procurement.sql`), staging only. User decisions: QC gate on by default, approval = admin access, tolerances editable.

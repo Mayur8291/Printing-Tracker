@@ -28,6 +28,38 @@ Staff-raised tickets from Tools → Internal Support Platform → Open Tickets �
 
 **Rollback:** drop trigger, function, policies, then `internal_support_issues`.
 
+## Step 3 sales orders — One Source of Truth (2026-09-02)
+
+Orders that reserve stock, dispatch against reservations, job work, SLA (roadmap Step 3). Migration `20260902150000_step3_sales_orders.sql`, applied on **staging**. Same discipline as Step 2: drafting is admin RLS; numbering, reservations, stock moves and status flips only through SECURITY DEFINER functions guarded by triggers + the `ops.allow_status_change` transaction-local flag.
+
+| Object | Purpose |
+|---|---|
+| `so_order` | Order header: customer (`crm_party`), entity, channel (b2b/counter/distributor/enquiry/ecom_uniware), fulfilment `location_id` (reservations + dispatches run against it), promised date, branding flag. Status machine draft → confirmed → in_production → ready → partially_dispatched → dispatched → invoiced → closed, + cancelled. Stage timestamps (`confirmed_at`, `production_started_at`, `ready_at`, `dispatched_at`) feed the SLA view. `so_no` assigned at confirm (`SO/<FY>/nnnn`). Commercial fields freeze after draft. |
+| `so_line` | One row per SKU (per size) — never "LABEL-QTY" strings. qty/rate/tax + function-maintained counters `qty_reserved` (active) and `qty_dispatched`. Unique (so_id, sku_id). |
+| `so_dispatch` / `so_dispatch_line` | Dispatch document: transporter, LR no, boxes, weight, e-way bill no, POD url. **Append-only** (block triggers, no direct write policies) — written only by `so_post_dispatch`. |
+| `jw_job` / `jw_job_line` | Job work: kind (printing/embroidery/sublimation/stitching/other), worker party or in-house, source + worker locations (must differ), lines split input/output with qty_planned/qty_moved. Status draft → issued → received → closed, + cancelled (draft only). |
+| `sla_policy` | Stage target hours per channel × stage (confirm_to_production / production_to_ready / ready_to_dispatch), unique per pair, admin-editable. |
+
+**Functions** (SECURITY DEFINER, `ops_assert_admin()` gate):
+
+- `so_confirm(so)` → assigns the gapless number, then `so_allocate`.
+- `so_allocate(so)` → per line under lock: available = `inv_balance` (good) − active `inv_reservation`; reserves `least(need, available)` (partial OK, re-runnable after production/new stock). Returns qty newly reserved.
+- `so_set_status(so, status, reason)` → transition matrix; **ready blocked unless every line has qty_reserved + qty_dispatched ≥ qty** (roadmap rule). Sets stage timestamps.
+- `so_cancel(so, reason)` → only before any dispatch; releases active reservations, zeroes counters.
+- `so_post_dispatch(so, lines jsonb, …)` → order must be ready/partially_dispatched; per line under lock: qty ≤ `qty_reserved` (roadmap rule) and ≤ open qty; consumes reservations FIFO via `so_consume_reservation` (partial rows split so every grain stays auditable), posts `dispatch` movements (ref `so_dispatch`), updates counters, rolls status to partially_dispatched/dispatched. Returns `DISP/<FY>/nnnn`. |
+- `jw_issue(job)` → challan out: transfer movements source → worker location for input lines; assigns `JW/<FY>/nnnn`.
+- `jw_receive(job, outputs jsonb, consumed jsonb, note)` → outputs must be declared lines (hard error otherwise); `production_out` into the source location, `consumption` burns inputs at the worker location. Leftover worker-location balance = pending/loss, visible in Stock Ledger.
+- `jw_close(job)` (received only) / `jw_cancel(job, reason)` (draft only — issued jobs must receive/return stock).
+- `ops_business_hours_between(from, to)` → business hours Mon–Sat 09:30–18:30 IST (Sundays off), used by the SLA view.
+
+**Views** (`security_invoker = true`): `so_open_view` (qty ordered/reserved/dispatched, value, days overdue vs promised) and `so_sla_view` (order × applicable stage: elapsed business hours vs `sla_policy` target, `stage_done`, `breached`; open stages measure against `now()`).
+
+**RLS:** read authenticated everywhere; admin write on drafting tables (`so_order`, `so_line`, `jw_job`, `jw_job_line`, `sla_policy`); **no write policies** on `so_dispatch`/`so_dispatch_line`. Audit triggers (law 4) on `so_order`, `so_dispatch`, `jw_job`, `sla_policy`. `so_consume_reservation` has no authenticated grant (internal).
+
+**Smoke-tested on staging** (rolled-back transaction): 20 in stock → order 1 (15) fully reserved, order 2 (10) got only the remaining 5; ready blocked on the short order; two-part dispatch rolled partially_dispatched → dispatched; over-dispatch, direct status flips, dispatch edits and undeclared job outputs all blocked; cancel released reservations; job work round trip left exact balances; business hours = 2.00 for a 2-hour Tuesday window; drift 0.
+
+**Rollback:** reversing migration dropping `so_`/`jw_`/`sla_` tables, views and functions. Posted staging documents would be lost.
+
 ## Step 2 procurement — One Source of Truth (2026-09-02)
 
 PO lifecycle → GRN → QC → payables (law 3: money is a document). Migration `20260902120000_step2_procurement.sql`, applied on **staging**. Drafting documents are admin-writable via RLS; everything that moves stock/money or flips a status goes through SECURITY DEFINER functions. Status columns are protected by guard triggers + a transaction-local flag (`ops.allow_status_change`) only the functions set.

@@ -23,6 +23,7 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   { id: "ops_masters", label: "Platform Masters" },
   { id: "ops_stock", label: "Stock Ledger" },
   { id: "ops_procurement", label: "Procurement" },
+  { id: "ops_sales", label: "Sales Orders" },
   // --- Scott API (migrated from the standalone ScottOne dashboard) ---
   { id: "scott_customers", label: "Customers" },
   { id: "scott_reports", label: "Reports" },
@@ -40,7 +41,7 @@ export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
   },
   {
     label: "Ops Platform",
-    ids: ["ops_masters", "ops_stock", "ops_procurement"]
+    ids: ["ops_masters", "ops_stock", "ops_procurement", "ops_sales"]
   },
   {
     label: "Scott API",
@@ -74,11 +75,12 @@ export const DASHBOARD_ADMIN_ONLY_TAB_IDS = new Set([
   "scott_customers",
   "scott_reports",
   "scott_masters",
-  // Ops Platform (Steps 0–2): master-data, stock-ledger and procurement
-  // writes are admin-only in RLS; the screens are for admin during the build-out.
+  // Ops Platform (Steps 0–3): master-data, stock-ledger, procurement and
+  // sales-order writes are admin-only in RLS; the screens are for admin during the build-out.
   "ops_masters",
   "ops_stock",
-  "ops_procurement"
+  "ops_procurement",
+  "ops_sales"
 ]);
 
 export function isAdminOnlyDashboardTab(tabId) {

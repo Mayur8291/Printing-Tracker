@@ -1,5 +1,45 @@
 # Flowcharts
 
+## Sales order lifecycle (Step 3)
+
+```mermaid
+flowchart TD
+  Draft[Draft order admin RLS write] --> Confirm[rpc so_confirm]
+  Confirm -->|gapless SO number| Alloc[so_allocate reserve available]
+  Alloc -->|partial ok| Confirmed[confirmed]
+  Confirmed --> Prod[rpc so_set_status in_production]
+  Prod --> ReadyTry[rpc so_set_status ready]
+  Confirmed --> ReadyTry
+  ReadyTry --> Gate{Reservations cover every line?}
+  Gate -->|no| Blocked[Blocked allocate more stock first]
+  Gate -->|yes| Ready[ready]
+  Ready --> Disp[rpc so_post_dispatch]
+  Disp --> Cap{qty within reserved?}
+  Cap -->|no| Err[Blocked dispatch cannot exceed reserved]
+  Cap -->|yes| Consume[Consume reservations FIFO post dispatch movements]
+  Consume --> Open{All lines dispatched?}
+  Open -->|no| Partial[partially_dispatched] --> Disp
+  Open -->|yes| Dispatched[dispatched] --> Invoice[invoiced Step 4] --> Closed[closed]
+  Draft --> Cancel[rpc so_cancel reason]
+  Confirmed --> Cancel
+  Cancel --> Release[Release active reservations]
+```
+
+## Job work round trip (Step 3)
+
+```mermaid
+flowchart TD
+  JDraft[Draft job inputs and outputs] --> Issue[rpc jw_issue]
+  Issue -->|challan out| Worker[Inputs transfer to worker location]
+  Worker --> Receive[rpc jw_receive]
+  Receive --> Out[Outputs production_out into source location]
+  Receive --> Burn[Consumed inputs consumption at worker location]
+  Burn --> Left{Input left at worker location?}
+  Left -->|yes| Loss[Visible as pending or loss balance]
+  Left -->|no| Clean[Worker location clean]
+  Out --> Close[rpc jw_close]
+```
+
 ## Procurement lifecycle (Step 2)
 
 ```mermaid
