@@ -7,7 +7,43 @@
 | **Symptom** | Tools has no Internal Support Platform, or click does nothing. |
 | **Root cause** | Tab id is `internal_support`. Viewer with an explicit allowed-tab list must be granted that id. Support (Enquiry) is a different tab (`enquiry`). |
 | **Fix** | Hard refresh. Admin: Tools list after Chat. Viewer: Admin Panel → grant **Internal Support Platform**. |
-| **Verify** | LifeBuoy icon. Heading **Facing an issue? Select the option below that best describes your problem.** Ten issue Buttons. Enquiry Support still under Inventory. |
+| **Verify** | LifeBuoy icon. Tabs **Raise an Issue**, **History**, and **Resolved**. Enquiry Support still under Inventory. |
+
+## Internal Support History empty or Submit does not appear in History
+
+| | |
+|--|--|
+| **Symptom** | History has no rows after Submit, or Status will not change. |
+| **Root cause** | Rows live in staging `internal_support_issues`. Insert needs `raised_by = auth.uid()`. Local app must use staging ref. Production has no table yet. |
+| **Fix** | Sign in. Submit on Raise an Issue. Open History. Hard refresh. Check `npm run check:env` is staging. Console `[internal-support] insert failed` if RLS or schema missing. |
+| **Verify** | Admin: History shows non-Resolved rows, Status Select, Name filter. Non-admin: only own rows, Status Badge, no Name filter. Resolved tab shows Resolved rows for both roles. Issue column says **View Issue**. Date is raised day. |
+
+## Internal Support Resolved tab missing or Status still editable
+
+| | |
+|--|--|
+| **Symptom** | No **Resolved** tab, Resolved rows stay in History, or Status can still change after Resolved. |
+| **Root cause** | History must exclude `status = Resolved`. Resolved tab is read-only. Staging update RLS requires `status <> Resolved`. |
+| **Fix** | Hard refresh. Admin: set Status to Resolved on History. Open **Resolved**. Confirm no Status dropdown. |
+| **Verify** | Both admin and viewer see the tab. Viewer sees only own Resolved rows. Name filter on Resolved is admin only. |
+
+## Internal Support History shows other people’s issues to a non-admin
+
+| | |
+|--|--|
+| **Symptom** | Viewer History lists someone else’s submit, or viewer can change Status, or viewer sees a Name dropdown. |
+| **Root cause** | Old RLS allowed authenticated select/update all. UI used to always render Select + Name filter. |
+| **Fix** | Hard refresh. Confirm `profiles.role`. Staging must have `select own or admin` and `update admin`. Local list filters `raised_by` when not admin. |
+| **Verify** | Sign in as viewer: only own History, Badge status, no Name filter. Sign in as admin: all rows, Status Select works. |
+
+## Internal Support Status dropdown has no symbol in the closed box
+
+| | |
+|--|--|
+| **Symptom** | Status list has icons, but the closed trigger is text only, or Lucide lines instead of colorful symbols. |
+| **Root cause** | `SelectValue` with no children only prints the item text. Lucide icons do not match Production Tracker `.stage-icon` emoji. |
+| **Fix** | Hard refresh. History Status must put `InternalSupportStatusMark` inside `SelectValue` and each `SelectItem`. |
+| **Verify** | Closed box = emoji + name + chevron. Open list = same emoji + name for all four statuses. |
 
 ## Internal Support Platform issue buttons missing or not clickable
 
@@ -15,7 +51,7 @@
 |--|--|
 | **Symptom** | Tools Internal Support Platform has no heading, no buttons, or click does nothing visible. |
 | **Root cause** | Panel must render `INTERNAL_SUPPORT_ISSUE_OPTIONS` as shadcn `Button`. Click toggles local `selectedIssues` array (outline vs default). Many can be on. No database. |
-| **Fix** | Hard refresh. Open Tools → Internal Support Platform. Click a few options; they stay filled. Click one again to clear it. Refresh clears all picks. |
+| **Fix** | Hard refresh. Open Tools → Internal Support Platform → **Raise an Issue**. Click a few options; they stay filled. Click one again to clear it. Refresh clears all picks. |
 | **Verify** | Ten labels: Internet, Power Cut, Water Issue, Machinery, Food, Issue with Asset, Lift not working, Issue with Biometric, Floor Hygeine, Lost Personnal Belongings. |
 
 ## Internal Support Floor options missing

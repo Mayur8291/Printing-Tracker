@@ -5,8 +5,9 @@
 ```mermaid
 flowchart TD
   User[Open Tools] --> Item[Internal Support Platform LifeBuoy]
-  Item --> Panel[InternalSupportPlatformPanel Card]
-  Panel --> Heading[Facing an issue heading]
+  Item --> Panel[InternalSupportPlatformPanel]
+  Panel --> RaiseTab[Raise an Issue tab]
+  RaiseTab --> Heading[Facing an issue heading]
   Heading --> Pick[Click issue Button]
   Pick --> Toggle{Already selected?}
   Toggle -->|no| Add[Add to selected list]
@@ -22,8 +23,25 @@ flowchart TD
   ShowComment --> Submit[Submit]
   Submit --> Valid{Issue comment and floor if needed?}
   Valid -->|no| Error[FieldError stay]
-  Valid -->|yes| Clear[Thank you Alert]
-  Clear --> Wait[Ticket save later]
+  Valid -->|yes| Save[Insert internal_support_issues Open]
+  Save --> Thanks[Thank you Alert]
+  Save --> History[History tab row]
+  History --> Filters[From To Clear Search page size]
+  Filters --> History
+  History --> ViewBtn[View Issue link]
+  ViewBtn --> ViewDlg[View Issue Dialog]
+  History --> Who{Admin?}
+  Who -->|yes| NameFilter[Name filter]
+  Who -->|yes| StatusPick[Status Select emoji plus name]
+  StatusPick --> MarkResolved{Set Resolved?}
+  MarkResolved -->|no| Update[Update status]
+  MarkResolved -->|yes| ResolvedTab[Resolved tab row]
+  Who -->|no| OwnRows[Own raised_by rows only]
+  OwnRows --> StatusSee[Read-only status Badge]
+  Panel --> ResolvedTab
+  ResolvedTab --> ResFilters[From To Search page size]
+  ResFilters --> ResolvedTab
+  ResolvedTab --> ResLock[Status Badge no change]
 ```
 
 ## Production Tracker sidebar tabs

@@ -1,5 +1,64 @@
 # Changelog
 
+## 2026-09-02 — Internal Support link says View Issue
+
+- **Issue:** History and Resolved Issue column said **View order**.
+- **Fix:** Link text is **View Issue**. Dialog title stays View Issue.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support Resolved tab
+
+- **Issue:** Resolved tickets stayed in History. Admin could still change Status after Resolved.
+- **Fix:** Third tab **Resolved** (admin and non-admin). History keeps Open / In Progress / Closed. Marking Resolved moves the row. Resolved tab is read-only status. Filters: From, To, Search, View / page. Name filter admin only. Staging RLS: update only when current status is not Resolved.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js`, `supabase/migrations/20260902054226_internal_support_issues_lock_resolved_status.sql`
+- **Migration:** staging `scvojtvgnkmbupvyslmb` only. Not production.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-02 — Internal Support History scoped by role
+
+- **Issue:** Every signed-in staff could see all History rows, change Status, and use the Name filter.
+- **Fix:** Admin sees every issue, can change Status, and gets the Name filter. Non-admin sees only own `raised_by` rows, Status as a read-only mark (admin’s current value), no Name filter. Staging RLS matches: select own or admin; update admin only.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `InternalSupportHistoryFilters.jsx`, `internalSupportIssueUtils.js`, `App.jsx`, `supabase/migrations/20260902051939_internal_support_issues_rls_own_and_admin.sql`
+- **Migration:** staging `scvojtvgnkmbupvyslmb` only. Not production.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-02 — Internal Support Status dropdown matches tracker icons
+
+- **Issue:** Status Select showed names only in the closed box. List icons were Lucide lines, not colorful symbols like Production Tracker.
+- **Fix:** Same Select pattern as `OrderListStatusCell`: `SelectValue` children = emoji + name. List items match. Open 📂, In Progress ⏳, Resolved ✅, Closed 🔒. Names unchanged.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support Status is one dropdown
+
+- **Issue:** Status showed a Badge box and a Select box for the same value.
+- **Fix:** One shadcn Select. Trigger and list show icon + Open / In Progress / Resolved / Closed in that box.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support History filters, status marks, View order
+
+- **Issue:** History had no From/To/Search filters. Status was plain text. View Issue was an outline Button.
+- **Fix:** Filters above the table: From, To, Clear, Search, Name, View / page. Status Badge + icon (Open gray, In Progress primary, Resolved outline check, Closed red). Issue cell is underlined **View order**.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `InternalSupportHistoryFilters.jsx`, `internalSupportIssueUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support History records each Submit
+
+- **Issue:** Submit did not save. No History of who raised what.
+- **Fix:** Staging table `internal_support_issues`. **History** tab: View Issue, Name, Status (Open / In Progress / Resolved / Closed), Date. Submit writes the row. Status Select updates it.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js`, `App.jsx`, `supabase/migrations/20260902044605_internal_support_issues.sql`
+- **Migration:** staging `scvojtvgnkmbupvyslmb` only. Not production.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, DATABASE.md, SECURITY.md.
+
+## 2026-09-02 — Internal Support Raise an Issue tab
+
+- **Issue:** Issue form sat on the panel with no tab.
+- **Fix:** shadcn Tabs. **Raise an Issue** holds the heading, issue Buttons, Floor, Comment, Submit, and thank-you Alert. Same rules as before.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-01 — Hide Floor for Food, Asset, Biometric, Lost belongings
 
 - **Issue:** Floor still showed for Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings.

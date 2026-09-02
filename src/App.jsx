@@ -5850,7 +5850,13 @@ function App() {
 
           {dashboardTab === "asset_management" && <AssetManagementPanel isAdmin={isAdmin} />}
 
-          {dashboardTab === "internal_support" && <InternalSupportPlatformPanel />}
+          {dashboardTab === "internal_support" && (
+            <InternalSupportPlatformPanel
+              isAdmin={isAdmin}
+              sessionUserId={session?.user?.id}
+              raiserName={profileDisplayName(profile)}
+            />
+          )}
 
           {dashboardTab === "audit" && (
             <section className="panel table-panel dashboard-card">

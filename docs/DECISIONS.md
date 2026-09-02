@@ -2,6 +2,90 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-02 — Resolved tab is locked after mark
+
+**Context:** User wants a **Resolved** tab for `status = Resolved`, visible to admin and non-admin. After that mark, no one may change Status.
+
+**Options:** (1) Filter only in History. (2) Third tab + UI lock. (3) Third tab + UI lock + staging RLS `status <> Resolved` on update.
+
+**Decision:** Option 3. History excludes Resolved. Resolved tab has the same filters; Name filter stays admin only. Non-admin still sees only own rows.
+
+**Why:** “Move them” needs its own tab. “Don’t give access” needs more than a hidden Select.
+
+**Tradeoffs:** Closed stays in History. Admin cannot reopen a Resolved row without a later product change.
+
+## 2026-09-02 — History is admin-all, non-admin own only
+
+**Context:** User wants admin to see every History row and change Status. Non-admin should see only their own issues, read the status admin set, and not get a Name filter.
+
+**Options:** (1) Client hide only. (2) Client hide + staging RLS (`raised_by = auth.uid()` or `jwt_user_is_admin()`; update admin only).
+
+**Decision:** Option 2.
+
+**Why:** UI hide is not enough. API would still leak other people’s rows.
+
+**Tradeoffs:** Non-admin cannot change even their own status. Production table still not created.
+
+## 2026-09-02 — Status Select copies Production Tracker symbol + name
+
+**Context:** User wants History Status to look like the order-list dropdown: colorful symbol + name in the closed box and in every list row.
+
+**Options:** (1) Lucide line icons. (2) Same `SelectValue` children + `.stage-icon` emoji as `OrderListStatusCell`.
+
+**Decision:** Option 2. Open 📂, In Progress ⏳, Resolved ✅, Closed 🔒. Names stay those four words.
+
+**Why:** Match the Production Tracker Status picker picture.
+
+**Tradeoffs:** Emoji, not custom PNGs. Production stages stay on the tracker.
+
+## 2026-09-02 — Status is one Select with icon inside
+
+**Context:** Badge + Select made two boxes for the same status.
+
+**Options:** (1) Keep both. (2) One Select; icon + name in trigger and items.
+
+**Decision:** Option 2. Names stay Open, In Progress, Resolved, Closed.
+
+**Why:** Match the single dropdown picture.
+
+**Tradeoffs:** Color is on the icon via semantic tokens, not a second Badge.
+
+## 2026-09-02 — History filters match PO History; View order is a link
+
+**Context:** User wants From/To/Clear/Search/Name/page filters above History, status symbols/colors, and the Issue action as underlined **View order**.
+
+**Options:** (1) Custom filters. (2) Same shadcn DatePicker + Input + Select + OrdersPerPageControl as PO History. Badge variants for status. `Button variant="link"` for View order.
+
+**Decision:** Option 2. Name dropdown is the coordinator-slot. Status: Open secondary + Circle, In Progress default + Clock, Resolved outline + Check, Closed destructive + X.
+
+**Why:** Match the picture and stay shadcn.
+
+**Tradeoffs:** Link text later changed to **View Issue** (2026-09-02).
+
+## 2026-09-02 — Internal Support History is a shared staging table
+
+**Context:** User wants History of whoever submits: Issue (View Issue), Name, Status dropdown, Date.
+
+**Options:** (1) Browser-only list. (2) Staging table `internal_support_issues`, authenticated read, insert own, update status.
+
+**Decision:** Option 2. Name snapshot at submit. Status: Open, In Progress, Resolved, Closed. View Issue Dialog shows types, floor, comment, name, date, status. Staging only.
+
+**Why:** “Whoever submits” means shared History, not one browser.
+
+**Tradeoffs:** Any signed-in staff who can open the tab can change Status. No production table until an explicit release.
+
+## 2026-09-02 — Internal Support form lives in Raise an Issue tab
+
+**Context:** User wants a tab **Raise an Issue** that holds the existing issue form.
+
+**Options:** (1) Keep one Card, no tabs. (2) shadcn Tabs; first tab is Raise an Issue with the current form.
+
+**Decision:** Option 2. `defaultValue="raise_issue"`. Other tabs can be added later.
+
+**Why:** Same form, clearer place, room for more tabs.
+
+**Tradeoffs:** Only one tab for now.
+
 ## 2026-09-01 — Hide Floor row for Food, Asset, Biometric, Lost belongings
 
 **Context:** User does not want Floor on screen for Food, Issue with Asset, Issue with Biometric, Lost Personnal Belongings. If they also pick another issue, Floor must show.

@@ -1,5 +1,33 @@
 # Database
 
+## Internal Support issues
+
+Staff-raised tickets from Tools → Internal Support Platform → **Raise an Issue**. History: admin sees every submit; non-admin sees only their own.
+
+### `internal_support_issues`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `raised_by` | uuid | FK → `profiles.id` — who submitted (`auth.uid()` on insert) |
+| `raised_by_name` | text | Name snapshot at submit (`profiles.full_name` or email) |
+| `issue_types` | text[] | One or more issue Buttons (Internet, Food, …) |
+| `floor` | text | Optional. Null when Food / Asset / Biometric / Lost belongings only |
+| `comment` | text | Detail they typed |
+| `status` | text | `Open`, `In Progress`, `Resolved`, `Closed` |
+| `created_at` | timestamptz | Issue raised date |
+| `updated_at` | timestamptz | Status / row touch |
+
+**Indexes:** `created_at desc`; `(status, created_at desc)`; `(raised_by, created_at desc)`.
+
+**RLS:** Select `raised_by = auth.uid()` or `jwt_user_is_admin()`. Insert only `raised_by = auth.uid()`. Update admin only and only when current `status <> 'Resolved'`. No delete. Realtime publication on.
+
+**Migration:** `20260902044605_internal_support_issues.sql` (table), `20260902051939_internal_support_issues_rls_own_and_admin.sql` (own/admin RLS), `20260902054226_internal_support_issues_lock_resolved_status.sql` (lock Resolved) — **staging only** (`scvojtvgnkmbupvyslmb`). Not on production until an explicit release.
+
+**Query pattern:** History `order by created_at desc`. Non-admin query adds `raised_by = session user`. Insert from Raise an Issue. Admin Status Select updates `status`.
+
+**Rollback:** drop trigger, function, policies, then `internal_support_issues`.
+
 ## Enquiries
 
 Customer/product enquiries logged in the dashboard; admin assigns team members to follow up.
