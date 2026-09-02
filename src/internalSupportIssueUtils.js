@@ -69,6 +69,14 @@ export function formatInternalSupportIssueTypes(issueTypes) {
   return issueTypes.join(", ");
 }
 
+export function formatInternalSupportIssueSummary(row) {
+  const types = formatInternalSupportIssueTypes(row?.issue_types);
+  const floor = String(row?.floor || "").trim();
+  if (!floor) return types;
+  if (types === "—") return floor;
+  return `${types} - ${floor}`;
+}
+
 export function internalSupportIssueDateKey(row) {
   const date = new Date(row?.created_at);
   if (Number.isNaN(date.getTime())) return "";

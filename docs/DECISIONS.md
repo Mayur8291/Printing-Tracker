@@ -2,6 +2,42 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-02 — Issue sits after Status on one line with View Issue
+
+**Context:** User wants Issue next to Status but not before it, and `Power Cut - 2nd Floor → View Issue` on one line.
+
+**Options:** (1) Issue before Status, stacked link. (2) Name | Status | Issue | Date; summary + arrow + View Issue inline.
+
+**Decision:** Option 2.
+
+**Why:** Status then Issue. Link is beside the text they typed, not under it.
+
+**Tradeoffs:** Long type lists wrap with the link.
+
+## 2026-09-02 — Issue column sits next to Status with type and floor
+
+**Context:** User wants Issue next to Status, text like `Power Cut - 2nd Floor`, and **View Issue** under it. Do not restyle the table.
+
+**Options:** (1) Keep View Issue as the only Issue cell. (2) Swap Name/Issue order; summary line + View Issue link.
+
+**Decision:** Option 2. Columns: Name | Issue | Status | Date. Floor omitted when they did not pick one.
+
+**Why:** Issue and Status belong together. The line is the input they gave.
+
+**Tradeoffs:** Many issue types join with commas before ` - Floor`.
+
+## 2026-09-02 — Raise an Issue is a button on Open Tickets
+
+**Context:** User wants History renamed **Open Tickets**, no Raise tab, and all raise fields behind one **Raise an Issue** button.
+
+**Options:** (1) Keep three tabs. (2) Two tabs; Dialog from the Open Tickets button holds the form.
+
+**Decision:** Option 2. Default tab is Open Tickets. Same issue / floor / comment / submit rules.
+
+**Why:** List first. Raise is an action, not a place.
+
+**Tradeoffs:** Form is overlay, not a full page.
+
 ## 2026-09-02 — Resolved tab is locked after mark
 
 **Context:** User wants a **Resolved** tab for `status = Resolved`, visible to admin and non-admin. After that mark, no one may change Status.

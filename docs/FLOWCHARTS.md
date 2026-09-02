@@ -88,8 +88,10 @@ flowchart TD
 flowchart TD
   User[Open Tools] --> Item[Internal Support Platform LifeBuoy]
   Item --> Panel[InternalSupportPlatformPanel]
-  Panel --> RaiseTab[Raise an Issue tab]
-  RaiseTab --> Heading[Facing an issue heading]
+  Panel --> OpenTab[Open Tickets tab]
+  OpenTab --> RaiseBtn[Raise an Issue button]
+  RaiseBtn --> RaiseDlg[Raise Issue Dialog]
+  RaiseDlg --> Heading[Facing an issue heading]
   Heading --> Pick[Click issue Button]
   Pick --> Toggle{Already selected?}
   Toggle -->|no| Add[Add to selected list]
@@ -107,12 +109,12 @@ flowchart TD
   Valid -->|no| Error[FieldError stay]
   Valid -->|yes| Save[Insert internal_support_issues Open]
   Save --> Thanks[Thank you Alert]
-  Save --> History[History tab row]
-  History --> Filters[From To Clear Search page size]
-  Filters --> History
-  History --> ViewBtn[View Issue link]
+  Save --> OpenTab
+  OpenTab --> Filters[From To Clear Search page size]
+  Filters --> OpenTab
+  OpenTab --> ViewBtn[View Issue link]
   ViewBtn --> ViewDlg[View Issue Dialog]
-  History --> Who{Admin?}
+  OpenTab --> Who{Admin?}
   Who -->|yes| NameFilter[Name filter]
   Who -->|yes| StatusPick[Status Select emoji plus name]
   StatusPick --> MarkResolved{Set Resolved?}

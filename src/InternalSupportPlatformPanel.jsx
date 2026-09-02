@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
@@ -14,6 +13,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
@@ -53,6 +53,7 @@ import {
   INTERNAL_SUPPORT_STATUSES,
   filterInternalSupportHistoryRows,
   formatInternalSupportIssueDate,
+  formatInternalSupportIssueSummary,
   formatInternalSupportIssueTypes,
   insertInternalSupportIssue,
   internalSupportNeedsFloor,
@@ -90,6 +91,7 @@ function InternalSupportStatusMark({ status, truncate = false }) {
 
 function InternalSupportIssuesCard({
   title,
+  headerAction = null,
   emptyLabel,
   sourceRows,
   pagedRows,
@@ -120,7 +122,10 @@ function InternalSupportIssuesCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle>{title}</CardTitle>
+          {headerAction}
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <InternalSupportHistoryFilters
@@ -154,9 +159,9 @@ function InternalSupportIssuesCard({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Issue</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Issue</TableHead>
                   <TableHead>Date</TableHead>
                 </TableRow>
               </TableHeader>
@@ -170,16 +175,6 @@ function InternalSupportIssuesCard({
                 ) : (
                   pagedRows.map((row) => (
                     <TableRow key={row.id}>
-                      <TableCell>
-                        <Button
-                          type="button"
-                          variant="link"
-                          className="h-auto px-0 underline"
-                          onClick={() => onViewRow?.(row)}
-                        >
-                          View Issue
-                        </Button>
-                      </TableCell>
                       <TableCell>{row.raised_by_name || "—"}</TableCell>
                       <TableCell>
                         {canChangeStatus && isAdmin && !isInternalSupportResolved(row.status) ? (
@@ -210,6 +205,22 @@ function InternalSupportIssuesCard({
                             <InternalSupportStatusMark status={row.status} />
                           </Badge>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-sm">{formatInternalSupportIssueSummary(row)}</span>
+                          <span className="text-muted-foreground" aria-hidden>
+                            →
+                          </span>
+                          <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto px-0 underline"
+                            onClick={() => onViewRow?.(row)}
+                          >
+                            View Issue
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell>{formatInternalSupportIssueDate(row.created_at)}</TableCell>
                     </TableRow>
@@ -276,13 +287,130 @@ function ViewIssueDialog({ row, open, onOpenChange }) {
   );
 }
 
-/** Tools → Internal Support Platform. Raise an Issue + History. */
+function RaiseIssueDialog({
+  open,
+  onOpenChange,
+  selectedIssues,
+  selectedFloor,
+  comment,
+  issueInvalid,
+  floorInvalid,
+  commentInvalid,
+  didSubmit,
+  submitError,
+  submitting,
+  floorRequired,
+  canShowComment,
+  onToggleIssue,
+  onSelectFloor,
+  onCommentChange,
+  onSubmit
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-2xl">
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>Raise an Issue</DialogTitle>
+            <DialogDescription>
+              Facing an issue? Select the option below that best describes your problem.
+            </DialogDescription>
+          </DialogHeader>
+          <FieldGroup className="gap-4">
+            <Field data-invalid={issueInvalid || undefined}>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Issue types">
+                {INTERNAL_SUPPORT_ISSUE_OPTIONS.map((label) => {
+                  const isSelected = selectedIssues.includes(label);
+                  return (
+                    <Button
+                      key={label}
+                      type="button"
+                      variant={isSelected ? "default" : "outline"}
+                      aria-pressed={isSelected}
+                      onClick={() => onToggleIssue(label)}
+                    >
+                      {label}
+                    </Button>
+                  );
+                })}
+              </div>
+              {issueInvalid ? <FieldError>Pick at least one issue.</FieldError> : null}
+            </Field>
+            {floorRequired ? (
+              <FieldSet className="gap-3">
+                <FieldLegend>Select your Floor</FieldLegend>
+                <Field data-invalid={floorInvalid || undefined}>
+                  <div className="flex flex-wrap gap-2" role="group" aria-label="Floor">
+                    {INTERNAL_SUPPORT_FLOOR_OPTIONS.map((label) => {
+                      const isSelected = selectedFloor === label;
+                      return (
+                        <Button
+                          key={label}
+                          type="button"
+                          variant={isSelected ? "default" : "outline"}
+                          aria-pressed={isSelected}
+                          onClick={() => onSelectFloor(label)}
+                        >
+                          {label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  {floorInvalid ? <FieldError>Pick a floor.</FieldError> : null}
+                </Field>
+              </FieldSet>
+            ) : null}
+            {canShowComment ? (
+              <Field data-invalid={commentInvalid || undefined}>
+                <FieldLabel htmlFor="internal-support-comment">Comment</FieldLabel>
+                <Textarea
+                  id="internal-support-comment"
+                  name="comment"
+                  rows={5}
+                  placeholder="Explain the issue in detail"
+                  value={comment}
+                  aria-invalid={commentInvalid || undefined}
+                  onChange={onCommentChange}
+                />
+                {commentInvalid ? (
+                  <FieldError>Write a comment that explains the issue.</FieldError>
+                ) : null}
+              </Field>
+            ) : null}
+          </FieldGroup>
+          {submitError ? (
+            <Alert variant="destructive">
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
+          ) : null}
+          {didSubmit ? (
+            <Alert>
+              <AlertDescription>
+                Thank you. Your issue has been submitted and the concerned team will look into it shortly.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+          {canShowComment ? (
+            <DialogFooter>
+              <Button type="submit" disabled={submitting}>
+                Submit
+              </Button>
+            </DialogFooter>
+          ) : null}
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Tools → Internal Support Platform. Open Tickets + Resolved. Raise an Issue is a button. */
 export default function InternalSupportPlatformPanel({
   isAdmin = false,
   sessionUserId = "",
   raiserName = ""
 }) {
-  const [activeTab, setActiveTab] = useState("raise_issue");
+  const [activeTab, setActiveTab] = useState("open_tickets");
+  const [raiseOpen, setRaiseOpen] = useState(false);
   const [selectedIssues, setSelectedIssues] = useState([]);
   const [selectedFloor, setSelectedFloor] = useState("");
   const [comment, setComment] = useState("");
@@ -321,6 +449,22 @@ export default function InternalSupportPlatformPanel({
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  function resetRaiseForm() {
+    setSelectedIssues([]);
+    setSelectedFloor("");
+    setComment("");
+    setIssueInvalid(false);
+    setFloorInvalid(false);
+    setCommentInvalid(false);
+    setDidSubmit(false);
+    setSubmitError("");
+  }
+
+  function handleRaiseOpenChange(open) {
+    setRaiseOpen(open);
+    if (!open) resetRaiseForm();
+  }
 
   function toggleIssue(label) {
     const next = selectedIssues.includes(label)
@@ -486,128 +630,19 @@ export default function InternalSupportPlatformPanel({
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="raise_issue">Raise an Issue</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="open_tickets">Open Tickets</TabsTrigger>
           <TabsTrigger value="resolved">Resolved</TabsTrigger>
         </TabsList>
-        <TabsContent value="raise_issue">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <LifeBuoy />
-                <CardTitle>
-                  Facing an issue? Select the option below that best describes your problem.
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-              <CardContent>
-                <FieldGroup className="gap-4">
-                  <Field data-invalid={issueInvalid || undefined}>
-                    <div
-                      className="flex flex-wrap gap-2"
-                      role="group"
-                      aria-label="Issue types"
-                    >
-                      {INTERNAL_SUPPORT_ISSUE_OPTIONS.map((label) => {
-                        const isSelected = selectedIssues.includes(label);
-                        return (
-                          <Button
-                            key={label}
-                            type="button"
-                            variant={isSelected ? "default" : "outline"}
-                            aria-pressed={isSelected}
-                            onClick={() => toggleIssue(label)}
-                          >
-                            {label}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    {issueInvalid ? (
-                      <FieldError>Pick at least one issue.</FieldError>
-                    ) : null}
-                  </Field>
-                  {floorRequired ? (
-                    <FieldSet className="gap-3">
-                      <FieldLegend>Select your Floor</FieldLegend>
-                      <Field data-invalid={floorInvalid || undefined}>
-                        <div
-                          className="flex flex-wrap gap-2"
-                          role="group"
-                          aria-label="Floor"
-                        >
-                          {INTERNAL_SUPPORT_FLOOR_OPTIONS.map((label) => {
-                            const isSelected = selectedFloor === label;
-                            return (
-                              <Button
-                                key={label}
-                                type="button"
-                                variant={isSelected ? "default" : "outline"}
-                                aria-pressed={isSelected}
-                                onClick={() => selectFloor(label)}
-                              >
-                                {label}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                        {floorInvalid ? <FieldError>Pick a floor.</FieldError> : null}
-                      </Field>
-                    </FieldSet>
-                  ) : null}
-                  {canShowComment ? (
-                    <Field data-invalid={commentInvalid || undefined}>
-                      <FieldLabel htmlFor="internal-support-comment">Comment</FieldLabel>
-                      <Textarea
-                        id="internal-support-comment"
-                        name="comment"
-                        rows={5}
-                        placeholder="Explain the issue in detail"
-                        value={comment}
-                        aria-invalid={commentInvalid || undefined}
-                        onChange={(event) => {
-                          setComment(event.target.value);
-                          setCommentInvalid(false);
-                          setDidSubmit(false);
-                          setSubmitError("");
-                        }}
-                      />
-                      {commentInvalid ? (
-                        <FieldError>Write a comment that explains the issue.</FieldError>
-                      ) : null}
-                    </Field>
-                  ) : null}
-                </FieldGroup>
-              </CardContent>
-              {canShowComment || didSubmit || submitError ? (
-                <CardFooter className="flex flex-col items-start gap-4">
-                  {canShowComment ? (
-                    <Button type="submit" disabled={submitting}>
-                      Submit
-                    </Button>
-                  ) : null}
-                  {submitError ? (
-                    <Alert variant="destructive">
-                      <AlertDescription>{submitError}</AlertDescription>
-                    </Alert>
-                  ) : null}
-                  {didSubmit ? (
-                    <Alert>
-                      <AlertDescription>
-                        Thank you. Your issue has been submitted and the concerned team will look into it shortly.
-                      </AlertDescription>
-                    </Alert>
-                  ) : null}
-                </CardFooter>
-              ) : null}
-            </form>
-          </Card>
-        </TabsContent>
-        <TabsContent value="history">
+        <TabsContent value="open_tickets">
           <InternalSupportIssuesCard
-            title="History"
-            emptyLabel="No issues yet."
+            title="Open Tickets"
+            emptyLabel="No open tickets yet."
+            headerAction={
+              <Button type="button" onClick={() => setRaiseOpen(true)}>
+                <LifeBuoy data-icon="inline-start" />
+                Raise an Issue
+              </Button>
+            }
             sourceRows={openRows}
             pagedRows={pagedHistoryRows}
             loading={historyLoading}
@@ -677,6 +712,30 @@ export default function InternalSupportPlatformPanel({
           onOpenChange={(open) => {
             if (!open) setViewRow(null);
           }}
+        />
+        <RaiseIssueDialog
+          open={raiseOpen}
+          onOpenChange={handleRaiseOpenChange}
+          selectedIssues={selectedIssues}
+          selectedFloor={selectedFloor}
+          comment={comment}
+          issueInvalid={issueInvalid}
+          floorInvalid={floorInvalid}
+          commentInvalid={commentInvalid}
+          didSubmit={didSubmit}
+          submitError={submitError}
+          submitting={submitting}
+          floorRequired={floorRequired}
+          canShowComment={canShowComment}
+          onToggleIssue={toggleIssue}
+          onSelectFloor={selectFloor}
+          onCommentChange={(event) => {
+            setComment(event.target.value);
+            setCommentInvalid(false);
+            setDidSubmit(false);
+            setSubmitError("");
+          }}
+          onSubmit={handleSubmit}
         />
       </Tabs>
     </div>

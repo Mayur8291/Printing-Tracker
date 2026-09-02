@@ -2,7 +2,7 @@
 
 ## Internal Support issues
 
-Staff-raised tickets from Tools → Internal Support Platform → **Raise an Issue**. History: admin sees every submit; non-admin sees only their own.
+Staff-raised tickets from Tools → Internal Support Platform → Open Tickets → **Raise an Issue**. Open Tickets: admin sees every non-Resolved submit; non-admin sees only their own.
 
 ### `internal_support_issues`
 

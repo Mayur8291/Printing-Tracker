@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-02 — Issue column after Status, View Issue on the same line
+
+- **Issue:** Issue sat before Status. View Issue sat under the type/floor line.
+- **Fix:** Columns Name | Status | Issue | Date. Issue cell is one line: `Power Cut - 2nd Floor → View Issue`.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Open Tickets Issue column shows type and floor
+
+- **Issue:** Issue column was only **View Issue**, and it sat before Name, away from Status.
+- **Fix:** Columns are Name | Issue | Status | Date. Issue cell shows `Power Cut - 2nd Floor` from their picks; **View Issue** sits under that line. Same on Resolved. No floor → type only.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Open Tickets tab; Raise an Issue is a button
+
+- **Issue:** Raise an Issue was its own tab. History name did not match tickets.
+- **Fix:** Tabs are **Open Tickets** and **Resolved**. **Raise an Issue** is a button on Open Tickets. The button opens a Dialog with issue types, Floor, Comment, Submit, and thank-you.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-02 — Internal Support link says View Issue
 
 - **Issue:** History and Resolved Issue column said **View order**.

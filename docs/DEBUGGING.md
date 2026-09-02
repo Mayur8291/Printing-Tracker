@@ -7,24 +7,24 @@
 | **Symptom** | Tools has no Internal Support Platform, or click does nothing. |
 | **Root cause** | Tab id is `internal_support`. Viewer with an explicit allowed-tab list must be granted that id. Support (Enquiry) is a different tab (`enquiry`). |
 | **Fix** | Hard refresh. Admin: Tools list after Chat. Viewer: Admin Panel → grant **Internal Support Platform**. |
-| **Verify** | LifeBuoy icon. Tabs **Raise an Issue**, **History**, and **Resolved**. Enquiry Support still under Inventory. |
+| **Verify** | LifeBuoy icon. Tabs **Open Tickets** and **Resolved**. **Raise an Issue** is a button on Open Tickets. Enquiry Support still under Inventory. |
 
 ## Internal Support History empty or Submit does not appear in History
 
 | | |
 |--|--|
-| **Symptom** | History has no rows after Submit, or Status will not change. |
+| **Symptom** | Open Tickets has no rows after Submit, or Status will not change. |
 | **Root cause** | Rows live in staging `internal_support_issues`. Insert needs `raised_by = auth.uid()`. Local app must use staging ref. Production has no table yet. |
-| **Fix** | Sign in. Submit on Raise an Issue. Open History. Hard refresh. Check `npm run check:env` is staging. Console `[internal-support] insert failed` if RLS or schema missing. |
-| **Verify** | Admin: History shows non-Resolved rows, Status Select, Name filter. Non-admin: only own rows, Status Badge, no Name filter. Resolved tab shows Resolved rows for both roles. Issue column says **View Issue**. Date is raised day. |
+| **Fix** | Sign in. Open Tickets → **Raise an Issue**. Submit. Hard refresh. Check `npm run check:env` is staging. Console `[internal-support] insert failed` if RLS or schema missing. |
+| **Verify** | Admin: Open Tickets shows non-Resolved rows, Status Select, Name filter. Non-admin: only own rows, Status Badge, no Name filter. Columns Name | Status | Issue | Date. Issue line is `type - floor → View Issue`. Resolved tab shows Resolved rows for both roles. Date is raised day. |
 
 ## Internal Support Resolved tab missing or Status still editable
 
 | | |
 |--|--|
-| **Symptom** | No **Resolved** tab, Resolved rows stay in History, or Status can still change after Resolved. |
-| **Root cause** | History must exclude `status = Resolved`. Resolved tab is read-only. Staging update RLS requires `status <> Resolved`. |
-| **Fix** | Hard refresh. Admin: set Status to Resolved on History. Open **Resolved**. Confirm no Status dropdown. |
+| **Symptom** | No **Resolved** tab, Resolved rows stay in Open Tickets, or Status can still change after Resolved. |
+| **Root cause** | Open Tickets must exclude `status = Resolved`. Resolved tab is read-only. Staging update RLS requires `status <> Resolved`. |
+| **Fix** | Hard refresh. Admin: set Status to Resolved on Open Tickets. Open **Resolved**. Confirm no Status dropdown. |
 | **Verify** | Both admin and viewer see the tab. Viewer sees only own Resolved rows. Name filter on Resolved is admin only. |
 
 ## Internal Support History shows other people’s issues to a non-admin
@@ -51,7 +51,7 @@
 |--|--|
 | **Symptom** | Tools Internal Support Platform has no heading, no buttons, or click does nothing visible. |
 | **Root cause** | Panel must render `INTERNAL_SUPPORT_ISSUE_OPTIONS` as shadcn `Button`. Click toggles local `selectedIssues` array (outline vs default). Many can be on. No database. |
-| **Fix** | Hard refresh. Open Tools → Internal Support Platform → **Raise an Issue**. Click a few options; they stay filled. Click one again to clear it. Refresh clears all picks. |
+| **Fix** | Hard refresh. Open Tickets → **Raise an Issue**. Click a few options; they stay filled. Click one again to clear it. Close Dialog clears picks. |
 | **Verify** | Ten labels: Internet, Power Cut, Water Issue, Machinery, Food, Issue with Asset, Lift not working, Issue with Biometric, Floor Hygeine, Lost Personnal Belongings. |
 
 ## Internal Support Floor options missing
@@ -60,7 +60,7 @@
 |--|--|
 | **Symptom** | No **Select your Floor** heading, or floor Buttons missing / more than one stay filled. |
 | **Root cause** | Floor list only renders when a picked issue needs a floor (`internalSupportNeedsFloor`). Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings hide Floor. Mix with Internet (etc.) shows Floor. One `selectedFloor` string. |
-| **Fix** | Hard refresh. Open Tools → Internal Support Platform. Pick Food: no Floor, Comment only. Pick Internet: Floor appears. Food + Internet: Floor appears. |
+| **Fix** | Hard refresh. Open Tickets → **Raise an Issue**. Pick Food: no Floor, Comment only. Pick Internet: Floor appears. Food + Internet: Floor appears. |
 | **Verify** | Ground Floor through 5th Floor only after a floor-required issue is on. |
 
 ## Internal Support comment or Submit missing / Submit does nothing
@@ -69,7 +69,7 @@
 |--|--|
 | **Symptom** | No Comment box, no Submit, Submit does nothing, or Submit “works” but no ticket in the database. |
 | **Root cause** | Comment and Submit show when there is at least one issue **and** (a floor is picked **or** every picked issue is Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings). Those four hide Floor. Empty comment shows FieldError. Floor-required issues with no floor hide Comment. Success clears the form, logs `[internal-support] submit`, and shows the thank-you Alert. No table yet. |
-| **Fix** | Hard refresh. Floor-required issue: Floor appears, pick a floor, then Comment. Food / Asset / Biometric / Lost belongings: no Floor, Comment only. Mix with Internet: Floor shows again. |
+| **Fix** | Hard refresh. Open Tickets → **Raise an Issue**. Floor-required issue: Floor appears, pick a floor, then Comment. Food / Asset / Biometric / Lost belongings: no Floor, Comment only. Mix with Internet: Floor shows again. |
 | **Verify** | Internet alone: Floor then Comment after a floor. Food alone: no Floor, Comment only. Food + Internet: Floor shows, Comment waits for a floor. After Submit: thank-you sentence. |
 
 ## Delivery required on still lets pick a past day
