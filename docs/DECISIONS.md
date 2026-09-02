@@ -134,6 +134,17 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Only one tab for now.
 
+## 2026-09-02 — Step 4 billing design choices
+
+- **Context:** roadmap Step 4 — invoices generated not typed; ageing as a view; collections with owners. Same DB-first money laws as AP in Step 2.
+- **One invoice per dispatch:** `unique (dispatch_id)` — partial dispatch already produced a dispatch document, so each dispatch invoices what actually left the warehouse. Alternative (one invoice per order) rejected: mixed GST dates and e-way ties to the consignment.
+- **GSTIN-scoped sequences:** `ops_next_gstin_doc_no` — the law is gapless per GSTIN per FY, not per entity. Receipts stay entity-scoped (`RCPT/`) because they are not GST documents.
+- **Soft credit check only:** `ar_credit_check` warns on confirm; hard block waits for department roles (roadmap: "hard block by role"). Blocking CEO/admin today would freeze real orders.
+- **CGST/SGST paisa split:** tax rounded once, then CGST = round(tax/2), SGST = tax − CGST so halves always sum to the tax.
+- **Unallocated receipts are advances:** allocation is optional; leftover receipt amount reduces customer exposure in the ledger but does not attach to an invoice until a later receipt/allocation (v1 does not support allocating an existing advance — next receipt can cover the invoice).
+- **Deferred (need picks, not more schema guesswork):** GSP for IRN/QR and e-way; Tally XML daily batch + typed recon screen (the ₹27.93L gap); distributor incentive engine (`dist_incentive_scheme` as data); `bill_quote`/proforma numbering. Existing Billing / quotation Word flows stay until those land.
+- **UI admin-only** (`ops_ar`) during build-out; existing Workspace Billing tab not touched.
+
 ## 2026-09-02 — Step 3 sales orders design choices
 
 - **Context:** roadmap Step 3 — orders that reserve stock, drive dispatch, job work, SLA. Same DB-first discipline as Steps 1–2.

@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { AlertTriangle, ClipboardList, Plus, RefreshCw, Timer, Truck, Wrench } from "lucide-react";
 import { fetchEntities, fetchLocations, fetchParties, fetchSkus } from "./mastersUtils";
 import { formatMoney } from "./procurementUtils";
+import { creditCheck } from "./billingArUtils";
 import {
   JW_KINDS,
   JW_STATUS_LABEL,
@@ -325,13 +326,21 @@ function SoDetailDialog({ order, onOpenChange, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [showDispatch, setShowDispatch] = useState(false);
+  const [credit, setCredit] = useState(null);
 
   useEffect(() => {
     setError("");
     setInfo("");
     setCancelReason("");
     setShowDispatch(false);
-  }, [order?.id]);
+    setCredit(null);
+    // Soft credit check at confirm time (roadmap Step 4): warn, never block.
+    if (order?.status === "draft" && order.customer?.id) {
+      creditCheck(order.customer.id)
+        .then(setCredit)
+        .catch(() => setCredit(null));
+    }
+  }, [order?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!order) return null;
   const totals = orderTotals(order);
@@ -397,6 +406,20 @@ function SoDetailDialog({ order, onOpenChange, onChanged }) {
           {totals.qty} pcs ordered · {totals.reserved} reserved · {totals.dispatched} dispatched · value ₹
           {formatMoney(totals.value)}
         </p>
+
+        {order.status === "draft" && credit && (credit.over_limit || Number(credit.oldest_overdue_days) > 0) ? (
+          <Alert className="border-amber-300 bg-amber-50 text-amber-900">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Credit warning (soft — confirm still allowed)</AlertTitle>
+            <AlertDescription>
+              Outstanding ₹{formatMoney(credit.outstanding)}
+              {credit.credit_limit != null ? ` of ₹${formatMoney(credit.credit_limit)} limit` : ""}
+              {Number(credit.oldest_overdue_days) > 0
+                ? ` · oldest overdue ${credit.oldest_overdue_days} days`
+                : ""}
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         {info ? (
           <Alert>

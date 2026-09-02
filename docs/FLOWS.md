@@ -1,5 +1,18 @@
 # Flows
 
+## Billing & Receivables (Step 4, One Source of Truth)
+
+Admin-only tab **Billing & AR** (`ops_ar`, Ops Platform). Distinct from the existing Workspace **Billing** tab, which stays as-is.
+
+1. **Trigger:** admin opens Billing & AR (`BillingArPanel`); parallel load of invoices, uninvoiced dispatches, credit notes, receipts, `ar_invoice_outstanding_view`, `ar_customer_ledger_view`, follow-ups, entities (+ GSTINs).
+2. **Generate invoice:** pick an uninvoiced dispatch + the billing GSTIN + optional place-of-supply state code (blank = GSTIN state) → RPC `bill_generate_from_dispatch`. Lines/rates/HSN/GST come from the dispatch + order + SKU. Number `INV/<FY>/nnnn` is gapless per GSTIN. Document is immutable. When the order is fully dispatched and every dispatch is invoiced, `so_order.status` becomes `invoiced`.
+3. **Credit note:** invoice detail → amount + reason → `ar_issue_credit_note`. Capped at outstanding. Number `CN/<FY>/nnnn`.
+4. **Receipt:** customer + entity + amount + mode/UTR → optional allocations against that customer's open invoices → `ar_record_receipt`. DB blocks over-allocation. Unallocated remainder is an advance (still reduces customer exposure).
+5. **Ageing:** same view everywhere — buckets Not due / 0–30 / 31–60 / 61–90 / 90+; due date = invoice date + party credit days (snapshotted on the invoice). Customer ledger: invoiced − credited − received.
+6. **Follow-ups:** next date + note, optional invoice; mark done. Admin RLS writes.
+7. **Credit warning on confirm:** Sales Order detail (draft) calls `ar_credit_check`. Soft amber warning if over limit or any overdue — confirm still allowed. Hard block waits for department roles.
+8. **Failure cases:** every money rule is in the DB (immutability, one invoice per dispatch, credit/receipt caps, GSTIN/entity match). UI surfaces the raised message.
+
 ## Sales Orders (Step 3, One Source of Truth)
 
 Admin-only tab **Sales Orders** (`ops_sales`, sidebar group "Ops Platform"). Counter sales use the same screen with channel = Counter sale.

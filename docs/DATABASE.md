@@ -1,5 +1,34 @@
 # Database
 
+## Step 4 billing & receivables — One Source of Truth (2026-09-02)
+
+Invoices generated from dispatch; money is a document (law 3). Migration `20260902170000_step4_billing_receivables.sql`, applied on **staging**. Money tables have **no direct write policies** — `bill_generate_from_dispatch`, `ar_issue_credit_note`, `ar_record_receipt` are the only doors. Documents are immutable once numbered (`bill_block_change`; totals write uses `ops.allow_status_change`).
+
+| Object | Purpose |
+|---|---|
+| `ops_next_gstin_doc_no(entity, gstin, doc_type, date)` | Gapless sequence per entity × GSTIN × FY (law). Prefix `INV/` / `CN/`. Internal (no authenticated grant). |
+| `bill_invoice` | One row per dispatch (`unique dispatch_id`). GSTIN, place of supply (2-digit), intra_state, credit_days snapshot, due_date, owner (from party, overridable), GST split totals. `invoice_no` unique. |
+| `bill_invoice_line` | One row per dispatch line (`unique dispatch_line_id`): HSN, qty, rate, taxable, gst_rate, IGST or CGST+SGST, line_total. Paisa-safe CGST/SGST split (halves sum to tax). |
+| `bill_credit_note` | Correction document; amount capped at invoice outstanding under lock. |
+| `ar_receipt` / `ar_allocation` | Receipt (mode bank/upi/cash/cheque/adjustment, UTR) + allocations. Unique (receipt, invoice). Unallocated remainder = advance. |
+| `ar_followup` | Collections working document (admin RLS write): next_date, note, outcome, open/done/cancelled. |
+| `ar_invoice_outstanding_view` | total − credits − allocations; bucket NOT_DUE / 0-30 / 31-60 / 61-90 / 90+ / PAID; days_past_due. `security_invoker`. |
+| `ar_customer_ledger_view` | invoiced − credited − received (receipt totals, so advances count). |
+
+**Functions** (`ops_assert_admin()`):
+
+- `bill_generate_from_dispatch(dispatch, gstin, pos, date, owner, note)` → numbers the invoice, copies dispatch lines × order rates, GST split, rolls `so_order` to `invoiced` when every dispatch of a fully-dispatched order is invoiced.
+- `ar_issue_credit_note(invoice, amount, reason, date)` — reason required; amount ≤ outstanding.
+- `ar_record_receipt(customer, entity, amount, date, mode, utr, note, allocations jsonb)` — allocation customer must match; amount ≤ outstanding; sum(alloc) ≤ receipt.
+- `ar_credit_check(customer)` → `{credit_limit, outstanding, over_limit, oldest_overdue_days}` (soft warning for confirm).
+- `ar_invoice_outstanding_locked` — internal, `FOR UPDATE`.
+
+**RLS:** read authenticated; no write on money tables; admin write on `ar_followup` only. Audit on invoice, credit note, receipt, follow-up.
+
+**Smoke-tested on staging** (rolled back): 10×₹200 @ 12% intra-state = ₹2240 (CGST 120); 2×₹100 @ 18% inter-state = ₹236 IGST; order status `invoiced`; edit/dup/over-CN/over-alloc blocked.
+
+**Rollback:** reversing migration dropping `bill_`/`ar_` tables, views, functions. Posted staging documents would be lost.
+
 ## Internal Support issues
 
 Staff-raised tickets from Tools → Internal Support Platform → Open Tickets → **Raise an Issue**. Open Tickets: admin sees every non-Resolved submit; non-admin sees only their own.

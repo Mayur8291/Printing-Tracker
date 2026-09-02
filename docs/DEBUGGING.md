@@ -1,5 +1,35 @@
 # Debugging
 
+## Billing: "This dispatch is already invoiced"
+
+- **Symptom:** Generate invoice fails naming the dispatch.
+- **Root cause:** by design — `bill_invoice.dispatch_id` is unique. One invoice per dispatch.
+- **Fix:** open the existing invoice (Billing & AR → Invoices). Corrections are a credit note, not a second invoice.
+
+## Billing: "Invoices, credit notes and receipts are immutable"
+
+- **Symptom:** UPDATE/DELETE on `bill_invoice`, `bill_credit_note`, `ar_receipt` or `ar_allocation` raises.
+- **Root cause:** by design (law 3/4). The only UPDATE allowed is the totals write inside `bill_generate_from_dispatch` (transaction-local flag).
+- **Fix:** issue a credit note or a counter receipt. Never disable the trigger.
+
+## Billing: "Credit / Allocation exceeds invoice outstanding"
+
+- **Symptom:** credit note or receipt allocation fails with the outstanding figure.
+- **Root cause:** `ar_invoice_outstanding_locked` (total − credits − allocations) under `FOR UPDATE`.
+- **Fix:** lower the amount. Check the Ageing tab for the live outstanding.
+
+## Billing: GSTIN / place of supply errors
+
+- **Symptom:** "GSTIN belongs to a different entity" or "Place of supply must be a 2-digit state code".
+- **Root cause:** invoice GSTIN must belong to the order's entity; POS is the 2-digit state code (blank in the UI = GSTIN state → intra-state CGST+SGST).
+- **Fix:** pick a GSTIN of the order's entity; enter a 2-digit POS for inter-state (IGST).
+
+## Billing & AR tab empty / missing tables
+
+- **Symptom:** panel error naming `bill_invoice` or the RPCs.
+- **Root cause:** local/staging schema missing `20260902170000_step4_billing_receivables.sql`.
+- **Fix:** confirm `npm run check:env` points at staging `scvojtvgnkmbupvyslmb`; migration already applied there. Production does not have this schema until an explicit release.
+
 ## Support table values missing in Dark Mode
 
 | | |

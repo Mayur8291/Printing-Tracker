@@ -54,6 +54,7 @@ import MastersPanel from "./MastersPanel";
 import StockLedgerPanel from "./StockLedgerPanel";
 import ProcurementPanel from "./ProcurementPanel";
 import SalesOrdersPanel from "./SalesOrdersPanel";
+import BillingArPanel from "./BillingArPanel";
 import PurchaseOrderPanel from "./PurchaseOrderPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
@@ -6093,6 +6094,8 @@ function App() {
           {dashboardTab === "ops_procurement" && isAdmin && <ProcurementPanel />}
           {/* Sales Orders (Step 3) — admin-only orders → reservations → dispatch, job work, SLA. */}
           {dashboardTab === "ops_sales" && isAdmin && <SalesOrdersPanel />}
+          {/* Billing & AR (Step 4) — invoices from dispatch, credit notes, receipts, ageing. */}
+          {dashboardTab === "ops_ar" && isAdmin && <BillingArPanel />}
           {/* Scott tabs are admin-only (DASHBOARD_ADMIN_ONLY_TAB_IDS): the Scott proxy 403s
               non-admins, so guard the render too — sessionStorage can otherwise restore a
               Scott tab for a user who has since lost admin. */}

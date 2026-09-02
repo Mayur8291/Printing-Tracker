@@ -1,5 +1,31 @@
 # Flowcharts
 
+## Billing lifecycle (Step 4)
+
+```mermaid
+flowchart TD
+  Disp[Posted so_dispatch] --> Gen[rpc bill_generate_from_dispatch]
+  Gen --> Gstin{GSTIN matches order entity?}
+  Gstin -->|no| Err1[Blocked]
+  Gstin -->|yes| Num[Gapless INV per GSTIN per FY]
+  Num --> Pos{Place of supply equals GSTIN state?}
+  Pos -->|yes| Intra[CGST plus SGST]
+  Pos -->|no| Inter[IGST]
+  Intra --> Inv[Immutable bill_invoice]
+  Inter --> Inv
+  Inv --> AllDisp{Order fully dispatched and all dispatches invoiced?}
+  AllDisp -->|yes| Invoiced[so_order invoiced]
+  Inv --> Cn[rpc ar_issue_credit_note reason]
+  Cn --> Cap1{Amount less or equal outstanding?}
+  Cap1 -->|no| Err2[Blocked]
+  Cap1 -->|yes| CnDoc[Immutable bill_credit_note]
+  Inv --> Rcpt[rpc ar_record_receipt]
+  Rcpt --> Cap2{Alloc less or equal outstanding and receipt?}
+  Cap2 -->|no| Err3[Blocked]
+  Cap2 -->|yes| Alloc[ar_allocation]
+  Inv --> Age[ar_invoice_outstanding_view buckets]
+```
+
 ## Sales order lifecycle (Step 3)
 
 ```mermaid
