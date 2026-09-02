@@ -86,6 +86,15 @@
 - **Fix:** shadcn Tabs. **Raise an Issue** holds the heading, issue Buttons, Floor, Comment, Submit, and thank-you Alert. Same rules as before.
 - **Files:** `InternalSupportPlatformPanel.jsx`
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+## 2026-09-02 — Step 2 procurement: PO → GRN → QC → bill (three-way match) → payment
+
+- **Decisions (user):** QC gate ON by default (vendor-item `qc_exempt` skips it, fallback `crm_party.default_qc_required`); PO/bill approval = CEO / admin access; tolerances editable (`po_settings` singleton + `crm_vendor_item.over_receipt_pct` override).
+- **DB (staging):** migration `20260902120000_step2_procurement.sql` — `po_settings`, `po_purchase_order`/`po_line` (state machine draft→approved→partially_received→fulfilled→closed, short_closed/cancelled; status flips only via functions, enforced by trigger + transaction-local flag), `po_grn`/`po_grn_line` (posted GRNs immutable except QC counters), `ap_bill`/`ap_bill_line` (unique vendor+bill_no; one bill line per GRN line — double billing structurally impossible), `ap_debit_note`, `ap_payment`/`ap_payment_allocation` (append-only, function-only writes). Functions: `po_approve` (gapless `PO/<FY>/0001` via auto-provisioned `core_sequence`), `po_cancel`, `po_short_close`, `po_close`, `po_post_grn` (over-receipt tolerance, QC routing to qc_hold/good, PO counters — over-receipt on one line cannot mask a short line), `po_record_qc`, `ap_approve_bill` (three-way match: billed ≤ received hard stop, rate variance needs override reason; MSME micro/small due-date cap), `ap_cancel_bill`, `ap_record_payment` (allocation ≤ outstanding). Views: `po_active_view`, `ap_bill_outstanding_view`, `ap_vendor_ledger_view`, `po_vendor_performance_view` (all `security_invoker`). Smoke-tested via rolled-back transaction — all 7 guards held, drift 0.
+- **Ledger upgrade:** `inv_movement` gains `to_state` so QC can flip state at the same location (qc_hold → good/damaged); `inv_post_movement` takes optional `p_to_state`; drift recompute credits destination state. Stock Ledger tab shows `state → to_state`.
+- **UI:** new admin-only **Procurement** tab (`ops_procurement`, Ops Platform group): PO list/create/detail (approve, receive GRN, QC queue, short close, cancel, close), Bills (record against unbilled GRN lines, approve with variance-override path, MSME badge), Payments & ledger (vendor ledger, ageing, record payment with allocations), Settings (editable tolerances). `check:ui` passed.
+- **Fixes during build:** `ap_approve_bill` referenced `cat_sku.code` (column is `sku_code`); PO fulfilment originally summed raw pending so over-receipt could mask short lines.
+- **Untouched:** Scott API section, existing Purchase Order voucher tab (`purchase_order`) — the new tab is `ops_procurement`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md.
 
 ## 2026-09-01 — Step 1 stock ledger: append-only movements + Stock Ledger tab
 

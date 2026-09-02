@@ -9,6 +9,29 @@
 | **Fix** | Hard refresh. `PRIORITY_ROW_CLASS` and badges include `dark:` backgrounds and `text-foreground`. |
 | **Verify** | Dark Mode: Code, Customer, Order ID, Concerns, Source, Assignee, Created all readable. Priority tint still there. |
 
+## Procurement: "status changes only through …" / "immutable" errors
+
+- **Symptom:** direct updates to `po_purchase_order`, `po_grn` or `ap_bill` raise "status changes only through po_approve / po_post_grn / ap_approve_bill" or "… is immutable".
+- **Root cause:** by design. Guard triggers allow status flips only inside the definer functions (transaction-local flag `ops.allow_status_change`). Approved/posted documents freeze.
+- **Fix:** use the RPCs (`po_approve`, `po_post_grn`, `po_record_qc`, `ap_approve_bill`, `ap_record_payment`) or, for money corrections, a debit note / counter payment. Never disable the triggers.
+
+## Procurement: GRN blocked with "Over-receipt: pending X plus tolerance…"
+
+- **Symptom:** posting a GRN fails naming pending, tolerance and the allowed maximum.
+- **Root cause:** received qty exceeds pending + tolerance% of ordered. Tolerance source: `crm_vendor_item.over_receipt_pct` for that vendor+SKU if set, else `po_settings.over_receipt_tolerance_pct`.
+- **Fix:** correct the quantity, or (deliberately) raise the tolerance in Procurement → Settings / the vendor-item override, then repost. The failed draft GRN is auto-deleted by the UI.
+
+## Procurement: bill approval fails with "Rate variance beyond tolerance"
+
+- **Symptom:** `ap_approve_bill` raises listing SKUs with PO rate vs bill rate.
+- **Root cause:** three-way match; variance beyond `po_settings.rate_variance_tolerance_pct`.
+- **Fix:** in the approve dialog give an override reason (recorded, `match_status='override'`), or fix the line rates while the bill is draft. "Billed qty exceeds received" has no override — fix the qty.
+
+## Procurement tab: "Procurement tables are not on this database yet"
+
+- **Symptom:** inline message naming migration `20260902120000_step2_procurement.sql`.
+- **Root cause / fix:** same pattern as Platform Masters — the env the app points at lacks the migration (staging has it since 2026-09-02; production only on an explicit release).
+
 ## Internal Support Platform missing from Tools
 
 | | |

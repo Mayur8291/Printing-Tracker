@@ -134,6 +134,23 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Only one tab for now.
 
+## 2026-09-02 — Step 2 procurement design choices
+
+**Context:** Third roadmap migration (`20260902120000_step2_procurement.sql`), staging only. User decisions: QC gate on by default, approval = admin access, tolerances editable.
+
+**Decisions:**
+
+1. **Status flips only through functions, enforced in the DB.** Guard triggers block any status change unless a transaction-local flag (`ops.allow_status_change`) is set — and only the SECURITY DEFINER functions set it. Admin RLS write on the document tables therefore covers *drafting only*; nobody can flip a PO to approved with a direct update.
+2. **Numbers assigned at approval/posting, not creation.** Drafts never burn a gapless sequence number; `ops_next_doc_no` auto-provisions the `core_sequence` row (prefix `PO/<FY>/`, `GRN/<FY>/`) so no manual sequence setup is needed.
+3. **`sent`/`open` PO statuses deferred.** The roadmap machine includes them, but they only mean something once PO PDF/email exists. v1: draft → approved → partially_received → fulfilled → closed (+short_closed/cancelled). Amendments post-approval = short-close + fresh PO (no `po_version` machinery yet).
+4. **Ledger gained `to_state` instead of a QC-location hack.** QC pass/fail is a state change at the same location; faking it with virtual locations would have polluted location masters. Same-location movements are only legal when the state changes.
+5. **Double billing is structurally impossible**: one bill line per GRN line (unique index), one vendor invoice number per vendor (unique index) — not just validated in code.
+6. **Billed > received is a hard stop; rate variance is an override.** Quantity fraud is never acceptable; rate differences happen (freight, revisions) and are allowed with a recorded reason (`match_status='override'`).
+7. **MSME due-date cap editable** (`msme_due_cap_days`, default 45) applied to micro/small vendors at bill approval, flagged `msme_capped`.
+8. **Payments have no RLS write path at all** — only `ap_record_payment` writes them, and block triggers make them append-only. Corrections are counter entries.
+9. **Fulfilment counts only positive pending** (`greatest(pending, 0)`) so over-receipt on one line cannot mask a short line — found during the smoke test design.
+10. **Existing Purchase Order voucher tab untouched**; the new module lives under `ops_procurement` until cutover.
+
 ## 2026-09-01 — Step 1 stock ledger design choices
 
 **Context:** Second roadmap migration (`20260901191500_step1_stock_ledger.sql`), staging only.

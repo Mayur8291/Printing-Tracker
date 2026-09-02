@@ -1,5 +1,22 @@
 # Flows
 
+## Procurement (Step 2, One Source of Truth)
+
+Admin-only tab **Procurement** (`ops_procurement`, sidebar group "Ops Platform") — distinct from the existing Purchase Order voucher tab, which keeps running unchanged.
+
+1. **Trigger:** admin opens Procurement (`ProcurementPanel`); parallel load of POs (+lines), bills (+lines), outstanding/ledger/performance views, payments, `po_settings`, plus parties/entities/locations/SKUs from the Step 0 masters. Missing tables → inline message naming migration `20260902120000`.
+2. **New PO:** dialog (vendor → prefills credit days, entity, delivery location, lines by SKU code resolved against masters) → draft rows in `po_purchase_order`/`po_line` (admin RLS). Drafts have no number.
+3. **Approve:** PO detail → Approve → RPC `po_approve` (admin gate) assigns the gapless `PO/<FY>/nnnn` and locks commercial fields (guard trigger).
+4. **Receive goods:** detail → Receive goods → per-line quantities → `receiveGrn` creates a draft GRN + lines then calls `po_post_grn`: over-receipt tolerance check (vendor-item override or `po_settings`), stock posted through `inv_post_movement` (QC-required → `qc_hold`, exempt → `good`), PO counters/status roll forward, `GRN/<FY>/nnnn` assigned. Failure (e.g. tolerance) deletes the draft GRN and surfaces the DB error.
+5. **QC:** detail shows a QC queue for posted, QC-required GRN lines with remaining hold qty → pass/fail/note → `po_record_qc` → same-location state-change movements; fails require a note and bump `qty_rejected`.
+6. **Short close / cancel / close:** reason-gated function calls; short close kills pending qty per line.
+7. **Record bill:** Bills tab → dialog: vendor → unbilled posted GRN lines (billed ones filtered via `ap_bill_line`), qty/rate/tax prefilled from GRN/PO → draft `ap_bill` + lines. Duplicate vendor invoice numbers rejected by the DB.
+8. **Approve bill:** `ap_approve_bill` runs the three-way match. Variance error → dialog switches to override mode (reason required, recorded on the document). Due date = credit days, MSME-capped (badge in UI).
+9. **Payment:** Payments & ledger tab → dialog: vendor, entity, amount, mode/UTR, optional allocations against outstanding bills → `ap_record_payment` (all-or-nothing, allocation ≤ outstanding under lock). Payments append-only.
+10. **Ledger & ageing:** vendor ledger view (billed − debits − paid), outstanding bills with overdue days, payment history.
+11. **Settings:** editable tolerances (`po_settings`) — apply to the next GRN / bill approval.
+12. **Failure cases:** every business rule lives in the DB (tolerance, match, statuses, duplicates, allocations) — the UI just surfaces the raised messages inline.
+
 ## Platform Masters (Step 0, One Source of Truth)
 
 Admin-only tab **Platform Masters** (`ops_masters`, sidebar group "Ops Platform" — distinct from the frozen Scott API "Masters" tab).

@@ -28,6 +28,39 @@ Staff-raised tickets from Tools → Internal Support Platform → Open Tickets �
 
 **Rollback:** drop trigger, function, policies, then `internal_support_issues`.
 
+## Step 2 procurement — One Source of Truth (2026-09-02)
+
+PO lifecycle → GRN → QC → payables (law 3: money is a document). Migration `20260902120000_step2_procurement.sql`, applied on **staging**. Drafting documents are admin-writable via RLS; everything that moves stock/money or flips a status goes through SECURITY DEFINER functions. Status columns are protected by guard triggers + a transaction-local flag (`ops.allow_status_change`) only the functions set.
+
+| Object | Purpose |
+|---|---|
+| `po_settings` | Singleton (id=1), admin-editable: `over_receipt_tolerance_pct` (default 5), `rate_variance_tolerance_pct` (default 2), `msme_due_cap_days` (default 45). |
+| `crm_vendor_item.over_receipt_pct` | New column: per vendor-item tolerance override (beats the global setting). |
+| `po_purchase_order` | PO header. Status machine: draft → approved → partially_received → fulfilled → closed; short_closed from approved/partially; cancelled from draft/approved with no receipts. `po_no` assigned at approval (gapless, per entity × FY, prefix `PO/<FY>/`). Commercial fields freeze after draft. Roadmap's sent/open deferred (see DECISIONS). |
+| `po_line` | sku, qty_ordered, rate, tax_pct + counters qty_received/qty_rejected/qty_cancelled (function-maintained; frozen fields guarded after draft). Unique (po_id, sku_id). |
+| `po_grn` / `po_grn_line` | Goods receipt working paper (draft) → posted by `po_post_grn` (grn_no `GRN/<FY>/0001`). Posted GRNs immutable except QC counters on lines. |
+| `ap_bill` / `ap_bill_line` | Vendor bill. `unique (vendor_id, bill_no)` blocks double entry; `unique (grn_line_id)` on lines makes double billing structurally impossible. Approved bills immutable — corrections are debit notes. |
+| `ap_debit_note` | Rejections / shortages / rate corrections (open/settled/cancelled), admin-writable. |
+| `ap_payment` / `ap_payment_allocation` | Append-only (block triggers, **no** direct write policies) — written only by `ap_record_payment`. |
+
+**Functions** (all SECURITY DEFINER, `ops_assert_admin()` gate = admin app users or server contexts):
+
+- `po_approve(po)` → assigns number via `ops_next_doc_no` (auto-provisions the `core_sequence` row, then `core_next_sequence` under lock).
+- `po_cancel(po, reason)` / `po_short_close(po, reason)` (kills pending qty) / `po_close(po)`.
+- `po_post_grn(grn)` → per line under `FOR UPDATE`: vendor match, PO open, over-receipt check (pending + tolerance% of ordered; vendor-item override wins), QC routing (`qc_exempt` → good, else qc_hold), `inv_post_movement`, PO counters + status (only **positive** pending counts toward fulfilment).
+- `po_record_qc(grn_line, pass, fail, note)` → same-location state-change movements (qc_hold→good / qc_hold→damaged); fail requires a note and bumps `po_line.qty_rejected`.
+- `ap_approve_bill(bill, override_reason)` → three-way match: billed qty > received = hard stop; rate variance beyond tolerance needs override (recorded as `match_status='override'` + reason). Computes totals and due date: vendor credit days, capped at `msme_due_cap_days` for micro/small vendors (`msme_capped` flag).
+- `ap_cancel_bill(bill, reason)` (draft only), `ap_record_payment(vendor, entity, amount, …, allocations jsonb)` (validates per-bill outstanding under lock).
+- Helpers: `ops_assert_admin`, `ops_fy_label` (Apr–Mar), `ops_next_doc_no`, `ops_status_change_allowed`.
+
+**Views** (`security_invoker = true`): `po_active_view` (pending qty/value, days overdue), `ap_bill_outstanding_view` (paid/outstanding/overdue), `ap_vendor_ledger_view` (billed − open debit notes − paid), `po_vendor_performance_view` (rejection %, on-time %).
+
+**Step 1 ledger change:** `inv_movement.to_state` added; the old `from ≠ to` check became `from ≠ to OR to_state <> state` (constraint `inv_movement_loc_or_state_check`), `inv_post_movement` gained `p_to_state` (11th arg, default null = same state), `inv_recompute_drift` credits the destination with `coalesce(to_state, state)`.
+
+**RLS:** read authenticated on all `po_`/`ap_` tables; admin write on drafting documents; no write policies at all on payments/allocations. Audit triggers (law 4) on `po_settings`, `po_purchase_order`, `po_grn`, `ap_bill`, `ap_debit_note`, `ap_payment`.
+
+**Rollback:** drop the `po_`/`ap_` tables + views + functions, drop `inv_movement.to_state` and restore the old constraint/function — but only via a reversing migration; posted documents on staging would be lost.
+
 ## Step 1 stock ledger — One Source of Truth (2026-09-01)
 
 Append-only stock ledger (law 2). Migration `20260901191500_step1_stock_ledger.sql`, applied on **staging**. All mutations go through SECURITY DEFINER functions with `FOR UPDATE` locks — no client code ever writes these tables. Role gate v1: admin app users + server contexts (`inv_assert_can_post`); department roles later.

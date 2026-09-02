@@ -52,6 +52,7 @@ import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
 import EnquiryPanel from "./EnquiryPanel";
 import MastersPanel from "./MastersPanel";
 import StockLedgerPanel from "./StockLedgerPanel";
+import ProcurementPanel from "./ProcurementPanel";
 import PurchaseOrderPanel from "./PurchaseOrderPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
@@ -6087,6 +6088,8 @@ function App() {
           {dashboardTab === "ops_masters" && isAdmin && <MastersPanel />}
           {/* Stock Ledger (Step 1) — admin-only append-only movements over Step 0 masters. */}
           {dashboardTab === "ops_stock" && isAdmin && <StockLedgerPanel />}
+          {/* Procurement (Step 2) — admin-only PO → GRN → QC → bill → payment. */}
+          {dashboardTab === "ops_procurement" && isAdmin && <ProcurementPanel />}
           {/* Scott tabs are admin-only (DASHBOARD_ADMIN_ONLY_TAB_IDS): the Scott proxy 403s
               non-admins, so guard the render too — sessionStorage can otherwise restore a
               Scott tab for a user who has since lost admin. */}

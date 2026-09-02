@@ -1,5 +1,36 @@
 # Flowcharts
 
+## Procurement lifecycle (Step 2)
+
+```mermaid
+flowchart TD
+  Draft[Draft PO admin RLS write] --> Approve[rpc po_approve]
+  Approve -->|gapless PO number| Open[Approved]
+  Open --> Receive[Receive goods dialog]
+  Receive --> PostGrn[rpc po_post_grn]
+  PostGrn --> Tol{Within over receipt tolerance?}
+  Tol -->|no| Err1[Blocked vendor item override or po_settings]
+  Tol -->|yes| QcGate{QC required?}
+  QcGate -->|vendor item qc_exempt| Good[Stock in as good]
+  QcGate -->|default| Hold[Stock in as qc_hold]
+  Hold --> Qc[rpc po_record_qc]
+  Qc -->|pass| StateGood[qc_hold to good same location]
+  Qc -->|fail plus note| StateDam[qc_hold to damaged qty_rejected up]
+  PostGrn --> Status{All lines received?}
+  Status -->|positive pending left| Partial[partially_received]
+  Status -->|none| Fulfilled[fulfilled] --> Close[rpc po_close]
+  Partial --> Receive
+  Open --> Short[rpc po_short_close reason] 
+  Bill[Draft bill unbilled GRN lines] --> ApproveBill[rpc ap_approve_bill]
+  ApproveBill --> Match{Three way match}
+  Match -->|billed above received| Hard[Hard stop]
+  Match -->|rate variance above tolerance| Override[Needs override reason]
+  Match -->|ok| Due[Due date MSME cap for micro small]
+  Due --> Pay[rpc ap_record_payment allocations]
+  Override --> Due
+  Pay --> Ledger[ap_vendor_ledger_view ageing]
+```
+
 ## Step 0 masters — entity relationships (One Source of Truth)
 
 ```mermaid
