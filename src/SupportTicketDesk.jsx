@@ -39,26 +39,30 @@ const STATUS_FILTERS = [{ id: "all", label: "All" }, ...ENQUIRY_STATUSES.map((id
 }))];
 
 const STATUS_BADGE_CLASS = {
-  new: "bg-slate-100 text-slate-700 border-slate-200",
-  assigned: "bg-violet-50 text-violet-700 border-violet-200",
-  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
-  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  closed: "bg-zinc-100 text-zinc-600 border-zinc-200"
+  new: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
+  assigned: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-200 dark:border-violet-700",
+  in_progress: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-700",
+  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-700",
+  closed: "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-600"
 };
 
 const PRIORITY_BADGE_CLASS = {
-  low: "bg-zinc-50 text-zinc-600 border-zinc-200",
-  normal: "bg-slate-50 text-slate-700 border-slate-200",
-  high: "bg-amber-50 text-amber-700 border-amber-200",
-  urgent: "bg-red-50 text-red-700 border-red-200"
+  low: "bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-600",
+  normal: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
+  high: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700",
+  urgent: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-200 dark:border-red-700"
 };
 
 /** Whole-row tint for Enquiry and Complaints desks (admin and staff). */
 const PRIORITY_ROW_CLASS = {
-  urgent: "bg-red-50 hover:bg-red-100/90 border-l-4 border-l-red-500",
-  high: "bg-amber-50 hover:bg-amber-100/90 border-l-4 border-l-amber-500",
-  normal: "bg-sky-50 hover:bg-sky-100/90 border-l-4 border-l-sky-400",
-  low: "bg-zinc-50 hover:bg-zinc-100/90 border-l-4 border-l-zinc-400"
+  urgent:
+    "bg-red-50 text-foreground hover:bg-red-100/90 border-l-4 border-l-red-500 dark:bg-red-950/55 dark:hover:bg-red-900/50 dark:text-foreground",
+  high:
+    "bg-amber-50 text-foreground hover:bg-amber-100/90 border-l-4 border-l-amber-500 dark:bg-amber-950/55 dark:hover:bg-amber-900/50 dark:text-foreground",
+  normal:
+    "bg-sky-50 text-foreground hover:bg-sky-100/90 border-l-4 border-l-sky-400 dark:bg-sky-950/55 dark:hover:bg-sky-900/50 dark:text-foreground",
+  low:
+    "bg-zinc-50 text-foreground hover:bg-zinc-100/90 border-l-4 border-l-zinc-400 dark:bg-zinc-900/70 dark:hover:bg-zinc-800/80 dark:text-foreground"
 };
 
 function formatDateTime(iso) {
@@ -276,7 +280,7 @@ export default function SupportTicketDesk({
                             {ENQUIRY_STATUS_LABEL[row.status] ?? row.status}
                           </Badge>
                           {isEnquiryUnpicked(row) ? (
-                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700">
                               Pending
                             </Badge>
                           ) : null}

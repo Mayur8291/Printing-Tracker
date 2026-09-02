@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-02 — Support desk tables readable in Dark Mode
+
+- **Issue:** Support Enquiry / Complaints table values vanished in Dark Mode.
+- **Fix:** Priority row tints and status/priority badges use dark backgrounds and `text-foreground` so light inherited panel text is not on pale `*-50` rows.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryDetailDialog.jsx`, `SupportDelayAlertCard.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-02 — Issue column after Status, View Issue on the same line
 
 - **Issue:** Issue sat before Status. View Issue sat under the type/floor line.

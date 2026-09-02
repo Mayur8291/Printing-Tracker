@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-02 — Support table rows stay readable in Dark Mode
+
+**Context:** Support desk rows use pale priority backgrounds. Dark Mode panel text is light. Values disappear.
+
+**Options:** (1) Drop row tints. (2) Dark-mode row + badge colors with `text-foreground`.
+
+**Decision:** Option 2. Keep priority left border. Enquiry and Complaints share `SupportTicketDesk`.
+
+**Why:** Tint still shows urgency. Text must contrast.
+
+**Tradeoffs:** Delay Alert / Order status have no tinted table; only success copy on Delay Alert got a dark text token.
+
 ## 2026-09-02 — Issue sits after Status on one line with View Issue
 
 **Context:** User wants Issue next to Status but not before it, and `Power Cut - 2nd Floor → View Issue` on one line.

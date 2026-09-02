@@ -163,7 +163,7 @@ export default function SupportDelayAlertCard({ sessionUserId }) {
         </div>
         {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        {ok ? <p className="text-sm text-emerald-700">{ok}</p> : null}
+        {ok ? <p className="text-sm text-emerald-700 dark:text-emerald-300">{ok}</p> : null}
         <Button type="button" disabled={saving} onClick={() => void handleSend()}>
           {saving ? "Sending…" : "Send delay alert"}
         </Button>

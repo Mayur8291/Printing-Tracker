@@ -1,5 +1,14 @@
 # Debugging
 
+## Support table values missing in Dark Mode
+
+| | |
+|--|--|
+| **Symptom** | Support → Enquiry / Complaints table cells look empty in Dark Mode. Light Mode is fine. |
+| **Root cause** | Rows use `bg-red-50` / `bg-sky-50` (pale). Dark Mode `.table-panel` text is light. Light on pale. |
+| **Fix** | Hard refresh. `PRIORITY_ROW_CLASS` and badges include `dark:` backgrounds and `text-foreground`. |
+| **Verify** | Dark Mode: Code, Customer, Order ID, Concerns, Source, Assignee, Created all readable. Priority tint still there. |
+
 ## Internal Support Platform missing from Tools
 
 | | |
