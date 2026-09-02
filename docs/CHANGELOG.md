@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-02 — Inventory Transfer moves qty from warehouse A to warehouse B
+
+- **Bug fix:** Adjust → Transfer had one warehouse box, so from and to were the same bin. The RPC path skipped facility stock, so nothing left A and nothing arrived at B.
+- **Fix:** Transfer now asks **From warehouse** and **To warehouse**. RPC `transfer_sku_facility_stock` deducts available on-hand at from-facility and adds the same qty at to-facility in one transaction, then writes one `TRANSFER` movement. Total SKU stock stays the same.
+- **Files:** `src/inventory/modals/AdjustStockModal.jsx`, `src/inventory/InventoryDashboard.jsx`, `src/inventory/InventoryDataContext.jsx`, `src/inventory/inventoryDbUtils.js`, `supabase/migrations/20260902193000_transfer_sku_facility_stock.sql`
+- **Migration:** applied on **staging** only.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-02 — Inventory Adjust looked stuck + Step 5 Uniware bridge
 
 - **Bug fix:** Inventory Adjust wrote facility stock, but the list kept the old qty. List reads `inventory_sku_availability`, not `inventory_skus.stock_qty`. Silent refresh after Adjust never reloaded that map, and OUT/ADJUST ignored the warehouse you picked (wrote the SKU home bin). Fix: `refresh()` awaits `loadAvailability()`; Adjust uses the chosen warehouse; realtime also watches `inventory_facility_stock`.

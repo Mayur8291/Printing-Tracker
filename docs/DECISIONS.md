@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-02 — Inventory Transfer is a facility-to-facility move
+
+**Context:** Users need to move stock Makali ↔ Guthalli. The Adjust dialog had one warehouse and Transfer did not touch facility on-hand.
+
+**Options:** (1) Two client calls to `adjust_sku_facility_stock`. (2) One DB function that deducts and adds under lock.
+
+**Decision:** Option 2. `transfer_sku_facility_stock`. UI shows From and To.
+
+**Why:** Two client calls can succeed on one side and fail on the other. Total SKU stock must stay the same.
+
+**Tradeoffs:** Transfer cannot change overall qty (use IN/OUT/ADJUST for that). Reserved qty at source cannot be transferred.
+
 ## 2026-09-02 — Inventory list follows facility availability, not sku.stock_qty
 
 **Context:** Adjust updated the DB; staging UI looked unchanged.

@@ -245,7 +245,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 2. **Fetch:** `inventory_sku_availability` view (paged 1000/req, authenticated read via `20260716120000`), aggregated per `sku_code` + per-facility breakdown → `availabilityBySku`.
 3. **Display:** Inventory list shows **Reserved** (amber, tooltip "Held for open orders — not available to sell") and **Available** (= on_hand − reserved) next to On hand; low-stock status, stock bar, alerts, and overview KPIs compare against **available**.
 4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills. `refresh()` (including silent Adjust/SKU events) **awaits** that map so the list cannot keep the old qty.
-5. **Adjust:** writes `adjust_sku_facility_stock` at the warehouse the user picked (OUT/ADJUST use `fromWh`). Then silent refresh + availability reload. This is **not** the Ops Stock Ledger.
+5. **Adjust:** IN/OUT/ADJUST write `adjust_sku_facility_stock` at the warehouse the user picked (OUT/ADJUST use `fromWh`). **Transfer** shows From + To warehouses and calls `transfer_sku_facility_stock` (deduct from, add to, one `TRANSFER` movement). Then silent refresh + availability reload. This is **not** the Ops Stock Ledger.
 6. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
 
 ### Inventory bulk Excel upload (stock + DOC, warehouse-scoped)

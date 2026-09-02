@@ -1,5 +1,21 @@
 # Flowcharts
 
+## Inventory facility transfer
+
+```mermaid
+flowchart TD
+  Pick[Adjust Transfer] --> FromTo[From warehouse and To warehouse]
+  FromTo --> Same{Different warehouses?}
+  Same -->|no| Block1[Blocked]
+  Same -->|yes| Rpc[rpc transfer_sku_facility_stock]
+  Rpc --> Lock[Lock both facility rows]
+  Lock --> Avail{qty less or equal available at from?}
+  Avail -->|no| Block2[Blocked]
+  Avail -->|yes| Deduct[Deduct from facility]
+  Deduct --> Add[Add to facility]
+  Add --> Move[One TRANSFER movement]
+```
+
 ## Uniware bridge (Step 5)
 
 ```mermaid

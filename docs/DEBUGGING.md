@@ -1,5 +1,13 @@
 # Debugging
 
+## Inventory Transfer has no from/to, or qty does not move between warehouses
+
+- **Symptom:** Adjust → Transfer only shows one warehouse. After save, source still has the qty and destination did not gain it.
+- **Root cause:** The dialog reused a single warehouse field, so from and to were the same. Transfer skipped `adjust_sku_facility_stock` and only wrote a movement against total `stock_qty`.
+- **Fix (2026-09-02):** From warehouse + To warehouse. RPC `transfer_sku_facility_stock` deducts then adds in one transaction.
+- **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — from facility down, to facility up, sum unchanged.
+- **Blocked:** same warehouse, same facility_code, qty > available (on_hand − reserved), qty ≤ 0.
+
 ## Inventory Adjust succeeds but list still shows old qty
 
 - **Symptom:** Adjust / IN / OUT toast says recorded; Inventory list, overview, and warehouse qty stay the same on staging.

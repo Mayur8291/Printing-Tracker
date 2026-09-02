@@ -3,6 +3,7 @@ import { POS } from "./inventoryData";
 import { supabase } from "../supabaseClient";
 import {
   applyFacilityStockAdjustment,
+  transferSkuFacilityStock,
   bulkAdjustFacilityStock,
   bulkUpdateSkuMetrics,
   applyStockAdjustment,
@@ -477,12 +478,33 @@ export function InventoryDataProvider({ session, children }) {
   const adjustStock = useCallback(
     async ({ skuUuid, type, qty, reason, reference, fromWh, toWh }) => {
       const sku = skus.find((s) => s._uuid === skuUuid);
+
+      if (type === "TRANSFER") {
+        if (!fromWh || !toWh) {
+          throw new Error("Pick a from warehouse and a to warehouse.");
+        }
+        if (fromWh === toWh) {
+          throw new Error("From and to warehouses must be different.");
+        }
+        await transferSkuFacilityStock({
+          skuUuid,
+          fromWarehouseId: fromWh,
+          toWarehouseId: toWh,
+          qty,
+          reason: reason || "",
+          reference: reference || "",
+          userId
+        });
+        await refresh({ silent: true });
+        return { skuUuid, type, qty: Math.abs(qty), reason, reference, fromWh, toWh };
+      }
+
       // OUT/ADJUST use the warehouse the user picked (fromWh). Preferring toWh
       // used to write the SKU's home warehouse and leave the selected bin unchanged.
       const warehouseId = type === "OUT" || type === "ADJUST" ? fromWh || toWh || sku?.wh : toWh || fromWh || sku?.wh;
       const signedQty = type === "OUT" ? -Math.abs(qty) : Math.abs(qty);
 
-      if (warehouseId && type !== "TRANSFER") {
+      if (warehouseId) {
         const whRow = warehouses.find((w) => w.id === warehouseId);
         const fc = whRow ? resolveFacilityCode(whRow) : "";
         const fac = facilityStockForSku(availabilityBySku, sku?.id, fc);
