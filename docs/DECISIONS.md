@@ -14,6 +14,18 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** PO statuses are not production stages. Icons are PO-specific except Pending's shared PNG.
 
+## 2026-09-03 — Production NF inbound on; outbound webhook off
+
+**Context:** NotFunny validated staging webhooks. User asked to ship production and hand them production API keys. NF earlier said they will send separate production webhook credentials. Scott app login stays unchanged.
+
+**Options:** (1) Copy staging `SCOTT_WEBHOOK_*` onto production so live events hit the same NF function. (2) Deploy API + schema only; leave production outbound webhooks unset. (3) Wait for NF prod URL before any production ship.
+
+**Decision (updated same day):** NF later confirmed that receiver **is** production. Option 1 is now in effect: same `SCOTT_WEBHOOK_*` on `levwrmvqdntngeasrtnb`. Inbound NotFunny key still production-only. Scott `SCOTT_AUTH_*` still not copied.
+
+**Why:** They asked production keys to go live on the URL they already sent. Echo `evt_prod_1331ec06c6ad` returned `200 {"received":true}`.
+
+**Tradeoffs:** Staging and production both POST to one NF function. Dedup is by `event_id`. Scott API tabs on the live site still need `SCOTT_AUTH_*` on production before those edge calls work.
+
 ## 2026-09-03 — Asset Management register is `hr_assets`
 
 **Context:** Save asset only prepended to in-memory `rawAssets`. Leaving the tab unmounted the panel. Assets looked empty.
@@ -430,6 +442,30 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 **Why:** Same Complete UI. Sample complete never appears in Production Complete.
 
 **Tradeoffs:** Two list-tab states in App.
+
+## 2026-09-03 — Mark complete does not switch list tab
+
+**Context:** User does not want the page to jump to Complete orders after Mark as complete.
+
+**Options:** (1) Keep routing to Complete so the job stays visible. (2) Stay on the current list; job leaves All because it is complete.
+
+**Decision:** Option 2. `handleMarkComplete` / sample-complete status save do not call `setOrdersTab("complete")` or tracker Complete.
+
+**Why:** Operator stays in the All-orders workflow. Complete list is still there when they want it.
+
+**Tradeoffs:** The completed row disappears from All immediately. User must open Complete orders to see it.
+
+## 2026-09-03 — Sent to Dispatch auto-completes after 10 minutes
+
+**Context:** Sent to Dispatch stayed on All forever because Complete is `is_complete`, not that status. Viewer trigger blocks `is_complete`.
+
+**Options:** (1) Treat `sent_to_dispatch` as complete in the list filter. (2) After 10 minutes set `is_complete` in the existing promote RPC. (3) Disable the scope trigger around that UPDATE.
+
+**Decision:** Option 2. Stamp `status_sent_to_dispatch_at`. RPC completes matching rows. Transaction GUC lets the scope trigger allow that write (no table-lock DISABLE TRIGGER).
+
+**Why:** Same Complete flag as Mark as complete. 10-minute window matches the request. Client already polls the RPC every 30s.
+
+**Tradeoffs:** Jobs already on Sent to Dispatch get a fresh 10-minute window on migrate (`now()`, not `created_at`).
 
 ## 2026-08-31 — Sampling Tracker has its own status pipeline
 

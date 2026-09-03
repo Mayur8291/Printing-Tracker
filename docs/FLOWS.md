@@ -5,7 +5,7 @@
 1. **Trigger:** sidebar Tools → **Asset Management** (`dashboardTab === "asset_management"`).
 2. **Entry:** `AssetManagementPanel` loads `hr_assets` on mount. Default screen is Dashboard. **Assets** is the register list. **Add asset** / header **New asset** is the form.
 3. **Auth:** signed-in user. Insert needs `created_by = auth.uid()` and a `profiles` row. Select is any authenticated user. Production has no table until an explicit release.
-4. **Logic:** Fill Asset name (required), category, optional manufacturer/model/serial/purchase date, location, optional assignee, charger, notes. **Save asset** inserts `hr_assets` with next `IT-#####` tag (client + unique retry). Status `Checked out` if assignee set, else `Available`. Then the panel opens **Assets**. Assign / check-in on detail updates the same row.
+4. **Logic:** Fill Asset name (required), category, optional manufacturer/model/serial/purchase date, location, optional assignee, charger, notes. **Save asset** inserts `hr_assets` with next `IT-#####` tag (client + unique retry). Status `Checked out` if assignee set, else `Available`. Then the panel opens **Assets**. Click a row → detail for that tag only (no fallback to another asset). **Back to assets** clears the selected tag and any check-in/out dialog. Assign / check-in on detail updates the same row. Check-in/out Dialog mounts only while that modal is open.
 5. **Database:** insert/select/update `hr_assets`. No delete.
 6. **Failure:** missing name or missing session → Alert on the form. RLS / missing table → `[hr-assets] insert failed` / list error Alert. Leave tab unmounts the panel; reload reads the table so the row stays.
 7. **Edge:** two saves at once may clash on tag; insert retries a new tag. Empty name blocked. Unassigned + Checked out blocked by DB check.
@@ -318,8 +318,16 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 4. **Production Tracker:** existing `LinkedOrdersTabPanel` (job sheets, filters, Create Job sheet on All, status). Complete hides Create Job sheet. **Delivery required on** calendar is today or later (past days disabled).
 5. **Sampling Tracker:** same table. Only `sample_job_sheet` rows. All = open samples. Complete = closed samples. Picking **Dispatched Successfully** or admin **Mark as complete** (View Sample Order) moves the row to Complete, forces status **Dispatched Successfully**, and locks Status (badge only). **From / To / Clear** filter `order_date`. Create Sample Jobsheet on All (SA-####, no Total quantity, status Pattern Making). **Delivery required on** is optional; calendar is today or later when used. List words: View Sample Order, Sample Order, Order date, **Due In**. No count, Qty, or Handover. Sampling status pipeline.
 6. **Sample SLA:** if **Delivery required on** (`orders.due_date`) is filled, deadline is end of that local day. If blank, deadline is save time (`orders.created_at`) + 2 days. Create Sample Jobsheet does not require the date; Production job sheet still does. **Due In** column sits after Order date on Sampling **All orders** only. Sampling **Complete orders** has no Due In column. Same clock in View Sample Order while the job is still open. While open and before deadline: live `HH:MM Hrs Left` (Badge: plenty of time = secondary, under 24h = default, under 12h = destructive). Open and past deadline (status not Dispatched Successfully): **SLA Breached** in red, timer removed (list Badge, view Alert). Closed / Dispatched Successfully: view hides Due In. Fallback start = `order_date` midnight if `created_at` missing and no due date. Uses the browser clock. No SLA on Production Tracker.
-7. **Mark as complete:** admin on View order. Sample job → Sampling Complete + Dispatched Successfully. Production job sheet → Production Complete. Printing jobs still go to Printing Complete.
+7. **Mark as complete:** admin on View order. Sample job → Sampling Complete + Dispatched Successfully. Production job sheet → Production Complete. Printing jobs still go to Printing Complete. **The list tab does not switch** — stay on All orders (or whatever list was open). The completed row leaves All because `is_complete` is true.
 8. **Exit:** switch sidebar tab.
+
+### Printing orders — status edit and Sent to Dispatch auto-complete
+
+1. **Trigger:** Printing Orders → **All orders** Status column, or View order Status.
+2. **Who can edit:** Admin always. Viewer needs `can_edit_status` (default on). Status stays editable even if they opened the job from a tab they cannot otherwise edit. Complete orders list is badge-only.
+3. **UI:** `OrderListStatusCell` (Select). Current status is injected if it is missing from the option list so Radix Select does not break.
+4. **Sent to Dispatch → Complete:** status `sent_to_dispatch` stamps `orders.status_sent_to_dispatch_at`. Existing poll/cron RPC `promote_stale_new_orders_to_pending` sets `is_complete = true` 10 minutes later. Job then appears on **Complete orders**. Client poll is every 30s while signed in; pg_cron every 10 min.
+5. **Failure:** Viewer cannot set `is_complete` from the app (trigger). Auto-complete uses a transaction GUC so the RPC write is allowed. Console `Auto status promote failed` if the RPC errors.
 
 ### Print calculator (DTF cost)
 

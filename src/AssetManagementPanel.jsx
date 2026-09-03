@@ -208,11 +208,23 @@ export default function AssetManagementPanel({ isAdmin = false, sessionUserId = 
 
   const userLabel = (user) => profileDisplayName(user) || user?.email || "User";
   const setField = (label, value) => setForm((p) => ({ ...p, [label]: value }));
-  const go = (s) => () => setScreen(s);
+  const go = (s) => () => {
+    setScreen(s);
+    if (s !== "detail") {
+      setSelectedTag(null);
+      setModal(null);
+    }
+  };
 
   const open = (tag) => {
     setSelectedTag(tag);
     setScreen("detail");
+  };
+
+  const closeDetail = () => {
+    setSelectedTag(null);
+    setModal(null);
+    setScreen("assets");
   };
 
   const replaceAsset = (updated) => {
@@ -290,7 +302,7 @@ export default function AssetManagementPanel({ isAdmin = false, sessionUserId = 
     return a.status === activeFilter;
   });
 
-  const detail = assets.find((a) => a.tag === selectedTag) || assets[0] || null;
+  const detail = selectedTag ? assets.find((a) => a.tag === selectedTag) || null : null;
   const tagValue = nextTag;
 
   const statCounts = {
@@ -472,7 +484,11 @@ export default function AssetManagementPanel({ isAdmin = false, sessionUserId = 
                       key={item.id}
                       type="button"
                       variant={active ? "default" : "ghost"}
-                      onClick={() => setScreen(item.id)}
+                      onClick={() => {
+                        setScreen(item.id);
+                        setSelectedTag(null);
+                        setModal(null);
+                      }}
                       className={cn(
                         "w-full justify-start",
                         active
@@ -537,7 +553,7 @@ export default function AssetManagementPanel({ isAdmin = false, sessionUserId = 
         </main>
       </div>
 
-      {renderModal()}
+      {modal ? renderModal() : null}
     </div>
   );
 
@@ -801,7 +817,7 @@ export default function AssetManagementPanel({ isAdmin = false, sessionUserId = 
             <AlertDescription>{saveError}</AlertDescription>
           </Alert>
         ) : null}
-        <Button type="button" variant="ghost" size="sm" onClick={go("assets")} className="w-fit">
+        <Button type="button" variant="ghost" size="sm" onClick={closeDetail} className="w-fit">
           <ArrowLeft className="size-4" />
           Back to assets
         </Button>

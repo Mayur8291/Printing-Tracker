@@ -88,19 +88,25 @@ function DetailField({ label, children, wide }) {
 }
 
 function DetailSelect({ value, onValueChange, options, disabled = false }) {
-  const selectValue = value ? String(value) : "__empty__";
+  const stages = Array.isArray(options) ? options : [];
+  const current = value == null || value === "" ? "" : String(value);
+  const hasCurrent = current && stages.some((opt) => String(opt.value ?? opt.name) === current);
+  const selectValue = current || "__empty__";
   return (
     <Select
       value={selectValue}
       onValueChange={(next) => onValueChange(next === "__empty__" ? "" : next)}
       disabled={disabled}
     >
-      <SelectTrigger className="h-9 w-full">
-        <SelectValue placeholder="—" />
+      <SelectTrigger className="h-9 w-full min-w-[12rem]">
+        <SelectValue placeholder="Status" />
       </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="__empty__">—</SelectItem>
-        {options.map((opt) => {
+      <SelectContent className="max-h-72">
+        {!current ? <SelectItem value="__empty__">—</SelectItem> : null}
+        {!hasCurrent && current ? (
+          <SelectItem value={current}>{current}</SelectItem>
+        ) : null}
+        {stages.map((opt) => {
           const itemValue = String(opt.value ?? opt.name);
           return (
             <SelectItem key={itemValue} value={itemValue}>

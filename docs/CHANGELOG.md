@@ -7,6 +7,39 @@
 - **Files:** `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
 
+## 2026-09-03 — Local `npm run dev` killed by leftover picklist port
+
+- **Bug fix:** Stale `node server/index.js` on port 3001 made picklist exit `EADDRINUSE`, and the wrapper then killed Vite, so `localhost:5173` died. Wrapper now reuses a healthy picklist and keeps Vite if picklist fails. Listen errors on the picklist server are handled instead of an unhandled crash.
+- **Files:** `scripts/dev-with-picklist-api.mjs`, `server/index.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-09-03 — Printing status edit, asset view, complete stay put, dispatch auto-complete
+
+- **Bug fix:** Printing list showed a status badge only, so admin/staff could not change status in the table. View order also hid status if they opened the job from a tab they cannot edit. Status dropdown now works on the printing list and for anyone with `can_edit_status`. Radix Select no longer uses a dummy empty value that broke the control.
+- **Bug fix:** Asset detail fell back to the first asset and left the check-in dialog mounted, so open/close flickered. Detail now uses the clicked tag only; Back clears it; dialog mounts only when open.
+- **Bug fix:** Mark complete jumped to the Complete orders tab. It now stays on the current list.
+- **Feature:** Sent to Dispatch jobs move to Complete orders after 10 minutes (`status_sent_to_dispatch_at` + existing promote RPC). RPC uses a transaction GUC so the complete write does not lock `orders`. Staging migration `20260903125154_sent_to_dispatch_auto_complete.sql`.
+- **Files:** `App.jsx`, `OrderDetailPanel.jsx`, `OrderListStatusCell.jsx`, `AssetManagementPanel.jsx`, `supabase/migrations/20260903125154_sent_to_dispatch_auto_complete.sql`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DECISIONS.md.
+
+## 2026-09-03 — Production NF webhook enabled (same receiver as staging)
+
+- **Ops:** NF confirmed the earlier `scott-webhook` URL + HMAC secret are production too. Set `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` on production (`levwrmvqdntngeasrtnb`). Redeployed `dashboard-stock-api` and `admin-test-scott-webhook`. Echo `evt_prod_1331ec06c6ad` → `200 {"received":true}`. Scott auth unchanged.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-03 — Production release (develop → main)
+
+- **Release:** Merged `develop` → `main` (`08e9384`, plus follow-up `f147f82`). Netlify production builds from `main`.
+- **Production Supabase** (`levwrmvqdntngeasrtnb`): applied pending migrations from `20260716120000` through `20260903090955` (enquiry policy `20260819120000` applied then marked applied after a deadlock). Live `orders` stay bigint; 677 printing orders untouched. Inventory still empty on prod.
+- **Edge functions deployed** on production, including `dashboard-stock-api`. New production `DASHBOARD_API_KEY` set for NotFunny. Outbound `SCOTT_WEBHOOK_*` **not** set on production. Scott auth secrets **not** copied (Scott app login stays as-is).
+- **Fix in this release:** `20260819113000_production_status_whatsapp.sql` stores `order_uuid` as text so it works with bigint `orders.id`.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, MOBILE_API_INTEGRATION.md, DECISIONS.md.
+
+## 2026-09-03 — Staging Scott webhook echo test succeeded
+
+- **Ops:** Sent signed staging `stock.level_changed` test (`test: true`, `event_id` `evt_test_9d337f9b698c`) to NF `scott-webhook`. Path `/webhooks/stock/level_changed` returned `200 {"received":true}`. Repeat posts with the same `event_id` returned `200 {"received":true,"idempotent":true}`. Production not touched.
+- **Documentation updated:** DEBUGGING.md, ENVIRONMENTS.md, CHANGELOG.md.
+
 ## 2026-09-03 — Asset Management Save writes to Assets register
 
 - **Issue:** New Asset entry did not stay in the Assets list after Save (or after leaving the tab).

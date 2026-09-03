@@ -103,6 +103,17 @@ const server = app.listen(PORT, () => {
   console.log(`  Sample PDF:   http://localhost:${PORT}/api/picklist/pdf/sample`);
 });
 
+server.on("error", (err) => {
+  if (err?.code === "EADDRINUSE") {
+    console.error(
+      `Picklist API port ${PORT} already in use. Leave that process, or kill it: lsof -nP -iTCP:${PORT} -sTCP:LISTEN`
+    );
+    process.exit(1);
+  }
+  console.error(err);
+  process.exit(1);
+});
+
 async function shutdown() {
   server.close();
   await closePicklistBrowser();
