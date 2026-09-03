@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-03 — Staging Scott outbound webhooks pointed at NF receiver
+
+- **Ops:** Set `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` on staging (`scvojtvgnkmbupvyslmb`) to the NF `scott-webhook` function. Redeployed `dashboard-stock-api` and `admin-test-scott-webhook`. Events already wired: `order.status_changed`, `stock.level_changed`, `stock.low_threshold` (HMAC `X-Dashboard-Signature`, outbox retry). No test send yet. Production not touched.
+- **Documentation updated:** DEBUGGING.md, ENVIRONMENTS.md, CHANGELOG.md.
+
 ## 2026-09-02 — Inventory Transfer moves qty from warehouse A to warehouse B
 
 - **Bug fix:** Adjust → Transfer had one warehouse box, so from and to were the same bin. The RPC path skipped facility stock, so nothing left A and nothing arrived at B.

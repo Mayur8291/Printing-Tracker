@@ -790,6 +790,9 @@ Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES
 - **Root cause:** delivery needs both `SCOTT_WEBHOOK_BASE_URL` and `SCOTT_WEBHOOK_SECRET` edge-function secrets; until set, the trigger still enqueues rows in `dashboard_webhook_outbox` with status `pending` (delivery drained on the next API call once secrets exist). Also check `last_error` on the outbox row — non-2xx from their server keeps it pending with `attempts` incremented.
 - **Fix:** `npx supabase secrets set SCOTT_WEBHOOK_BASE_URL=... SCOTT_WEBHOOK_SECRET=...` (staging link), then any order/stock API call retries delivery. Verify with the admin header popover "Send test webhook".
 - **Queries:** `select event_type, status, attempts, last_error from dashboard_webhook_outbox order by created_at desc limit 20;`
+- **Staging (2026-09-03):** NF receiver URL is set on project `scvojtvgnkmbupvyslmb` (`…/functions/v1/scott-webhook`). HMAC secret matches the value they sent (Edge secret, not in git). Events already posted: `order.status_changed`, `stock.level_changed`, `stock.low_threshold`. **Do not Send test webhook** until they confirm their function is live. **Do not set production** until they send prod URL + secret.
+
+## Warehouse Edit: facility code changed but snapshot still uses old code
 
 ## Warehouse Edit: facility code changed but snapshot still uses old code
 
