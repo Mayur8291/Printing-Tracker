@@ -1,5 +1,51 @@
 # Debugging
 
+## Localhost / `npm run dev` dies right after Vite ready
+
+| | |
+|--|--|
+| **Symptom** | `http://localhost:5173/` blank or connection refused. Terminal shows Vite ready, then `EADDRINUSE :::3001` and `[picklist-api] exited with code 1`. |
+| **Root cause** | `npm run dev` starts picklist API on **3001** and Vite on **5173**. An old `node server/index.js` (often parent PID 1 after a crashed session) still holds 3001. New picklist crashes. The wrapper used to kill Vite on that crash, so the app URL dies too. |
+| **Fix** | Kill the leftover: `lsof -nP -iTCP:3001 -sTCP:LISTEN` then `kill <pid>`. Run `npm run dev` again. Wrapper now keeps Vite if picklist is already up or if picklist fails. |
+| **Verify** | Terminal stays on Vite local URL. Open `http://localhost:5173/`. `http://localhost:3001/health` returns `picklist-api`. |
+
+## Printing Status dropdown missing or will not change
+
+| | |
+|--|--|
+| **Symptom** | Printing All orders Status is a badge only. Admin or status-permission user cannot pick a stage. View order Status is greyed or jumps back. |
+| **Root cause** | List used a badge, not `OrderListStatusCell`. View order hid status when the open-from tab was not editable, even with `can_edit_status`. Radix Select broke when the saved status was missing from options (dummy `__empty__` item). |
+| **Fix** | Printing list Status is a Select for admin / `can_edit_status`. Admin check is first. Status edit is allowed even from a view-only tab. Current status is added to options if missing. |
+| **Verify** | Printing Orders → All orders → change Status. View order → change Status. Complete orders Status stays a badge. |
+
+## Asset detail flashes the wrong asset or check-in dialog sticks
+
+| | |
+|--|--|
+| **Symptom** | Open one asset, see another name/tag first. Close/back glitches. Check-in/out overlay stays after Back. |
+| **Root cause** | Detail used `assets.find(...) \|\| assets[0]`. Dialog stayed mounted whenever any asset existed. Back did not clear `selectedTag`. |
+| **Fix** | Detail is the clicked tag only. Back clears tag + modal. Dialog renders only when the modal is open. |
+| **Verify** | Assets → open a row → Back. Open another. Check-out Cancel. No leftover overlay. |
+
+## Mark complete jumps to Complete orders
+
+| | |
+|--|--|
+| **Symptom** | Admin Mark as complete, then the Printing / tracker list switches to Complete orders. |
+| **Root cause** | `handleMarkComplete` and sample-complete status save called `setOrdersTab("complete")` / tracker Complete. |
+| **Fix** | Complete write stays; list tab does not change. Completed row leaves All because `is_complete` is true. |
+| **Verify** | On All orders, Mark as complete. Stay on All. Open Complete orders to find the job. |
+
+## Sent to Dispatch job never reaches Complete orders
+
+| | |
+|--|--|
+| **Symptom** | Status is Sent to Dispatch but the job stays on All orders forever. |
+| **Root cause** | Complete list is `is_complete`, not that status. No auto-complete existed. Viewer trigger blocks `is_complete`. |
+| **Fix** | `status_sent_to_dispatch_at` + RPC `promote_stale_new_orders_to_pending` sets `is_complete` after 10 minutes. Client poll 30s; cron 10 min. Staging migration `20260903125154`. |
+| **Verify** | Set Sent to Dispatch. Wait 10+ minutes (or call the RPC after backdating `status_sent_to_dispatch_at`). Job is on Complete orders. Console `Auto status promote failed` if RPC errors. |
+| **SQL** | `select id, order_id, status, is_complete, status_sent_to_dispatch_at from orders where status = 'sent_to_dispatch';` |
+
 ## Asset Management Save does not show in Assets
 
 | | |
@@ -818,7 +864,7 @@ Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES
 - **Root causes:**
   - Edge function `scott-order-generate-picklist` not deployed on the connected project → deploy hint in UI.
   - Migration `20260722120000_scott_order_picklist.sql` not applied → update fails on unknown columns.
-  - **Picklist PDF API not running** — `[vite] http proxy error: /api/picklist/pdf` / `ECONNREFUSED` → nothing listening on port 3001. **`npm run dev` now starts Vite + picklist API together.** If you use `npm run dev:vite` only, also run `npm run dev:picklist-api` in a second terminal.
+  - **Picklist PDF API not running** — `[vite] http proxy error: /api/picklist/pdf` / `ECONNREFUSED` → nothing listening on port 3001. **`npm run dev` starts Vite + picklist API together.** If 3001 is already a healthy picklist, it reuses that and still starts Vite. If you use `npm run dev:vite` only, also run `npm run dev:picklist-api` in a second terminal. `EADDRINUSE :::3001` used to kill Vite — see “Localhost / npm run dev dies” above.
   - Pop-up blocked → PDF blob tab never opens (allow pop-ups for the dashboard origin).
   - Order is COMPLETE/CANCELLED/FAILED → function returns 409 (by design).
 - **Fix:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase db push && npx supabase functions deploy scott-order-generate-picklist`. Hard refresh, sign in again, retry.

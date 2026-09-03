@@ -847,6 +847,20 @@ Production tracker job sheets store payment and approval data on the same `order
 
 Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet` and `sample_job_sheet`.
 
+### Printing `sent_to_dispatch` auto-complete
+
+| Column / object | Purpose |
+|-----------------|--------|
+| `orders.status_sent_to_dispatch_at` | Set when status becomes `sent_to_dispatch`; cleared when status leaves it. |
+| Trigger `trg_track_status_sent_to_dispatch_at` | BEFORE insert/update of `status`. |
+| RPC `promote_stale_new_orders_to_pending` | Also `SET is_complete = true` when that timestamp (else `created_at`) is ≥ 10 minutes old. Uses GUC `app.auto_complete_sent_to_dispatch` so `trg_enforce_order_update_scope` allows the write. |
+
+| Migration | Change |
+|-----------|--------|
+| `20260903125154_sent_to_dispatch_auto_complete.sql` | Column, stamp trigger, RPC complete path, inject GUC bypass into live `enforce_order_update_scope`. |
+
+**Rollback:** drop trigger/function `track_status_sent_to_dispatch_at`, drop column, restore previous `promote_stale_new_orders_to_pending` body. Re-deploy prior `enforce_order_update_scope` if the GUC inject must be removed.
+
 | Migration | Change |
 |-----------|--------|
 | `20260703200000_add_order_kind_job_sheet.sql` | Add `job_sheet` to check constraint; backfill existing job sheet rows |

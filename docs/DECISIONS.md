@@ -431,6 +431,30 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Two list-tab states in App.
 
+## 2026-09-03 — Mark complete does not switch list tab
+
+**Context:** User does not want the page to jump to Complete orders after Mark as complete.
+
+**Options:** (1) Keep routing to Complete so the job stays visible. (2) Stay on the current list; job leaves All because it is complete.
+
+**Decision:** Option 2. `handleMarkComplete` / sample-complete status save do not call `setOrdersTab("complete")` or tracker Complete.
+
+**Why:** Operator stays in the All-orders workflow. Complete list is still there when they want it.
+
+**Tradeoffs:** The completed row disappears from All immediately. User must open Complete orders to see it.
+
+## 2026-09-03 — Sent to Dispatch auto-completes after 10 minutes
+
+**Context:** Sent to Dispatch stayed on All forever because Complete is `is_complete`, not that status. Viewer trigger blocks `is_complete`.
+
+**Options:** (1) Treat `sent_to_dispatch` as complete in the list filter. (2) After 10 minutes set `is_complete` in the existing promote RPC. (3) Disable the scope trigger around that UPDATE.
+
+**Decision:** Option 2. Stamp `status_sent_to_dispatch_at`. RPC completes matching rows. Transaction GUC lets the scope trigger allow that write (no table-lock DISABLE TRIGGER).
+
+**Why:** Same Complete flag as Mark as complete. 10-minute window matches the request. Client already polls the RPC every 30s.
+
+**Tradeoffs:** Jobs already on Sent to Dispatch get a fresh 10-minute window on migrate (`now()`, not `created_at`).
+
 ## 2026-08-31 — Sampling Tracker has its own status pipeline
 
 **Context:** Sampling Tracker Status must not use Production or Printing stages. User listed nine sample stages with symbols, same dropdown UI.

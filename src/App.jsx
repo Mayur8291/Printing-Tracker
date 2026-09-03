@@ -69,7 +69,7 @@ import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPa
 import OrdersListFilters from "./components/orders/OrdersListFilters";
 import OrdersListSummary from "./components/orders/OrdersListSummary";
 import OrderIdBadges from "./components/orders/OrderIdBadges";
-import OrderStatusBadge from "./components/orders/OrderStatusBadge";
+import OrderListStatusCell from "./components/orders/OrderListStatusCell";
 import { orderListRowClassName } from "./components/orders/orderTableUtils";
 import { Label } from "./components/ui/label";
 import { Badge } from "./components/ui/badge";
@@ -141,8 +141,7 @@ import {
   formatStickerSizeDisplay,
   isAllowedStickerAsset,
   isSamplingOrder,
-  isStickerOrder,
-  stageLabelForOrder
+  isStickerOrder
 } from "./stickerOrderUtils";
 import DistributorTabPanel from "./DistributorTabPanel";
 import InventoryTabPanel from "./InventoryTabPanel";
@@ -296,8 +295,9 @@ const STAGE_ICON = {
 };
 
 /**
- * New → pending: 12h for all jobs; 10min when delivery date is same day or next day as order date
- * (see DB `promote_stale_new_orders_to_pending` + cron).
+ * New → pending: 12h for all jobs; 10min when delivery date is same day or next day as order date.
+ * Sent to Dispatch → Complete (`is_complete`) after 10 minutes.
+ * (see DB `promote_stale_new_orders_to_pending` + cron; client also polls every 30s).
  */
 const SLA_NEW_TO_PENDING_MS = 12 * 60 * 60 * 1000;
 
@@ -3951,7 +3951,7 @@ function App() {
   async function handleMarkComplete(order) {
     if (order.is_complete) return;
     const ok = window.confirm(
-      `Mark this job as complete? It will move to the Complete orders tab.\n${order.customer_name} · ${order.order_date} · Qty ${order.qty}`
+      `Mark this job as complete?\n${order.customer_name} · ${order.order_date} · Qty ${order.qty}`
     );
     if (!ok) return;
     const completeSample = isSampleJobSheetOrder(order);
@@ -3968,15 +3968,6 @@ function App() {
     );
     if (completeSample) {
       setStatusUpdates((prev) => ({ ...prev, [order.id]: SAMPLE_JOB_SHEET_COMPLETE_STATUS }));
-      setDashboardTab("production_tracker");
-      setProductionSubTab(SAMPLING_SUBTAB);
-      setSamplingListTab(TRACKER_LIST_COMPLETE);
-    } else if (isJobSheetOrder(order) || order.is_production_order) {
-      setDashboardTab("production_tracker");
-      setProductionSubTab(PRODUCTION_SUBTAB);
-      setProductionListTab(TRACKER_LIST_COMPLETE);
-    } else {
-      setOrdersTab("complete");
     }
     if (viewOrderTarget?.id === order.id) closeViewOrder();
     fetchOrders();
@@ -4737,10 +4728,12 @@ function App() {
   }
 
   const canCurrentUserEdit = (field) => {
-    if (!viewOrderTabCanEdit && isViewer) return false;
     if (isAdmin) return true;
     if (!isViewer) return false;
-    return viewerMayEditOrderField(currentUserPermissions, field);
+    if (!viewerMayEditOrderField(currentUserPermissions, field)) return false;
+    if (field === "status") return true;
+    if (!viewOrderTabCanEdit) return false;
+    return true;
   };
 
   const canUseOrderControls = !profileLoading && !profileError && (isAdmin || isViewer);
@@ -4775,11 +4768,6 @@ function App() {
       );
       alert(error.message);
       return;
-    }
-    if (closingSample) {
-      setDashboardTab("production_tracker");
-      setProductionSubTab(SAMPLING_SUBTAB);
-      setSamplingListTab(TRACKER_LIST_COMPLETE);
     }
     fetchOrders();
   }
@@ -5756,7 +5744,6 @@ function App() {
                           </TableHeader>
                           <TableBody>
                             {printingVisibleOrders.map((order) => {
-                              const statusLabel = stageLabelForOrder(order, order.status);
                               return (
                                 <TableRow
                                   key={order.clientKey ?? order.id}
@@ -5796,10 +5783,19 @@ function App() {
                                           : "—"}
                                   </TableCell>
                                   <TableCell>
-                                    <OrderStatusBadge
-                                      status={order.status}
-                                      label={statusLabel}
-                                      icon={renderStageIcon(order.status, statusLabel)}
+                                    <OrderListStatusCell
+                                      order={order}
+                                      canEdit={
+                                        ordersTab !== "complete" &&
+                                        canUseOrderControls &&
+                                        canCurrentUserEdit("status")
+                                      }
+                                      isAdmin={isAdmin}
+                                      statusUpdates={statusUpdates}
+                                      renderStageIcon={(status, label) =>
+                                        renderStageIcon(status, label)
+                                      }
+                                      onStatusChange={persistOrderStatus}
                                     />
                                   </TableCell>
                                   <TableCell>{order.coordinator_name || "—"}</TableCell>

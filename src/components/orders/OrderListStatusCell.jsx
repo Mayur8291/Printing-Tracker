@@ -91,13 +91,21 @@ export default function OrderListStatusCell({
     );
   }
 
-  const selectValue = String(effectiveStatus ?? "").trim() || "__empty__";
+  const selectValue = String(effectiveStatus ?? "").trim();
+  if (!selectValue) {
+    return (
+      <OrderStatusBadge
+        status={displayStatus}
+        label={statusLabel}
+        icon={renderStageIcon?.(displayStatus, statusLabel)}
+      />
+    );
+  }
 
   return (
     <Select
       value={selectValue}
-      onValueChange={(next) => {
-        const value = next === "__empty__" ? "" : next;
+      onValueChange={(value) => {
         if (value && value !== effectiveStatus) {
           void onStatusChange?.(order, value);
         }
@@ -112,7 +120,6 @@ export default function OrderListStatusCell({
         </SelectValue>
       </SelectTrigger>
       <SelectContent className="max-h-72">
-        <SelectItem value="__empty__">—</SelectItem>
         {selectOptions.map((opt) => (
           <SelectItem key={opt.value} value={String(opt.value)}>
             <span className="flex items-center gap-1.5">

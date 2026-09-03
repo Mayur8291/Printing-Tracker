@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-03 — Local `npm run dev` killed by leftover picklist port
+
+- **Bug fix:** Stale `node server/index.js` on port 3001 made picklist exit `EADDRINUSE`, and the wrapper then killed Vite, so `localhost:5173` died. Wrapper now reuses a healthy picklist and keeps Vite if picklist fails. Listen errors on the picklist server are handled instead of an unhandled crash.
+- **Files:** `scripts/dev-with-picklist-api.mjs`, `server/index.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-09-03 — Printing status edit, asset view, complete stay put, dispatch auto-complete
+
+- **Bug fix:** Printing list showed a status badge only, so admin/staff could not change status in the table. View order also hid status if they opened the job from a tab they cannot edit. Status dropdown now works on the printing list and for anyone with `can_edit_status`. Radix Select no longer uses a dummy empty value that broke the control.
+- **Bug fix:** Asset detail fell back to the first asset and left the check-in dialog mounted, so open/close flickered. Detail now uses the clicked tag only; Back clears it; dialog mounts only when open.
+- **Bug fix:** Mark complete jumped to the Complete orders tab. It now stays on the current list.
+- **Feature:** Sent to Dispatch jobs move to Complete orders after 10 minutes (`status_sent_to_dispatch_at` + existing promote RPC). RPC uses a transaction GUC so the complete write does not lock `orders`. Staging migration `20260903125154_sent_to_dispatch_auto_complete.sql`.
+- **Files:** `App.jsx`, `OrderDetailPanel.jsx`, `OrderListStatusCell.jsx`, `AssetManagementPanel.jsx`, `supabase/migrations/20260903125154_sent_to_dispatch_auto_complete.sql`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DECISIONS.md.
+
 ## 2026-09-03 — Production NF webhook enabled (same receiver as staging)
 
 - **Ops:** NF confirmed the earlier `scott-webhook` URL + HMAC secret are production too. Set `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` on production (`levwrmvqdntngeasrtnb`). Redeployed `dashboard-stock-api` and `admin-test-scott-webhook`. Echo `evt_prod_1331ec06c6ad` → `200 {"received":true}`. Scott auth unchanged.

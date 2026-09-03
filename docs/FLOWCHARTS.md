@@ -33,6 +33,40 @@ flowchart LR
   Utils --> Table[(hr_assets)]
 ```
 
+## Printing status, mark complete stay, Sent to Dispatch auto-complete
+
+```mermaid
+flowchart TD
+  List[Printing All orders] --> Cell[OrderListStatusCell Select]
+  Cell --> Persist[persistOrderStatus]
+  View[View order Status] --> Persist
+  Persist --> Orders[(orders.status)]
+  Dispatch{status sent_to_dispatch?}
+  Orders --> Dispatch
+  Dispatch -->|yes| Stamp[status_sent_to_dispatch_at now]
+  Stamp --> Wait[Wait 10 minutes]
+  Wait --> Rpc[promote_stale_new_orders_to_pending]
+  Rpc --> Complete[is_complete true]
+  Complete --> CompleteTab[Complete orders list]
+  Mark[Admin Mark as complete] --> Complete
+  Mark --> Stay[Stay on current list tab]
+```
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant A as App
+  participant D as orders
+  participant R as promote RPC
+  U->>A: Set Sent to Dispatch
+  A->>D: status plus stamp time
+  loop Every 30s or cron 10 min
+    A->>R: promote_stale_new_orders_to_pending
+    R->>D: is_complete if stamp plus 10 min
+  end
+  D-->>A: Realtime or silent fetch
+```
+
 ## Inventory facility transfer
 
 ```mermaid
