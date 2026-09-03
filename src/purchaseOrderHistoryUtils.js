@@ -78,18 +78,22 @@ export const PO_HISTORY_STATUS_COMPLETED = "completed";
 export const PO_HISTORY_STATUS_META = {
   [PO_HISTORY_STATUS_PENDING]: {
     label: "Pending",
+    icon: "/icons/pending.png",
     className: "border-amber-200 bg-amber-50 text-amber-800"
   },
   [PO_HISTORY_STATUS_PO_SENT]: {
     label: "PO sent",
+    icon: "📤",
     className: "border-sky-200 bg-sky-50 text-sky-800"
   },
   [PO_HISTORY_STATUS_PO_APPROVED]: {
     label: "PO Approved",
+    icon: "✅",
     className: "border-violet-200 bg-violet-50 text-violet-800"
   },
   [PO_HISTORY_STATUS_COMPLETED]: {
     label: "Completed",
+    icon: "📦",
     className: "border-emerald-200 bg-emerald-50 text-emerald-800"
   }
 };

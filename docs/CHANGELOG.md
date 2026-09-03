@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-03 — Purchase Order Status column uses icon + name
+
+- **Issue:** All PO Orders Status looked like a colored badge, not the job-sheet status Select.
+- **Fix:** Same names (Pending, PO sent, PO Approved, Completed). Trigger and list show a colorful icon then the name, like Production Status. Pending uses `/icons/pending.png`.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-03 — Asset Management Save writes to Assets register
 
 - **Issue:** New Asset entry did not stay in the Assets list after Save (or after leaving the tab).

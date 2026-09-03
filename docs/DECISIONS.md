@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-03 — Purchase Order Status Select matches job-sheet format
+
+**Context:** User wants All PO Orders Status to look like the Production status dropdown (icon then name). Do not rename the list.
+
+**Options:** (1) Keep colored Badge + Lucide. (2) Same Select layout as job sheets: colorful icon + existing labels.
+
+**Decision:** Option 2. Names stay Pending, PO sent, PO Approved, Completed. Pending uses `/icons/pending.png`.
+
+**Why:** One status Select look across tracker and Purchase Order.
+
+**Tradeoffs:** PO statuses are not production stages. Icons are PO-specific except Pending's shared PNG.
+
 ## 2026-09-03 — Asset Management register is `hr_assets`
 
 **Context:** Save asset only prepended to in-memory `rawAssets`. Leaving the tab unmounted the panel. Assets looked empty.
