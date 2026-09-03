@@ -37,7 +37,7 @@ npx supabase secrets set UNIWARE_BASE_URL=https://... UNIWARE_USERNAME=... UNIWA
 
 Without them the tab still loads; Sync inventory / Sync orders show “secrets not set”.
 
-**NF / Scott outbound webhooks (staging, 2026-09-03):** `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` are set on staging Edge (`dashboard-stock-api`). Receiver: `https://yigdnihnkdwkbakwptwz.supabase.co/functions/v1/scott-webhook`. Secret stays in Supabase only — never commit it. Wait for their “receiver deployed” note before **Send test webhook**. Production webhooks stay off until they send prod credentials.
+**NF / Scott outbound webhooks (staging, 2026-09-03):** `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` are set on staging Edge (`dashboard-stock-api`). Receiver: `https://yigdnihnkdwkbakwptwz.supabase.co/functions/v1/scott-webhook`. Secret stays in Supabase only — never commit it. Echo test `stock.level_changed` returned `200 {"received":true}` (`event_id` `evt_test_9d337f9b698c`); same id replayed as `idempotent:true`. Production webhooks stay off until they send prod credentials.
 
 ---
 

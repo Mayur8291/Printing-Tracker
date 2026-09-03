@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-03 — Staging Scott webhook echo test succeeded
+
+- **Ops:** Sent signed staging `stock.level_changed` test (`test: true`, `event_id` `evt_test_9d337f9b698c`) to NF `scott-webhook`. Path `/webhooks/stock/level_changed` returned `200 {"received":true}`. Repeat posts with the same `event_id` returned `200 {"received":true,"idempotent":true}`. Production not touched.
+- **Documentation updated:** DEBUGGING.md, ENVIRONMENTS.md, CHANGELOG.md.
+
 ## 2026-09-03 — Asset Management Save writes to Assets register
 
 - **Issue:** New Asset entry did not stay in the Assets list after Save (or after leaving the tab).
