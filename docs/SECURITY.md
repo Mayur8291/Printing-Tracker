@@ -1,5 +1,6 @@
 # Security
 
+- **Asset Management** Tools tab (`asset_management`) lists company IT assets in staging `hr_assets`. Authenticated select. Insert requires `created_by = auth.uid()`. Update for assign/check-in. No delete. No service role in the browser. Production has no table until an explicit release.
 - **Internal Support Platform** Tools tab (`internal_support`) is grantable like Shared Links. Admins always see it. Viewers with an explicit allowed-tab list need that id. Submit inserts `internal_support_issues` as `raised_by = auth.uid()`. History and Resolved SELECT is own row or `jwt_user_is_admin()`. Status UPDATE is admin only and blocked once `status = Resolved`. Non-admin UI shows own rows and a read-only status; no Name filter. No delete. No service role in the browser. Staging table only until a production release.
 - Enquiry **assign** is admin-only (RLS insert + update trigger). Non-admin cannot set `assignee_id`. Creator may update their own row (attach photos). Guard trigger still blocks assignee changes.
 - Enquiry activity log is scoped; admin sees all staff actions on the Support tab.

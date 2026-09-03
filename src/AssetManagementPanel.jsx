@@ -28,11 +28,20 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { renderAssetLabelBarcodeSvg } from "./assetLabelBarcode";
 import { printAssetLabel } from "./assetLabelPrint";
+import {
+  assignHrAsset,
+  checkInHrAsset,
+  insertHrAsset,
+  listHrAssets,
+  summarizeHrAssetCategories,
+  summarizeHrAssetStatuses
+} from "./hrAssetUtils";
 import {
   ASSET_LABEL_FIELD_OPTIONS,
   DEFAULT_ASSET_LABEL_SETTINGS,
@@ -70,8 +79,6 @@ const STATS = [
   { label: "In maintenance", sub: "on bench", icon: Settings }
 ];
 
-const CATEGORIES = [];
-const STATUS_DIST = [];
 const ACTIVITY = [];
 const ATTENTION = [];
 const HISTORY = [];
@@ -110,12 +117,16 @@ function thumb(category) {
   return THUMB_STYLES[category] || THUMB_STYLES.Printer;
 }
 
-export default function AssetManagementPanel({ isAdmin = false }) {
+export default function AssetManagementPanel({ isAdmin = false, sessionUserId = "" }) {
   const [screen, setScreen] = useState("dashboard");
   const [selectedTag, setSelectedTag] = useState(null);
   const [modal, setModal] = useState(null);
   const [charger, setCharger] = useState(true);
   const [rawAssets, setRawAssets] = useState([]);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All assets");
   const [form, setForm] = useState(blankForm);
   const [printingLabel, setPrintingLabel] = useState(false);
@@ -137,6 +148,29 @@ export default function AssetManagementPanel({ isAdmin = false }) {
       setSettingsNotice("");
     }
   }, [screen, labelSettings]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAssets() {
+      setListLoading(true);
+      setListError("");
+      try {
+        const rows = await listHrAssets();
+        if (!cancelled) setRawAssets(rows);
+      } catch (error) {
+        if (!cancelled) {
+          setRawAssets([]);
+          setListError(error?.message || "Could not load assets.");
+        }
+      } finally {
+        if (!cancelled) setListLoading(false);
+      }
+    }
+    void loadAssets();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -181,64 +215,62 @@ export default function AssetManagementPanel({ isAdmin = false }) {
     setScreen("detail");
   };
 
-  const assignAsset = (tag, userId) => {
+  const replaceAsset = (updated) => {
+    if (!updated) return;
+    setRawAssets((prev) => [updated, ...prev.filter((a) => a.id !== updated.id)]);
+  };
+
+  const assignAsset = async (asset, userId) => {
+    if (!asset?.id) return false;
     const user = activeDirectoryUsers.find((u) => u.id === userId);
     if (!user) return false;
-    const name = userLabel(user);
-    setRawAssets((prev) =>
-      prev.map((a) =>
-        a.tag === tag
-          ? {
-              ...a,
-              assignee: name,
-              assigneeUserId: userId,
-              status: "Checked out",
-              seen: "Just now"
-            }
-          : a
-      )
-    );
-    return true;
+    setSaveError("");
+    try {
+      const updated = await assignHrAsset(asset.id, {
+        userId,
+        assigneeName: userLabel(user)
+      });
+      replaceAsset(updated);
+      return true;
+    } catch (error) {
+      setSaveError(error?.message || "Could not assign asset.");
+      return false;
+    }
   };
 
-  const checkInAsset = (tag) => {
-    setRawAssets((prev) =>
-      prev.map((a) =>
-        a.tag === tag
-          ? {
-              ...a,
-              assignee: "—",
-              assigneeUserId: null,
-              status: "Available",
-              seen: "Just now"
-            }
-          : a
-      )
-    );
+  const checkInAsset = async (asset) => {
+    if (!asset?.id) return;
+    setSaveError("");
+    try {
+      const updated = await checkInHrAsset(asset.id);
+      replaceAsset(updated);
+    } catch (error) {
+      setSaveError(error?.message || "Could not check in asset.");
+    }
   };
 
-  const saveAsset = () => {
-    const name = (form["Asset name"] || "").trim();
-    const assigneeUserId = (form["Assigned to"] || "").trim();
-    const user = activeDirectoryUsers.find((u) => u.id === assigneeUserId);
-    const assigneeName = user ? userLabel(user) : "—";
-    const tag = nextTag;
-    const newAsset = {
-      tag,
-      name: name || "Untitled asset",
-      cat: form.Category || "—",
-      status: assigneeUserId ? "Checked out" : "Available",
-      assignee: assigneeName,
-      assigneeUserId: assigneeUserId || null,
-      location: form.Location || "—",
-      seen: "Just now",
-      serial: (form["Serial number"] || "").trim() || "—",
-      maker: (form.Manufacturer || "").trim() || "—"
-    };
-    setRawAssets((prev) => [newAsset, ...prev.filter((a) => a.tag !== tag)]);
-    setForm(blankForm());
-    setActiveFilter("All assets");
-    setScreen("assets");
+  const saveAsset = async () => {
+    setSaveError("");
+    setSaving(true);
+    try {
+      const created = await insertHrAsset({
+        sessionUserId,
+        form,
+        charger,
+        directoryUsers: activeDirectoryUsers,
+        existingTags: rawAssets.map((a) => a.tag)
+      });
+      replaceAsset(created);
+      setForm(blankForm());
+      setCharger(true);
+      setActiveFilter("All assets");
+      setScreen("assets");
+    } catch (error) {
+      console.error("[hr-assets] save failed", error);
+      setSaveError(error?.message || "Could not save asset.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const assets = rawAssets.map((a) => {
@@ -275,11 +307,9 @@ export default function AssetManagementPanel({ isAdmin = false }) {
         { k: "Serial number", v: detail.serial, mono: true },
         { k: "Category", v: detail.cat },
         { k: "Manufacturer", v: detail.maker },
-        { k: "Model year", v: "2024" },
-        { k: "Purchase date", v: "Mar 14, 2024" },
-        { k: "Warranty", v: "AppleCare · 2027" },
-        { k: "Charger included", v: "Yes" },
-        { k: "Condition", v: "Good" },
+        { k: "Model", v: detail.model },
+        { k: "Purchase date", v: detail.purchaseDate },
+        { k: "Charger included", v: detail.chargerIncluded ? "Yes" : "No" },
         { k: "Location", v: detail.location }
       ];
 
@@ -290,25 +320,25 @@ export default function AssetManagementPanel({ isAdmin = false }) {
   const detailIsUnassigned =
     detail && (detail.status === "Available" || detail.assignee === "—" || !detail.assigneeUserId);
 
-  const handleDetailAssign = () => {
+  const handleDetailAssign = async () => {
     if (!detail || !assignPickUserId) return;
-    if (assignAsset(detail.tag, assignPickUserId)) {
+    if (await assignAsset(detail, assignPickUserId)) {
       setAssignPickUserId("");
     }
   };
 
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     if (!detail) return;
     if (modal === "out") {
       if (!modalAssignUserId) return;
-      if (assignAsset(detail.tag, modalAssignUserId)) {
+      if (await assignAsset(detail, modalAssignUserId)) {
         setModal(null);
         setModalAssignUserId("");
       }
       return;
     }
     if (modal === "in") {
-      checkInAsset(detail.tag);
+      await checkInAsset(detail);
       setModal(null);
     }
   };
@@ -377,6 +407,9 @@ export default function AssetManagementPanel({ isAdmin = false }) {
     () => buildAssetLabelLines(labelPreviewAsset, screen === "settings" ? settingsDraft : labelSettings),
     [labelPreviewAsset, labelSettings, settingsDraft, screen]
   );
+
+  const categoryBars = summarizeHrAssetCategories(assets);
+  const statusDist = summarizeHrAssetStatuses(assets);
 
   const renderLabelPreview = (lines, { compact = false } = {}) => (
     <div
@@ -520,7 +553,7 @@ export default function AssetManagementPanel({ isAdmin = false }) {
           </div>
           <Badge variant="outline" className="gap-2 px-3 py-1 text-xs font-medium">
             <span className="size-2 rounded-full bg-emerald-500" />
-            Live sync · updated 30s ago
+            Saved in register
           </Badge>
         </div>
 
@@ -547,35 +580,35 @@ export default function AssetManagementPanel({ isAdmin = false }) {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm">Assets by category</CardTitle>
                 <Badge variant="outline" className="font-mono text-xs">
-                  {CATEGORIES.length} types
+                  {categoryBars.length} types
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {CATEGORIES.length === 0 ? emptyHint("No categories yet") : null}
-              {CATEGORIES.map((c) => (
-                <div key={c.name} className="space-y-1.5">
+            <CardContent className="flex flex-col gap-4">
+              {categoryBars.length === 0 ? emptyHint("No categories yet") : null}
+              {categoryBars.map((c) => (
+                <div key={c.name} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-foreground">{c.name}</span>
                     <span className="font-mono text-muted-foreground">{c.count}</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded bg-muted">
-                    <div className="h-full rounded" style={{ width: c.pct, background: c.color }} />
+                    <div className={cn("h-full rounded", thumb(c.name).dot)} style={{ width: c.pct }} />
                   </div>
                 </div>
               ))}
               <Separator />
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status distribution</h3>
                 <div className="flex h-3 gap-1 overflow-hidden rounded-full bg-muted">
-                  {STATUS_DIST.map((d) => (
-                    <div key={d.label} className="h-full" style={{ width: d.pct, background: d.color }} />
+                  {statusDist.map((d) => (
+                    <div key={d.label} className={cn("h-full", statusStyle(d.label).dot)} style={{ width: d.pct }} />
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-4">
-                  {STATUS_DIST.map((d) => (
+                  {statusDist.map((d) => (
                     <div key={d.label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="size-2 rounded-sm" style={{ background: d.color }} />
+                      <span className={cn("size-2 rounded-sm", statusStyle(d.label).dot)} />
                       <span>{d.label}</span>
                       <span className="font-mono">{d.count}</span>
                     </div>
@@ -676,6 +709,14 @@ export default function AssetManagementPanel({ isAdmin = false }) {
 
         <Card>
           <CardContent className="p-0">
+            {listError ? (
+              <div className="p-4">
+                <Alert variant="destructive">
+                  <AlertTitle>Could not load assets</AlertTitle>
+                  <AlertDescription>{listError}</AlertDescription>
+                </Alert>
+              </div>
+            ) : null}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -689,18 +730,30 @@ export default function AssetManagementPanel({ isAdmin = false }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {assets.length === 0 ? (
+                {listLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7}>
+                      <div className="flex flex-col gap-2 py-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+                {!listLoading && assets.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7}>{emptyHint("No assets yet — click 'New asset' to add one")}</TableCell>
                   </TableRow>
                 ) : null}
-                {assets.length > 0 && filteredAssets.length === 0 ? (
+                {!listLoading && assets.length > 0 && filteredAssets.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7}>{emptyHint("No assets match this filter")}</TableCell>
                   </TableRow>
                 ) : null}
-                {filteredAssets.map((a) => (
-                  <TableRow key={a.tag} className="cursor-pointer" onClick={() => open(a.tag)}>
+                {!listLoading &&
+                  filteredAssets.map((a) => (
+                  <TableRow key={a.id || a.tag} className="cursor-pointer" onClick={() => open(a.tag)}>
                     <TableCell>
                       <div className="size-4 rounded-sm border border-muted-foreground/30" />
                     </TableCell>
@@ -742,6 +795,12 @@ export default function AssetManagementPanel({ isAdmin = false }) {
 
     return (
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
+        {saveError ? (
+          <Alert variant="destructive">
+            <AlertTitle>Could not update asset</AlertTitle>
+            <AlertDescription>{saveError}</AlertDescription>
+          </Alert>
+        ) : null}
         <Button type="button" variant="ghost" size="sm" onClick={go("assets")} className="w-fit">
           <ArrowLeft className="size-4" />
           Back to assets
@@ -982,13 +1041,19 @@ export default function AssetManagementPanel({ isAdmin = false }) {
             <Separator />
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => { setForm(blankForm()); setScreen("assets"); }}>
+              <Button type="button" variant="outline" onClick={() => { setForm(blankForm()); setSaveError(""); setScreen("assets"); }}>
                 Cancel
               </Button>
-              <Button type="button" onClick={saveAsset}>
-                Save asset
+              <Button type="button" onClick={saveAsset} disabled={saving}>
+                {saving ? "Saving..." : "Save asset"}
               </Button>
             </div>
+            {saveError ? (
+              <Alert variant="destructive">
+                <AlertTitle>Could not save</AlertTitle>
+                <AlertDescription>{saveError}</AlertDescription>
+              </Alert>
+            ) : null}
           </CardContent>
         </Card>
 

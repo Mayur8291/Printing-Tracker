@@ -58,6 +58,7 @@ Common tables (non-exhaustive — see [DATABASE.md](./DATABASE.md)):
 | `team_chat_messages` | GET, INSERT | Members only |
 | `user_goal_tasks` | GET, INSERT, PATCH | Goals module |
 | Inventory tables | GET, POST, PATCH | See inventory migrations |
+| `hr_assets` | GET, POST, PATCH | Asset Management register. Insert `created_by = auth.uid()`. Staging only until release. |
 
 Full schema: Supabase Dashboard → Table Editor, or `supabase/schema.sql`.
 

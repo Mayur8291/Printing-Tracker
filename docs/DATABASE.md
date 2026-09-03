@@ -1,5 +1,43 @@
 # Database
 
+## Asset Management register
+
+Company IT assets from Tools → Asset Management → **Add asset** / **New asset**. List lives in **Assets**.
+
+### `hr_assets`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `tag` | text unique | Sequential `IT-00001`+ barcode id |
+| `name` | text | Asset name (required) |
+| `category` | text | Laptop, Monitor, Phone, … |
+| `manufacturer` | text | Optional |
+| `model` | text | Optional |
+| `serial_number` | text | Optional |
+| `purchase_date` | text | Optional free text from the form |
+| `location` | text | Home location |
+| `status` | text | `Available`, `Checked out`, `Maintenance`, `Retired` |
+| `assignee_user_id` | uuid | FK → `profiles.id` when checked out; null when available |
+| `assignee_name` | text | Name snapshot |
+| `notes` | text | Optional |
+| `charger_included` | boolean | Form Yes/No |
+| `created_by` | uuid | FK → `profiles.id` (`auth.uid()` on insert) |
+| `created_at` | timestamptz | Insert time |
+| `updated_at` | timestamptz | Assign / check-in / row touch |
+
+**Indexes:** unique `tag`; `created_at desc`; `(status, created_at desc)`.
+
+**Constraints:** name not empty; tag `IT-` + digits; assignee set ⇔ status `Checked out`.
+
+**RLS:** Select authenticated. Insert `created_by = auth.uid()`. Update authenticated. No delete. Realtime publication on.
+
+**Migration:** `20260903090955_hr_assets.sql` — **staging only** (`scvojtvgnkmbupvyslmb`). Not on production until an explicit release.
+
+**Query pattern:** List `order by created_at desc`. Insert from Save asset (client allocates next tag, retries on unique clash). Assign / check-in update `status` + assignee fields.
+
+**Rollback:** drop trigger, function, policies, then `hr_assets`.
+
 ## Internal Support issues
 
 Staff-raised tickets from Tools → Internal Support Platform → Open Tickets → **Raise an Issue**. Open Tickets: admin sees every non-Resolved submit; non-admin sees only their own.

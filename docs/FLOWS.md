@@ -1,5 +1,16 @@
 # Flows
 
+## Asset Management (IT register)
+
+1. **Trigger:** sidebar Tools → **Asset Management** (`dashboardTab === "asset_management"`).
+2. **Entry:** `AssetManagementPanel` loads `hr_assets` on mount. Default screen is Dashboard. **Assets** is the register list. **Add asset** / header **New asset** is the form.
+3. **Auth:** signed-in user. Insert needs `created_by = auth.uid()` and a `profiles` row. Select is any authenticated user. Production has no table until an explicit release.
+4. **Logic:** Fill Asset name (required), category, optional manufacturer/model/serial/purchase date, location, optional assignee, charger, notes. **Save asset** inserts `hr_assets` with next `IT-#####` tag (client + unique retry). Status `Checked out` if assignee set, else `Available`. Then the panel opens **Assets**. Assign / check-in on detail updates the same row.
+5. **Database:** insert/select/update `hr_assets`. No delete.
+6. **Failure:** missing name or missing session → Alert on the form. RLS / missing table → `[hr-assets] insert failed` / list error Alert. Leave tab unmounts the panel; reload reads the table so the row stays.
+7. **Edge:** two saves at once may clash on tag; insert retries a new tag. Empty name blocked. Unassigned + Checked out blocked by DB check.
+8. **Exit:** Assets table shows the new Tag / name / status. Refresh or leave tab and return still shows it.
+
 ## Platform Masters (Step 0, One Source of Truth)
 
 Admin-only tab **Platform Masters** (`ops_masters`, sidebar group "Ops Platform" — distinct from the frozen Scott API "Masters" tab).

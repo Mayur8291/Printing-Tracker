@@ -1,5 +1,38 @@
 # Flowcharts
 
+## Asset Management save to register
+
+```mermaid
+flowchart TD
+  User[Add asset form] --> Name{Name filled and signed in?}
+  Name -->|no| Alert[Alert on form]
+  Name -->|yes| Insert[Insert hr_assets]
+  Insert -->|unique tag clash| Retry[Next IT tag]
+  Retry --> Insert
+  Insert -->|ok| Assets[Assets list]
+  Insert -->|RLS or missing table| Fail[Alert plus console]
+```
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as AssetManagementPanel
+  participant S as Supabase hr_assets
+  U->>P: Save asset
+  P->>S: insert created_by auth.uid
+  S-->>P: row with IT tag
+  P-->>U: Assets list
+  U->>P: Leave tab then return
+  P->>S: select order created_at desc
+  S-->>P: same rows
+```
+
+```mermaid
+flowchart LR
+  Panel[AssetManagementPanel] --> Utils[hrAssetUtils]
+  Utils --> Table[(hr_assets)]
+```
+
 ## Step 0 masters — entity relationships (One Source of Truth)
 
 ```mermaid

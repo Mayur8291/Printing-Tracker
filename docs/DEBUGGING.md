@@ -1,5 +1,14 @@
 # Debugging
 
+## Asset Management Save does not show in Assets
+
+| | |
+|--|--|
+| **Symptom** | Add asset → Save asset. Assets table empty, or row gone after leaving the tab / refresh. |
+| **Root cause** | Rows used to live only in React state. The panel unmounts when you leave Asset Management. Nothing was written to the database. |
+| **Fix** | Staging table `hr_assets`. Save inserts. Assets list selects that table. Must be signed in (`created_by = auth.uid()`). Asset name required. Local app must use staging (`npm run check:env`). Production has no table yet. |
+| **Verify** | Save a named asset. Assets shows Tag / name. Leave tab, come back, row still there. Console `[hr-assets] insert failed` if RLS or schema missing. |
+
 ## Support table values missing in Dark Mode
 
 | | |

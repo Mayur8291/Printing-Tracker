@@ -5850,7 +5850,9 @@ function App() {
             />
           )}
 
-          {dashboardTab === "asset_management" && <AssetManagementPanel isAdmin={isAdmin} />}
+          {dashboardTab === "asset_management" && (
+            <AssetManagementPanel isAdmin={isAdmin} sessionUserId={session?.user?.id} />
+          )}
 
           {dashboardTab === "internal_support" && (
             <InternalSupportPlatformPanel

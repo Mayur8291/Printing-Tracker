@@ -273,7 +273,7 @@ npm run preview   # optional local preview of dist/
 | Shared Links | `shared_links` | |
 | Contact Book | `contact_book` | |
 | Chat | `chat` | Team chat |
-| Asset Management | `asset_management` | Placeholder |
+| Asset Management | `asset_management` | IT asset register (`hr_assets`) |
 | Audit | `audit` | Placeholder |
 | Admin Panel | `admin` | Users, masters, Test & deploy (staging/local only) |
 

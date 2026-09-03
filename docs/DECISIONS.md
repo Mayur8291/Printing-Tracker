@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-03 — Asset Management register is `hr_assets`
+
+**Context:** Save asset only prepended to in-memory `rawAssets`. Leaving the tab unmounted the panel. Assets looked empty.
+
+**Options:** (1) localStorage. (2) Keep panel mounted. (3) Staging table `hr_assets`, authenticated read, insert own, update for assign/check-in.
+
+**Decision:** Option 3. Prefix `hr_` because these are company assets assigned to people (`profiles`), not SKU stock.
+
+**Why:** One register for every user. Survive refresh. Match Internal Support / Contact Book pattern.
+
+**Tradeoffs:** Staging only until a production release. No hard delete (Retired later). Tag allocated in the client with unique retry, not a gapless FY sequence.
+
 ## 2026-09-02 — Support table rows stay readable in Dark Mode
 
 **Context:** Support desk rows use pale priority backgrounds. Dark Mode panel text is light. Values disappear.

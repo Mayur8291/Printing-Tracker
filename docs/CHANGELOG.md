@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-03 — Asset Management Save writes to Assets register
+
+- **Issue:** New Asset entry did not stay in the Assets list after Save (or after leaving the tab).
+- **Fix:** Save inserts staging `hr_assets`. Assets / Dashboard load that table. Leave tab or refresh still shows the row. Tag still `IT-00001`+. Name required.
+- **Files:** `AssetManagementPanel.jsx`, `hrAssetUtils.js`, `App.jsx`, `supabase/migrations/20260903090955_hr_assets.sql`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, API.md, SECURITY.md.
+
 ## 2026-09-02 — Support desk tables readable in Dark Mode
 
 - **Issue:** Support Enquiry / Complaints table values vanished in Dark Mode.
