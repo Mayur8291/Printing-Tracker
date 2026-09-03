@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-03 — Production release (develop → main)
+
+- **Release:** Merged `develop` → `main` (`08e9384`, plus follow-up `f147f82`). Netlify production builds from `main`.
+- **Production Supabase** (`levwrmvqdntngeasrtnb`): applied pending migrations from `20260716120000` through `20260903090955` (enquiry policy `20260819120000` applied then marked applied after a deadlock). Live `orders` stay bigint; 677 printing orders untouched. Inventory still empty on prod.
+- **Edge functions deployed** on production, including `dashboard-stock-api`. New production `DASHBOARD_API_KEY` set for NotFunny. Outbound `SCOTT_WEBHOOK_*` **not** set on production. Scott auth secrets **not** copied (Scott app login stays as-is).
+- **Fix in this release:** `20260819113000_production_status_whatsapp.sql` stores `order_uuid` as text so it works with bigint `orders.id`.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, MOBILE_API_INTEGRATION.md, DECISIONS.md.
+
 ## 2026-09-03 — Staging Scott webhook echo test succeeded
 
 - **Ops:** Sent signed staging `stock.level_changed` test (`test: true`, `event_id` `evt_test_9d337f9b698c`) to NF `scott-webhook`. Path `/webhooks/stock/level_changed` returned `200 {"received":true}`. Repeat posts with the same `event_id` returned `200 {"received":true,"idempotent":true}`. Production not touched.
