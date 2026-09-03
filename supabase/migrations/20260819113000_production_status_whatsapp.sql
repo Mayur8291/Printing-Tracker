@@ -3,7 +3,8 @@
 
 create table if not exists public.support_production_status_alerts (
   id uuid primary key default gen_random_uuid(),
-  order_uuid uuid references public.orders(id) on delete set null,
+  -- text, not uuid: live + staging orders.id is bigint
+  order_uuid text,
   order_id text not null,
   customer_name text,
   phone text,
@@ -104,7 +105,7 @@ begin
   insert into public.support_production_status_alerts (
     order_uuid, order_id, customer_name, phone, old_status, new_status, message, skipped_reason
   ) values (
-    new.id, v_code, v_name, v_phone, old.status, new.status, v_msg, v_skip
+    new.id::text, v_code, v_name, v_phone, old.status, new.status, v_msg, v_skip
   );
 
   if v_skip is null then
