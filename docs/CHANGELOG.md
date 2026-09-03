@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-03 — Production NF webhook enabled (same receiver as staging)
+
+- **Ops:** NF confirmed the earlier `scott-webhook` URL + HMAC secret are production too. Set `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` on production (`levwrmvqdntngeasrtnb`). Redeployed `dashboard-stock-api` and `admin-test-scott-webhook`. Echo `evt_prod_1331ec06c6ad` → `200 {"received":true}`. Scott auth unchanged.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-03 — Production release (develop → main)
 
 - **Release:** Merged `develop` → `main` (`08e9384`, plus follow-up `f147f82`). Netlify production builds from `main`.
