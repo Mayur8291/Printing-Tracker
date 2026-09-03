@@ -29,6 +29,16 @@ npm run dev
 
 Schema changes: apply migrations to **staging** first (`supabase link --project-ref scvojtvgnkmbupvyslmb`, then `db push`). **Never** push migrations or deploy edge functions to production unless you explicitly request a production release. See `.cursor/rules/staging-first-supabase.mdc`. **First-time staging:** run `schema.sql` in SQL Editor, then `migration repair` — see [supabase/README-staging.md](../supabase/README-staging.md) (do not run bare `db push` on an empty project).
 
+**Uniware Bridge (Step 5) staging secrets** (edge `uniware-bridge` only — not Vite env):
+
+```bash
+npx supabase secrets set UNIWARE_BASE_URL=https://... UNIWARE_USERNAME=... UNIWARE_PASSWORD=... UNIWARE_FACILITY=... --project-ref scvojtvgnkmbupvyslmb
+```
+
+Without them the tab still loads; Sync inventory / Sync orders show “secrets not set”.
+
+**NF / Scott outbound webhooks (staging, 2026-09-03):** `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` are set on staging Edge (`dashboard-stock-api`). Receiver: `https://yigdnihnkdwkbakwptwz.supabase.co/functions/v1/scott-webhook`. Secret stays in Supabase only — never commit it. Wait for their “receiver deployed” note before **Send test webhook**. Production webhooks stay off until they send prod credentials.
+
 ---
 
 ## Git branches

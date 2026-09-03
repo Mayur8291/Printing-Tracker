@@ -11,6 +11,62 @@
 7. **Edge:** two saves at once may clash on tag; insert retries a new tag. Empty name blocked. Unassigned + Checked out blocked by DB check.
 8. **Exit:** Assets table shows the new Tag / name / status. Refresh or leave tab and return still shows it.
 
+## Uniware Bridge (Step 5, One Source of Truth)
+
+Admin-only tab **Uniware Bridge** (`ops_uniware`, Ops Platform). Distinct from Inventory and Stock Ledger. Boundary: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).
+
+1. **Trigger:** admin opens Uniware Bridge (`UniwareBridgePanel`). Loads feed health, inventory mirror, ecom orders, transfers, settings, locations/entities/SKUs, plus edge `status`.
+2. **Sync inventory:** Sync inventory → `uniware-bridge` `sync_inventory` → Uniware snapshot → upsert `uni_inventory_mirror`. These qty are **never** added to `inv_balance` or Inventory on-hand.
+3. **Sync orders:** Sync orders → sale-order search/get (last 180 minutes) → upsert `uni_sale_order`. Platform does not edit ecom orders.
+4. **Transfer:** pick direction, SKU code, qty, from/to locations → draft `uni_transfer` → `uni_post_transfer` (owner_system must match direction) → edge `adjust` (`ADD` or `REMOVE`). Ledger posts even if the API fails (`api_failed` + message).
+5. **Settings:** default entity + Uniware marker location. API login is edge secrets only.
+6. **Failure:** missing secrets → banner, tables still load. Stale feed (no success in 2 hours) → amber badge. Transfer location mismatch → DB exception.
+
+## Billing & Receivables (Step 4, One Source of Truth)
+
+Admin-only tab **Billing & AR** (`ops_ar`, Ops Platform). Distinct from the existing Workspace **Billing** tab, which stays as-is.
+
+1. **Trigger:** admin opens Billing & AR (`BillingArPanel`); parallel load of invoices, uninvoiced dispatches, credit notes, receipts, `ar_invoice_outstanding_view`, `ar_customer_ledger_view`, follow-ups, entities (+ GSTINs).
+2. **Generate invoice:** pick an uninvoiced dispatch + the billing GSTIN + optional place-of-supply state code (blank = GSTIN state) → RPC `bill_generate_from_dispatch`. Lines/rates/HSN/GST come from the dispatch + order + SKU. Number `INV/<FY>/nnnn` is gapless per GSTIN. Document is immutable. When the order is fully dispatched and every dispatch is invoiced, `so_order.status` becomes `invoiced`.
+3. **Credit note:** invoice detail → amount + reason → `ar_issue_credit_note`. Capped at outstanding. Number `CN/<FY>/nnnn`.
+4. **Receipt:** customer + entity + amount + mode/UTR → optional allocations against that customer's open invoices → `ar_record_receipt`. DB blocks over-allocation. Unallocated remainder is an advance (still reduces customer exposure).
+5. **Ageing:** same view everywhere — buckets Not due / 0–30 / 31–60 / 61–90 / 90+; due date = invoice date + party credit days (snapshotted on the invoice). Customer ledger: invoiced − credited − received.
+6. **Follow-ups:** next date + note, optional invoice; mark done. Admin RLS writes.
+7. **Credit warning on confirm:** Sales Order detail (draft) calls `ar_credit_check`. Soft amber warning if over limit or any overdue — confirm still allowed. Hard block waits for department roles.
+8. **Failure cases:** every money rule is in the DB (immutability, one invoice per dispatch, credit/receipt caps, GSTIN/entity match). UI surfaces the raised message.
+
+## Sales Orders (Step 3, One Source of Truth)
+
+Admin-only tab **Sales Orders** (`ops_sales`, sidebar group "Ops Platform"). Counter sales use the same screen with channel = Counter sale.
+
+1. **Trigger:** admin opens Sales Orders (`SalesOrdersPanel`); parallel load of orders (+lines), dispatches, job-work orders, SLA policies + `so_sla_view`, and parties/entities/locations/SKUs from the Step 0 masters.
+2. **New order:** dialog (customer, channel, entity, fulfilment location, promised date, lines by SKU code — one row per SKU/size) → draft rows in `so_order`/`so_line` (admin RLS). Drafts have no number.
+3. **Confirm & reserve:** order detail → Confirm → RPC `so_confirm` assigns the gapless `SO/<FY>/nnnn` and runs `so_allocate`: reserves whatever is available (balance − active reservations) per line. Shortfall stays visible as Reserved < Ordered.
+4. **Allocate again:** after production or new receipts, Allocate stock re-runs `so_allocate` and reports the newly reserved pieces.
+5. **Stage moves:** Start production / Mark ready → `so_set_status`. **Ready is blocked by the DB until reservations cover every line.** Stage timestamps recorded for the SLA clock.
+6. **Dispatch:** ready/partially dispatched only → dialog pre-fills each line at min(reserved, open), caps at reserved (DB enforces too) → `so_post_dispatch` consumes reservations FIFO, posts `dispatch` movements from the order's location, writes the append-only `so_dispatch` document (`DISP/<FY>/nnnn`), rolls status to partially_dispatched or dispatched. Partial dispatch allowed; repeat until done.
+7. **Cancel:** reason required; only before any dispatch. Releases all active reservations.
+8. **Job work:** New job (kind, worker party or in-house, source + worker locations, input/output lines) → Issue = `jw_issue` (challan out: transfers inputs to the worker location, assigns `JW/<FY>/nnnn`) → Receive = `jw_receive` (outputs into the source location as `production_out`, consumed inputs burned at the worker location) → Close. Leftover input at the worker location is the loss, visible in the Stock Ledger.
+9. **SLA:** targets per channel × stage in business hours (Mon–Sat 09:30–18:30 IST) saved to `sla_policy`; the tab lists breaches (or all measured stages) from `so_sla_view` — elapsed vs target, still-open stages measured against now.
+10. **Failure cases:** every rule lives in the DB (ready gate, dispatch cap, immutable documents, status matrix, undeclared job outputs) — the UI surfaces the raised messages inline.
+
+## Procurement (Step 2, One Source of Truth)
+
+Admin-only tab **Procurement** (`ops_procurement`, sidebar group "Ops Platform") — distinct from the existing Purchase Order voucher tab, which keeps running unchanged.
+
+1. **Trigger:** admin opens Procurement (`ProcurementPanel`); parallel load of POs (+lines), bills (+lines), outstanding/ledger/performance views, payments, `po_settings`, plus parties/entities/locations/SKUs from the Step 0 masters. Missing tables → inline message naming migration `20260902120000`.
+2. **New PO:** dialog (vendor → prefills credit days, entity, delivery location, lines by SKU code resolved against masters) → draft rows in `po_purchase_order`/`po_line` (admin RLS). Drafts have no number.
+3. **Approve:** PO detail → Approve → RPC `po_approve` (admin gate) assigns the gapless `PO/<FY>/nnnn` and locks commercial fields (guard trigger).
+4. **Receive goods:** detail → Receive goods → per-line quantities → `receiveGrn` creates a draft GRN + lines then calls `po_post_grn`: over-receipt tolerance check (vendor-item override or `po_settings`), stock posted through `inv_post_movement` (QC-required → `qc_hold`, exempt → `good`), PO counters/status roll forward, `GRN/<FY>/nnnn` assigned. Failure (e.g. tolerance) deletes the draft GRN and surfaces the DB error.
+5. **QC:** detail shows a QC queue for posted, QC-required GRN lines with remaining hold qty → pass/fail/note → `po_record_qc` → same-location state-change movements; fails require a note and bump `qty_rejected`.
+6. **Short close / cancel / close:** reason-gated function calls; short close kills pending qty per line.
+7. **Record bill:** Bills tab → dialog: vendor → unbilled posted GRN lines (billed ones filtered via `ap_bill_line`), qty/rate/tax prefilled from GRN/PO → draft `ap_bill` + lines. Duplicate vendor invoice numbers rejected by the DB.
+8. **Approve bill:** `ap_approve_bill` runs the three-way match. Variance error → dialog switches to override mode (reason required, recorded on the document). Due date = credit days, MSME-capped (badge in UI).
+9. **Payment:** Payments & ledger tab → dialog: vendor, entity, amount, mode/UTR, optional allocations against outstanding bills → `ap_record_payment` (all-or-nothing, allocation ≤ outstanding under lock). Payments append-only.
+10. **Ledger & ageing:** vendor ledger view (billed − debits − paid), outstanding bills with overdue days, payment history.
+11. **Settings:** editable tolerances (`po_settings`) — apply to the next GRN / bill approval.
+12. **Failure cases:** every business rule lives in the DB (tolerance, match, statuses, duplicates, allocations) — the UI just surfaces the raised messages inline.
+
 ## Platform Masters (Step 0, One Source of Truth)
 
 Admin-only tab **Platform Masters** (`ops_masters`, sidebar group "Ops Platform" — distinct from the frozen Scott API "Masters" tab).
@@ -33,7 +89,7 @@ Admin-only tab **Stock Ledger** (`ops_stock`, sidebar group "Ops Platform"). Dis
 4. **Guarantees (DB, not UI):** ledger is append-only (UPDATE/DELETE raise); balance can never go below zero; adjustments without a note are rejected; non-admin app users are rejected by `inv_assert_can_post`.
 5. **Drift:** nightly `inv_recompute_drift` (pg_cron 02:30 IST) compares ledger sums to balances; unresolved alerts render as a destructive banner in the panel.
 6. **Failure:** missing migration → inline message naming `20260901191500`; RPC errors (insufficient stock, missing note) surface in the dialog; page never blanks.
-7. **Deferred:** cycle-count screens and reservation UI (functions exist; UI lands with the barcode/scanner flow); Uniware mirror panel waits for Uniware API access (Step 5).
+7. **Deferred:** cycle-count screens and reservation UI (functions exist; UI lands with the barcode/scanner flow). Uniware mirror is Step 5 (`ops_uniware`).
 
 ## Dashboard Stock API (Scott International)
 
@@ -199,8 +255,9 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 1. **Trigger:** Inventory tab mounts (`InventoryDataContext`).
 2. **Fetch:** `inventory_sku_availability` view (paged 1000/req, authenticated read via `20260716120000`), aggregated per `sku_code` + per-facility breakdown → `availabilityBySku`.
 3. **Display:** Inventory list shows **Reserved** (amber, tooltip "Held for open orders — not available to sell") and **Available** (= on_hand − reserved) next to On hand; low-stock status, stock bar, alerts, and overview KPIs compare against **available**.
-4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills.
-5. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
+4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills. `refresh()` (including silent Adjust/SKU events) **awaits** that map so the list cannot keep the old qty.
+5. **Adjust:** IN/OUT/ADJUST write `adjust_sku_facility_stock` at the warehouse the user picked (OUT/ADJUST use `fromWh`). **Transfer** shows From + To warehouses and calls `transfer_sku_facility_stock` (deduct from, add to, one `TRANSFER` movement). Then silent refresh + availability reload. This is **not** the Ops Stock Ledger.
+6. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
 
 ### Inventory bulk Excel upload (stock + DOC, warehouse-scoped)
 

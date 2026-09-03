@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { availableAtWarehouse, onHandAtWarehouse } from "../inventoryFacilityUtils";
 import { useInventory } from "../InventoryDataContext";
 
 const REASON_OPTS = {
@@ -35,32 +36,78 @@ function skuLabel(row) {
 }
 
 export default function AdjustStockModal({ sku, onClose, onSubmit }) {
-  const { fabrics, trims, apparel, warehouses, userDisplayName } = useInventory();
+  const { fabrics, trims, apparel, warehouses, userDisplayName, availabilityBySku } = useInventory();
   const [type, setType] = useState("IN");
   const [qty, setQty] = useState(100);
   const [reason, setReason] = useState(REASON_OPTS.IN[0]);
   const [wh, setWh] = useState("");
+  const [fromWh, setFromWh] = useState("");
+  const [toWh, setToWh] = useState("");
   const [skuId, setSkuId] = useState("");
   const [note, setNote] = useState("");
+  const [formError, setFormError] = useState("");
 
   const warehouseName = useMemo(() => warehouses.find((w) => w.id === wh)?.name || wh, [warehouses, wh]);
+  const fromWarehouseName = useMemo(
+    () => warehouses.find((w) => w.id === fromWh)?.name || fromWh,
+    [warehouses, fromWh]
+  );
+  const toWarehouseName = useMemo(() => warehouses.find((w) => w.id === toWh)?.name || toWh, [warehouses, toWh]);
   const recordedAt = useMemo(() => new Date().toLocaleString(), []);
+  const selectedSku = useMemo(
+    () => [...fabrics, ...trims, ...apparel].find((row) => row.id === skuId) || sku || null,
+    [fabrics, trims, apparel, skuId, sku]
+  );
+  const fromWarehouse = useMemo(() => warehouses.find((w) => w.id === fromWh), [warehouses, fromWh]);
+  const toWarehouse = useMemo(() => warehouses.find((w) => w.id === toWh), [warehouses, toWh]);
+  const fromAvailable = selectedSku && fromWarehouse
+    ? availableAtWarehouse(selectedSku, fromWarehouse, availabilityBySku)
+    : 0;
+  const toOnHand = selectedSku && toWarehouse ? onHandAtWarehouse(selectedSku, toWarehouse, availabilityBySku) : 0;
 
   useEffect(() => {
     if (sku) {
       setSkuId(sku.id);
-      setWh(sku.wh || warehouses[0]?.id || "");
+      const home = sku.wh || warehouses[0]?.id || "";
+      setWh(home);
+      setFromWh(home);
+      const other = warehouses.find((w) => w.id && w.id !== home)?.id || "";
+      setToWh(other);
     } else if (!wh && warehouses[0]?.id) {
       setWh(warehouses[0].id);
+      setFromWh(warehouses[0].id);
+      setToWh(warehouses[1]?.id || "");
     }
   }, [sku, warehouses, wh]);
 
   useEffect(() => {
     setReason(REASON_OPTS[type][0]);
+    setFormError("");
   }, [type]);
 
   const submit = (e) => {
     e?.preventDefault();
+    setFormError("");
+    if (type === "TRANSFER") {
+      if (!fromWh || !toWh) {
+        setFormError("Pick both a from warehouse and a to warehouse.");
+        return;
+      }
+      if (fromWh === toWh) {
+        setFormError("From and to warehouses must be different.");
+        return;
+      }
+      if (!(Number(qty) > 0)) {
+        setFormError("Quantity must be greater than 0.");
+        return;
+      }
+      if (Number(qty) > fromAvailable) {
+        setFormError(`Only ${fromAvailable.toLocaleString()} available at ${fromWarehouseName || "from warehouse"}.`);
+        return;
+      }
+      onSubmit({ type, qty: Number(qty), reason, skuId, note, fromWh, toWh });
+      return;
+    }
     onSubmit({ type, qty: Number(qty), reason, wh, skuId, note });
   };
 
@@ -127,7 +174,7 @@ export default function AdjustStockModal({ sku, onClose, onSubmit }) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+            <div className="grid gap-2">
               <Label htmlFor="adjust-qty">Quantity</Label>
               <Input
                 id="adjust-qty"
@@ -139,21 +186,68 @@ export default function AdjustStockModal({ sku, onClose, onSubmit }) {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="adjust-wh">Warehouse</Label>
-              <Select value={wh || undefined} onValueChange={setWh} required>
-                <SelectTrigger id="adjust-wh" className="h-10">
-                  <SelectValue placeholder="Select warehouse" />
-                </SelectTrigger>
-                <SelectContent>
-                  {warehouses.map((w) => (
-                    <SelectItem key={w.id} value={w.id}>
-                      {w.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {type === "TRANSFER" ? (
+              <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="adjust-from-wh">From warehouse</Label>
+                  <Select value={fromWh || undefined} onValueChange={setFromWh} required>
+                    <SelectTrigger id="adjust-from-wh" className="h-10">
+                      <SelectValue placeholder="Stock leaves here" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {warehouses.map((w) => (
+                          <SelectItem key={w.id} value={w.id}>
+                            {w.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Available here: {fromAvailable.toLocaleString()}
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="adjust-to-wh">To warehouse</Label>
+                  <Select value={toWh || undefined} onValueChange={setToWh} required>
+                    <SelectTrigger id="adjust-to-wh" className="h-10">
+                      <SelectValue placeholder="Stock arrives here" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {warehouses.map((w) => (
+                          <SelectItem key={w.id} value={w.id}>
+                            {w.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    On hand here: {toOnHand.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                <Label htmlFor="adjust-wh">Warehouse</Label>
+                <Select value={wh || undefined} onValueChange={setWh} required>
+                  <SelectTrigger id="adjust-wh" className="h-10">
+                    <SelectValue placeholder="Select warehouse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {warehouses.map((w) => (
+                        <SelectItem key={w.id} value={w.id}>
+                          {w.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -183,10 +277,22 @@ export default function AdjustStockModal({ sku, onClose, onSubmit }) {
             />
           </div>
 
+          {formError ? (
+            <Alert variant="destructive">
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          ) : null}
+
           <Alert>
             <AlertDescription className="leading-relaxed">
-              This will be recorded in the audit log as <strong className="text-foreground">{type}</strong>
-              {warehouseName ? (
+              This will be recorded in the audit log as <strong className="text-foreground">{TYPE_LABELS[type]}</strong>
+              {type === "TRANSFER" && fromWarehouseName && toWarehouseName ? (
+                <>
+                  {" "}
+                  from <strong className="text-foreground">{fromWarehouseName}</strong> to{" "}
+                  <strong className="text-foreground">{toWarehouseName}</strong>
+                </>
+              ) : warehouseName ? (
                 <>
                   {" "}
                   at <strong className="text-foreground">{warehouseName}</strong>
@@ -194,6 +300,7 @@ export default function AdjustStockModal({ sku, onClose, onSubmit }) {
               ) : null}{" "}
               by <strong className="text-foreground">{userDisplayName}</strong> at{" "}
               <strong className="text-foreground">{recordedAt}</strong>.
+              {type === "TRANSFER" ? " Qty leaves the from warehouse and arrives at the to warehouse." : null}
             </AlertDescription>
           </Alert>
 

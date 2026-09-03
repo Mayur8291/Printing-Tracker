@@ -7,6 +7,45 @@
 - **Files:** `AssetManagementPanel.jsx`, `hrAssetUtils.js`, `App.jsx`, `supabase/migrations/20260903090955_hr_assets.sql`
 - **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, API.md, SECURITY.md.
 
+## 2026-09-03 — Staging Scott outbound webhooks pointed at NF receiver
+
+- **Ops:** Set `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` on staging (`scvojtvgnkmbupvyslmb`) to the NF `scott-webhook` function. Redeployed `dashboard-stock-api` and `admin-test-scott-webhook`. Events already wired: `order.status_changed`, `stock.level_changed`, `stock.low_threshold` (HMAC `X-Dashboard-Signature`, outbox retry). No test send yet. Production not touched.
+- **Documentation updated:** DEBUGGING.md, ENVIRONMENTS.md, CHANGELOG.md.
+
+## 2026-09-02 — Inventory Transfer moves qty from warehouse A to warehouse B
+
+- **Bug fix:** Adjust → Transfer had one warehouse box, so from and to were the same bin. The RPC path skipped facility stock, so nothing left A and nothing arrived at B.
+- **Fix:** Transfer now asks **From warehouse** and **To warehouse**. RPC `transfer_sku_facility_stock` deducts available on-hand at from-facility and adds the same qty at to-facility in one transaction, then writes one `TRANSFER` movement. Total SKU stock stays the same.
+- **Files:** `src/inventory/modals/AdjustStockModal.jsx`, `src/inventory/InventoryDashboard.jsx`, `src/inventory/InventoryDataContext.jsx`, `src/inventory/inventoryDbUtils.js`, `supabase/migrations/20260902193000_transfer_sku_facility_stock.sql`
+- **Migration:** applied on **staging** only.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Inventory Adjust looked stuck + Step 5 Uniware bridge
+
+- **Bug fix:** Inventory Adjust wrote facility stock, but the list kept the old qty. List reads `inventory_sku_availability`, not `inventory_skus.stock_qty`. Silent refresh after Adjust never reloaded that map, and OUT/ADJUST ignored the warehouse you picked (wrote the SKU home bin). Fix: `refresh()` awaits `loadAvailability()`; Adjust uses the chosen warehouse; realtime also watches `inventory_facility_stock`.
+- **Feature:** One Source of Truth Step 5 Uniware bridge. Read-only `uni_inventory_mirror` / `uni_sale_order`. Cross-boundary stock only via `uni_transfer` + Uniware `inventory/adjust`. Mirror qty never enter Stock Ledger or Inventory on-hand. Admin tab **Uniware Bridge** (`ops_uniware`). Edge `uniware-bridge` (admin JWT). Secrets stay on the function, not in the SPA.
+- **Files:** `src/inventory/InventoryDataContext.jsx`, `src/inventory/InventoryDashboard.jsx`, `src/realtimeUtils.js`, `supabase/migrations/20260902180000_step5_uniware_bridge.sql`, `supabase/functions/uniware-bridge/index.ts`, `src/UniwareBridgePanel.jsx`, `src/uniwareUtils.js`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Seeds marker location `UNIWARE-ECOM` (`owner_system=uniware`). Production untouched.
+- **Deferred:** live Uniware pull needs edge secrets `UNIWARE_BASE_URL` / `UNIWARE_USERNAME` / `UNIWARE_PASSWORD` / `UNIWARE_FACILITY`. Marketplace labels/manifests stay in Uniware. Ecom orders stay in `uni_sale_order` (not mixed into `so_order`).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, API.md, SECURITY.md, UNIWARE_BOUNDARY.md, ENVIRONMENTS.md.
+
+## 2026-09-02 — Step 4 billing & receivables: invoice from dispatch, credit notes, ageing
+
+- **Feature:** One Source of Truth Step 4 money path. `bill_invoice` / `bill_invoice_line` generated from a dispatch (one invoice per dispatch); gapless `INV/<FY>/nnnn` per entity × GSTIN × FY; HSN from SKU, GST from the order line, IGST vs CGST+SGST from place of supply vs GSTIN state. Invoice immutable once numbered — corrections are `bill_credit_note`. `ar_receipt` + `ar_allocation` all-or-nothing; allocation cannot exceed invoice outstanding or receipt amount. Ageing view `ar_invoice_outstanding_view` (NOT DUE / 0–30 / 31–60 / 61–90 / 90+ / PAID); due date = invoice date + party credit days. `ar_customer_ledger_view`. `ar_followup` collections trail. Soft credit warning on Sales Order confirm (`ar_credit_check`); hard block deferred until department roles.
+- **UI:** new admin-only tab **Billing & AR** (`ops_ar`): generate invoice, invoice detail + credit note, receipts with allocations, ageing buckets + customer balances, follow-ups. Existing Billing tab untouched.
+- **Files:** `supabase/migrations/20260902170000_step4_billing_receivables.sql`, `src/billingArUtils.js`, `src/BillingArPanel.jsx`, `src/SalesOrdersPanel.jsx`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Smoke (rolled back): intra-state CGST split, inter-state IGST, order → invoiced, duplicate invoice blocked, invoice edit blocked, credit over-outstanding blocked, over-allocation blocked.
+- **Deferred:** GSP e-invoice IRN/QR, e-way bill API, Tally XML daily batch + recon screen, distributor incentive engine, `bill_quote`/proforma — need vendor/CA picks (see DECISIONS).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Step 3 sales orders: order → reserve → dispatch, job work, SLA
+
+- **Feature:** One Source of Truth Step 3. `so_order`/`so_line` with a DB status machine (draft → confirmed → in_production → ready → partially_dispatched → dispatched → invoiced → closed, + cancelled); confirming assigns a gapless `SO/<FY>/nnnn` and reserves available stock (`so_allocate`, partial allowed, re-runnable); **ready requires full reservation** and **dispatch can never exceed reserved qty** (roadmap laws, enforced in the DB). `so_dispatch`/`so_dispatch_line` are append-only, written only by `so_post_dispatch` (consumes reservations, posts `dispatch` movements, rolls the order status). `jw_job` job work (printing/embroidery/sublimation/stitching): issue = challan out (transfer to worker location), receive = outputs in (`production_out`) + consumed inputs burned (`consumption`); leftover input at the worker location is the visible loss. `sla_policy` stage targets measured in business hours (Mon–Sat 09:30–18:30 IST, `ops_business_hours_between`) via `so_sla_view`. Views `so_open_view`, `so_sla_view`. Counter sales = `channel='counter'` on the same table.
+- **UI:** new admin-only tab **Sales Orders** (`ops_sales`, Ops Platform group): Orders (create draft, confirm & reserve, allocate, start production, mark ready, dispatch dialog capped at reserved, cancel with reason), Dispatches list, Job work (create/issue/receive/close), SLA (target editor + breach table).
+- **Files:** `supabase/migrations/20260902150000_step3_sales_orders.sql`, `src/salesOrdersUtils.js`, `src/SalesOrdersPanel.jsx`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Smoke test (rolled back): partial allocation, ready-block, over-dispatch block, append-only dispatches, job-work round trip, SLA hours, drift 0.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-02 — Support desk tables readable in Dark Mode
 
 - **Issue:** Support Enquiry / Complaints table values vanished in Dark Mode.
@@ -93,6 +132,15 @@
 - **Fix:** shadcn Tabs. **Raise an Issue** holds the heading, issue Buttons, Floor, Comment, Submit, and thank-you Alert. Same rules as before.
 - **Files:** `InternalSupportPlatformPanel.jsx`
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+## 2026-09-02 — Step 2 procurement: PO → GRN → QC → bill (three-way match) → payment
+
+- **Decisions (user):** QC gate ON by default (vendor-item `qc_exempt` skips it, fallback `crm_party.default_qc_required`); PO/bill approval = CEO / admin access; tolerances editable (`po_settings` singleton + `crm_vendor_item.over_receipt_pct` override).
+- **DB (staging):** migration `20260902120000_step2_procurement.sql` — `po_settings`, `po_purchase_order`/`po_line` (state machine draft→approved→partially_received→fulfilled→closed, short_closed/cancelled; status flips only via functions, enforced by trigger + transaction-local flag), `po_grn`/`po_grn_line` (posted GRNs immutable except QC counters), `ap_bill`/`ap_bill_line` (unique vendor+bill_no; one bill line per GRN line — double billing structurally impossible), `ap_debit_note`, `ap_payment`/`ap_payment_allocation` (append-only, function-only writes). Functions: `po_approve` (gapless `PO/<FY>/0001` via auto-provisioned `core_sequence`), `po_cancel`, `po_short_close`, `po_close`, `po_post_grn` (over-receipt tolerance, QC routing to qc_hold/good, PO counters — over-receipt on one line cannot mask a short line), `po_record_qc`, `ap_approve_bill` (three-way match: billed ≤ received hard stop, rate variance needs override reason; MSME micro/small due-date cap), `ap_cancel_bill`, `ap_record_payment` (allocation ≤ outstanding). Views: `po_active_view`, `ap_bill_outstanding_view`, `ap_vendor_ledger_view`, `po_vendor_performance_view` (all `security_invoker`). Smoke-tested via rolled-back transaction — all 7 guards held, drift 0.
+- **Ledger upgrade:** `inv_movement` gains `to_state` so QC can flip state at the same location (qc_hold → good/damaged); `inv_post_movement` takes optional `p_to_state`; drift recompute credits destination state. Stock Ledger tab shows `state → to_state`.
+- **UI:** new admin-only **Procurement** tab (`ops_procurement`, Ops Platform group): PO list/create/detail (approve, receive GRN, QC queue, short close, cancel, close), Bills (record against unbilled GRN lines, approve with variance-override path, MSME badge), Payments & ledger (vendor ledger, ageing, record payment with allocations), Settings (editable tolerances). `check:ui` passed.
+- **Fixes during build:** `ap_approve_bill` referenced `cat_sku.code` (column is `sku_code`); PO fulfilment originally summed raw pending so over-receipt could mask short lines.
+- **Untouched:** Scott API section, existing Purchase Order voucher tab (`purchase_order`) — the new tab is `ops_procurement`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md.
 
 ## 2026-09-01 — Step 1 stock ledger: append-only movements + Stock Ledger tab
 

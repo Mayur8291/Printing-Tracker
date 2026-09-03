@@ -9,6 +9,7 @@
 # npx supabase functions deploy admin-review-password-reset
 # npx supabase functions deploy admin-list-password-reset-requests
 # npx supabase functions deploy scott-dashboard-masters
+# npx supabase functions deploy uniware-bridge
 
 [functions.admin-create-user]
 verify_jwt = true
@@ -44,4 +45,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.scott-dashboard-masters]
+verify_jwt = true
+
+[functions.uniware-bridge]
 verify_jwt = true

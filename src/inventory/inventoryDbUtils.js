@@ -539,6 +539,29 @@ export async function applyFacilityStockAdjustment({
   return data;
 }
 
+/** Move on-hand qty from one warehouse facility to another (RPC transfer_sku_facility_stock). */
+export async function transferSkuFacilityStock({
+  skuUuid,
+  fromWarehouseId,
+  toWarehouseId,
+  qty,
+  reason,
+  reference,
+  userId
+}) {
+  const { data, error } = await supabase.rpc("transfer_sku_facility_stock", {
+    p_sku_id: skuUuid,
+    p_from_warehouse_id: fromWarehouseId,
+    p_to_warehouse_id: toWarehouseId,
+    p_qty: Math.abs(Number(qty)),
+    p_reason: reason || "",
+    p_reference: reference || "",
+    p_user_id: userId || null
+  });
+  if (error) throw error;
+  return data;
+}
+
 /** Batch facility stock targets for bulk Excel upload (single DB transaction per batch). */
 export async function bulkAdjustFacilityStock({ warehouseId, adjustments, userId }) {
   if (!warehouseId || !adjustments?.length) {

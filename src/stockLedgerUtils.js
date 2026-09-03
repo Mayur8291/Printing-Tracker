@@ -67,7 +67,7 @@ export async function fetchStockMovements() {
   const { data, error } = await supabase
     .from("inv_movement")
     .select(
-      "id, qty, state, reason, ref_type, ref_id, lot, note, created_at, cat_sku ( sku_code ), from_location:core_location!inv_movement_from_location_id_fkey ( code ), to_location:core_location!inv_movement_to_location_id_fkey ( code )"
+      "id, qty, state, to_state, reason, ref_type, ref_id, lot, note, created_at, cat_sku ( sku_code ), from_location:core_location!inv_movement_from_location_id_fkey ( code ), to_location:core_location!inv_movement_to_location_id_fkey ( code )"
     )
     .order("created_at", { ascending: false })
     .limit(200);

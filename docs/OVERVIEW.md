@@ -58,7 +58,8 @@ flowchart LR
 | Core shell & routing | `src/App.jsx` | Tab navigation, auth, orders, admin (~7.6k lines — refactor candidate) |
 | Printing / production | `src/App.jsx`, `src/PrintingDepartmentPanel.jsx`, `src/ProductionTrackerPanel.jsx`, `src/LinkedOrdersTabPanel.jsx` | Orders, job sheets, status workflow. Production tracker sidebar has **Production Tracker** / **Sampling Tracker** and **All orders** / **Complete orders** as the same muted pill under each. Lists stay split by kind. Create Sample Jobsheet = Production layout, no Total quantity, IDs `SA-0001`+. Sampling **All orders** **Due In** after Order date = SLA to Dispatched Successfully (`due_date` end of day if filled, else 2 days from save). Sampling Complete has no Due In. Same clock in View Sample Order while open. |
 | Dispatch & logistics | `src/DispatchTabPanel.jsx`, inward/outward modals | GRN, challans, verification |
-| Inventory | `src/inventory/*` | SKUs, warehouses, POs, suppliers, alerts |
+| Inventory | `src/inventory/*` | SKUs, warehouses, POs, suppliers, alerts. List qty = facility availability, not a lone `stock_qty` cell. |
+| Ops Platform | `src/MastersPanel.jsx`, `StockLedgerPanel.jsx`, `ProcurementPanel.jsx`, `SalesOrdersPanel.jsx`, `BillingArPanel.jsx`, `UniwareBridgePanel.jsx` | One Source of Truth Steps 0–5 (admin). Uniware Bridge is a read-only ecom mirror — not Inventory on-hand. |
 | Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js` | DMs, groups, attachments, GIFs |
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
@@ -96,7 +97,7 @@ flowchart LR
 - **Database:** PostgreSQL with **103+ migrations** in `supabase/migrations/`
 - **Auth:** Email/password; roles `admin` | `viewer` on `profiles`
 - **API surface today:** Auto-generated **PostgREST** REST API + RPC functions in SQL
-- **Edge Functions** (Deno/TypeScript): `admin-create-user`, `admin-delete-user`, `admin-reset-password`, `admin-promote-production`, `tenor-gif-search`
+- **Edge Functions** (Deno/TypeScript): `admin-create-user`, `admin-delete-user`, `admin-reset-password`, `admin-promote-production`, `tenor-gif-search`, `uniware-bridge`
 - **Storage buckets:** e.g. approved designs, profile avatars, notification tones, chat attachments, contact photos
 
 ### Infrastructure
@@ -142,6 +143,7 @@ See [ENVIRONMENTS.md](./ENVIRONMENTS.md) and [RELEASE_AUTOMATION.md](./RELEASE_A
 | [SECURITY.md](./SECURITY.md) | Auth, secrets, API keys |
 | [VULNERABILITIES.md](./VULNERABILITIES.md) | Whole-build vulnerability audit (2026-08-17) |
 | [ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md) | Scott Ops Platform build roadmap (Steps 0–10) |
+| [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md) | Step 5 ownership: Uniware owns ecom stock; platform mirrors only |
 | [laws.md](./laws.md) | Nine binding laws + six-question gate + Scott API freeze |
 
 For a **Word-friendly export**, open `docs/export/Scott_Dashboard_Platform_Overview.html` in Microsoft Word → **Save As → .docx**.

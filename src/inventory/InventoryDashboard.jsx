@@ -149,18 +149,37 @@ export default function InventoryDashboard() {
       return;
     }
     try {
+      const fromWh =
+        data.type === "TRANSFER"
+          ? data.fromWh
+          : ["OUT", "ADJUST"].includes(data.type)
+            ? data.wh || sku.wh
+            : sku.wh;
+      const toWh =
+        data.type === "TRANSFER"
+          ? data.toWh
+          : ["IN", "ADJUST"].includes(data.type)
+            ? data.wh || sku.wh
+            : sku.wh;
       await adjustStock({
         skuUuid: sku._uuid,
         type: data.type,
         qty: data.qty,
         reason: data.reason || "",
         reference: data.note || data.ref || "",
-        fromWh: data.type === "OUT" ? data.wh || sku.wh : sku.wh,
-        toWh: data.type === "IN" ? data.wh || sku.wh : data.type === "TRANSFER" ? data.wh || sku.wh : sku.wh
+        fromWh,
+        toWh
       });
       setAdjustOpen(false);
+      const fromName = warehouses.find((w) => w.id === fromWh)?.name || fromWh;
+      const toName = warehouses.find((w) => w.id === toWh)?.name || toWh;
+      const qtyLabel = Math.abs(data.qty).toLocaleString();
+      const unit = sku?.unit || "pc";
+      const skuName = sku?.name || data.skuId;
       toast(
-        `${data.type === "IN" ? "+" : data.type === "OUT" ? "−" : "·"} ${Math.abs(data.qty).toLocaleString()} ${sku?.unit || "pc"} — ${sku?.name || data.skuId} recorded`
+        data.type === "TRANSFER"
+          ? `Moved ${qtyLabel} ${unit} ${fromName} → ${toName} — ${skuName}`
+          : `${data.type === "IN" ? "+" : data.type === "OUT" ? "−" : "·"} ${qtyLabel} ${unit} — ${skuName} recorded`
       );
     } catch (err) {
       toast(err?.message || "Could not adjust stock.");

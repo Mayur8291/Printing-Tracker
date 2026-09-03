@@ -9,6 +9,64 @@
 | **Fix** | Staging table `hr_assets`. Save inserts. Assets list selects that table. Must be signed in (`created_by = auth.uid()`). Asset name required. Local app must use staging (`npm run check:env`). Production has no table yet. |
 | **Verify** | Save a named asset. Assets shows Tag / name. Leave tab, come back, row still there. Console `[hr-assets] insert failed` if RLS or schema missing. |
 
+## Inventory Transfer has no from/to, or qty does not move between warehouses
+
+- **Symptom:** Adjust → Transfer only shows one warehouse. After save, source still has the qty and destination did not gain it.
+- **Root cause:** The dialog reused a single warehouse field, so from and to were the same. Transfer skipped `adjust_sku_facility_stock` and only wrote a movement against total `stock_qty`.
+- **Fix (2026-09-02):** From warehouse + To warehouse. RPC `transfer_sku_facility_stock` deducts then adds in one transaction.
+- **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — from facility down, to facility up, sum unchanged.
+- **Blocked:** same warehouse, same facility_code, qty > available (on_hand − reserved), qty ≤ 0.
+
+## Inventory Adjust succeeds but list still shows old qty
+
+- **Symptom:** Adjust / IN / OUT toast says recorded; Inventory list, overview, and warehouse qty stay the same on staging.
+- **Root cause:** The list paints `inventory_sku_availability` (facility on-hand − reserved), not `inventory_skus.stock_qty`. After Adjust, silent refresh reloaded SKU rows only. The stale availability map overwrote the new number. A second bug: OUT/ADJUST wrote the SKU home warehouse when the user picked another bin.
+- **Fix (2026-09-02):** `refresh()` awaits `loadAvailability()`; Adjust uses the picked warehouse; subscribe to `inventory_facility_stock`.
+- **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — expect the new on-hand. Hard refresh after deploy.
+- **Do not confuse:** Inventory tab (`inventory_facility_stock`) vs Ops **Stock Ledger** (`inv_balance`). Adjust on Inventory does not change Stock Ledger.
+
+## Uniware Bridge: "Uniware secrets not set"
+
+- **Symptom:** Sync inventory / Sync orders / Post transfer API step fails naming `UNIWARE_BASE_URL` (or the yellow banner).
+- **Root cause:** Staging edge has no Uniware login secrets yet. By design the mirror tables stay empty until the first successful sync.
+- **Fix:** Dashboard → Edge Functions → `uniware-bridge` → Secrets: `UNIWARE_BASE_URL`, `UNIWARE_USERNAME`, `UNIWARE_PASSWORD`, `UNIWARE_FACILITY`. Then Sync inventory. Ledger transfers still need a Platform Masters entity + a platform location + `UNIWARE-ECOM`.
+
+## Uniware Bridge tab empty / missing tables
+
+- **Symptom:** panel error naming `uni_settings` or `uni_inventory_mirror`.
+- **Root cause:** local/staging schema missing `20260902180000_step5_uniware_bridge.sql`.
+- **Fix:** confirm `npm run check:env` points at staging `scvojtvgnkmbupvyslmb`; migration already applied there. Production does not have this schema until an explicit release.
+
+## Billing: "This dispatch is already invoiced"
+
+- **Symptom:** Generate invoice fails naming the dispatch.
+- **Root cause:** by design — `bill_invoice.dispatch_id` is unique. One invoice per dispatch.
+- **Fix:** open the existing invoice (Billing & AR → Invoices). Corrections are a credit note, not a second invoice.
+
+## Billing: "Invoices, credit notes and receipts are immutable"
+
+- **Symptom:** UPDATE/DELETE on `bill_invoice`, `bill_credit_note`, `ar_receipt` or `ar_allocation` raises.
+- **Root cause:** by design (law 3/4). The only UPDATE allowed is the totals write inside `bill_generate_from_dispatch` (transaction-local flag).
+- **Fix:** issue a credit note or a counter receipt. Never disable the trigger.
+
+## Billing: "Credit / Allocation exceeds invoice outstanding"
+
+- **Symptom:** credit note or receipt allocation fails with the outstanding figure.
+- **Root cause:** `ar_invoice_outstanding_locked` (total − credits − allocations) under `FOR UPDATE`.
+- **Fix:** lower the amount. Check the Ageing tab for the live outstanding.
+
+## Billing: GSTIN / place of supply errors
+
+- **Symptom:** "GSTIN belongs to a different entity" or "Place of supply must be a 2-digit state code".
+- **Root cause:** invoice GSTIN must belong to the order's entity; POS is the 2-digit state code (blank in the UI = GSTIN state → intra-state CGST+SGST).
+- **Fix:** pick a GSTIN of the order's entity; enter a 2-digit POS for inter-state (IGST).
+
+## Billing & AR tab empty / missing tables
+
+- **Symptom:** panel error naming `bill_invoice` or the RPCs.
+- **Root cause:** local/staging schema missing `20260902170000_step4_billing_receivables.sql`.
+- **Fix:** confirm `npm run check:env` points at staging `scvojtvgnkmbupvyslmb`; migration already applied there. Production does not have this schema until an explicit release.
+
 ## Support table values missing in Dark Mode
 
 | | |
@@ -17,6 +75,59 @@
 | **Root cause** | Rows use `bg-red-50` / `bg-sky-50` (pale). Dark Mode `.table-panel` text is light. Light on pale. |
 | **Fix** | Hard refresh. `PRIORITY_ROW_CLASS` and badges include `dark:` backgrounds and `text-foreground`. |
 | **Verify** | Dark Mode: Code, Customer, Order ID, Concerns, Source, Assignee, Created all readable. Priority tint still there. |
+
+## Sales order: "Order cannot be ready: N line(s) not fully reserved"
+
+- **Symptom:** Mark ready fails naming the number of short lines.
+- **Root cause:** by design (roadmap law) — `so_set_status` refuses `ready` unless every line has `qty_reserved + qty_dispatched ≥ qty`. Stock ran out at confirm time, so allocation was partial.
+- **Fix:** get stock into the order's fulfilment location (GRN, production, job-work receipt, transfer), then Allocate stock on the order; repeat Mark ready.
+
+## Sales order: "Dispatch X exceeds reserved Y for this line"
+
+- **Symptom:** posting a dispatch fails naming the line's reserved qty.
+- **Root cause:** by design — a dispatch can never exceed reserved qty (`so_post_dispatch` checks under lock; the dialog caps inputs too, but the DB is the authority).
+- **Fix:** allocate more stock first (order must be re-set to ready is *not* needed — allocation works on confirmed/in_production; ready orders keep their reservations), or dispatch the reserved quantity only.
+
+## Sales order / job work: "status changes only through …" / "append-only" errors
+
+- **Symptom:** direct updates to `so_order`, `so_dispatch`, `jw_job` raise "status changes only through so_confirm / so_set_status / so_post_dispatch / so_cancel" or "Dispatches are append-only".
+- **Root cause:** by design. Guard triggers allow status flips only inside the definer functions; dispatch documents freeze at creation.
+- **Fix:** use the RPCs. Dispatch corrections are `return_in` movements + a note, never edits.
+
+## Job work: worker location still shows input stock after receive
+
+- **Symptom:** Stock Ledger shows leftover input SKUs at the job-worker location after a job is received/closed.
+- **Root cause:** not a bug — receive only burns what was declared consumed. The leftover **is** the pending/loss figure the roadmap wants visible.
+- **Fix:** if pieces physically came back, post a `transfer` movement worker → source (ref the job). If they are lost, leave them (or consume with a note) so the loss stays on record.
+
+## SLA tab empty / no breaches shown
+
+- **Symptom:** SLA tab shows "Nothing here" although orders exist.
+- **Root cause:** no `sla_policy` rows for the order's channel (orders are unmeasured without a target), or all measured stages are within target while "breaches only" is on.
+- **Fix:** save stage targets for the channels in use; toggle "Show all" to see running stages. Hours count Mon–Sat 09:30–18:30 IST only (`ops_business_hours_between`).
+
+## Procurement: "status changes only through …" / "immutable" errors
+
+- **Symptom:** direct updates to `po_purchase_order`, `po_grn` or `ap_bill` raise "status changes only through po_approve / po_post_grn / ap_approve_bill" or "… is immutable".
+- **Root cause:** by design. Guard triggers allow status flips only inside the definer functions (transaction-local flag `ops.allow_status_change`). Approved/posted documents freeze.
+- **Fix:** use the RPCs (`po_approve`, `po_post_grn`, `po_record_qc`, `ap_approve_bill`, `ap_record_payment`) or, for money corrections, a debit note / counter payment. Never disable the triggers.
+
+## Procurement: GRN blocked with "Over-receipt: pending X plus tolerance…"
+
+- **Symptom:** posting a GRN fails naming pending, tolerance and the allowed maximum.
+- **Root cause:** received qty exceeds pending + tolerance% of ordered. Tolerance source: `crm_vendor_item.over_receipt_pct` for that vendor+SKU if set, else `po_settings.over_receipt_tolerance_pct`.
+- **Fix:** correct the quantity, or (deliberately) raise the tolerance in Procurement → Settings / the vendor-item override, then repost. The failed draft GRN is auto-deleted by the UI.
+
+## Procurement: bill approval fails with "Rate variance beyond tolerance"
+
+- **Symptom:** `ap_approve_bill` raises listing SKUs with PO rate vs bill rate.
+- **Root cause:** three-way match; variance beyond `po_settings.rate_variance_tolerance_pct`.
+- **Fix:** in the approve dialog give an override reason (recorded, `match_status='override'`), or fix the line rates while the bill is draft. "Billed qty exceeds received" has no override — fix the qty.
+
+## Procurement tab: "Procurement tables are not on this database yet"
+
+- **Symptom:** inline message naming migration `20260902120000_step2_procurement.sql`.
+- **Root cause / fix:** same pattern as Platform Masters — the env the app points at lacks the migration (staging has it since 2026-09-02; production only on an explicit release).
 
 ## Internal Support Platform missing from Tools
 
@@ -688,6 +799,9 @@ Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES
 - **Root cause:** delivery needs both `SCOTT_WEBHOOK_BASE_URL` and `SCOTT_WEBHOOK_SECRET` edge-function secrets; until set, the trigger still enqueues rows in `dashboard_webhook_outbox` with status `pending` (delivery drained on the next API call once secrets exist). Also check `last_error` on the outbox row — non-2xx from their server keeps it pending with `attempts` incremented.
 - **Fix:** `npx supabase secrets set SCOTT_WEBHOOK_BASE_URL=... SCOTT_WEBHOOK_SECRET=...` (staging link), then any order/stock API call retries delivery. Verify with the admin header popover "Send test webhook".
 - **Queries:** `select event_type, status, attempts, last_error from dashboard_webhook_outbox order by created_at desc limit 20;`
+- **Staging (2026-09-03):** NF receiver URL is set on project `scvojtvgnkmbupvyslmb` (`…/functions/v1/scott-webhook`). HMAC secret matches the value they sent (Edge secret, not in git). Events already posted: `order.status_changed`, `stock.level_changed`, `stock.low_threshold`. **Do not Send test webhook** until they confirm their function is live. **Do not set production** until they send prod URL + secret.
+
+## Warehouse Edit: facility code changed but snapshot still uses old code
 
 ## Warehouse Edit: facility code changed but snapshot still uses old code
 

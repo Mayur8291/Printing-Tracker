@@ -507,6 +507,14 @@ export default function StockLedgerPanel() {
                       <Badge variant="outline" className={cn(STATE_BADGE[m.state])}>
                         {STOCK_STATE_LABEL[m.state] ?? m.state}
                       </Badge>
+                      {m.to_state && m.to_state !== m.state && (
+                        <>
+                          <span className="mx-1 text-muted-foreground">→</span>
+                          <Badge variant="outline" className={cn(STATE_BADGE[m.to_state])}>
+                            {STOCK_STATE_LABEL[m.to_state] ?? m.to_state}
+                          </Badge>
+                        </>
+                      )}
                     </TableCell>
                     <TableCell>{MOVEMENT_REASON_LABEL[m.reason] ?? m.reason}</TableCell>
                     <TableCell className="max-w-[220px] truncate text-muted-foreground">

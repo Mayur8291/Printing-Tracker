@@ -33,6 +33,140 @@ flowchart LR
   Utils --> Table[(hr_assets)]
 ```
 
+## Inventory facility transfer
+
+```mermaid
+flowchart TD
+  Pick[Adjust Transfer] --> FromTo[From warehouse and To warehouse]
+  FromTo --> Same{Different warehouses?}
+  Same -->|no| Block1[Blocked]
+  Same -->|yes| Rpc[rpc transfer_sku_facility_stock]
+  Rpc --> Lock[Lock both facility rows]
+  Lock --> Avail{qty less or equal available at from?}
+  Avail -->|no| Block2[Blocked]
+  Avail -->|yes| Deduct[Deduct from facility]
+  Deduct --> Add[Add to facility]
+  Add --> Move[One TRANSFER movement]
+```
+
+## Uniware bridge (Step 5)
+
+```mermaid
+flowchart TD
+  Admin[Admin Uniware Bridge] --> Status[edge status]
+  Status -->|secrets missing| Banner[Banner tables still load]
+  Admin --> SyncInv[sync_inventory]
+  SyncInv --> Snap[Uniware inventory snapshot]
+  Snap --> Mirror[uni_inventory_mirror]
+  Admin --> SyncOrd[sync_orders]
+  SyncOrd --> So[uni_sale_order]
+  Admin --> Draft[Draft uni_transfer]
+  Draft --> Post[rpc uni_post_transfer]
+  Post --> Owners{owner_system match direction?}
+  Owners -->|no| Block[Blocked]
+  Owners -->|yes| Move[inv_post_movement]
+  Move --> Adj[edge inventory/adjust]
+  Adj -->|ok| ApiOk[api_ok]
+  Adj -->|fail| ApiFail[api_failed ledger already posted]
+```
+
+## Billing lifecycle (Step 4)
+
+```mermaid
+flowchart TD
+  Disp[Posted so_dispatch] --> Gen[rpc bill_generate_from_dispatch]
+  Gen --> Gstin{GSTIN matches order entity?}
+  Gstin -->|no| Err1[Blocked]
+  Gstin -->|yes| Num[Gapless INV per GSTIN per FY]
+  Num --> Pos{Place of supply equals GSTIN state?}
+  Pos -->|yes| Intra[CGST plus SGST]
+  Pos -->|no| Inter[IGST]
+  Intra --> Inv[Immutable bill_invoice]
+  Inter --> Inv
+  Inv --> AllDisp{Order fully dispatched and all dispatches invoiced?}
+  AllDisp -->|yes| Invoiced[so_order invoiced]
+  Inv --> Cn[rpc ar_issue_credit_note reason]
+  Cn --> Cap1{Amount less or equal outstanding?}
+  Cap1 -->|no| Err2[Blocked]
+  Cap1 -->|yes| CnDoc[Immutable bill_credit_note]
+  Inv --> Rcpt[rpc ar_record_receipt]
+  Rcpt --> Cap2{Alloc less or equal outstanding and receipt?}
+  Cap2 -->|no| Err3[Blocked]
+  Cap2 -->|yes| Alloc[ar_allocation]
+  Inv --> Age[ar_invoice_outstanding_view buckets]
+```
+
+## Sales order lifecycle (Step 3)
+
+```mermaid
+flowchart TD
+  Draft[Draft order admin RLS write] --> Confirm[rpc so_confirm]
+  Confirm -->|gapless SO number| Alloc[so_allocate reserve available]
+  Alloc -->|partial ok| Confirmed[confirmed]
+  Confirmed --> Prod[rpc so_set_status in_production]
+  Prod --> ReadyTry[rpc so_set_status ready]
+  Confirmed --> ReadyTry
+  ReadyTry --> Gate{Reservations cover every line?}
+  Gate -->|no| Blocked[Blocked allocate more stock first]
+  Gate -->|yes| Ready[ready]
+  Ready --> Disp[rpc so_post_dispatch]
+  Disp --> Cap{qty within reserved?}
+  Cap -->|no| Err[Blocked dispatch cannot exceed reserved]
+  Cap -->|yes| Consume[Consume reservations FIFO post dispatch movements]
+  Consume --> Open{All lines dispatched?}
+  Open -->|no| Partial[partially_dispatched] --> Disp
+  Open -->|yes| Dispatched[dispatched] --> Invoice[invoiced Step 4] --> Closed[closed]
+  Draft --> Cancel[rpc so_cancel reason]
+  Confirmed --> Cancel
+  Cancel --> Release[Release active reservations]
+```
+
+## Job work round trip (Step 3)
+
+```mermaid
+flowchart TD
+  JDraft[Draft job inputs and outputs] --> Issue[rpc jw_issue]
+  Issue -->|challan out| Worker[Inputs transfer to worker location]
+  Worker --> Receive[rpc jw_receive]
+  Receive --> Out[Outputs production_out into source location]
+  Receive --> Burn[Consumed inputs consumption at worker location]
+  Burn --> Left{Input left at worker location?}
+  Left -->|yes| Loss[Visible as pending or loss balance]
+  Left -->|no| Clean[Worker location clean]
+  Out --> Close[rpc jw_close]
+```
+
+## Procurement lifecycle (Step 2)
+
+```mermaid
+flowchart TD
+  Draft[Draft PO admin RLS write] --> Approve[rpc po_approve]
+  Approve -->|gapless PO number| Open[Approved]
+  Open --> Receive[Receive goods dialog]
+  Receive --> PostGrn[rpc po_post_grn]
+  PostGrn --> Tol{Within over receipt tolerance?}
+  Tol -->|no| Err1[Blocked vendor item override or po_settings]
+  Tol -->|yes| QcGate{QC required?}
+  QcGate -->|vendor item qc_exempt| Good[Stock in as good]
+  QcGate -->|default| Hold[Stock in as qc_hold]
+  Hold --> Qc[rpc po_record_qc]
+  Qc -->|pass| StateGood[qc_hold to good same location]
+  Qc -->|fail plus note| StateDam[qc_hold to damaged qty_rejected up]
+  PostGrn --> Status{All lines received?}
+  Status -->|positive pending left| Partial[partially_received]
+  Status -->|none| Fulfilled[fulfilled] --> Close[rpc po_close]
+  Partial --> Receive
+  Open --> Short[rpc po_short_close reason] 
+  Bill[Draft bill unbilled GRN lines] --> ApproveBill[rpc ap_approve_bill]
+  ApproveBill --> Match{Three way match}
+  Match -->|billed above received| Hard[Hard stop]
+  Match -->|rate variance above tolerance| Override[Needs override reason]
+  Match -->|ok| Due[Due date MSME cap for micro small]
+  Due --> Pay[rpc ap_record_payment allocations]
+  Override --> Due
+  Pay --> Ledger[ap_vendor_ledger_view ageing]
+```
+
 ## Step 0 masters — entity relationships (One Source of Truth)
 
 ```mermaid

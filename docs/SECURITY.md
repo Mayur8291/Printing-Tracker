@@ -56,6 +56,9 @@
 | `SCOTT_WEBHOOK_BASE_URL` | Edge: `dashboard-stock-api` | Outbound webhook target |
 | `SCOTT_WEBHOOK_SECRET` | Edge: `dashboard-stock-api` | Webhook HMAC |
 | `SUPABASE_SERVICE_ROLE_KEY` | Edge functions (platform) | DB access from functions |
+| `UNIWARE_BASE_URL` | Edge: `uniware-bridge` | Unicommerce API host |
+| `UNIWARE_USERNAME` / `UNIWARE_PASSWORD` | Edge: `uniware-bridge` | OAuth password grant. Never in the SPA. |
+| `UNIWARE_FACILITY` | Edge: `uniware-bridge` | Facility header on warehouse calls |
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for env setup on Netlify (frontend) vs Supabase (backend).
 

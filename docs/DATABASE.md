@@ -38,6 +38,59 @@ Company IT assets from Tools → Asset Management → **Add asset** / **New asse
 
 **Rollback:** drop trigger, function, policies, then `hr_assets`.
 
+## Step 5 Uniware bridge — One Source of Truth (2026-09-02)
+
+Uniware owns ecom-facility on-hand. The platform stores a **read-only mirror**. Migration `20260902180000_step5_uniware_bridge.sql`, applied on **staging**. Contract: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).
+
+| Object | Purpose |
+|---|---|
+| `uni_settings` | Singleton: default entity, Uniware marker location, optional facility code. Admin RLS write. |
+| `uni_sync_log` | Per-feed run log (`inventory`, `sale_orders`, `shipments`, `invoices`, `returns`, `adjust_out`). Watermark on success. |
+| `uni_inventory_mirror` | Facility × SKU × inventory_type qty from Uniware snapshot. No client write. |
+| `uni_sale_order` / `uni_shipment` / `uni_invoice` / `uni_return` | Idempotent upserts keyed on Uniware code. Not `so_order`. |
+| `uni_transfer` | Draft → posted (platform ledger) → `api_ok` / `api_failed`. Number `UTR/<FY>/nnnn`. |
+| `uni_feed_health_view` | Last finished run per feed; `stale` if missing, error, or older than 2 hours. `security_invoker`. |
+| `core_location` `UNIWARE-ECOM` | Seeded virtual `uniware_facility` marker (`owner_system=uniware`). Never counted as platform stock. |
+
+**Functions** (`ops_assert_admin()` except `uni_finish_sync`):
+
+- `uni_begin_sync(feed)` / `uni_finish_sync(log, ok, rows, error)` — edge bookkeeping.
+- `uni_post_transfer(id)` — posts `inv_post_movement` only when from/to `owner_system` matches direction. Does **not** call Uniware.
+- `uni_mark_transfer_api(id, ok, ref, error)` — records the adjust API result.
+
+**RLS:** authenticated SELECT on all `uni_*`. Admin write on `uni_settings` + `uni_transfer` only. Mirror tables: edge service role.
+
+**Rollback:** drop `uni_*` tables/views/functions; keep `UNIWARE-ECOM` location or mark inactive.
+
+## Step 4 billing & receivables — One Source of Truth (2026-09-02)
+
+Invoices generated from dispatch; money is a document (law 3). Migration `20260902170000_step4_billing_receivables.sql`, applied on **staging**. Money tables have **no direct write policies** — `bill_generate_from_dispatch`, `ar_issue_credit_note`, `ar_record_receipt` are the only doors. Documents are immutable once numbered (`bill_block_change`; totals write uses `ops.allow_status_change`).
+
+| Object | Purpose |
+|---|---|
+| `ops_next_gstin_doc_no(entity, gstin, doc_type, date)` | Gapless sequence per entity × GSTIN × FY (law). Prefix `INV/` / `CN/`. Internal (no authenticated grant). |
+| `bill_invoice` | One row per dispatch (`unique dispatch_id`). GSTIN, place of supply (2-digit), intra_state, credit_days snapshot, due_date, owner (from party, overridable), GST split totals. `invoice_no` unique. |
+| `bill_invoice_line` | One row per dispatch line (`unique dispatch_line_id`): HSN, qty, rate, taxable, gst_rate, IGST or CGST+SGST, line_total. Paisa-safe CGST/SGST split (halves sum to tax). |
+| `bill_credit_note` | Correction document; amount capped at invoice outstanding under lock. |
+| `ar_receipt` / `ar_allocation` | Receipt (mode bank/upi/cash/cheque/adjustment, UTR) + allocations. Unique (receipt, invoice). Unallocated remainder = advance. |
+| `ar_followup` | Collections working document (admin RLS write): next_date, note, outcome, open/done/cancelled. |
+| `ar_invoice_outstanding_view` | total − credits − allocations; bucket NOT_DUE / 0-30 / 31-60 / 61-90 / 90+ / PAID; days_past_due. `security_invoker`. |
+| `ar_customer_ledger_view` | invoiced − credited − received (receipt totals, so advances count). |
+
+**Functions** (`ops_assert_admin()`):
+
+- `bill_generate_from_dispatch(dispatch, gstin, pos, date, owner, note)` → numbers the invoice, copies dispatch lines × order rates, GST split, rolls `so_order` to `invoiced` when every dispatch of a fully-dispatched order is invoiced.
+- `ar_issue_credit_note(invoice, amount, reason, date)` — reason required; amount ≤ outstanding.
+- `ar_record_receipt(customer, entity, amount, date, mode, utr, note, allocations jsonb)` — allocation customer must match; amount ≤ outstanding; sum(alloc) ≤ receipt.
+- `ar_credit_check(customer)` → `{credit_limit, outstanding, over_limit, oldest_overdue_days}` (soft warning for confirm).
+- `ar_invoice_outstanding_locked` — internal, `FOR UPDATE`.
+
+**RLS:** read authenticated; no write on money tables; admin write on `ar_followup` only. Audit on invoice, credit note, receipt, follow-up.
+
+**Smoke-tested on staging** (rolled back): 10×₹200 @ 12% intra-state = ₹2240 (CGST 120); 2×₹100 @ 18% inter-state = ₹236 IGST; order status `invoiced`; edit/dup/over-CN/over-alloc blocked.
+
+**Rollback:** reversing migration dropping `bill_`/`ar_` tables, views, functions. Posted staging documents would be lost.
+
 ## Internal Support issues
 
 Staff-raised tickets from Tools → Internal Support Platform → Open Tickets → **Raise an Issue**. Open Tickets: admin sees every non-Resolved submit; non-admin sees only their own.
@@ -65,6 +118,71 @@ Staff-raised tickets from Tools → Internal Support Platform → Open Tickets �
 **Query pattern:** History `order by created_at desc`. Non-admin query adds `raised_by = session user`. Insert from Raise an Issue. Admin Status Select updates `status`.
 
 **Rollback:** drop trigger, function, policies, then `internal_support_issues`.
+
+## Step 3 sales orders — One Source of Truth (2026-09-02)
+
+Orders that reserve stock, dispatch against reservations, job work, SLA (roadmap Step 3). Migration `20260902150000_step3_sales_orders.sql`, applied on **staging**. Same discipline as Step 2: drafting is admin RLS; numbering, reservations, stock moves and status flips only through SECURITY DEFINER functions guarded by triggers + the `ops.allow_status_change` transaction-local flag.
+
+| Object | Purpose |
+|---|---|
+| `so_order` | Order header: customer (`crm_party`), entity, channel (b2b/counter/distributor/enquiry/ecom_uniware), fulfilment `location_id` (reservations + dispatches run against it), promised date, branding flag. Status machine draft → confirmed → in_production → ready → partially_dispatched → dispatched → invoiced → closed, + cancelled. Stage timestamps (`confirmed_at`, `production_started_at`, `ready_at`, `dispatched_at`) feed the SLA view. `so_no` assigned at confirm (`SO/<FY>/nnnn`). Commercial fields freeze after draft. |
+| `so_line` | One row per SKU (per size) — never "LABEL-QTY" strings. qty/rate/tax + function-maintained counters `qty_reserved` (active) and `qty_dispatched`. Unique (so_id, sku_id). |
+| `so_dispatch` / `so_dispatch_line` | Dispatch document: transporter, LR no, boxes, weight, e-way bill no, POD url. **Append-only** (block triggers, no direct write policies) — written only by `so_post_dispatch`. |
+| `jw_job` / `jw_job_line` | Job work: kind (printing/embroidery/sublimation/stitching/other), worker party or in-house, source + worker locations (must differ), lines split input/output with qty_planned/qty_moved. Status draft → issued → received → closed, + cancelled (draft only). |
+| `sla_policy` | Stage target hours per channel × stage (confirm_to_production / production_to_ready / ready_to_dispatch), unique per pair, admin-editable. |
+
+**Functions** (SECURITY DEFINER, `ops_assert_admin()` gate):
+
+- `so_confirm(so)` → assigns the gapless number, then `so_allocate`.
+- `so_allocate(so)` → per line under lock: available = `inv_balance` (good) − active `inv_reservation`; reserves `least(need, available)` (partial OK, re-runnable after production/new stock). Returns qty newly reserved.
+- `so_set_status(so, status, reason)` → transition matrix; **ready blocked unless every line has qty_reserved + qty_dispatched ≥ qty** (roadmap rule). Sets stage timestamps.
+- `so_cancel(so, reason)` → only before any dispatch; releases active reservations, zeroes counters.
+- `so_post_dispatch(so, lines jsonb, …)` → order must be ready/partially_dispatched; per line under lock: qty ≤ `qty_reserved` (roadmap rule) and ≤ open qty; consumes reservations FIFO via `so_consume_reservation` (partial rows split so every grain stays auditable), posts `dispatch` movements (ref `so_dispatch`), updates counters, rolls status to partially_dispatched/dispatched. Returns `DISP/<FY>/nnnn`. |
+- `jw_issue(job)` → challan out: transfer movements source → worker location for input lines; assigns `JW/<FY>/nnnn`.
+- `jw_receive(job, outputs jsonb, consumed jsonb, note)` → outputs must be declared lines (hard error otherwise); `production_out` into the source location, `consumption` burns inputs at the worker location. Leftover worker-location balance = pending/loss, visible in Stock Ledger.
+- `jw_close(job)` (received only) / `jw_cancel(job, reason)` (draft only — issued jobs must receive/return stock).
+- `ops_business_hours_between(from, to)` → business hours Mon–Sat 09:30–18:30 IST (Sundays off), used by the SLA view.
+
+**Views** (`security_invoker = true`): `so_open_view` (qty ordered/reserved/dispatched, value, days overdue vs promised) and `so_sla_view` (order × applicable stage: elapsed business hours vs `sla_policy` target, `stage_done`, `breached`; open stages measure against `now()`).
+
+**RLS:** read authenticated everywhere; admin write on drafting tables (`so_order`, `so_line`, `jw_job`, `jw_job_line`, `sla_policy`); **no write policies** on `so_dispatch`/`so_dispatch_line`. Audit triggers (law 4) on `so_order`, `so_dispatch`, `jw_job`, `sla_policy`. `so_consume_reservation` has no authenticated grant (internal).
+
+**Smoke-tested on staging** (rolled-back transaction): 20 in stock → order 1 (15) fully reserved, order 2 (10) got only the remaining 5; ready blocked on the short order; two-part dispatch rolled partially_dispatched → dispatched; over-dispatch, direct status flips, dispatch edits and undeclared job outputs all blocked; cancel released reservations; job work round trip left exact balances; business hours = 2.00 for a 2-hour Tuesday window; drift 0.
+
+**Rollback:** reversing migration dropping `so_`/`jw_`/`sla_` tables, views and functions. Posted staging documents would be lost.
+
+## Step 2 procurement — One Source of Truth (2026-09-02)
+
+PO lifecycle → GRN → QC → payables (law 3: money is a document). Migration `20260902120000_step2_procurement.sql`, applied on **staging**. Drafting documents are admin-writable via RLS; everything that moves stock/money or flips a status goes through SECURITY DEFINER functions. Status columns are protected by guard triggers + a transaction-local flag (`ops.allow_status_change`) only the functions set.
+
+| Object | Purpose |
+|---|---|
+| `po_settings` | Singleton (id=1), admin-editable: `over_receipt_tolerance_pct` (default 5), `rate_variance_tolerance_pct` (default 2), `msme_due_cap_days` (default 45). |
+| `crm_vendor_item.over_receipt_pct` | New column: per vendor-item tolerance override (beats the global setting). |
+| `po_purchase_order` | PO header. Status machine: draft → approved → partially_received → fulfilled → closed; short_closed from approved/partially; cancelled from draft/approved with no receipts. `po_no` assigned at approval (gapless, per entity × FY, prefix `PO/<FY>/`). Commercial fields freeze after draft. Roadmap's sent/open deferred (see DECISIONS). |
+| `po_line` | sku, qty_ordered, rate, tax_pct + counters qty_received/qty_rejected/qty_cancelled (function-maintained; frozen fields guarded after draft). Unique (po_id, sku_id). |
+| `po_grn` / `po_grn_line` | Goods receipt working paper (draft) → posted by `po_post_grn` (grn_no `GRN/<FY>/0001`). Posted GRNs immutable except QC counters on lines. |
+| `ap_bill` / `ap_bill_line` | Vendor bill. `unique (vendor_id, bill_no)` blocks double entry; `unique (grn_line_id)` on lines makes double billing structurally impossible. Approved bills immutable — corrections are debit notes. |
+| `ap_debit_note` | Rejections / shortages / rate corrections (open/settled/cancelled), admin-writable. |
+| `ap_payment` / `ap_payment_allocation` | Append-only (block triggers, **no** direct write policies) — written only by `ap_record_payment`. |
+
+**Functions** (all SECURITY DEFINER, `ops_assert_admin()` gate = admin app users or server contexts):
+
+- `po_approve(po)` → assigns number via `ops_next_doc_no` (auto-provisions the `core_sequence` row, then `core_next_sequence` under lock).
+- `po_cancel(po, reason)` / `po_short_close(po, reason)` (kills pending qty) / `po_close(po)`.
+- `po_post_grn(grn)` → per line under `FOR UPDATE`: vendor match, PO open, over-receipt check (pending + tolerance% of ordered; vendor-item override wins), QC routing (`qc_exempt` → good, else qc_hold), `inv_post_movement`, PO counters + status (only **positive** pending counts toward fulfilment).
+- `po_record_qc(grn_line, pass, fail, note)` → same-location state-change movements (qc_hold→good / qc_hold→damaged); fail requires a note and bumps `po_line.qty_rejected`.
+- `ap_approve_bill(bill, override_reason)` → three-way match: billed qty > received = hard stop; rate variance beyond tolerance needs override (recorded as `match_status='override'` + reason). Computes totals and due date: vendor credit days, capped at `msme_due_cap_days` for micro/small vendors (`msme_capped` flag).
+- `ap_cancel_bill(bill, reason)` (draft only), `ap_record_payment(vendor, entity, amount, …, allocations jsonb)` (validates per-bill outstanding under lock).
+- Helpers: `ops_assert_admin`, `ops_fy_label` (Apr–Mar), `ops_next_doc_no`, `ops_status_change_allowed`.
+
+**Views** (`security_invoker = true`): `po_active_view` (pending qty/value, days overdue), `ap_bill_outstanding_view` (paid/outstanding/overdue), `ap_vendor_ledger_view` (billed − open debit notes − paid), `po_vendor_performance_view` (rejection %, on-time %).
+
+**Step 1 ledger change:** `inv_movement.to_state` added; the old `from ≠ to` check became `from ≠ to OR to_state <> state` (constraint `inv_movement_loc_or_state_check`), `inv_post_movement` gained `p_to_state` (11th arg, default null = same state), `inv_recompute_drift` credits the destination with `coalesce(to_state, state)`.
+
+**RLS:** read authenticated on all `po_`/`ap_` tables; admin write on drafting documents; no write policies at all on payments/allocations. Audit triggers (law 4) on `po_settings`, `po_purchase_order`, `po_grn`, `ap_bill`, `ap_debit_note`, `ap_payment`.
+
+**Rollback:** drop the `po_`/`ap_` tables + views + functions, drop `inv_movement.to_state` and restore the old constraint/function — but only via a reversing migration; posted documents on staging would be lost.
 
 ## Step 1 stock ledger — One Source of Truth (2026-09-01)
 
@@ -629,6 +747,8 @@ Sync (since `20260716140000_sync_sku_stock_to_facility.sql`): trigger `inventory
 **Apparel `extra.sizes` sync (since `20260806110948_sync_apparel_sizes_with_stock.sql`):** Bulk warehouse upload and facility adjust update `stock_qty` and `inventory_facility_stock` but previously left `extra.sizes` at import defaults (`0`). UI **Stock by size** reads `extra.sizes`; **On hand** reads `stock_qty`. Trigger `sync_apparel_sizes_on_stock_change` runs BEFORE insert/update of `stock_qty` on apparel rows and rewrites `extra.sizes` via `build_apparel_sizes_for_stock()`.
 
 **Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute. Since `20260806110948`, also sets `warehouse_id = coalesce(warehouse_id, p_warehouse_id)`.
+
+**Facility transfer (since `20260902193000_transfer_sku_facility_stock.sql`):** RPC `transfer_sku_facility_stock(sku_id, from_warehouse_id, to_warehouse_id, qty, reason, reference, user_id)` — locks both facility rows, deducts available qty at from (blocks if qty > on_hand − reserved), adds the same qty at to, recomputes SKU total (unchanged), logs one `TRANSFER` movement. Same facility code on both warehouses is rejected. Staging only until a production release.
 
 **Bulk batch adjust (since `20260725180000_bulk_adjust_facility_stock.sql`):** RPC `bulk_adjust_sku_facility_stock(warehouse_id, adjustments jsonb, user_id)` — applies many `{sku_id, target_on_hand, reason, reference}` entries in one transaction (used by Warehouses → Upload Bulk in batches of 100). Returns `{applied, failed, results[]}`.
 

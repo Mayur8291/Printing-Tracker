@@ -14,6 +14,42 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Staging only until a production release. No hard delete (Retired later). Tag allocated in the client with unique retry, not a gapless FY sequence.
 
+## 2026-09-02 — Inventory Transfer is a facility-to-facility move
+
+**Context:** Users need to move stock Makali ↔ Guthalli. The Adjust dialog had one warehouse and Transfer did not touch facility on-hand.
+
+**Options:** (1) Two client calls to `adjust_sku_facility_stock`. (2) One DB function that deducts and adds under lock.
+
+**Decision:** Option 2. `transfer_sku_facility_stock`. UI shows From and To.
+
+**Why:** Two client calls can succeed on one side and fail on the other. Total SKU stock must stay the same.
+
+**Tradeoffs:** Transfer cannot change overall qty (use IN/OUT/ADJUST for that). Reserved qty at source cannot be transferred.
+
+## 2026-09-02 — Inventory list follows facility availability, not sku.stock_qty
+
+**Context:** Adjust updated the DB; staging UI looked unchanged.
+
+**Options:** (1) Paint `stock_qty` again. (2) Keep availability as truth and reload it after every refresh/adjust.
+
+**Decision:** Option 2. Await `loadAvailability()` inside `refresh()`. Adjust writes the warehouse the user picked.
+
+**Why:** Reserved qty only lives on `inventory_facility_stock`. Showing `stock_qty` would lie about sellable stock.
+
+**Tradeoffs:** Extra availability fetch on silent refresh. Correct qty beats a cheap stale paint.
+
+## 2026-09-02 — Step 5 Uniware mirror is a separate ledger
+
+**Context:** Roadmap Step 5. Risk of double-counting ecom stock if the snapshot is summed into `inv_balance` or Inventory.
+
+**Options:** (1) Pull Uniware qty into `inv_balance`. (2) Separate `uni_*` mirror + transfer document; never sum.
+
+**Decision:** Option 2. Ecom orders stay on `uni_sale_order`, not mixed into `so_order`. Cross-boundary only via `uni_transfer` + Uniware adjust API. Contract in `docs/UNIWARE_BOUNDARY.md`.
+
+**Why:** Law 5 — one owner per location. Uniware owns the ecom facility.
+
+**Tradeoffs:** Two order lists (B2B `so_order` vs ecom mirror). WBR ecom rows wait until reporting reads the mirror. Sync is empty until edge secrets are set.
+
 ## 2026-09-02 — Support table rows stay readable in Dark Mode
 
 **Context:** Support desk rows use pale priority backgrounds. Dark Mode panel text is light. Values disappear.
@@ -145,6 +181,46 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 **Why:** Same form, clearer place, room for more tabs.
 
 **Tradeoffs:** Only one tab for now.
+
+## 2026-09-02 — Step 4 billing design choices
+
+- **Context:** roadmap Step 4 — invoices generated not typed; ageing as a view; collections with owners. Same DB-first money laws as AP in Step 2.
+- **One invoice per dispatch:** `unique (dispatch_id)` — partial dispatch already produced a dispatch document, so each dispatch invoices what actually left the warehouse. Alternative (one invoice per order) rejected: mixed GST dates and e-way ties to the consignment.
+- **GSTIN-scoped sequences:** `ops_next_gstin_doc_no` — the law is gapless per GSTIN per FY, not per entity. Receipts stay entity-scoped (`RCPT/`) because they are not GST documents.
+- **Soft credit check only:** `ar_credit_check` warns on confirm; hard block waits for department roles (roadmap: "hard block by role"). Blocking CEO/admin today would freeze real orders.
+- **CGST/SGST paisa split:** tax rounded once, then CGST = round(tax/2), SGST = tax − CGST so halves always sum to the tax.
+- **Unallocated receipts are advances:** allocation is optional; leftover receipt amount reduces customer exposure in the ledger but does not attach to an invoice until a later receipt/allocation (v1 does not support allocating an existing advance — next receipt can cover the invoice).
+- **Deferred (need picks, not more schema guesswork):** GSP for IRN/QR and e-way; Tally XML daily batch + typed recon screen (the ₹27.93L gap); distributor incentive engine (`dist_incentive_scheme` as data); `bill_quote`/proforma numbering. Existing Billing / quotation Word flows stay until those land.
+- **UI admin-only** (`ops_ar`) during build-out; existing Workspace Billing tab not touched.
+
+## 2026-09-02 — Step 3 sales orders design choices
+
+- **Context:** roadmap Step 3 — orders that reserve stock, drive dispatch, job work, SLA. Same DB-first discipline as Steps 1–2.
+- **Partial allocation on confirm:** `so_confirm` reserves whatever is available instead of failing on shortfall — production fills the rest and `so_allocate` re-runs (top-up, idempotent). The hard gates sit later: ready requires full reservation, dispatch caps at reserved. Alternative (all-or-nothing confirm) rejected: real orders confirm before stock exists.
+- **Reservation consumption splits rows:** dispatch consumes reservations FIFO; a partially used row is shrunk and a consumed row inserted for the used grain, so the reservation trail stays complete for audit instead of silently mutating quantities.
+- **Dispatches append-only, no direct write policies:** like payments in Step 2 — `so_post_dispatch` is the only writer; corrections are `return_in` movements + note. LR/e-way fields live on the document for Step 4 invoicing.
+- **Job-work loss = worker-location balance:** receive burns declared consumption and books declared outputs; whatever input remains at the worker location is the visible pending/loss (no separate loss ledger to maintain, the stock ledger already is one). Issued jobs cannot cancel — stock must come back through movements.
+- **SLA measured from stage timestamps** (`confirmed_at` → `production_started_at` → `ready_at` → `dispatched_at`) against `sla_policy` targets in business hours (Mon–Sat 09:30–18:30 IST) — never typed dates. Escalation/notification deferred; the view carries `breached` for a later job.
+- **Counter sales are a channel, not a module:** `channel='counter'` on `so_order`, per roadmap ("the walk-in register becomes a quick-order screen writing to the same so_order").
+- **Enquiry hand-off deferred:** the roadmap's "won enquiry creates a draft so_order" needs the live Support module's enquiry schema; wiring it now risks the running module. Revisit as a small follow-up (create draft `so_order` + convert contact to `crm_party` from an enquiry action).
+- **UI stays admin-only** (`ops_sales` in `DASHBOARD_ADMIN_ONLY_TAB_IDS`) during the build-out, same as Steps 0–2; existing SALES_MASTER/Job Sheet workflows untouched until cutover.
+
+## 2026-09-02 — Step 2 procurement design choices
+
+**Context:** Third roadmap migration (`20260902120000_step2_procurement.sql`), staging only. User decisions: QC gate on by default, approval = admin access, tolerances editable.
+
+**Decisions:**
+
+1. **Status flips only through functions, enforced in the DB.** Guard triggers block any status change unless a transaction-local flag (`ops.allow_status_change`) is set — and only the SECURITY DEFINER functions set it. Admin RLS write on the document tables therefore covers *drafting only*; nobody can flip a PO to approved with a direct update.
+2. **Numbers assigned at approval/posting, not creation.** Drafts never burn a gapless sequence number; `ops_next_doc_no` auto-provisions the `core_sequence` row (prefix `PO/<FY>/`, `GRN/<FY>/`) so no manual sequence setup is needed.
+3. **`sent`/`open` PO statuses deferred.** The roadmap machine includes them, but they only mean something once PO PDF/email exists. v1: draft → approved → partially_received → fulfilled → closed (+short_closed/cancelled). Amendments post-approval = short-close + fresh PO (no `po_version` machinery yet).
+4. **Ledger gained `to_state` instead of a QC-location hack.** QC pass/fail is a state change at the same location; faking it with virtual locations would have polluted location masters. Same-location movements are only legal when the state changes.
+5. **Double billing is structurally impossible**: one bill line per GRN line (unique index), one vendor invoice number per vendor (unique index) — not just validated in code.
+6. **Billed > received is a hard stop; rate variance is an override.** Quantity fraud is never acceptable; rate differences happen (freight, revisions) and are allowed with a recorded reason (`match_status='override'`).
+7. **MSME due-date cap editable** (`msme_due_cap_days`, default 45) applied to micro/small vendors at bill approval, flagged `msme_capped`.
+8. **Payments have no RLS write path at all** — only `ap_record_payment` writes them, and block triggers make them append-only. Corrections are counter entries.
+9. **Fulfilment counts only positive pending** (`greatest(pending, 0)`) so over-receipt on one line cannot mask a short line — found during the smoke test design.
+10. **Existing Purchase Order voucher tab untouched**; the new module lives under `ops_procurement` until cutover.
 
 ## 2026-09-01 — Step 1 stock ledger design choices
 
