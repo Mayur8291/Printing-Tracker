@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-03 — Production NF inbound on; outbound webhook off
+
+**Context:** NotFunny validated staging webhooks. User asked to ship production and hand them production API keys. NF earlier said they will send separate production webhook credentials. Scott app login stays unchanged.
+
+**Options:** (1) Copy staging `SCOTT_WEBHOOK_*` onto production so live events hit the same NF function. (2) Deploy API + schema only; leave production outbound webhooks unset. (3) Wait for NF prod URL before any production ship.
+
+**Decision:** Option 2. Production `DASHBOARD_API_KEY` + `dashboard_api_keys` row `NotFunny`. No `SCOTT_WEBHOOK_*` on `levwrmvqdntngeasrtnb`. Scott `SCOTT_AUTH_*` not copied.
+
+**Why:** Live printing orders (~677) must not POST to the NF staging receiver. HMAC contract stays the same when they send a production URL. Scott credentials stay where they are.
+
+**Tradeoffs:** Production stock/order events queue in `dashboard_webhook_outbox` until webhook secrets are set. Scott API tabs on the live site need `SCOTT_AUTH_*` on production before those edge calls work.
+
 ## 2026-09-03 — Asset Management register is `hr_assets`
 
 **Context:** Save asset only prepended to in-memory `rawAssets`. Leaving the tab unmounted the panel. Assets looked empty.
