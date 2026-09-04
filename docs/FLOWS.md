@@ -444,11 +444,21 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 
 WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/teamChatService.js`. UI: `TeamChatPanel.jsx` + `src/components/chat/*`.
 
+### Inbox tabs (Chats / Groups / Channels)
+
+1. **Trigger:** User opens **Chat**. Default tab is **Chats**.
+2. **Entry:** Bottom of the left inbox is a shadcn `TabsList` with three equal names: **Chats**, **Groups**, **Channels**. A Badge shows unopened text-message count beside a tab when &gt; 0. List heading stays at the top of that tab.
+3. **Chats:** **New chat** under the tabs. Same conversation rows as before (avatar, name, time, preview, unread). List is `kind=direct` only. Thread on this tab is DMs only.
+4. **Groups:** **New group** in that action slot. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
+5. **Channels:** Same scroll area. Empty for now.
+6. **Switch tabs:** Only the name list and action swap. Inbox width and thread pane stay.
+7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). On small screens, opening a thread still hides the list until Back.
+
 ### Open chat / General group
 
 1. **Trigger:** User opens **Chat** tab.
 2. **Services:** `fetchMyConversations()` — memberships + last message preview.
-3. **Default:** **General** group (legacy team wall messages migrated here).
+3. **Default:** First direct chat if one exists. **General** lives on the **Groups** tab only.
 4. **Exit:** Select conversation → load messages via `fetchConversationMessages()`.
 
 ### Direct message (any user → any user)
@@ -461,9 +471,30 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 ### Create group
 
-1. **Trigger:** **New group** → name + member checkboxes.
+1. **Trigger:** Groups tab → **New group** → name + member checkboxes.
 2. **Services:** RPC `create_group_conversation(title, member_ids[])` — creator is admin member.
-3. **Exit:** Group appears in inbox; all members can read/write.
+3. **Exit:** Group appears on the **Groups** tab only; all members can read/write. Panel switches to Groups.
+
+### Chat presence (Online / Away / Offline)
+
+1. **Trigger:** Signed-in user has the dashboard open. `usePublishDashboardPresence` in `App.jsx` heartbeats every 25s.
+2. **Online:** Browser tab is visible and focused. RPC `set_my_dashboard_presence('online')`. List avatar = green dot. Open DM subtitle = **Online**.
+3. **Leave dashboard tab:** Stay **Online** for 5 minutes (`last_seen_at` does not move). Then **Away** (yellow + Away). Switching Inventory/Chat inside the dashboard stays Online.
+4. **Offline:** No presence row (never opened the dashboard), or `last_seen_at` older than 2 hours. List = red dot. Open DM = **Offline**.
+5. **Same source:** List and thread both read `presenceFromRow` so they cannot disagree.
+6. **Realtime:** `hr_user_presence` postgres changes refresh the map. A 15s tick flips Online → Away at 5 minutes.
+
+### Select message actions (Chats and Groups)
+
+1. **Trigger:** Click a live message bubble in the thread.
+2. **One selected:** Header shows icon-only Reply, React, Pin, Forward, Delete, Clear.
+3. **Several selected:** Header shows icon-only Forward, Delete, Clear.
+4. **Reply:** Composer quotes that message; send stores `reply_to_message_id`.
+5. **React:** Emoji picker; RPC `set_team_chat_message_reaction` (one emoji per user; same emoji again removes it).
+6. **Pin:** RPC `toggle_team_chat_message_pin` for conversation members.
+7. **Delete:** RPC `soft_delete_team_chat_messages` — own messages only (`deleted_at`). Others stay selected until cleared.
+8. **Forward:** Dialog pick another conversation; copies body/attachment/GIF with `forwarded_from_message_id`.
+9. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.
 
 ### Send GIF / attachment
 
@@ -473,9 +504,9 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 ### Realtime
 
-`TeamChatPanel` subscribes to `team_chat_messages` and `team_chat_conversations` postgres changes; refreshes inbox + active thread.
+`TeamChatPanel` subscribes to `team_chat_messages`, `team_chat_conversations`, and `team_chat_message_reactions` postgres changes; refreshes inbox + active thread.
 
-**Unread:** Opening a thread calls `mark_conversation_read` — badge clears immediately. Unread rows highlighted (primary border + bold). Sidebar **Chat** tab shows total unread count.
+**Unread:** Opening a thread calls `mark_conversation_read` — row and inbox-tab badges clear for that conversation. Count is unopened text messages only. Sidebar **Chat** tab sums the same counts.
 
 **Sound:** New message for current user plays the same notification tone as tasks/orders (custom MP3 if set). No tone when user already has that conversation open on the Chat tab.
 

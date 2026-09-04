@@ -55,10 +55,12 @@ Common tables (non-exhaustive — see [DATABASE.md](./DATABASE.md)):
 | `profiles` | GET, PATCH (own) | User profile |
 | `orders` | GET, POST, PATCH | RLS by role/permissions |
 | `profile_order_permissions` | GET, UPSERT | Admin |
-| `team_chat_messages` | GET, INSERT | Members only |
+| `team_chat_messages` | GET, INSERT | Members only. Soft-delete/pin via RPC. |
+| `team_chat_message_reactions` | GET, INSERT, PATCH, DELETE | Own reaction; member of the conversation |
 | `user_goal_tasks` | GET, INSERT, PATCH | Goals module |
 | Inventory tables | GET, POST, PATCH | See inventory migrations |
 | `hr_assets` | GET, POST, PATCH | Asset Management register. Insert `created_by = auth.uid()`. Staging only until release. |
+| `hr_user_presence` | GET | Team can read. Write via RPC only. |
 
 Full schema: Supabase Dashboard → Table Editor, or `supabase/schema.sql`.
 
@@ -70,6 +72,10 @@ Full schema: Supabase Dashboard → Table Editor, or `supabase/schema.sql`.
 | `create_group_conversation` | Chat group |
 | `mark_conversation_read` | Chat unread |
 | `list_team_chat_directory` | Mention picker |
+| `soft_delete_team_chat_messages` | Soft-delete own selected messages |
+| `toggle_team_chat_message_pin` | Pin / unpin one message |
+| `set_team_chat_message_reaction` | Toggle or replace own emoji |
+| `set_my_dashboard_presence` | Heartbeat Online/Away for chat dots |
 | `get_goals_for_task_assignment` | Goal dropdown for assigner |
 | `purge_expired_team_chat_attachments` | Scheduled cleanup |
 

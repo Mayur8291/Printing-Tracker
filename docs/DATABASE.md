@@ -574,6 +574,21 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 
 **PK:** `(conversation_id, user_id)`.
 
+### `hr_user_presence`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `user_id` | uuid | PK, FK → `profiles.id` |
+| `client_state` | text | `online` or `away` from this browser |
+| `last_seen_at` | timestamptz | Last heartbeat |
+| `updated_at` | timestamptz | Row touch |
+
+Display status is derived: no row or seen ≥ 2 hours → Offline. Seen &lt; 5 minutes → Online. Else Away. `last_seen_at` only updates on `online` heartbeats.
+
+**RLS:** Authenticated SELECT. Writes only via `set_my_dashboard_presence`.
+
+**Migration:** `20260904112200_hr_user_presence.sql` (staging). Rollback: drop function + table.
+
 ### `team_chat_messages` (extended)
 
 | Column | Type | Purpose |
@@ -582,8 +597,25 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 | `gif_url` | text | External GIF URL (Giphy search or preset) |
 | `attachment_*` | text/bigint | File in `team-chat-files` bucket |
 | `mentioned_user_ids` / `mentioned_order_ids` | uuid[] / bigint[] | @user and #order tokens |
+| `reply_to_message_id` | bigint | Optional FK to the quoted message |
+| `forwarded_from_message_id` | bigint | Source message when forwarded |
+| `deleted_at` / `deleted_by` | timestamptz / uuid | Soft delete (author only) |
+| `pinned_at` / `pinned_by` | timestamptz / uuid | Pin toggle for members |
 
-**RLS:** SELECT/INSERT only when `jwt_user_in_conversation(conversation_id)`.
+**RLS:** SELECT/INSERT only when `jwt_user_in_conversation(conversation_id)`. Delete/pin/react go through RPCs.
+
+### `team_chat_message_reactions`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `message_id` | bigint | FK → `team_chat_messages.id` |
+| `user_id` | uuid | Who reacted |
+| `emoji` | text | One emoji per user per message |
+| `created_at` | timestamptz | When set |
+
+**PK:** `(message_id, user_id)`.
+
+**Migration:** `20260904110500_team_chat_message_actions.sql` — staging first. Soft-delete, not hard delete. Rollback: drop RPCs/table/columns.
 
 ### RPCs
 
@@ -594,6 +626,11 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 | `mark_conversation_read(p_conversation_id)` | Sets `last_read_at` for current user |
 | `jwt_user_in_conversation(conversation_id)` | RLS helper |
 | `list_team_chat_directory()` | Mention picker profiles |
+| `soft_delete_team_chat_messages(p_ids)` | Soft-delete own messages |
+| `toggle_team_chat_message_pin(p_id)` | Pin / unpin |
+| `set_team_chat_message_reaction(p_id, p_emoji)` | Set or clear own reaction |
+| `jwt_user_can_react_to_message(p_id)` | Reaction RLS helper |
+| `set_my_dashboard_presence(p_client_state)` | Upsert own `hr_user_presence` |
 
 ### Migrations
 
@@ -602,6 +639,9 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 | `20260526120000_add_team_chat.sql` | Initial messages table |
 | `20260706130000_team_chat_directory_avatars.sql` | Directory RPC + avatars |
 | `20260709180000_team_chat_conversations.sql` | Conversations, members, GIF, member RLS, General migration |
+| `20260904110500_team_chat_message_actions.sql` | Reply, reactions, soft-delete, forward, pin (staging) |
+| `20260904112200_hr_user_presence.sql` | Dashboard Online/Away heartbeat (staging) |
+| `20260904113100_hr_presence_online_grace.sql` | Away write does not bump `last_seen_at` (5 min Online grace) |
 
 ## `inward_grn_entries`
 

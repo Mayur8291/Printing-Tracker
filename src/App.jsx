@@ -20,6 +20,7 @@ import ProductionTrackerPanel, {
   TRACKER_LIST_COMPLETE
 } from "./ProductionTrackerPanel";
 import TeamChatPanel from "./TeamChatPanel";
+import { usePublishDashboardPresence } from "./dashboardPresence";
 import ContactBookPanel from "./ContactBookPanel";
 import InternalSupportPlatformPanel from "./InternalSupportPlatformPanel";
 import GoalTrackerPanel from "./GoalTrackerPanel";
@@ -706,6 +707,7 @@ function App() {
   }
 
   const [session, setSession] = useState(null);
+  usePublishDashboardPresence(session?.user?.id);
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);

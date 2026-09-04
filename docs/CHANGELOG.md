@@ -1,5 +1,75 @@
 # Changelog
 
+## 2026-09-04 — Unopened text count on Chats / Groups / Channels tabs
+
+- **Issue:** Bottom inbox tabs had no unread number.
+- **Fix:** Count unopened text-only messages (not GIF/file-only, not your own, not deleted, after `last_read_at`). Badge beside Chats and Groups. Channels stays 0. Hide badge at 0.
+- **Files:** `teamChatService.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-04 — Stay Online 5 minutes after leaving the dashboard tab
+
+- **Issue:** Other browser tab flipped Away immediately.
+- **Fix:** `last_seen_at` only moves while the dashboard is focused. List + open DM stay Online for 5 minutes, then Away. Offline still after 2 hours from last dashboard focus.
+- **Files:** `dashboardPresence.js`, `supabase/migrations/20260904113100_hr_presence_online_grace.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md.
+
+## 2026-09-04 — Chat presence Online / Away / Offline
+
+- **Issue:** Chat list and open DM had no live status. Green on the list but Offline under the name would be wrong.
+- **Fix:** Dashboard heartbeat (`hr_user_presence`). Visible focused dashboard = Online (green + “Online”). Other browser tab or leave the app = Away (yellow + “Away”). No row, or Away 2 hours = Offline (red + “Offline”). Same status on the list dot and under the name.
+- **Files:** `dashboardPresence.js`, `person-avatar.jsx`, `TeamChatPanel.jsx`, `App.jsx`, `index.css`, `tailwind.config.js`, `supabase/migrations/20260904112200_hr_user_presence.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat message select actions (icons only)
+
+- **Issue:** Chats/Groups messages had no reply, react, delete, forward, or pin.
+- **Fix:** Click a message to select it. One selected → icon Reply, React, Pin, Forward, Delete. Several selected → icon Forward and Delete. Soft-delete own messages. Staging migration `20260904110500_team_chat_message_actions.sql`.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`, `ChatMessageActionBar.jsx`, `ChatForwardDialog.jsx`, `supabase/migrations/20260904110500_team_chat_message_actions.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, OVERVIEW.md.
+
+## 2026-09-04 — Direct chats on Chats tab; groups on Groups tab
+
+- **Issue:** Created groups still showed in the Chats list with DMs.
+- **Fix:** Chats lists `kind=direct` only. Groups lists `kind=group` only (including General). New chat stays on Chats. New group opens Groups. Thread on each tab only shows that kind.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-09-04 — Chat inbox tab panel stays at the bottom
+
+- **Issue:** Chats / Groups / Channels bar sat at the top.
+- **Fix:** Same three-tab panel is last in the left inbox (`border-t`). Chat rows unchanged. Headings stay at the top of each list.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Restore chat row format; tabs stay at top
+
+- **Issue:** Inbox rows became name-only. User only wanted tab names moved to the top.
+- **Fix:** Put back avatar, member/group name, time, preview, unread badge. Tabs stay at the top. Groups still uses the same row for group chats. Channels still empty.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat inbox tabs at top; name lists fill the pane
+
+- **Issue:** Chats / Groups / Channels sat at the bottom. Hidden tab panes still used `flex`, so the heading floated in a hole. Lists used fat chat rows (avatar, time, preview).
+- **Fix:** Tab names only at the top. Inactive panes no longer steal height. Under the tabs: a full-height scroll of names only. DMs on Chats, groups on Groups, Channels empty. **New chat** / **New group** stay as actions, no second title.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Groups and Channels keep Chats layout; New group on Groups
+
+- **Issue:** Groups and Channels swapped to a full-width Empty pane. New group sat on Chats.
+- **Fix:** All three tabs keep the left list + right thread chrome. **New group** sits on Groups in the same header slot as **New chat**. Groups/Channels lists stay empty until a later spec.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat inbox bottom tabs (Chats / Groups / Channels)
+
+- **Issue:** Chat only had one list. User wants a bottom bar under that list: Chats, Groups, Channels in one row.
+- **Fix:** shadcn Tabs sit in the left inbox. TabsList is at the bottom, three equal triggers. **Chats** still shows the conversation list + thread. **Groups** and **Channels** show Empty “Coming soon.” Thread hides when those tabs are open.
+- **Files:** `src/TeamChatPanel.jsx`, `src/components/ui/empty.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-03 — Purchase Order Status column uses icon + name
 
 - **Issue:** All PO Orders Status looked like a colored badge, not the job-sheet status Select.

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Paperclip, Send, Smile, UsersRound, X } from "lucide-react";
+import { ArrowLeft, Forward, Paperclip, Pin, Send, Smile, UsersRound, X } from "lucide-react";
 import { profileAvatarPublicUrl } from "@/avatarUtils";
 import { supabase } from "./supabaseClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -10,10 +10,13 @@ import { PersonAvatar } from "@/components/ui/person-avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { ChatMessageBody } from "@/components/chat/ChatMessageBody";
 import { ChatMessageAttachment, ChatMessageGif } from "@/components/chat/ChatMessageMedia";
+import { ChatForwardDialog } from "@/components/chat/ChatForwardDialog";
+import { ChatMessageActionBar } from "@/components/chat/ChatMessageActionBar";
 import { CreateGroupDialog } from "@/components/chat/CreateGroupDialog";
 import { GifPicker } from "@/components/chat/GifPicker";
 import { NewDirectChatDialog } from "@/components/chat/NewDirectChatDialog";
@@ -25,7 +28,12 @@ import {
   getOrCreateDirectConversation,
   markConversationRead,
   conversationsWithRead,
+  forwardChatMessages,
   sendChatMessage,
+  setChatMessageReaction,
+  softDeleteChatMessages,
+  toggleChatMessagePin,
+  unreadTextCountByInboxTab,
   uploadChatAttachment
 } from "./teamChatService";
 import {
@@ -43,12 +51,32 @@ import {
   validateChatAttachmentFile
 } from "./teamChatUtils";
 import { setTeamChatViewState, sumConversationUnread } from "./teamChatNotificationUtils";
+import { presenceLabel, usePresenceByUserId } from "./dashboardPresence";
 
-function insertAtCursor(text, start, end, insert) {
-  return `${text.slice(0, start)}${insert}${text.slice(end)}`;
+const CHAT_INBOX_TABS = [
+  { id: "chats", label: "Chats" },
+  { id: "groups", label: "Groups" },
+  { id: "channels", label: "Channels" }
+];
+
+const INBOX_PANE_CLASS =
+  "mt-0 min-h-0 flex-1 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col";
+
+function InboxPane({ title, action, children }) {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-3">
+        <h2 className="mr-auto text-base font-semibold">{title}</h2>
+        {action}
+      </div>
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="flex min-h-full flex-col">{children}</div>
+      </ScrollArea>
+    </div>
+  );
 }
 
-function ConversationListItem({ conversation, sessionUserId, teamProfiles, active, onSelect }) {
+function ConversationListItem({ conversation, sessionUserId, teamProfiles, active, onSelect, presence }) {
   const title = conversationDisplayTitle(conversation, sessionUserId, teamProfiles);
   const preview = conversationPreviewText(conversation.last_message);
   const isGroup = conversation.kind === "group";
@@ -83,6 +111,7 @@ function ConversationListItem({ conversation, sessionUserId, teamProfiles, activ
           imageUrl={avatarUrl}
           size="md"
           className="shrink-0"
+          presence={presence ?? "offline"}
         />
       )}
       <span className="min-w-0 flex-1">
@@ -122,6 +151,10 @@ function ConversationListItem({ conversation, sessionUserId, teamProfiles, activ
   );
 }
 
+function insertAtCursor(text, start, end, insert) {
+  return `${text.slice(0, start)}${insert}${text.slice(end)}`;
+}
+
 export default function TeamChatPanel({
   sessionUserId,
   currentUserProfile,
@@ -144,6 +177,12 @@ export default function TeamChatPanel({
   const [error, setError] = useState("");
   const [mobileShowThread, setMobileShowThread] = useState(false);
   const [composeDirectPeerId, setComposeDirectPeerId] = useState(null);
+  const [inboxTab, setInboxTab] = useState("chats");
+  const [selectedMessageIds, setSelectedMessageIds] = useState(() => new Set());
+  const [replyTo, setReplyTo] = useState(null);
+  const [forwardOpen, setForwardOpen] = useState(false);
+  const [reactOpen, setReactOpen] = useState(false);
+  const presenceByUserId = usePresenceByUserId();
 
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
@@ -154,17 +193,59 @@ export default function TeamChatPanel({
     [conversations, activeConversationId]
   );
 
+  const directConversations = useMemo(
+    () => conversations.filter((c) => c.kind === "direct"),
+    [conversations]
+  );
+
+  const groupConversations = useMemo(
+    () => conversations.filter((c) => c.kind === "group"),
+    [conversations]
+  );
+
+  const inboxTabUnread = useMemo(
+    () => unreadTextCountByInboxTab(conversations),
+    [conversations]
+  );
+
   const composeDirectPeer = useMemo(
     () => (composeDirectPeerId ? teamProfiles.find((p) => p.id === composeDirectPeerId) ?? null : null),
     [teamProfiles, composeDirectPeerId]
   );
+
+  const threadPeerId = useMemo(() => {
+    if (composeDirectPeerId) return composeDirectPeerId;
+    if (activeConversation?.kind !== "direct") return null;
+    return (activeConversation.member_ids ?? []).find((id) => id !== sessionUserId) ?? null;
+  }, [composeDirectPeerId, activeConversation, sessionUserId]);
+
+  const threadPresence = threadPeerId ? (presenceByUserId[threadPeerId] ?? "offline") : null;
 
   const threadTitle = useMemo(() => {
     if (composeDirectPeer) return profileChatLabel(composeDirectPeer);
     return conversationDisplayTitle(activeConversation, sessionUserId, teamProfiles);
   }, [composeDirectPeer, activeConversation, sessionUserId, teamProfiles]);
 
-  const showThread = Boolean(activeConversation || composeDirectPeerId);
+  const showThread =
+    inboxTab === "chats"
+      ? Boolean(composeDirectPeerId || activeConversation?.kind === "direct")
+      : inboxTab === "groups"
+        ? Boolean(activeConversation?.kind === "group") && !composeDirectPeerId
+        : false;
+
+  const selectedMessages = useMemo(
+    () => messages.filter((msg) => selectedMessageIds.has(msg.id) && !msg.deleted_at),
+    [messages, selectedMessageIds]
+  );
+
+  const selectedSingle = selectedMessages.length === 1 ? selectedMessages[0] : null;
+  const canDeleteSelected = selectedMessages.some((msg) => msg.author_id === sessionUserId);
+
+  const messageById = useMemo(() => {
+    const map = new Map();
+    for (const msg of messages) map.set(msg.id, msg);
+    return map;
+  }, [messages]);
 
   const activeMention = useMemo(() => getActiveMentionQuery(draft, cursor), [draft, cursor]);
 
@@ -248,11 +329,17 @@ export default function TeamChatPanel({
 
   useEffect(() => {
     if (composeDirectPeerId) return;
-    if (!activeConversationId && conversations.length > 0) {
-      const general = conversations.find((c) => c.kind === "group" && c.title === "General");
-      setActiveConversationId(general?.id ?? conversations[0].id);
-    }
+    if (activeConversationId) return;
+    const firstDirect = conversations.find((c) => c.kind === "direct");
+    if (firstDirect) setActiveConversationId(firstDirect.id);
   }, [conversations, activeConversationId, composeDirectPeerId]);
+
+  useEffect(() => {
+    setSelectedMessageIds(new Set());
+    setReplyTo(null);
+    setReactOpen(false);
+    setForwardOpen(false);
+  }, [activeConversationId, inboxTab]);
 
   useEffect(() => {
     if (composeDirectPeerId) {
@@ -303,6 +390,13 @@ export default function TeamChatPanel({
       )
       .on(
         "postgres_changes",
+        { event: "*", schema: "public", table: "team_chat_message_reactions" },
+        async () => {
+          if (activeConversationId) await loadMessages(activeConversationId);
+        }
+      )
+      .on(
+        "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
@@ -323,6 +417,9 @@ export default function TeamChatPanel({
   }, [messages.length, scrollToBottom]);
 
   function selectConversation(id) {
+    const conv = conversations.find((c) => c.id === id);
+    if (conv?.kind === "group") setInboxTab("groups");
+    else if (conv?.kind === "direct") setInboxTab("chats");
     setComposeDirectPeerId(null);
     setConversations((prev) => {
       const next = conversationsWithRead(prev, id);
@@ -337,6 +434,7 @@ export default function TeamChatPanel({
   }
 
   function startDirectChat(otherUserId) {
+    setInboxTab("chats");
     setComposeDirectPeerId(otherUserId);
     setActiveConversationId(null);
     setMessages([]);
@@ -355,8 +453,86 @@ export default function TeamChatPanel({
   async function handleCreateGroup(title, memberIds) {
     const convId = await createGroupConversation(title, memberIds);
     await loadConversations();
+    setInboxTab("groups");
     selectConversation(convId);
     return convId;
+  }
+
+  function clearMessageSelection() {
+    setSelectedMessageIds(new Set());
+    setReactOpen(false);
+  }
+
+  function toggleMessageSelected(message) {
+    if (!message?.id || message.deleted_at) return;
+    setSelectedMessageIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(message.id)) next.delete(message.id);
+      else next.add(message.id);
+      return next;
+    });
+  }
+
+  function handleReplySelected() {
+    if (!selectedSingle) return;
+    setReplyTo(selectedSingle);
+    clearMessageSelection();
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  }
+
+  async function handleReactToMessage(messageId, emoji) {
+    try {
+      await setChatMessageReaction(messageId, emoji);
+      setReactOpen(false);
+      if (activeConversationId) await loadMessages(activeConversationId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function handleDeleteSelected() {
+    const ownIds = selectedMessages
+      .filter((msg) => msg.author_id === sessionUserId)
+      .map((msg) => msg.id);
+    if (!ownIds.length) return;
+    try {
+      await softDeleteChatMessages(ownIds);
+      clearMessageSelection();
+      if (replyTo && ownIds.includes(replyTo.id)) setReplyTo(null);
+      if (activeConversationId) {
+        await loadMessages(activeConversationId);
+        await loadConversations();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function handlePinSelected() {
+    if (!selectedSingle) return;
+    try {
+      await toggleChatMessagePin(selectedSingle.id);
+      if (activeConversationId) await loadMessages(activeConversationId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function handleForwardTo(conversationId) {
+    try {
+      await forwardChatMessages({
+        conversationId,
+        sessionUserId,
+        currentUserProfile,
+        messages: selectedMessages
+      });
+      setForwardOpen(false);
+      clearMessageSelection();
+      await loadConversations();
+      if (conversationId === activeConversationId) await loadMessages(conversationId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   function syncCursorFromTextarea() {
@@ -453,7 +629,8 @@ export default function TeamChatPanel({
         mentionedUserIds,
         mentionedOrderIds,
         attachmentFields,
-        gifUrl: pendingGifUrl || null
+        gifUrl: pendingGifUrl || null,
+        replyToMessageId: replyTo?.id ?? null
       });
 
       setDraft("");
@@ -461,6 +638,8 @@ export default function TeamChatPanel({
       setPendingFile(null);
       setPendingGifUrl("");
       setEmojiOpen(false);
+      setReplyTo(null);
+      setSelectedMessageIds(new Set());
       await loadConversations();
       await loadMessages(conversationId);
     } catch (err) {
@@ -510,47 +689,106 @@ export default function TeamChatPanel({
           {/* Inbox sidebar */}
           <aside
             className={cn(
-              "flex w-full shrink-0 flex-col border-r md:w-80 lg:w-96",
+              "flex min-h-0 w-full shrink-0 flex-col border-r md:w-80 lg:w-96",
               mobileShowThread && "hidden md:flex"
             )}
           >
-            <div className="flex flex-wrap items-center gap-2 border-b px-3 py-3">
-              <h2 className="mr-auto text-base font-semibold">Chats</h2>
-              <NewDirectChatDialog
-                sessionUserId={sessionUserId}
-                teamProfiles={teamProfiles}
-                onStartChat={startDirectChat}
-              />
-              <CreateGroupDialog
-                sessionUserId={sessionUserId}
-                teamProfiles={teamProfiles}
-                onCreate={handleCreateGroup}
-              />
-            </div>
-
-            <ScrollArea className="min-h-0 flex-1">
-              {loadingConversations ? (
-                <p className="p-4 text-center text-sm text-muted-foreground">Loading chats…</p>
-              ) : conversations.length === 0 ? (
-                <p className="p-4 text-center text-sm text-muted-foreground">
-                  No chats yet. Start a direct message or create a group.
-                </p>
-              ) : (
-                conversations.map((conv) => (
-                  <ConversationListItem
-                    key={conv.id}
-                    conversation={conv}
-                    sessionUserId={sessionUserId}
-                    teamProfiles={teamProfiles}
-                    active={conv.id === activeConversationId}
-                    onSelect={selectConversation}
-                  />
-                ))
-              )}
-            </ScrollArea>
+            <Tabs
+              value={inboxTab}
+              onValueChange={setInboxTab}
+              className="flex min-h-0 flex-1 flex-col"
+            >
+              <TabsContent value="chats" className={INBOX_PANE_CLASS}>
+                <InboxPane
+                  title="Chats"
+                  action={
+                    <NewDirectChatDialog
+                      sessionUserId={sessionUserId}
+                      teamProfiles={teamProfiles}
+                      onStartChat={startDirectChat}
+                    />
+                  }
+                >
+                  {loadingConversations ? (
+                    <p className="p-4 text-center text-sm text-muted-foreground">Loading chats…</p>
+                  ) : directConversations.length === 0 ? (
+                    <p className="p-4 text-center text-sm text-muted-foreground">
+                      No chats yet. Start a direct message.
+                    </p>
+                  ) : (
+                    directConversations.map((conv) => {
+                      const peerId = (conv.member_ids ?? []).find((id) => id !== sessionUserId);
+                      return (
+                        <ConversationListItem
+                          key={conv.id}
+                          conversation={conv}
+                          sessionUserId={sessionUserId}
+                          teamProfiles={teamProfiles}
+                          active={conv.id === activeConversationId}
+                          onSelect={selectConversation}
+                          presence={peerId ? (presenceByUserId[peerId] ?? "offline") : "offline"}
+                        />
+                      );
+                    })
+                  )}
+                </InboxPane>
+              </TabsContent>
+              <TabsContent value="groups" className={INBOX_PANE_CLASS}>
+                <InboxPane
+                  title="Groups"
+                  action={
+                    <CreateGroupDialog
+                      sessionUserId={sessionUserId}
+                      teamProfiles={teamProfiles}
+                      onCreate={handleCreateGroup}
+                    />
+                  }
+                >
+                  {loadingConversations ? (
+                    <p className="p-4 text-center text-sm text-muted-foreground">Loading groups…</p>
+                  ) : groupConversations.length === 0 ? (
+                    <p className="p-4 text-center text-sm text-muted-foreground">No groups yet.</p>
+                  ) : (
+                    groupConversations.map((conv) => (
+                      <ConversationListItem
+                        key={conv.id}
+                        conversation={conv}
+                        sessionUserId={sessionUserId}
+                        teamProfiles={teamProfiles}
+                        active={conv.id === activeConversationId}
+                        onSelect={selectConversation}
+                      />
+                    ))
+                  )}
+                </InboxPane>
+              </TabsContent>
+              <TabsContent value="channels" className={INBOX_PANE_CLASS}>
+                <InboxPane title="Channels">
+                  <p className="p-4 text-center text-sm text-muted-foreground">No channels yet.</p>
+                </InboxPane>
+              </TabsContent>
+              <TabsList className="grid h-12 w-full shrink-0 grid-cols-3 rounded-none border-t bg-muted/40 p-1">
+                {CHAT_INBOX_TABS.map((tab) => {
+                  const count = inboxTabUnread[tab.id] ?? 0;
+                  return (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className="gap-1.5 text-xs sm:text-sm"
+                    >
+                      {tab.label}
+                      {count > 0 ? (
+                        <Badge className="h-5 min-w-5 justify-center rounded-full px-1.5 text-[10px]">
+                          {count > 99 ? "99+" : count}
+                        </Badge>
+                      ) : null}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </Tabs>
           </aside>
 
-          {/* Thread */}
           <section
             className={cn(
               "flex min-w-0 flex-1 flex-col",
@@ -573,14 +811,32 @@ export default function TeamChatPanel({
                     <ArrowLeft className="size-4" />
                   </Button>
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-semibold">{threadTitle}</h3>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {composeDirectPeerId
-                        ? "New direct message — send to start chat"
-                        : activeConversation?.kind === "group"
-                          ? `${activeConversation.member_ids?.length ?? 0} members`
-                          : "Direct message"}
-                    </p>
+                    {selectedMessages.length > 0 ? (
+                      <ChatMessageActionBar
+                        count={selectedMessages.length}
+                        canDelete={canDeleteSelected}
+                        pinned={Boolean(selectedSingle?.pinned_at)}
+                        reactOpen={reactOpen}
+                        onReactOpenChange={setReactOpen}
+                        onReply={handleReplySelected}
+                        onReact={(emoji) => void handleReactToMessage(selectedSingle?.id, emoji)}
+                        onDelete={() => void handleDeleteSelected()}
+                        onForward={() => setForwardOpen(true)}
+                        onPin={() => void handlePinSelected()}
+                        onClear={clearMessageSelection}
+                      />
+                    ) : (
+                      <>
+                        <h3 className="truncate font-semibold">{threadTitle}</h3>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {composeDirectPeerId
+                            ? presenceLabel(threadPresence ?? "offline")
+                            : activeConversation?.kind === "group"
+                              ? `${activeConversation.member_ids?.length ?? 0} members`
+                              : presenceLabel(threadPresence ?? "offline")}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </header>
 
@@ -602,6 +858,11 @@ export default function TeamChatPanel({
                         const avatarUrl = profileAvatarPublicUrl(author.avatar_path);
                         const hasContent =
                           (msg.body ?? "").trim() || msg.attachment_path || msg.gif_url;
+
+                        const replyParent = msg.reply_to_message_id
+                          ? messageById.get(msg.reply_to_message_id)
+                          : null;
+                        const selected = selectedMessageIds.has(msg.id);
 
                         return (
                           <article
@@ -627,32 +888,80 @@ export default function TeamChatPanel({
                                   <time dateTime={msg.created_at}>{formatChatTime(msg.created_at)}</time>
                                 </div>
                               ) : null}
-                              {hasContent ? (
-                                <div
+                              {hasContent || msg.deleted_at ? (
+                                <button
+                                  type="button"
+                                  disabled={Boolean(msg.deleted_at)}
+                                  onClick={() => toggleMessageSelected(msg)}
                                   className={cn(
-                                    "rounded-lg px-3 py-2 shadow-sm",
+                                    "w-full rounded-lg px-3 py-2 text-left shadow-sm",
                                     isOwn
                                       ? "bg-primary text-primary-foreground"
-                                      : "border bg-card text-card-foreground"
+                                      : "border bg-card text-card-foreground",
+                                    selected && "ring-2 ring-ring",
+                                    msg.deleted_at && "cursor-default opacity-70"
                                   )}
                                 >
-                                  {activeConversation?.kind === "direct" && !isOwn ? (
-                                    <time
-                                      className="mb-1 block text-[10px] opacity-70"
-                                      dateTime={msg.created_at}
+                                  {msg.deleted_at ? (
+                                    <p className="text-sm italic">Message deleted</p>
+                                  ) : (
+                                    <>
+                                      {msg.pinned_at ? (
+                                        <Pin className="mb-1 size-3 opacity-80" aria-hidden />
+                                      ) : null}
+                                      {msg.forwarded_from_message_id ? (
+                                        <Forward className="mb-1 size-3 opacity-80" aria-hidden />
+                                      ) : null}
+                                      {replyParent || msg.reply_to_message_id ? (
+                                        <p className="mb-1 truncate text-[11px] opacity-80">
+                                          {replyParent?.deleted_at
+                                            ? "Message deleted"
+                                            : conversationPreviewText(replyParent)}
+                                        </p>
+                                      ) : null}
+                                      {activeConversation?.kind === "direct" && !isOwn ? (
+                                        <time
+                                          className="mb-1 block text-[10px] opacity-70"
+                                          dateTime={msg.created_at}
+                                        >
+                                          {formatChatTime(msg.created_at)}
+                                        </time>
+                                      ) : null}
+                                      <ChatMessageBody
+                                        body={msg.body}
+                                        profiles={teamProfiles}
+                                        orders={orders}
+                                        onOpenOrder={onOpenOrder}
+                                        inverted={isOwn}
+                                      />
+                                      <ChatMessageGif gifUrl={msg.gif_url} />
+                                      <ChatMessageAttachment msg={msg} inverted={isOwn} />
+                                    </>
+                                  )}
+                                </button>
+                              ) : null}
+                              {!msg.deleted_at && msg.reactions?.length ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {msg.reactions.map((reaction) => (
+                                    <Button
+                                      key={`${msg.id}-${reaction.emoji}`}
+                                      type="button"
+                                      variant={
+                                        reaction.userIds.includes(sessionUserId)
+                                          ? "secondary"
+                                          : "outline"
+                                      }
+                                      size="sm"
+                                      className="h-6 px-2"
+                                      aria-label={reaction.emoji}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        void handleReactToMessage(msg.id, reaction.emoji);
+                                      }}
                                     >
-                                      {formatChatTime(msg.created_at)}
-                                    </time>
-                                  ) : null}
-                                  <ChatMessageBody
-                                    body={msg.body}
-                                    profiles={teamProfiles}
-                                    orders={orders}
-                                    onOpenOrder={onOpenOrder}
-                                    inverted={isOwn}
-                                  />
-                                  <ChatMessageGif gifUrl={msg.gif_url} />
-                                  <ChatMessageAttachment msg={msg} inverted={isOwn} />
+                                      {reaction.emoji}
+                                    </Button>
+                                  ))}
                                 </div>
                               ) : null}
                               {(msg.mentioned_user_ids?.length > 0 ||
@@ -677,7 +986,10 @@ export default function TeamChatPanel({
                                         variant="outline"
                                         size="sm"
                                         className="h-6 px-2 text-xs"
-                                        onClick={() => onOpenOrder?.(o)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onOpenOrder?.(o);
+                                        }}
                                       >
                                         #{orderChatToken(o)}
                                       </Button>
@@ -697,6 +1009,23 @@ export default function TeamChatPanel({
                 <Separator />
 
                 <form className="flex flex-col gap-3 p-3" onSubmit={handleSend}>
+                  {replyTo ? (
+                    <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
+                      <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+                        {replyTo.deleted_at ? "Message deleted" : conversationPreviewText(replyTo)}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 shrink-0"
+                        aria-label="Cancel reply"
+                        onClick={() => setReplyTo(null)}
+                      >
+                        <X />
+                      </Button>
+                    </div>
+                  ) : null}
                   {pendingFile ? (
                     <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
                       <span className="flex min-w-0 items-center gap-2 truncate">
@@ -872,6 +1201,16 @@ export default function TeamChatPanel({
             )}
           </section>
         </div>
+        <ChatForwardDialog
+          open={forwardOpen}
+          onOpenChange={setForwardOpen}
+          conversations={conversations}
+          currentConversationId={activeConversationId}
+          sessionUserId={sessionUserId}
+          teamProfiles={teamProfiles}
+          sending={sending}
+          onForward={handleForwardTo}
+        />
       </CardContent>
     </Card>
   );

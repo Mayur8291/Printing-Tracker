@@ -602,3 +602,51 @@ sequenceDiagram
   User->>App: View PO
   App-->>User: A4 PURCHASE ORDER heading and table
 ```
+
+## Team chat inbox tabs
+
+```mermaid
+flowchart TD
+  Open[Open Chat tab] --> Default[inboxTab chats]
+  Default --> Bar[Bottom TabsList Chats Groups Channels]
+  Bar -->|Chats| List[Direct rows plus New chat]
+  List --> Thread[DM thread only]
+  Bar -->|Groups| GroupsPane[Group rows plus New group]
+  GroupsPane --> GroupThread[Group thread only]
+  Bar -->|Channels| ChanPane[Empty list]
+  Fetch[fetchMyConversations] --> Count[Count unopened text per row]
+  Count --> ChatsBadge[Chats badge]
+  Count --> GroupsBadge[Groups badge]
+  Count --> ChanBadge[Channels badge stays 0]
+```
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Panel as TeamChatPanel
+  User->>Panel: Open Chat
+  Panel->>User: Chats list plus thread
+  User->>Panel: Tap Groups
+  Panel->>User: Group rows only
+  User->>Panel: New group
+  Panel->>User: Group stays on Groups tab
+  User->>Panel: Tap Chats
+  Panel->>User: Direct rows only
+  User->>Panel: Click message
+  Panel->>User: Icon actions
+  User->>Panel: Click second message
+  Panel->>User: Forward and Delete icons only
+```
+
+```mermaid
+flowchart TD
+  Dash[Dashboard focused] --> Online[Online green plus Online]
+  Other[Other browser tab or leave] --> Grace[Still Online 5 minutes]
+  Grace --> Away[Away yellow plus Away]
+  Never[Never opened dashboard] --> Offline[Offline red plus Offline]
+  Away -->|2 hours| Offline
+  Online --> List[List avatar dot]
+  Away --> List
+  Offline --> List
+  List --> Thread[Same label under DM name]
+```

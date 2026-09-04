@@ -2,6 +2,100 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-04 — Inbox tab badges count unopened text only
+
+**Context:** User wants a number beside Chats / Groups / Channels for new messages. Only unopened text.
+
+**Decision:** Count messages with a non-empty body, not from self, not deleted, newer than `last_read_at`. Sum directs on Chats, groups on Groups. Channels 0 until channels exist. Hide badge at 0. Cap display at 99+.
+
+**Why:** GIF/file-only is not a text message. Opening the thread still clears that conversation via `mark_conversation_read`.
+
+**Tradeoffs:** Tab total is message count, not chat count. A row badge uses the same `unread_count`. Count walks recent messages on fetch (PostgREST row cap can undercount very large inboxes).
+
+## 2026-09-04 — Chat presence is dashboard heartbeat, not chat-tab only
+
+**Context:** User wants Online when the dashboard is the active browser tab, Away when they leave it, Offline if they never opened it or have been Away 2 hours. List dot and open-chat label must match.
+
+**Options:** (1) Presence only while Chat tab is open. (2) App-wide heartbeat from `App.jsx`.
+
+**Decision:** Option 2. Table `hr_user_presence`. Green / yellow / red tokens `--presence-online|away|offline`.
+
+**Why:** “Active in the Dashboard” is the whole app, not only Chat.
+
+**Tradeoffs:** Blur (another window) used to count as Away immediately. Updated: 5 minute Online grace after leaving the dashboard tab, then Away.
+
+## 2026-09-04 — 5 minute Online grace after leaving the dashboard
+
+**Context:** User wants Online to hold for 5 minutes if they open another browser tab.
+
+**Decision:** Freeze `last_seen_at` when they leave. Display Online while that stamp is under 5 minutes, then Away, then Offline at 2 hours.
+
+**Why:** A short tab switch should not look like they left.
+
+**Tradeoffs:** Others still see Online for 5 minutes after close/crash.
+
+## 2026-09-04 — Chat actions are icons; delete is soft
+
+**Context:** User wants selectable messages in Chats/Groups with reply, react, delete, forward, pin. Multi-select only forward and delete. No written labels on the actions.
+
+**Options:** (1) Context menu with words. (2) Icon toolbar in the thread header after click-select.
+
+**Decision:** Option 2. Soft-delete own messages (`deleted_at`). One reaction per user. Forward copies into another conversation.
+
+**Why:** Matches the request. Hard delete is not allowed.
+
+**Tradeoffs:** Delete does nothing for other people's messages. Hover tooltip still names the icon for access.
+
+## 2026-09-04 — Split inbox by conversation kind
+
+**Context:** User wants created groups only on Groups, created chats only on Chats.
+
+**Options:** (1) Keep mixed list on Chats. (2) Filter `kind=direct` vs `kind=group`.
+
+**Decision:** Option 2. Auto-open first DM, not General. Thread follows the open tab kind.
+
+**Why:** One place per conversation type.
+
+**Tradeoffs:** General no longer opens by default on Chats.
+
+## 2026-09-04 — Inbox tab panel stays at the bottom
+
+**Context:** User pointed at the Chats / Groups / Channels bar and said keep that panel at the bottom only.
+
+**Options:** (1) Tabs at top. (2) Same bar last in the left inbox.
+
+**Decision:** Option 2. List heading + New chat / New group stay above the list. Chat rows unchanged.
+
+**Why:** That bar is the switcher, not the page title.
+
+**Tradeoffs:** Tab labels appear twice (heading + bottom bar).
+
+## 2026-09-04 — Groups and Channels share Chats chrome
+
+**Context:** User said Groups/Channels changing layout was wrong. New group should live on Groups, same header slot as New chat.
+
+**Options:** (1) Keep full-width Empty on Groups/Channels. (2) Same left list + right thread on every inbox tab; only heading, action, and list body swap.
+
+**Decision:** Option 2. New group only on Groups. Channels has heading and empty list, no extra button yet.
+
+**Why:** Tab switch should not restyle the Chat panel.
+
+**Tradeoffs:** Group chats still appear in the Chats list until Groups list is specified.
+
+## 2026-09-04 — Chat inbox tabs live under the list, not under the composer
+
+**Context:** User asked for a panel under Chats with Chats, Groups, Channels in one horizontal row. Groups and Channels stay empty for now.
+
+**Options:** (1) Full-width Tabs under the whole chat Card (bar sits under the message box). (2) Tabs only in the left inbox; bar under the conversation list; thread only when Chats is selected.
+
+**Decision:** Option 2. Default `inboxTab` is `chats`. Groups/Channels use shadcn `Empty`.
+
+**Why:** “Under the Chats” means under the list. Composer stays clean. Existing chat behavior stays on Chats.
+
+**Tradeoffs:** Phone thread view hides the bar until Back. Groups/Channels have no data yet.
+
+**Superseded:** Tab panel sits at the bottom. See “Inbox tab panel stays at the bottom”.
+
 ## 2026-09-03 — Purchase Order Status Select matches job-sheet format
 
 **Context:** User wants All PO Orders Status to look like the Production status dropdown (icon then name). Do not rename the list.

@@ -1178,6 +1178,72 @@ Migration `20260706190000_fix_goal_tracker_rls_recursion.sql` adds `security def
 
 **Verify:** Staging query — `select title, user_id from user_annual_goals g join profiles p on p.id = g.user_id where p.full_name = 'Test 2';` then open Assign task, pick Test 2, confirm goal appears.
 
+## Chat: inbox heading floats with a hole above it
+
+### Symptom
+Groups/Channels (or Chats) show a big blank area at the top. Title or list sits in the middle. Tab names at the bottom.
+
+### Root cause
+`TabsContent` had `flex` always on. Radix hides inactive panes with `hidden`, but `flex` wins and those panes still take height. TabsList was last in the column.
+
+### Fix
+Tab names first (`border-b`). Active pane only: `data-[state=active]:flex`. Name list in a `ScrollArea` that fills the rest.
+
+## Chat: tab badge missing or counts a GIF
+
+### Symptom
+Chats/Groups badge is empty after a text, or it counts a GIF/file with no words.
+
+### Root cause
+Badge uses `unread_count` of unopened **text** only (`body` trim length &gt; 0). Opening the thread sets `last_read_at`.
+
+### Fix
+Send a text. Keep the conversation closed on the other account. GIF-only does not increment the tab.
+
+## Chat: presence dot and Online text do not match
+
+### Symptom
+List shows green but the open DM says Offline, or everyone stays Offline.
+
+### Root cause
+Both views use `presenceFromRow`. Offline = no `hr_user_presence` row or `last_seen_at` older than 2 hours. Staging needs `20260904112200_hr_user_presence.sql`. Heartbeat only runs when signed in.
+
+### Fix
+Apply the staging migrations. Dashboard focused = Online. Other browser tab stays Online 5 minutes, then Away. Offline after 2 hours from last dashboard focus.
+
+## Chat: message actions missing or delete does nothing
+
+### Symptom
+Click a message and no icons appear, or Delete does not remove someone else's message.
+
+### Root cause
+Toolbar only shows after a click-select. Delete RPC only sets `deleted_at` on rows you authored. Staging needs `20260904110500_team_chat_message_actions.sql`.
+
+### Fix
+Click the bubble (not the avatar). Select more than one for Forward/Delete only. Apply the staging migration if the RPC is missing.
+
+## Chat: group missing from Chats list
+
+### Symptom
+**General** or a new group is not on **Chats**.
+
+### Root cause
+Chats is `kind=direct` only. Groups is `kind=group` only.
+
+### Fix
+Open the **Groups** tab. Create groups with **New group** there. DMs stay on **Chats**.
+
+## Chat: Groups or Channels looks empty
+
+### Symptom
+**Channels** says no channels yet. **Groups** only lists `kind=group`. Directs are on **Chats**.
+
+### Root cause
+Inbox is split by kind. Channels have no data yet.
+
+### Fix
+Open **Chats** for DMs. Create a group from **Groups** → **New group**.
+
 ## Chat: empty inbox or conversation_id errors
 
 ### Symptom

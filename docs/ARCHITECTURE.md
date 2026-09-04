@@ -72,7 +72,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `2026071012
 | Internal Support Platform | `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js` | Tools tab `internal_support`; Open Tickets + Resolved; Raise an Issue Dialog from button; staging table `internal_support_issues`; History RLS own-or-admin; status update admin-only until Resolved; not Enquiry |
 | Purchase Order | `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderHistoryFilters.jsx`, `PurchaseOrderPrintSheet.jsx`, `purchaseOrderLayout.js`, `purchaseOrderVoucherUtils.js`, `purchaseOrderHistoryUtils.js`, `purchaseOrderAmountWords.js` | Main sidebar tab `purchase_order`; FileSpreadsheet icon; A4 unlabeled sheet; Generate PO stamps `generated_at` + `status=po_sent`; All PO Orders vs History (Completed); View PO print; print-only C23 signature |
 | Inventory | `src/inventory/*` | `inventoryDbUtils`, Supabase |
-| Chat | `TeamChatPanel`, `teamChatService.js` | Supabase + Storage |
+| Chat | `TeamChatPanel`, `teamChatService.js`, `dashboardPresence.js` | Supabase + Storage. Presence heartbeat from App. Message actions via RPCs. Inbox tab badges sum unopened text `unread_count` by conversation kind. |
 | Goals | `GoalTrackerPanel`, `goalTrackerUtils.js` | Supabase RPC/tables |
 | Layout | `components/layout/*` | Sidebar config |
 | Auth/profile | `supabaseClient.js`, `avatarUtils.js` | Supabase Auth |
