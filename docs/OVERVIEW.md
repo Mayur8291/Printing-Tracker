@@ -60,7 +60,7 @@ flowchart LR
 | Dispatch & logistics | `src/DispatchTabPanel.jsx`, inward/outward modals | GRN, challans, verification |
 | Inventory | `src/inventory/*` | SKUs, warehouses, POs, suppliers, alerts. List qty = facility availability, not a lone `stock_qty` cell. |
 | Ops Platform | `src/MastersPanel.jsx`, `StockLedgerPanel.jsx`, `ProcurementPanel.jsx`, `SalesOrdersPanel.jsx`, `BillingArPanel.jsx`, `UniwareBridgePanel.jsx` | One Source of Truth Steps 0–5 (admin). Uniware Bridge is a read-only ecom mirror — not Inventory on-hand. |
-| Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js`, `src/dashboardPresence.js` | DMs, groups, attachments, GIFs. Bottom inbox tabs Chats / Groups / Channels show unopened text-message counts. Presence: Online / Away / Offline (green / yellow / red). Same status on list dot and under the DM name. |
+| Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js`, `src/dashboardPresence.js` | DMs, groups, attachments, GIFs, voice notes. Bottom inbox tabs Chats / Groups / Channels show unopened text-message counts. Presence: Online / Away / Offline (green / yellow / red). Same status on list dot and under the DM name. |
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
 | Asset Management | `src/AssetManagementPanel.jsx`, `src/hrAssetUtils.js` | Tools tab (`asset_management`). **Add asset** / **Save asset** writes staging `hr_assets`. **Assets** lists that register. Tags `IT-00001`+. Click a row → that tag only; Back clears it. Assign/check-in update the same row. Separate from Inventory SKUs. |

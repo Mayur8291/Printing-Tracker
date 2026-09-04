@@ -1,4 +1,4 @@
-import { Forward, Pin, Reply, SmilePlus, Trash2, X } from "lucide-react";
+import { Copy, Forward, Pin, Reply, SmilePlus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -36,6 +36,7 @@ export function ChatMessageActionBar({
   onDelete,
   onForward,
   onPin,
+  onCopy,
   onClear
 }) {
   const multi = count > 1;
@@ -81,6 +82,9 @@ export function ChatMessageActionBar({
           </IconAction>
         </>
       )}
+      <IconAction label="Copy" onClick={onCopy}>
+        <Copy />
+      </IconAction>
       <IconAction label="Forward" onClick={onForward}>
         <Forward />
       </IconAction>

@@ -2,6 +2,7 @@ import { supabase } from "./supabaseClient";
 import {
   CHAT_ATTACHMENT_BUCKET,
   authorLabelForInsert,
+  isChatAudioMime,
   sanitizeChatFileName,
   validateChatAttachmentFile
 } from "./teamChatUtils";
@@ -296,9 +297,29 @@ export function conversationPreviewText(message) {
   if (message.gif_url) return "GIF";
   if (message.attachment_path) {
     const mime = message.attachment_mime ?? "";
+    if (isChatAudioMime(mime)) return "Voice note";
     if (mime.startsWith("image/")) return "Photo";
     return "Attachment";
   }
   const body = String(message.body ?? "").trim();
   return body.length > 60 ? `${body.slice(0, 60)}…` : body || "Message";
+}
+
+export function clipboardTextForMessages(messages) {
+  return (messages ?? [])
+    .filter((msg) => msg && !msg.deleted_at)
+    .map((msg) => {
+      const body = String(msg.body ?? "").trim();
+      if (body) return body;
+      if (msg.gif_url) return "GIF";
+      if (msg.attachment_path) {
+        const mime = msg.attachment_mime ?? "";
+        if (isChatAudioMime(mime)) return "Voice note";
+        if (mime.startsWith("image/")) return "Photo";
+        return msg.attachment_name || "Attachment";
+      }
+      return "";
+    })
+    .filter(Boolean)
+    .join("\n\n");
 }

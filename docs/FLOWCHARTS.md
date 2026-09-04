@@ -633,6 +633,20 @@ flowchart TD
 ```mermaid
 sequenceDiagram
   participant User
+  participant Compose as ChatVoiceControls
+  participant Store as team-chat-files
+  User->>Compose: Click Mic
+  Compose->>User: Stop only
+  User->>Compose: Click Stop
+  Compose->>User: Voice note ready
+  User->>Compose: Click Send
+  Compose->>Store: Upload audio
+  Store-->>User: Playable voice bubble
+```
+
+```mermaid
+sequenceDiagram
+  participant User
   participant Panel as TeamChatPanel
   User->>Panel: Open Chat
   Panel->>User: Chats list plus thread
@@ -643,9 +657,13 @@ sequenceDiagram
   User->>Panel: Tap Chats
   Panel->>User: Direct rows only
   User->>Panel: Click message
-  Panel->>User: Icon actions
+  Panel->>User: Icon actions including Copy
   User->>Panel: Click second message
-  Panel->>User: Forward and Delete icons only
+  Panel->>User: Copy Forward Delete icons
+  User->>Panel: Click Copy
+  Panel->>User: Text on clipboard
+  User->>Panel: Click Paste under box
+  Panel->>User: Text in composer
 ```
 
 ```mermaid

@@ -35,7 +35,7 @@ export function ChatMessageBody({ body, profiles, orders, onOpenOrder, inverted 
     : "bg-background/80 text-foreground";
 
   return (
-    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+    <p className="min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm leading-relaxed">
       {parts.map((part, i) => {
         if (part.kind === "text") {
           return <span key={i}>{part.value}</span>;

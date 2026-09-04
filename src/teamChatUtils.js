@@ -30,6 +30,26 @@ export const CHAT_ALLOWED_MIME_TYPES = new Set([
   "application/pdf"
 ]);
 
+export const CHAT_ALLOWED_AUDIO_MIME_TYPES = new Set([
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg",
+  "audio/mpeg",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/aac",
+  "audio/x-m4a"
+]);
+
+export function normalizeChatMime(type) {
+  return String(type ?? "").split(";")[0].trim().toLowerCase();
+}
+
+export function isAllowedChatAttachmentMime(mime) {
+  const normalized = normalizeChatMime(mime);
+  return CHAT_ALLOWED_MIME_TYPES.has(normalized) || CHAT_ALLOWED_AUDIO_MIME_TYPES.has(normalized);
+}
+
 const UNNAMED_DISPLAY = "Unnamed";
 const ADMIN_DISPLAY = "Admin";
 
@@ -115,10 +135,14 @@ export function isChatImageMime(mime) {
   return typeof mime === "string" && mime.startsWith("image/");
 }
 
+export function isChatAudioMime(mime) {
+  return CHAT_ALLOWED_AUDIO_MIME_TYPES.has(normalizeChatMime(mime));
+}
+
 export function validateChatAttachmentFile(file) {
   if (!file) return "No file selected";
-  if (!CHAT_ALLOWED_MIME_TYPES.has(file.type)) {
-    return "Only images (JPEG, PNG, WebP, GIF) and PDF are allowed";
+  if (!isAllowedChatAttachmentMime(file.type)) {
+    return "Only images, PDF, and voice notes are allowed";
   }
   if (file.size > CHAT_MAX_ATTACHMENT_BYTES) {
     return "File must be 15 MB or smaller";

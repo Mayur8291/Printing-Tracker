@@ -467,7 +467,8 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox.
 3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats).
 4. **Send:** `sendChatMessage()` with `conversation_id`; marks read for sender.
-5. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
+5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text and no-space tokens wrap inside the bubble. Same on Groups.
+6. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
 
 ### Create group
 
@@ -487,20 +488,24 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 ### Select message actions (Chats and Groups)
 
 1. **Trigger:** Click a live message bubble in the thread.
-2. **One selected:** Header shows icon-only Reply, React, Pin, Forward, Delete, Clear.
-3. **Several selected:** Header shows icon-only Forward, Delete, Clear.
+2. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Delete, Clear.
+3. **Several selected:** Header shows icon-only Copy, Forward, Delete, Clear.
 4. **Reply:** Composer quotes that message; send stores `reply_to_message_id`.
 5. **React:** Emoji picker; RPC `set_team_chat_message_reaction` (one emoji per user; same emoji again removes it).
 6. **Pin:** RPC `toggle_team_chat_message_pin` for conversation members.
 7. **Delete:** RPC `soft_delete_team_chat_messages` — own messages only (`deleted_at`). Others stay selected until cleared.
 8. **Forward:** Dialog pick another conversation; copies body/attachment/GIF with `forwarded_from_message_id`.
-9. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.
+9. **Copy:** Writes selected bodies to the clipboard (full text). Empty body uses GIF / Voice note / Photo / file name. Several messages join with a blank line. Browser must allow clipboard write.
+10. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.
 
 ### Send GIF / attachment
 
 1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending via `VITE_GIPHY_API_KEY`). **Enter** sends message; **Shift+Enter** new line.
 2. **File:** Paperclip → JPEG/PNG/WebP/GIF/PDF up to 15 MB → `team-chat-files` bucket.
-3. **Constraint:** Message needs body, attachment, or GIF (empty text-only blocked).
+3. **Voice note:** Mic in the composer action row (after paperclip) on Chats and Groups. Browser `getUserMedia` + `MediaRecorder`. Stop button appears only while recording (same slot). After stop, preview + Send uploads audio (webm/mp4/ogg) as an attachment. Cap 5 minutes. Mic deny or empty clip shows an error. Voice-only does not increment the text unread badge.
+4. **Composer layout:** Full-width box on top (1 line, grows to ~5, then scrolls). Under it: emoji, GIF, paperclip, mic, paste left; Send right. **Enter** still sends; **Shift+Enter** new line.
+5. **Paste:** Paste icon reads the clipboard and inserts at the cursor. Deny clipboard → error; **Ctrl+V** still works in the box.
+6. **Constraint:** Message needs body, attachment, or GIF (empty text-only blocked).
 
 ### Realtime
 

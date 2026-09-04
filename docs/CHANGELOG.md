@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-04 — Copy selected chat messages and paste into composer
+
+- **Issue:** Select bar and composer had no clipboard icons.
+- **Fix:** Copy icon on one or many selected messages (Chats and Groups). Paste icon in the row under the box with emoji / GIF / file / mic. Copy writes full text (or GIF/file label). Paste inserts at the cursor.
+- **Files:** `ChatMessageActionBar.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, FLOWCHARTS.md.
+
+## 2026-09-04 — Long chat text wraps inside the bubble
+
+- **Issue:** A long message (especially one word with no spaces) stayed on one line and ran off the thread.
+- **Fix:** Bubbles stay inside the thread width. Text wraps and long tokens break. Whole body stays visible. Chats and Groups.
+- **Files:** `TeamChatPanel.jsx`, `ChatMessageBody.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-04 — Chat composer actions sit under a full-width box
+
+- **Issue:** Emoji, GIF, file, and mic stacked beside a two-line box.
+- **Fix:** Box is full width, one line then grows to about five then scrolls. Same four buttons in one row under the box, left. Send stays on the right of that row. No send/record logic change.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-09-04 — Voice notes on Chats and Groups
+
+- **Issue:** Compose had no way to record sound.
+- **Fix:** Mic under paperclip. Click starts record. Stop shows only while recording. After stop, Send uploads the audio to `team-chat-files` like other files. Thread plays it. Max 5 minutes.
+- **Files:** `ChatVoiceControls.jsx`, `teamChatVoice.js`, `teamChatUtils.js`, `TeamChatPanel.jsx`, `ChatMessageMedia.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-04 — Unopened text count on Chats / Groups / Channels tabs
 
 - **Issue:** Bottom inbox tabs had no unread number.

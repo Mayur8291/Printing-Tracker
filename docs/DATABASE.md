@@ -595,7 +595,7 @@ Display status is derived: no row or seen ≥ 2 hours → Offline. Seen &lt; 5 m
 |--------|------|---------|
 | `conversation_id` | uuid | FK → `team_chat_conversations.id` (required for new messages) |
 | `gif_url` | text | External GIF URL (Giphy search or preset) |
-| `attachment_*` | text/bigint | File in `team-chat-files` bucket |
+| `attachment_*` | text/bigint | File in `team-chat-files` bucket (images, PDF, voice notes) |
 | `mentioned_user_ids` / `mentioned_order_ids` | uuid[] / bigint[] | @user and #order tokens |
 | `reply_to_message_id` | bigint | Optional FK to the quoted message |
 | `forwarded_from_message_id` | bigint | Source message when forwarded |

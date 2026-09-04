@@ -2,6 +2,46 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-04 — Chat copy and paste are icons
+
+**Context:** User wants a Copy symbol on single and multi select, and a Paste symbol in the composer row.
+
+**Decision:** Copy on the select bar for one or many. Paste after mic. Copy writes text (or a file/GIF label). Paste inserts at the cursor via `clipboard.readText`.
+
+**Why:** Matches the existing icon-only bars. No new table.
+
+**Tradeoffs:** Browser may ask for clipboard permission. Images on the clipboard do not paste into the box.
+
+## 2026-09-04 — Chat bubbles wrap long text
+
+**Context:** Long text with no spaces overflowed the thread. User must see the full message in the bubble.
+
+**Decision:** Keep `whitespace-pre-wrap` for real line breaks. Add `overflow-wrap: anywhere` and constrain the bubble to the thread (`min-w-0`, `max-w-full`). Override native button `nowrap`.
+
+**Why:** `break-words` does nothing if the flex/table parent grows with the word.
+
+**Tradeoffs:** A long token may break mid-character.
+
+## 2026-09-04 — Chat composer actions under the box
+
+**Context:** Four action buttons stacked left of a two-line textarea made the composer tall and the box skinny.
+
+**Decision:** Full-width textarea on top. Horizontal action row under it: emoji, GIF, file, mic left; Send right. Box starts at one line and grows to five.
+
+**Why:** Same handlers, less leftover space, works on a narrow phone row.
+
+**Tradeoffs:** Popovers now open from the bottom row.
+
+## 2026-09-04 — Chat voice notes reuse file attachments
+
+**Context:** User wants a mic on Chats/Groups compose. Click records. Stop appears only after record starts. Then Send ships the clip.
+
+**Decision:** Same `team-chat-files` attachment path. Mic in the left compose stack. Stop replaces Mic while recording. After stop, clip is `pendingFile`. No new table.
+
+**Why:** Storage, RLS, and forward already work for files. Stop hidden when idle matches the request.
+
+**Tradeoffs:** Browser must allow the mic. Safari/Chrome mime differs (webm vs mp4). Voice-only is not an unread text.
+
 ## 2026-09-04 — Inbox tab badges count unopened text only
 
 **Context:** User wants a number beside Chats / Groups / Channels for new messages. Only unopened text.

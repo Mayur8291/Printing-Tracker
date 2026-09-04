@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Forward, Paperclip, Pin, Send, Smile, UsersRound, X } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ClipboardPaste, Forward, Paperclip, Pin, Send, Smile, UsersRound, X } from "lucide-react";
 import { profileAvatarPublicUrl } from "@/avatarUtils";
 import { supabase } from "./supabaseClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,10 +17,12 @@ import { ChatMessageBody } from "@/components/chat/ChatMessageBody";
 import { ChatMessageAttachment, ChatMessageGif } from "@/components/chat/ChatMessageMedia";
 import { ChatForwardDialog } from "@/components/chat/ChatForwardDialog";
 import { ChatMessageActionBar } from "@/components/chat/ChatMessageActionBar";
+import { ChatVoiceControls } from "@/components/chat/ChatVoiceControls";
 import { CreateGroupDialog } from "@/components/chat/CreateGroupDialog";
 import { GifPicker } from "@/components/chat/GifPicker";
 import { NewDirectChatDialog } from "@/components/chat/NewDirectChatDialog";
 import {
+  clipboardTextForMessages,
   conversationPreviewText,
   createGroupConversation,
   fetchConversationMessages,
@@ -44,6 +46,7 @@ import {
   filterMentionUsers,
   formatChatTime,
   getActiveMentionQuery,
+  isChatAudioMime,
   messageAuthorDisplayName,
   orderChatToken,
   profileChatLabel,
@@ -61,6 +64,20 @@ const CHAT_INBOX_TABS = [
 
 const INBOX_PANE_CLASS =
   "mt-0 min-h-0 flex-1 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col";
+
+const COMPOSER_MAX_LINES = 5;
+
+function fitComposerTextarea(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  const styles = window.getComputedStyle(el);
+  const lineHeight = Number.parseFloat(styles.lineHeight) || 20;
+  const paddingY =
+    Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom);
+  const maxHeight = lineHeight * COMPOSER_MAX_LINES + paddingY;
+  const next = Math.min(el.scrollHeight, maxHeight);
+  el.style.height = `${Math.max(next, lineHeight + paddingY)}px`;
+}
 
 function InboxPane({ title, action, children }) {
   return (
@@ -174,6 +191,8 @@ export default function TeamChatPanel({
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
   const [pendingGifUrl, setPendingGifUrl] = useState("");
+  const [pendingAudioUrl, setPendingAudioUrl] = useState("");
+  const [voiceRecording, setVoiceRecording] = useState(false);
   const [error, setError] = useState("");
   const [mobileShowThread, setMobileShowThread] = useState(false);
   const [composeDirectPeerId, setComposeDirectPeerId] = useState(null);
@@ -416,6 +435,20 @@ export default function TeamChatPanel({
     scrollToBottom();
   }, [messages.length, scrollToBottom]);
 
+  useEffect(() => {
+    if (!pendingFile || !isChatAudioMime(pendingFile.type)) {
+      setPendingAudioUrl("");
+      return undefined;
+    }
+    const url = URL.createObjectURL(pendingFile);
+    setPendingAudioUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pendingFile]);
+
+  useLayoutEffect(() => {
+    fitComposerTextarea(textareaRef.current);
+  }, [draft]);
+
   function selectConversation(id) {
     const conv = conversations.find((c) => c.id === id);
     if (conv?.kind === "group") setInboxTab("groups");
@@ -478,6 +511,49 @@ export default function TeamChatPanel({
     setReplyTo(selectedSingle);
     clearMessageSelection();
     requestAnimationFrame(() => textareaRef.current?.focus());
+  }
+
+  async function handleCopySelected() {
+    const text = clipboardTextForMessages(selectedMessages);
+    if (!text) {
+      setError("Nothing to copy");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not copy. Allow clipboard access.");
+    }
+  }
+
+  async function handlePasteIntoComposer() {
+    if (sending || voiceRecording) return;
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return;
+      const el = textareaRef.current;
+      const start = el?.selectionStart ?? cursor;
+      const end = el?.selectionEnd ?? start;
+      const next = insertAtCursor(draft, start, end, text);
+      setDraft(next);
+      const pos = start + text.length;
+      setCursor(pos);
+      setError("");
+      requestAnimationFrame(() => {
+        const box = textareaRef.current;
+        if (!box) return;
+        box.focus();
+        box.setSelectionRange(pos, pos);
+        fitComposerTextarea(box);
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error && err.name === "NotAllowedError"
+          ? "Allow clipboard to paste, or use Ctrl+V"
+          : "Could not paste. Use Ctrl+V"
+      );
+    }
   }
 
   async function handleReactToMessage(messageId, emoji) {
@@ -654,6 +730,7 @@ export default function TeamChatPanel({
   const canSend =
     Boolean(draft.trim() || pendingFile || pendingGifUrl) &&
     !sending &&
+    !voiceRecording &&
     Boolean(activeConversationId || composeDirectPeerId);
 
   function handleComposerKeyDown(e) {
@@ -823,6 +900,7 @@ export default function TeamChatPanel({
                         onDelete={() => void handleDeleteSelected()}
                         onForward={() => setForwardOpen(true)}
                         onPin={() => void handlePinSelected()}
+                        onCopy={() => void handleCopySelected()}
                         onClear={clearMessageSelection}
                       />
                     ) : (
@@ -840,8 +918,8 @@ export default function TeamChatPanel({
                   </div>
                 </header>
 
-                <ScrollArea className="min-h-0 flex-1 bg-muted/20">
-                  <div className="flex flex-col gap-4 p-4" aria-live="polite">
+                <ScrollArea className="min-h-0 min-w-0 flex-1 bg-muted/20 [&_[data-radix-scroll-area-viewport]>div]:max-w-full [&_[data-radix-scroll-area-viewport]>div]:min-w-0">
+                  <div className="flex w-full min-w-0 max-w-full flex-col gap-4 p-4" aria-live="polite">
                     {loadingMessages ? (
                       <p className="py-8 text-center text-sm text-muted-foreground">Loading messages…</p>
                     ) : messages.length === 0 ? (
@@ -867,7 +945,7 @@ export default function TeamChatPanel({
                         return (
                           <article
                             key={msg.id}
-                            className={cn("flex gap-3", isOwn && "flex-row-reverse")}
+                            className={cn("flex w-full min-w-0 gap-3", isOwn && "flex-row-reverse")}
                           >
                             <PersonAvatar
                               name={author.full_name || authorName}
@@ -894,7 +972,7 @@ export default function TeamChatPanel({
                                   disabled={Boolean(msg.deleted_at)}
                                   onClick={() => toggleMessageSelected(msg)}
                                   className={cn(
-                                    "w-full rounded-lg px-3 py-2 text-left shadow-sm",
+                                    "min-w-0 w-full max-w-full whitespace-normal rounded-lg px-3 py-2 text-left shadow-sm",
                                     isOwn
                                       ? "bg-primary text-primary-foreground"
                                       : "border bg-card text-card-foreground",
@@ -1026,11 +1104,23 @@ export default function TeamChatPanel({
                       </Button>
                     </div>
                   ) : null}
+                  {voiceRecording ? (
+                    <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                      Recording…
+                    </div>
+                  ) : null}
                   {pendingFile ? (
                     <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
-                      <span className="flex min-w-0 items-center gap-2 truncate">
-                        <Paperclip className="size-4 shrink-0" aria-hidden />
-                        {pendingFile.name}
+                      <span className="flex min-w-0 flex-1 flex-col gap-2">
+                        <span className="flex min-w-0 items-center gap-2 truncate">
+                          <Paperclip className="size-4 shrink-0" aria-hidden />
+                          {pendingFile.name}
+                        </span>
+                        {pendingAudioUrl ? (
+                          <audio controls preload="metadata" src={pendingAudioUrl} className="w-full max-w-xs">
+                            <track kind="captions" />
+                          </audio>
+                        ) : null}
                       </span>
                       <Button
                         type="button"
@@ -1061,60 +1151,8 @@ export default function TeamChatPanel({
                     </div>
                   ) : null}
 
-                  <div className="flex gap-2">
-                    <div className="flex shrink-0 flex-col gap-1">
-                      <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="size-9"
-                            aria-label="Insert emoji"
-                          >
-                            <Smile className="size-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-64 p-2" align="start">
-                          <div className="grid grid-cols-8 gap-1" role="listbox" aria-label="Emoji picker">
-                            {CHAT_EMOJI_PALETTE.map((emoji) => (
-                              <Button
-                                key={emoji}
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 text-base"
-                                onClick={() => insertEmoji(emoji)}
-                              >
-                                {emoji}
-                              </Button>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-
-                      <GifPicker onPick={onPickGif} disabled={sending} />
-
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        className="sr-only"
-                        accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
-                        onChange={onPickAttachment}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="size-9"
-                        aria-label="Attach image or PDF"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Paperclip className="size-4" />
-                      </Button>
-                    </div>
-
-                    <div className="relative min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <div className="relative min-w-0 w-full">
                       {(showUserMenu || showOrderMenu) && (
                         <ul
                           className="absolute bottom-full z-20 mb-2 max-h-48 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
@@ -1165,8 +1203,8 @@ export default function TeamChatPanel({
 
                       <Textarea
                         ref={textareaRef}
-                        rows={2}
-                        className="min-h-[72px] resize-none"
+                        rows={1}
+                        className="min-h-9 w-full resize-none overflow-y-auto"
                         placeholder="Message… Enter to send, Shift+Enter for new line"
                         value={draft}
                         onChange={(e) => {
@@ -1181,16 +1219,98 @@ export default function TeamChatPanel({
                       />
                     </div>
 
-                    <Button
-                      type="submit"
-                      variant="success"
-                      size="icon"
-                      disabled={!canSend}
-                      className="size-9 shrink-0 self-end"
-                      aria-label="Send message"
-                    >
-                      <Send className="size-4" />
-                    </Button>
+                    <div className="flex min-w-0 items-center gap-1 sm:gap-2">
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
+                        <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="size-9"
+                              aria-label="Insert emoji"
+                            >
+                              <Smile className="size-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-2" align="start">
+                            <div className="grid grid-cols-8 gap-1" role="listbox" aria-label="Emoji picker">
+                              {CHAT_EMOJI_PALETTE.map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-8 text-base"
+                                  onClick={() => insertEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        <GifPicker onPick={onPickGif} disabled={sending || voiceRecording} />
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          className="sr-only"
+                          accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                          onChange={onPickAttachment}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-9"
+                          aria-label="Attach image or PDF"
+                          disabled={sending || voiceRecording}
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Paperclip className="size-4" />
+                        </Button>
+                        <ChatVoiceControls
+                          key={`${activeConversationId ?? "new"}-${composeDirectPeerId ?? "none"}`}
+                          disabled={sending}
+                          onRecordingChange={setVoiceRecording}
+                          onError={setError}
+                          onVoiceReady={(file) => {
+                            const validationError = validateChatAttachmentFile(file);
+                            if (validationError) {
+                              setError(validationError);
+                              return;
+                            }
+                            setError("");
+                            setPendingFile(file);
+                            setPendingGifUrl("");
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-9"
+                          aria-label="Paste"
+                          disabled={sending || voiceRecording}
+                          onClick={() => void handlePasteIntoComposer()}
+                        >
+                          <ClipboardPaste />
+                        </Button>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        variant="success"
+                        size="icon"
+                        disabled={!canSend}
+                        className="size-9 shrink-0"
+                        aria-label="Send message"
+                      >
+                        <Send className="size-4" />
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </>

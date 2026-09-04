@@ -11,6 +11,8 @@
 
 - Order ownership is a **staff** flag (`ownership_verified`). The dashboard does not expose order data to customers.
 - Enquiry photos go to bucket `enquiry-attachments`; upload path must start with `auth.uid()`.
+- **Team chat voice notes** use the browser microphone (`getUserMedia`). Audio is stored in `team-chat-files` and only conversation members can read it (same attachment RLS). No Cloud speech API. Deny the mic and recording cannot start.
+- **Team chat copy/paste** uses the browser clipboard on a click (`writeText` / `readText`). Only selected message text (or a file/GIF label) is written. Paste only inserts into the composer. No clipboard data is sent to a server.
 - SLA messages go to Gargi (or first admin). The **customer is never told** about a missed pick.
 - Close queues customer survey copy in `enquiry_outbound_messages` (Feedback button). The SPA does not hold WhatsApp Cloud API keys; live Meta send is not from this app.
 - **Production delay alerts:** admin and staff can send from Support. Insert requires `sent_by = auth.uid()`. Queued outbound rows use `enquiry_id` null. No Cloud API secrets in the browser.

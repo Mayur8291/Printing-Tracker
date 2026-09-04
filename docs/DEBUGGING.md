@@ -1212,6 +1212,50 @@ Groups/Channels (or Chats) show a big blank area at the top. Title or list sits 
 ### Fix
 Tab names first (`border-b`). Active pane only: `data-[state=active]:flex`. Name list in a `ScrollArea` that fills the rest.
 
+## Chat: Copy or Paste icon does nothing
+
+### Symptom
+Copy does not put text on the clipboard, or Paste does not fill the box.
+
+### Root cause
+`navigator.clipboard` needs a user click and site permission. Some browsers block `readText` until the user allows clipboard.
+
+### Fix
+Click Copy / Paste after a gesture. Allow clipboard for the site. **Ctrl+C** / **Ctrl+V** still work in the box.
+
+## Chat: long message runs off the thread in one line
+
+### Symptom
+A long body (or one huge word) stays on one line. The right side is cut off.
+
+### Root cause
+The bubble is a native `button` (`white-space: nowrap`). A long token also grows the Radix scroll viewport, so `break-words` never has a width to wrap against.
+
+### Fix
+Thread + bubble use `min-w-0` / `max-w-full`. Body uses `whitespace-pre-wrap` and `overflow-wrap: anywhere`.
+
+## Chat: composer buttons sit beside a tall empty box
+
+### Symptom
+Emoji / GIF / file / mic stack on the left. Message box is short and two lines tall.
+
+### Root cause
+Old composer used a left column + `rows={2}` + `min-h-[72px]`.
+
+### Fix
+Actions are under a full-width box. Box starts at one line and grows to about five.
+
+## Chat: mic does nothing or Stop never shows
+
+### Symptom
+Mic click fails, or Stop is visible before record, or Send stays dead after stop.
+
+### Root cause
+Browser blocked the mic, or Stop is only mounted while `MediaRecorder` is active. Send waits for a finished voice file (`pendingFile`).
+
+### Fix
+Allow microphone for the site. Click Mic — Stop replaces it. Click Stop — preview + Send. HTTP except localhost cannot use the mic.
+
 ## Chat: tab badge missing or counts a GIF
 
 ### Symptom

@@ -1,7 +1,7 @@
 import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getChatAttachmentPublicUrl, isChatImageMime } from "@/teamChatUtils";
+import { getChatAttachmentPublicUrl, isChatAudioMime, isChatImageMime } from "@/teamChatUtils";
 
 export function ChatMessageGif({ gifUrl }) {
   const url = (gifUrl ?? "").trim();
@@ -28,6 +28,21 @@ export function ChatMessageAttachment({ msg, inverted = false }) {
   const mime = msg.attachment_mime ?? "";
 
   if (!url) return null;
+
+  if (isChatAudioMime(mime)) {
+    return (
+      <div className="mt-2 flex flex-col gap-1">
+        <audio controls preload="metadata" src={url} className="w-full max-w-xs">
+          <track kind="captions" />
+        </audio>
+        <Button asChild variant="link" size="sm" className="h-auto px-0">
+          <a href={url} download={name} target="_blank" rel="noopener noreferrer">
+            Download {name}
+          </a>
+        </Button>
+      </div>
+    );
+  }
 
   if (isChatImageMime(mime)) {
     return (
