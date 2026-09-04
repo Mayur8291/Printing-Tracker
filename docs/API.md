@@ -70,6 +70,7 @@ Full schema: Supabase Dashboard → Table Editor, or `supabase/schema.sql`.
 |-----|---------|
 | `get_or_create_direct_conversation` | Chat DM |
 | `create_group_conversation` | Chat group |
+| `create_channel_conversation` | Admin-only org channel (adds every profile) |
 | `mark_conversation_read` | Chat unread |
 | `list_team_chat_directory` | Mention picker |
 | `soft_delete_team_chat_messages` | Soft-delete own selected messages |

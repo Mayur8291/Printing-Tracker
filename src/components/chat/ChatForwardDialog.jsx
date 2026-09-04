@@ -19,14 +19,19 @@ export function ChatForwardDialog({
   sessionUserId,
   teamProfiles,
   onForward,
-  sending = false
+  sending = false,
+  canPostToChannel = false
 }) {
   const [targetId, setTargetId] = useState(null);
 
   const options = useMemo(
     () =>
-      (conversations ?? []).filter((conv) => conv.id && conv.id !== currentConversationId),
-    [conversations, currentConversationId]
+      (conversations ?? []).filter((conv) => {
+        if (!conv.id || conv.id === currentConversationId) return false;
+        if (conv.kind === "channel" && !canPostToChannel) return false;
+        return true;
+      }),
+    [conversations, currentConversationId, canPostToChannel]
   );
 
   async function confirm() {

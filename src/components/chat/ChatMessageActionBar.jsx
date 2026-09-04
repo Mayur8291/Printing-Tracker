@@ -37,17 +37,21 @@ export function ChatMessageActionBar({
   onForward,
   onPin,
   onCopy,
-  onClear
+  onClear,
+  channelReadOnly = false
 }) {
   const multi = count > 1;
+  const showAuthorActions = !multi && !channelReadOnly;
 
   return (
     <div className="flex shrink-0 items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+      {showAuthorActions ? (
+        <IconAction label="Reply" onClick={onReply}>
+          <Reply />
+        </IconAction>
+      ) : null}
       {multi ? null : (
         <>
-          <IconAction label="Reply" onClick={onReply}>
-            <Reply />
-          </IconAction>
           <Popover open={reactOpen} onOpenChange={onReactOpenChange}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -77,9 +81,11 @@ export function ChatMessageActionBar({
               </div>
             </PopoverContent>
           </Popover>
-          <IconAction label="Pin" onClick={onPin}>
-            <Pin className={pinned ? "fill-current" : undefined} />
-          </IconAction>
+          {showAuthorActions ? (
+            <IconAction label="Pin" onClick={onPin}>
+              <Pin className={pinned ? "fill-current" : undefined} />
+            </IconAction>
+          ) : null}
         </>
       )}
       <IconAction label="Copy" onClick={onCopy}>
@@ -88,9 +94,11 @@ export function ChatMessageActionBar({
       <IconAction label="Forward" onClick={onForward}>
         <Forward />
       </IconAction>
-      <IconAction label="Delete" onClick={onDelete} disabled={!canDelete}>
-        <Trash2 />
-      </IconAction>
+      {channelReadOnly ? null : (
+        <IconAction label="Delete" onClick={onDelete} disabled={!canDelete}>
+          <Trash2 />
+        </IconAction>
+      )}
       <IconAction label="Clear" onClick={onClear}>
         <X />
       </IconAction>

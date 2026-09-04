@@ -1212,6 +1212,17 @@ Groups/Channels (or Chats) show a big blank area at the top. Title or list sits 
 ### Fix
 Tab names first (`border-b`). Active pane only: `data-[state=active]:flex`. Name list in a `ScrollArea` that fills the rest.
 
+## Chat: New Channel missing or viewer can post
+
+### Symptom
+Channels tab has no **New Channel**, or a non-admin can type in a channel.
+
+### Root cause
+**New Channel** and the composer are admin-only (`profiles.role = admin`). Post insert also requires `jwt_user_is_admin()` on `kind=channel`.
+
+### Fix
+Sign in as admin to create/post. Viewers should only see react / copy / forward. Apply staging migration `20260904124757_team_chat_channels.sql`.
+
 ## Chat: Copy or Paste icon does nothing
 
 ### Symptom

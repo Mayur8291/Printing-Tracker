@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-04 — Channels are org-wide; only admins post
+
+**Context:** Channels tab is for the whole Scott Dashboard. Only admins create channels and post. Everyone else only reacts, copies, and forwards.
+
+**Decision:** New `kind=channel`. RPC `create_channel_conversation` is admin-only and memberships every profile. New profiles join via trigger. Insert RLS blocks non-admin posts. UI hides **New Channel** and the composer for non-admins.
+
+**Why:** Membership-based RLS already gates reads. Adding everyone as a member makes the channel show in every inbox without a second access model.
+
+**Tradeoffs:** A new user must get a profile row to join. Forward into a channel is also a post, so non-admins cannot pick a channel as a forward target.
+
 ## 2026-09-04 — Chat copy and paste are icons
 
 **Context:** User wants a Copy symbol on single and multi select, and a Paste symbol in the composer row.

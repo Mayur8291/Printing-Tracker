@@ -102,6 +102,14 @@ export async function createGroupConversation(title, memberIds) {
   return data;
 }
 
+export async function createChannelConversation(title) {
+  const { data, error } = await supabase.rpc("create_channel_conversation", {
+    p_title: title
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function fetchConversationMessages(conversationId, limit = 200) {
   const { data, error } = await supabase
     .from("team_chat_messages")
@@ -284,12 +292,14 @@ export function isUnopenedTextMessage(msg, userId, lastReadAt) {
 export function unreadTextCountByInboxTab(conversations) {
   let chats = 0;
   let groups = 0;
+  let channels = 0;
   for (const row of conversations ?? []) {
     const n = Number(row.unread_count) || 0;
     if (row.kind === "direct") chats += n;
     else if (row.kind === "group") groups += n;
+    else if (row.kind === "channel") channels += n;
   }
-  return { chats, groups, channels: 0 };
+  return { chats, groups, channels };
 }
 
 export function conversationPreviewText(message) {

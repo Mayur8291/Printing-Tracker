@@ -450,7 +450,7 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 2. **Entry:** Bottom of the left inbox is a shadcn `TabsList` with three equal names: **Chats**, **Groups**, **Channels**. A Badge shows unopened text-message count beside a tab when &gt; 0. List heading stays at the top of that tab.
 3. **Chats:** **New chat** under the tabs. Same conversation rows as before (avatar, name, time, preview, unread). List is `kind=direct` only. Thread on this tab is DMs only.
 4. **Groups:** **New group** in that action slot. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
-5. **Channels:** Same scroll area. Empty for now.
+5. **Channels:** Same row format (`kind=channel`). **New Channel** shows only for `profiles.role = admin`. Everyone on the dashboard is a member. Admins post with the same composer as Chats/Groups. Non-admins see no composer; they may react (emoji + count), copy, and forward.
 6. **Switch tabs:** Only the name list and action swap. Inbox width and thread pane stay.
 7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). On small screens, opening a thread still hides the list until Back.
 
@@ -469,6 +469,18 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 4. **Send:** `sendChatMessage()` with `conversation_id`; marks read for sender.
 5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text and no-space tokens wrap inside the bubble. Same on Groups.
 6. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
+
+### Create channel (admin)
+
+1. **Trigger:** Admin on Channels tab → **New Channel** → name only.
+2. **Services:** RPC `create_channel_conversation(title)` — requires `jwt_user_is_admin()`. Inserts `kind=channel` and adds every `profiles` row as a member.
+3. **New users:** Trigger `team_chat_profile_join_channels` adds a new profile to all existing channels.
+4. **Post:** Insert policy `jwt_user_can_post_in_conversation` — channel posts require admin. Non-admin insert is rejected.
+5. **Viewer actions:** React / copy / forward only. No reply, pin, delete, or composer.
+6. **Admin actions:** Full composer (text, emoji, GIF, file, voice, paste) plus reply, react, pin, copy, forward, delete (any post).
+7. **Reactions:** Chips show each emoji and how many people used it.
+8. **Wrap:** Channel body uses the same multi-line wrap as Chats/Groups.
+9. **Exit:** Channel appears on the Channels tab for everyone after refresh/realtime.
 
 ### Create group
 

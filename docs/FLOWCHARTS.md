@@ -623,7 +623,7 @@ flowchart TD
   List --> Thread[DM thread only]
   Bar -->|Groups| GroupsPane[Group rows plus New group]
   GroupsPane --> GroupThread[Group thread only]
-  Bar -->|Channels| ChanPane[Empty list]
+  Bar -->|Channels| ChanPane[Channel rows plus New Channel if admin]
   Fetch[fetchMyConversations] --> Count[Count unopened text per row]
   Count --> ChatsBadge[Chats badge]
   Count --> GroupsBadge[Groups badge]
@@ -664,6 +664,17 @@ sequenceDiagram
   Panel->>User: Text on clipboard
   User->>Panel: Click Paste under box
   Panel->>User: Text in composer
+```
+
+```mermaid
+flowchart TD
+  Admin[Admin] --> NewCh[New Channel name]
+  NewCh --> RPC[create_channel_conversation]
+  RPC --> All[Every profile is a member]
+  All --> View[Everyone sees the channel]
+  Admin --> Post[Full composer]
+  Viewer[Non-admin] --> Read[Read posts]
+  Viewer --> Act[React copy forward only]
 ```
 
 ```mermaid

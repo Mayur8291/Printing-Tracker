@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-04 — Org-wide Channels with admin-only posting
+
+- **Issue:** Channels tab was empty. Need a room everyone sees, but only admins create and post.
+- **Fix:** **New Channel** (admin only) asks for a name. Every profile is a member. Admins get the full composer and all message actions. Others can only react (emoji + count), copy, and forward. Long posts wrap. Staging migration `20260904124757_team_chat_channels.sql`.
+- **Files:** `CreateChannelDialog.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `ChatMessageActionBar.jsx`, `ChatForwardDialog.jsx`, `teamChatUtils.js`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-04 — Copy selected chat messages and paste into composer
 
 - **Issue:** Select bar and composer had no clipboard icons.

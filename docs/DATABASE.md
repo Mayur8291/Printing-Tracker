@@ -549,15 +549,15 @@ Security-definer RPC for **Assign task → Link to goal**. Returns annual goals 
 
 ## Team chat
 
-Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments. Legacy wall messages live in **General** group.
+Conversation-scoped messaging: direct (1:1), groups, org-wide channels, GIF URLs, file attachments. Legacy wall messages live in **General** group.
 
 ### `team_chat_conversations`
 
 | Column | Type | Purpose |
 |--------|------|---------|
 | `id` | uuid | Primary key |
-| `kind` | text | `direct` or `group` |
-| `title` | text | Group name (null for direct) |
+| `kind` | text | `direct`, `group`, or `channel` |
+| `title` | text | Group/channel name (null for direct) |
 | `created_by` | uuid | FK → `profiles.id` |
 | `last_message_at` | timestamptz | Inbox sort |
 | `created_at` | timestamptz | Created time |
@@ -640,6 +640,7 @@ Display status is derived: no row or seen ≥ 2 hours → Offline. Seen &lt; 5 m
 | `20260706130000_team_chat_directory_avatars.sql` | Directory RPC + avatars |
 | `20260709180000_team_chat_conversations.sql` | Conversations, members, GIF, member RLS, General migration |
 | `20260904110500_team_chat_message_actions.sql` | Reply, reactions, soft-delete, forward, pin (staging) |
+| `20260904124757_team_chat_channels.sql` | `kind=channel`, admin create/post RPCs, new-profile join trigger (staging) |
 | `20260904112200_hr_user_presence.sql` | Dashboard Online/Away heartbeat (staging) |
 | `20260904113100_hr_presence_online_grace.sql` | Away write does not bump `last_seen_at` (5 min Online grace) |
 

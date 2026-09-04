@@ -261,6 +261,9 @@ export function conversationDisplayTitle(conversation, userId, profiles) {
   if (conversation.kind === "group") {
     return (conversation.title ?? "").trim() || "Group";
   }
+  if (conversation.kind === "channel") {
+    return (conversation.title ?? "").trim() || "Channel";
+  }
   const peerId = directConversationPeerId(conversation, userId);
   const peer = (profiles ?? []).find((p) => p.id === peerId);
   return profileChatLabel(peer) || "Direct chat";

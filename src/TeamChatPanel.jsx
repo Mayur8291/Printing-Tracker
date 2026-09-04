@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ClipboardPaste, Forward, Paperclip, Pin, Send, Smile, UsersRound, X } from "lucide-react";
+import { ArrowLeft, ClipboardPaste, Forward, Hash, Paperclip, Pin, Send, Smile, UsersRound, X } from "lucide-react";
 import { profileAvatarPublicUrl } from "@/avatarUtils";
 import { supabase } from "./supabaseClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,12 +18,14 @@ import { ChatMessageAttachment, ChatMessageGif } from "@/components/chat/ChatMes
 import { ChatForwardDialog } from "@/components/chat/ChatForwardDialog";
 import { ChatMessageActionBar } from "@/components/chat/ChatMessageActionBar";
 import { ChatVoiceControls } from "@/components/chat/ChatVoiceControls";
+import { CreateChannelDialog } from "@/components/chat/CreateChannelDialog";
 import { CreateGroupDialog } from "@/components/chat/CreateGroupDialog";
 import { GifPicker } from "@/components/chat/GifPicker";
 import { NewDirectChatDialog } from "@/components/chat/NewDirectChatDialog";
 import {
   clipboardTextForMessages,
   conversationPreviewText,
+  createChannelConversation,
   createGroupConversation,
   fetchConversationMessages,
   fetchMyConversations,
@@ -46,6 +48,7 @@ import {
   filterMentionUsers,
   formatChatTime,
   getActiveMentionQuery,
+  isAdminProfile,
   isChatAudioMime,
   messageAuthorDisplayName,
   orderChatToken,
@@ -97,8 +100,10 @@ function ConversationListItem({ conversation, sessionUserId, teamProfiles, activ
   const title = conversationDisplayTitle(conversation, sessionUserId, teamProfiles);
   const preview = conversationPreviewText(conversation.last_message);
   const isGroup = conversation.kind === "group";
+  const isChannel = conversation.kind === "channel";
+  const isNamedRoom = isGroup || isChannel;
   const unread = (conversation.unread_count ?? 0) > 0;
-  const peerId = !isGroup
+  const peerId = !isNamedRoom
     ? (conversation.member_ids ?? []).find((id) => id !== sessionUserId)
     : null;
   const peer = peerId ? teamProfiles.find((p) => p.id === peerId) : null;
@@ -117,9 +122,9 @@ function ConversationListItem({ conversation, sessionUserId, teamProfiles, activ
         unread && "shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.12)]"
       )}
     >
-      {isGroup ? (
+      {isNamedRoom ? (
         <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <UsersRound className="size-5" />
+          {isChannel ? <Hash className="size-5" /> : <UsersRound className="size-5" />}
         </div>
       ) : (
         <PersonAvatar
@@ -222,6 +227,15 @@ export default function TeamChatPanel({
     [conversations]
   );
 
+  const channelConversations = useMemo(
+    () => conversations.filter((c) => c.kind === "channel"),
+    [conversations]
+  );
+
+  const isChatAdmin = isAdminProfile(currentUserProfile);
+  const isChannelThread = activeConversation?.kind === "channel";
+  const channelReadOnly = isChannelThread && !isChatAdmin;
+
   const inboxTabUnread = useMemo(
     () => unreadTextCountByInboxTab(conversations),
     [conversations]
@@ -250,7 +264,11 @@ export default function TeamChatPanel({
       ? Boolean(composeDirectPeerId || activeConversation?.kind === "direct")
       : inboxTab === "groups"
         ? Boolean(activeConversation?.kind === "group") && !composeDirectPeerId
-        : false;
+        : inboxTab === "channels"
+          ? Boolean(isChannelThread) && !composeDirectPeerId
+          : false;
+
+  const canCompose = showThread && !channelReadOnly;
 
   const selectedMessages = useMemo(
     () => messages.filter((msg) => selectedMessageIds.has(msg.id) && !msg.deleted_at),
@@ -258,7 +276,9 @@ export default function TeamChatPanel({
   );
 
   const selectedSingle = selectedMessages.length === 1 ? selectedMessages[0] : null;
-  const canDeleteSelected = selectedMessages.some((msg) => msg.author_id === sessionUserId);
+  const canDeleteSelected = isChannelThread && isChatAdmin
+    ? selectedMessages.length > 0
+    : selectedMessages.some((msg) => msg.author_id === sessionUserId);
 
   const messageById = useMemo(() => {
     const map = new Map();
@@ -417,7 +437,7 @@ export default function TeamChatPanel({
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "team_chat_conversation_members",
           filter: `user_id=eq.${sessionUserId}`
@@ -452,6 +472,7 @@ export default function TeamChatPanel({
   function selectConversation(id) {
     const conv = conversations.find((c) => c.id === id);
     if (conv?.kind === "group") setInboxTab("groups");
+    else if (conv?.kind === "channel") setInboxTab("channels");
     else if (conv?.kind === "direct") setInboxTab("chats");
     setComposeDirectPeerId(null);
     setConversations((prev) => {
@@ -487,6 +508,14 @@ export default function TeamChatPanel({
     const convId = await createGroupConversation(title, memberIds);
     await loadConversations();
     setInboxTab("groups");
+    selectConversation(convId);
+    return convId;
+  }
+
+  async function handleCreateChannel(title) {
+    const convId = await createChannelConversation(title);
+    await loadConversations();
+    setInboxTab("channels");
     selectConversation(convId);
     return convId;
   }
@@ -670,6 +699,7 @@ export default function TeamChatPanel({
 
   async function handleSend(e) {
     e.preventDefault();
+    if (!canCompose) return;
     const body = draft.trim();
     const hasContent = Boolean(body || pendingFile || pendingGifUrl);
     if (!hasContent || sending) return;
@@ -728,6 +758,7 @@ export default function TeamChatPanel({
   const showUserMenu = activeMention?.type === "user";
   const showOrderMenu = activeMention?.type === "order";
   const canSend =
+    canCompose &&
     Boolean(draft.trim() || pendingFile || pendingGifUrl) &&
     !sending &&
     !voiceRecording &&
@@ -840,8 +871,32 @@ export default function TeamChatPanel({
                 </InboxPane>
               </TabsContent>
               <TabsContent value="channels" className={INBOX_PANE_CLASS}>
-                <InboxPane title="Channels">
-                  <p className="p-4 text-center text-sm text-muted-foreground">No channels yet.</p>
+                <InboxPane
+                  title="Channels"
+                  action={
+                    isChatAdmin ? (
+                      <CreateChannelDialog onCreate={handleCreateChannel} />
+                    ) : null
+                  }
+                >
+                  {loadingConversations ? (
+                    <p className="p-4 text-center text-sm text-muted-foreground">Loading channels…</p>
+                  ) : channelConversations.length === 0 ? (
+                    <p className="p-4 text-center text-sm text-muted-foreground">
+                      {isChatAdmin ? "No channels yet. Create one for the whole team." : "No channels yet."}
+                    </p>
+                  ) : (
+                    channelConversations.map((conv) => (
+                      <ConversationListItem
+                        key={conv.id}
+                        conversation={conv}
+                        sessionUserId={sessionUserId}
+                        teamProfiles={teamProfiles}
+                        active={conv.id === activeConversationId}
+                        onSelect={selectConversation}
+                      />
+                    ))
+                  )}
                 </InboxPane>
               </TabsContent>
               <TabsList className="grid h-12 w-full shrink-0 grid-cols-3 rounded-none border-t bg-muted/40 p-1">
@@ -902,6 +957,7 @@ export default function TeamChatPanel({
                         onPin={() => void handlePinSelected()}
                         onCopy={() => void handleCopySelected()}
                         onClear={clearMessageSelection}
+                        channelReadOnly={channelReadOnly}
                       />
                     ) : (
                       <>
@@ -911,7 +967,9 @@ export default function TeamChatPanel({
                             ? presenceLabel(threadPresence ?? "offline")
                             : activeConversation?.kind === "group"
                               ? `${activeConversation.member_ids?.length ?? 0} members`
-                              : presenceLabel(threadPresence ?? "offline")}
+                              : activeConversation?.kind === "channel"
+                                ? "Channel · everyone"
+                                : presenceLabel(threadPresence ?? "offline")}
                         </p>
                       </>
                     )}
@@ -960,7 +1018,7 @@ export default function TeamChatPanel({
                                 isOwn && "items-end"
                               )}
                             >
-                              {activeConversation?.kind === "group" ? (
+                              {activeConversation?.kind === "group" || activeConversation?.kind === "channel" ? (
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                                   <span className="font-medium text-foreground">{authorName}</span>
                                   <time dateTime={msg.created_at}>{formatChatTime(msg.created_at)}</time>
@@ -1030,14 +1088,15 @@ export default function TeamChatPanel({
                                           : "outline"
                                       }
                                       size="sm"
-                                      className="h-6 px-2"
-                                      aria-label={reaction.emoji}
+                                      className="h-6 gap-1 px-2"
+                                      aria-label={`${reaction.emoji} ${reaction.userIds.length}`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         void handleReactToMessage(msg.id, reaction.emoji);
                                       }}
                                     >
                                       {reaction.emoji}
+                                      <span className="tabular-nums">{reaction.userIds.length}</span>
                                     </Button>
                                   ))}
                                 </div>
@@ -1086,6 +1145,13 @@ export default function TeamChatPanel({
 
                 <Separator />
 
+                {channelReadOnly ? (
+                  <p className="p-3 text-center text-sm text-muted-foreground">
+                    Only admins can post. You can react, copy, or forward.
+                  </p>
+                ) : null}
+
+                {canCompose ? (
                 <form className="flex flex-col gap-3 p-3" onSubmit={handleSend}>
                   {replyTo ? (
                     <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
@@ -1313,6 +1379,7 @@ export default function TeamChatPanel({
                     </div>
                   </div>
                 </form>
+                ) : null}
               </>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center text-muted-foreground">
@@ -1329,6 +1396,7 @@ export default function TeamChatPanel({
           sessionUserId={sessionUserId}
           teamProfiles={teamProfiles}
           sending={sending}
+          canPostToChannel={isChatAdmin}
           onForward={handleForwardTo}
         />
       </CardContent>
