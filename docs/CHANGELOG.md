@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-03 — View order mockup/asset preview open-close glitch
+
+- **Bug fix:** Mockup, design, and customer-asset preview no longer portals outside the View order Dialog (that forced `modal` on/off and flashed the page). Preview is an overlay inside an inner wrap. Do not put `relative` on DialogContent — Tailwind would drop `fixed` and the order sheet would vanish. Asset Management detail overlays the list instead of swapping to an empty page.
+- **Files:** `ImagePreviewModal.jsx`, `App.jsx`, `AssetManagementPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
 ## 2026-09-03 — Local `npm run dev` killed by leftover picklist port
 
 - **Bug fix:** Stale `node server/index.js` on port 3001 made picklist exit `EADDRINUSE`, and the wrapper then killed Vite, so `localhost:5173` died. Wrapper now reuses a healthy picklist and keeps Vite if picklist fails. Listen errors on the picklist server are handled instead of an unhandled crash.

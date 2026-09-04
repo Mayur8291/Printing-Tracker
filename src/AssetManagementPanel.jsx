@@ -542,10 +542,14 @@ export default function AssetManagementPanel({ isAdmin = false, sessionUserId = 
           </Button>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-auto">
+        <main className="relative min-h-0 flex-1 overflow-auto">
           {screen === "dashboard" && renderDashboard()}
-          {screen === "assets" && renderAssets()}
-          {screen === "detail" && renderDetail()}
+          {(screen === "assets" || screen === "detail") && renderAssets()}
+          {screen === "detail" && detail ? (
+            <div className="absolute inset-0 z-10 overflow-auto bg-background">
+              {renderDetail()}
+            </div>
+          ) : null}
           {screen === "add" && renderAdd()}
           {screen === "reports" && renderAudit()}
           {screen === "scanner" && renderScanner()}
@@ -805,9 +809,7 @@ export default function AssetManagementPanel({ isAdmin = false, sessionUserId = 
   }
 
   function renderDetail() {
-    if (!detail) {
-      return <div className="p-6">{emptyHint("No asset selected")}</div>;
-    }
+    if (!detail) return null;
 
     return (
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">

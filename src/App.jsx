@@ -3938,6 +3938,7 @@ function App() {
   }
 
   function closeViewOrder() {
+    closePreview();
     setViewOrderTarget(null);
     setViewOrderFromTab(null);
     closeOrderHistory();
@@ -3974,8 +3975,10 @@ function App() {
   }
 
   function openPreview(urls, index) {
-    setPreviewImages(urls);
-    setPreviewIndex(index);
+    const list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+    if (!list.length) return;
+    setPreviewImages(list);
+    setPreviewIndex(Math.min(Math.max(Number(index) || 0, 0), list.length - 1));
   }
 
   function closePreview() {
@@ -7978,21 +7981,29 @@ function App() {
       {activeViewOrder && (
         <Dialog
           open
-          modal={previewImages.length === 0 && !orderHistoryTarget}
+          modal={!orderHistoryTarget}
           onOpenChange={(open) => {
-            if (!open) closeViewOrder();
+            if (!open) {
+              closePreview();
+              closeViewOrder();
+            }
           }}
         >
           <DialogContent
             className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] [&>button:last-child]:hidden"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => {
-              if (previewImages.length > 0) e.preventDefault();
+              if (previewImages.length > 0) {
+                e.preventDefault();
+                closePreview();
+              }
             }}
             onInteractOutside={(e) => {
               if (previewImages.length > 0) e.preventDefault();
             }}
           >
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="min-h-0 flex-1 overflow-y-auto">
             <OrderDetailPanel
               order={activeViewOrder}
               onClose={closeViewOrder}
@@ -8050,6 +8061,16 @@ function App() {
               onAddOwner={isAdmin ? addOwnerFromDropdown : undefined}
               onAddCoordinator={isAdmin ? addCoordinatorFromDropdown : undefined}
             />
+            </div>
+            <ImagePreviewModal
+              images={previewImages}
+              index={previewIndex}
+              onClose={closePreview}
+              onPrev={prevPreview}
+              onNext={nextPreview}
+              alt="Mockup preview"
+            />
+            </div>
           </DialogContent>
         </Dialog>
       )}
@@ -8102,14 +8123,6 @@ function App() {
           </div>
         </div>
       )}
-      <ImagePreviewModal
-        images={previewImages}
-        index={previewIndex}
-        onClose={closePreview}
-        onPrev={prevPreview}
-        onNext={nextPreview}
-        alt="Mockup preview"
-      />
       <AssignmentToastStack
         toasts={assignmentToasts}
         onDismiss={dismissAssignmentToast}

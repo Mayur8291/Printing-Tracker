@@ -1014,6 +1014,29 @@ Netlify **secret scanning** (Secrets Controller / smart detection) blocks publis
 ### Verify
 Deploy log reaches **Deploy site** / **Published** with no secret scan failure. Live app loads; Network tab Supabase requests use production host.
 
+## View order sheet missing after mockup preview work
+
+| | |
+|--|--|
+| **Symptom** | Click View order. No sheet, or it is not on screen. |
+| **Root cause** | `DialogContent` got `relative`. Tailwind merge dropped `fixed`, so the dialog left the viewport. |
+| **Fix** | Keep DialogContent `fixed`. Put `relative` on an inner wrap only. |
+| **Verify** | View order shows customer, status, mockups. Hard refresh. |
+
+## View order mockup / asset preview glitches on open and close
+
+### Symptom
+View order → click mockup, design, or customer **View** → overlay jumps, page flashes, Close hard to hit, or View order dims/undims.
+
+### Root cause
+Radix View order Dialog is modal. It sets the rest of `document.body` to `inert`. Image preview used to portal to `body`, so it sat *outside* the dialog. Code flipped `modal={false}` while preview was open so clicks could land. That drop/restore of the dialog overlay is the open/close glitch.
+
+### Fix
+Preview renders **inside** a `relative` wrap in View order (not on `DialogContent` itself — `relative` there strips `fixed` and hides the sheet). Esc/Close only hides the preview. Closing View order also clears preview.
+
+### Verify
+Open View order → mockup or asset View → preview covers the order sheet → Close → order sheet still there, no page flash.
+
 ## View order mockup preview appears behind dialog
 
 ### Symptom

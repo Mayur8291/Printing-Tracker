@@ -33,6 +33,16 @@ flowchart LR
   Utils --> Table[(hr_assets)]
 ```
 
+## View order mockup and asset preview
+
+```mermaid
+flowchart TD
+  Open[View order Dialog] --> Click[Click mockup or asset View]
+  Click --> Overlay[ImagePreviewModal inside DialogContent]
+  Overlay --> CloseBtn[Close or Esc]
+  CloseBtn --> Open
+```
+
 ## Printing status, mark complete stay, Sent to Dispatch auto-complete
 
 ```mermaid

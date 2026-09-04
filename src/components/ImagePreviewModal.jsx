@@ -1,10 +1,11 @@
 import { useEffect } from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
- * Full-screen image preview. Portaled to document.body so it stacks above Radix Dialog/Sheet (z-50).
- * Closes only via the toolbar Close button (View order Dialog modal trap blocks outside/Esc dismiss).
+ * Image preview for View order (mockups, designs, customer assets, payment proof).
+ * Must render *inside* the View order DialogContent. A body portal sits outside
+ * Radix modal `inert`, so open/close used to flash the page and eat clicks.
  */
 export default function ImagePreviewModal({
   images,
@@ -14,14 +15,24 @@ export default function ImagePreviewModal({
   onNext,
   alt = "Preview"
 }) {
+  const list = Array.isArray(images) ? images.filter(Boolean) : [];
+  const max = list.length;
+  const safeIndex = max ? Math.min(Math.max(Number(index) || 0, 0), max - 1) : 0;
+
   useEffect(() => {
-    if (!images?.length) return undefined;
+    if (!max) return undefined;
 
     function onKeyDown(event) {
-      if (images.length > 1 && event.key === "ArrowLeft") {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose?.();
+        return;
+      }
+      if (max > 1 && event.key === "ArrowLeft") {
         event.preventDefault();
         onPrev?.();
-      } else if (images.length > 1 && event.key === "ArrowRight") {
+      } else if (max > 1 && event.key === "ArrowRight") {
         event.preventDefault();
         onNext?.();
       }
@@ -29,72 +40,58 @@ export default function ImagePreviewModal({
 
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [images?.length, onNext, onPrev]);
+  }, [max, onClose, onNext, onPrev]);
 
-  if (!images?.length) return null;
+  if (!max) return null;
 
-  function handleClosePointerDown(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    onClose();
-  }
-
-  return createPortal(
+  return (
     <div
-      className="image-modal-backdrop image-modal-backdrop--stack-top"
-      role="presentation"
+      className="absolute inset-0 z-[60] flex flex-col bg-background/95 p-3"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image preview"
     >
-      <div className="image-modal" role="dialog" aria-modal="true" aria-label="Image preview">
-        <div className="image-modal-toolbar">
-          {images.length > 1 ? (
-            <span className="image-modal-counter">
-              {index + 1} / {images.length}
-            </span>
-          ) : (
-            <span className="image-modal-counter" aria-hidden="true" />
-          )}
-          <button
-            type="button"
-            className="image-modal-close"
-            onPointerDown={handleClosePointerDown}
-            onClick={handleClosePointerDown}
-            aria-label="Close preview"
-          >
-            <X aria-hidden="true" />
-            <span className="image-modal-close-label">Close</span>
-          </button>
-        </div>
-        <div className="image-modal-stage">
-          {images.length > 1 ? (
-            <button
-              type="button"
-              className="image-modal-nav prev"
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                onPrev?.();
-              }}
-              aria-label="Previous image"
-            >
-              {"<"}
-            </button>
-          ) : null}
-          <img src={images[index]} alt={alt} draggable={false} />
-          {images.length > 1 ? (
-            <button
-              type="button"
-              className="image-modal-nav next"
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                onNext?.();
-              }}
-              aria-label="Next image"
-            >
-              {">"}
-            </button>
-          ) : null}
-        </div>
+      <div className="flex items-center justify-between gap-2 pb-2">
+        <p className="text-sm font-medium text-muted-foreground">
+          {max > 1 ? `${safeIndex + 1} / ${max}` : "Preview"}
+        </p>
+        <Button type="button" variant="outline" size="sm" onClick={() => onClose?.()}>
+          <X />
+          Close
+        </Button>
       </div>
-    </div>,
-    document.body
+      <div className="relative flex min-h-0 flex-1 items-center justify-center gap-2">
+        {max > 1 ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            onClick={() => onPrev?.()}
+            aria-label="Previous image"
+          >
+            <ChevronLeft />
+          </Button>
+        ) : null}
+        <img
+          src={list[safeIndex]}
+          alt={alt}
+          draggable={false}
+          className="max-h-full max-w-full object-contain"
+        />
+        {max > 1 ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            onClick={() => onNext?.()}
+            aria-label="Next image"
+          >
+            <ChevronRight />
+          </Button>
+        ) : null}
+      </div>
+    </div>
   );
 }
