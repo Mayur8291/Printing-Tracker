@@ -6,6 +6,13 @@
 - **Files:** `ImagePreviewModal.jsx`, `App.jsx`, `AssetManagementPanel.jsx`
 - **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
 
+## 2026-09-03 — Purchase Order Status column uses icon + name
+
+- **Issue:** All PO Orders Status looked like a colored badge, not the job-sheet status Select.
+- **Fix:** Same names (Pending, PO sent, PO Approved, Completed). Trigger and list show a colorful icon then the name, like Production Status. Pending uses `/icons/pending.png`.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-03 — Local `npm run dev` killed by leftover picklist port
 
 - **Bug fix:** Stale `node server/index.js` on port 3001 made picklist exit `EADDRINUSE`, and the wrapper then killed Vite, so `localhost:5173` died. Wrapper now reuses a healthy picklist and keeps Vite if picklist fails. Listen errors on the picklist server are handled instead of an unhandled crash.

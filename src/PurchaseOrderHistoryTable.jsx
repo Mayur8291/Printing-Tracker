@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BadgeCheck, CheckCircle2, Clock, FileSpreadsheet, Send } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -34,9 +33,6 @@ import PurchaseOrderPrintSheet from "./PurchaseOrderPrintSheet";
 import {
   PO_HISTORY_STATUS_COMPLETED,
   PO_HISTORY_STATUS_ORDER,
-  PO_HISTORY_STATUS_PENDING,
-  PO_HISTORY_STATUS_PO_APPROVED,
-  PO_HISTORY_STATUS_PO_SENT,
   PO_HISTORY_VISIBLE_STATUSES,
   PO_OPEN_STATUSES,
   filterPurchaseOrderHistoryRows,
@@ -48,21 +44,26 @@ import {
 import { formatPurchaseOrderC42Display } from "./purchaseOrderLayout";
 import { subscribePostgresChanges } from "./realtimeUtils";
 
-const STATUS_ICONS = {
-  [PO_HISTORY_STATUS_PENDING]: Clock,
-  [PO_HISTORY_STATUS_PO_SENT]: Send,
-  [PO_HISTORY_STATUS_PO_APPROVED]: BadgeCheck,
-  [PO_HISTORY_STATUS_COMPLETED]: CheckCircle2
-};
-
-function PurchaseOrderStatusBadge({ status }) {
+function PurchaseOrderStatusIcon({ status }) {
   const meta = purchaseOrderHistoryStatusMeta(status);
-  const Icon = STATUS_ICONS[status] || Clock;
+  const icon = meta.icon || "⏳";
+  if (typeof icon === "string" && icon.startsWith("/")) {
+    return <img className="stage-icon-img" src={icon} alt="" />;
+  }
   return (
-    <Badge variant="outline" className={cn("gap-1 font-normal", meta.className)}>
-      <Icon aria-hidden />
+    <span className="stage-icon" title={meta.label}>
+      {icon}
+    </span>
+  );
+}
+
+function PurchaseOrderStatusMark({ status, truncate = false }) {
+  const meta = purchaseOrderHistoryStatusMeta(status);
+  return (
+    <span className={cn("flex items-center gap-1.5", truncate && "truncate")}>
+      <PurchaseOrderStatusIcon status={status} />
       {meta.label}
-    </Badge>
+    </span>
   );
 }
 
@@ -242,21 +243,26 @@ export default function PurchaseOrderHistoryTable({ list = "open", isAdmin = fal
                         value={row.status}
                         onValueChange={(value) => void handleStatusChange(row.id, value)}
                       >
-                        <SelectTrigger className="h-8 w-[11.5rem] bg-background">
-                          <SelectValue />
+                        <SelectTrigger
+                          aria-label="Status"
+                          className="h-8 min-w-[10rem] max-w-[14rem] bg-background text-xs"
+                        >
+                          <SelectValue placeholder="Status">
+                            <PurchaseOrderStatusMark status={row.status} truncate />
+                          </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-72">
                           <SelectGroup>
                             {PO_HISTORY_STATUS_ORDER.map((value) => (
                               <SelectItem key={value} value={value}>
-                                <PurchaseOrderStatusBadge status={value} />
+                                <PurchaseOrderStatusMark status={value} />
                               </SelectItem>
                             ))}
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <PurchaseOrderStatusBadge
+                      <PurchaseOrderStatusMark
                         status={isHistory ? PO_HISTORY_STATUS_COMPLETED : row.status}
                       />
                     )}

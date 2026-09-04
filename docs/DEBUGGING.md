@@ -1,5 +1,14 @@
 # Debugging
 
+## Purchase Order Status still looks like a colored badge
+
+| | |
+|--|--|
+| **Symptom** | All PO Orders Status is a tinted pill, not icon + name in a white Select. |
+| **Root cause** | Old cell used a Badge around Lucide. Job-sheet Status uses `stage-icon` / PNG + label in the trigger and items. |
+| **Fix** | Hard refresh. Admin Select and read-only cells use `PurchaseOrderStatusMark`. Names unchanged. |
+| **Verify** | Pending shows the red clock PNG. List still Pending, PO sent, PO Approved, Completed. |
+
 ## Localhost / `npm run dev` dies right after Vite ready
 
 | | |
