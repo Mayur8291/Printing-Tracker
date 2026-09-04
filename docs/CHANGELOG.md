@@ -70,6 +70,12 @@
 - **Files:** `src/TeamChatPanel.jsx`, `src/components/ui/empty.jsx`
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
 
+## 2026-09-03 — View order mockup/asset preview open-close glitch
+
+- **Bug fix:** Mockup, design, and customer-asset preview no longer portals outside the View order Dialog (that forced `modal` on/off and flashed the page). Preview is an overlay inside an inner wrap. Do not put `relative` on DialogContent — Tailwind would drop `fixed` and the order sheet would vanish. Asset Management detail overlays the list instead of swapping to an empty page.
+- **Files:** `ImagePreviewModal.jsx`, `App.jsx`, `AssetManagementPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
 ## 2026-09-03 — Purchase Order Status column uses icon + name
 
 - **Issue:** All PO Orders Status looked like a colored badge, not the job-sheet status Select.

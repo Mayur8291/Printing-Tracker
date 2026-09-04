@@ -5,7 +5,7 @@
 1. **Trigger:** sidebar Tools → **Asset Management** (`dashboardTab === "asset_management"`).
 2. **Entry:** `AssetManagementPanel` loads `hr_assets` on mount. Default screen is Dashboard. **Assets** is the register list. **Add asset** / header **New asset** is the form.
 3. **Auth:** signed-in user. Insert needs `created_by = auth.uid()` and a `profiles` row. Select is any authenticated user. Production has no table until an explicit release.
-4. **Logic:** Fill Asset name (required), category, optional manufacturer/model/serial/purchase date, location, optional assignee, charger, notes. **Save asset** inserts `hr_assets` with next `IT-#####` tag (client + unique retry). Status `Checked out` if assignee set, else `Available`. Then the panel opens **Assets**. Click a row → detail for that tag only (no fallback to another asset). **Back to assets** clears the selected tag and any check-in/out dialog. Assign / check-in on detail updates the same row. Check-in/out Dialog mounts only while that modal is open.
+4. **Logic:** Fill Asset name (required), category, optional manufacturer/model/serial/purchase date, location, optional assignee, charger, notes. **Save asset** inserts `hr_assets` with next `IT-#####` tag (client + unique retry). Status `Checked out` if assignee set, else `Available`. Then the panel opens **Assets**. Click a row → detail overlay on the same list (list stays mounted). **Back to assets** clears the selected tag and any check-in/out dialog. Assign / check-in on detail updates the same row. Check-in/out Dialog mounts only while that modal is open.
 5. **Database:** insert/select/update `hr_assets`. No delete.
 6. **Failure:** missing name or missing session → Alert on the form. RLS / missing table → `[hr-assets] insert failed` / list error Alert. Leave tab unmounts the panel; reload reads the table so the row stays.
 7. **Edge:** two saves at once may clash on tag; insert retries a new tag. Empty name blocked. Unassigned + Checked out blocked by DB check.
@@ -428,8 +428,8 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 1. **Trigger:** User opens **View order** → **Designs** / **Mockups** section.
 2. **Hydration:** `openViewOrder()` always fetches `ORDERS_FULL_SELECT` (includes `approved_design_url`, approved images, payment proof).
 3. **Live refresh:** List refetch uses lightweight columns; `mergeOrderDetailAssets()` keeps mockup URLs on the open order so thumbnails do not vanish during realtime sync or after approved-image upload patches.
-4. **Preview:** Click thumbnail → `openPreview()` → `ImagePreviewModal` portaled to `document.body` (`z-index: 2000`).
-5. **Exit preview:** Toolbar **Close** button.
+4. **Preview:** Click thumbnail or customer-asset **View** → `openPreview()` → `ImagePreviewModal` overlay **inside** the View order Dialog (not a body portal).
+5. **Exit preview:** **Close** or Esc. View order stays open. Closing View order also clears preview.
 
 ### View order — customer assets
 
