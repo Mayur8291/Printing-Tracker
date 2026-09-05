@@ -69,7 +69,11 @@ Full schema: Supabase Dashboard → Table Editor, or `supabase/schema.sql`.
 | RPC | Purpose |
 |-----|---------|
 | `get_or_create_direct_conversation` | Chat DM |
-| `create_group_conversation` | Chat group |
+| `create_group_conversation` | Chat group (creator is group admin) |
+| `add_group_conversation_members` | Group admin adds people |
+| `remove_group_conversation_member` | Group admin removes one person |
+| `set_group_conversation_member_role` | Group admin promotes to admin |
+| `set_group_conversation_avatar` | Group admin sets photo path |
 | `create_channel_conversation` | Admin-only org channel (adds every profile) |
 | `mark_conversation_read` | Chat unread |
 | `list_team_chat_directory` | Mention picker |

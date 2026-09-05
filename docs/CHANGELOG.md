@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-09-05 — Selected chat rows use a sky-blue bar
+
+- **Issue:** Selected messages only had a ring on the bubble, so it was hard to see what was picked.
+- **Fix:** Chat/Group selection paints a light sky-blue horizontal bar across the row. The message bubble itself stays the same color.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-05 — Header click opens details; Media tabs
+
+- **Issue:** Group name looked like a button. Chat header did not open a profile page. No place to see shared photos, files, or links.
+- **Fix:** Name stays normal text. Click the name line on Chat or Group to open the details sheet (photo + people; group admin still adds/removes). **Media** on the right lists Photos/Videos, Documents, and Links.
+- **Files:** `TeamChatPanel.jsx`, `ChatGroupDetailsSheet.jsx`, `ChatSharedMediaSheet.jsx`, `teamChatMedia.js`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-09-05 — Incoming chat toast and dedicated sound
+
+- **Issue:** Incoming Chat / Group / Channel messages used the generic status tone and had no 45s name + message box.
+- **Fix:** New messages play `sounds/chat-message.mp3` (from the provided Drive clip). Recipients see a bottom-right card: name, then message, X to close, 45 seconds. Sound still plays if another browser tab is focused while the dashboard stays open.
+- **Files:** `public/sounds/chat-message.mp3`, `ChatIncomingToastStack.jsx`, `notificationTonePlayer.js`, `teamChatNotificationUtils.js`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, SECURITY.md.
+
+## 2026-09-05 — Group admin details sheet
+
+- **Issue:** Group creator was already admin in the DB, but nobody could add people, promote admins, change the group photo, or remove a member. Clicking the group name did nothing.
+- **Fix:** Click group name in the thread header opens a details sheet with every member. Creator stays admin. Admins can add people, make admins, change the photo, and remove others. Members only see the list. Staging migration `20260905153000_team_chat_group_admin.sql`.
+- **Files:** `ChatGroupDetailsSheet.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `teamChatUtils.js`, `avatarUtils.js`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-05 — Group ticks stay 2 grey until everyone seen
+
+- **Issue:** Group tick dropped to 1 grey after one person opened the post if others were Offline.
+- **Fix:** Group: one or more other members seen, but not all → always **2 grey**. **2 blue** only when every other member has seen that post. Nobody seen yet still uses Online for 2 grey / Offline for 1 grey. DMs unchanged.
+- **Files:** `teamChatReceipts.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-09-05 — Ticks refresh on every Chat/Group send type
+
+- **Issue:** Ticks stayed 1 grey after people opened the thread. Photo, file, GIF, emoji, and voice often lost the tick.
+- **Fix:** Staging `replica identity full` on members so peer `last_read_at` realtime works. Sender patches + polls member reads. Open thread heartbeats mark-read. Bubble is a `div` so media/links do not eat ticks. Same 1 grey / 2 grey / 2 blue rules for text, photo, file, GIF, emoji, voice. Channels still no ticks.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`, `teamChatReceipts.js`, `ChatMessageMedia.jsx`, `20260905105000_team_chat_member_read_realtime.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md, DECISIONS.md.
+
+## 2026-09-05 — Chat and group delivery ticks
+
+- **Issue:** Sent bubbles had no WhatsApp-style ticks. Group senders could not see who opened a post.
+- **Fix:** Own Chats/Groups messages show 1 grey / 2 grey / 2 blue from peer `last_read_at` + Online presence. Channels stay tick-free. Group sender, one selected post → Info lists Seen / Not seen. All others seen → blue. Any unread + someone Online → 2 grey. All others Offline/Away → 1 grey. Inbox now loads every member `last_read_at` and listens to all member row changes.
+- **Files:** `teamChatReceipts.js`, `ChatMessageTicks.jsx`, `ChatGroupViewersDialog.jsx`, `ChatMessageActionBar.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-04 — Org-wide Channels with admin-only posting
 
 - **Issue:** Channels tab was empty. Need a room everyone sees, but only admins create and post.

@@ -46,7 +46,7 @@ export function ChatMessageAttachment({ msg, inverted = false }) {
 
   if (isChatImageMime(mime)) {
     return (
-      <div className="mt-2 space-y-2">
+      <div className="mt-2 flex flex-col gap-2">
         <a href={url} target="_blank" rel="noopener noreferrer" download={name}>
           <img
             src={url}

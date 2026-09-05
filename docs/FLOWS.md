@@ -485,8 +485,23 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 ### Create group
 
 1. **Trigger:** Groups tab → **New group** → name + member checkboxes.
-2. **Services:** RPC `create_group_conversation(title, member_ids[])` — creator is admin member.
+2. **Services:** RPC `create_group_conversation(title, member_ids[])` — creator is **group admin**. Others start as member.
 3. **Exit:** Group appears on the **Groups** tab only; all members can read/write. Panel switches to Groups.
+
+### Group / Chat header details
+
+1. **Trigger:** Open a Chat or Group thread. Click anywhere on the **name line** (name stays normal text, not a button). Channels do not open this.
+2. **Chat:** Sheet shows the other person's photo and both people. No add/remove.
+3. **Group:** Sheet lists every member. Group admin can Change photo, **Add people**, **Make admin**, **Remove**.
+4. **Services:** same group admin RPCs as before. Photo goes to `team-chat-group-avatars/{conversation_id}/…`.
+5. **Guards:** Cannot remove yourself. Cannot remove the last admin. Members see the list only.
+
+### Shared media (Chat and Groups)
+
+1. **Trigger:** **Media** on the right of the name line.
+2. **Tabs:** **Photos/Videos** (images, GIFs, video files), **Documents** (PDF, Excel, voice notes, other files), **Links** (http/https in message text).
+3. **Services:** `fetchConversationSharedMedia` — non-deleted messages with an attachment, GIF, or `http` in the body.
+4. **Exit:** Open a file/link in a new tab. Empty tab says none yet.
 
 ### Chat presence (Online / Away / Offline)
 
@@ -497,18 +512,36 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 5. **Same source:** List and thread both read `presenceFromRow` so they cannot disagree.
 6. **Realtime:** `hr_user_presence` postgres changes refresh the map. A 15s tick flips Online → Away at 5 minutes.
 
+### Delivery ticks (Chats and Groups only)
+
+1. **Trigger:** You send any message (text, photo, GIF, voice). Ticks sit on **your** bubble only. Channels have no ticks.
+2. **Seen:** Other member `last_read_at` ≥ that message `created_at` (they opened the thread). All others seen → **2 blue**.
+3. **Chats (unread):** Peer **Online** (dashboard active, 5 min grace) → **2 grey**. Peer Away/Offline → **1 grey**.
+4. **Groups:** **2 blue** only when every other member has seen that post. If even one other member has seen it (any day) and someone has not → **2 grey**, even if the rest are Offline. If nobody has seen it yet: any other member Online → **2 grey**; all others Away/Offline → **1 grey**.
+5. **Read wins:** After all others have seen it, ticks stay blue even if they later go offline.
+6. **Realtime:** Member `UPDATE` patches `member_reads` immediately. Open Chat/Group also polls reads every 4s. Staging table uses `REPLICA IDENTITY FULL` so RLS realtime can send peer `last_read_at`.
+7. **Open = seen:** While a Chat/Group/Channel thread is open, the viewer heartbeats `mark_conversation_read` every 4s so new text/photo/GIF/file/voice is marked seen without closing and reopening.
+8. **All types:** Ticks sit on every own Chat/Group send (text, photo, document, GIF, emoji, voice). Bubble is a `div` so nested download links do not drop the ticks.
+
+### Group viewers list
+
+1. **Trigger:** Sender selects **one** of their group messages. Info icon appears on the action bar.
+2. **Dialog:** **Seen** = members whose `last_read_at` covers that post. **Not seen** = the rest. Sender is not listed.
+3. **Edge:** Only the author sees Info. Multi-select hides it. DMs and channels have no viewers list.
+
 ### Select message actions (Chats and Groups)
 
 1. **Trigger:** Click a live message bubble in the thread.
-2. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Delete, Clear.
-3. **Several selected:** Header shows icon-only Copy, Forward, Delete, Clear.
-4. **Reply:** Composer quotes that message; send stores `reply_to_message_id`.
-5. **React:** Emoji picker; RPC `set_team_chat_message_reaction` (one emoji per user; same emoji again removes it).
-6. **Pin:** RPC `toggle_team_chat_message_pin` for conversation members.
-7. **Delete:** RPC `soft_delete_team_chat_messages` — own messages only (`deleted_at`). Others stay selected until cleared.
-8. **Forward:** Dialog pick another conversation; copies body/attachment/GIF with `forwarded_from_message_id`.
-9. **Copy:** Writes selected bodies to the clipboard (full text). Empty body uses GIF / Voice note / Photo / file name. Several messages join with a blank line. Browser must allow clipboard write.
-10. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.
+2. **Selected look:** That row (not the bubble) gets a full-width light sky-blue bar (`bg-sky-100`). One or many selected rows all show it. Bubble color stays the same.
+3. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Delete, Clear. Group sender also gets Info (viewers).
+4. **Several selected:** Header shows icon-only Copy, Forward, Delete, Clear.
+5. **Reply:** Composer quotes that message; send stores `reply_to_message_id`.
+6. **React:** Emoji picker; RPC `set_team_chat_message_reaction` (one emoji per user; same emoji again removes it).
+7. **Pin:** RPC `toggle_team_chat_message_pin` for conversation members.
+8. **Delete:** RPC `soft_delete_team_chat_messages` — own messages only (`deleted_at`). Others stay selected until cleared.
+9. **Forward:** Dialog pick another conversation; copies body/attachment/GIF with `forwarded_from_message_id`.
+10. **Copy:** Writes selected bodies to the clipboard (full text). Empty body uses GIF / Voice note / Photo / file name. Several messages join with a blank line. Browser must allow clipboard write.
+11. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.
 
 ### Send GIF / attachment
 
@@ -521,11 +554,11 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 ### Realtime
 
-`TeamChatPanel` subscribes to `team_chat_messages`, `team_chat_conversations`, and `team_chat_message_reactions` postgres changes; refreshes inbox + active thread.
+`TeamChatPanel` subscribes to `team_chat_messages`, `team_chat_conversations`, `team_chat_message_reactions`, and **all** `team_chat_conversation_members` postgres changes (not only the current user); refreshes inbox + active thread so peer `last_read_at` updates ticks.
 
 **Unread:** Opening a thread calls `mark_conversation_read` — row and inbox-tab badges clear for that conversation. Count is unopened text messages only. Sidebar **Chat** tab sums the same counts.
 
-**Sound:** New message for current user plays the same notification tone as tasks/orders (custom MP3 if set). No tone when user already has that conversation open on the Chat tab.
+**Sound + toast:** Every incoming Chat / Group / Channel message (not your own) plays `public/sounds/chat-message.mp3` and shows a bottom-right card: **name**, then the message (or Photo / GIF / Voice note). Card stays 45 seconds or until X. Sound plays even if another browser tab is focused, as long as Scott Dashboard is still open and the browser already primed audio after a click. Status mute does not block this chat sound.
 
 ### Admin views all user goals and tasks
 

@@ -668,6 +668,59 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
+  Insert[New chat group or channel message] --> Member{Recipient is member}
+  Member -->|no| Skip[No alert]
+  Member -->|yes own| Skip
+  Member -->|yes other| Sound[Play chat-message.mp3]
+  Sound --> Toast[Bottom-right Name plus Message]
+  Toast --> Wait[45s or X]
+```
+
+```mermaid
+flowchart TD
+  Line[Click Chat or Group name line] --> Details[Details sheet photo plus people]
+  MediaBtn[Media button] --> Tabs[Photos Videos / Documents / Links]
+```
+
+```mermaid
+flowchart TD
+  Click[Click group name] --> Sheet[Group details sheet]
+  Sheet --> List[Every member]
+  List --> Role{You are group admin}
+  Role -->|no| View[List only]
+  Role -->|yes| Admin[Add people / Make admin / Remove / Change photo]
+  Admin --> RPC[Security definer RPCs]
+```
+
+```mermaid
+flowchart TD
+  Send[You send in Chat or Group] --> Kind{kind}
+  Kind -->|channel| None[No ticks]
+  Kind -->|direct or group| Reads[Compare others last_read_at]
+  Reads -->|all seen| Blue[2 blue ticks]
+  Reads -->|group some seen| Grey2Always[2 grey ticks]
+  Reads -->|nobody seen or DM unread| Dash{Any other Online}
+  Dash -->|yes| Grey2[2 grey ticks]
+  Dash -->|no| Grey1[1 grey tick]
+  Open[Peer keeps thread open] --> Beat[mark_conversation_read every 4s]
+  Beat --> Reads
+```
+
+```mermaid
+sequenceDiagram
+  participant Sender
+  participant Peer
+  participant DB as last_read_at
+  Sender->>Peer: Message arrives
+  Note over Sender: 1 grey if peer Offline
+  Peer->>Peer: Dashboard Online, chat closed
+  Note over Sender: 2 grey
+  Peer->>DB: Open thread mark_conversation_read
+  Note over Sender: 2 blue
+```
+
+```mermaid
+flowchart TD
   Admin[Admin] --> NewCh[New Channel name]
   NewCh --> RPC[create_channel_conversation]
   RPC --> All[Every profile is a member]

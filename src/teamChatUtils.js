@@ -268,3 +268,11 @@ export function conversationDisplayTitle(conversation, userId, profiles) {
   const peer = (profiles ?? []).find((p) => p.id === peerId);
   return profileChatLabel(peer) || "Direct chat";
 }
+
+export function isConversationGroupAdmin(conversation, userId) {
+  if (!conversation || conversation.kind !== "group" || !userId) return false;
+  const reads = conversation.member_reads ?? [];
+  const mine = reads.find((row) => String(row.user_id) === String(userId));
+  if (mine?.role) return mine.role === "admin";
+  return String(conversation.created_by) === String(userId);
+}

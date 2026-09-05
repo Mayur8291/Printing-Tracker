@@ -2,6 +2,48 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-05 — Name line click vs Media button
+
+**Context:** User does not want the Chat/Group title to look like a button. Clicking the name line should open details. A separate **Media** control should show shared files.
+
+**Decision:** Keep the title as normal `h3` text. The name block is clickable without button chrome. **Media** is an outline button on the right. Details sheet covers DMs (two people) and groups. Media sheet has Photos/Videos, Documents, Links.
+
+**Why:** Matches the old look and WhatsApp-style media tabs.
+
+**Tradeoffs:** Channels have neither. Videos/Excel only appear if those files were stored; upload still allows images, PDF, and voice.
+
+## 2026-09-05 — Chat alerts use a dedicated MP3 and a 45s corner card
+
+**Context:** User wants every received Chat / Group / Channel message to play a specific Drive sound and show Name + Message for 45 seconds at the bottom-right, including when they are on another browser tab.
+
+**Decision:** Store the clip as `public/sounds/chat-message.mp3`. `App.jsx` realtime INSERT (membership check) plays that file and pushes a shadcn card. Audio is primed after first click so a hidden tab can still `play()`. Status-tone mute does not apply. Own messages never alert.
+
+**Why:** One file, same for everyone. Browser cannot play if the dashboard tab is closed.
+
+**Tradeoffs:** Other-tab sound needs a prior click on the dashboard (autoplay policy). No OS notification permission flow.
+
+## 2026-09-05 — Group creator is admin; membership changes are RPCs
+
+**Context:** User wants the group creator to be admin, and only admins add people, promote admins, change the group photo, and remove people. Clicking the group name opens details.
+
+**Decision:** Keep `role` on `team_chat_conversation_members` (creator already `admin`). New security-definer RPCs for add / promote / remove / avatar. `avatar_path` on the conversation. Photo bucket `team-chat-group-avatars`. Header click opens a shadcn Sheet.
+
+**Why:** No UPDATE/DELETE RLS on members — a client write would be unsafe. RPCs check `jwt_user_is_group_admin`. Last admin cannot be removed.
+
+**Tradeoffs:** Dashboard `profiles.role = admin` is not a group admin unless they created the group or were promoted. Admins cannot remove themselves.
+
+## 2026-09-05 — Chat receipts reuse last_read_at + presence
+
+**Context:** User wants WhatsApp ticks on Chats and Groups, plus a group viewers list for the sender.
+
+**Options:** (1) New per-message read table. (2) Reuse conversation `last_read_at` (opening the thread marks all older posts seen) plus `hr_user_presence` Online.
+
+**Decision:** Option 2. DM: 1 grey = not seen and peer not Online; 2 grey = not seen and peer Online; 2 blue = peer `last_read_at` ≥ message time. Group: 2 blue only when every other member has seen it. One or more seen but not all → 2 grey (ignore presence). Nobody seen yet → same Online/Offline rule as before. Channels have no ticks. Group Info lists Seen / Not seen for the author only.
+
+**Why:** Open-thread already writes `last_read_at`. No extra write on every scroll. Presence already means “dashboard active”.
+
+**Tradeoffs:** Opening the thread marks every older message seen (same as current unread). Away counts as not dashboard-active. Ticks live on outgoing bubbles only. Open-thread heartbeat + 4s poll keep ticks moving even if one Realtime event is missed. `REPLICA IDENTITY FULL` on members is required for RLS Realtime.
+
 ## 2026-09-04 — Channels are org-wide; only admins post
 
 **Context:** Channels tab is for the whole Scott Dashboard. Only admins create channels and post. Everyone else only reacts, copies, and forwards.

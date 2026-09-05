@@ -561,6 +561,7 @@ Conversation-scoped messaging: direct (1:1), groups, org-wide channels, GIF URLs
 | `created_by` | uuid | FK → `profiles.id` |
 | `last_message_at` | timestamptz | Inbox sort |
 | `created_at` | timestamptz | Created time |
+| `avatar_path` | text | Group photo in `team-chat-group-avatars` (null = icon) |
 
 ### `team_chat_conversation_members`
 
@@ -568,9 +569,11 @@ Conversation-scoped messaging: direct (1:1), groups, org-wide channels, GIF URLs
 |--------|------|---------|
 | `conversation_id` | uuid | FK → `team_chat_conversations.id` |
 | `user_id` | uuid | FK → `profiles.id` |
-| `role` | text | `admin` or `member` |
+| `role` | text | `admin` or `member`. Group creator is `admin`. |
 | `joined_at` | timestamptz | Join time |
-| `last_read_at` | timestamptz | Unread tracking |
+| `last_read_at` | timestamptz | Unread + delivery ticks. Opening a thread (and a 4s heartbeat while it stays open) sets this. Peer `last_read_at` ≥ message `created_at` = seen. |
+
+**Realtime:** `REPLICA IDENTITY FULL` so other members receive `last_read_at` updates. Migration `20260905105000_team_chat_member_read_realtime.sql` (staging). Rollback: `alter table … replica identity default`.
 
 **PK:** `(conversation_id, user_id)`.
 
@@ -631,6 +634,11 @@ Display status is derived: no row or seen ≥ 2 hours → Offline. Seen &lt; 5 m
 | `set_team_chat_message_reaction(p_id, p_emoji)` | Set or clear own reaction |
 | `jwt_user_can_react_to_message(p_id)` | Reaction RLS helper |
 | `set_my_dashboard_presence(p_client_state)` | Upsert own `hr_user_presence` |
+| `jwt_user_is_group_admin(p_conversation_id)` | True if current user is a group admin |
+| `add_group_conversation_members(p_conversation_id, p_member_ids)` | Admin adds people as members |
+| `remove_group_conversation_member(p_conversation_id, p_user_id)` | Admin removes one person (not self / last admin) |
+| `set_group_conversation_member_role(p_conversation_id, p_user_id, p_role)` | Admin promotes a member to admin |
+| `set_group_conversation_avatar(p_conversation_id, p_avatar_path)` | Admin sets group photo path |
 
 ### Migrations
 
@@ -641,6 +649,8 @@ Display status is derived: no row or seen ≥ 2 hours → Offline. Seen &lt; 5 m
 | `20260709180000_team_chat_conversations.sql` | Conversations, members, GIF, member RLS, General migration |
 | `20260904110500_team_chat_message_actions.sql` | Reply, reactions, soft-delete, forward, pin (staging) |
 | `20260904124757_team_chat_channels.sql` | `kind=channel`, admin create/post RPCs, new-profile join trigger (staging) |
+| `20260905105000_team_chat_member_read_realtime.sql` | Members `REPLICA IDENTITY FULL` so peer `last_read_at` Realtime works (staging) |
+| `20260905153000_team_chat_group_admin.sql` | Group `avatar_path`, admin RPCs, `team-chat-group-avatars` bucket (staging) |
 | `20260904112200_hr_user_presence.sql` | Dashboard Online/Away heartbeat (staging) |
 | `20260904113100_hr_presence_online_grace.sql` | Away write does not bump `last_seen_at` (5 min Online grace) |
 

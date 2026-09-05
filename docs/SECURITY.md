@@ -11,9 +11,10 @@
 
 - Order ownership is a **staff** flag (`ownership_verified`). The dashboard does not expose order data to customers.
 - Enquiry photos go to bucket `enquiry-attachments`; upload path must start with `auth.uid()`.
-- **Team chat voice notes** use the browser microphone (`getUserMedia`). Audio is stored in `team-chat-files` and only conversation members can read it (same attachment RLS). No Cloud speech API. Deny the mic and recording cannot start.
+- **Team chat incoming alerts** play a local `public/sounds/chat-message.mp3` (no third-party stream). The toast shows sender name and message preview already visible to conversation members. No OS notification permission. Background-tab audio uses the same primed `Audio` element after a user gesture.
 - **Team chat copy/paste** uses the browser clipboard on a click (`writeText` / `readText`). Only selected message text (or a file/GIF label) is written. Paste only inserts into the composer. No clipboard data is sent to a server.
 - **Team chat channels** are visible to every signed-in profile. Create and post are `jwt_user_is_admin()` only (RPC + insert RLS). Viewers may react, copy, and forward out — they cannot insert into a channel.
+- **Team chat group admin** is `team_chat_conversation_members.role = admin` (creator starts as admin), not dashboard admin. Add / remove / promote / photo go through security-definer RPCs. Group photos live in public bucket `team-chat-group-avatars` under `{conversation_id}/`. Only group admins can upload or delete. Members can read. Avatar column change is trigger-guarded.
 - SLA messages go to Gargi (or first admin). The **customer is never told** about a missed pick.
 - Close queues customer survey copy in `enquiry_outbound_messages` (Feedback button). The SPA does not hold WhatsApp Cloud API keys; live Meta send is not from this app.
 - **Production delay alerts:** admin and staff can send from Support. Insert requires `sent_by = auth.uid()`. Queued outbound rows use `enquiry_id` null. No Cloud API secrets in the browser.

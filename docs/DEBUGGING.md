@@ -1289,6 +1289,72 @@ Both views use `presenceFromRow`. Offline = no `hr_user_presence` row or `last_s
 ### Fix
 Apply the staging migrations. Dashboard focused = Online. Other browser tab stays Online 5 minutes, then Away. Offline after 2 hours from last dashboard focus.
 
+## Chat: ticks stay 1 grey after they open the thread
+
+### Symptom
+You send text, photo, GIF, file, or voice. Other person opens the chat. Ticks stay 1 grey. Group Info stays Not seen.
+
+### Root cause
+Member `last_read_at` updates were not reaching the sender. Replica identity was DEFAULT, so Realtime RLS often dropped other people's member UPDATEs. Open thread only marked read once, not after later sends. A `<button>` bubble with file/GIF links could drop ticks after the media.
+
+### Fix
+Staging migration `20260905105000_team_chat_member_read_realtime.sql` (`REPLICA IDENTITY FULL`). Hard refresh. Keep both people on Chat. Sender polls reads every 4s. Viewer with the thread open heartbeats mark-read. Ticks must sit under photo/GIF/file too.
+
+## Chat: ticks stay 1 grey while peer is Online
+
+### Symptom
+You sent a DM or group post. Peer has the dashboard open. Ticks stay a single grey.
+
+### Root cause
+Ticks use other members' `last_read_at` plus Online presence. Inbox must load `member_reads`. Realtime used to filter members to only you, so peer read updates never arrived.
+
+### Fix
+Stay on Chat so conversations refetch. DM: peer **Online** → 2 grey; they **open that thread** → 2 blue. Group: one person seen → 2 grey; **all** other members seen → 2 blue. Channels never show ticks.
+
+## Chat: no sound or toast on a new message
+
+### Symptom
+Someone sends a Chat / Group / Channel message. No sound. No bottom-right box.
+
+### Root cause
+Alerts run in `App.jsx` only for conversations you belong to. Sound is `sounds/chat-message.mp3`. Browsers block audio until you click the dashboard once. If the dashboard tab is closed, nothing plays.
+
+### Fix
+Hard refresh. Click once in Scott Dashboard. Keep that tab open (other tabs OK). Confirm you are a member. Own messages never toast.
+
+## Chat: group details missing or Add people hidden
+
+### Symptom
+Click the name line and nothing opens, or you cannot add/remove people or change the photo. **Media** missing.
+
+### Root cause
+Details open from a click on the **name line** (Chat or Group), not a styled name button. Add / photo / remove / Make admin are `role = admin` on that group. **Media** only on Chat/Group when a conversation exists. Staging needs `20260905153000_team_chat_group_admin.sql`.
+
+### Fix
+Open Chat or Groups → click the name line (not Media). If you created the group, you are admin. **Media** is on the right. Apply the staging migration if RPCs are missing.
+
+## Chat: group Info missing or viewers empty
+
+### Symptom
+No Info icon, or Seen / Not seen lists nobody.
+
+### Root cause
+Info is only for the **sender**, **one** selected group message. Lists are other members only.
+
+### Fix
+Open a Groups thread. Click your own bubble once. Info → Viewers. Other people must be members of that group.
+
+## Chat: selected messages have no sky-blue bar
+
+### Symptom
+You click one or more bubbles and only a ring shows, or nothing marks the row.
+
+### Root cause
+Selection highlight is a light sky-blue bar on the **row**, not a new bubble color.
+
+### Fix
+Click the bubble in Chat or Groups. The full horizontal strip behind that message turns sky-blue. The bubble itself stays dark/light as before.
+
 ## Chat: message actions missing or delete does nothing
 
 ### Symptom

@@ -1,4 +1,4 @@
-import { Copy, Forward, Pin, Reply, SmilePlus, Trash2, X } from "lucide-react";
+import { Copy, Forward, Info, Pin, Reply, SmilePlus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -38,7 +38,9 @@ export function ChatMessageActionBar({
   onPin,
   onCopy,
   onClear,
-  channelReadOnly = false
+  channelReadOnly = false,
+  showViewers = false,
+  onViewers
 }) {
   const multi = count > 1;
   const showAuthorActions = !multi && !channelReadOnly;
@@ -88,6 +90,11 @@ export function ChatMessageActionBar({
           ) : null}
         </>
       )}
+      {showViewers ? (
+        <IconAction label="Viewers" onClick={onViewers}>
+          <Info />
+        </IconAction>
+      ) : null}
       <IconAction label="Copy" onClick={onCopy}>
         <Copy />
       </IconAction>

@@ -1,5 +1,10 @@
 import { supabase } from "./supabaseClient";
 import {
+  GROUP_AVATAR_BUCKET,
+  sanitizeAvatarFileName,
+  validateAvatarPhotoFile
+} from "./avatarUtils";
+import {
   CHAT_ATTACHMENT_BUCKET,
   authorLabelForInsert,
   isChatAudioMime,
@@ -10,7 +15,7 @@ import {
 const MESSAGE_SELECT =
   "id, conversation_id, body, author_id, mentioned_user_ids, mentioned_order_ids, created_at, author_label, attachment_path, attachment_name, attachment_mime, attachment_size, gif_url, reply_to_message_id, forwarded_from_message_id, deleted_at, pinned_at";
 
-const CONVERSATION_SELECT = "id, kind, title, created_by, last_message_at, created_at";
+const CONVERSATION_SELECT = "id, kind, title, created_by, last_message_at, created_at, avatar_path";
 
 export async function fetchMyConversations(userId) {
   if (!userId) return [];
@@ -28,8 +33,9 @@ export async function fetchMyConversations(userId) {
   const [{ data: members, error: membersErr }, { data: lastMessages, error: msgErr }] = await Promise.all([
     supabase
       .from("team_chat_conversation_members")
-      .select("conversation_id, user_id")
-      .in("conversation_id", convIds),
+      .select("conversation_id, user_id, last_read_at, role")
+      .in("conversation_id", convIds)
+      .limit(5000),
     supabase
       .from("team_chat_messages")
       .select("id, conversation_id, body, author_id, created_at, attachment_path, gif_url, deleted_at")
@@ -44,7 +50,11 @@ export async function fetchMyConversations(userId) {
   const membersByConv = new Map();
   for (const row of members ?? []) {
     const list = membersByConv.get(row.conversation_id) ?? [];
-    list.push(row.user_id);
+    list.push({
+      user_id: row.user_id,
+      last_read_at: row.last_read_at ?? null,
+      role: row.role === "admin" ? "admin" : "member"
+    });
     membersByConv.set(row.conversation_id, list);
   }
 
@@ -69,9 +79,11 @@ export async function fetchMyConversations(userId) {
       const conv = memberships.find((m) => m.conversation_id === id)?.conversation;
       if (!conv) return null;
       const last = lastByConv.get(id) ?? null;
+      const reads = membersByConv.get(id) ?? [];
       return {
         ...conv,
-        member_ids: membersByConv.get(id) ?? [],
+        member_ids: reads.map((row) => row.user_id),
+        member_reads: reads,
         last_message: last,
         unread_count: unreadByConv.get(id) ?? 0
       };
@@ -100,6 +112,52 @@ export async function createGroupConversation(title, memberIds) {
   });
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function addGroupConversationMembers(conversationId, memberIds) {
+  const { data, error } = await supabase.rpc("add_group_conversation_members", {
+    p_conversation_id: conversationId,
+    p_member_ids: memberIds ?? []
+  });
+  if (error) throw new Error(error.message);
+  return data ?? 0;
+}
+
+export async function removeGroupConversationMember(conversationId, userId) {
+  const { error } = await supabase.rpc("remove_group_conversation_member", {
+    p_conversation_id: conversationId,
+    p_user_id: userId
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function setGroupConversationMemberAdmin(conversationId, userId) {
+  const { error } = await supabase.rpc("set_group_conversation_member_role", {
+    p_conversation_id: conversationId,
+    p_user_id: userId,
+    p_role: "admin"
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function uploadGroupConversationAvatar(conversationId, file) {
+  if (!conversationId || !file) throw new Error("Photo required");
+  const validationError = validateAvatarPhotoFile(file);
+  if (validationError) throw new Error(validationError);
+
+  const safeName = sanitizeAvatarFileName(file.name);
+  const path = `${conversationId}/${crypto.randomUUID()}-${safeName}`;
+  const { error: uploadErr } = await supabase.storage
+    .from(GROUP_AVATAR_BUCKET)
+    .upload(path, file, { upsert: false, contentType: file.type || undefined });
+  if (uploadErr) throw new Error(uploadErr.message);
+
+  const { error: setErr } = await supabase.rpc("set_group_conversation_avatar", {
+    p_conversation_id: conversationId,
+    p_avatar_path: path
+  });
+  if (setErr) throw new Error(setErr.message);
+  return path;
 }
 
 export async function createChannelConversation(title) {
@@ -142,6 +200,22 @@ export async function fetchConversationMessages(conversationId, limit = 200) {
   }));
 }
 
+export async function fetchConversationSharedMedia(conversationId, limit = 500) {
+  if (!conversationId) return [];
+  const { data, error } = await supabase
+    .from("team_chat_messages")
+    .select(
+      "id, body, created_at, attachment_path, attachment_name, attachment_mime, gif_url, deleted_at"
+    )
+    .eq("conversation_id", conversationId)
+    .is("deleted_at", null)
+    .or("attachment_path.not.is.null,gif_url.not.is.null,body.ilike.%http%")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export function summarizeReactions(rows) {
   const map = new Map();
   for (const row of rows ?? []) {
@@ -164,6 +238,61 @@ export function conversationsWithRead(conversations, conversationId) {
   return (conversations ?? []).map((row) =>
     row.id === conversationId ? { ...row, unread_count: 0 } : row
   );
+}
+
+export async function fetchConversationMemberReads(conversationId) {
+  if (!conversationId) return [];
+  const { data, error } = await supabase
+    .from("team_chat_conversation_members")
+    .select("user_id, last_read_at, role")
+    .eq("conversation_id", conversationId)
+    .limit(2000);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    user_id: row.user_id,
+    last_read_at: row.last_read_at ?? null,
+    role: row.role === "admin" ? "admin" : "member"
+  }));
+}
+
+export function applyMemberReads(conversations, conversationId, reads) {
+  if (!conversationId) return conversations ?? [];
+  const nextReads = reads ?? [];
+  return (conversations ?? []).map((conv) =>
+    conv.id === conversationId
+      ? {
+          ...conv,
+          member_reads: nextReads,
+          member_ids: nextReads.map((row) => row.user_id)
+        }
+      : conv
+  );
+}
+
+export function mergeMemberRead(conversations, row) {
+  const conversationId = row?.conversation_id;
+  const userId = row?.user_id;
+  if (!conversationId || !userId) return conversations ?? [];
+  const existing = (conversations ?? [])
+    .find((conv) => conv.id === conversationId)
+    ?.member_reads?.find((item) => String(item.user_id) === String(userId));
+  const nextRow = {
+    user_id: userId,
+    last_read_at: row.last_read_at ?? existing?.last_read_at ?? null,
+    role: row.role === "admin" || existing?.role === "admin" ? "admin" : row.role || existing?.role || "member"
+  };
+  return (conversations ?? []).map((conv) => {
+    if (conv.id !== conversationId) return conv;
+    const reads = [...(conv.member_reads ?? [])];
+    const idx = reads.findIndex((item) => String(item.user_id) === String(userId));
+    if (idx >= 0) reads[idx] = nextRow;
+    else reads.push(nextRow);
+    return {
+      ...conv,
+      member_reads: reads,
+      member_ids: reads.map((item) => item.user_id)
+    };
+  });
 }
 
 export async function uploadChatAttachment(sessionUserId, file) {
