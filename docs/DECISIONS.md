@@ -126,6 +126,42 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Others still see Online for 5 minutes after close/crash.
 
+## 2026-09-05 — Thread history uses native scroll
+
+**Context:** After pane-lock, older group messages vanished; only the last bubble sat under empty white.
+
+**Options:** (1) Keep Radix ScrollArea and fight `display:table`. (2) Native `overflow-y-auto` for the thread.
+
+**Decision:** Option 2. Inbox can keep Radix. Thread `scrollTop = scrollHeight`. Newest 200 then reverse.
+
+**Why:** Table viewport + overflow clip hid real rows that still exist in Postgres.
+
+**Tradeoffs:** Thread scrollbar is the browser bar, not the Radix thumb.
+
+## 2026-09-05 — Groups inbox must stay
+
+**Context:** After locking chat pane size, Groups looked gone.
+
+**Options:** (1) Assume data delete. (2) Keep list visible except on a real phone, and bind the open thread to the inbox tab kind.
+
+**Decision:** Option 2. Staging still has groups. Two-pane from `sm`. Groups tab never auto-opens a DM.
+
+**Why:** Vanish was layout + tab mismatch, not a delete.
+
+**Tradeoffs:** Phone still uses Back to return to the list.
+
+## 2026-09-05 — Chat links, own-only delete, locked pane
+
+**Context:** Shared URLs were not clickable in the bubble. Delete showed whenever any own message was in the selection. Long posts resized the whole Chat screen.
+
+**Options:** (1) Keep links only in Media. (2) Make `http`/`https` in the body a real `<a>`. Delete hidden unless every selected row is the current user. Lock Chat as full-bleed like Inventory.
+
+**Decision:** Option 2. Channel admin still sees Delete. Phone stays list-or-thread.
+
+**Why:** Matches the request. Soft-delete RPC already only owns rows.
+
+**Tradeoffs:** Nested `<a>` inside a `role=button` bubble; click on the URL uses `stopPropagation` so it does not toggle select.
+
 ## 2026-09-04 — Chat actions are icons; delete is soft
 
 **Context:** User wants selectable messages in Chats/Groups with reply, react, delete, forward, pin. Multi-select only forward and delete. No written labels on the actions.

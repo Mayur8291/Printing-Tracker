@@ -514,6 +514,7 @@ const FULL_BLEED_TABS = new Set([
   "asset_management",
   "internal_support",
   "inventory",
+  "chat",
   "scott_customers",
   "scott_reports",
   "scott_masters"
@@ -5935,14 +5936,16 @@ function App() {
           )}
 
           {dashboardTab === "chat" && session?.user && (
-            <TeamChatPanel
-              sessionUserId={session.user.id}
-              currentUserProfile={profile}
-              teamProfiles={teamProfiles}
-              orders={orders}
-              onOpenOrder={openViewOrder}
-              onUnreadTotalChange={setChatUnreadTotal}
-            />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 md:p-4">
+              <TeamChatPanel
+                sessionUserId={session.user.id}
+                currentUserProfile={profile}
+                teamProfiles={teamProfiles}
+                orders={orders}
+                onOpenOrder={openViewOrder}
+                onUnreadTotalChange={setChatUnreadTotal}
+              />
+            </div>
           )}
 
           {dashboardTab === "production_tracker" && (

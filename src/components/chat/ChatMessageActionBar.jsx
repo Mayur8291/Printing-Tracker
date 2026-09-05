@@ -101,8 +101,8 @@ export function ChatMessageActionBar({
       <IconAction label="Forward" onClick={onForward}>
         <Forward />
       </IconAction>
-      {channelReadOnly ? null : (
-        <IconAction label="Delete" onClick={onDelete} disabled={!canDelete}>
+      {channelReadOnly || !canDelete ? null : (
+        <IconAction label="Delete" onClick={onDelete}>
           <Trash2 />
         </IconAction>
       )}

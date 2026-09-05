@@ -1,6 +1,6 @@
 import { getChatAttachmentPublicUrl, isChatAudioMime, isChatImageMime } from "./teamChatUtils";
 
-const LINK_RE = /https?:\/\/[^\s<>"'`]+/gi;
+export const CHAT_LINK_RE = /https?:\/\/[^\s<>"'`]+/gi;
 
 export function isChatVideoMime(mime) {
   return typeof mime === "string" && mime.startsWith("video/");
@@ -24,10 +24,33 @@ export function isChatDocumentMime(mime) {
   );
 }
 
+export function normalizeChatLink(raw) {
+  return String(raw ?? "").replace(/[),.;]+$/, "");
+}
+
 export function extractChatLinks(body) {
   const text = String(body ?? "");
-  const found = text.match(LINK_RE) ?? [];
-  return [...new Set(found.map((url) => url.replace(/[),.;]+$/, "")))];
+  const found = text.match(CHAT_LINK_RE) ?? [];
+  return [...new Set(found.map((url) => normalizeChatLink(url)))];
+}
+
+export function splitChatTextWithLinks(text) {
+  const source = String(text ?? "");
+  const parts = [];
+  let last = 0;
+  for (const match of source.matchAll(CHAT_LINK_RE)) {
+    const idx = match.index ?? 0;
+    if (idx > last) parts.push({ kind: "text", value: source.slice(last, idx) });
+    const raw = match[0];
+    const href = normalizeChatLink(raw);
+    const trail = raw.slice(href.length);
+    if (href) parts.push({ kind: "link", value: href });
+    if (trail) parts.push({ kind: "text", value: trail });
+    last = idx + raw.length;
+  }
+  if (last < source.length) parts.push({ kind: "text", value: source.slice(last) });
+  if (!parts.length && source) parts.push({ kind: "text", value: source });
+  return parts;
 }
 
 export function classifyConversationMedia(messages) {

@@ -1361,10 +1361,54 @@ Click the bubble in Chat or Groups. The full horizontal strip behind that messag
 Click a message and no icons appear, or Delete does not remove someone else's message.
 
 ### Root cause
-Toolbar only shows after a click-select. Delete RPC only sets `deleted_at` on rows you authored. Staging needs `20260904110500_team_chat_message_actions.sql`.
+Toolbar only shows after a click-select. In Chats/Groups, Delete is hidden unless every selected message is yours. Mix of own + others hides Delete. RPC only sets `deleted_at` on rows you authored. Staging needs `20260904110500_team_chat_message_actions.sql`.
 
 ### Fix
-Click the bubble (not the avatar). Select more than one for Forward/Delete only. Apply the staging migration if the RPC is missing.
+Click the bubble (own or others). Clear the mix, then select only your posts if you need Delete. Apply the staging migration if the RPC is missing.
+
+## Chat: URL in the bubble is not a link
+
+### Symptom
+Someone pasted `https://…` and it looks like normal text.
+
+### Root cause
+Body used to render as plain spans. Only the Media sheet listed links.
+
+### Fix
+`ChatMessageBody` splits `http`/`https` and renders an `<a>`. Click the URL (not the rest of the bubble) to open a new tab.
+
+## Chat: long message shrinks or stretches the whole Chat tab
+
+### Symptom
+A long URL or one-word post makes the inbox skinny, the page grow, or the composer jump.
+
+### Root cause
+Chat was in the main page scroller (`min-h` card). Flex children grew with unbreakable text.
+
+### Fix
+Chat is a full-bleed tab. Card is `h-full overflow-hidden`. Thread and bubbles use `min-w-0` and wrap. Phone still swaps list vs thread.
+
+## Chat: older messages missing, only last bubble + white hole
+
+### Symptom
+Group thread shows a tall empty area and only the newest line (e.g. “hi”). Media and composer still work. Database still has earlier rows.
+
+### Root cause
+Radix ScrollArea inner node is `display: table`. Pane-lock classes (`overflow-hidden`, `min-w-0` on that node) collapsed older bubbles. `scrollIntoView` jumped to the last row.
+
+### Fix
+Thread scroll is a `div` with `overflow-y-auto`. Do not clip bubbles. Scroll that div with `scrollTop`. Confirm with `select * from team_chat_messages where conversation_id = …`.
+
+## Chat: Groups list vanished after a layout edit
+
+### Symptom
+Groups tab is blank, or opening a group hides every group row. Staging still has `kind=group` rows.
+
+### Root cause
+The pane-lock pass put `overflow-hidden` on the inbox and hid the list below `md`. Groups tab also kept a DM as the active thread, so the right pane looked empty.
+
+### Fix
+Inbox stays visible from `sm` up. Groups tab keeps a group selected. Do not treat this as deleted data — check `team_chat_conversations` `kind=group` if the list is still empty after refresh.
 
 ## Chat: group missing from Chats list
 

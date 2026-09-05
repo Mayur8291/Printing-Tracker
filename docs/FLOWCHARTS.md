@@ -651,15 +651,17 @@ sequenceDiagram
   User->>Panel: Open Chat
   Panel->>User: Chats list plus thread
   User->>Panel: Tap Groups
-  Panel->>User: Group rows only
+  Panel->>User: Group rows stay plus group thread
   User->>Panel: New group
   Panel->>User: Group stays on Groups tab
   User->>Panel: Tap Chats
   Panel->>User: Direct rows only
-  User->>Panel: Click message
+  User->>Panel: Click own or other message
   Panel->>User: Icon actions including Copy
-  User->>Panel: Click second message
-  Panel->>User: Copy Forward Delete icons
+  User->>Panel: Click second own message
+  Panel->>User: Copy Forward Delete if all own
+  User->>Panel: Click other person message
+  Panel->>User: No Delete icon
   User->>Panel: Click Copy
   Panel->>User: Text on clipboard
   User->>Panel: Click Paste under box

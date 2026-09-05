@@ -98,8 +98,8 @@ function InboxPane({ title, action, children }) {
         <h2 className="mr-auto text-base font-semibold">{title}</h2>
         {action}
       </div>
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="flex min-h-full flex-col">{children}</div>
+      <ScrollArea className="min-h-0 min-w-0 flex-1">
+        <div className="flex min-h-full min-w-0 flex-col">{children}</div>
       </ScrollArea>
     </div>
   );
@@ -229,6 +229,7 @@ export default function TeamChatPanel({
   const presenceByUserId = usePresenceByUserId();
 
   const bottomRef = useRef(null);
+  const threadScrollRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -320,9 +321,11 @@ export default function TeamChatPanel({
         : { seen: [], unseen: [] },
     [selectedSingle, activeConversation, teamProfiles]
   );
-  const canDeleteSelected = isChannelThread && isChatAdmin
-    ? selectedMessages.length > 0
-    : selectedMessages.some((msg) => msg.author_id === sessionUserId);
+  const canDeleteSelected =
+    selectedMessages.length > 0 &&
+    (isChannelThread && isChatAdmin
+      ? true
+      : selectedMessages.every((msg) => msg.author_id === sessionUserId));
 
   const messageById = useMemo(() => {
     const map = new Map();
@@ -343,7 +346,9 @@ export default function TeamChatPanel({
   }, [activeMention, orders]);
 
   const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ block: "end" });
+    const el = threadScrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
   }, []);
 
   const loadConversations = useCallback(async () => {
@@ -412,10 +417,25 @@ export default function TeamChatPanel({
 
   useEffect(() => {
     if (composeDirectPeerId) return;
-    if (activeConversationId) return;
-    const firstDirect = conversations.find((c) => c.kind === "direct");
+    const active = conversations.find((c) => c.id === activeConversationId) ?? null;
+    const firstOf = (kind) => conversations.find((c) => c.kind === kind);
+
+    if (inboxTab === "groups") {
+      if (active?.kind === "group") return;
+      const firstGroup = firstOf("group");
+      if (firstGroup) setActiveConversationId(firstGroup.id);
+      return;
+    }
+    if (inboxTab === "channels") {
+      if (active?.kind === "channel") return;
+      const firstChannel = firstOf("channel");
+      if (firstChannel) setActiveConversationId(firstChannel.id);
+      return;
+    }
+    if (active?.kind === "direct") return;
+    const firstDirect = firstOf("direct");
     if (firstDirect) setActiveConversationId(firstDirect.id);
-  }, [conversations, activeConversationId, composeDirectPeerId]);
+  }, [conversations, activeConversationId, composeDirectPeerId, inboxTab]);
 
   useEffect(() => {
     setSelectedMessageIds(new Set());
@@ -557,7 +577,7 @@ export default function TeamChatPanel({
     return () => window.clearInterval(timer);
   }, [activeConversationId, composeDirectPeerId]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     scrollToBottom();
   }, [messages.length, scrollToBottom]);
 
@@ -885,8 +905,8 @@ export default function TeamChatPanel({
     error.includes("get_or_create_direct_conversation");
 
   return (
-    <Card className="team-chat-shadcn flex min-h-[min(78vh,760px)] flex-col overflow-hidden border shadow-sm">
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-0 p-0">
+    <Card className="team-chat-shadcn flex h-full min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-hidden border shadow-sm">
+      <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col gap-0 overflow-hidden p-0">
         {error ? (
           <Alert variant="destructive" className="m-3 mb-0 shrink-0">
             <AlertDescription>
@@ -900,12 +920,12 @@ export default function TeamChatPanel({
           </Alert>
         ) : null}
 
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 min-w-0 w-full max-w-full flex-1 overflow-hidden">
           {/* Inbox sidebar */}
           <aside
             className={cn(
-              "flex min-h-0 w-full shrink-0 flex-col border-r md:w-80 lg:w-96",
-              mobileShowThread && "hidden md:flex"
+              "flex min-h-0 w-full shrink-0 flex-col border-r sm:w-72 sm:max-w-[40%] lg:w-80 xl:w-96",
+              mobileShowThread && "hidden sm:flex"
             )}
           >
             <Tabs
@@ -1030,20 +1050,19 @@ export default function TeamChatPanel({
 
           <section
             className={cn(
-              "flex min-w-0 flex-1 flex-col",
-              !mobileShowThread && !activeConversationId && "hidden md:flex",
-              !mobileShowThread && activeConversationId && "hidden md:flex",
+              "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
+              !mobileShowThread && "hidden sm:flex",
               mobileShowThread && "flex"
             )}
           >
             {showThread ? (
               <>
-                <header className="flex items-center gap-2 border-b px-3 py-3">
+                <header className="flex shrink-0 items-center gap-2 border-b px-3 py-3">
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="size-8 md:hidden"
+                    className="size-8 sm:hidden"
                     aria-label="Back to chats"
                     onClick={exitThreadView}
                   >
@@ -1115,8 +1134,11 @@ export default function TeamChatPanel({
                   </div>
                 </header>
 
-                <ScrollArea className="min-h-0 min-w-0 flex-1 bg-muted/20 [&_[data-radix-scroll-area-viewport]>div]:max-w-full [&_[data-radix-scroll-area-viewport]>div]:min-w-0">
-                  <div className="flex w-full min-w-0 max-w-full flex-col gap-4 p-4" aria-live="polite">
+                <div
+                  ref={threadScrollRef}
+                  className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-muted/20"
+                >
+                  <div className="flex w-full min-w-0 flex-col gap-3 px-0 py-4" aria-live="polite">
                     {loadingMessages ? (
                       <p className="py-8 text-center text-sm text-muted-foreground">Loading messages…</p>
                     ) : messages.length === 0 ? (
@@ -1151,9 +1173,9 @@ export default function TeamChatPanel({
                           <article
                             key={msg.id}
                             className={cn(
-                              "flex w-full min-w-0 gap-3",
+                              "flex w-full min-w-0 max-w-full gap-3 px-4",
                               isOwn && "flex-row-reverse",
-                              selected && "-mx-4 bg-sky-100 px-4 py-2"
+                              selected && "bg-sky-100 py-2"
                             )}
                           >
                             <PersonAvatar
@@ -1165,7 +1187,7 @@ export default function TeamChatPanel({
                             />
                             <div
                               className={cn(
-                                "flex min-w-0 max-w-[85%] flex-col gap-1",
+                                "flex min-w-0 w-fit max-w-[min(85%,28rem)] flex-col gap-1",
                                 isOwn && "items-end"
                               )}
                             >
@@ -1191,7 +1213,7 @@ export default function TeamChatPanel({
                                     }
                                   }}
                                   className={cn(
-                                    "min-w-0 w-full max-w-full whitespace-normal rounded-lg px-3 py-2 text-left shadow-sm",
+                                    "min-w-0 w-full max-w-full whitespace-normal break-words [overflow-wrap:anywhere] rounded-lg px-3 py-2 text-left shadow-sm",
                                     isOwn
                                       ? "bg-primary text-primary-foreground"
                                       : "border bg-card text-card-foreground",
@@ -1304,9 +1326,9 @@ export default function TeamChatPanel({
                         );
                       })
                     )}
-                    <div ref={bottomRef} aria-hidden />
+                    <div ref={bottomRef} aria-hidden className="h-px w-full shrink-0" />
                   </div>
-                </ScrollArea>
+                </div>
 
                 <Separator />
 
@@ -1317,7 +1339,7 @@ export default function TeamChatPanel({
                 ) : null}
 
                 {canCompose ? (
-                <form className="flex flex-col gap-3 p-3" onSubmit={handleSend}>
+                <form className="flex shrink-0 flex-col gap-3 p-3" onSubmit={handleSend}>
                   {replyTo ? (
                     <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
                       <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">

@@ -173,11 +173,11 @@ export async function fetchConversationMessages(conversationId, limit = 200) {
     .from("team_chat_messages")
     .select(MESSAGE_SELECT)
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) throw new Error(error.message);
-  const rows = data ?? [];
+  const rows = [...(data ?? [])].reverse();
   const ids = rows.map((row) => row.id);
   if (!ids.length) return rows;
 

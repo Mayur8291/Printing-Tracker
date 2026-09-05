@@ -452,7 +452,8 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 4. **Groups:** **New group** in that action slot. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
 5. **Channels:** Same row format (`kind=channel`). **New Channel** shows only for `profiles.role = admin`. Everyone on the dashboard is a member. Admins post with the same composer as Chats/Groups. Non-admins see no composer; they may react (emoji + count), copy, and forward.
 6. **Switch tabs:** Only the name list and action swap. Inbox width and thread pane stay.
-7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). On small screens, opening a thread still hides the list until Back.
+7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). Phone (`max-sm`) still hides the list until Back. From `sm` up, inbox and thread stay side by side so Groups never vanish on open.
+8. **Tab pick:** Opening **Groups** selects the current group, or the first group if the open thread is a DM. Same for Channels. Chats stay on a DM. A refresh does not jump Groups over to a DM.
 
 ### Open chat / General group
 
@@ -467,8 +468,10 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox.
 3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats).
 4. **Send:** `sendChatMessage()` with `conversation_id`; marks read for sender.
-5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text and no-space tokens wrap inside the bubble. Same on Groups.
-6. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
+5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text, URLs, and no-space tokens wrap inside the bubble. Same on Groups. `http`/`https` in the body is a clickable `<a>` (new tab). Clicking the link does not toggle select.
+6. **Pane size:** Chat tab is full-bleed (`FULL_BLEED_TABS`). The card fills the dashboard content area (`h-full`, overflow hidden). Inbox stays on screen from `sm` up; thread is a normal `overflow-y-auto` box (not Radix table scroll). Phone (`max-sm`): list or thread, not both. Long messages wrap inside the bubble. History stays visible; open thread scrolls to the newest.
+7. **History load:** `fetchConversationMessages` takes the newest 200 (`created_at` desc) then reverses to oldest-first.
+8. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
 
 ### Create channel (admin)
 
@@ -501,7 +504,7 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 1. **Trigger:** **Media** on the right of the name line.
 2. **Tabs:** **Photos/Videos** (images, GIFs, video files), **Documents** (PDF, Excel, voice notes, other files), **Links** (http/https in message text).
 3. **Services:** `fetchConversationSharedMedia` — non-deleted messages with an attachment, GIF, or `http` in the body.
-4. **Exit:** Open a file/link in a new tab. Empty tab says none yet.
+4. **Exit:** Open a file/link in a new tab. Empty tab says none yet. The same `http`/`https` strings are also clickable inside the message bubble.
 
 ### Chat presence (Online / Away / Offline)
 
@@ -531,14 +534,14 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 ### Select message actions (Chats and Groups)
 
-1. **Trigger:** Click a live message bubble in the thread.
+1. **Trigger:** Click a live message bubble in the thread (your messages or others). Deleted bubbles stay unselectable.
 2. **Selected look:** That row (not the bubble) gets a full-width light sky-blue bar (`bg-sky-100`). One or many selected rows all show it. Bubble color stays the same.
-3. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Delete, Clear. Group sender also gets Info (viewers).
-4. **Several selected:** Header shows icon-only Copy, Forward, Delete, Clear.
+3. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Clear. Group sender also gets Info (viewers). Delete only if that message is yours.
+4. **Several selected:** Header shows icon-only Copy, Forward, Clear. Delete only if every selected message is yours. Mix of own + others, or only others → no Delete.
 5. **Reply:** Composer quotes that message; send stores `reply_to_message_id`.
 6. **React:** Emoji picker; RPC `set_team_chat_message_reaction` (one emoji per user; same emoji again removes it).
 7. **Pin:** RPC `toggle_team_chat_message_pin` for conversation members.
-8. **Delete:** RPC `soft_delete_team_chat_messages` — own messages only (`deleted_at`). Others stay selected until cleared.
+8. **Delete:** Icon hidden unless every selected row is yours (Chats/Groups). Channel admin still sees Delete for any selected posts. RPC `soft_delete_team_chat_messages` only sets `deleted_at` on own rows.
 9. **Forward:** Dialog pick another conversation; copies body/attachment/GIF with `forwarded_from_message_id`.
 10. **Copy:** Writes selected bodies to the clipboard (full text). Empty body uses GIF / Voice note / Photo / file name. Several messages join with a blank line. Browser must allow clipboard write.
 11. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.

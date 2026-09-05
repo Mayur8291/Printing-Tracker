@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-05 — Older chat messages show again
+
+- **Issue:** Scott Test Group has 6 live rows, but the thread only showed the last “hi” over a big white hole.
+- **Fix:** Thread uses a normal overflow scroll box (not Radix table viewport). Bubbles no longer `overflow-hidden`. Scroll sets `scrollTop` on that box. Load newest 200, then reverse.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-05 — Groups list no longer vanishes
+
+- **Issue:** After the pane-lock edit, Groups looked empty or the list disappeared when opening a group.
+- **Fix:** Groups still in the database. Inbox stays on screen from `sm` up. Groups tab keeps/opens a group, not a DM. Inbox overflow no longer collapses the list to zero height.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md.
+
+## 2026-09-05 — Clickable chat links, own-only delete, locked pane
+
+- **Issue:** URLs in a bubble were plain text. Delete still showed if any own message sat next to someone else's. Long posts grew the whole Chat tab and squeezed the layout.
+- **Fix:** `http`/`https` in the message body is a real link (new tab). Click own or others in Chats/Groups. Delete shows only when every selected row is yours (channel admin still can). Chat is a full-bleed pane: inbox + thread stay one size; long text wraps inside the bubble. Phone still uses list then thread.
+- **Files:** `ChatMessageBody.jsx`, `ChatMessageActionBar.jsx`, `teamChatMedia.js`, `TeamChatPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-05 — Selected chat rows use a sky-blue bar
 
 - **Issue:** Selected messages only had a ring on the bubble, so it was hard to see what was picked.
