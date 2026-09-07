@@ -13,42 +13,47 @@ export function memberHasSeenMessage(lastReadAt, createdAt) {
   return read >= sent;
 }
 
-export function isDashboardActivePresence(status) {
-  return status === "online";
-}
-
 function otherMemberReads(memberReads, sessionUserId) {
   return (memberReads ?? []).filter(
     (row) => row?.user_id && !sameUserId(row.user_id, sessionUserId)
   );
 }
 
+export function isDashboardActivePresence(status) {
+  return status === "online";
+}
+
+/** Groups: 0 seen = 1 grey, some = 2 grey, all = 2 blue. DM: not seen + Online = 2 grey; not seen + Away/Offline = 1 grey; opened = 2 blue. */
 export function outgoingReceiptStatus({
   kind,
   createdAt,
   authorId,
   sessionUserId,
   memberReads,
-  presenceByUserId
+  presenceByUserId,
+  clientPending = false
 }) {
+  if (clientPending && kind !== "direct") return "sent";
   if (!createdAt || !sameUserId(authorId, sessionUserId)) return null;
   if (kind !== "direct" && kind !== "group") return null;
 
   const others = otherMemberReads(memberReads, sessionUserId);
   if (!others.length) return "sent";
 
-  const allSeen = others.every((row) => memberHasSeenMessage(row.last_read_at, createdAt));
-  if (allSeen) return "read";
+  const seenCount = others.filter((row) => memberHasSeenMessage(row.last_read_at, createdAt)).length;
+  if (seenCount === others.length) return "read";
+  if (seenCount > 0) return "delivered";
 
-  if (kind === "group") {
-    const anySeen = others.some((row) => memberHasSeenMessage(row.last_read_at, createdAt));
-    if (anySeen) return "delivered";
+  if (kind === "direct") {
+    const peerOnline = others.some((row) =>
+      isDashboardActivePresence(
+        presenceByUserId?.[row.user_id] ?? presenceByUserId?.[String(row.user_id)] ?? "offline"
+      )
+    );
+    return peerOnline ? "delivered" : "sent";
   }
 
-  const anyDashboardOn = others.some((row) =>
-    isDashboardActivePresence(presenceByUserId?.[row.user_id] ?? presenceByUserId?.[String(row.user_id)] ?? "offline")
-  );
-  return anyDashboardOn ? "delivered" : "sent";
+  return "sent";
 }
 
 export function groupMessageViewerLists({

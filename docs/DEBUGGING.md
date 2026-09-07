@@ -1289,6 +1289,28 @@ Both views use `presenceFromRow`. Offline = no `hr_user_presence` row or `last_s
 ### Fix
 Apply the staging migrations. Dashboard focused = Online. Other browser tab stays Online 5 minutes, then Away. Offline after 2 hours from last dashboard focus.
 
+## Chat: blue ticks before they open the chat
+
+### Symptom
+You send a Chat or Group message. Ticks go 2 blue (or 2 grey) even though the other person did not open that thread.
+
+### Root cause
+Ticks treated dashboard **Online** as delivered. Group with nobody seen also used Online for 2 grey.
+
+### Fix
+Ticks follow `last_read_at` plus DM Online. Chat: Online + not opened = 2 grey; Away/Offline + not opened = 1 grey; they open = 2 blue. Group: 0 seen = 1 grey; some seen = 2 grey; all seen = 2 blue. Hard refresh.
+
+## Chat: send waits a second and the tab feels stuck
+
+### Symptom
+After Send, the Chat tab pauses about 1 second before the message appears.
+
+### Root cause
+Send awaited a full inbox reload plus thread reload.
+
+### Fix
+The bubble is added at once. Inbox refresh runs in the background. Hard refresh. Type, Send, type again.
+
 ## Chat: ticks stay 1 grey after they open the thread
 
 ### Symptom
@@ -1306,10 +1328,10 @@ Staging migration `20260905105000_team_chat_member_read_realtime.sql` (`REPLICA 
 You sent a DM or group post. Peer has the dashboard open. Ticks stay a single grey.
 
 ### Root cause
-Ticks use other members' `last_read_at` plus Online presence. Inbox must load `member_reads`. Realtime used to filter members to only you, so peer read updates never arrived.
+Old ticks used Online as “delivered”. Inbox must still load `member_reads`. Realtime used to filter members to only you, so peer read updates never arrived.
 
 ### Fix
-Stay on Chat so conversations refetch. DM: peer **Online** → 2 grey; they **open that thread** → 2 blue. Group: one person seen → 2 grey; **all** other members seen → 2 blue. Channels never show ticks.
+Stay on Chat so conversations refetch. DM: peer **Online** + not opened → 2 grey; they **open that thread** → 2 blue. Group: one person seen → 2 grey; **all** other members seen → 2 blue. Channels never show ticks.
 
 ## Chat: no sound or toast on a new message
 
@@ -1398,6 +1420,17 @@ The link is a shadcn Button (`inline-flex` + `whitespace-nowrap`). That blocks w
 
 ### Fix
 Link classes use `inline`, `whitespace-normal`, `break-all`, and `overflow-wrap: anywhere`. Hard refresh. The whole URL must stay inside the bubble on several lines.
+
+## Chat: send blinks the page and cursor leaves the box
+
+### Symptom
+Click Send (or Enter) in a Chat or Group. The thread (or whole page) vanishes for a second, then comes back. The caret is not in the text box; you must click the box to type again.
+
+### Root cause
+Every send called `loadMessages`, which set `loadingMessages` and replaced the thread with “Loading messages…”. The box used `disabled={sending}`, so the browser dropped focus. First DM also cleared compose before the conversation was in the list, so `showThread` went false.
+
+### Fix
+Refresh the open thread without the loading placeholder. After Send, focus the composer. Hard refresh. Type, Send, type again with no extra click.
 
 ## Chat: older messages missing, only last bubble + white hole
 

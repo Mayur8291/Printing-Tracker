@@ -195,6 +195,22 @@ function insertAtCursor(text, start, end, insert) {
   return `${text.slice(0, start)}${insert}${text.slice(end)}`;
 }
 
+function withInboxLastMessage(conversations, conversationId, lastMessage) {
+  if (!conversationId) return conversations ?? [];
+  const next = (conversations ?? []).map((conv) =>
+    conv.id === conversationId
+      ? {
+          ...conv,
+          last_message: lastMessage,
+          last_message_at: lastMessage?.created_at ?? conv.last_message_at
+        }
+      : conv
+  );
+  return [...next].sort((a, b) =>
+    String(b.last_message_at ?? "").localeCompare(String(a.last_message_at ?? ""))
+  );
+}
+
 export default function TeamChatPanel({
   sessionUserId,
   currentUserProfile,
@@ -233,6 +249,10 @@ export default function TeamChatPanel({
   const threadScrollRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const loadedThreadIdRef = useRef(null);
+  const messagesFetchGenRef = useRef(0);
+  const wantComposerFocusRef = useRef(false);
+  const sendLockRef = useRef(false);
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? null,
@@ -384,12 +404,18 @@ export default function TeamChatPanel({
   const loadMessages = useCallback(
     async (conversationId) => {
       if (!conversationId) {
+        messagesFetchGenRef.current += 1;
+        loadedThreadIdRef.current = null;
         setMessages([]);
+        setLoadingMessages(false);
         return;
       }
-      setLoadingMessages(true);
+      const gen = ++messagesFetchGenRef.current;
+      const isThreadSwitch = loadedThreadIdRef.current !== conversationId;
+      if (isThreadSwitch) setLoadingMessages(true);
       try {
         const rows = await fetchConversationMessages(conversationId);
+        if (gen !== messagesFetchGenRef.current) return;
         const profileMap = new Map((teamProfiles ?? []).map((p) => [p.id, p]));
         const enriched = rows.map((row) => ({
           ...row,
@@ -399,14 +425,22 @@ export default function TeamChatPanel({
             email: null
           }
         }));
-        setMessages(enriched);
+        setMessages((prev) => {
+          const pending = prev.filter((m) => m.clientPending);
+          return pending.length ? [...enriched, ...pending] : enriched;
+        });
+        loadedThreadIdRef.current = conversationId;
         await markConversationAsRead(conversationId);
+        if (gen !== messagesFetchGenRef.current) return;
         setError("");
         requestAnimationFrame(scrollToBottom);
       } catch (err) {
+        if (gen !== messagesFetchGenRef.current) return;
         setError(err instanceof Error ? err.message : String(err));
       } finally {
-        setLoadingMessages(false);
+        if (gen === messagesFetchGenRef.current && isThreadSwitch) {
+          setLoadingMessages(false);
+        }
       }
     },
     [scrollToBottom, teamProfiles, markConversationAsRead]
@@ -450,6 +484,8 @@ export default function TeamChatPanel({
 
   useEffect(() => {
     if (composeDirectPeerId) {
+      messagesFetchGenRef.current += 1;
+      loadedThreadIdRef.current = null;
       setMessages([]);
       setLoadingMessages(false);
       return;
@@ -486,7 +522,11 @@ export default function TeamChatPanel({
           }
           await loadConversations();
           if (convId && convId === activeConversationId) {
-            await loadMessages(convId);
+            const ownInsert =
+              payload.eventType === "INSERT" &&
+              newMsg?.author_id &&
+              String(newMsg.author_id) === String(sessionUserId);
+            if (!ownInsert) await loadMessages(convId);
           }
         }
       )
@@ -595,6 +635,17 @@ export default function TeamChatPanel({
   useLayoutEffect(() => {
     fitComposerTextarea(textareaRef.current);
   }, [draft]);
+
+  useLayoutEffect(() => {
+    if (sending || !wantComposerFocusRef.current) return;
+    wantComposerFocusRef.current = false;
+    const el = textareaRef.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    const pos = el.value.length;
+    el.setSelectionRange(pos, pos);
+    fitComposerTextarea(el);
+  }, [sending]);
 
   function selectConversation(id) {
     const conv = conversations.find((c) => c.id === id);
@@ -836,10 +887,13 @@ export default function TeamChatPanel({
 
   async function handleSend(e) {
     e.preventDefault();
-    if (!canCompose) return;
+    if (!canCompose || sendLockRef.current) return;
     const body = draft.trim();
-    const hasContent = Boolean(body || pendingFile || pendingGifUrl);
-    if (!hasContent || sending) return;
+    const file = pendingFile;
+    const gifUrl = pendingGifUrl;
+    const replySnapshot = replyTo;
+    const hasContent = Boolean(body || file || gifUrl);
+    if (!hasContent) return;
     if (!activeConversationId && !composeDirectPeerId) return;
 
     const { mentionedUserIds, mentionedOrderIds } = extractMentionsFromBody(
@@ -848,23 +902,83 @@ export default function TeamChatPanel({
       orders
     );
 
-    setSending(true);
+    sendLockRef.current = true;
+    let lockHeld = true;
     setError("");
+    setDraft("");
+    setCursor(0);
+    setPendingFile(null);
+    setPendingGifUrl("");
+    setEmojiOpen(false);
+    setReplyTo(null);
+    setSelectedMessageIds(new Set());
+    wantComposerFocusRef.current = true;
+
+    const tempId = `temp-${crypto.randomUUID()}`;
+    let conversationId = activeConversationId;
+    let didAppend = false;
 
     try {
-      let conversationId = activeConversationId;
       if (!conversationId && composeDirectPeerId) {
+        setSending(true);
         conversationId = await getOrCreateDirectConversation(composeDirectPeerId);
-        setComposeDirectPeerId(null);
+        await loadConversations();
         setActiveConversationId(conversationId);
+        setComposeDirectPeerId(null);
       }
 
       let attachmentFields = {};
-      if (pendingFile) {
-        attachmentFields = await uploadChatAttachment(sessionUserId, pendingFile);
+      if (file) {
+        setSending(true);
+        attachmentFields = await uploadChatAttachment(sessionUserId, file);
       }
 
-      await sendChatMessage({
+      const createdAt = new Date().toISOString();
+      const optimistic = {
+        id: tempId,
+        conversation_id: conversationId,
+        author_id: sessionUserId,
+        body,
+        created_at: createdAt,
+        author_label: currentUserProfile?.full_name || currentUserProfile?.email || null,
+        mentioned_user_ids: mentionedUserIds,
+        mentioned_order_ids: mentionedOrderIds,
+        gif_url: gifUrl || null,
+        reply_to_message_id: replySnapshot?.id ?? null,
+        forwarded_from_message_id: null,
+        deleted_at: null,
+        pinned_at: null,
+        reactions: [],
+        clientPending: true,
+        author: currentUserProfile ?? {
+          id: sessionUserId,
+          full_name: null,
+          email: null
+        },
+        ...attachmentFields
+      };
+
+      setMessages((prev) => [...prev, optimistic]);
+      didAppend = true;
+      setConversations((prev) =>
+        withInboxLastMessage(prev, conversationId, {
+          id: tempId,
+          conversation_id: conversationId,
+          body,
+          author_id: sessionUserId,
+          created_at: createdAt,
+          attachment_path: attachmentFields.attachment_path ?? null,
+          gif_url: gifUrl || null,
+          deleted_at: null
+        })
+      );
+      requestAnimationFrame(scrollToBottom);
+      setSending(false);
+      sendLockRef.current = false;
+      lockHeld = false;
+      wantComposerFocusRef.current = true;
+
+      const row = await sendChatMessage({
         conversationId,
         sessionUserId,
         currentUserProfile,
@@ -872,23 +986,39 @@ export default function TeamChatPanel({
         mentionedUserIds,
         mentionedOrderIds,
         attachmentFields,
-        gifUrl: pendingGifUrl || null,
-        replyToMessageId: replyTo?.id ?? null
+        gifUrl: gifUrl || null,
+        replyToMessageId: replySnapshot?.id ?? null
       });
 
-      setDraft("");
-      setCursor(0);
-      setPendingFile(null);
-      setPendingGifUrl("");
-      setEmojiOpen(false);
-      setReplyTo(null);
-      setSelectedMessageIds(new Set());
-      await loadConversations();
-      await loadMessages(conversationId);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === tempId
+            ? {
+                ...row,
+                author: currentUserProfile ?? {
+                  id: sessionUserId,
+                  full_name: null,
+                  email: null
+                },
+                reactions: []
+              }
+            : msg
+        )
+      );
+      void loadConversations();
     } catch (err) {
+      if (didAppend) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+      }
+      setDraft(body);
+      if (file) setPendingFile(file);
+      if (gifUrl) setPendingGifUrl(gifUrl);
+      if (replySnapshot) setReplyTo(replySnapshot);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
+      if (lockHeld) sendLockRef.current = false;
       setSending(false);
+      wantComposerFocusRef.current = true;
     }
   }
 
@@ -904,7 +1034,7 @@ export default function TeamChatPanel({
   function handleComposerKeyDown(e) {
     if (e.key !== "Enter" || e.shiftKey) return;
     e.preventDefault();
-    if (canSend) {
+    if (canSend && !sendLockRef.current) {
       void handleSend(e);
     }
   }
@@ -1193,7 +1323,8 @@ export default function TeamChatPanel({
                           authorId: msg.author_id,
                           sessionUserId,
                           memberReads: activeConversation?.member_reads,
-                          presenceByUserId
+                          presenceByUserId,
+                          clientPending: Boolean(msg.clientPending)
                         });
 
                         return (
@@ -1496,7 +1627,7 @@ export default function TeamChatPanel({
                         onClick={syncCursorFromTextarea}
                         onKeyUp={syncCursorFromTextarea}
                         onSelect={syncCursorFromTextarea}
-                        disabled={sending}
+                        readOnly={sending}
                       />
                     </div>
 

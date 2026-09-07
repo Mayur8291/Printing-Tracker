@@ -674,6 +674,8 @@ sequenceDiagram
   Panel->>User: Text on clipboard
   User->>Panel: Click Paste under box
   Panel->>User: Text in composer
+  User->>Panel: Type and Send
+  Panel->>User: Thread stays, cursor back in box
 ```
 
 ```mermaid
@@ -706,13 +708,14 @@ flowchart TD
 flowchart TD
   Send[You send in Chat or Group] --> Kind{kind}
   Kind -->|channel| None[No ticks]
-  Kind -->|direct or group| Reads[Compare others last_read_at]
-  Reads -->|all seen| Blue[2 blue ticks]
-  Reads -->|group some seen| Grey2Always[2 grey ticks]
-  Reads -->|nobody seen or DM unread| Dash{Any other Online}
-  Dash -->|yes| Grey2[2 grey ticks]
-  Dash -->|no| Grey1[1 grey tick]
-  Open[Peer keeps thread open] --> Beat[mark_conversation_read every 4s]
+  Kind -->|direct or group| Reads[Who opened the thread]
+  Reads -->|all others opened| Blue[2 blue ticks]
+  Reads -->|group some opened| Grey2[2 grey ticks]
+  Reads -->|group nobody opened| Grey1[1 grey tick]
+  Reads -->|DM not opened| Dash{Peer Online}
+  Dash -->|yes| DmGrey2[2 grey ticks]
+  Dash -->|no| DmGrey1[1 grey tick]
+  Open[Peer opens that thread] --> Beat[mark_conversation_read]
   Beat --> Reads
 ```
 
@@ -722,11 +725,11 @@ sequenceDiagram
   participant Peer
   participant DB as last_read_at
   Sender->>Peer: Message arrives
-  Note over Sender: 1 grey if peer Offline
+  Note over Sender: 1 grey if peer Away or Offline
   Peer->>Peer: Dashboard Online, chat closed
-  Note over Sender: 2 grey
+  Note over Sender: DM 2 grey
   Peer->>DB: Open thread mark_conversation_read
-  Note over Sender: 2 blue
+  Note over Sender: Chat 2 blue / Group 2 grey or 2 blue
 ```
 
 ```mermaid

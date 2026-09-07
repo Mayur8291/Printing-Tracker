@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-07 — DM 2 grey ticks while peer is Online
+
+- **Issue:** DM showed 1 grey while the other person was active on the dashboard and had not opened the chat.
+- **Fix:** Chat: Online + not seen = **2 grey**. Away/Offline + not seen = **1 grey**. Opened = **2 blue**. Groups unchanged (0 / some / all seen).
+- **Files:** `teamChatReceipts.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-07 — Ticks from open-thread only + faster send
+
+- **Issue:** Blue ticks showed before the other person opened the chat. Groups used Online as 2 grey even when nobody had seen it. Send waited ~1s on a full reload.
+- **Fix:** Ticks ignore presence. Chat: not opened = 1 grey, opened = 2 blue. Group: 0 seen = 1 grey, some seen = 2 grey, all seen = 2 blue. Send shows the bubble immediately; inbox refresh is background.
+- **Files:** `teamChatReceipts.js`, `teamChatService.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-07 — Chat send keeps thread and composer focus
+
+- **Issue:** After Send, the Chat/Group page blinked away for a second. Cursor left the text box.
+- **Fix:** Same-thread refresh no longer shows “Loading messages…”. Composer stays enabled (`readOnly` only while send runs). Focus returns to the box after Send. First DM loads the conversation before leaving compose so the thread does not unmount.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md.
+
 ## 2026-09-07 — Hide Voice note.webm label
 
 - **Issue:** Voice bubbles showed the file name `Voice note.webm` under the player.

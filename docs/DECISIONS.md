@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-07 — Ticks only when the thread is opened
+
+**Context:** Blue ticks showed when the peer had not opened the chat. Groups were supposed to use 1 grey / 2 grey / 2 blue from who actually saw the post. Send also blocked the tab for about a second.
+
+**Options:** (1) Keep Online = 2 grey delivered. (2) Count only `last_read_at` (they opened that thread).
+
+**Decision:** Groups stay open-thread only (0 / some / all). Chat DMs also use Online: dashboard active + not opened → 2 grey; Away/Offline + not opened → 1 grey; opened → 2 blue. Send paints an optimistic bubble and reloads the inbox in the background.
+
+**Why:** User wants 2 grey when the peer is on the dashboard but has not opened that DM. Groups still ignore Online for the nobody-seen case.
+
+**Tradeoffs:** Online is the 5-minute dashboard grace, not “they opened this chat”.
+
 ## 2026-09-05 — Name line click vs Media button
 
 **Context:** User does not want the Chat/Group title to look like a button. Clicking the name line should open details. A separate **Media** control should show shared files.
@@ -37,6 +49,8 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 **Context:** User wants WhatsApp ticks on Chats and Groups, plus a group viewers list for the sender.
 
 **Options:** (1) New per-message read table. (2) Reuse conversation `last_read_at` (opening the thread marks all older posts seen) plus `hr_user_presence` Online.
+
+**Superseded 2026-09-07:** Presence is no longer a tick input. See “Ticks only when the thread is opened”.
 
 **Decision:** Option 2. DM: 1 grey = not seen and peer not Online; 2 grey = not seen and peer Online; 2 blue = peer `last_read_at` ≥ message time. Group: 2 blue only when every other member has seen it. One or more seen but not all → 2 grey (ignore presence). Nobody seen yet → same Online/Offline rule as before. Channels have no ticks. Group Info lists Seen / Not seen for the author only.
 

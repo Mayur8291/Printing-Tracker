@@ -519,9 +519,9 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 ### Delivery ticks (Chats and Groups only)
 
 1. **Trigger:** You send any message (text, photo, GIF, voice). Ticks sit on **your** bubble only. Channels have no ticks.
-2. **Seen:** Other member `last_read_at` ≥ that message `created_at` (they opened the thread). All others seen → **2 blue**.
-3. **Chats (unread):** Peer **Online** (dashboard active, 5 min grace) → **2 grey**. Peer Away/Offline → **1 grey**.
-4. **Groups:** **2 blue** only when every other member has seen that post. If even one other member has seen it (any day) and someone has not → **2 grey**, even if the rest are Offline. If nobody has seen it yet: any other member Online → **2 grey**; all others Away/Offline → **1 grey**.
+2. **Seen:** Other member opened that thread (`last_read_at` ≥ that message `created_at`). Online / Away does **not** change ticks.
+3. **Chats:** Peer has not opened and is **Online** (dashboard active) → **2 grey**. Peer has not opened and is Away/Offline → **1 grey**. Peer opened → **2 blue**.
+4. **Groups:** Nobody opened → **1 grey**. At least one other member opened, but not all → **2 grey**. Every other member opened → **2 blue**.
 5. **Read wins:** After all others have seen it, ticks stay blue even if they later go offline.
 6. **Realtime:** Member `UPDATE` patches `member_reads` immediately. Open Chat/Group also polls reads every 4s. Staging table uses `REPLICA IDENTITY FULL` so RLS realtime can send peer `last_read_at`.
 7. **Open = seen:** While a Chat/Group/Channel thread is open, the viewer heartbeats `mark_conversation_read` every 4s so new text/photo/GIF/file/voice is marked seen without closing and reopening.
@@ -553,7 +553,7 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 2. **File:** Paperclip → image, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. No app size cap. Upload to `team-chat-files` (staging bucket limit 10 GB). Browser or project Storage settings can still fail a huge upload.
 2a. **Download:** Arrow icon beside the attachment or GIF (not beside typed `http` links). Fetches the file and opens the system save dialog. Same icon on Media photos/docs.
 3. **Voice note:** Mic in the composer action row (after paperclip) on Chats and Groups. Browser `getUserMedia` + `MediaRecorder`. Stop button appears only while recording (same slot). After stop, preview + Send uploads audio (webm/mp4/ogg) as an attachment. Cap 5 minutes. Mic deny or empty clip shows an error. Voice-only does not increment the text unread badge. The bubble is a full native player (play + seek). No `Voice note.webm` label. Download arrow sits under the player so it does not crush the control.
-4. **Composer layout:** Full-width box on top (1 line, grows to ~5, then scrolls). Under it: emoji, GIF, paperclip, mic, paste left; Send right. **Enter** still sends; **Shift+Enter** new line.
+4. **Composer layout:** Full-width box on top (1 line, grows to ~5, then scrolls). Under it: emoji, GIF, paperclip, mic, paste left; Send right. **Enter** still sends; **Shift+Enter** new line. After Send, the thread stays on screen (refresh does not swap in “Loading messages…”). Cursor returns to the box so the next line can be typed without a click. The bubble appears at once (optimistic). Inbox reload runs in the background so the tab does not wait ~1s.
 5. **Paste:** Paste icon reads the clipboard and inserts at the cursor. Deny clipboard → error; **Ctrl+V** still works in the box.
 6. **Constraint:** Message needs body, attachment, or GIF (empty text-only blocked).
 

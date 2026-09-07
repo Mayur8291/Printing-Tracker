@@ -343,15 +343,22 @@ export async function sendChatMessage({
     ...attachmentFields
   };
 
-  const { error: insertErr } = await supabase.from("team_chat_messages").insert(payload);
+  const { data, error: insertErr } = await supabase
+    .from("team_chat_messages")
+    .insert(payload)
+    .select(MESSAGE_SELECT)
+    .single();
   if (insertErr) throw new Error(insertErr.message);
 
-  await supabase
-    .from("team_chat_conversations")
-    .update({ last_message_at: new Date().toISOString() })
-    .eq("id", conversationId);
+  await Promise.all([
+    supabase
+      .from("team_chat_conversations")
+      .update({ last_message_at: new Date().toISOString() })
+      .eq("id", conversationId),
+    markConversationRead(conversationId)
+  ]);
 
-  await markConversationRead(conversationId);
+  return data;
 }
 
 export async function softDeleteChatMessages(messageIds) {
