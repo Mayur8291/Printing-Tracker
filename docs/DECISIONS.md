@@ -126,6 +126,52 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Others still see Online for 5 minutes after close/crash.
 
+## 2026-09-07 — Chat attachments have no 15 MB app cap
+
+**Context:** User could not send documents over 15 MB and wanted a download icon beside files, not links.
+
+**Options:** (1) Keep 15 MB. (2) Drop the client cap, raise the bucket, add a download arrow that saves via blob.
+
+**Decision:** Option 2. Office types allowed. Links in the body stay click-only.
+
+**Why:** Matches the request. True unlimited is not possible; 10 GB bucket + browser/project limits remain.
+
+**Tradeoffs:** Huge files use memory on upload and on download-as-blob.
+
+## 2026-09-07 — Inbox search is a popover next to New
+
+**Context:** User asked for a search symbol left of New chat, and the same on Groups.
+
+**Options:** (1) Filter the inbox list in place. (2) Popover with type-ahead names.
+
+**Decision:** Option 2. Chats search people (open existing DM or compose). Groups search group titles.
+
+**Why:** Matches the header slot they pointed at. Empty query still lists everyone / every group.
+
+**Tradeoffs:** Channels have no search yet.
+
+## 2026-09-05 — Select uses the full message row
+
+**Context:** Users had to click the bubble. Empty space on that line did nothing.
+
+**Decision:** The `article` row is the hit target. Nested links / downloads / react chips stop the click.
+
+**Why:** Matches “click anywhere on that message line.”
+
+**Tradeoffs:** Row is not `role=button` so reaction Buttons stay valid.
+
+## 2026-09-05 — Long chat URLs wrap, never clip
+
+**Context:** Shared seller URLs overflowed the bubble as one nowrap line.
+
+**Options:** (1) Clip with `overflow-hidden`. (2) Wrap the full string inside the bubble.
+
+**Decision:** Option 2. Override Button `whitespace-nowrap` / `inline-flex` on the link.
+
+**Why:** User asked for line-wise display with no hidden or merged text.
+
+**Tradeoffs:** A very long token uses more vertical space.
+
 ## 2026-09-05 — Thread history uses native scroll
 
 **Context:** After pane-lock, older group messages vanished; only the last bubble sat under empty white.

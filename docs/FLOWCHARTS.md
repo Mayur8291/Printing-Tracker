@@ -650,7 +650,15 @@ sequenceDiagram
   participant Panel as TeamChatPanel
   User->>Panel: Open Chat
   Panel->>User: Chats list plus thread
+  User->>Panel: Click search glass
+  Panel->>User: Name list filtered by letters
+  User->>Panel: Click a name
+  Panel->>User: Open that DM
   User->>Panel: Tap Groups
+  User->>Panel: Click search glass
+  Panel->>User: Group titles filtered by letters
+  User->>Panel: Click a group name
+  Panel->>User: Open that group
   Panel->>User: Group rows stay plus group thread
   User->>Panel: New group
   Panel->>User: Group stays on Groups tab

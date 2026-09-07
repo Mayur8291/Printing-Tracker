@@ -46,7 +46,7 @@ export function ChatMessageBody({ body, profiles, orders, onOpenOrder, inverted 
                 asChild
                 variant="link"
                 className={cn(
-                  "h-auto max-w-full px-0 py-0 text-left text-sm font-normal break-all underline underline-offset-2",
+                  "inline h-auto max-w-full whitespace-normal break-all px-0 py-0 text-left text-sm font-normal underline underline-offset-2 [overflow-wrap:anywhere] [word-break:break-all]",
                   inverted ? "text-primary-foreground" : "text-sky-700"
                 )}
               >
@@ -83,7 +83,10 @@ export function ChatMessageBody({ body, profiles, orders, onOpenOrder, inverted 
                 "h-auto px-1 py-0 text-xs font-semibold underline-offset-2",
                 inverted ? "text-primary-foreground" : "text-primary"
               )}
-              onClick={() => onOpenOrder(order)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenOrder(order);
+              }}
             >
               {part.value}
             </Button>

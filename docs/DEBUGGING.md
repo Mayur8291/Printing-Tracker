@@ -1353,7 +1353,7 @@ You click one or more bubbles and only a ring shows, or nothing marks the row.
 Selection highlight is a light sky-blue bar on the **row**, not a new bubble color.
 
 ### Fix
-Click the bubble in Chat or Groups. The full horizontal strip behind that message turns sky-blue. The bubble itself stays dark/light as before.
+Click anywhere on that message’s horizontal row in Chat or Groups (not only the bubble). The full strip turns sky-blue. The bubble itself stays dark/light as before.
 
 ## Chat: message actions missing or delete does nothing
 
@@ -1388,6 +1388,17 @@ Chat was in the main page scroller (`min-h` card). Flex children grew with unbre
 ### Fix
 Chat is a full-bleed tab. Card is `h-full overflow-hidden`. Thread and bubbles use `min-w-0` and wrap. Phone still swaps list vs thread.
 
+## Chat: long URL runs across the thread
+
+### Symptom
+A long `https://…` sits on one line, leaves the grey bubble, and covers other messages. Some of the URL looks cut.
+
+### Root cause
+The link is a shadcn Button (`inline-flex` + `whitespace-nowrap`). That blocks wrap. The extra characters paint outside the bubble.
+
+### Fix
+Link classes use `inline`, `whitespace-normal`, `break-all`, and `overflow-wrap: anywhere`. Hard refresh. The whole URL must stay inside the bubble on several lines.
+
 ## Chat: older messages missing, only last bubble + white hole
 
 ### Symptom
@@ -1398,6 +1409,28 @@ Radix ScrollArea inner node is `display: table`. Pane-lock classes (`overflow-hi
 
 ### Fix
 Thread scroll is a `div` with `overflow-y-auto`. Do not clip bubbles. Scroll that div with `scrollTop`. Confirm with `select * from team_chat_messages where conversation_id = …`.
+
+## Chat: file over 15 MB will not send
+
+### Symptom
+Paperclip or Send says the file must be 15 MB or smaller, or Storage rejects a large Excel.
+
+### Root cause
+Old client check `CHAT_MAX_ATTACHMENT_BYTES`. Type list used to be images + PDF only.
+
+### Fix
+Hard refresh. There is no 15 MB app check. Staging bucket cap is 10 GB. If upload still fails, check the Supabase project global file size and the network. Download is the arrow beside the file, not the typed URL.
+
+## Chat: inbox search missing or finds nobody
+
+### Symptom
+No magnifying glass left of **New chat** / **New group**, or typing letters shows an empty list.
+
+### Root cause
+Search is `ChatInboxSearch` in the inbox header only. Chats match `profileChatLabel` / email. Groups match conversation title. You never see your own name.
+
+### Fix
+Open Chat → Chats. Glass is left of **New chat**. Type part of a name. Groups tab uses the same glass for group titles.
 
 ## Chat: Groups list vanished after a layout edit
 

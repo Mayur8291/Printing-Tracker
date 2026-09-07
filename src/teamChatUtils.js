@@ -20,14 +20,50 @@ export const CHAT_GIF_PRESETS = [
 ];
 
 export const CHAT_ATTACHMENT_BUCKET = "team-chat-files";
-export const CHAT_MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
 
 export const CHAT_ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/gif",
-  "application/pdf"
+  "application/pdf",
+  "application/msword",
+  "application/vnd.ms-excel",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.ms-excel.sheet.macroenabled.12",
+  "text/csv",
+  "application/csv",
+  "application/zip",
+  "application/x-zip-compressed",
+  "text/plain"
+]);
+
+export const CHAT_ALLOWED_EXTENSIONS = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "webp",
+  "gif",
+  "pdf",
+  "doc",
+  "docx",
+  "xls",
+  "xlsx",
+  "csv",
+  "ppt",
+  "pptx",
+  "zip",
+  "txt",
+  "mp3",
+  "wav",
+  "ogg",
+  "webm",
+  "m4a",
+  "mp4",
+  "mov"
 ]);
 
 export const CHAT_ALLOWED_AUDIO_MIME_TYPES = new Set([
@@ -45,9 +81,41 @@ export function normalizeChatMime(type) {
   return String(type ?? "").split(";")[0].trim().toLowerCase();
 }
 
-export function isAllowedChatAttachmentMime(mime) {
+export function chatFileExtension(fileName) {
+  const parts = String(fileName ?? "").split(".");
+  if (parts.length < 2) return "";
+  return parts.pop().trim().toLowerCase();
+}
+
+export function isAllowedChatAttachmentMime(mime, fileName = "") {
   const normalized = normalizeChatMime(mime);
-  return CHAT_ALLOWED_MIME_TYPES.has(normalized) || CHAT_ALLOWED_AUDIO_MIME_TYPES.has(normalized);
+  if (normalized.startsWith("image/") || normalized.startsWith("video/") || normalized.startsWith("audio/")) {
+    return true;
+  }
+  if (CHAT_ALLOWED_MIME_TYPES.has(normalized) || CHAT_ALLOWED_AUDIO_MIME_TYPES.has(normalized)) {
+    return true;
+  }
+  const ext = chatFileExtension(fileName);
+  if (ext && CHAT_ALLOWED_EXTENSIONS.has(ext)) return true;
+  return Boolean(!normalized && String(fileName ?? "").trim());
+}
+
+export async function downloadChatFile(url, fileName) {
+  const href = String(url ?? "").trim();
+  if (!href) throw new Error("Nothing to download");
+  const name = String(fileName ?? "").trim() || "download";
+  const res = await fetch(href);
+  if (!res.ok) throw new Error("Could not download file");
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = name;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
 }
 
 const UNNAMED_DISPLAY = "Unnamed";
@@ -141,11 +209,8 @@ export function isChatAudioMime(mime) {
 
 export function validateChatAttachmentFile(file) {
   if (!file) return "No file selected";
-  if (!isAllowedChatAttachmentMime(file.type)) {
-    return "Only images, PDF, and voice notes are allowed";
-  }
-  if (file.size > CHAT_MAX_ATTACHMENT_BYTES) {
-    return "File must be 15 MB or smaller";
+  if (!isAllowedChatAttachmentMime(file.type, file.name)) {
+    return "That file type is not allowed";
   }
   return null;
 }

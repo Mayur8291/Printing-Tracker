@@ -25,6 +25,7 @@ import { ChatVoiceControls } from "@/components/chat/ChatVoiceControls";
 import { CreateChannelDialog } from "@/components/chat/CreateChannelDialog";
 import { CreateGroupDialog } from "@/components/chat/CreateGroupDialog";
 import { GifPicker } from "@/components/chat/GifPicker";
+import { ChatInboxSearch } from "@/components/chat/ChatInboxSearch";
 import { NewDirectChatDialog } from "@/components/chat/NewDirectChatDialog";
 import {
   clipboardTextForMessages,
@@ -613,6 +614,15 @@ export default function TeamChatPanel({
     setPendingGifUrl("");
   }
 
+  function openDirectFromSearch(peerId) {
+    const existing = directConversations.find((c) => (c.member_ids ?? []).includes(peerId));
+    if (existing) {
+      selectConversation(existing.id);
+      return;
+    }
+    startDirectChat(peerId);
+  }
+
   function startDirectChat(otherUserId) {
     setInboxTab("chats");
     setComposeDirectPeerId(otherUserId);
@@ -937,11 +947,19 @@ export default function TeamChatPanel({
                 <InboxPane
                   title="Chats"
                   action={
-                    <NewDirectChatDialog
-                      sessionUserId={sessionUserId}
-                      teamProfiles={teamProfiles}
-                      onStartChat={startDirectChat}
-                    />
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <ChatInboxSearch
+                        mode="chats"
+                        sessionUserId={sessionUserId}
+                        teamProfiles={teamProfiles}
+                        onPickPerson={openDirectFromSearch}
+                      />
+                      <NewDirectChatDialog
+                        sessionUserId={sessionUserId}
+                        teamProfiles={teamProfiles}
+                        onStartChat={startDirectChat}
+                      />
+                    </div>
                   }
                 >
                   {loadingConversations ? (
@@ -972,11 +990,20 @@ export default function TeamChatPanel({
                 <InboxPane
                   title="Groups"
                   action={
-                    <CreateGroupDialog
-                      sessionUserId={sessionUserId}
-                      teamProfiles={teamProfiles}
-                      onCreate={handleCreateGroup}
-                    />
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <ChatInboxSearch
+                        mode="groups"
+                        sessionUserId={sessionUserId}
+                        teamProfiles={teamProfiles}
+                        groupConversations={groupConversations}
+                        onPickGroup={selectConversation}
+                      />
+                      <CreateGroupDialog
+                        sessionUserId={sessionUserId}
+                        teamProfiles={teamProfiles}
+                        onCreate={handleCreateGroup}
+                      />
+                    </div>
                   }
                 >
                   {loadingConversations ? (
@@ -1172,10 +1199,24 @@ export default function TeamChatPanel({
                         return (
                           <article
                             key={msg.id}
+                            tabIndex={msg.deleted_at ? -1 : 0}
+                            aria-pressed={msg.deleted_at ? undefined : selected}
+                            onClick={() => {
+                              if (msg.deleted_at) return;
+                              toggleMessageSelected(msg);
+                            }}
+                            onKeyDown={(e) => {
+                              if (msg.deleted_at) return;
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleMessageSelected(msg);
+                              }
+                            }}
                             className={cn(
                               "flex w-full min-w-0 max-w-full gap-3 px-4",
+                              !msg.deleted_at && "cursor-pointer hover:bg-muted/50",
                               isOwn && "flex-row-reverse",
-                              selected && "bg-sky-100 py-2"
+                              selected && "bg-sky-100 py-2 hover:bg-sky-100"
                             )}
                           >
                             <PersonAvatar
@@ -1187,7 +1228,7 @@ export default function TeamChatPanel({
                             />
                             <div
                               className={cn(
-                                "flex min-w-0 w-fit max-w-[min(85%,28rem)] flex-col gap-1",
+                                "flex min-w-0 w-fit max-w-[min(85%,28rem)] flex-col gap-1 [overflow-wrap:anywhere]",
                                 isOwn && "items-end"
                               )}
                             >
@@ -1199,21 +1240,8 @@ export default function TeamChatPanel({
                               ) : null}
                               {hasContent || msg.deleted_at || receiptStatus ? (
                                 <div
-                                  role="button"
-                                  tabIndex={msg.deleted_at ? -1 : 0}
-                                  onClick={() => {
-                                    if (msg.deleted_at) return;
-                                    toggleMessageSelected(msg);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (msg.deleted_at) return;
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault();
-                                      toggleMessageSelected(msg);
-                                    }
-                                  }}
                                   className={cn(
-                                    "min-w-0 w-full max-w-full whitespace-normal break-words [overflow-wrap:anywhere] rounded-lg px-3 py-2 text-left shadow-sm",
+                                    "min-w-0 w-full max-w-full whitespace-normal break-words [overflow-wrap:anywhere] [word-break:break-word] rounded-lg px-3 py-2 text-left shadow-sm",
                                     isOwn
                                       ? "bg-primary text-primary-foreground"
                                       : "border bg-card text-card-foreground",
@@ -1510,7 +1538,7 @@ export default function TeamChatPanel({
                           ref={fileInputRef}
                           type="file"
                           className="sr-only"
-                          accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.txt,application/pdf"
                           onChange={onPickAttachment}
                         />
                         <Button
@@ -1518,7 +1546,7 @@ export default function TeamChatPanel({
                           variant="outline"
                           size="icon"
                           className="size-9"
-                          aria-label="Attach image or PDF"
+                          aria-label="Attach a file"
                           disabled={sending || voiceRecording}
                           onClick={() => fileInputRef.current?.click()}
                         >

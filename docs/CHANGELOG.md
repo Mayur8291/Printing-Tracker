@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-07 — Chat files any size + download icon
+
+- **Issue:** Paperclip blocked files over 15 MB. Download was a text link. Excel often rejected by type.
+- **Fix:** No client size cap. Images, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. Download arrow beside the file (and Media photos/docs) saves through the browser file manager. Links stay without that icon. Staging bucket `team-chat-files` limit 10 GB (`20260907110000_team_chat_files_no_size_cap.sql`).
+- **Files:** `teamChatUtils.js`, `ChatMessageMedia.jsx`, `ChatSharedMediaSheet.jsx`, `TeamChatPanel.jsx`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md.
+
+## 2026-09-07 — Inbox search next to New chat / New group
+
+- **Issue:** Chats and Groups had no search. Users had to scroll the list to find a person or group.
+- **Fix:** Magnifying-glass button sits left of **New chat** / **New group**. Type letters to filter names. Click a person to open that DM (existing thread, or compose). Click a group name to open that group.
+- **Files:** `ChatInboxSearch.jsx`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, FLOWCHARTS.md.
+
+## 2026-09-05 — Click the whole message row to select
+
+- **Issue:** Select only fired on the bubble, so empty space on that line did nothing.
+- **Fix:** The full-width row is the hit target (avatar, name, bubble, leftover strip). Links and downloads still do not toggle select.
+- **Files:** `TeamChatPanel.jsx`, `ChatMessageBody.jsx`, `ChatMessageMedia.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-05 — Long chat URLs wrap inside the bubble
+
+- **Issue:** A long Amazon (or any) URL painted as one line across the thread and sat on other bubbles.
+- **Fix:** Chat link Button drops `whitespace-nowrap` / `inline-flex`. URL wraps line by line inside the bubble. Full text stays; nothing is clipped.
+- **Files:** `ChatMessageBody.jsx`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-09-05 — Older chat messages show again
 
 - **Issue:** Scott Test Group has 6 live rows, but the thread only showed the last “hi” over a big white hole.

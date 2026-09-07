@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FileText, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ChatFileDownloadButton } from "@/components/chat/ChatMessageMedia";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
@@ -76,34 +77,35 @@ export function ChatSharedMediaSheet({ open, onOpenChange, conversationId, title
                 <EmptyMedia text="No photos or videos yet." />
               ) : (
                 <div className="grid grid-cols-3 gap-2 p-1">
-                  {media.photos.map((item) =>
-                    item.kind === "video" ? (
-                      <a
-                        key={item.id}
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block overflow-hidden rounded-md border bg-muted"
-                      >
-                        <video src={item.url} className="aspect-square w-full object-cover" muted />
-                      </a>
-                    ) : (
-                      <a
-                        key={item.id}
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block overflow-hidden rounded-md border"
-                      >
-                        <img
-                          src={item.url}
-                          alt={item.name}
-                          loading="lazy"
-                          className="aspect-square w-full object-cover"
-                        />
-                      </a>
-                    )
-                  )}
+                  {media.photos.map((item) => (
+                    <div key={item.id} className="flex flex-col gap-1">
+                      {item.kind === "video" ? (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block overflow-hidden rounded-md border bg-muted"
+                        >
+                          <video src={item.url} className="aspect-square w-full object-cover" muted />
+                        </a>
+                      ) : (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block overflow-hidden rounded-md border"
+                        >
+                          <img
+                            src={item.url}
+                            alt={item.name}
+                            loading="lazy"
+                            className="aspect-square w-full object-cover"
+                          />
+                        </a>
+                      )}
+                      <ChatFileDownloadButton url={item.url} name={item.name} className="self-end" />
+                    </div>
+                  ))}
                 </div>
               )}
             </ScrollArea>
@@ -118,9 +120,9 @@ export function ChatSharedMediaSheet({ open, onOpenChange, conversationId, title
               ) : (
                 <ul className="flex flex-col gap-2 p-1">
                   {media.documents.map((item) => (
-                    <li key={item.id}>
-                      <Button asChild variant="outline" className="h-auto w-full justify-start gap-2 py-2">
-                        <a href={item.url} target="_blank" rel="noopener noreferrer" download={item.name}>
+                    <li key={item.id} className="flex items-center gap-1">
+                      <Button variant="outline" className="h-auto min-w-0 flex-1 justify-start gap-2 py-2" asChild>
+                        <a href={item.url} target="_blank" rel="noopener noreferrer">
                           <FileText />
                           <span className="min-w-0 flex-1 truncate text-left">
                             {isChatAudioMime(item.mime) ? `Voice note · ${item.name}` : item.name}
@@ -130,6 +132,7 @@ export function ChatSharedMediaSheet({ open, onOpenChange, conversationId, title
                           </span>
                         </a>
                       </Button>
+                      <ChatFileDownloadButton url={item.url} name={item.name} />
                     </li>
                   ))}
                 </ul>

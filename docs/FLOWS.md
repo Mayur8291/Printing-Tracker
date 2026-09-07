@@ -448,8 +448,9 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 1. **Trigger:** User opens **Chat**. Default tab is **Chats**.
 2. **Entry:** Bottom of the left inbox is a shadcn `TabsList` with three equal names: **Chats**, **Groups**, **Channels**. A Badge shows unopened text-message count beside a tab when &gt; 0. List heading stays at the top of that tab.
-3. **Chats:** **New chat** under the tabs. Same conversation rows as before (avatar, name, time, preview, unread). List is `kind=direct` only. Thread on this tab is DMs only.
-4. **Groups:** **New group** in that action slot. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
+3. **Chats:** Search glass left of **New chat**. Same conversation rows as before (avatar, name, time, preview, unread). List is `kind=direct` only. Thread on this tab is DMs only.
+4. **Groups:** Search glass left of **New group**. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
+4a. **Inbox search:** Click the glass. Type letters. Chats lists team names (starts-with first, then contains). Click a name → open that DM if it exists, else the compose screen. Groups lists group titles the same way. Click a title → open that group. Empty query shows everyone / every group you can see.
 5. **Channels:** Same row format (`kind=channel`). **New Channel** shows only for `profiles.role = admin`. Everyone on the dashboard is a member. Admins post with the same composer as Chats/Groups. Non-admins see no composer; they may react (emoji + count), copy, and forward.
 6. **Switch tabs:** Only the name list and action swap. Inbox width and thread pane stay.
 7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). Phone (`max-sm`) still hides the list until Back. From `sm` up, inbox and thread stay side by side so Groups never vanish on open.
@@ -468,7 +469,7 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox.
 3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats).
 4. **Send:** `sendChatMessage()` with `conversation_id`; marks read for sender.
-5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text, URLs, and no-space tokens wrap inside the bubble. Same on Groups. `http`/`https` in the body is a clickable `<a>` (new tab). Clicking the link does not toggle select.
+5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text and URLs wrap **inside** the bubble on new lines (`break-all` / `word-break` on the link). Full string stays visible — no clip, no overlap onto other rows. Same on Groups. `http`/`https` is a clickable link (new tab). Clicking the link does not toggle select. The link Button overrides shadcn `whitespace-nowrap` so a long URL can wrap.
 6. **Pane size:** Chat tab is full-bleed (`FULL_BLEED_TABS`). The card fills the dashboard content area (`h-full`, overflow hidden). Inbox stays on screen from `sm` up; thread is a normal `overflow-y-auto` box (not Radix table scroll). Phone (`max-sm`): list or thread, not both. Long messages wrap inside the bubble. History stays visible; open thread scrolls to the newest.
 7. **History load:** `fetchConversationMessages` takes the newest 200 (`created_at` desc) then reverses to oldest-first.
 8. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
@@ -534,7 +535,7 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 ### Select message actions (Chats and Groups)
 
-1. **Trigger:** Click a live message bubble in the thread (your messages or others). Deleted bubbles stay unselectable.
+1. **Trigger:** Click anywhere on that message’s full horizontal row (empty strip, avatar, name, or bubble). Your messages or others. Deleted rows stay unselectable. Links / download / react / order chips use `stopPropagation` so they do not toggle select.
 2. **Selected look:** That row (not the bubble) gets a full-width light sky-blue bar (`bg-sky-100`). One or many selected rows all show it. Bubble color stays the same.
 3. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Clear. Group sender also gets Info (viewers). Delete only if that message is yours.
 4. **Several selected:** Header shows icon-only Copy, Forward, Clear. Delete only if every selected message is yours. Mix of own + others, or only others → no Delete.
@@ -549,7 +550,8 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 ### Send GIF / attachment
 
 1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending via `VITE_GIPHY_API_KEY`). **Enter** sends message; **Shift+Enter** new line.
-2. **File:** Paperclip → JPEG/PNG/WebP/GIF/PDF up to 15 MB → `team-chat-files` bucket.
+2. **File:** Paperclip → image, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. No app size cap. Upload to `team-chat-files` (staging bucket limit 10 GB). Browser or project Storage settings can still fail a huge upload.
+2a. **Download:** Arrow icon beside the attachment or GIF (not beside typed `http` links). Fetches the file and opens the system save dialog. Same icon on Media photos/docs.
 3. **Voice note:** Mic in the composer action row (after paperclip) on Chats and Groups. Browser `getUserMedia` + `MediaRecorder`. Stop button appears only while recording (same slot). After stop, preview + Send uploads audio (webm/mp4/ogg) as an attachment. Cap 5 minutes. Mic deny or empty clip shows an error. Voice-only does not increment the text unread badge.
 4. **Composer layout:** Full-width box on top (1 line, grows to ~5, then scrolls). Under it: emoji, GIF, paperclip, mic, paste left; Send right. **Enter** still sends; **Shift+Enter** new line.
 5. **Paste:** Paste icon reads the clipboard and inserts at the cursor. Deny clipboard → error; **Ctrl+V** still works in the box.

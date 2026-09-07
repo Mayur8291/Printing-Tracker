@@ -598,7 +598,7 @@ Display status is derived: no row or seen ≥ 2 hours → Offline. Seen &lt; 5 m
 |--------|------|---------|
 | `conversation_id` | uuid | FK → `team_chat_conversations.id` (required for new messages) |
 | `gif_url` | text | External GIF URL (Giphy search or preset) |
-| `attachment_*` | text/bigint | File in `team-chat-files` bucket (images, PDF, voice notes) |
+| `attachment_*` | text/bigint | File in `team-chat-files` bucket (images, office, PDF, audio/video). No 15 MB app cap. Staging bucket `file_size_limit` 10 GB (`20260907110000_team_chat_files_no_size_cap.sql`). |
 | `mentioned_user_ids` / `mentioned_order_ids` | uuid[] / bigint[] | @user and #order tokens |
 | `reply_to_message_id` | bigint | Optional FK to the quoted message |
 | `forwarded_from_message_id` | bigint | Source message when forwarded |
