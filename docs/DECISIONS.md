@@ -2,6 +2,18 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-07 — One Giphy client key for Chat GIF Search
+
+**Context:** GIF Search needs a Giphy API key. Putting it only in gitignored `.env` means production and staging Netlify builds have no key.
+
+**Options:** (1) Netlify UI env only. (2) Bundle the public client key in code + `netlify.toml` so every deploy uses the same key.
+
+**Decision:** Option 2. `GIPHY_CLIENT_KEY` in `giphyGifApi.js` is the source of truth. `VITE_GIPHY_API_KEY` in `netlify.toml` `[build.environment]` matches it for local/examples. Giphy web keys are public (they ship in the browser).
+
+**Why:** User asked that production keep the same key after push. A UI-only env var is easy to forget or override per context.
+
+**Tradeoffs:** Rotating the key means a code change. Restrict the key to Scott Dashboard domains in the Giphy dashboard.
+
 ## 2026-09-07 — Ticks only when the thread is opened
 
 **Context:** Blue ticks showed when the peer had not opened the chat. Groups were supposed to use 1 grey / 2 grey / 2 blue from who actually saw the post. Send also blocked the tab for about a second.

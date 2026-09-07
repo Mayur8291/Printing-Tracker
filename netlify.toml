@@ -10,6 +10,8 @@
   NODE_VERSION = "20"
   # Ensure devDependencies (e.g. jimp) install; vite is in dependencies so build always has it
   NPM_CONFIG_PRODUCTION = "false"
+  # Public Giphy client key — same on staging and production (also bundled in giphyGifApi.js)
+  VITE_GIPHY_API_KEY = "YP9q9wuUUuSB7bW2I0Zf9rF3L2GI9B3l"
 
 # Production = main branch. Staging = develop (enable branch deploys in Netlify UI).
 [context.production]

@@ -1016,7 +1016,7 @@ Netlify **secret scanning** (Secrets Controller / smart detection) blocks publis
    git rm -r --cached dist/
    ```
    Ensure `.gitignore` includes `.env` and `dist/`. Commit and push to `main`.
-2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GIPHY_API_KEY` as normal variables — **do not** enable **Contains secret values** (Supabase anon + Giphy client keys are public in the browser by design).
+2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` as normal variables — **do not** enable **Contains secret values**. Giphy is bundled; do not mark `VITE_GIPHY_API_KEY` as a secret if it is also in the UI.
 3. **Redeploy:** Netlify → Deploys → **Trigger deploy** on `main` (or push a fix commit).
 4. **If still blocked** (smart detection false positive on Supabase JWT in build output): add site env `SECRETS_SCAN_SMART_DETECTION_ENABLED` = `false` (lowercase). Prefer fixing tracked files first.
 
@@ -1143,7 +1143,8 @@ Vite bakes `VITE_*` into the bundle **at build time**. After `.env` was removed 
    | Key | Value |
    |-----|--------|
    | `VITE_SUPABASE_ANON_KEY` | Production anon/publishable key from [Supabase → Project Settings → API](https://supabase.com/dashboard/project/levwrmvqdntngeasrtnb/settings/api) |
-   | `VITE_GIPHY_API_KEY` | *(optional)* Giphy key for chat GIF search |
+
+   GIF Search does **not** need a Netlify UI key — it is bundled in `giphyGifApi.js` / `netlify.toml`.
 
    `VITE_SUPABASE_URL` is set in `netlify.toml` for production; you can mirror it in the UI if needed.
 
@@ -1540,9 +1541,9 @@ After migration, all users should be in **General** group; **New chat** opens a 
 **Quick GIFs** tab always works (preset CDN URLs).
 
 **Search tab empty — check:**
-1. `VITE_GIPHY_API_KEY` set in `.env` (get key from [Giphy Developers](https://developers.giphy.com/dashboard/)).
-2. Restart dev server after `.env` change (`npm run dev`).
-3. Beta keys limited to 100 requests/hour — 429 means rate limit; wait or upgrade key.
+1. Chat GIF Search uses the bundled Giphy client key in `src/giphyGifApi.js` (same on staging and production). Restart `npm run dev` after a pull.
+2. Beta keys limited to 100 requests/hour — 429 means rate limit; wait or upgrade key.
+3. If Netlify UI has a *different* `VITE_GIPHY_API_KEY`, the app still uses the bundled key. Giphy dashboard must allow `printingtracker.netlify.app` and the staging host.
 
 **Verify key:**
 ```bash

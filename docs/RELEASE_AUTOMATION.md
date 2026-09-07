@@ -89,7 +89,7 @@ The release button does **not** upload files from your laptop. It only merges wh
 | Release succeeds but live site unchanged | Code never pushed to GitHub `develop` | `git push origin develop`, then Release again |
 | You committed on local `main` only | Release merges **GitHub** `develop` → `main`, not your laptop | Merge into `develop`, push `origin develop`, Release |
 | Chat/goals work locally but not live | Production DB migrations not applied | Re-run Release (runs `supabase db push`) or check Actions log |
-| GIF search works locally not on live | `VITE_GIPHY_API_KEY` missing in Netlify env | Add in Netlify → Environment variables, redeploy |
+| GIF search empty on live | Old missing Netlify `VITE_GIPHY_API_KEY` | Key is now bundled in `giphyGifApi.js` + `netlify.toml`. Redeploy. Check Giphy domain allow-list. |
 | Netlify build fails **Exposed secrets detected** | `.env` or `dist/` committed with keys; or `VITE_*` marked "Contains secret values" | See `docs/DEBUGGING.md` → Netlify secret scanning. Remove `.env`/`dist` from git; set Netlify env without secret flag; redeploy |
 | Production site blank, console **Missing Supabase env vars** | `VITE_SUPABASE_ANON_KEY` not set in Netlify before build | Netlify env vars → add anon key for Production scope → clear cache redeploy. See `docs/DEBUGGING.md` |
 

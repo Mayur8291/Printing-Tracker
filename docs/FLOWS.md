@@ -549,7 +549,7 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 ### Send GIF / attachment
 
-1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending via `VITE_GIPHY_API_KEY`). **Enter** sends message; **Shift+Enter** new line.
+1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending). The public Giphy client key is bundled in `giphyGifApi.js` and `netlify.toml`, so Search works on local, staging, and production with the same key. **Enter** sends message; **Shift+Enter** new line.
 2. **File:** Paperclip → image, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. No app size cap. Upload to `team-chat-files` (staging bucket limit 10 GB). Browser or project Storage settings can still fail a huge upload.
 2a. **Download:** Arrow icon beside the attachment or GIF (not beside typed `http` links). Fetches the file and opens the system save dialog. Same icon on Media photos/docs.
 3. **Voice note:** Mic in the composer action row (after paperclip) on Chats and Groups. Browser `getUserMedia` + `MediaRecorder`. Stop button appears only while recording (same slot). After stop, preview + Send uploads audio (webm/mp4/ogg) as an attachment. Cap 5 minutes. Mic deny or empty clip shows an error. Voice-only does not increment the text unread badge. The bubble is a full native player (play + seek). No `Voice note.webm` label. Download arrow sits under the player so it does not crush the control.

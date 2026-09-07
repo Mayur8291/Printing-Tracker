@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — Chat GIF search uses one Giphy key on all deploys
+
+- **Issue:** Chat GIF Search needed a Giphy key. Local `.env` does not ship with `main`, so production search stayed empty.
+- **Fix:** Public Giphy client key lives in `giphyGifApi.js` and `netlify.toml` `[build.environment]`. Same key on local, staging (`develop`), and production (`main`).
+- **Files:** `giphyGifApi.js`, `netlify.toml`, env examples
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, ENVIRONMENTS.md, RELEASE_AUTOMATION.md, PLATFORM_OVERVIEW.md.
+
 ## 2026-09-07 — DM 2 grey ticks while peer is Online
 
 - **Issue:** DM showed 1 grey while the other person was active on the dashboard and had not opened the chat.
