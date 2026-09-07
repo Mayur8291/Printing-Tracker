@@ -207,6 +207,15 @@ export function isChatAudioMime(mime) {
   return CHAT_ALLOWED_AUDIO_MIME_TYPES.has(normalizeChatMime(mime));
 }
 
+export function isChatVoiceNoteAttachment(mime, fileName = "") {
+  if (isChatAudioMime(mime)) return true;
+  const type = normalizeChatMime(mime);
+  const name = String(fileName ?? "").toLowerCase();
+  if (type === "video/webm" && name.includes("voice")) return true;
+  if (name.startsWith("voice note.") || name.includes("voice note.webm")) return true;
+  return false;
+}
+
 export function validateChatAttachmentFile(file) {
   if (!file) return "No file selected";
   if (!isAllowedChatAttachmentMime(file.type, file.name)) {

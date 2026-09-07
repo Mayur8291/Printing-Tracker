@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-07 — Hide Voice note.webm label
+
+- **Issue:** Voice bubbles showed the file name `Voice note.webm` under the player.
+- **Fix:** Name is gone. Player + download arrow only.
+- **Files:** `ChatMessageMedia.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-09-07 — Voice notes play again with download
+
+- **Issue:** After the download arrow, voice notes showed a tiny white pill. No seek bar, hard to play.
+- **Fix:** Player is the old full-width `<audio controls>` (`min-w-[16rem]`). Download sits under the player, not beside the control. `Voice note.webm` still counts as audio if mime is odd.
+- **Files:** `ChatMessageMedia.jsx`, `teamChatUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-09-07 — Chat files any size + download icon
 
 - **Issue:** Paperclip blocked files over 15 MB. Download was a text link. Excel often rejected by type.

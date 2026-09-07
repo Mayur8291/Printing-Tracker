@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 import {
   downloadChatFile,
   getChatAttachmentPublicUrl,
-  isChatAudioMime,
-  isChatImageMime
+  isChatImageMime,
+  isChatVoiceNoteAttachment
 } from "@/teamChatUtils";
 
 export function ChatFileDownloadButton({ url, name, inverted = false, className }) {
@@ -72,16 +72,23 @@ export function ChatMessageAttachment({ msg, inverted = false }) {
 
   if (!url) return null;
 
-  if (isChatAudioMime(mime)) {
+  if (isChatVoiceNoteAttachment(mime, name)) {
     return (
-      <div className="mt-2 flex items-start gap-1" onClick={(e) => e.stopPropagation()}>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <audio controls preload="metadata" src={url} className="w-full max-w-xs">
-            <track kind="captions" />
-          </audio>
-          <span className="truncate text-xs opacity-80">{name}</span>
-        </div>
-        <ChatFileDownloadButton url={url} name={name} inverted={inverted} />
+      <div className="mt-2 flex w-full max-w-xs flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+        <audio
+          controls
+          preload="metadata"
+          src={url}
+          className="h-10 w-full min-w-[16rem] max-w-xs"
+        >
+          <track kind="captions" />
+        </audio>
+        <ChatFileDownloadButton
+          url={url}
+          name={name}
+          inverted={inverted}
+          className="self-end"
+        />
       </div>
     );
   }

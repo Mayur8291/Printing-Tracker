@@ -1410,6 +1410,28 @@ Radix ScrollArea inner node is `display: table`. Pane-lock classes (`overflow-hi
 ### Fix
 Thread scroll is a `div` with `overflow-y-auto`. Do not clip bubbles. Scroll that div with `scrollTop`. Confirm with `select * from team_chat_messages where conversation_id = …`.
 
+## Chat: voice note is a tiny pill and will not play
+
+### Symptom
+Own voice note looks like a white oval with a black dot and three dots. No timeline. Play is broken.
+
+### Root cause
+The download icon sat in the same row as `<audio>`. Flex `min-w-0` crushed the native control.
+
+### Fix
+Player is stacked: full `audio` first, then download only. No `Voice note.webm` label. Hard refresh. Click play on the bar.
+
+## Chat: Voice note.webm shows under the player
+
+### Symptom
+Voice bubble has a full player, then the text `Voice note.webm`.
+
+### Root cause
+The restore put `attachment_name` under the `<audio>` next to the download arrow.
+
+### Fix
+That label is gone. Player + download only. Hard refresh.
+
 ## Chat: file over 15 MB will not send
 
 ### Symptom
