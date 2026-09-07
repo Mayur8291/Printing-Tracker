@@ -90,7 +90,7 @@ The release button does **not** upload files from your laptop. It only merges wh
 | You committed on local `main` only | Release merges **GitHub** `develop` → `main`, not your laptop | Merge into `develop`, push `origin develop`, Release |
 | Chat/goals work locally but not live | Production DB migrations not applied | Re-run Release (runs `supabase db push`) or check Actions log |
 | GIF search empty on live | Old missing Netlify `VITE_GIPHY_API_KEY` | Key is now bundled in `giphyGifApi.js` + `netlify.toml`. Redeploy. Check Giphy domain allow-list. |
-| Netlify build fails **Exposed secrets detected** | `.env` or `dist/` committed with keys; or `VITE_*` marked "Contains secret values" | See `docs/DEBUGGING.md` → Netlify secret scanning. Remove `.env`/`dist` from git; set Netlify env without secret flag; redeploy |
+| Netlify build fails **Exposed secrets detected** | `.env` or `dist/` committed with keys; or `VITE_*` marked "Contains secret values"; or Giphy client key in the bundle | See `docs/DEBUGGING.md`. Giphy is omitted in `netlify.toml` (`SECRETS_SCAN_OMIT_KEYS` / `OMIT_PATHS`). Do not mark `VITE_GIPHY_API_KEY` as a secret. |
 | Production site blank, console **Missing Supabase env vars** | `VITE_SUPABASE_ANON_KEY` not set in Netlify before build | Netlify env vars → add anon key for Production scope → clear cache redeploy. See `docs/DEBUGGING.md` |
 
 GitHub Actions log shows `develop (8193c16) → main (8193c16)` when **nothing new was on develop** — push your branch first.

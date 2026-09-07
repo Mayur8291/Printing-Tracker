@@ -12,6 +12,9 @@
   NPM_CONFIG_PRODUCTION = "false"
   # Public Giphy client key — same on staging and production (also bundled in giphyGifApi.js)
   VITE_GIPHY_API_KEY = "YP9q9wuUUuSB7bW2I0Zf9rF3L2GI9B3l"
+  # Giphy web keys are meant to ship in the browser. Do not fail publish when they appear.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_GIPHY_API_KEY"
+  SECRETS_SCAN_OMIT_PATHS = "src/giphyGifApi.js,netlify.toml,.env.example,.env.development.example,.env.staging.example,dist"
 
 # Production = main branch. Staging = develop (enable branch deploys in Netlify UI).
 [context.production]

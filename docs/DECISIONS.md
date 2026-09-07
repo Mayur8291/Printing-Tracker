@@ -12,7 +12,7 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Why:** User asked that production keep the same key after push. A UI-only env var is easy to forget or override per context.
 
-**Tradeoffs:** Rotating the key means a code change. Restrict the key to Scott Dashboard domains in the Giphy dashboard.
+**Tradeoffs:** Rotating the key means a code change. Restrict the key to Scott Dashboard domains in the Giphy dashboard. Netlify secret scan must omit `VITE_GIPHY_API_KEY` and `giphyGifApi.js` / `dist` or publish fails. That omit is intentional.
 
 ## 2026-09-07 — Ticks only when the thread is opened
 

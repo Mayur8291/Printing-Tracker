@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — Netlify publish allows public Giphy key
+
+- **Issue:** Vercel published; Netlify stopped after secret scan saw the Giphy key.
+- **Fix:** `SECRETS_SCAN_OMIT_KEYS` / `SECRETS_SCAN_OMIT_PATHS` in `netlify.toml`. Giphy client key stays public on purpose.
+- **Files:** `netlify.toml`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, RELEASE_AUTOMATION.md, DECISIONS.md.
+
 ## 2026-09-07 — Chat GIF search uses one Giphy key on all deploys
 
 - **Issue:** Chat GIF Search needed a Giphy key. Local `.env` does not ship with `main`, so production search stayed empty.

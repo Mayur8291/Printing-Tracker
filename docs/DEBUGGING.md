@@ -997,6 +997,17 @@ Open order with mockups, wait for live refresh or save status from another tab �
 - **Cause:** Image-upload patch merge replaced the open order row without preserving `approved_design_url`.
 - **Fix:** Re-merge detail assets after patch; include mockup URL in patch ref; hydrate full row after upload.
 
+## Netlify develop deploy blocked after Giphy key
+
+### Symptom
+Vercel (or another host) publishes. Netlify `develop` / staging does not. Log says **Exposed secrets detected**.
+
+### Root cause
+Secret scan found the public Giphy client key in `giphyGifApi.js`, `netlify.toml`, or `dist`.
+
+### Fix
+`netlify.toml` omits `VITE_GIPHY_API_KEY` and those paths. Push `develop`. Do not mark the Giphy key as a secret in the Netlify UI.
+
 ## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
 
 ### Symptom
@@ -1019,6 +1030,7 @@ Netlify **secret scanning** (Secrets Controller / smart detection) blocks publis
 2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` as normal variables — **do not** enable **Contains secret values**. Giphy is bundled; do not mark `VITE_GIPHY_API_KEY` as a secret if it is also in the UI.
 3. **Redeploy:** Netlify → Deploys → **Trigger deploy** on `main` (or push a fix commit).
 4. **If still blocked** (smart detection false positive on Supabase JWT in build output): add site env `SECRETS_SCAN_SMART_DETECTION_ENABLED` = `false` (lowercase). Prefer fixing tracked files first.
+5. **Giphy key in Chat GIF Search:** that key is public on purpose. `netlify.toml` sets `SECRETS_SCAN_OMIT_KEYS=VITE_GIPHY_API_KEY` and omits `giphyGifApi.js` / `dist`. Do not mark it **Contains secret values**.
 
 ### Verify
 Deploy log reaches **Deploy site** / **Published** with no secret scan failure. Live app loads; Network tab Supabase requests use production host.
