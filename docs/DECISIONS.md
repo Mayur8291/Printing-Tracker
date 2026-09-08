@@ -60,6 +60,300 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Old orders cannot recover a true source (backfilled Unknown). Channel name on an old order does not change if admin later edits the registry.
 
+## 2026-09-07 — One Giphy client key for Chat GIF Search
+
+**Context:** GIF Search needs a Giphy API key. Putting it only in gitignored `.env` means production and staging Netlify builds have no key.
+
+**Options:** (1) Netlify UI env only. (2) Bundle the public client key in code + `netlify.toml` so every deploy uses the same key.
+
+**Decision:** Option 2. `GIPHY_CLIENT_KEY` in `giphyGifApi.js` is the source of truth. `VITE_GIPHY_API_KEY` in `netlify.toml` `[build.environment]` matches it for local/examples. Giphy web keys are public (they ship in the browser).
+
+**Why:** User asked that production keep the same key after push. A UI-only env var is easy to forget or override per context.
+
+**Tradeoffs:** Rotating the key means a code change. Restrict the key to Scott Dashboard domains in the Giphy dashboard. Netlify secret scan must omit `VITE_GIPHY_API_KEY` and `giphyGifApi.js` / `dist` or publish fails. That omit is intentional.
+
+## 2026-09-07 — Ticks only when the thread is opened
+
+**Context:** Blue ticks showed when the peer had not opened the chat. Groups were supposed to use 1 grey / 2 grey / 2 blue from who actually saw the post. Send also blocked the tab for about a second.
+
+**Options:** (1) Keep Online = 2 grey delivered. (2) Count only `last_read_at` (they opened that thread).
+
+**Decision:** Groups stay open-thread only (0 / some / all). Chat DMs also use Online: dashboard active + not opened → 2 grey; Away/Offline + not opened → 1 grey; opened → 2 blue. Send paints an optimistic bubble and reloads the inbox in the background.
+
+**Why:** User wants 2 grey when the peer is on the dashboard but has not opened that DM. Groups still ignore Online for the nobody-seen case.
+
+**Tradeoffs:** Online is the 5-minute dashboard grace, not “they opened this chat”.
+
+## 2026-09-05 — Name line click vs Media button
+
+**Context:** User does not want the Chat/Group title to look like a button. Clicking the name line should open details. A separate **Media** control should show shared files.
+
+**Decision:** Keep the title as normal `h3` text. The name block is clickable without button chrome. **Media** is an outline button on the right. Details sheet covers DMs (two people) and groups. Media sheet has Photos/Videos, Documents, Links.
+
+**Why:** Matches the old look and WhatsApp-style media tabs.
+
+**Tradeoffs:** Channels have neither. Videos/Excel only appear if those files were stored; upload still allows images, PDF, and voice.
+
+## 2026-09-05 — Chat alerts use a dedicated MP3 and a 45s corner card
+
+**Context:** User wants every received Chat / Group / Channel message to play a specific Drive sound and show Name + Message for 45 seconds at the bottom-right, including when they are on another browser tab.
+
+**Decision:** Store the clip as `public/sounds/chat-message.mp3`. `App.jsx` realtime INSERT (membership check) plays that file and pushes a shadcn card. Audio is primed after first click so a hidden tab can still `play()`. Status-tone mute does not apply. Own messages never alert.
+
+**Why:** One file, same for everyone. Browser cannot play if the dashboard tab is closed.
+
+**Tradeoffs:** Other-tab sound needs a prior click on the dashboard (autoplay policy). No OS notification permission flow.
+
+## 2026-09-05 — Group creator is admin; membership changes are RPCs
+
+**Context:** User wants the group creator to be admin, and only admins add people, promote admins, change the group photo, and remove people. Clicking the group name opens details.
+
+**Decision:** Keep `role` on `team_chat_conversation_members` (creator already `admin`). New security-definer RPCs for add / promote / remove / avatar. `avatar_path` on the conversation. Photo bucket `team-chat-group-avatars`. Header click opens a shadcn Sheet.
+
+**Why:** No UPDATE/DELETE RLS on members — a client write would be unsafe. RPCs check `jwt_user_is_group_admin`. Last admin cannot be removed.
+
+**Tradeoffs:** Dashboard `profiles.role = admin` is not a group admin unless they created the group or were promoted. Admins cannot remove themselves.
+
+## 2026-09-05 — Chat receipts reuse last_read_at + presence
+
+**Context:** User wants WhatsApp ticks on Chats and Groups, plus a group viewers list for the sender.
+
+**Options:** (1) New per-message read table. (2) Reuse conversation `last_read_at` (opening the thread marks all older posts seen) plus `hr_user_presence` Online.
+
+**Superseded 2026-09-07:** Presence is no longer a tick input. See “Ticks only when the thread is opened”.
+
+**Decision:** Option 2. DM: 1 grey = not seen and peer not Online; 2 grey = not seen and peer Online; 2 blue = peer `last_read_at` ≥ message time. Group: 2 blue only when every other member has seen it. One or more seen but not all → 2 grey (ignore presence). Nobody seen yet → same Online/Offline rule as before. Channels have no ticks. Group Info lists Seen / Not seen for the author only.
+
+**Why:** Open-thread already writes `last_read_at`. No extra write on every scroll. Presence already means “dashboard active”.
+
+**Tradeoffs:** Opening the thread marks every older message seen (same as current unread). Away counts as not dashboard-active. Ticks live on outgoing bubbles only. Open-thread heartbeat + 4s poll keep ticks moving even if one Realtime event is missed. `REPLICA IDENTITY FULL` on members is required for RLS Realtime.
+
+## 2026-09-04 — Channels are org-wide; only admins post
+
+**Context:** Channels tab is for the whole Scott Dashboard. Only admins create channels and post. Everyone else only reacts, copies, and forwards.
+
+**Decision:** New `kind=channel`. RPC `create_channel_conversation` is admin-only and memberships every profile. New profiles join via trigger. Insert RLS blocks non-admin posts. UI hides **New Channel** and the composer for non-admins.
+
+**Why:** Membership-based RLS already gates reads. Adding everyone as a member makes the channel show in every inbox without a second access model.
+
+**Tradeoffs:** A new user must get a profile row to join. Forward into a channel is also a post, so non-admins cannot pick a channel as a forward target.
+
+## 2026-09-04 — Chat copy and paste are icons
+
+**Context:** User wants a Copy symbol on single and multi select, and a Paste symbol in the composer row.
+
+**Decision:** Copy on the select bar for one or many. Paste after mic. Copy writes text (or a file/GIF label). Paste inserts at the cursor via `clipboard.readText`.
+
+**Why:** Matches the existing icon-only bars. No new table.
+
+**Tradeoffs:** Browser may ask for clipboard permission. Images on the clipboard do not paste into the box.
+
+## 2026-09-04 — Chat bubbles wrap long text
+
+**Context:** Long text with no spaces overflowed the thread. User must see the full message in the bubble.
+
+**Decision:** Keep `whitespace-pre-wrap` for real line breaks. Add `overflow-wrap: anywhere` and constrain the bubble to the thread (`min-w-0`, `max-w-full`). Override native button `nowrap`.
+
+**Why:** `break-words` does nothing if the flex/table parent grows with the word.
+
+**Tradeoffs:** A long token may break mid-character.
+
+## 2026-09-04 — Chat composer actions under the box
+
+**Context:** Four action buttons stacked left of a two-line textarea made the composer tall and the box skinny.
+
+**Decision:** Full-width textarea on top. Horizontal action row under it: emoji, GIF, file, mic left; Send right. Box starts at one line and grows to five.
+
+**Why:** Same handlers, less leftover space, works on a narrow phone row.
+
+**Tradeoffs:** Popovers now open from the bottom row.
+
+## 2026-09-04 — Chat voice notes reuse file attachments
+
+**Context:** User wants a mic on Chats/Groups compose. Click records. Stop appears only after record starts. Then Send ships the clip.
+
+**Decision:** Same `team-chat-files` attachment path. Mic in the left compose stack. Stop replaces Mic while recording. After stop, clip is `pendingFile`. No new table.
+
+**Why:** Storage, RLS, and forward already work for files. Stop hidden when idle matches the request.
+
+**Tradeoffs:** Browser must allow the mic. Safari/Chrome mime differs (webm vs mp4). Voice-only is not an unread text.
+
+## 2026-09-04 — Inbox tab badges count unopened text only
+
+**Context:** User wants a number beside Chats / Groups / Channels for new messages. Only unopened text.
+
+**Decision:** Count messages with a non-empty body, not from self, not deleted, newer than `last_read_at`. Sum directs on Chats, groups on Groups. Channels 0 until channels exist. Hide badge at 0. Cap display at 99+.
+
+**Why:** GIF/file-only is not a text message. Opening the thread still clears that conversation via `mark_conversation_read`.
+
+**Tradeoffs:** Tab total is message count, not chat count. A row badge uses the same `unread_count`. Count walks recent messages on fetch (PostgREST row cap can undercount very large inboxes).
+
+## 2026-09-04 — Chat presence is dashboard heartbeat, not chat-tab only
+
+**Context:** User wants Online when the dashboard is the active browser tab, Away when they leave it, Offline if they never opened it or have been Away 2 hours. List dot and open-chat label must match.
+
+**Options:** (1) Presence only while Chat tab is open. (2) App-wide heartbeat from `App.jsx`.
+
+**Decision:** Option 2. Table `hr_user_presence`. Green / yellow / red tokens `--presence-online|away|offline`.
+
+**Why:** “Active in the Dashboard” is the whole app, not only Chat.
+
+**Tradeoffs:** Blur (another window) used to count as Away immediately. Updated: 5 minute Online grace after leaving the dashboard tab, then Away.
+
+## 2026-09-04 — 5 minute Online grace after leaving the dashboard
+
+**Context:** User wants Online to hold for 5 minutes if they open another browser tab.
+
+**Decision:** Freeze `last_seen_at` when they leave. Display Online while that stamp is under 5 minutes, then Away, then Offline at 2 hours.
+
+**Why:** A short tab switch should not look like they left.
+
+**Tradeoffs:** Others still see Online for 5 minutes after close/crash.
+
+## 2026-09-07 — Chat attachments have no 15 MB app cap
+
+**Context:** User could not send documents over 15 MB and wanted a download icon beside files, not links.
+
+**Options:** (1) Keep 15 MB. (2) Drop the client cap, raise the bucket, add a download arrow that saves via blob.
+
+**Decision:** Option 2. Office types allowed. Links in the body stay click-only.
+
+**Why:** Matches the request. True unlimited is not possible; 10 GB bucket + browser/project limits remain.
+
+**Tradeoffs:** Huge files use memory on upload and on download-as-blob.
+
+## 2026-09-07 — Inbox search is a popover next to New
+
+**Context:** User asked for a search symbol left of New chat, and the same on Groups.
+
+**Options:** (1) Filter the inbox list in place. (2) Popover with type-ahead names.
+
+**Decision:** Option 2. Chats search people (open existing DM or compose). Groups search group titles.
+
+**Why:** Matches the header slot they pointed at. Empty query still lists everyone / every group.
+
+**Tradeoffs:** Channels have no search yet.
+
+## 2026-09-05 — Select uses the full message row
+
+**Context:** Users had to click the bubble. Empty space on that line did nothing.
+
+**Decision:** The `article` row is the hit target. Nested links / downloads / react chips stop the click.
+
+**Why:** Matches “click anywhere on that message line.”
+
+**Tradeoffs:** Row is not `role=button` so reaction Buttons stay valid.
+
+## 2026-09-05 — Long chat URLs wrap, never clip
+
+**Context:** Shared seller URLs overflowed the bubble as one nowrap line.
+
+**Options:** (1) Clip with `overflow-hidden`. (2) Wrap the full string inside the bubble.
+
+**Decision:** Option 2. Override Button `whitespace-nowrap` / `inline-flex` on the link.
+
+**Why:** User asked for line-wise display with no hidden or merged text.
+
+**Tradeoffs:** A very long token uses more vertical space.
+
+## 2026-09-05 — Thread history uses native scroll
+
+**Context:** After pane-lock, older group messages vanished; only the last bubble sat under empty white.
+
+**Options:** (1) Keep Radix ScrollArea and fight `display:table`. (2) Native `overflow-y-auto` for the thread.
+
+**Decision:** Option 2. Inbox can keep Radix. Thread `scrollTop = scrollHeight`. Newest 200 then reverse.
+
+**Why:** Table viewport + overflow clip hid real rows that still exist in Postgres.
+
+**Tradeoffs:** Thread scrollbar is the browser bar, not the Radix thumb.
+
+## 2026-09-05 — Groups inbox must stay
+
+**Context:** After locking chat pane size, Groups looked gone.
+
+**Options:** (1) Assume data delete. (2) Keep list visible except on a real phone, and bind the open thread to the inbox tab kind.
+
+**Decision:** Option 2. Staging still has groups. Two-pane from `sm`. Groups tab never auto-opens a DM.
+
+**Why:** Vanish was layout + tab mismatch, not a delete.
+
+**Tradeoffs:** Phone still uses Back to return to the list.
+
+## 2026-09-05 — Chat links, own-only delete, locked pane
+
+**Context:** Shared URLs were not clickable in the bubble. Delete showed whenever any own message was in the selection. Long posts resized the whole Chat screen.
+
+**Options:** (1) Keep links only in Media. (2) Make `http`/`https` in the body a real `<a>`. Delete hidden unless every selected row is the current user. Lock Chat as full-bleed like Inventory.
+
+**Decision:** Option 2. Channel admin still sees Delete. Phone stays list-or-thread.
+
+**Why:** Matches the request. Soft-delete RPC already only owns rows.
+
+**Tradeoffs:** Nested `<a>` inside a `role=button` bubble; click on the URL uses `stopPropagation` so it does not toggle select.
+
+## 2026-09-04 — Chat actions are icons; delete is soft
+
+**Context:** User wants selectable messages in Chats/Groups with reply, react, delete, forward, pin. Multi-select only forward and delete. No written labels on the actions.
+
+**Options:** (1) Context menu with words. (2) Icon toolbar in the thread header after click-select.
+
+**Decision:** Option 2. Soft-delete own messages (`deleted_at`). One reaction per user. Forward copies into another conversation.
+
+**Why:** Matches the request. Hard delete is not allowed.
+
+**Tradeoffs:** Delete does nothing for other people's messages. Hover tooltip still names the icon for access.
+
+## 2026-09-04 — Split inbox by conversation kind
+
+**Context:** User wants created groups only on Groups, created chats only on Chats.
+
+**Options:** (1) Keep mixed list on Chats. (2) Filter `kind=direct` vs `kind=group`.
+
+**Decision:** Option 2. Auto-open first DM, not General. Thread follows the open tab kind.
+
+**Why:** One place per conversation type.
+
+**Tradeoffs:** General no longer opens by default on Chats.
+
+## 2026-09-04 — Inbox tab panel stays at the bottom
+
+**Context:** User pointed at the Chats / Groups / Channels bar and said keep that panel at the bottom only.
+
+**Options:** (1) Tabs at top. (2) Same bar last in the left inbox.
+
+**Decision:** Option 2. List heading + New chat / New group stay above the list. Chat rows unchanged.
+
+**Why:** That bar is the switcher, not the page title.
+
+**Tradeoffs:** Tab labels appear twice (heading + bottom bar).
+
+## 2026-09-04 — Groups and Channels share Chats chrome
+
+**Context:** User said Groups/Channels changing layout was wrong. New group should live on Groups, same header slot as New chat.
+
+**Options:** (1) Keep full-width Empty on Groups/Channels. (2) Same left list + right thread on every inbox tab; only heading, action, and list body swap.
+
+**Decision:** Option 2. New group only on Groups. Channels has heading and empty list, no extra button yet.
+
+**Why:** Tab switch should not restyle the Chat panel.
+
+**Tradeoffs:** Group chats still appear in the Chats list until Groups list is specified.
+
+## 2026-09-04 — Chat inbox tabs live under the list, not under the composer
+
+**Context:** User asked for a panel under Chats with Chats, Groups, Channels in one horizontal row. Groups and Channels stay empty for now.
+
+**Options:** (1) Full-width Tabs under the whole chat Card (bar sits under the message box). (2) Tabs only in the left inbox; bar under the conversation list; thread only when Chats is selected.
+
+**Decision:** Option 2. Default `inboxTab` is `chats`. Groups/Channels use shadcn `Empty`.
+
+**Why:** “Under the Chats” means under the list. Composer stays clean. Existing chat behavior stays on Chats.
+
+**Tradeoffs:** Phone thread view hides the bar until Back. Groups/Channels have no data yet.
+
+**Superseded:** Tab panel sits at the bottom. See “Inbox tab panel stays at the bottom”.
+
 ## 2026-09-03 — Purchase Order Status Select matches job-sheet format
 
 **Context:** User wants All PO Orders Status to look like the Production status dropdown (icon then name). Do not rename the list.

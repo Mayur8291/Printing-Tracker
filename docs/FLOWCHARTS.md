@@ -680,3 +680,148 @@ sequenceDiagram
   User->>App: View PO
   App-->>User: A4 PURCHASE ORDER heading and table
 ```
+
+## Team chat inbox tabs
+
+```mermaid
+flowchart TD
+  Open[Open Chat tab] --> Default[inboxTab chats]
+  Default --> Bar[Bottom TabsList Chats Groups Channels]
+  Bar -->|Chats| List[Direct rows plus New chat]
+  List --> Thread[DM thread only]
+  Bar -->|Groups| GroupsPane[Group rows plus New group]
+  GroupsPane --> GroupThread[Group thread only]
+  Bar -->|Channels| ChanPane[Channel rows plus New Channel if admin]
+  Fetch[fetchMyConversations] --> Count[Count unopened text per row]
+  Count --> ChatsBadge[Chats badge]
+  Count --> GroupsBadge[Groups badge]
+  Count --> ChanBadge[Channels badge stays 0]
+```
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Compose as ChatVoiceControls
+  participant Store as team-chat-files
+  User->>Compose: Click Mic
+  Compose->>User: Stop only
+  User->>Compose: Click Stop
+  Compose->>User: Voice note ready
+  User->>Compose: Click Send
+  Compose->>Store: Upload audio
+  Store-->>User: Playable voice bubble
+```
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Panel as TeamChatPanel
+  User->>Panel: Open Chat
+  Panel->>User: Chats list plus thread
+  User->>Panel: Click search glass
+  Panel->>User: Name list filtered by letters
+  User->>Panel: Click a name
+  Panel->>User: Open that DM
+  User->>Panel: Type and Send
+  Panel->>User: Same person thread stays open
+  User->>Panel: Tap Groups
+  User->>Panel: Click search glass
+  Panel->>User: Group titles filtered by letters
+  User->>Panel: Click a group name
+  Panel->>User: Open that group
+  Panel->>User: Group rows stay plus group thread
+  User->>Panel: New group
+  Panel->>User: Group stays on Groups tab
+  User->>Panel: Tap Chats
+  Panel->>User: Direct rows only
+  User->>Panel: Click own or other message
+  Panel->>User: Icon actions including Copy
+  User->>Panel: Click second own message
+  Panel->>User: Copy Forward Delete if all own
+  User->>Panel: Click other person message
+  Panel->>User: No Delete icon
+  User->>Panel: Click Copy
+  Panel->>User: Text on clipboard
+  User->>Panel: Click Paste under box
+  Panel->>User: Text in composer
+  User->>Panel: Type and Send
+  Panel->>User: Thread stays, cursor back in box
+```
+
+```mermaid
+flowchart TD
+  Insert[New chat group or channel message] --> Member{Recipient is member}
+  Member -->|no| Skip[No alert]
+  Member -->|yes own| Skip
+  Member -->|yes other| Sound[Play chat-message.mp3]
+  Sound --> Toast[Bottom-right Name plus Message]
+  Toast --> Wait[45s or X]
+```
+
+```mermaid
+flowchart TD
+  Line[Click Chat or Group name line] --> Details[Details sheet photo plus people]
+  MediaBtn[Media button] --> Tabs[Photos Videos / Documents / Links]
+```
+
+```mermaid
+flowchart TD
+  Click[Click group name] --> Sheet[Group details sheet]
+  Sheet --> List[Every member]
+  List --> Role{You are group admin}
+  Role -->|no| View[List only]
+  Role -->|yes| Admin[Add people / Make admin / Remove / Change photo]
+  Admin --> RPC[Security definer RPCs]
+```
+
+```mermaid
+flowchart TD
+  Send[You send in Chat or Group] --> Kind{kind}
+  Kind -->|channel| None[No ticks]
+  Kind -->|direct or group| Reads[Who opened the thread]
+  Reads -->|all others opened| Blue[2 blue ticks]
+  Reads -->|group some opened| Grey2[2 grey ticks]
+  Reads -->|group nobody opened| Grey1[1 grey tick]
+  Reads -->|DM not opened| Dash{Peer Online}
+  Dash -->|yes| DmGrey2[2 grey ticks]
+  Dash -->|no| DmGrey1[1 grey tick]
+  Open[Peer opens that thread] --> Beat[mark_conversation_read]
+  Beat --> Reads
+```
+
+```mermaid
+sequenceDiagram
+  participant Sender
+  participant Peer
+  participant DB as last_read_at
+  Sender->>Peer: Message arrives
+  Note over Sender: 1 grey if peer Away or Offline
+  Peer->>Peer: Dashboard Online, chat closed
+  Note over Sender: DM 2 grey
+  Peer->>DB: Open thread mark_conversation_read
+  Note over Sender: Chat 2 blue / Group 2 grey or 2 blue
+```
+
+```mermaid
+flowchart TD
+  Admin[Admin] --> NewCh[New Channel name]
+  NewCh --> RPC[create_channel_conversation]
+  RPC --> All[Every profile is a member]
+  All --> View[Everyone sees the channel]
+  Admin --> Post[Full composer]
+  Viewer[Non-admin] --> Read[Read posts]
+  Viewer --> Act[React copy forward only]
+```
+
+```mermaid
+flowchart TD
+  Dash[Dashboard focused] --> Online[Online green plus Online]
+  Other[Other browser tab or leave] --> Grace[Still Online 5 minutes]
+  Grace --> Away[Away yellow plus Away]
+  Never[Never opened dashboard] --> Offline[Offline red plus Offline]
+  Away -->|2 hours| Offline
+  Online --> List[List avatar dot]
+  Away --> List
+  Offline --> List
+  List --> Thread[Same label under DM name]
+```

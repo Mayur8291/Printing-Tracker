@@ -151,6 +151,286 @@
 - **Files:** `supabase/migrations/20260904065942_ready_stock_order_channel.sql`, `supabase/functions/dashboard-stock-api/{stockCore,orders,index}.ts`, `ReadyStockOrdersPanel.jsx`, `ReadyStockOrderDetailDialog.jsx`, `readyStockChannelUtils.js`, `AdminIntegrationsPanel.jsx`
 - **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DASHBOARD_ORDER_API.md
 
+## 2026-09-08 — Chat stays on searched person after Send
+
+- **Issue:** Search a person, send. Message went to that person, then the screen jumped to the last chat.
+- **Fix:** That send pins the open thread. Inbox reload cannot switch it. Name stays that person until you click another chat.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
+## 2026-09-08 — Search send stays on that person (again)
+
+- **Issue:** Search a person, send, then Chat jumped back to the last person you were talking to.
+- **Fix:** Send always opens that person's DM even if the old chat id was still in memory. Search pick does not click through onto the list under the popup. Chats tab does not auto-open the first DM after you pick someone.
+- **Files:** `TeamChatPanel.jsx`, `ChatInboxSearch.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-09-08 — Chat search send stays on that person
+
+- **Issue:** Search a person, send a message, then the thread jumped to someone else.
+- **Fix:** Chats tab no longer auto-opens the first DM while a thread id is already chosen. First send pins that conversation and keeps an inbox stub so the empty-DM filter cannot steal the page.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-09-08 — Contact Book add form can scroll
+
+- **Issue:** Add / Edit contact cut off. Could not scroll to Address or Save.
+- **Fix:** Form body scrolls. Header and Save stay. Contact list hides while the form is open.
+- **Files:** `ContactBookPanel.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
+## 2026-09-07 — Netlify publish allows public Giphy key
+
+- **Issue:** Vercel published; Netlify stopped after secret scan saw the Giphy key.
+- **Fix:** `SECRETS_SCAN_OMIT_KEYS` / `SECRETS_SCAN_OMIT_PATHS` in `netlify.toml`. Giphy client key stays public on purpose.
+- **Files:** `netlify.toml`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, RELEASE_AUTOMATION.md, DECISIONS.md.
+
+## 2026-09-07 — Chat GIF search uses one Giphy key on all deploys
+
+- **Issue:** Chat GIF Search needed a Giphy key. Local `.env` does not ship with `main`, so production search stayed empty.
+- **Fix:** Public Giphy client key lives in `giphyGifApi.js` and `netlify.toml` `[build.environment]`. Same key on local, staging (`develop`), and production (`main`).
+- **Files:** `giphyGifApi.js`, `netlify.toml`, env examples
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, ENVIRONMENTS.md, RELEASE_AUTOMATION.md, PLATFORM_OVERVIEW.md.
+
+## 2026-09-07 — DM 2 grey ticks while peer is Online
+
+- **Issue:** DM showed 1 grey while the other person was active on the dashboard and had not opened the chat.
+- **Fix:** Chat: Online + not seen = **2 grey**. Away/Offline + not seen = **1 grey**. Opened = **2 blue**. Groups unchanged (0 / some / all seen).
+- **Files:** `teamChatReceipts.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-07 — Ticks from open-thread only + faster send
+
+- **Issue:** Blue ticks showed before the other person opened the chat. Groups used Online as 2 grey even when nobody had seen it. Send waited ~1s on a full reload.
+- **Fix:** Ticks ignore presence. Chat: not opened = 1 grey, opened = 2 blue. Group: 0 seen = 1 grey, some seen = 2 grey, all seen = 2 blue. Send shows the bubble immediately; inbox refresh is background.
+- **Files:** `teamChatReceipts.js`, `teamChatService.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-07 — Chat send keeps thread and composer focus
+
+- **Issue:** After Send, the Chat/Group page blinked away for a second. Cursor left the text box.
+- **Fix:** Same-thread refresh no longer shows “Loading messages…”. Composer stays enabled (`readOnly` only while send runs). Focus returns to the box after Send. First DM loads the conversation before leaving compose so the thread does not unmount.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md.
+
+## 2026-09-07 — Hide Voice note.webm label
+
+- **Issue:** Voice bubbles showed the file name `Voice note.webm` under the player.
+- **Fix:** Name is gone. Player + download arrow only.
+- **Files:** `ChatMessageMedia.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-09-07 — Voice notes play again with download
+
+- **Issue:** After the download arrow, voice notes showed a tiny white pill. No seek bar, hard to play.
+- **Fix:** Player is the old full-width `<audio controls>` (`min-w-[16rem]`). Download sits under the player, not beside the control. `Voice note.webm` still counts as audio if mime is odd.
+- **Files:** `ChatMessageMedia.jsx`, `teamChatUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-07 — Chat files any size + download icon
+
+- **Issue:** Paperclip blocked files over 15 MB. Download was a text link. Excel often rejected by type.
+- **Fix:** No client size cap. Images, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. Download arrow beside the file (and Media photos/docs) saves through the browser file manager. Links stay without that icon. Staging bucket `team-chat-files` limit 10 GB (`20260907110000_team_chat_files_no_size_cap.sql`).
+- **Files:** `teamChatUtils.js`, `ChatMessageMedia.jsx`, `ChatSharedMediaSheet.jsx`, `TeamChatPanel.jsx`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md.
+
+## 2026-09-07 — Inbox search next to New chat / New group
+
+- **Issue:** Chats and Groups had no search. Users had to scroll the list to find a person or group.
+- **Fix:** Magnifying-glass button sits left of **New chat** / **New group**. Type letters to filter names. Click a person to open that DM (existing thread, or compose). Click a group name to open that group.
+- **Files:** `ChatInboxSearch.jsx`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, FLOWCHARTS.md.
+
+## 2026-09-05 — Click the whole message row to select
+
+- **Issue:** Select only fired on the bubble, so empty space on that line did nothing.
+- **Fix:** The full-width row is the hit target (avatar, name, bubble, leftover strip). Links and downloads still do not toggle select.
+- **Files:** `TeamChatPanel.jsx`, `ChatMessageBody.jsx`, `ChatMessageMedia.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-05 — Long chat URLs wrap inside the bubble
+
+- **Issue:** A long Amazon (or any) URL painted as one line across the thread and sat on other bubbles.
+- **Fix:** Chat link Button drops `whitespace-nowrap` / `inline-flex`. URL wraps line by line inside the bubble. Full text stays; nothing is clipped.
+- **Files:** `ChatMessageBody.jsx`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-05 — Older chat messages show again
+
+- **Issue:** Scott Test Group has 6 live rows, but the thread only showed the last “hi” over a big white hole.
+- **Fix:** Thread uses a normal overflow scroll box (not Radix table viewport). Bubbles no longer `overflow-hidden`. Scroll sets `scrollTop` on that box. Load newest 200, then reverse.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-05 — Groups list no longer vanishes
+
+- **Issue:** After the pane-lock edit, Groups looked empty or the list disappeared when opening a group.
+- **Fix:** Groups still in the database. Inbox stays on screen from `sm` up. Groups tab keeps/opens a group, not a DM. Inbox overflow no longer collapses the list to zero height.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md.
+
+## 2026-09-05 — Clickable chat links, own-only delete, locked pane
+
+- **Issue:** URLs in a bubble were plain text. Delete still showed if any own message sat next to someone else's. Long posts grew the whole Chat tab and squeezed the layout.
+- **Fix:** `http`/`https` in the message body is a real link (new tab). Click own or others in Chats/Groups. Delete shows only when every selected row is yours (channel admin still can). Chat is a full-bleed pane: inbox + thread stay one size; long text wraps inside the bubble. Phone still uses list then thread.
+- **Files:** `ChatMessageBody.jsx`, `ChatMessageActionBar.jsx`, `teamChatMedia.js`, `TeamChatPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-05 — Selected chat rows use a sky-blue bar
+
+- **Issue:** Selected messages only had a ring on the bubble, so it was hard to see what was picked.
+- **Fix:** Chat/Group selection paints a light sky-blue horizontal bar across the row. The message bubble itself stays the same color.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-05 — Header click opens details; Media tabs
+
+- **Issue:** Group name looked like a button. Chat header did not open a profile page. No place to see shared photos, files, or links.
+- **Fix:** Name stays normal text. Click the name line on Chat or Group to open the details sheet (photo + people; group admin still adds/removes). **Media** on the right lists Photos/Videos, Documents, and Links.
+- **Files:** `TeamChatPanel.jsx`, `ChatGroupDetailsSheet.jsx`, `ChatSharedMediaSheet.jsx`, `teamChatMedia.js`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-09-05 — Incoming chat toast and dedicated sound
+
+- **Issue:** Incoming Chat / Group / Channel messages used the generic status tone and had no 45s name + message box.
+- **Fix:** New messages play `sounds/chat-message.mp3` (from the provided Drive clip). Recipients see a bottom-right card: name, then message, X to close, 45 seconds. Sound still plays if another browser tab is focused while the dashboard stays open.
+- **Files:** `public/sounds/chat-message.mp3`, `ChatIncomingToastStack.jsx`, `notificationTonePlayer.js`, `teamChatNotificationUtils.js`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, SECURITY.md.
+
+## 2026-09-05 — Group admin details sheet
+
+- **Issue:** Group creator was already admin in the DB, but nobody could add people, promote admins, change the group photo, or remove a member. Clicking the group name did nothing.
+- **Fix:** Click group name in the thread header opens a details sheet with every member. Creator stays admin. Admins can add people, make admins, change the photo, and remove others. Members only see the list. Staging migration `20260905153000_team_chat_group_admin.sql`.
+- **Files:** `ChatGroupDetailsSheet.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `teamChatUtils.js`, `avatarUtils.js`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-05 — Group ticks stay 2 grey until everyone seen
+
+- **Issue:** Group tick dropped to 1 grey after one person opened the post if others were Offline.
+- **Fix:** Group: one or more other members seen, but not all → always **2 grey**. **2 blue** only when every other member has seen that post. Nobody seen yet still uses Online for 2 grey / Offline for 1 grey. DMs unchanged.
+- **Files:** `teamChatReceipts.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-09-05 — Ticks refresh on every Chat/Group send type
+
+- **Issue:** Ticks stayed 1 grey after people opened the thread. Photo, file, GIF, emoji, and voice often lost the tick.
+- **Fix:** Staging `replica identity full` on members so peer `last_read_at` realtime works. Sender patches + polls member reads. Open thread heartbeats mark-read. Bubble is a `div` so media/links do not eat ticks. Same 1 grey / 2 grey / 2 blue rules for text, photo, file, GIF, emoji, voice. Channels still no ticks.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`, `teamChatReceipts.js`, `ChatMessageMedia.jsx`, `20260905105000_team_chat_member_read_realtime.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md, DECISIONS.md.
+
+## 2026-09-05 — Chat and group delivery ticks
+
+- **Issue:** Sent bubbles had no WhatsApp-style ticks. Group senders could not see who opened a post.
+- **Fix:** Own Chats/Groups messages show 1 grey / 2 grey / 2 blue from peer `last_read_at` + Online presence. Channels stay tick-free. Group sender, one selected post → Info lists Seen / Not seen. All others seen → blue. Any unread + someone Online → 2 grey. All others Offline/Away → 1 grey. Inbox now loads every member `last_read_at` and listens to all member row changes.
+- **Files:** `teamChatReceipts.js`, `ChatMessageTicks.jsx`, `ChatGroupViewersDialog.jsx`, `ChatMessageActionBar.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Org-wide Channels with admin-only posting
+
+- **Issue:** Channels tab was empty. Need a room everyone sees, but only admins create and post.
+- **Fix:** **New Channel** (admin only) asks for a name. Every profile is a member. Admins get the full composer and all message actions. Others can only react (emoji + count), copy, and forward. Long posts wrap. Staging migration `20260904124757_team_chat_channels.sql`.
+- **Files:** `CreateChannelDialog.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `ChatMessageActionBar.jsx`, `ChatForwardDialog.jsx`, `teamChatUtils.js`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Copy selected chat messages and paste into composer
+
+- **Issue:** Select bar and composer had no clipboard icons.
+- **Fix:** Copy icon on one or many selected messages (Chats and Groups). Paste icon in the row under the box with emoji / GIF / file / mic. Copy writes full text (or GIF/file label). Paste inserts at the cursor.
+- **Files:** `ChatMessageActionBar.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, FLOWCHARTS.md.
+
+## 2026-09-04 — Long chat text wraps inside the bubble
+
+- **Issue:** A long message (especially one word with no spaces) stayed on one line and ran off the thread.
+- **Fix:** Bubbles stay inside the thread width. Text wraps and long tokens break. Whole body stays visible. Chats and Groups.
+- **Files:** `TeamChatPanel.jsx`, `ChatMessageBody.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-04 — Chat composer actions sit under a full-width box
+
+- **Issue:** Emoji, GIF, file, and mic stacked beside a two-line box.
+- **Fix:** Box is full width, one line then grows to about five then scrolls. Same four buttons in one row under the box, left. Send stays on the right of that row. No send/record logic change.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-09-04 — Voice notes on Chats and Groups
+
+- **Issue:** Compose had no way to record sound.
+- **Fix:** Mic under paperclip. Click starts record. Stop shows only while recording. After stop, Send uploads the audio to `team-chat-files` like other files. Thread plays it. Max 5 minutes.
+- **Files:** `ChatVoiceControls.jsx`, `teamChatVoice.js`, `teamChatUtils.js`, `TeamChatPanel.jsx`, `ChatMessageMedia.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Unopened text count on Chats / Groups / Channels tabs
+
+- **Issue:** Bottom inbox tabs had no unread number.
+- **Fix:** Count unopened text-only messages (not GIF/file-only, not your own, not deleted, after `last_read_at`). Badge beside Chats and Groups. Channels stays 0. Hide badge at 0.
+- **Files:** `teamChatService.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-04 — Stay Online 5 minutes after leaving the dashboard tab
+
+- **Issue:** Other browser tab flipped Away immediately.
+- **Fix:** `last_seen_at` only moves while the dashboard is focused. List + open DM stay Online for 5 minutes, then Away. Offline still after 2 hours from last dashboard focus.
+- **Files:** `dashboardPresence.js`, `supabase/migrations/20260904113100_hr_presence_online_grace.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md.
+
+## 2026-09-04 — Chat presence Online / Away / Offline
+
+- **Issue:** Chat list and open DM had no live status. Green on the list but Offline under the name would be wrong.
+- **Fix:** Dashboard heartbeat (`hr_user_presence`). Visible focused dashboard = Online (green + “Online”). Other browser tab or leave the app = Away (yellow + “Away”). No row, or Away 2 hours = Offline (red + “Offline”). Same status on the list dot and under the name.
+- **Files:** `dashboardPresence.js`, `person-avatar.jsx`, `TeamChatPanel.jsx`, `App.jsx`, `index.css`, `tailwind.config.js`, `supabase/migrations/20260904112200_hr_user_presence.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat message select actions (icons only)
+
+- **Issue:** Chats/Groups messages had no reply, react, delete, forward, or pin.
+- **Fix:** Click a message to select it. One selected → icon Reply, React, Pin, Forward, Delete. Several selected → icon Forward and Delete. Soft-delete own messages. Staging migration `20260904110500_team_chat_message_actions.sql`.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`, `ChatMessageActionBar.jsx`, `ChatForwardDialog.jsx`, `supabase/migrations/20260904110500_team_chat_message_actions.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, OVERVIEW.md.
+
+## 2026-09-04 — Direct chats on Chats tab; groups on Groups tab
+
+- **Issue:** Created groups still showed in the Chats list with DMs.
+- **Fix:** Chats lists `kind=direct` only. Groups lists `kind=group` only (including General). New chat stays on Chats. New group opens Groups. Thread on each tab only shows that kind.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-09-04 — Chat inbox tab panel stays at the bottom
+
+- **Issue:** Chats / Groups / Channels bar sat at the top.
+- **Fix:** Same three-tab panel is last in the left inbox (`border-t`). Chat rows unchanged. Headings stay at the top of each list.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Restore chat row format; tabs stay at top
+
+- **Issue:** Inbox rows became name-only. User only wanted tab names moved to the top.
+- **Fix:** Put back avatar, member/group name, time, preview, unread badge. Tabs stay at the top. Groups still uses the same row for group chats. Channels still empty.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat inbox tabs at top; name lists fill the pane
+
+- **Issue:** Chats / Groups / Channels sat at the bottom. Hidden tab panes still used `flex`, so the heading floated in a hole. Lists used fat chat rows (avatar, time, preview).
+- **Fix:** Tab names only at the top. Inactive panes no longer steal height. Under the tabs: a full-height scroll of names only. DMs on Chats, groups on Groups, Channels empty. **New chat** / **New group** stay as actions, no second title.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Groups and Channels keep Chats layout; New group on Groups
+
+- **Issue:** Groups and Channels swapped to a full-width Empty pane. New group sat on Chats.
+- **Fix:** All three tabs keep the left list + right thread chrome. **New group** sits on Groups in the same header slot as **New chat**. Groups/Channels lists stay empty until a later spec.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat inbox bottom tabs (Chats / Groups / Channels)
+
+- **Issue:** Chat only had one list. User wants a bottom bar under that list: Chats, Groups, Channels in one row.
+- **Fix:** shadcn Tabs sit in the left inbox. TabsList is at the bottom, three equal triggers. **Chats** still shows the conversation list + thread. **Groups** and **Channels** show Empty “Coming soon.” Thread hides when those tabs are open.
+- **Files:** `src/TeamChatPanel.jsx`, `src/components/ui/empty.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-09-03 — View order mockup/asset preview open-close glitch
 
 - **Bug fix:** Mockup, design, and customer-asset preview no longer portals outside the View order Dialog (that forced `modal` on/off and flashed the page). Preview is an overlay inside an inner wrap. Do not put `relative` on DialogContent — Tailwind would drop `fixed` and the order sheet would vanish. Asset Management detail overlays the list instead of swapping to an empty page.

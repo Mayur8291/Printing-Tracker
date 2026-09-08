@@ -1091,6 +1091,28 @@ Open order with mockups, wait for live refresh or save status from another tab �
 - **Cause:** Image-upload patch merge replaced the open order row without preserving `approved_design_url`.
 - **Fix:** Re-merge detail assets after patch; include mockup URL in patch ref; hydrate full row after upload.
 
+## Netlify develop deploy blocked after Giphy key
+
+### Symptom
+Vercel (or another host) publishes. Netlify `develop` / staging does not. Log says **Exposed secrets detected**.
+
+### Root cause
+Secret scan found the public Giphy client key in `giphyGifApi.js`, `netlify.toml`, or `dist`.
+
+### Fix
+`netlify.toml` omits `VITE_GIPHY_API_KEY` and those paths. Push `develop`. Do not mark the Giphy key as a secret in the Netlify UI.
+
+## Contact Book: cannot scroll to finish a new contact
+
+### Symptom
+Add contact (or Edit). Photo and Name show. Address, Email, or Save sit off-screen. Wheel / trackpad does not move.
+
+### Root cause
+`.contact-book-panel` is `overflow: hidden`. The form was `flex-shrink: 0` (full height, no inner scroll). The dashboard shell clips the rest.
+
+### Fix
+Form body scrolls. Header and Save stay. Hard refresh. Open Add contact and scroll to Address.
+
 ## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
 
 ### Symptom
@@ -1110,9 +1132,10 @@ Netlify **secret scanning** (Secrets Controller / smart detection) blocks publis
    git rm -r --cached dist/
    ```
    Ensure `.gitignore` includes `.env` and `dist/`. Commit and push to `main`.
-2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GIPHY_API_KEY` as normal variables — **do not** enable **Contains secret values** (Supabase anon + Giphy client keys are public in the browser by design).
+2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` as normal variables — **do not** enable **Contains secret values**. Giphy is bundled; do not mark `VITE_GIPHY_API_KEY` as a secret if it is also in the UI.
 3. **Redeploy:** Netlify → Deploys → **Trigger deploy** on `main` (or push a fix commit).
 4. **If still blocked** (smart detection false positive on Supabase JWT in build output): add site env `SECRETS_SCAN_SMART_DETECTION_ENABLED` = `false` (lowercase). Prefer fixing tracked files first.
+5. **Giphy key in Chat GIF Search:** that key is public on purpose. `netlify.toml` sets `SECRETS_SCAN_OMIT_KEYS=VITE_GIPHY_API_KEY` and omits `giphyGifApi.js` / `dist`. Do not mark it **Contains secret values**.
 
 ### Verify
 Deploy log reaches **Deploy site** / **Published** with no secret scan failure. Live app loads; Network tab Supabase requests use production host.
@@ -1237,7 +1260,8 @@ Vite bakes `VITE_*` into the bundle **at build time**. After `.env` was removed 
    | Key | Value |
    |-----|--------|
    | `VITE_SUPABASE_ANON_KEY` | Production anon/publishable key from [Supabase → Project Settings → API](https://supabase.com/dashboard/project/levwrmvqdntngeasrtnb/settings/api) |
-   | `VITE_GIPHY_API_KEY` | *(optional)* Giphy key for chat GIF search |
+
+   GIF Search does **not** need a Netlify UI key — it is bundled in `giphyGifApi.js` / `netlify.toml`.
 
    `VITE_SUPABASE_URL` is set in `netlify.toml` for production; you can mirror it in the UI if needed.
 
@@ -1304,6 +1328,336 @@ Migration `20260706190000_fix_goal_tracker_rls_recursion.sql` adds `security def
 
 **Verify:** Staging query — `select title, user_id from user_annual_goals g join profiles p on p.id = g.user_id where p.full_name = 'Test 2';` then open Assign task, pick Test 2, confirm goal appears.
 
+## Chat: inbox heading floats with a hole above it
+
+### Symptom
+Groups/Channels (or Chats) show a big blank area at the top. Title or list sits in the middle. Tab names at the bottom.
+
+### Root cause
+`TabsContent` had `flex` always on. Radix hides inactive panes with `hidden`, but `flex` wins and those panes still take height. TabsList was last in the column.
+
+### Fix
+Tab names first (`border-b`). Active pane only: `data-[state=active]:flex`. Name list in a `ScrollArea` that fills the rest.
+
+## Chat: New Channel missing or viewer can post
+
+### Symptom
+Channels tab has no **New Channel**, or a non-admin can type in a channel.
+
+### Root cause
+**New Channel** and the composer are admin-only (`profiles.role = admin`). Post insert also requires `jwt_user_is_admin()` on `kind=channel`.
+
+### Fix
+Sign in as admin to create/post. Viewers should only see react / copy / forward. Apply staging migration `20260904124757_team_chat_channels.sql`.
+
+## Chat: Copy or Paste icon does nothing
+
+### Symptom
+Copy does not put text on the clipboard, or Paste does not fill the box.
+
+### Root cause
+`navigator.clipboard` needs a user click and site permission. Some browsers block `readText` until the user allows clipboard.
+
+### Fix
+Click Copy / Paste after a gesture. Allow clipboard for the site. **Ctrl+C** / **Ctrl+V** still work in the box.
+
+## Chat: long message runs off the thread in one line
+
+### Symptom
+A long body (or one huge word) stays on one line. The right side is cut off.
+
+### Root cause
+The bubble is a native `button` (`white-space: nowrap`). A long token also grows the Radix scroll viewport, so `break-words` never has a width to wrap against.
+
+### Fix
+Thread + bubble use `min-w-0` / `max-w-full`. Body uses `whitespace-pre-wrap` and `overflow-wrap: anywhere`.
+
+## Chat: composer buttons sit beside a tall empty box
+
+### Symptom
+Emoji / GIF / file / mic stack on the left. Message box is short and two lines tall.
+
+### Root cause
+Old composer used a left column + `rows={2}` + `min-h-[72px]`.
+
+### Fix
+Actions are under a full-width box. Box starts at one line and grows to about five.
+
+## Chat: mic does nothing or Stop never shows
+
+### Symptom
+Mic click fails, or Stop is visible before record, or Send stays dead after stop.
+
+### Root cause
+Browser blocked the mic, or Stop is only mounted while `MediaRecorder` is active. Send waits for a finished voice file (`pendingFile`).
+
+### Fix
+Allow microphone for the site. Click Mic — Stop replaces it. Click Stop — preview + Send. HTTP except localhost cannot use the mic.
+
+## Chat: tab badge missing or counts a GIF
+
+### Symptom
+Chats/Groups badge is empty after a text, or it counts a GIF/file with no words.
+
+### Root cause
+Badge uses `unread_count` of unopened **text** only (`body` trim length &gt; 0). Opening the thread sets `last_read_at`.
+
+### Fix
+Send a text. Keep the conversation closed on the other account. GIF-only does not increment the tab.
+
+## Chat: presence dot and Online text do not match
+
+### Symptom
+List shows green but the open DM says Offline, or everyone stays Offline.
+
+### Root cause
+Both views use `presenceFromRow`. Offline = no `hr_user_presence` row or `last_seen_at` older than 2 hours. Staging needs `20260904112200_hr_user_presence.sql`. Heartbeat only runs when signed in.
+
+### Fix
+Apply the staging migrations. Dashboard focused = Online. Other browser tab stays Online 5 minutes, then Away. Offline after 2 hours from last dashboard focus.
+
+## Chat: blue ticks before they open the chat
+
+### Symptom
+You send a Chat or Group message. Ticks go 2 blue (or 2 grey) even though the other person did not open that thread.
+
+### Root cause
+Ticks treated dashboard **Online** as delivered. Group with nobody seen also used Online for 2 grey.
+
+### Fix
+Ticks follow `last_read_at` plus DM Online. Chat: Online + not opened = 2 grey; Away/Offline + not opened = 1 grey; they open = 2 blue. Group: 0 seen = 1 grey; some seen = 2 grey; all seen = 2 blue. Hard refresh.
+
+## Chat: send waits a second and the tab feels stuck
+
+### Symptom
+After Send, the Chat tab pauses about 1 second before the message appears.
+
+### Root cause
+Send awaited a full inbox reload plus thread reload.
+
+### Fix
+The bubble is added at once. Inbox refresh runs in the background. Hard refresh. Type, Send, type again.
+
+## Chat: ticks stay 1 grey after they open the thread
+
+### Symptom
+You send text, photo, GIF, file, or voice. Other person opens the chat. Ticks stay 1 grey. Group Info stays Not seen.
+
+### Root cause
+Member `last_read_at` updates were not reaching the sender. Replica identity was DEFAULT, so Realtime RLS often dropped other people's member UPDATEs. Open thread only marked read once, not after later sends. A `<button>` bubble with file/GIF links could drop ticks after the media.
+
+### Fix
+Staging migration `20260905105000_team_chat_member_read_realtime.sql` (`REPLICA IDENTITY FULL`). Hard refresh. Keep both people on Chat. Sender polls reads every 4s. Viewer with the thread open heartbeats mark-read. Ticks must sit under photo/GIF/file too.
+
+## Chat: ticks stay 1 grey while peer is Online
+
+### Symptom
+You sent a DM or group post. Peer has the dashboard open. Ticks stay a single grey.
+
+### Root cause
+Old ticks used Online as “delivered”. Inbox must still load `member_reads`. Realtime used to filter members to only you, so peer read updates never arrived.
+
+### Fix
+Stay on Chat so conversations refetch. DM: peer **Online** + not opened → 2 grey; they **open that thread** → 2 blue. Group: one person seen → 2 grey; **all** other members seen → 2 blue. Channels never show ticks.
+
+## Chat: no sound or toast on a new message
+
+### Symptom
+Someone sends a Chat / Group / Channel message. No sound. No bottom-right box.
+
+### Root cause
+Alerts run in `App.jsx` only for conversations you belong to. Sound is `sounds/chat-message.mp3`. Browsers block audio until you click the dashboard once. If the dashboard tab is closed, nothing plays.
+
+### Fix
+Hard refresh. Click once in Scott Dashboard. Keep that tab open (other tabs OK). Confirm you are a member. Own messages never toast.
+
+## Chat: group details missing or Add people hidden
+
+### Symptom
+Click the name line and nothing opens, or you cannot add/remove people or change the photo. **Media** missing.
+
+### Root cause
+Details open from a click on the **name line** (Chat or Group), not a styled name button. Add / photo / remove / Make admin are `role = admin` on that group. **Media** only on Chat/Group when a conversation exists. Staging needs `20260905153000_team_chat_group_admin.sql`.
+
+### Fix
+Open Chat or Groups → click the name line (not Media). If you created the group, you are admin. **Media** is on the right. Apply the staging migration if RPCs are missing.
+
+## Chat: group Info missing or viewers empty
+
+### Symptom
+No Info icon, or Seen / Not seen lists nobody.
+
+### Root cause
+Info is only for the **sender**, **one** selected group message. Lists are other members only.
+
+### Fix
+Open a Groups thread. Click your own bubble once. Info → Viewers. Other people must be members of that group.
+
+## Chat: selected messages have no sky-blue bar
+
+### Symptom
+You click one or more bubbles and only a ring shows, or nothing marks the row.
+
+### Root cause
+Selection highlight is a light sky-blue bar on the **row**, not a new bubble color.
+
+### Fix
+Click anywhere on that message’s horizontal row in Chat or Groups (not only the bubble). The full strip turns sky-blue. The bubble itself stays dark/light as before.
+
+## Chat: message actions missing or delete does nothing
+
+### Symptom
+Click a message and no icons appear, or Delete does not remove someone else's message.
+
+### Root cause
+Toolbar only shows after a click-select. In Chats/Groups, Delete is hidden unless every selected message is yours. Mix of own + others hides Delete. RPC only sets `deleted_at` on rows you authored. Staging needs `20260904110500_team_chat_message_actions.sql`.
+
+### Fix
+Click the bubble (own or others). Clear the mix, then select only your posts if you need Delete. Apply the staging migration if the RPC is missing.
+
+## Chat: URL in the bubble is not a link
+
+### Symptom
+Someone pasted `https://…` and it looks like normal text.
+
+### Root cause
+Body used to render as plain spans. Only the Media sheet listed links.
+
+### Fix
+`ChatMessageBody` splits `http`/`https` and renders an `<a>`. Click the URL (not the rest of the bubble) to open a new tab.
+
+## Chat: long message shrinks or stretches the whole Chat tab
+
+### Symptom
+A long URL or one-word post makes the inbox skinny, the page grow, or the composer jump.
+
+### Root cause
+Chat was in the main page scroller (`min-h` card). Flex children grew with unbreakable text.
+
+### Fix
+Chat is a full-bleed tab. Card is `h-full overflow-hidden`. Thread and bubbles use `min-w-0` and wrap. Phone still swaps list vs thread.
+
+## Chat: long URL runs across the thread
+
+### Symptom
+A long `https://…` sits on one line, leaves the grey bubble, and covers other messages. Some of the URL looks cut.
+
+### Root cause
+The link is a shadcn Button (`inline-flex` + `whitespace-nowrap`). That blocks wrap. The extra characters paint outside the bubble.
+
+### Fix
+Link classes use `inline`, `whitespace-normal`, `break-all`, and `overflow-wrap: anywhere`. Hard refresh. The whole URL must stay inside the bubble on several lines.
+
+## Chat: send blinks the page and cursor leaves the box
+
+### Symptom
+Click Send (or Enter) in a Chat or Group. The thread (or whole page) vanishes for a second, then comes back. The caret is not in the text box; you must click the box to type again.
+
+### Root cause
+Every send called `loadMessages`, which set `loadingMessages` and replaced the thread with “Loading messages…”. The box used `disabled={sending}`, so the browser dropped focus. First DM also cleared compose before the conversation was in the list, so `showThread` went false.
+
+### Fix
+Refresh the open thread without the loading placeholder. After Send, focus the composer. Hard refresh. Type, Send, type again with no extra click.
+
+## Chat: older messages missing, only last bubble + white hole
+
+### Symptom
+Group thread shows a tall empty area and only the newest line (e.g. “hi”). Media and composer still work. Database still has earlier rows.
+
+### Root cause
+Radix ScrollArea inner node is `display: table`. Pane-lock classes (`overflow-hidden`, `min-w-0` on that node) collapsed older bubbles. `scrollIntoView` jumped to the last row.
+
+### Fix
+Thread scroll is a `div` with `overflow-y-auto`. Do not clip bubbles. Scroll that div with `scrollTop`. Confirm with `select * from team_chat_messages where conversation_id = …`.
+
+## Chat: voice note is a tiny pill and will not play
+
+### Symptom
+Own voice note looks like a white oval with a black dot and three dots. No timeline. Play is broken.
+
+### Root cause
+The download icon sat in the same row as `<audio>`. Flex `min-w-0` crushed the native control.
+
+### Fix
+Player is stacked: full `audio` first, then download only. No `Voice note.webm` label. Hard refresh. Click play on the bar.
+
+## Chat: Voice note.webm shows under the player
+
+### Symptom
+Voice bubble has a full player, then the text `Voice note.webm`.
+
+### Root cause
+The restore put `attachment_name` under the `<audio>` next to the download arrow.
+
+### Fix
+That label is gone. Player + download only. Hard refresh.
+
+## Chat: file over 15 MB will not send
+
+### Symptom
+Paperclip or Send says the file must be 15 MB or smaller, or Storage rejects a large Excel.
+
+### Root cause
+Old client check `CHAT_MAX_ATTACHMENT_BYTES`. Type list used to be images + PDF only.
+
+### Fix
+Hard refresh. There is no 15 MB app check. Staging bucket cap is 10 GB. If upload still fails, check the Supabase project global file size and the network. Download is the arrow beside the file, not the typed URL.
+
+## Chat: inbox search missing or finds nobody
+
+### Symptom
+No magnifying glass left of **New chat** / **New group**, or typing letters shows an empty list.
+
+### Root cause
+Search is `ChatInboxSearch` in the inbox header only. Chats match `profileChatLabel` / email. Groups match conversation title. You never see your own name.
+
+### Fix
+Open Chat → Chats. Glass is left of **New chat**. Type part of a name. Groups tab uses the same glass for group titles.
+
+## Chat: search person then Send opens someone else
+
+### Symptom
+Chat → search a name → type → Send. The thread jumps to another person (often the first chat in the list).
+
+### Root cause
+Send posted to the searched person. After Send, compose mode closed and the inbox reload could put the previous DM on screen (first row, or a remount that auto-picks it). The header then showed that previous person even though the new message was already in the searched person's thread.
+
+### Fix
+Hard refresh. After Send, Chat pins that thread and keeps that person's name. Inbox reload cannot steal it. Click another row if you want to leave.
+
+## Chat: Groups list vanished after a layout edit
+
+### Symptom
+Groups tab is blank, or opening a group hides every group row. Staging still has `kind=group` rows.
+
+### Root cause
+The pane-lock pass put `overflow-hidden` on the inbox and hid the list below `md`. Groups tab also kept a DM as the active thread, so the right pane looked empty.
+
+### Fix
+Inbox stays visible from `sm` up. Groups tab keeps a group selected. Do not treat this as deleted data — check `team_chat_conversations` `kind=group` if the list is still empty after refresh.
+
+## Chat: group missing from Chats list
+
+### Symptom
+**General** or a new group is not on **Chats**.
+
+### Root cause
+Chats is `kind=direct` only. Groups is `kind=group` only.
+
+### Fix
+Open the **Groups** tab. Create groups with **New group** there. DMs stay on **Chats**.
+
+## Chat: Groups or Channels looks empty
+
+### Symptom
+**Channels** says no channels yet. **Groups** only lists `kind=group`. Directs are on **Chats**.
+
+### Root cause
+Inbox is split by kind. Channels have no data yet.
+
+### Fix
+Open **Chats** for DMs. Create a group from **Groups** → **New group**.
+
 ## Chat: empty inbox or conversation_id errors
 
 ### Symptom
@@ -1324,9 +1678,9 @@ After migration, all users should be in **General** group; **New chat** opens a 
 **Quick GIFs** tab always works (preset CDN URLs).
 
 **Search tab empty — check:**
-1. `VITE_GIPHY_API_KEY` set in `.env` (get key from [Giphy Developers](https://developers.giphy.com/dashboard/)).
-2. Restart dev server after `.env` change (`npm run dev`).
-3. Beta keys limited to 100 requests/hour — 429 means rate limit; wait or upgrade key.
+1. Chat GIF Search uses the bundled Giphy client key in `src/giphyGifApi.js` (same on staging and production). Restart `npm run dev` after a pull.
+2. Beta keys limited to 100 requests/hour — 429 means rate limit; wait or upgrade key.
+3. If Netlify UI has a *different* `VITE_GIPHY_API_KEY`, the app still uses the bundled key. Giphy dashboard must allow `printingtracker.netlify.app` and the staging host.
 
 **Verify key:**
 ```bash

@@ -310,6 +310,14 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **Failure:** empty comment → FieldError. Floor-required mix with no floor → Floor shown, Comment hidden. Insert/list/status errors → destructive Alert. RLS: insert only as self; select own or admin; update admin and only if current status is not Resolved. Non-admin status pick is hidden. Zero issues → Floor and Comment hidden.
 6. **Exit:** close the Raise Dialog, switch sidebar tab, or Open Tickets / Resolved.
 
+### Contact Book add / edit contact
+
+1. **Trigger:** sidebar **Contact Book** → **+ Add contact** (or Edit on a card).
+2. **Entry:** `ContactBookPanel` shows New contact / Edit contact. The contact grid hides while the form is open.
+3. **Scroll:** Photo, fields, and Address sit in `.contact-book-form-scroll` (`overflow-y: auto`). Header and Save stay. The panel itself is `overflow: hidden` so the page cannot clip the form.
+4. **Save:** writes `contact_book_entries`. Photo goes to `contact-photos`. Cancel / ✕ returns to the list.
+5. **Failure:** empty name → error. RLS / missing table → error on the form.
+
 ### Production Tracker tabs
 
 1. **Trigger:** user opens sidebar **Production tracker** (`dashboardTab === "production_tracker"`).
@@ -446,40 +454,126 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 
 WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/teamChatService.js`. UI: `TeamChatPanel.jsx` + `src/components/chat/*`.
 
+### Inbox tabs (Chats / Groups / Channels)
+
+1. **Trigger:** User opens **Chat**. Default tab is **Chats**.
+2. **Entry:** Bottom of the left inbox is a shadcn `TabsList` with three equal names: **Chats**, **Groups**, **Channels**. A Badge shows unopened text-message count beside a tab when &gt; 0. List heading stays at the top of that tab.
+3. **Chats:** Search glass left of **New chat**. Same conversation rows as before (avatar, name, time, preview, unread). List is `kind=direct` only. Thread on this tab is DMs only.
+4. **Groups:** Search glass left of **New group**. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
+4a. **Inbox search:** Click the glass. Type letters. Chats lists team names (starts-with first, then contains). Click a name → open that DM if it exists, else the compose screen. Groups lists group titles the same way. Click a title → open that group. Empty query shows everyone / every group you can see. Send from that thread pins it: the message goes to that person and the page stays on that person. Inbox reload cannot switch to the previous chat. Click another inbox row to leave.
+5. **Channels:** Same row format (`kind=channel`). **New Channel** shows only for `profiles.role = admin`. Everyone on the dashboard is a member. Admins post with the same composer as Chats/Groups. Non-admins see no composer; they may react (emoji + count), copy, and forward.
+6. **Switch tabs:** Only the name list and action swap. Inbox width and thread pane stay.
+7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). Phone (`max-sm`) still hides the list until Back. From `sm` up, inbox and thread stay side by side so Groups never vanish on open.
+8. **Tab pick:** Opening **Groups** selects the current group, or the first group if the open thread is a DM. Same for Channels. Chats stay on a DM. If a conversation id is already chosen (search or first send) and that row is not in the list yet, Chats do not fall back to the first DM. A refresh does not jump Groups over to a DM.
+
 ### Open chat / General group
 
 1. **Trigger:** User opens **Chat** tab.
 2. **Services:** `fetchMyConversations()` — memberships + last message preview.
-3. **Default:** **General** group (legacy team wall messages migrated here).
+3. **Default:** First direct chat if one exists. **General** lives on the **Groups** tab only.
 4. **Exit:** Select conversation → load messages via `fetchConversationMessages()`.
 
 ### Direct message (any user → any user)
 
-1. **Trigger:** **New chat** → pick team member (compose screen opens — no DB conversation yet).
-2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox.
-3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats).
+1. **Trigger:** **New chat** or inbox search → pick team member (compose screen opens — no DB conversation yet).
+2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox. The panel pins that conversation id before inbox reload. If the list has not caught up, it keeps a local stub so the thread does not jump to another DM.
+3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats). An open first-send thread is the exception until the message exists.
 4. **Send:** `sendChatMessage()` with `conversation_id`; marks read for sender.
-5. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
+5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text and URLs wrap **inside** the bubble on new lines (`break-all` / `word-break` on the link). Full string stays visible — no clip, no overlap onto other rows. Same on Groups. `http`/`https` is a clickable link (new tab). Clicking the link does not toggle select. The link Button overrides shadcn `whitespace-nowrap` so a long URL can wrap.
+6. **Pane size:** Chat tab is full-bleed (`FULL_BLEED_TABS`). The card fills the dashboard content area (`h-full`, overflow hidden). Inbox stays on screen from `sm` up; thread is a normal `overflow-y-auto` box (not Radix table scroll). Phone (`max-sm`): list or thread, not both. Long messages wrap inside the bubble. History stays visible; open thread scrolls to the newest.
+7. **History load:** `fetchConversationMessages` takes the newest 200 (`created_at` desc) then reverses to oldest-first.
+8. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
+
+### Create channel (admin)
+
+1. **Trigger:** Admin on Channels tab → **New Channel** → name only.
+2. **Services:** RPC `create_channel_conversation(title)` — requires `jwt_user_is_admin()`. Inserts `kind=channel` and adds every `profiles` row as a member.
+3. **New users:** Trigger `team_chat_profile_join_channels` adds a new profile to all existing channels.
+4. **Post:** Insert policy `jwt_user_can_post_in_conversation` — channel posts require admin. Non-admin insert is rejected.
+5. **Viewer actions:** React / copy / forward only. No reply, pin, delete, or composer.
+6. **Admin actions:** Full composer (text, emoji, GIF, file, voice, paste) plus reply, react, pin, copy, forward, delete (any post).
+7. **Reactions:** Chips show each emoji and how many people used it.
+8. **Wrap:** Channel body uses the same multi-line wrap as Chats/Groups.
+9. **Exit:** Channel appears on the Channels tab for everyone after refresh/realtime.
 
 ### Create group
 
-1. **Trigger:** **New group** → name + member checkboxes.
-2. **Services:** RPC `create_group_conversation(title, member_ids[])` — creator is admin member.
-3. **Exit:** Group appears in inbox; all members can read/write.
+1. **Trigger:** Groups tab → **New group** → name + member checkboxes.
+2. **Services:** RPC `create_group_conversation(title, member_ids[])` — creator is **group admin**. Others start as member.
+3. **Exit:** Group appears on the **Groups** tab only; all members can read/write. Panel switches to Groups.
+
+### Group / Chat header details
+
+1. **Trigger:** Open a Chat or Group thread. Click anywhere on the **name line** (name stays normal text, not a button). Channels do not open this.
+2. **Chat:** Sheet shows the other person's photo and both people. No add/remove.
+3. **Group:** Sheet lists every member. Group admin can Change photo, **Add people**, **Make admin**, **Remove**.
+4. **Services:** same group admin RPCs as before. Photo goes to `team-chat-group-avatars/{conversation_id}/…`.
+5. **Guards:** Cannot remove yourself. Cannot remove the last admin. Members see the list only.
+
+### Shared media (Chat and Groups)
+
+1. **Trigger:** **Media** on the right of the name line.
+2. **Tabs:** **Photos/Videos** (images, GIFs, video files), **Documents** (PDF, Excel, voice notes, other files), **Links** (http/https in message text).
+3. **Services:** `fetchConversationSharedMedia` — non-deleted messages with an attachment, GIF, or `http` in the body.
+4. **Exit:** Open a file/link in a new tab. Empty tab says none yet. The same `http`/`https` strings are also clickable inside the message bubble.
+
+### Chat presence (Online / Away / Offline)
+
+1. **Trigger:** Signed-in user has the dashboard open. `usePublishDashboardPresence` in `App.jsx` heartbeats every 25s.
+2. **Online:** Browser tab is visible and focused. RPC `set_my_dashboard_presence('online')`. List avatar = green dot. Open DM subtitle = **Online**.
+3. **Leave dashboard tab:** Stay **Online** for 5 minutes (`last_seen_at` does not move). Then **Away** (yellow + Away). Switching Inventory/Chat inside the dashboard stays Online.
+4. **Offline:** No presence row (never opened the dashboard), or `last_seen_at` older than 2 hours. List = red dot. Open DM = **Offline**.
+5. **Same source:** List and thread both read `presenceFromRow` so they cannot disagree.
+6. **Realtime:** `hr_user_presence` postgres changes refresh the map. A 15s tick flips Online → Away at 5 minutes.
+
+### Delivery ticks (Chats and Groups only)
+
+1. **Trigger:** You send any message (text, photo, GIF, voice). Ticks sit on **your** bubble only. Channels have no ticks.
+2. **Seen:** Other member opened that thread (`last_read_at` ≥ that message `created_at`). Online / Away does **not** change ticks.
+3. **Chats:** Peer has not opened and is **Online** (dashboard active) → **2 grey**. Peer has not opened and is Away/Offline → **1 grey**. Peer opened → **2 blue**.
+4. **Groups:** Nobody opened → **1 grey**. At least one other member opened, but not all → **2 grey**. Every other member opened → **2 blue**.
+5. **Read wins:** After all others have seen it, ticks stay blue even if they later go offline.
+6. **Realtime:** Member `UPDATE` patches `member_reads` immediately. Open Chat/Group also polls reads every 4s. Staging table uses `REPLICA IDENTITY FULL` so RLS realtime can send peer `last_read_at`.
+7. **Open = seen:** While a Chat/Group/Channel thread is open, the viewer heartbeats `mark_conversation_read` every 4s so new text/photo/GIF/file/voice is marked seen without closing and reopening.
+8. **All types:** Ticks sit on every own Chat/Group send (text, photo, document, GIF, emoji, voice). Bubble is a `div` so nested download links do not drop the ticks.
+
+### Group viewers list
+
+1. **Trigger:** Sender selects **one** of their group messages. Info icon appears on the action bar.
+2. **Dialog:** **Seen** = members whose `last_read_at` covers that post. **Not seen** = the rest. Sender is not listed.
+3. **Edge:** Only the author sees Info. Multi-select hides it. DMs and channels have no viewers list.
+
+### Select message actions (Chats and Groups)
+
+1. **Trigger:** Click anywhere on that message’s full horizontal row (empty strip, avatar, name, or bubble). Your messages or others. Deleted rows stay unselectable. Links / download / react / order chips use `stopPropagation` so they do not toggle select.
+2. **Selected look:** That row (not the bubble) gets a full-width light sky-blue bar (`bg-sky-100`). One or many selected rows all show it. Bubble color stays the same.
+3. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Clear. Group sender also gets Info (viewers). Delete only if that message is yours.
+4. **Several selected:** Header shows icon-only Copy, Forward, Clear. Delete only if every selected message is yours. Mix of own + others, or only others → no Delete.
+5. **Reply:** Composer quotes that message; send stores `reply_to_message_id`.
+6. **React:** Emoji picker; RPC `set_team_chat_message_reaction` (one emoji per user; same emoji again removes it).
+7. **Pin:** RPC `toggle_team_chat_message_pin` for conversation members.
+8. **Delete:** Icon hidden unless every selected row is yours (Chats/Groups). Channel admin still sees Delete for any selected posts. RPC `soft_delete_team_chat_messages` only sets `deleted_at` on own rows.
+9. **Forward:** Dialog pick another conversation; copies body/attachment/GIF with `forwarded_from_message_id`.
+10. **Copy:** Writes selected bodies to the clipboard (full text). Empty body uses GIF / Voice note / Photo / file name. Several messages join with a blank line. Browser must allow clipboard write.
+11. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.
 
 ### Send GIF / attachment
 
-1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending via `VITE_GIPHY_API_KEY`). **Enter** sends message; **Shift+Enter** new line.
-2. **File:** Paperclip → JPEG/PNG/WebP/GIF/PDF up to 15 MB → `team-chat-files` bucket.
-3. **Constraint:** Message needs body, attachment, or GIF (empty text-only blocked).
+1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending). The public Giphy client key is bundled in `giphyGifApi.js` and `netlify.toml`, so Search works on local, staging, and production with the same key. **Enter** sends message; **Shift+Enter** new line.
+2. **File:** Paperclip → image, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. No app size cap. Upload to `team-chat-files` (staging bucket limit 10 GB). Browser or project Storage settings can still fail a huge upload.
+2a. **Download:** Arrow icon beside the attachment or GIF (not beside typed `http` links). Fetches the file and opens the system save dialog. Same icon on Media photos/docs.
+3. **Voice note:** Mic in the composer action row (after paperclip) on Chats and Groups. Browser `getUserMedia` + `MediaRecorder`. Stop button appears only while recording (same slot). After stop, preview + Send uploads audio (webm/mp4/ogg) as an attachment. Cap 5 minutes. Mic deny or empty clip shows an error. Voice-only does not increment the text unread badge. The bubble is a full native player (play + seek). No `Voice note.webm` label. Download arrow sits under the player so it does not crush the control.
+4. **Composer layout:** Full-width box on top (1 line, grows to ~5, then scrolls). Under it: emoji, GIF, paperclip, mic, paste left; Send right. **Enter** still sends; **Shift+Enter** new line. After Send, the thread stays on screen (refresh does not swap in “Loading messages…”). Cursor returns to the box so the next line can be typed without a click. The bubble appears at once (optimistic). Inbox reload runs in the background so the tab does not wait ~1s.
+5. **Paste:** Paste icon reads the clipboard and inserts at the cursor. Deny clipboard → error; **Ctrl+V** still works in the box.
+6. **Constraint:** Message needs body, attachment, or GIF (empty text-only blocked).
 
 ### Realtime
 
-`TeamChatPanel` subscribes to `team_chat_messages` and `team_chat_conversations` postgres changes; refreshes inbox + active thread.
+`TeamChatPanel` subscribes to `team_chat_messages`, `team_chat_conversations`, `team_chat_message_reactions`, and **all** `team_chat_conversation_members` postgres changes (not only the current user); refreshes inbox + active thread so peer `last_read_at` updates ticks.
 
-**Unread:** Opening a thread calls `mark_conversation_read` — badge clears immediately. Unread rows highlighted (primary border + bold). Sidebar **Chat** tab shows total unread count.
+**Unread:** Opening a thread calls `mark_conversation_read` — row and inbox-tab badges clear for that conversation. Count is unopened text messages only. Sidebar **Chat** tab sums the same counts.
 
-**Sound:** New message for current user plays the same notification tone as tasks/orders (custom MP3 if set). No tone when user already has that conversation open on the Chat tab.
+**Sound + toast:** Every incoming Chat / Group / Channel message (not your own) plays `public/sounds/chat-message.mp3` and shows a bottom-right card: **name**, then the message (or Photo / GIF / Voice note). Card stays 45 seconds or until X. Sound plays even if another browser tab is focused, as long as Scott Dashboard is still open and the browser already primed audio after a click. Status mute does not block this chat sound.
 
 ### Admin views all user goals and tasks
 

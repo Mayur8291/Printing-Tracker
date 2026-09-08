@@ -40,6 +40,11 @@ export default {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
+  			presence: {
+  				online: 'hsl(var(--presence-online))',
+  				away: 'hsl(var(--presence-away))',
+  				offline: 'hsl(var(--presence-offline))'
+  			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

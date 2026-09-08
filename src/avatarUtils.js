@@ -5,6 +5,7 @@ export { PRESET_AVATAR_PREFIX } from "./presetAvatars";
 export { parsePresetAvatarId, presetAvatarPublicUrl, isPresetAvatarPath } from "./presetAvatars";
 
 export const PROFILE_AVATAR_BUCKET = "profile-avatars";
+export const GROUP_AVATAR_BUCKET = "team-chat-group-avatars";
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 
 export const AVATAR_ALLOWED_TYPES = new Set([
@@ -31,6 +32,12 @@ export function profileAvatarPublicUrl(avatarPath) {
     return PRESET_AVATAR_BY_ID[presetId]?.url ?? "";
   }
   const { data } = supabase.storage.from(PROFILE_AVATAR_BUCKET).getPublicUrl(trimmed);
+  return data?.publicUrl ?? "";
+}
+
+export function groupAvatarPublicUrl(avatarPath) {
+  if (!avatarPath?.trim()) return "";
+  const { data } = supabase.storage.from(GROUP_AVATAR_BUCKET).getPublicUrl(avatarPath.trim());
   return data?.publicUrl ?? "";
 }
 

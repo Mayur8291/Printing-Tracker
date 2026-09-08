@@ -22,6 +22,7 @@ import ProductionTrackerPanel, {
   TRACKER_LIST_COMPLETE
 } from "./ProductionTrackerPanel";
 import TeamChatPanel from "./TeamChatPanel";
+import { usePublishDashboardPresence } from "./dashboardPresence";
 import ContactBookPanel from "./ContactBookPanel";
 import InternalSupportPlatformPanel from "./InternalSupportPlatformPanel";
 import GoalTrackerPanel from "./GoalTrackerPanel";
@@ -210,6 +211,7 @@ import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
 import { profileAvatarPublicUrl, setProfilePresetAvatar, uploadProfileAvatar } from "./avatarUtils";
 import { profileNotificationTonePublicUrl } from "./notificationToneUtils";
 import {
+  playChatMessageTone,
   playNotificationTone,
   playOrderStatusChangeTone,
   playReadyDispatchOverdueTone,
@@ -222,11 +224,13 @@ import { PersonAvatar } from "./components/ui/person-avatar";
 import ProfileAvatarPicker from "./components/profile/ProfileAvatarPicker";
 import UserProfileSettingsDialog from "./components/profile/UserProfileSettingsDialog";
 import { activeSupabaseRef, supabase } from "./supabaseClient";
-import { fetchMyConversations } from "./teamChatService";
+import { ChatIncomingToastStack } from "./components/chat/ChatIncomingToastStack";
+import { conversationPreviewText, fetchMyConversations } from "./teamChatService";
 import {
-  shouldPlayChatMessageTone,
+  shouldNotifyIncomingChatMessage,
   sumConversationUnread
 } from "./teamChatNotificationUtils";
+import { messageAuthorDisplayName } from "./teamChatUtils";
 import {
   isMissingPostgrestTableError,
   isSchemaCacheError,
@@ -512,6 +516,7 @@ const FULL_BLEED_TABS = new Set([
   "asset_management",
   "internal_support",
   "inventory",
+  "chat",
   "scott_customers",
   "scott_reports",
   "scott_masters"
@@ -708,6 +713,7 @@ function App() {
   }
 
   const [session, setSession] = useState(null);
+  usePublishDashboardPresence(session?.user?.id);
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
@@ -754,6 +760,7 @@ function App() {
   /** "printing" = full create-order form; "job_sheet" = production job sheet (placeholder until dedicated fields). */
   const [createFormMode, setCreateFormMode] = useState("printing");
   const [assignmentToasts, setAssignmentToasts] = useState([]);
+  const [chatIncomingToasts, setChatIncomingToasts] = useState([]);
   const [chatUnreadTotal, setChatUnreadTotal] = useState(0);
   const [sidebarTabMarkers, setSidebarTabMarkers] = useState({});
   const chatMemberConvIdsRef = useRef(new Set());
@@ -4185,6 +4192,22 @@ function App() {
     setAssignmentToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const dismissChatIncomingToast = useCallback((id) => {
+    setChatIncomingToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const pushChatIncomingToast = useCallback((row) => {
+    if (!row || typeof row !== "object") return;
+    const author = teamProfiles.find((p) => String(p.id) === String(row.author_id));
+    const name = messageAuthorDisplayName(row, author) || "Someone";
+    const body = conversationPreviewText(row) || "New message";
+    const id = `chat-${row.id ?? crypto.randomUUID()}`;
+    setChatIncomingToasts((prev) => {
+      const next = prev.filter((t) => t.id !== id);
+      return [...next, { id, name, body }].slice(-6);
+    });
+  }, [teamProfiles]);
+
   const refreshChatUnread = useCallback(async () => {
     const uid = session?.user?.id;
     if (!uid) {
@@ -4385,8 +4408,9 @@ function App() {
             return;
           }
           if (!chatMemberConvIdsRef.current.has(row.conversation_id)) return;
-          if (statusTonesEnabled && shouldPlayChatMessageTone(row, uid)) {
-            playNotificationTone(TONE_DEFAULT_STATUS);
+          if (shouldNotifyIncomingChatMessage(row, uid)) {
+            playChatMessageTone();
+            pushChatIncomingToast(row);
           }
           void refreshChatUnread();
         }
@@ -4408,7 +4432,7 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, statusTonesEnabled, refreshChatUnread]);
+  }, [session?.user?.id, refreshChatUnread, pushChatIncomingToast]);
 
   useEffect(() => {
     if (!showCreateForm || profileLoading) return;
@@ -5940,14 +5964,16 @@ function App() {
           )}
 
           {dashboardTab === "chat" && session?.user && (
-            <TeamChatPanel
-              sessionUserId={session.user.id}
-              currentUserProfile={profile}
-              teamProfiles={teamProfiles}
-              orders={orders}
-              onOpenOrder={openViewOrder}
-              onUnreadTotalChange={setChatUnreadTotal}
-            />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 md:p-4">
+              <TeamChatPanel
+                sessionUserId={session.user.id}
+                currentUserProfile={profile}
+                teamProfiles={teamProfiles}
+                orders={orders}
+                onOpenOrder={openViewOrder}
+                onUnreadTotalChange={setChatUnreadTotal}
+              />
+            </div>
           )}
 
           {dashboardTab === "production_tracker" && (
@@ -8167,6 +8193,7 @@ function App() {
         onDismiss={dismissAssignmentToast}
         onActivate={handleAssignmentToastActivate}
       />
+      <ChatIncomingToastStack toasts={chatIncomingToasts} onDismiss={dismissChatIncomingToast} />
     </div>
     </TooltipProvider>
     </SampleJobSheetSlaProvider>
