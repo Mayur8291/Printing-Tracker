@@ -6704,7 +6704,9 @@ html.theme-dark .shared-links-form label {
 }
 
 .contact-book-form {
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
   padding: 18px 20px 20px;
   border: 1px solid #dbeafe;
   border-radius: 12px;
@@ -6719,6 +6721,18 @@ html.theme-dark .shared-links-form label {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+.contact-book-form-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .contact-book-form-header h3 {
@@ -6830,6 +6844,7 @@ html.theme-dark .shared-links-form label {
   gap: 12px;
   padding-top: 4px;
   border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .contact-book-form-actions-right {

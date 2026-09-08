@@ -1008,6 +1008,17 @@ Secret scan found the public Giphy client key in `giphyGifApi.js`, `netlify.toml
 ### Fix
 `netlify.toml` omits `VITE_GIPHY_API_KEY` and those paths. Push `develop`. Do not mark the Giphy key as a secret in the Netlify UI.
 
+## Contact Book: cannot scroll to finish a new contact
+
+### Symptom
+Add contact (or Edit). Photo and Name show. Address, Email, or Save sit off-screen. Wheel / trackpad does not move.
+
+### Root cause
+`.contact-book-panel` is `overflow: hidden`. The form was `flex-shrink: 0` (full height, no inner scroll). The dashboard shell clips the rest.
+
+### Fix
+Form body scrolls. Header and Save stay. Hard refresh. Open Add contact and scroll to Address.
+
 ## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
 
 ### Symptom

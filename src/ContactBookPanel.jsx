@@ -238,6 +238,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
             </button>
           </div>
 
+          <div className="contact-book-form-scroll">
           <div className="contact-book-photo-row">
             <AvatarUploadField
               name={form.name}
@@ -326,6 +327,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
               />
             </label>
           </div>
+          </div>
 
           <div className="contact-book-form-actions">
             {editingEntry ? (
@@ -352,6 +354,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
         </form>
       ) : null}
 
+      {showForm && mayEdit ? null : (
       <div className="contact-book-list-wrap">
         {loading ? (
           <p className="contact-book-empty">Loading contacts…</p>
@@ -466,6 +469,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
           </>
         )}
       </div>
+      )}
     </section>
   );
 }

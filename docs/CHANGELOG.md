@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-08 — Contact Book add form can scroll
+
+- **Issue:** Add / Edit contact cut off. Could not scroll to Address or Save.
+- **Fix:** Form body scrolls. Header and Save stay. Contact list hides while the form is open.
+- **Files:** `ContactBookPanel.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
 ## 2026-09-07 — Netlify publish allows public Giphy key
 
 - **Issue:** Vercel published; Netlify stopped after secret scan saw the Giphy key.

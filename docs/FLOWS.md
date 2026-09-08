@@ -310,6 +310,14 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **Failure:** empty comment → FieldError. Floor-required mix with no floor → Floor shown, Comment hidden. Insert/list/status errors → destructive Alert. RLS: insert only as self; select own or admin; update admin and only if current status is not Resolved. Non-admin status pick is hidden. Zero issues → Floor and Comment hidden.
 6. **Exit:** close the Raise Dialog, switch sidebar tab, or Open Tickets / Resolved.
 
+### Contact Book add / edit contact
+
+1. **Trigger:** sidebar **Contact Book** → **+ Add contact** (or Edit on a card).
+2. **Entry:** `ContactBookPanel` shows New contact / Edit contact. The contact grid hides while the form is open.
+3. **Scroll:** Photo, fields, and Address sit in `.contact-book-form-scroll` (`overflow-y: auto`). Header and Save stay. The panel itself is `overflow: hidden` so the page cannot clip the form.
+4. **Save:** writes `contact_book_entries`. Photo goes to `contact-photos`. Cancel / ✕ returns to the list.
+5. **Failure:** empty name → error. RLS / missing table → error on the form.
+
 ### Production Tracker tabs
 
 1. **Trigger:** user opens sidebar **Production tracker** (`dashboardTab === "production_tracker"`).
