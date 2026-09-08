@@ -195,20 +195,71 @@ function insertAtCursor(text, start, end, insert) {
   return `${text.slice(0, start)}${insert}${text.slice(end)}`;
 }
 
-function withInboxLastMessage(conversations, conversationId, lastMessage) {
+function withInboxLastMessage(conversations, conversationId, lastMessage, stub = null) {
   if (!conversationId) return conversations ?? [];
-  const next = (conversations ?? []).map((conv) =>
-    conv.id === conversationId
-      ? {
-          ...conv,
+  const list = conversations ?? [];
+  const found = list.some((conv) => conv.id === conversationId);
+  const next = found
+    ? list.map((conv) =>
+        conv.id === conversationId
+          ? {
+              ...conv,
+              last_message: lastMessage,
+              last_message_at: lastMessage?.created_at ?? conv.last_message_at
+            }
+          : conv
+      )
+    : [
+        {
+          id: conversationId,
+          kind: stub?.kind ?? "direct",
+          title: stub?.title ?? null,
+          member_ids: stub?.member_ids ?? [],
+          member_reads: stub?.member_reads ?? [],
+          unread_count: 0,
           last_message: lastMessage,
-          last_message_at: lastMessage?.created_at ?? conv.last_message_at
-        }
-      : conv
-  );
+          last_message_at: lastMessage?.created_at ?? new Date().toISOString(),
+          ...stub
+        },
+        ...list
+      ];
   return [...next].sort((a, b) =>
     String(b.last_message_at ?? "").localeCompare(String(a.last_message_at ?? ""))
   );
+}
+
+function mergeFetchedConversations(prev, rows) {
+  const fetched = rows ?? [];
+  const fetchedIds = new Set(fetched.map((row) => String(row.id)));
+  const extras = (prev ?? []).filter((conv) => !fetchedIds.has(String(conv.id)) && conv.last_message);
+  const merged = extras.length ? [...fetched, ...extras] : fetched;
+  return [...merged].sort((a, b) =>
+    String(b.last_message_at ?? "").localeCompare(String(a.last_message_at ?? ""))
+  );
+}
+
+function idsEqual(a, b) {
+  if (a == null || b == null) return false;
+  return String(a) === String(b);
+}
+
+const chatThreadPin = {
+  userId: null,
+  conversationId: null,
+  peerId: null
+};
+
+function readChatThreadPin(userId) {
+  if (!userId || !idsEqual(chatThreadPin.userId, userId)) {
+    return { conversationId: null, peerId: null };
+  }
+  return { conversationId: chatThreadPin.conversationId, peerId: chatThreadPin.peerId };
+}
+
+function writeChatThreadPin(userId, conversationId, peerId) {
+  chatThreadPin.userId = userId ?? null;
+  chatThreadPin.conversationId = conversationId ?? null;
+  chatThreadPin.peerId = peerId ?? null;
 }
 
 export default function TeamChatPanel({
@@ -219,8 +270,9 @@ export default function TeamChatPanel({
   onOpenOrder,
   onUnreadTotalChange
 }) {
+  const initialPin = readChatThreadPin(sessionUserId);
   const [conversations, setConversations] = useState([]);
-  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [activeConversationId, setActiveConversationId] = useState(initialPin.conversationId);
   const [messages, setMessages] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -233,8 +285,11 @@ export default function TeamChatPanel({
   const [pendingAudioUrl, setPendingAudioUrl] = useState("");
   const [voiceRecording, setVoiceRecording] = useState(false);
   const [error, setError] = useState("");
-  const [mobileShowThread, setMobileShowThread] = useState(false);
-  const [composeDirectPeerId, setComposeDirectPeerId] = useState(null);
+  const [mobileShowThread, setMobileShowThread] = useState(Boolean(initialPin.conversationId || initialPin.peerId));
+  const [composeDirectPeerId, setComposeDirectPeerId] = useState(
+    initialPin.peerId && !initialPin.conversationId ? initialPin.peerId : null
+  );
+  const [lockedPeerId, setLockedPeerId] = useState(initialPin.peerId);
   const [inboxTab, setInboxTab] = useState("chats");
   const [selectedMessageIds, setSelectedMessageIds] = useState(() => new Set());
   const [replyTo, setReplyTo] = useState(null);
@@ -253,9 +308,24 @@ export default function TeamChatPanel({
   const messagesFetchGenRef = useRef(0);
   const wantComposerFocusRef = useRef(false);
   const sendLockRef = useRef(false);
+  const skipThreadReloadRef = useRef(false);
+  const composePeerIdRef = useRef(initialPin.peerId);
+  const userChoseThreadRef = useRef(Boolean(initialPin.conversationId || initialPin.peerId));
+  const ignoreListSelectUntilRef = useRef(0);
+  const pinnedConversationIdRef = useRef(initialPin.conversationId);
+  const pinnedPeerIdRef = useRef(initialPin.peerId);
+
+  function pinChatThread({ conversationId = null, peerId = null } = {}) {
+    pinnedConversationIdRef.current = conversationId;
+    pinnedPeerIdRef.current = peerId;
+    composePeerIdRef.current = peerId;
+    userChoseThreadRef.current = true;
+    writeChatThreadPin(sessionUserId, conversationId, peerId);
+    setLockedPeerId(peerId);
+  }
 
   const activeConversation = useMemo(
-    () => conversations.find((c) => c.id === activeConversationId) ?? null,
+    () => conversations.find((c) => idsEqual(c.id, activeConversationId)) ?? null,
     [conversations, activeConversationId]
   );
 
@@ -284,15 +354,20 @@ export default function TeamChatPanel({
   );
 
   const composeDirectPeer = useMemo(
-    () => (composeDirectPeerId ? teamProfiles.find((p) => p.id === composeDirectPeerId) ?? null : null),
-    [teamProfiles, composeDirectPeerId]
+    () => {
+      const peerId = composeDirectPeerId || lockedPeerId;
+      if (!peerId) return null;
+      return teamProfiles.find((p) => idsEqual(p.id, peerId)) ?? null;
+    },
+    [teamProfiles, composeDirectPeerId, lockedPeerId]
   );
 
   const threadPeerId = useMemo(() => {
     if (composeDirectPeerId) return composeDirectPeerId;
+    if (lockedPeerId) return lockedPeerId;
     if (activeConversation?.kind !== "direct") return null;
-    return (activeConversation.member_ids ?? []).find((id) => id !== sessionUserId) ?? null;
-  }, [composeDirectPeerId, activeConversation, sessionUserId]);
+    return (activeConversation.member_ids ?? []).find((id) => !idsEqual(id, sessionUserId)) ?? null;
+  }, [composeDirectPeerId, lockedPeerId, activeConversation, sessionUserId]);
 
   const threadPresence = threadPeerId ? (presenceByUserId[threadPeerId] ?? "offline") : null;
 
@@ -303,7 +378,12 @@ export default function TeamChatPanel({
 
   const showThread =
     inboxTab === "chats"
-      ? Boolean(composeDirectPeerId || activeConversation?.kind === "direct")
+      ? Boolean(
+          composeDirectPeerId ||
+            lockedPeerId ||
+            activeConversation?.kind === "direct" ||
+            (Boolean(activeConversationId) && !activeConversation)
+        )
       : inboxTab === "groups"
         ? Boolean(activeConversation?.kind === "group") && !composeDirectPeerId
         : inboxTab === "channels"
@@ -376,7 +456,7 @@ export default function TeamChatPanel({
     if (!sessionUserId) return [];
     try {
       const rows = await fetchMyConversations(sessionUserId);
-      setConversations(rows);
+      setConversations((prev) => mergeFetchedConversations(prev, rows));
       onUnreadTotalChange?.(sumConversationUnread(rows));
       setError("");
       return rows;
@@ -411,6 +491,8 @@ export default function TeamChatPanel({
         return;
       }
       const gen = ++messagesFetchGenRef.current;
+      const pinnedId = pinnedConversationIdRef.current;
+      if (pinnedId && !idsEqual(conversationId, pinnedId)) return;
       const isThreadSwitch = loadedThreadIdRef.current !== conversationId;
       if (isThreadSwitch) setLoadingMessages(true);
       try {
@@ -451,8 +533,16 @@ export default function TeamChatPanel({
   }, [loadConversations]);
 
   useEffect(() => {
-    if (composeDirectPeerId) return;
-    const active = conversations.find((c) => c.id === activeConversationId) ?? null;
+    if (composeDirectPeerId || composePeerIdRef.current || pinnedPeerIdRef.current) {
+      if (inboxTab === "chats") {
+        const pinnedId = pinnedConversationIdRef.current;
+        if (pinnedId && !idsEqual(activeConversationId, pinnedId)) {
+          setActiveConversationId(pinnedId);
+        }
+        return;
+      }
+    }
+    const active = conversations.find((c) => idsEqual(c.id, activeConversationId)) ?? null;
     const firstOf = (kind) => conversations.find((c) => c.kind === kind);
 
     if (inboxTab === "groups") {
@@ -467,10 +557,31 @@ export default function TeamChatPanel({
       if (firstChannel) setActiveConversationId(firstChannel.id);
       return;
     }
+    const pinnedId = pinnedConversationIdRef.current ?? readChatThreadPin(sessionUserId).conversationId;
+    if (pinnedId) {
+      if (!idsEqual(activeConversationId, pinnedId)) {
+        setActiveConversationId(pinnedId);
+      }
+      return;
+    }
+    if (userChoseThreadRef.current) return;
     if (active?.kind === "direct") return;
+    if (activeConversationId) return;
     const firstDirect = firstOf("direct");
-    if (firstDirect) setActiveConversationId(firstDirect.id);
-  }, [conversations, activeConversationId, composeDirectPeerId, inboxTab]);
+    if (firstDirect) {
+      pinChatThread({ conversationId: firstDirect.id, peerId: null });
+      setActiveConversationId(firstDirect.id);
+    }
+  }, [conversations, activeConversationId, composeDirectPeerId, inboxTab, sessionUserId]);
+
+  useEffect(() => {
+    if (!composeDirectPeerId || !activeConversationId) return;
+    if (activeConversation?.kind !== "direct") return;
+    const peer = (activeConversation.member_ids ?? []).find((id) => !idsEqual(id, sessionUserId));
+    if (!idsEqual(peer, composeDirectPeerId)) return;
+    composePeerIdRef.current = composeDirectPeerId;
+    setComposeDirectPeerId(null);
+  }, [composeDirectPeerId, activeConversation, activeConversationId, sessionUserId]);
 
   useEffect(() => {
     setSelectedMessageIds(new Set());
@@ -483,16 +594,27 @@ export default function TeamChatPanel({
   }, [activeConversationId, inboxTab]);
 
   useEffect(() => {
-    if (composeDirectPeerId) {
+    if (composeDirectPeerId && !activeConversationId) {
       messagesFetchGenRef.current += 1;
       loadedThreadIdRef.current = null;
       setMessages([]);
       setLoadingMessages(false);
       return;
     }
-    if (activeConversationId) {
-      loadMessages(activeConversationId);
+    if (composeDirectPeerId && activeConversationId) {
+      if (skipThreadReloadRef.current) {
+        skipThreadReloadRef.current = false;
+        loadedThreadIdRef.current = activeConversationId;
+      }
+      return;
     }
+    if (!activeConversationId) return;
+    if (skipThreadReloadRef.current) {
+      skipThreadReloadRef.current = false;
+      loadedThreadIdRef.current = activeConversationId;
+      return;
+    }
+    loadMessages(activeConversationId);
   }, [activeConversationId, composeDirectPeerId, loadMessages]);
 
   useEffect(() => {
@@ -559,6 +681,7 @@ export default function TeamChatPanel({
               String(row.user_id) === String(sessionUserId) &&
               row.conversation_id === activeConversationId
             ) {
+              pinChatThread({ conversationId: null, peerId: null });
               setGroupDetailsOpen(false);
               setActiveConversationId(null);
             }
@@ -647,11 +770,19 @@ export default function TeamChatPanel({
     fitComposerTextarea(el);
   }, [sending]);
 
-  function selectConversation(id) {
+  function selectConversation(id, { fromUserList = false } = {}) {
+    if (fromUserList && Date.now() < ignoreListSelectUntilRef.current) return;
     const conv = conversations.find((c) => c.id === id);
     if (conv?.kind === "group") setInboxTab("groups");
     else if (conv?.kind === "channel") setInboxTab("channels");
     else if (conv?.kind === "direct") setInboxTab("chats");
+    userChoseThreadRef.current = true;
+    const convPeer =
+      conv?.kind === "direct"
+        ? (conv.member_ids ?? []).find((id) => !idsEqual(id, sessionUserId)) ?? null
+        : null;
+    pinChatThread({ conversationId: id, peerId: convPeer });
+    composePeerIdRef.current = null;
     setComposeDirectPeerId(null);
     setConversations((prev) => {
       const next = conversationsWithRead(prev, id);
@@ -666,15 +797,23 @@ export default function TeamChatPanel({
   }
 
   function openDirectFromSearch(peerId) {
-    const existing = directConversations.find((c) => (c.member_ids ?? []).includes(peerId));
+    const me = String(sessionUserId);
+    const peer = String(peerId);
+    const existing = directConversations.find((c) => {
+      const ids = (c.member_ids ?? []).map((id) => String(id));
+      return ids.length === 2 && ids.includes(me) && ids.includes(peer);
+    });
     if (existing) {
       selectConversation(existing.id);
+      ignoreListSelectUntilRef.current = Date.now() + 500;
       return;
     }
     startDirectChat(peerId);
   }
 
   function startDirectChat(otherUserId) {
+    pinChatThread({ conversationId: null, peerId: otherUserId });
+    ignoreListSelectUntilRef.current = Date.now() + 500;
     setInboxTab("chats");
     setComposeDirectPeerId(otherUserId);
     setActiveConversationId(null);
@@ -688,6 +827,7 @@ export default function TeamChatPanel({
 
   function exitThreadView() {
     setMobileShowThread(false);
+    composePeerIdRef.current = null;
     setComposeDirectPeerId(null);
   }
 
@@ -894,7 +1034,8 @@ export default function TeamChatPanel({
     const replySnapshot = replyTo;
     const hasContent = Boolean(body || file || gifUrl);
     if (!hasContent) return;
-    if (!activeConversationId && !composeDirectPeerId) return;
+    const composePeer = composeDirectPeerId ?? composePeerIdRef.current;
+    if (!activeConversationId && !composePeer) return;
 
     const { mentionedUserIds, mentionedOrderIds } = extractMentionsFromBody(
       body,
@@ -915,17 +1056,23 @@ export default function TeamChatPanel({
     wantComposerFocusRef.current = true;
 
     const tempId = `temp-${crypto.randomUUID()}`;
-    let conversationId = activeConversationId;
+    let conversationId = composePeer ? null : activeConversationId;
     let didAppend = false;
 
     try {
-      if (!conversationId && composeDirectPeerId) {
+      if (composePeer) {
         setSending(true);
-        conversationId = await getOrCreateDirectConversation(composeDirectPeerId);
-        await loadConversations();
-        setActiveConversationId(conversationId);
-        setComposeDirectPeerId(null);
+        conversationId = await getOrCreateDirectConversation(composePeer);
       }
+      if (!conversationId) {
+        throw new Error("Could not open that chat");
+      }
+      skipThreadReloadRef.current = true;
+      pinChatThread({
+        conversationId,
+        peerId: composePeer || pinnedPeerIdRef.current
+      });
+      setActiveConversationId(conversationId);
 
       let attachmentFields = {};
       if (file) {
@@ -961,17 +1108,30 @@ export default function TeamChatPanel({
       setMessages((prev) => [...prev, optimistic]);
       didAppend = true;
       setConversations((prev) =>
-        withInboxLastMessage(prev, conversationId, {
-          id: tempId,
-          conversation_id: conversationId,
-          body,
-          author_id: sessionUserId,
-          created_at: createdAt,
-          attachment_path: attachmentFields.attachment_path ?? null,
-          gif_url: gifUrl || null,
-          deleted_at: null
-        })
+        withInboxLastMessage(
+          prev,
+          conversationId,
+          {
+            id: tempId,
+            conversation_id: conversationId,
+            body,
+            author_id: sessionUserId,
+            created_at: createdAt,
+            attachment_path: attachmentFields.attachment_path ?? null,
+            gif_url: gifUrl || null,
+            deleted_at: null
+          },
+          {
+            kind: "direct",
+            member_ids: [sessionUserId, composePeer].filter(Boolean)
+          }
+        )
       );
+      pinChatThread({
+        conversationId,
+        peerId: composePeer || pinnedPeerIdRef.current
+      });
+      setActiveConversationId(conversationId);
       requestAnimationFrame(scrollToBottom);
       setSending(false);
       sendLockRef.current = false;
@@ -1005,7 +1165,10 @@ export default function TeamChatPanel({
             : msg
         )
       );
-      void loadConversations();
+      setActiveConversationId(conversationId);
+      void loadConversations().then(() => {
+        setActiveConversationId(conversationId);
+      });
     } catch (err) {
       if (didAppend) {
         setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
@@ -1107,8 +1270,8 @@ export default function TeamChatPanel({
                           conversation={conv}
                           sessionUserId={sessionUserId}
                           teamProfiles={teamProfiles}
-                          active={conv.id === activeConversationId}
-                          onSelect={selectConversation}
+                          active={idsEqual(conv.id, activeConversationId)}
+                          onSelect={(id) => selectConversation(id, { fromUserList: true })}
                           presence={peerId ? (presenceByUserId[peerId] ?? "offline") : "offline"}
                         />
                       );
@@ -1126,7 +1289,10 @@ export default function TeamChatPanel({
                         sessionUserId={sessionUserId}
                         teamProfiles={teamProfiles}
                         groupConversations={groupConversations}
-                        onPickGroup={selectConversation}
+                        onPickGroup={(id) => {
+                          selectConversation(id);
+                          ignoreListSelectUntilRef.current = Date.now() + 500;
+                        }}
                       />
                       <CreateGroupDialog
                         sessionUserId={sessionUserId}
@@ -1147,8 +1313,8 @@ export default function TeamChatPanel({
                         conversation={conv}
                         sessionUserId={sessionUserId}
                         teamProfiles={teamProfiles}
-                        active={conv.id === activeConversationId}
-                        onSelect={selectConversation}
+                        active={idsEqual(conv.id, activeConversationId)}
+                        onSelect={(id) => selectConversation(id, { fromUserList: true })}
                       />
                     ))
                   )}
@@ -1176,8 +1342,8 @@ export default function TeamChatPanel({
                         conversation={conv}
                         sessionUserId={sessionUserId}
                         teamProfiles={teamProfiles}
-                        active={conv.id === activeConversationId}
-                        onSelect={selectConversation}
+                        active={idsEqual(conv.id, activeConversationId)}
+                        onSelect={(id) => selectConversation(id, { fromUserList: true })}
                       />
                     ))
                   )}

@@ -654,6 +654,8 @@ sequenceDiagram
   Panel->>User: Name list filtered by letters
   User->>Panel: Click a name
   Panel->>User: Open that DM
+  User->>Panel: Type and Send
+  Panel->>User: Same person thread stays open
   User->>Panel: Tap Groups
   User->>Panel: Click search glass
   Panel->>User: Group titles filtered by letters

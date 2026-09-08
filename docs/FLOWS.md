@@ -458,11 +458,11 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 2. **Entry:** Bottom of the left inbox is a shadcn `TabsList` with three equal names: **Chats**, **Groups**, **Channels**. A Badge shows unopened text-message count beside a tab when &gt; 0. List heading stays at the top of that tab.
 3. **Chats:** Search glass left of **New chat**. Same conversation rows as before (avatar, name, time, preview, unread). List is `kind=direct` only. Thread on this tab is DMs only.
 4. **Groups:** Search glass left of **New group**. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
-4a. **Inbox search:** Click the glass. Type letters. Chats lists team names (starts-with first, then contains). Click a name → open that DM if it exists, else the compose screen. Groups lists group titles the same way. Click a title → open that group. Empty query shows everyone / every group you can see.
+4a. **Inbox search:** Click the glass. Type letters. Chats lists team names (starts-with first, then contains). Click a name → open that DM if it exists, else the compose screen. Groups lists group titles the same way. Click a title → open that group. Empty query shows everyone / every group you can see. Send from that thread pins it: the message goes to that person and the page stays on that person. Inbox reload cannot switch to the previous chat. Click another inbox row to leave.
 5. **Channels:** Same row format (`kind=channel`). **New Channel** shows only for `profiles.role = admin`. Everyone on the dashboard is a member. Admins post with the same composer as Chats/Groups. Non-admins see no composer; they may react (emoji + count), copy, and forward.
 6. **Switch tabs:** Only the name list and action swap. Inbox width and thread pane stay.
 7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). Phone (`max-sm`) still hides the list until Back. From `sm` up, inbox and thread stay side by side so Groups never vanish on open.
-8. **Tab pick:** Opening **Groups** selects the current group, or the first group if the open thread is a DM. Same for Channels. Chats stay on a DM. A refresh does not jump Groups over to a DM.
+8. **Tab pick:** Opening **Groups** selects the current group, or the first group if the open thread is a DM. Same for Channels. Chats stay on a DM. If a conversation id is already chosen (search or first send) and that row is not in the list yet, Chats do not fall back to the first DM. A refresh does not jump Groups over to a DM.
 
 ### Open chat / General group
 
@@ -473,9 +473,9 @@ WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/
 
 ### Direct message (any user → any user)
 
-1. **Trigger:** **New chat** → pick team member (compose screen opens — no DB conversation yet).
-2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox.
-3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats).
+1. **Trigger:** **New chat** or inbox search → pick team member (compose screen opens — no DB conversation yet).
+2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox. The panel pins that conversation id before inbox reload. If the list has not caught up, it keeps a local stub so the thread does not jump to another DM.
+3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats). An open first-send thread is the exception until the message exists.
 4. **Send:** `sendChatMessage()` with `conversation_id`; marks read for sender.
 5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text and URLs wrap **inside** the bubble on new lines (`break-all` / `word-break` on the link). Full string stays visible — no clip, no overlap onto other rows. Same on Groups. `http`/`https` is a clickable link (new tab). Clicking the link does not toggle select. The link Button overrides shadcn `whitespace-nowrap` so a long URL can wrap.
 6. **Pane size:** Chat tab is full-bleed (`FULL_BLEED_TABS`). The card fills the dashboard content area (`h-full`, overflow hidden). Inbox stays on screen from `sm` up; thread is a normal `overflow-y-auto` box (not Radix table scroll). Phone (`max-sm`): list or thread, not both. Long messages wrap inside the bubble. History stays visible; open thread scrolls to the newest.

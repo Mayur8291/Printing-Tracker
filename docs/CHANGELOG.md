@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-08 — Chat stays on searched person after Send
+
+- **Issue:** Search a person, send. Message went to that person, then the screen jumped to the last chat.
+- **Fix:** That send pins the open thread. Inbox reload cannot switch it. Name stays that person until you click another chat.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
+## 2026-09-08 — Search send stays on that person (again)
+
+- **Issue:** Search a person, send, then Chat jumped back to the last person you were talking to.
+- **Fix:** Send always opens that person's DM even if the old chat id was still in memory. Search pick does not click through onto the list under the popup. Chats tab does not auto-open the first DM after you pick someone.
+- **Files:** `TeamChatPanel.jsx`, `ChatInboxSearch.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-09-08 — Chat search send stays on that person
+
+- **Issue:** Search a person, send a message, then the thread jumped to someone else.
+- **Fix:** Chats tab no longer auto-opens the first DM while a thread id is already chosen. First send pins that conversation and keeps an inbox stub so the empty-DM filter cannot steal the page.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
 ## 2026-09-08 — Contact Book add form can scroll
 
 - **Issue:** Add / Edit contact cut off. Could not scroll to Address or Save.

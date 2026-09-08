@@ -76,12 +76,12 @@ export function ChatInboxSearch({
 
   function pickPerson(profile) {
     onPickPerson?.(profile.id);
-    handleOpenChange(false);
+    window.setTimeout(() => handleOpenChange(false), 0);
   }
 
   function pickGroup(conversation) {
     onPickGroup?.(conversation.id);
-    handleOpenChange(false);
+    window.setTimeout(() => handleOpenChange(false), 0);
   }
 
   const label = isGroups ? "Search groups" : "Search chats";
@@ -89,13 +89,17 @@ export function ChatInboxSearch({
   const emptyText = isGroups ? "No matching groups" : "No matching names";
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <Popover modal open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button type="button" variant="outline" size="icon" className="size-8" aria-label={label}>
           <Search />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="flex w-72 flex-col gap-2 p-3">
+      <PopoverContent
+        align="end"
+        className="flex w-72 flex-col gap-2 p-3"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <Label htmlFor={`chat-inbox-search-${mode}`} className="sr-only">
           {label}
         </Label>
@@ -121,7 +125,11 @@ export function ChatInboxSearch({
                         type="button"
                         variant="ghost"
                         className="h-auto w-full justify-start gap-3 rounded-none px-3 py-2"
-                        onClick={() => pickGroup(conv)}
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          pickGroup(conv);
+                        }}
                       >
                         {avatarUrl ? (
                           <PersonAvatar name={title} imageUrl={avatarUrl} size="sm" />
@@ -147,7 +155,11 @@ export function ChatInboxSearch({
                     type="button"
                     variant="ghost"
                     className="h-auto w-full justify-start gap-3 rounded-none px-3 py-2"
-                    onClick={() => pickPerson(p)}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      pickPerson(p);
+                    }}
                   >
                     <PersonAvatar
                       name={p.full_name || profileChatLabel(p)}

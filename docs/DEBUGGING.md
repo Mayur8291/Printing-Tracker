@@ -1511,6 +1511,17 @@ Search is `ChatInboxSearch` in the inbox header only. Chats match `profileChatLa
 ### Fix
 Open Chat → Chats. Glass is left of **New chat**. Type part of a name. Groups tab uses the same glass for group titles.
 
+## Chat: search person then Send opens someone else
+
+### Symptom
+Chat → search a name → type → Send. The thread jumps to another person (often the first chat in the list).
+
+### Root cause
+Send posted to the searched person. After Send, compose mode closed and the inbox reload could put the previous DM on screen (first row, or a remount that auto-picks it). The header then showed that previous person even though the new message was already in the searched person's thread.
+
+### Fix
+Hard refresh. After Send, Chat pins that thread and keeps that person's name. Inbox reload cannot steal it. Click another row if you want to leave.
+
 ## Chat: Groups list vanished after a layout edit
 
 ### Symptom
