@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 import { subscribePostgresChanges } from "./realtimeUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -14,10 +14,19 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { RefreshCw } from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 import ReadyStockOrderDetailDialog from "./ReadyStockOrderDetailDialog";
+import { readyStockChannelCode, readyStockChannelLabel } from "./readyStockChannelUtils";
 
 const STATUS_FILTERS = [
   { id: "all", label: "All" },
@@ -29,11 +38,11 @@ const STATUS_FILTERS = [
 ];
 
 const STATUS_BADGE_CLASS = {
-  PENDING: "bg-slate-100 text-slate-700 border-slate-200",
-  PROCESSING: "bg-blue-50 text-blue-700 border-blue-200",
-  COMPLETE: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  CANCELLED: "bg-red-50 text-red-600 border-red-200",
-  FAILED: "bg-amber-50 text-amber-700 border-amber-200"
+  PENDING: "bg-muted text-muted-foreground",
+  PROCESSING: "bg-secondary text-secondary-foreground",
+  COMPLETE: "bg-secondary text-secondary-foreground",
+  CANCELLED: "bg-muted text-muted-foreground",
+  FAILED: "bg-muted text-muted-foreground"
 };
 
 function formatInr(n) {
@@ -72,6 +81,9 @@ export default function ReadyStockOrdersPanel() {
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [channelFilter, setChannelFilter] = useState("all");
+  const [utilization, setUtilization] = useState([]);
+  const [showUtilization, setShowUtilization] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const loadOrders = useCallback(async (opts) => {
@@ -81,7 +93,7 @@ export default function ReadyStockOrdersPanel() {
       const { data: orderRows, error: orderErr } = await supabase
         .from("scott_orders")
         .select(
-          "id, order_code, facility_code, status, due_on, customer, shipping_address, payment, comment, cancel_reason, created_at, updated_at, cancelled_at, dispatched_at, picklist_no, picklist_generated_at"
+          "id, order_code, facility_code, status, due_on, customer, shipping_address, payment, comment, cancel_reason, created_at, updated_at, cancelled_at, dispatched_at, picklist_no, picklist_generated_at, channel_id, channel_code, channel_name, channel_type"
         )
         .order("created_at", { ascending: false })
         .limit(500);
@@ -118,9 +130,20 @@ export default function ReadyStockOrdersPanel() {
         );
       }
 
+      const { data: utilRows, error: utilErr } = await supabase
+        .from("rpt_ready_stock_channel_utilization")
+        .select(
+          "channel_code, channel_name, channel_type, sku_code, ordered_qty, dispatched_qty, order_count"
+        )
+        .order("channel_name", { ascending: true });
+      if (utilErr) {
+        console.warn("Ready Stock utilization load", utilErr);
+      }
+
       setOrders(orderRows ?? []);
       setItemsByOrder(grouped);
       setSkuMeta(meta);
+      setUtilization(utilRows ?? []);
       setError("");
     } catch (e) {
       console.warn("Ready Stock orders load", e);
@@ -152,16 +175,31 @@ export default function ReadyStockOrdersPanel() {
     return counts;
   }, [orders]);
 
+  const channelOptions = useMemo(() => {
+    const byCode = new Map();
+    for (const o of orders) {
+      const code = readyStockChannelCode(o);
+      if (!byCode.has(code)) {
+        byCode.set(code, { id: code, label: readyStockChannelLabel(o) });
+      }
+    }
+    return [...byCode.values()].sort((a, b) => a.label.localeCompare(b.label));
+  }, [orders]);
+
   const visibleOrders = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
+      if (channelFilter !== "all" && readyStockChannelCode(o) !== channelFilter) return false;
       if (!q) return true;
       const items = itemsByOrder[o.id] ?? [];
       const hay = [
         o.order_code,
         o.id,
         o.facility_code,
+        o.channel_code,
+        o.channel_name,
+        o.channel_type,
         o.customer?.name,
         o.customer?.email,
         o.customer?.phone,
@@ -173,7 +211,32 @@ export default function ReadyStockOrdersPanel() {
         .toLowerCase();
       return hay.includes(q);
     });
-  }, [orders, itemsByOrder, skuMeta, statusFilter, searchQuery]);
+  }, [orders, itemsByOrder, skuMeta, statusFilter, channelFilter, searchQuery]);
+
+  const channelSummaries = useMemo(() => {
+    const byCode = new Map();
+    for (const row of utilization) {
+      const code = row.channel_code || "UNKNOWN";
+      const current = byCode.get(code) ?? {
+        channel_code: code,
+        channel_name: row.channel_name || code,
+        channel_type: row.channel_type || "OTHER",
+        ordered_qty: 0,
+        dispatched_qty: 0,
+        order_count: 0
+      };
+      current.ordered_qty += Number(row.ordered_qty) || 0;
+      current.dispatched_qty += Number(row.dispatched_qty) || 0;
+      current.order_count += Number(row.order_count) || 0;
+      byCode.set(code, current);
+    }
+    return [...byCode.values()].sort((a, b) => a.channel_name.localeCompare(b.channel_name));
+  }, [utilization]);
+
+  const utilizationOrderedTotal = useMemo(
+    () => channelSummaries.reduce((sum, row) => sum + (Number(row.ordered_qty) || 0), 0),
+    [channelSummaries]
+  );
 
   const selectedOrder = useMemo(
     () => orders.find((o) => o.id === selectedOrderId) ?? null,
@@ -188,34 +251,123 @@ export default function ReadyStockOrdersPanel() {
   }
 
   return (
+    <>
     <Card>
-      <CardHeader className="space-y-3 pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <CardTitle className="text-base">Ready Stock Orders</CardTitle>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              RMP orders from the Scott International app (live via Order API)
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+      <CardHeader className="flex flex-col gap-2 space-y-0 pb-3">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="min-w-0 text-base">Ready Stock Orders</CardTitle>
+          <div className="flex shrink-0 flex-nowrap items-center gap-2">
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="h-8 w-44 text-xs">
+                <SelectValue placeholder="All channels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">All channels</SelectItem>
+                  {channelOptions.map((ch) => (
+                    <SelectItem key={ch.id} value={ch.id}>
+                      {ch.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search order, customer, SKU…"
+              placeholder="Search order, channel, SKU…"
               className="h-8 w-56 text-xs"
             />
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 gap-1.5"
               onClick={() => loadOrders()}
               disabled={loading}
             >
-              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
+              <RefreshCw data-icon="inline-start" className={cn(loading && "animate-spin")} />
               Refresh
             </Button>
           </div>
+        </div>
+        <CardDescription>
+          RMP orders from partner apps and channels (live via Order API)
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="flex flex-col gap-4 pt-0">
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-fit"
+            aria-expanded={showUtilization}
+            onClick={() => setShowUtilization((open) => !open)}
+          >
+            Channel utilization
+            {utilizationOrderedTotal > 0 ? (
+              <span className="text-muted-foreground">{utilizationOrderedTotal} ordered</span>
+            ) : null}
+            <ChevronDown
+              data-icon="inline-end"
+              className={cn("transition-transform", showUtilization && "rotate-180")}
+            />
+          </Button>
+          {showUtilization ? (
+            !utilization.length ? (
+              <p className="text-sm text-muted-foreground">
+                No utilization yet — new Ready Stock orders will group here by channel and SKU.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {channelSummaries.map((summary) => {
+                  const rows = utilization.filter((row) => row.channel_code === summary.channel_code);
+                  return (
+                    <div key={summary.channel_code} className="flex flex-col gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        {summary.channel_name} · {Number(summary.ordered_qty)} ordered ·{" "}
+                        {Number(summary.dispatched_qty)} dispatched
+                      </p>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>SKU</TableHead>
+                            <TableHead className="text-right">Orders</TableHead>
+                            <TableHead className="text-right">Ordered qty</TableHead>
+                            <TableHead className="text-right">Dispatched qty</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {rows.map((row) => (
+                            <TableRow key={`${row.channel_code}-${row.sku_code}`}>
+                              <TableCell>
+                                <p className="text-xs font-medium">
+                                  {skuMeta[row.sku_code]?.name || row.sku_code}
+                                </p>
+                                <p className="font-mono text-[10px] text-muted-foreground">
+                                  {row.sku_code}
+                                </p>
+                              </TableCell>
+                              <TableCell className="text-right text-xs">
+                                {Number(row.order_count)}
+                              </TableCell>
+                              <TableCell className="text-right text-xs">
+                                {Number(row.ordered_qty)}
+                              </TableCell>
+                              <TableCell className="text-right text-xs">
+                                {Number(row.dispatched_qty)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : null}
         </div>
 
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
@@ -230,13 +382,11 @@ export default function ReadyStockOrdersPanel() {
             ))}
           </TabsList>
         </Tabs>
-      </CardHeader>
 
-      <CardContent className="pt-0">
         {error ? (
           <p className="py-8 text-center text-sm text-destructive">{error}</p>
         ) : loading ? (
-          <div className="space-y-2 py-2">
+          <div className="flex flex-col gap-2 py-2">
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-14 w-full" />
@@ -254,6 +404,7 @@ export default function ReadyStockOrdersPanel() {
                 <TableHead className="w-36">Order</TableHead>
                 <TableHead className="w-36">Placed</TableHead>
                 <TableHead className="w-28">Facility</TableHead>
+                <TableHead className="w-32">Channel</TableHead>
                 <TableHead className="w-52">Customer</TableHead>
                 <TableHead className="w-28">Status</TableHead>
                 <TableHead className="w-44">Payment</TableHead>
@@ -296,6 +447,16 @@ export default function ReadyStockOrdersPanel() {
                       </Badge>
                     </TableCell>
                     <TableCell>
+                      <Badge variant="secondary" className="text-[10px] font-normal">
+                        {readyStockChannelLabel(order)}
+                      </Badge>
+                      {order.channel_code && order.channel_name && order.channel_name !== order.channel_code ? (
+                        <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                          {order.channel_code}
+                        </p>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
                       <p className="text-xs font-medium uppercase">{order.customer?.name || "—"}</p>
                       {order.customer?.email ? (
                         <p className="text-[11px] text-muted-foreground">{order.customer.email}</p>
@@ -330,7 +491,7 @@ export default function ReadyStockOrdersPanel() {
                       </p>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1.5">
+                      <div className="flex flex-col gap-1.5">
                         {items.map((item) => (
                           <div key={`${item.order_id}-${item.sku_code}`} className="text-[11px] leading-tight">
                             <p className="font-medium">
@@ -366,6 +527,7 @@ export default function ReadyStockOrdersPanel() {
           </Table>
         )}
       </CardContent>
+    </Card>
 
       <ReadyStockOrderDetailDialog
         open={Boolean(selectedOrder)}
@@ -377,6 +539,6 @@ export default function ReadyStockOrdersPanel() {
         skuMeta={skuMeta}
         onOrderUpdated={handleOrderUpdated}
       />
-    </Card>
+    </>
   );
 }

@@ -1,5 +1,65 @@
 # Flowcharts
 
+## Notifications tab filters
+
+```mermaid
+flowchart TD
+  Fetch[fetchUserNotifications] --> Time{Time range}
+  Time --> Counts[Chip counts]
+  Counts --> Chip{Category chip}
+  Chip -->|All| List[Visible rows]
+  Chip -->|Orders| Ord[assignment + order_status]
+  Chip -->|Tasks| Task[goal_task]
+  Chip -->|Inventory| Inv[printing_inventory]
+  Chip -->|Mentions| Inw[inward tags]
+  Ord --> List
+  Task --> List
+  Inv --> List
+  Inw --> List
+  List -->|View or Open| Open[handleOpenDashboardNotification]
+```
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Panel as NotificationsPanel
+  participant Utils as notificationsUtils
+  participant App
+  User->>Panel: Open Notifications tab
+  Panel->>Utils: fetch + subscribe
+  User->>Panel: Chip or time Select
+  Panel->>Panel: Filter in memory
+  User->>Panel: View / Open
+  Panel->>App: handleOpenDashboardNotification
+```
+
+## Ready Stock order channel stamp
+
+```mermaid
+flowchart TD
+  Create[POST /api/v1/orders] --> Body{channel_code on body?}
+  Body -->|yes and enabled| Snap[Snapshot channel on scott_orders]
+  Body -->|no or unknown| Key{API key linked to dashboard_channels?}
+  Key -->|yes| Snap
+  Key -->|no| Unknown[UNKNOWN]
+  Unknown --> Snap
+  Snap --> List[Ready Stock list badge]
+  Snap --> View[rpt_ready_stock_channel_utilization]
+```
+
+```mermaid
+sequenceDiagram
+  participant P as Partner app
+  participant API as dashboard-stock-api
+  participant CH as dashboard_channels
+  participant SO as scott_orders
+  P->>API: POST order plus Bearer key
+  API->>API: Hash key then lookup dashboard_api_keys
+  API->>CH: Resolve body code or api_key_id
+  API->>SO: Insert plus channel snapshot
+  SO-->>API: 201 channel_code channel_name
+```
+
 ## Asset Management save to register
 
 ```mermaid
@@ -100,10 +160,18 @@ flowchart TD
   Admin[Admin Uniware Bridge] --> Status[edge status]
   Status -->|secrets missing| Banner[Banner tables still load]
   Admin --> SyncInv[sync_inventory]
-  SyncInv --> Snap[Uniware inventory snapshot]
+  SyncInv --> Catalog[itemType/search catalog]
+  Catalog --> Snap[Uniware inventory snapshot]
   Snap --> Mirror[uni_inventory_mirror]
-  Admin --> SyncOrd[sync_orders]
-  SyncOrd --> So[uni_sale_order]
+  Admin --> SyncOrd[sync_orders DRR window]
+  SyncOrd --> AllCh[all channels + extra CUSTOM B2B]
+  AllCh --> So[uni_sale_order]
+  So --> Lines[saleorder/get saleOrderItems]
+  Lines --> LineTab[uni_sale_order_line]
+  LineTab --> Drr[uni_drr_by_sku sold statuses + period]
+  Admin --> Period[Days / Months / Years]
+  Period --> Spin[spinner until window Sold/DRR ready]
+  Spin --> Drr
   Admin --> Draft[Draft uni_transfer]
   Draft --> Post[rpc uni_post_transfer]
   Post --> Owners{owner_system match direction?}
@@ -355,12 +423,12 @@ flowchart TD
   ViewSample --> SampleDone
   SampleDone --> LockedStatus[Badge Dispatched Successfully status locked]
   SampleOpen --> SampleForm[Create Sample Jobsheet]
-  SampleForm --> DeliveryPick[Delivery required on today or later]
+  SampleForm --> DeliveryPick[Sampling required on today or later]
   DeliveryPick --> SampleSave[Save sample_job_sheet Pattern Making]
   SampleSave --> SampleOpen
-  SampleSave --> SlaClock{Delivery required on filled?}
+  SampleSave --> SlaClock{Sampling required on filled?}
   SlaClock -->|yes| DueDateSla[Due In end of that date]
-  SlaClock -->|no| DefaultSla[Due In created_at plus 2 days]
+  SlaClock -->|no| DefaultSla[Due In created_at plus admin SLA settings]
   SampleOpen --> ListDueIn[Due In column after Order date]
   DueDateSla --> ListDueIn
   DefaultSla --> ListDueIn

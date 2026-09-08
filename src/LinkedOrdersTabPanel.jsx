@@ -43,6 +43,8 @@ export default function LinkedOrdersTabPanel({
   onCreateJobSheet,
   canCreateJobSheet = false,
   createJobSheetLabel = "Create Job sheet",
+  createJobSheetAlign = "start",
+  createJobSheetVariant = "outline",
   canEditStatus = false,
   isAdmin = false,
   statusUpdates = {},
@@ -51,7 +53,8 @@ export default function LinkedOrdersTabPanel({
   showQty = true,
   dateColumnLabel = "Delivery date",
   getDateValue,
-  viewOrderLabel = "View order"
+  viewOrderLabel = "View order",
+  toolbarActions = null
 }) {
   const safeOrders = Array.isArray(orders) ? orders : [];
   const totalQty = safeOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
@@ -73,6 +76,18 @@ export default function LinkedOrdersTabPanel({
 
   const colSpan = (extraColumn ? 9 : 8) - (showQty ? 0 : 1);
   const dateFn = getDateValue || ((order) => formatDeliveryDate(order.due_date));
+  const createJobSheetButton =
+    canCreateJobSheet && onCreateJobSheet ? (
+      <Button
+        type="button"
+        variant={createJobSheetVariant}
+        size="sm"
+        onClick={onCreateJobSheet}
+      >
+        {createJobSheetLabel}
+      </Button>
+    ) : null;
+  const pinCreateEnd = createJobSheetAlign === "end";
 
   return (
     <div className="space-y-4">
@@ -86,11 +101,13 @@ export default function LinkedOrdersTabPanel({
         clearDatesLabel="Clear"
         pageSize={pageSize}
         onPageSizeChange={setPageSize}
-        extraActions={
-          canCreateJobSheet && onCreateJobSheet ? (
-            <Button type="button" variant="outline" size="sm" onClick={onCreateJobSheet}>
-              {createJobSheetLabel}
-            </Button>
+        extraActions={pinCreateEnd ? null : createJobSheetButton}
+        endActions={
+          toolbarActions || pinCreateEnd ? (
+            <div className="flex items-center gap-2">
+              {toolbarActions}
+              {pinCreateEnd ? createJobSheetButton : null}
+            </div>
           ) : null
         }
       />

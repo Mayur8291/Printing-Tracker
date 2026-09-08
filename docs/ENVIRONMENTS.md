@@ -31,11 +31,13 @@ Schema changes: apply migrations to **staging** first (`supabase link --project-
 
 **Uniware Bridge (Step 5) staging secrets** (edge `uniware-bridge` only — not Vite env):
 
-```bash
-npx supabase secrets set UNIWARE_BASE_URL=https://... UNIWARE_USERNAME=... UNIWARE_PASSWORD=... UNIWARE_FACILITY=... --project-ref scvojtvgnkmbupvyslmb
-```
+Set on staging `scvojtvgnkmbupvyslmb` on 2026-09-04. Values live in Edge secrets only — never in git or `.env`.
 
-Without them the tab still loads; Sync inventory / Sync orders show “secrets not set”.
+- `UNIWARE_BASE_URL` = `https://scottinternational.unicommerce.com`
+- `UNIWARE_USERNAME` / `UNIWARE_PASSWORD` = Uniware login (same as [tenant SSO](https://sso.unicommerce.com))
+- `UNIWARE_FACILITY` = `scottinternational` (also have `WH1`, `WH2`, plus Amazon FBA codes)
+
+Without them the tab still loads; Sync inventory / Sync orders show “secrets not set”. Snapshot is last 24 hours of updates (`updatedSinceInMinutes: 1440`). Production does **not** have these secrets.
 
 **NF / Scott outbound webhooks (staging, 2026-09-03):** `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` are set on staging Edge (`dashboard-stock-api`). Receiver: `https://yigdnihnkdwkbakwptwz.supabase.co/functions/v1/scott-webhook`. Secret stays in Supabase only — never commit it. Echo test `stock.level_changed` returned `200 {"received":true}` (`event_id` `evt_test_9d337f9b698c`); same id replayed as `idempotent:true`.
 

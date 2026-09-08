@@ -54,10 +54,10 @@ Notifications (bell/toasts) remain separate INSERT subscriptions; they alert use
 
 External Scott backend calls Edge Function `dashboard-stock-api` (not browser):
 
-1. **Auth** — static Bearer `DASHBOARD_API_KEY` (no Supabase JWT).
-2. **Data** — `inventory_facility_stock` (on_hand / reserved per facility + SKU), reservations, adjustments.
+1. **Auth** — Bearer `DASHBOARD_API_KEY` or hashed `dashboard_api_keys` (no Supabase JWT). Hashed key is checked first so Ready Stock can stamp the linked channel.
+2. **Data** — `inventory_facility_stock` (on_hand / reserved per facility + SKU), reservations, adjustments. Order create also snapshots `scott_orders.channel_*`.
 3. **Webhooks** — mutations enqueue `dashboard_webhook_outbox`; edge function POSTs HMAC-signed payloads to Scott server when secrets set.
-4. **RLS** — API tables have RLS enabled with **no** anon/authenticated policies; only `service_role` (edge function) can access.
+4. **RLS** — API tables have RLS enabled with **no** anon/authenticated policies; only `service_role` (edge function) can access. Authenticated users read `scott_orders` snapshots and `rpt_ready_stock_channel_utilization`.
 
 See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `20260710120000_dashboard_stock_api.sql`.
 
@@ -72,6 +72,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `2026071012
 | Internal Support Platform | `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js` | Tools tab `internal_support`; Open Tickets + Resolved; Raise an Issue Dialog from button; staging table `internal_support_issues`; History RLS own-or-admin; status update admin-only until Resolved; not Enquiry |
 | Purchase Order | `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderHistoryFilters.jsx`, `PurchaseOrderPrintSheet.jsx`, `purchaseOrderLayout.js`, `purchaseOrderVoucherUtils.js`, `purchaseOrderHistoryUtils.js`, `purchaseOrderAmountWords.js` | Main sidebar tab `purchase_order`; FileSpreadsheet icon; A4 unlabeled sheet; Generate PO stamps `generated_at` + `status=po_sent`; All PO Orders vs History (Completed); View PO print; print-only C23 signature |
 | Inventory | `src/inventory/*` | `inventoryDbUtils`, Supabase |
+| Ready Stock Order | `ReadyStockOrdersPanel.jsx`, `ReadyStockOrderDetailDialog.jsx`, `readyStockChannelUtils.js` | `scott_orders` channel snapshot + `rpt_ready_stock_channel_utilization` |
 | Chat | `TeamChatPanel`, `teamChatService.js` | Supabase + Storage |
 | Goals | `GoalTrackerPanel`, `goalTrackerUtils.js` | Supabase RPC/tables |
 | Layout | `components/layout/*` | Sidebar config |

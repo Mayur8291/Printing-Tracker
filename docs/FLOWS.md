@@ -15,9 +15,9 @@
 
 Admin-only tab **Uniware Bridge** (`ops_uniware`, Ops Platform). Distinct from Inventory and Stock Ledger. Boundary: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).
 
-1. **Trigger:** admin opens Uniware Bridge (`UniwareBridgePanel`). Loads feed health, inventory mirror, ecom orders, transfers, settings, locations/entities/SKUs, plus edge `status`.
-2. **Sync inventory:** Sync inventory → `uniware-bridge` `sync_inventory` → Uniware snapshot → upsert `uni_inventory_mirror`. These qty are **never** added to `inv_balance` or Inventory on-hand.
-3. **Sync orders:** Sync orders → sale-order search/get (last 180 minutes) → upsert `uni_sale_order`. Platform does not edit ecom orders.
+1. **Trigger:** admin opens Uniware Bridge (`UniwareBridgePanel`). Loads feed health, inventory mirror, Uniware sale orders (all channels), transfers, settings, locations/entities/SKUs, plus edge `status`.
+2. **Sync inventory:** Sync inventory → page all `inventory_skus` (not first 1000) → resume `itemType/search` into `uni_item_sku` → snapshot each facility → upsert `uni_inventory_mirror`. UI pages all mirror rows. **Sold** is exact Uniware `saleOrderItems` in the DRR period (dispatched / delivered / invoiced). DRR is **pcs/day** (sold ÷ days); Sort DRR high/low. Changing Days/Months/Years shows a spinner until that window’s Sold/DRR reload (and a Uniware pull if lines are missing). **Export xls** writes the on-screen table only (same filters and sort). Qty never enter Inventory on-hand. Click Sync inventory again if toast says catalog still paging.
+3. **Sync orders:** Short header refresh (last 3 days if headers already exist) → `uni_orders_missing_lines` → `POST /oms/saleorder/get` (lowercase) → replace that order’s `uni_sale_order_line` with exact `saleOrderItems` only (never package summaries). Sold + DRR follow the UI period. Click again until the incomplete banner is gone. New dashboard B2B still lives on `so_order`.
 4. **Transfer:** pick direction, SKU code, qty, from/to locations → draft `uni_transfer` → `uni_post_transfer` (owner_system must match direction) → edge `adjust` (`ADD` or `REMOVE`). Ledger posts even if the API fails (`api_failed` + message).
 5. **Settings:** default entity + Uniware marker location. API login is edge secrets only.
 6. **Failure:** missing secrets → banner, tables still load. Stale feed (no success in 2 hours) → amber badge. Transfer location mismatch → DB exception.
@@ -124,12 +124,12 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
 
 ### Order lifecycle (Scott RMP orders)
 
-1. **Create:** Scott backend → `POST .../api/v1/orders` (`order_code`, `facility_code`, `customer`, `shipping_address`, `payment`, `items[]`).
-2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via idempotent reservation (`reserveStockIdempotent` — reuses existing `RESERVED` row for same `order_code` + `facility_code` if partner already called `/stock/reserve`); duplicate SKU lines in one payload are merged; `409 INSUFFICIENT_STOCK` if short; row in `scott_orders` + items with `reservation_id`. Cancel / FAILED release **all** open holds for that order at the facility.
+1. **Create:** Partner backend → `POST .../api/v1/orders` (`order_code`, `facility_code`, `customer`, `shipping_address`, `payment`, `items[]`, optional `channel_code` / `channel`).
+2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via idempotent reservation (`reserveStockIdempotent` — reuses existing `RESERVED` row for same `order_code` + `facility_code` if partner already called `/stock/reserve`); duplicate SKU lines in one payload are merged; `409 INSUFFICIENT_STOCK` if short; row in `scott_orders` + items with `reservation_id`. **Channel snapshot:** optional body `channel_code`/`channel` (enabled `dashboard_channels` row) → else channel linked to the hashed API key → else `UNKNOWN`. Cancel / FAILED release **all** open holds for that order at the facility.
 3. **Edit:** `PATCH .../orders/:id` — terminal status → `409 ORDER_NOT_EDITABLE`. Item replace checks feasibility crediting the order's own held stock, then releases the old reservation and creates a new one; items table replaced.
 4. **Cancel:** `DELETE .../orders/:id?reason=...` — idempotent for already-cancelled; releases the reservation, sets `CANCELLED` + `cancel_reason`.
 5. **Progress:** dashboard-internal `POST .../orders/:id/status` — `PROCESSING` (from PENDING), `COMPLETE` (fulfills reservation: on-hand deducted, movements written, `stock_qty` synced, `dispatched_at` + items' `dispatched_quantity` set), `FAILED` (releases reservation). **Dashboard UI:** Ready Stock Order detail → **Update status (syncs to app)** dropdown calls edge function `scott-order-update-status` (same transitions + cancel); webhooks fire via `scott_orders` trigger.
-6. **Read:** `GET .../orders/:id` returns status + items with `dispatched_quantity`.
+6. **Read:** `GET .../orders/:id` returns status + channel snapshot + items with `dispatched_quantity`.
 7. **Webhooks:** DB trigger on `scott_orders` INSERT/UPDATE enqueues `order.status_changed` — INSERT sends `status: CREATED` (`previous_status: null`); updates send `PENDING` / `PROCESSING` / `COMPLETE` / `CANCELLED` / `FAILED` with `previous_status` set. `dispatched_at` included when new status is COMPLETE. Delivered via `dashboard_webhook_outbox` (HMAC `X-Dashboard-Signature`). Stock changes additionally fire `stock.level_changed`.
 
 See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
@@ -138,7 +138,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 1. **Entry:** Admin Panel → "Integrations" tab (`AdminIntegrationsPanel`, admin-only).
 2. **API keys:** generate → random `scott_*` key created in the browser, SHA-256 hashed, hash+prefix inserted into `dashboard_api_keys`, plaintext shown once with copy. Disable/enable/delete rows; the edge function checks the hash on every M2M request and bumps `last_used_at`.
-3. **Channels:** add/enable/disable/delete rows in `dashboard_channels` (code, type, linked API key, default facility). Connector status badge derived from enabled + linked-key state.
+3. **Channels:** add/enable/disable/delete rows in `dashboard_channels` (code, type, linked API key, default facility). Connector status badge derived from enabled + linked-key state. Linked key stamps that channel on new Ready Stock orders created with the key.
 4. **Facilities:** inline edit of `inventory_warehouses.facility_code` (sanitized uppercase; duplicate code error shown inline). Same field the Stock/Order API keys on.
 5. **Failure:** RLS rejects non-admins; errors shown inline, page never blanks.
 
@@ -153,8 +153,8 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Ready Stock Order tab (app orders in the dashboard)
 
 1. **Trigger:** user opens sidebar → "Ready Stock Order" (`dashboardTab === "regular"` → `ReadyStockOrdersPanel`).
-2. **Fetch:** `scott_orders` (newest first, limit 500) + `scott_order_items` for those ids + SKU display names from `inventory_skus` (authenticated read-only policies).
-3. **Display:** shadcn table like the RMP order list — order code/id, placed time, facility, customer, status badge, payment (method / INR amount = Σ qty × unit_price / COD), item list (name, SKU, quantity, dispatched), due/dispatched date. Status filter tabs with counts + search.
+2. **Fetch:** `scott_orders` (newest first, limit 500, includes channel snapshot) + `scott_order_items` for those ids + SKU display names from `inventory_skus` + `rpt_ready_stock_channel_utilization` (authenticated read-only policies).
+3. **Display:** one Card. Header is one row (title left; channel Select, search, Refresh right, no wrap). **Channel utilization** is a closed outline button; click shows totals + SKU qty under the button (grouped by channel, no repeated channel badge). Status tabs, then order table — order code/id, placed, facility, **channel badge**, customer, status, payment, items, due/dispatched.
 4. **Realtime:** subscription on `scott_orders` + `scott_order_items` (publication via `20260720130000`) → silent refetch, so an order placed in the app appears without refresh.
 5. **Order detail:** click order code → `ReadyStockOrderDetailDialog` (ORDER ITEMS tab; SHIPMENTS/INVOICES/RETURNS/ACTIVITIES placeholders disabled).
 6. **Generate picklist:** button on detail header → `scott-order-generate-picklist` edge function (authenticated JWT). First run assigns `picklist_no` (`PK#####`), sets `picklist_generated_at`, moves `PENDING` → `PROCESSING`. Client maps response to `PicklistData` and `POST /api/picklist/pdf` (Puppeteer) → PDF opens in new tab + downloads `{picklistNo}.pdf`. Reprint when already PROCESSING returns same picklist without status change.
@@ -316,8 +316,8 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 2. **Tracker switch:** **Production Tracker** and **Sampling Tracker** use the same muted pill as **All orders** / **Complete orders** (no green / orange, not apart).
 3. **List tabs (common, below the switch):** Printing-style pill **All orders** | **Complete orders**. Each tracker keeps its own list tab. Production Complete = `is_complete` production job sheets. Sampling Complete = `is_complete` **or** status **Dispatched Successfully**. Lists never mix kinds.
 4. **Production Tracker:** existing `LinkedOrdersTabPanel` (job sheets, filters, Create Job sheet on All, status). Complete hides Create Job sheet. **Delivery required on** calendar is today or later (past days disabled).
-5. **Sampling Tracker:** same table. Only `sample_job_sheet` rows. All = open samples. Complete = closed samples. Picking **Dispatched Successfully** or admin **Mark as complete** (View Sample Order) moves the row to Complete, forces status **Dispatched Successfully**, and locks Status (badge only). **From / To / Clear** filter `order_date`. Create Sample Jobsheet on All (SA-####, no Total quantity, status Pattern Making). **Delivery required on** is optional; calendar is today or later when used. List words: View Sample Order, Sample Order, Order date, **Due In**. No count, Qty, or Handover. Sampling status pipeline.
-6. **Sample SLA:** if **Delivery required on** (`orders.due_date`) is filled, deadline is end of that local day. If blank, deadline is save time (`orders.created_at`) + 2 days. Create Sample Jobsheet does not require the date; Production job sheet still does. **Due In** column sits after Order date on Sampling **All orders** only. Sampling **Complete orders** has no Due In column. Same clock in View Sample Order while the job is still open. While open and before deadline: live `HH:MM Hrs Left` (Badge: plenty of time = secondary, under 24h = default, under 12h = destructive). Open and past deadline (status not Dispatched Successfully): **SLA Breached** in red, timer removed (list Badge, view Alert). Closed / Dispatched Successfully: view hides Due In. Fallback start = `order_date` midnight if `created_at` missing and no due date. Uses the browser clock. No SLA on Production Tracker.
+5. **Sampling Tracker:** same table. Only `sample_job_sheet` rows. All = open samples. Complete = closed samples. Picking **Dispatched Successfully** or admin **Mark as complete** (View Sample Order) moves the row to Complete, forces status **Dispatched Successfully**, and locks Status (badge only). **From / To / Clear** filter `order_date`. **Create Sample Jobsheet** sits far right on All, yellow (`variant="yellow"`). Hidden on Complete. IDs SA-####, no Total quantity, status Pattern Making. Pay block is only **Sampling required on** (optional, today or later), Mode of payment (Cash, UPI, Bank transfer, NEFT, Card, payment pending), Total amount, Payment proof. No advance / full paid / city / transport / approval fields. List words: View Sample Order, Sample Order, Order date, **Due In**. No count, Qty, or Handover. Sampling status pipeline.
+6. **Sample SLA:** if **Sampling required on** (`orders.due_date`) is filled, deadline is end of that local day. If blank, deadline is save time (`orders.created_at`) plus the admin SLA from **SLA settings** (default 2 days). Admin-only Settings button on Sampling Tracker writes `sample_job_sheet_settings` (days, extra hours, warn/urgent hours). Create Sample Jobsheet does not require the date; Production job sheet still requires **Delivery required on**. **Due In** column sits after Order date on Sampling **All orders** only. Sampling **Complete orders** has no Due In column. Same clock in View Sample Order while the job is still open. While open and before deadline: live `HH:MM Hrs Left` (Badge: plenty = secondary, under warn hours = default, under urgent hours = destructive). Open and past deadline (status not Dispatched Successfully): **SLA Breached** in red, timer removed (list Badge, view Alert). Closed / Dispatched Successfully: view hides Due In. Fallback start = `order_date` midnight if `created_at` missing and no due date. Uses the browser clock. No SLA on Production Tracker.
 7. **Mark as complete:** admin on View order. Sample job → Sampling Complete + Dispatched Successfully. Production job sheet → Production Complete. Printing jobs still go to Printing Complete. **The list tab does not switch** — stay on All orders (or whatever list was open). The completed row leaves All because `is_complete` is true.
 8. **Exit:** switch sidebar tab.
 
@@ -374,6 +374,8 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges five sources, sorted by `created_at`.
 
+**Tab UI (`NotificationsPanel`):** shadcn chips All / Orders / Tasks / Inventory / Mentions + time Select (All time / Today / Last 7 days / Last 30 days). Counts follow the time range. Mentions = `inward` tags (no mention table). Unread tint uses the seen timestamp from before this visit (bell still clears the badge). **View Order / Task / Inventory / Inward** and more-menu **Open** call `handleOpenDashboardNotification`. Order IDs in the body are link buttons. Empty = shadcn `Empty`. Loading = `Skeleton`.
+
 | Kind | Trigger | Recipient | Open action |
 |------|---------|-----------|-------------|
 | `assignment` | Order saved with coordinator name | Matched profile | Open order |
@@ -398,7 +400,7 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 2. **Profile photo:** Grid of 50 preset characters or **Upload photo** → **Save photo** → `profiles.avatar_path` (`preset:avatar-XX` or storage path).
 3. **Notification tone:** MP3 upload (max 2 MB) → `profiles.notification_tone_path`; **Preview** / **Use default** below avatar section in same dialog.
 4. **Admin create/edit user:** Avatar picker also on **Create user** and **Edit user access** modals.
-5. **Notifications tab:** Alert list only — no profile/tone cards.
+5. **Notifications tab:** Alert list with category/time filters — no profile/tone cards.
 
 ### Custom notification tone (MP3)
 

@@ -13,6 +13,8 @@ import OrderDetailPanel from "./OrderDetailPanel";
 import MonthlyArchivePanel from "./MonthlyArchivePanel";
 import LinkedOrdersTabPanel from "./LinkedOrdersTabPanel";
 import { SampleJobSheetDueInCell } from "./SampleJobSheetDueIn";
+import { SampleJobSheetSlaProvider } from "./SampleJobSheetSlaContext";
+import SampleJobSheetSlaSettingsControl from "./SampleJobSheetSlaSettingsDialog";
 import ProductionTrackerPanel, {
   PRODUCTION_SUBTAB,
   SAMPLING_SUBTAB,
@@ -2554,7 +2556,11 @@ function App() {
       jobSheetForm.delivery_required_on &&
       !isJobSheetDeliveryDateAllowed(jobSheetForm.delivery_required_on)
     ) {
-      alert("Delivery required on must be today or a future date.");
+      alert(
+        createFormMode === "sample_job_sheet"
+          ? "Sampling required on must be today or a future date."
+          : "Delivery required on must be today or a future date."
+      );
       return;
     }
     for (const row of jobSheetForm.extraSizes ?? []) {
@@ -2603,20 +2609,33 @@ function App() {
 
     const colorText = String(formSnapshot.color ?? "").trim();
     const totalAmount = calcJobSheetTotalAmount(formSnapshot.rate_per_piece, qty);
-    const advanceAmount = parseJobSheetMoney(formSnapshot.advance_amount);
-    const transportCharges = parseJobSheetMoney(formSnapshot.transport_charges);
-    if (advanceAmount != null && totalAmount != null && advanceAmount > totalAmount) {
+    const advanceAmount = isSampleJobSheet
+      ? null
+      : parseJobSheetMoney(formSnapshot.advance_amount);
+    const transportCharges = isSampleJobSheet
+      ? null
+      : parseJobSheetMoney(formSnapshot.transport_charges);
+    if (
+      !isSampleJobSheet &&
+      advanceAmount != null &&
+      totalAmount != null &&
+      advanceAmount > totalAmount
+    ) {
       alert("Advance amount cannot exceed total amount.");
       return;
     }
     const totalAmountStr = totalAmount != null ? String(totalAmount) : "";
-    const balanceAmount = calcJobSheetBalanceAmount(totalAmountStr, formSnapshot.advance_amount);
-    const pendingAmount = calcJobSheetPendingAmount(
-      totalAmountStr,
-      formSnapshot.advance_amount,
-      formSnapshot.full_paid
-    );
-    const fullPaid = formSnapshot.full_paid === "yes";
+    const balanceAmount = isSampleJobSheet
+      ? null
+      : calcJobSheetBalanceAmount(totalAmountStr, formSnapshot.advance_amount);
+    const pendingAmount = isSampleJobSheet
+      ? null
+      : calcJobSheetPendingAmount(
+          totalAmountStr,
+          formSnapshot.advance_amount,
+          formSnapshot.full_paid
+        );
+    const fullPaid = !isSampleJobSheet && formSnapshot.full_paid === "yes";
     if (fullPaid && jobSheetPaymentProofFiles.length === 0) {
       alert("Please upload payment proof when marking the job as full paid.");
       return;
@@ -2665,15 +2684,23 @@ function App() {
       order_cost: totalAmount,
       job_sheet_payment_mode: String(formSnapshot.payment_mode ?? "").trim() || null,
       job_sheet_advance_amount: advanceAmount,
-      job_sheet_advance_payment_date: String(formSnapshot.advance_payment_date ?? "").trim() || null,
+      job_sheet_advance_payment_date: isSampleJobSheet
+        ? null
+        : String(formSnapshot.advance_payment_date ?? "").trim() || null,
       job_sheet_balance_amount: balanceAmount,
       job_sheet_pending_amount: pendingAmount,
       job_sheet_full_paid: fullPaid,
       job_sheet_payment_closure_at: paymentClosureAt,
-      job_sheet_delivery_city: String(formSnapshot.delivery_city ?? "").trim() || null,
+      job_sheet_delivery_city: isSampleJobSheet
+        ? null
+        : String(formSnapshot.delivery_city ?? "").trim() || null,
       job_sheet_transport_charges: transportCharges,
-      job_sheet_approval_date: String(formSnapshot.approval_date ?? "").trim() || null,
-      job_sheet_approved_by: String(formSnapshot.approved_by ?? "").trim() || null,
+      job_sheet_approval_date: isSampleJobSheet
+        ? null
+        : String(formSnapshot.approval_date ?? "").trim() || null,
+      job_sheet_approved_by: isSampleJobSheet
+        ? null
+        : String(formSnapshot.approved_by ?? "").trim() || null,
       approved_design_url: "[]",
       printing_mtrs: 0,
       created_by: session.user.id
@@ -2735,7 +2762,7 @@ function App() {
         return serializePaymentProofUrls(proofUrls);
       }
 
-      if (advanceFilesSnapshot.length > 0) {
+      if (!isSampleJobSheet && advanceFilesSnapshot.length > 0) {
         payload.job_sheet_advance_proof_url = await uploadJobSheetProofFiles(
           "payment-screenshots",
           advanceFilesSnapshot
@@ -2749,7 +2776,7 @@ function App() {
         );
       }
 
-      if (approvalFileSnapshot) {
+      if (!isSampleJobSheet && approvalFileSnapshot) {
         const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${approvalFileSnapshot.name.replace(/\s+/g, "-")}`;
         const storagePath = `${session.user.id}/job-sheet-${orderIdToken}-approval-${safeName}`;
         const { error: approvalUploadError } = await supabase.storage
@@ -5451,6 +5478,7 @@ function App() {
       radius="medium"
       hasBackground={false}
     >
+    <SampleJobSheetSlaProvider>
     <TooltipProvider delayDuration={200}>
     <div className="page app-layout flex h-svh min-h-0 flex-col overflow-hidden bg-background">
       <DashboardShell
@@ -5977,7 +6005,12 @@ function App() {
                     (isAdmin || viewerCanCreateOrders)
                   }
                   createJobSheetLabel="Create Sample Jobsheet"
+                  createJobSheetAlign="end"
+                  createJobSheetVariant="yellow"
                   onCreateJobSheet={openCreateSampleJobSheet}
+                  toolbarActions={
+                    <SampleJobSheetSlaSettingsControl isAdmin={isAdmin} userId={session?.user?.id} />
+                  }
                   canEditStatus={
                     samplingListTab !== TRACKER_LIST_COMPLETE &&
                     canUseOrderControls &&
@@ -7365,7 +7398,13 @@ function App() {
                   inventoryProducts={inventoryProducts}
                   loadingInventoryProducts={loadingInventoryProducts}
                   hideTotalQuantity={createFormMode === "sample_job_sheet"}
+                  hideCommerceExtras={createFormMode === "sample_job_sheet"}
                   requireDeliveryDate={createFormMode !== "sample_job_sheet"}
+                  deliveryDateLabel={
+                    createFormMode === "sample_job_sheet"
+                      ? "Sampling required on"
+                      : "Delivery required on"
+                  }
                 />
               ) : createFormMode === "sticker" ? (
                 <CreateStickerOrderForm
@@ -8130,6 +8169,7 @@ function App() {
       />
     </div>
     </TooltipProvider>
+    </SampleJobSheetSlaProvider>
     </Theme>
   );
 }

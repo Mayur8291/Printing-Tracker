@@ -24,7 +24,8 @@ Nothing else in the platform writes Uniware inventory. The Inventory tab and Sto
 ## What is mirrored (read-only)
 
 - Inventory snapshot per facility × SKU (good / bad / QC).
-- Sale orders (`channel = ecom_uniware` on `uni_sale_order`; never edited here — link out to Uniware).
+- Sale orders on `uni_sale_order` (read-only) plus exact `uni_sale_order_line` from Uniware `saleOrderItems` (not package summaries). Sold + DRR follow the UI Days/Months/Years filter and the facility tab. Never edited here. New B2B created in the platform still uses `so_order`. Uniware snapshot has no DRR field — we compute sold ÷ days from those items.
+- Inventory mirror + `uni_item_sku` catalog are paged past 1000 rows. **Export xls** is the on-screen table only, not a write into Inventory.
 - Shipments, invoices, returns when the feed is enabled.
 
 Retries are idempotent: upserts key on Uniware's code.

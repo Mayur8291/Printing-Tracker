@@ -53,6 +53,7 @@ Create an order when a customer places an RMP order. Reserves stock.
   "shipping_address": { "name": "Acme Traders", "address_line1": "12 MG Road", "city": "Pune", "state": "MH", "country": "IN", "pincode": "411001" },
   "payment": { "instrument": "CASH", "cash_on_delivery": true },
   "comment": "Rush order - dispatch by Friday",
+  "channel_code": "NOTFUNNY_APP",
   "items": [
     { "item_code": "P-1-4201-88", "sku_code": "SKU-COTTON-WHT-M", "quantity": 50, "unit_price": 245.50 }
   ]
@@ -62,7 +63,9 @@ Create an order when a customer places an RMP order. Reserves stock.
 **201**
 
 ```json
-{ "dashboard_order_id": "ord_abc123", "order_code": "P-53011", "status": "PENDING", "created_at": "2026-07-20T09:00:00Z" }
+{ "dashboard_order_id": "ord_abc123", "order_code": "P-53011", "status": "PENDING", "created_at": "2026-07-20T09:00:00Z", "channel_code": "NOTFUNNY_APP", "channel_name": "Notfunnyapp" }
+
+`channel_code` / `channel` is optional. If omitted or unknown, the API uses the channel linked to the calling API key, else `UNKNOWN`. Snapshot is stored on `scott_orders` for Ready Stock list and utilization reports.
 ```
 
 **Errors**
@@ -115,6 +118,9 @@ Current status + items, for reconciliation/debugging.
   "order_code": "P-53011",
   "status": "PROCESSING",
   "updated_at": "2026-07-20T12:00:00Z",
+  "channel_code": "NOTFUNNY_APP",
+  "channel_name": "Notfunnyapp",
+  "channel_type": "MOBILE_APP",
   "items": [
     { "sku_code": "SKU-COTTON-WHT-M", "quantity": 30, "dispatched_quantity": 0 }
   ]

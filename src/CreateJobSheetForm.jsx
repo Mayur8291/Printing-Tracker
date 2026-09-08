@@ -18,7 +18,8 @@ import {
   calcJobSheetTotalAmount,
   formatJobSheetClosureDate,
   formatJobSheetMoneyDisplay,
-  JOB_SHEET_PAYMENT_MODES
+  JOB_SHEET_PAYMENT_MODES,
+  SAMPLE_JOB_SHEET_PAYMENT_MODES
 } from "./jobSheetPaymentUtils";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -52,7 +53,9 @@ export default function CreateJobSheetForm({
   inventoryProducts = [],
   loadingInventoryProducts = false,
   hideTotalQuantity = false,
+  hideCommerceExtras = false,
   requireDeliveryDate = true,
+  deliveryDateLabel = "Delivery required on",
   submitLabel = "Save job sheet"
 }) {
   const sizesSum = sumJobSheetSizes(form.sizes, form.extraSizes, form.size_type, form.gender);
@@ -79,7 +82,10 @@ export default function CreateJobSheetForm({
     if (form.full_paid === "yes") return 0;
     return calcJobSheetBalanceAmount(totalAmountValue, form.advance_amount);
   }, [totalAmountValue, form.advance_amount, form.full_paid]);
-  const paymentProofRequired = form.full_paid === "yes";
+  const paymentProofRequired = !hideCommerceExtras && form.full_paid === "yes";
+  const paymentModes = hideCommerceExtras
+    ? SAMPLE_JOB_SHEET_PAYMENT_MODES
+    : JOB_SHEET_PAYMENT_MODES;
   const deliveryMinDate = jobSheetTodayLocalISODate();
   const deliveryFromYear = Number(deliveryMinDate.slice(0, 4));
 
@@ -521,7 +527,7 @@ export default function CreateJobSheetForm({
         />
       </div>
       <div className="order-form-cell">
-        <Label htmlFor="job-sheet-delivery-date">Delivery required on</Label>
+        <Label htmlFor="job-sheet-delivery-date">{deliveryDateLabel}</Label>
         <DatePicker
           id="job-sheet-delivery-date"
           value={form.delivery_required_on}
@@ -541,7 +547,7 @@ export default function CreateJobSheetForm({
             <SelectValue placeholder="Select payment mode" />
           </SelectTrigger>
           <SelectContent>
-            {JOB_SHEET_PAYMENT_MODES.map((opt) => (
+            {paymentModes.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>
@@ -565,6 +571,8 @@ export default function CreateJobSheetForm({
           </p>
         ) : null}
       </div>
+      {hideCommerceExtras ? null : (
+      <>
       <div className="order-form-cell">
         <Label htmlFor="job-sheet-advance-amount">Advance amount received</Label>
         <div className="flex items-center gap-2">
@@ -659,6 +667,8 @@ export default function CreateJobSheetForm({
           value={form.full_paid === "yes" ? formatJobSheetClosureDate(form.payment_closure_at) : ""}
         />
       </div>
+      </>
+      )}
       <div className="order-form-cell">
         <Label htmlFor="job-sheet-payment-proof">
           Payment proof
@@ -682,6 +692,8 @@ export default function CreateJobSheetForm({
           </p>
         ) : null}
       </div>
+      {hideCommerceExtras ? null : (
+      <>
       <div className="order-form-cell">
         <Label htmlFor="job-sheet-delivery-city">Delivery city</Label>
         <Select
@@ -745,6 +757,8 @@ export default function CreateJobSheetForm({
           placeholder="Name of approver"
         />
       </div>
+      </>
+      )}
       <div className="order-form-actions order-form-span-3">
         <Button type="button" variant="destructive" onClick={onCancel} disabled={saving}>
           Cancel

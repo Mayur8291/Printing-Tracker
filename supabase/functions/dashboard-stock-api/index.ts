@@ -16,7 +16,7 @@ import {
   parseItems,
   recomputeSkuStockTotal,
   releaseReservation,
-  requireApiKey,
+  authenticateApiKey,
   reserveStockIdempotent,
   type SupabaseAdmin
 } from "./stockCore.ts";
@@ -280,8 +280,8 @@ serve(async (req) => {
 
   const client = adminClient();
 
-  const authFail = await requireApiKey(req, client);
-  if (authFail) return authFail;
+  const auth = await authenticateApiKey(req, client);
+  if (!auth.ok) return auth.response;
 
   const path = routePath(req);
 
@@ -307,7 +307,7 @@ serve(async (req) => {
 
     // Order routes
     if (req.method === "POST" && path === "/api/v1/orders") {
-      return await handleCreateOrder(req, client);
+      return await handleCreateOrder(req, client, { keyId: auth.keyId });
     }
     const orderMatch = path.match(/^\/api\/v1\/orders\/([^/]+)(\/status)?$/);
     if (orderMatch) {

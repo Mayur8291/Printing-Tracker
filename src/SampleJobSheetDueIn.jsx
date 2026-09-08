@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { getSampleJobSheetSlaSnapshot } from "./sampleJobSheetSlaUtils";
+import { useSampleJobSheetSla } from "./SampleJobSheetSlaContext";
 
 const URGENCY_VARIANT = {
   ok: "secondary",
@@ -44,7 +45,8 @@ function DueInContent({ snapshot, compact }) {
 /** Compact cell for Sampling Tracker list (after Order date). */
 export function SampleJobSheetDueInCell({ order }) {
   const nowMs = useTickingNowMs();
-  const snapshot = getSampleJobSheetSlaSnapshot(order, nowMs);
+  const { policy } = useSampleJobSheetSla();
+  const snapshot = getSampleJobSheetSlaSnapshot(order, nowMs, policy);
   if (snapshot.kind === "hidden") {
     return <span className="text-muted-foreground">—</span>;
   }
@@ -54,7 +56,8 @@ export function SampleJobSheetDueInCell({ order }) {
 /** View Sample Order Due In block. */
 export default function SampleJobSheetDueIn({ order }) {
   const nowMs = useTickingNowMs();
-  const snapshot = getSampleJobSheetSlaSnapshot(order, nowMs);
+  const { policy } = useSampleJobSheetSla();
+  const snapshot = getSampleJobSheetSlaSnapshot(order, nowMs, policy);
   if (snapshot.kind === "hidden") return null;
 
   return (

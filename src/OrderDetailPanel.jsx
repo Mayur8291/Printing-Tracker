@@ -449,7 +449,15 @@ export default function OrderDetailPanel({
                 order.coordinator_name
               )}
             </DetailField>
-            <DetailField label={jobSheet || sampleJobSheet ? "Delivery required on" : "Delivery date"}>
+            <DetailField
+              label={
+                sampleJobSheet
+                  ? "Sampling required on"
+                  : jobSheet
+                    ? "Delivery required on"
+                    : "Delivery date"
+              }
+            >
               {canCurrentUserEdit("due_date") ? (
                 <DatePicker
                   id={`order-detail-due-date-${order.id}`}

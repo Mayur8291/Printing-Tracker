@@ -46,8 +46,10 @@ Uniware owns ecom-facility on-hand. The platform stores a **read-only mirror**. 
 |---|---|
 | `uni_settings` | Singleton: default entity, Uniware marker location, optional facility code. Admin RLS write. |
 | `uni_sync_log` | Per-feed run log (`inventory`, `sale_orders`, `shipments`, `invoices`, `returns`, `adjust_out`). Watermark on success. |
-| `uni_inventory_mirror` | Facility × SKU × inventory_type qty from Uniware snapshot. No client write. |
-| `uni_sale_order` / `uni_shipment` / `uni_invoice` / `uni_return` | Idempotent upserts keyed on Uniware code. Not `so_order`. |
+| `uni_inventory_mirror` | Facility × SKU × inventory_type from Uniware snapshot. `qty` = available; `qty_blocked` / `qty_open_sale` / `qty_putaway` since `20260904093145`. No client write. |
+| `uni_sale_order` / `uni_shipment` / `uni_invoice` / `uni_return` | Idempotent upserts keyed on Uniware code. Not `so_order`. `uni_sale_order` holds **all Uniware channels** from Sync orders (Amazon / Flipkart / Not Funny / CUSTOM B2B). New platform B2B stays on `so_order`. |
+| `uni_sale_order_line` | Exact Uniware `saleOrderItems` from `saleorder/get` (1 row ≈ 1 pc). `facility_code` since `20260905104510`. Used for Sold + DRR. Never package summaries. |
+| `uni_item_sku` | Uniware item-type catalog codes so Sync inventory can resume past 1000-row pages. `uni_settings.catalog_search_start` / `catalog_complete`. Migration `20260905090157`. |
 | `uni_transfer` | Draft → posted (platform ledger) → `api_ok` / `api_failed`. Number `UTR/<FY>/nnnn`. |
 | `uni_feed_health_view` | Last finished run per feed; `stale` if missing, error, or older than 2 hours. `security_invoker`. |
 | `core_location` `UNIWARE-ECOM` | Seeded virtual `uniware_facility` marker (`owner_system=uniware`). Never counted as platform stock. |
@@ -55,6 +57,7 @@ Uniware owns ecom-facility on-hand. The platform stores a **read-only mirror**. 
 **Functions** (`ops_assert_admin()` except `uni_finish_sync`):
 
 - `uni_begin_sync(feed)` / `uni_finish_sync(log, ok, rows, error)` — edge bookkeeping.
+- `uni_drr_by_sku(p_from date, p_days int, p_facility text default null)` — Sold qty + DRR from exact Uniware items in sold/invoiced statuses (`DISPATCHED`, `DELIVERED`, `INVOICED`, …). Optional facility. Empty-status package rows are not sales.
 - `uni_post_transfer(id)` — posts `inv_post_movement` only when from/to `owner_system` matches direction. Does **not** call Uniware.
 - `uni_mark_transfer_api(id, ok, ref, error)` — records the adjust API result.
 
@@ -779,8 +782,16 @@ Scott International RMP orders — the external order lifecycle (`order-api-requ
 | `reservation_id` | FK → `inventory_stock_reservations` (the stock hold; `on delete set null`) |
 | `cancel_reason`, `cancelled_at`, `dispatched_at` | Lifecycle metadata |
 | `picklist_no`, `picklist_generated_at` | Warehouse picklist (since `20260722120000`); unique index on `picklist_no` when set |
+| `channel_id` | Optional FK → `dashboard_channels.id` (`on delete set null`) |
+| `channel_code` / `channel_name` / `channel_type` | Snapshot at create (defaults `UNKNOWN` / `Unknown` / `OTHER`). Index on `channel_code`. `channel_type` check matches `dashboard_channels`. |
 
 `scott_order_items`: `order_id` (cascade), `item_code`, `sku_code`, `quantity`, `unit_price`, `dispatched_quantity` (set to `quantity` on COMPLETE).
+
+**Channel stamp (since `20260904065942_ready_stock_order_channel.sql`):** Order API writes the snapshot so the Ready Stock list and reports do not need an admin-only join to `dashboard_channels`. Seeded fallback channels: `UNKNOWN`, `SCOTT_APP`. Existing rows backfilled as `UNKNOWN`.
+
+**Report view `rpt_ready_stock_channel_utilization` (`security_invoker`):** `channel_code`, `channel_name`, `channel_type`, `sku_code`, `ordered_qty`, `dispatched_qty`, `order_count`. Source: `scott_orders` + `scott_order_items` where status is PENDING/PROCESSING/COMPLETE. SELECT granted to `authenticated`.
+
+**Rollback:** drop view; drop index/constraint/columns on `scott_orders`; keep or delete seeded `UNKNOWN`/`SCOTT_APP` channel rows.
 
 Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the outbox on **INSERT** (`status: CREATED`, `previous_status: null`) and on **UPDATE** when `status` changes (`PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`). Includes `dispatched_at` when new status is COMPLETE. Order API mutations use `service_role` via `dashboard-stock-api`; picklist generation uses `scott-order-generate-picklist` (authenticated JWT → service role update). `authenticated` has read-only SELECT on orders/items.
 
@@ -789,7 +800,7 @@ Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the o
 Admin Panel → Integrations.
 
 - `dashboard_api_keys`: M2M keys for `dashboard-stock-api`. `key_hash` (SHA-256 hex, unique) + `key_prefix` for display — **plaintext never stored**. `status` active/disabled, `last_used_at` bumped by the edge function on successful auth. RLS: all ops require `jwt_user_is_admin()`; service_role has select/update.
-- `dashboard_channels`: order-source registry — unique `code`, `channel_type` (CUSTOM/MOBILE_APP/SHOPIFY/AMAZON/FLIPKART/MYNTRA/JIOMART/OTHER check), `enabled`, optional `api_key_id` FK and `default_facility_code`. RLS: admin-only, service_role read.
+- `dashboard_channels`: order-source registry — unique `code`, `channel_type` (CUSTOM/MOBILE_APP/SHOPIFY/AMAZON/FLIPKART/MYNTRA/JIOMART/OTHER check), `enabled`, optional `api_key_id` FK and `default_facility_code`. RLS: admin-only, service_role read. Linking `api_key_id` is how Ready Stock create stamps the channel when the partner does not send `channel_code`. Seeded `UNKNOWN` + `SCOTT_APP` since `20260904065942`.
 
 ### RPC (stock API)
 
@@ -843,7 +854,24 @@ Production tracker job sheets store payment and approval data on the same `order
 | `printing` | Standard printing floor order |
 | `job_sheet` | Production tracker job sheet only — **excluded** from Printing orders tab |
 | `sticker`, `sampling`, `regular_stock` | Other specialized flows |
-| `sample_job_sheet` | Sampling Tracker history list. Order ID `SA-0001`, `SA-0002`, … sequential. Not listed on Production Tracker or Printing Orders. Date column is `order_date`. SLA: `due_date` end of day when set, else `created_at` + 2 days (no extra column). |
+| `sample_job_sheet` | Sampling Tracker history list. Order ID `SA-0001`, `SA-0002`, … sequential. Not listed on Production Tracker or Printing Orders. Date column is `order_date`. SLA: `due_date` end of day when set, else `created_at` + admin `sample_job_sheet_settings` duration. |
+
+### `sample_job_sheet_settings`
+
+Singleton (`id = 1`). Admin tweaks Sampling Due In fallback.
+
+| Column | Purpose |
+|--------|---------|
+| `default_sla_days` | 1–30. Default 2. Used when Sampling required on is empty. |
+| `default_sla_hours` | 0–23 extra hours after the days. |
+| `warn_hours` / `urgent_hours` | Badge thresholds (1–168). Defaults 24 / 12. |
+| `updated_at` / `updated_by` | Last admin save. |
+
+**RLS:** authenticated SELECT. Write `jwt_user_is_admin()` only.
+
+**Migration:** `20260908121033_sample_job_sheet_sla_settings.sql` — staging.
+
+**Rollback:** drop table. Due In falls back to 2 days in code.
 
 Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet` and `sample_job_sheet`.
 

@@ -28,20 +28,24 @@ export async function sha256Hex(message: string) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+export type ApiAuthResult =
+  | { ok: true; keyId: string | null }
+  | { ok: false; response: Response };
+
 /**
  * Accepts either the legacy DASHBOARD_API_KEY secret or any active key from
  * dashboard_api_keys (admin settings → API keys; sha256 hashes only).
+ * Hashed table is checked first so a mapped key still returns keyId when the
+ * same token is also stored as DASHBOARD_API_KEY (Ready Stock channel stamp).
  */
-export async function requireApiKey(req: Request, client: SupabaseAdmin): Promise<Response | null> {
+export async function authenticateApiKey(
+  req: Request,
+  client: SupabaseAdmin
+): Promise<ApiAuthResult> {
   const auth = req.headers.get("Authorization")?.trim() ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
   if (!token) {
-    return errorResponse(401, "UNAUTHORIZED");
-  }
-
-  const expected = Deno.env.get("DASHBOARD_API_KEY")?.trim();
-  if (expected && token === expected) {
-    return null;
+    return { ok: false, response: errorResponse(401, "UNAUTHORIZED") };
   }
 
   const hash = await sha256Hex(token);
@@ -56,13 +60,23 @@ export async function requireApiKey(req: Request, client: SupabaseAdmin): Promis
       .from("dashboard_api_keys")
       .update({ last_used_at: new Date().toISOString() })
       .eq("id", keyRow.id);
-    return null;
+    return { ok: true, keyId: keyRow.id };
   }
 
   if (keyRow?.status === "disabled") {
-    return errorResponse(401, "KEY_DISABLED");
+    return { ok: false, response: errorResponse(401, "KEY_DISABLED") };
   }
-  return errorResponse(401, "UNAUTHORIZED");
+
+  const expected = Deno.env.get("DASHBOARD_API_KEY")?.trim();
+  if (expected && token === expected) {
+    return { ok: true, keyId: null };
+  }
+  return { ok: false, response: errorResponse(401, "UNAUTHORIZED") };
+}
+
+export async function requireApiKey(req: Request, client: SupabaseAdmin): Promise<Response | null> {
+  const result = await authenticateApiKey(req, client);
+  return result.ok ? null : result.response;
 }
 
 export function adminClient(): SupabaseAdmin {

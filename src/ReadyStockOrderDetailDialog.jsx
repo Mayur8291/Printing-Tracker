@@ -6,6 +6,10 @@ import {
   SCOTT_ORDER_STATUS_LABELS,
   scottOrderStatusActions
 } from "./readyStockOrderStatusUtils";
+import {
+  CHANNEL_TYPE_BADGE_CLASS,
+  readyStockChannelLabel
+} from "./readyStockChannelUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -171,6 +175,15 @@ export default function ReadyStockOrderDetailDialog({
               <DialogDescription className="font-mono text-[11px]">{order.id}</DialogDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-[10px]",
+                  CHANNEL_TYPE_BADGE_CLASS[order.channel_type] ?? CHANNEL_TYPE_BADGE_CLASS.OTHER
+                )}
+              >
+                {readyStockChannelLabel(order)}
+              </Badge>
               <Badge
                 variant="outline"
                 className={cn("text-[10px]", STATUS_BADGE_CLASS[order.status])}

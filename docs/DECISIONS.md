@@ -2,6 +2,64 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-09-08 — Notifications chips reuse existing kinds
+
+**Context:** Notifications tab needed a filter row like All / Orders / Tasks / Inventory / Mentions.
+
+**Options:** (1) New mention table. (2) Map existing kinds only. (3) Fake demo rows.
+
+**Decision:** Option 2. Orders = `assignment` + `order_status`. Tasks = `goal_task`. Inventory = `printing_inventory`. Mentions = `inward` tags.
+
+**Why:** Same fetch/subscribe/open path. No new backend.
+
+**Tradeoffs:** Mentions is empty until someone is tagged on inward. Unread highlight is a visit snapshot; the bell still marks seen for the badge.
+
+## 2026-09-08 — Admin can edit Sampling SLA
+
+**Context:** Due In fallback was hard-coded at 2 days. Admin wants a Settings button.
+
+**Options:** (1) Local-only constant. (2) Browser localStorage. (3) Singleton `sample_job_sheet_settings` with admin RLS.
+
+**Decision:** Option 3. Settings on Sampling Tracker. Days + extra hours + warn/urgent hours. Sampling required on still wins.
+
+**Why:** Every user must see the same clock. Admin-only write.
+
+**Tradeoffs:** Open jobs change Due In immediately when admin saves. No per-order override.
+
+## 2026-09-08 — Sample payment modes drop cheque / PI advance / credit
+
+**Context:** Sample Mode of payment showed the full Production list.
+
+**Decision:** Sample uses `SAMPLE_JOB_SHEET_PAYMENT_MODES`. Drop cheque, `pi_advance_received`, `credit_partial`. Labels: `pi_pending` → **payment pending**, `neft_rtgs` → **NEFT**, `card_pos` → **Card**. Keep stored values so old rows still match.
+
+**Why:** Sample is not a Production payment flow.
+
+**Tradeoffs:** Production Create Job sheet still has the long list.
+
+## 2026-09-08 — Sample job sheet drops Production pay/approval fields
+
+**Context:** Create Sample Jobsheet reused the full Production payment block. Team only wants Sampling required on, Mode of payment, Total amount, Payment proof.
+
+**Options:** (1) Fork a second form. (2) Hide extras on the shared form when `sample_job_sheet`.
+
+**Decision:** Option 2. `hideCommerceExtras` + `deliveryDateLabel`. Sample save writes null for hidden money/approval columns. Production Create Job sheet stays full.
+
+**Why:** Same size/product grid. No second form to drift.
+
+**Tradeoffs:** View Sample Order does not show the Production payment section (`isJobSheetOrder` is false for samples). SLA still reads `due_date`.
+
+## 2026-09-04 — Ready Stock channel is a snapshot, not a live join
+
+**Context:** Ready Stock orders need a channel indicator so reports can show where product is used. `dashboard_channels` already exists but RLS is admin-only, so authenticated warehouse users cannot join it.
+
+**Options:** (1) Grant `authenticated` SELECT on `dashboard_channels`. (2) Snapshot `channel_code` / `channel_name` / `channel_type` on `scott_orders` at create. (3) Infer channel later from API logs (none exist).
+
+**Decision:** Option 2 plus report view `rpt_ready_stock_channel_utilization`. Resolve channel from optional create-body code, else the API key’s linked channel, else `UNKNOWN`.
+
+**Why:** List and reports stay correct if a channel is renamed or an admin loses access. Law 8: the utilization metric lives in one SQL view.
+
+**Tradeoffs:** Old orders cannot recover a true source (backfilled Unknown). Channel name on an old order does not change if admin later edits the registry.
+
 ## 2026-09-03 — Purchase Order Status Select matches job-sheet format
 
 **Context:** User wants All PO Orders Status to look like the Production status dropdown (icon then name). Do not rename the list.
@@ -62,17 +120,41 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Tradeoffs:** Extra availability fetch on silent refresh. Correct qty beats a cheap stale paint.
 
+## 2026-09-05 — Uniware Sold / DRR is exact saleOrderItems
+
+**Context:** Team said Sold / DRR did not match Uniware. Period change had no loading signal.
+
+**Options:** (1) Trust inventory snapshot. (2) Sum every mirrored line including package summaries. (3) Store only Uniware `saleOrderItems` and count sold/invoiced statuses in the UI window.
+
+**Decision:** Option 3. `saleorder/get` → `saleOrderItems` only (1 row ≈ 1 pc). `uni_drr_by_sku` sums dispatched / delivered / invoiced (and packed / picking-for-invoice) for the selected Days/Months/Years window. Facility tab filters by line/order facility. Spinner until that window finishes.
+
+**Why:** Package `items` is a SKU summary and double-counted. Uniware “sales” is fulfilled qty, not UNFULFILLABLE / CREATED.
+
+**Tradeoffs:** Window is incomplete until Sync orders fills remaining headers. Qty still never enter Inventory on-hand.
+
+## 2026-09-05 — Uniware DRR is computed, not fetched
+
+**Context:** User wants full Uniware inventory plus DRR with a days / months / years window.
+
+**Options:** (1) Expect DRR on inventory snapshot. (2) Store a static DRR cell. (3) Mirror order lines and compute sold ÷ days.
+
+**Decision:** Option 3. Snapshot + `itemType/search` for catalog qty. `uni_sale_order_line` + `uni_drr_by_sku`. UI filter only changes the window.
+
+**Why:** Uniware snapshot has no DRR field. Same window must drive Sync orders lookback.
+
+**Tradeoffs:** Year windows need several Sync orders clicks (80 line-gets per run). Qty still never enter Inventory on-hand.
+
 ## 2026-09-02 — Step 5 Uniware mirror is a separate ledger
 
 **Context:** Roadmap Step 5. Risk of double-counting ecom stock if the snapshot is summed into `inv_balance` or Inventory.
 
 **Options:** (1) Pull Uniware qty into `inv_balance`. (2) Separate `uni_*` mirror + transfer document; never sum.
 
-**Decision:** Option 2. Ecom orders stay on `uni_sale_order`, not mixed into `so_order`. Cross-boundary only via `uni_transfer` + Uniware adjust API. Contract in `docs/UNIWARE_BOUNDARY.md`.
+**Decision:** Option 2. Uniware sale orders (ecom **and** CUSTOM/B2B already in Uniware) stay on `uni_sale_order`, not mixed into `so_order`. New B2B raised in the dashboard still uses `so_order`. Cross-boundary only via `uni_transfer` + Uniware adjust API. Contract in `docs/UNIWARE_BOUNDARY.md`.
 
 **Why:** Law 5 — one owner per location. Uniware owns the ecom facility.
 
-**Tradeoffs:** Two order lists (B2B `so_order` vs ecom mirror). WBR ecom rows wait until reporting reads the mirror. Sync is empty until edge secrets are set.
+**Tradeoffs:** Two B2B lists — new platform B2B on `so_order`, historical Uniware CUSTOM on `uni_sale_order`. WBR ecom rows wait until reporting reads the mirror. Sync is empty until edge secrets are set and admin clicks Sync.
 
 ## 2026-09-02 — Support table rows stay readable in Dark Mode
 
@@ -519,7 +601,7 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Context:** User wants From / To / Clear / Create Sample Jobsheet / View on Sampling Tracker, matching Production Tracker. Create must not fill a form yet.
 
-**Decision:** Reuse `OrdersListFilters` and an outline `Button`. Create Sample Jobsheet has no handler.
+**Decision:** Reuse `OrdersListFilters` and a shadcn `Button`. Sampling pins Create Sample Jobsheet far right and yellow. Production Create Job sheet stays outline in the filter cluster.
 
 **Why:** Same CN / shadcn format as Production Tracker. Form comes later.
 

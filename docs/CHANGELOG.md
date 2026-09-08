@@ -1,5 +1,156 @@
 # Changelog
 
+## 2026-09-08 — Notifications tab filter list
+
+- **Issue:** Notifications tab was a plain click-row list. No category or time filter.
+- **Reason:** First feed used legacy list markup, not the shadcn filter + row pattern.
+- **Fix:** Same five sources. Chips All / Orders / Tasks / Inventory / Mentions, time Select, unread tint, View + more menu. Mentions = inward tags. No new table.
+- **Files:** `NotificationsPanel.jsx`, `notificationsUtils.js`, `src/components/ui/empty.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, FLOWCHARTS.md
+
+## 2026-09-08 — Admin Sampling SLA settings
+
+- **Issue:** Sample Due In SLA was stuck at 2 days. Admin could not change it.
+- **Reason:** Fallback duration was a hard-coded constant.
+- **Fix:** Admin-only **SLA settings** on Sampling Tracker. Stores days, extra hours, warn/urgent hours in `sample_job_sheet_settings`. Sampling required on still wins when filled.
+- **Files:** `20260908121033_sample_job_sheet_sla_settings.sql`, `sampleJobSheetSlaUtils.js`, `sampleJobSheetSettings.js`, `SampleJobSheetSlaContext.jsx`, `SampleJobSheetSlaSettingsDialog.jsx`, `SampleJobSheetDueIn.jsx`, `LinkedOrdersTabPanel.jsx`, `App.jsx`
+- **Migration:** staging `sample_job_sheet_settings` singleton. Admin write via `jwt_user_is_admin()`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md
+
+## 2026-09-08 — Sample payment labels NEFT and Card
+
+- **Issue:** Sample Mode of payment still said NEFT / RTGS and Card / POS.
+- **Reason:** Sample list copied Production labels.
+- **Fix:** Sample labels are **NEFT** and **Card**. Stored values stay `neft_rtgs` / `card_pos`. Production list unchanged.
+- **Files:** `jobSheetPaymentUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md
+
+## 2026-09-08 — Sample payment modes trimmed
+
+- **Issue:** Sample Mode of payment still listed Cheque, PI — advance received, Credit / partial, and PI — pending payment.
+- **Reason:** Sample reused the full Production payment-mode list.
+- **Fix:** Sample list is Cash, UPI, Bank transfer, NEFT / RTGS, Card / POS, **payment pending** (`pi_pending`). Production Create Job sheet keeps the old list.
+- **Files:** `jobSheetPaymentUtils.js`, `CreateJobSheetForm.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md
+
+## 2026-09-08 — Sample form: Sampling required on + fewer pay fields
+
+- **Issue:** Create Sample Jobsheet showed Production pay/approval fields and said Delivery required on.
+- **Reason:** Sample reuse `CreateJobSheetForm` with only Total quantity hidden.
+- **Fix:** Sample keeps Sampling required on, Mode of payment, Total amount, Payment proof. Hides advance, balance, full paid, closure, transaction proof, city, transport, approval date/image/by. Production form unchanged. View Sample Order label matches.
+- **Files:** `CreateJobSheetForm.jsx`, `App.jsx`, `OrderDetailPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, OVERVIEW.md, DEBUGGING.md, FLOWCHARTS.md, DECISIONS.md
+
+## 2026-09-08 — Sampling Create Sample Jobsheet right + yellow
+
+- **Issue:** Create Sample Jobsheet sat mid-toolbar, same white outline as Clear.
+- **Reason:** `OrdersListFilters` painted extra actions before View N / page, with no end slot. Button used `outline`.
+- **Fix:** Sampling All orders pins the shadcn Button to the far right (`endActions` + `ml-auto`) and uses `variant="yellow"`. Production Create Job sheet stays mid-row outline.
+- **Files:** `OrdersListFilters.jsx`, `LinkedOrdersTabPanel.jsx`, `App.jsx`, `src/components/ui/button.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, OVERVIEW.md, DECISIONS.md
+
+## 2026-09-05 — Exact Uniware sales + DRR period spinner
+
+- **Issue:** Team said Sold / DRR did not match Uniware. Period change had no loading signal.
+- **Reason:** Sync mixed shipping-package summaries with `saleOrderItems` (empty status, extra qty). Client DRR counted open/unfulfillable-ish rows. Only part of the period had lines. Period change swapped numbers with no spinner.
+- **Fix:** Store exact Uniware `saleOrderItems` only. Sold / DRR use dispatched–invoiced statuses in the selected Days/Months/Years window (facility tab uses that facility). Spinner next to the period control until the window finishes loading. Incomplete-line banner remains until Sync orders fills the rest.
+- **Files:** `uniware-bridge/index.ts`, `20260905104510_uniware_exact_sales_drr.sql`, `uniwareUtils.js`, `uniwareDrrUtils.js`, `UniwareBridgePanel.jsx`, `uniwareMirrorExport.js`, `src/components/ui/spinner.jsx`
+- **Migration:** staging `20260905104510` — `facility_code` on lines, `uni_drr_by_sku(..., p_facility)`, delete empty-status junk rows. Qty still never enter Inventory on-hand.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, UNIWARE_BOUNDARY.md, DECISIONS.md
+
+## 2026-09-05 — Uniware Export xls matches the table
+
+- **Issue:** Excel did not match the tool.
+- **Reason:** Export wrote all facilities + hidden zeros + extra Sold column + ISO times. First sheet was not the filtered/sorted view.
+- **Fix:** One sheet, same 9 columns and row order as Inventory mirror (facility, hide zeros, search, DRR sort).
+- **Files:** `uniwareMirrorExport.js`, `UniwareBridgePanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-09-05 — Uniware DRR unit + sort
+
+- **Issue:** DRR showed 0.03 with no unit. No high/low sort.
+- **Reason:** DRR is pieces per day. Table listed by SKU only.
+- **Fix:** Column and cells use `pcs/day`. Sort: SKU / High to low / Low to high.
+- **Files:** `UniwareBridgePanel.jsx`, `uniwareDrrUtils.js`, `uniwareMirrorExport.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-09-05 — Fix Uniware saleorder/get 404
+
+- **Issue:** Sync orders: 0 lines, 300 get errors, `saleOrder/get` 404 `{}`.
+- **Reason:** Uniware get URL is lowercase `saleorder/get`. We called camelCase `saleOrder/get`.
+- **Fix:** Use `/services/rest/v1/oms/saleorder/get`. Failed gets were not marked checked, so retry works.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
+## 2026-09-05 — Fix Uniware DRR all zeros
+
+- **Issue:** DRR column was 0 on every SKU.
+- **Reason:** `uni_sale_order` had 30,280 headers and **0 lines**. Sync spent the whole time budget re-searching headers, so `saleOrder/get` never ran. DRR is sold qty ÷ days from lines.
+- **Fix:** Backfill lines first (300 orders/click). Short header refresh only. Show get errors on the toast.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `20260905090805_uniware_order_line_backfill.sql`, `UniwareBridgePanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
+## 2026-09-05 — Fetch all Uniware SKUs + Excel export
+
+- **Issue:** User has 1000+ SKUs. Screen and sync looked capped. Need xls to investigate.
+- **Reason:** PostgREST pages 1000 rows. Edge `inventory_skus` select and the UI `.limit()` stopped at page one. ~4064 platform SKUs, only ~1907 in the mirror.
+- **Fix:** Page every SKU read. Persist `uni_item_sku` and resume `itemType/search`. **Export xls** dumps all facilities + current view + DRR.
+- **Files:** `supabase/migrations/20260905090157_uniware_catalog_sku_store.sql`, `uniware-bridge/index.ts`, `uniwareUtils.js`, `uniwareMirrorExport.js`, `UniwareBridgePanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, UNIWARE_BOUNDARY.md
+
+## 2026-09-05 — Uniware full catalog + DRR window
+
+- **Issue:** Mirror missed quiet Uniware SKUs. No DRR. User wants days / months / years.
+- **Reason:** Snapshot has no DRR field. Old sync only pulled platform SKUs + last 24h updates. Orders were headers only.
+- **Fix:** `itemType/search` for catalog SKUs. `uni_sale_order_line` + `uni_drr_by_sku`. UI DRR column and Days/Months/Years filter. Sync orders lookback follows that window. Qty still never enter Inventory on-hand.
+- **Files:** `supabase/migrations/20260905085728_uniware_full_catalog_drr.sql`, `supabase/functions/uniware-bridge/index.ts`, `UniwareBridgePanel.jsx`, `uniwareUtils.js`, `uniwareDrrUtils.js`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, UNIWARE_BOUNDARY.md, DEBUGGING.md, OVERVIEW.md
+
+## 2026-09-04 — Fix Uniware Sync orders date crash
+
+- **Issue:** Sync orders died with generic non-2xx. Inventory still ok.
+- **Reason:** Uniware order `created` is epoch ms. Slice-to-10 made `"1788470970"`, invalid `date`. Error object stringified as `[object Object]`.
+- **Fix:** Parse epoch/ISO to `YYYY-MM-DD`. Real error text on the banner.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `src/uniwareUtils.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
+## 2026-09-04 — Uniware order mirror includes B2B/CUSTOM
+
+- **Issue:** Ecom orders tab looked empty / ecom-only. User wants B2B too.
+- **Reason:** Sync never filtered ecom. It only looked at last 3 hours and 200 rows, and **Sync orders was never clicked**. Live Uniware last 7 days already has hundreds of `CUSTOM` (B2B) orders.
+- **Fix:** Sync last 14 days, all channels, extra CUSTOM pass. UI tabs All / B2B / Ecom. Still read-only on `uni_sale_order`.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `UniwareBridgePanel.jsx`, `uniwareUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, UNIWARE_BOUNDARY.md, DEBUGGING.md
+
+## 2026-09-04 — Uniware mirror by facility, full SKU pull
+
+- **Issue:** Inventory mirror was one facility, last-24h SKUs only, and Available often 0 so the table looked empty.
+- **Fix:** Sync walks every Uniware facility. Snapshot uses last 24h **plus** platform `inventory_skus` in chunks. UI has facility tabs, Hide zeros (on by default), Available / Blocked / Open sale / Putaway / On hand.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `UniwareBridgePanel.jsx`, `uniwareUtils.js`, `supabase/migrations/20260904093145_uniware_mirror_qty_and_facilities.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md
+
+## 2026-09-04 — Staging Uniware login + snapshot payload
+
+- **Ops:** Staging `uniware-bridge` now has Uniware Edge secrets (tenant `scottinternational`). Password is **not** in git. Production not set.
+- **Bug fix:** Snapshot body was `inventoryType` (Uniware rejects it). Now `updatedSinceInMinutes: 1440` per [Get Inventory Snapshot](https://documentation.unicommerce.com/docs/inventory-snapshot.html). Default facility `scottinternational`.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, FLOWS.md, SECURITY.md
+
+## 2026-09-04 — Ready Stock utilization behind one button
+
+- **UI:** Channel utilization no longer sits in a second always-open card. One **Channel utilization** button above the status tabs; click shows totals + SKU table under that button (closed by default). Header filters stay one row. Badges use muted/secondary tokens so they do not go bright white in dark mode.
+- **Files:** `ReadyStockOrdersPanel.jsx`, `readyStockChannelUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md
+
+## 2026-09-04 — Ready Stock order channel + utilization
+
+- **Feature:** Each Ready Stock (`scott_orders`) row now snapshots the sales channel at create time. List and detail show a channel badge. Filter and search work by channel.
+- **Report:** SQL view `rpt_ready_stock_channel_utilization` groups ordered/dispatched qty by channel × SKU (cancelled/failed excluded). Ready Stock tab shows the table.
+- **API:** `POST /api/v1/orders` stamps channel from optional `channel_code` / `channel`, else the API key’s linked `dashboard_channels` row, else `UNKNOWN`. Hashed key lookup runs before the legacy env secret so NotFunny still maps to `NOTFUNNY_APP`.
+- **Migration (staging):** `20260904065942_ready_stock_order_channel.sql`. Existing orders backfilled as Unknown.
+- **Files:** `supabase/migrations/20260904065942_ready_stock_order_channel.sql`, `supabase/functions/dashboard-stock-api/{stockCore,orders,index}.ts`, `ReadyStockOrdersPanel.jsx`, `ReadyStockOrderDetailDialog.jsx`, `readyStockChannelUtils.js`, `AdminIntegrationsPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DASHBOARD_ORDER_API.md
+
 ## 2026-09-03 — View order mockup/asset preview open-close glitch
 
 - **Bug fix:** Mockup, design, and customer-asset preview no longer portals outside the View order Dialog (that forced `modal` on/off and flashed the page). Preview is an overlay inside an inner wrap. Do not put `relative` on DialogContent — Tailwind would drop `fixed` and the order sheet would vanish. Asset Management detail overlays the list instead of swapping to an empty page.

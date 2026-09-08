@@ -6,6 +6,21 @@ import { STAGE_LABEL } from "./orderViewUtils";
 export const NOTIFICATIONS_DASHBOARD_TAB = { id: "notifications", label: "Notifications" };
 export const NOTIFICATIONS_SEEN_STORAGE_PREFIX = "printing-tracker-notifications-seen-";
 
+export const NOTIFICATION_CATEGORY_FILTERS = [
+  { id: "all", label: "All" },
+  { id: "orders", label: "Orders" },
+  { id: "tasks", label: "Tasks" },
+  { id: "inventory", label: "Inventory" },
+  { id: "mentions", label: "Mentions" }
+];
+
+export const NOTIFICATION_TIME_RANGES = [
+  { id: "all", label: "All time" },
+  { id: "today", label: "Today" },
+  { id: "7d", label: "Last 7 days" },
+  { id: "30d", label: "Last 30 days" }
+];
+
 export function formatNotificationWhen(iso) {
   if (!iso) return "";
   const date = new Date(iso);
@@ -24,6 +39,72 @@ export function formatNotificationWhen(iso) {
     hour: "numeric",
     minute: "2-digit"
   });
+}
+
+export function formatNotificationWhenLong(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+/** Filter chips: orders = assignment + status; mentions = inward tags (no mention table). */
+export function notificationCategory(item) {
+  if (item?.kind === "goal_task") return "tasks";
+  if (item?.kind === "printing_inventory") return "inventory";
+  if (item?.kind === "inward") return "mentions";
+  return "orders";
+}
+
+export function notificationActionLabel(item) {
+  if (item?.kind === "goal_task") return "View Task";
+  if (item?.kind === "printing_inventory") return "View Inventory";
+  if (item?.kind === "inward") return "View Inward";
+  return "View Order";
+}
+
+export function notificationCopyValue(item) {
+  if (item?.order_display_id) return String(item.order_display_id).trim();
+  if (item?.task_title) return String(item.task_title).trim();
+  if (item?.material_label || item?.material_key) {
+    return String(item.material_label || item.material_key).trim();
+  }
+  if (item?.grn_no) return String(item.grn_no).trim();
+  return "";
+}
+
+export function notificationInTimeRange(item, range) {
+  if (range === "all" || !range) return true;
+  const time = new Date(item?.created_at).getTime();
+  if (Number.isNaN(time)) return false;
+  if (range === "today") {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    return time >= start.getTime();
+  }
+  const days = range === "7d" ? 7 : 30;
+  return time >= Date.now() - days * 24 * 60 * 60 * 1000;
+}
+
+export function countNotificationsByCategory(items) {
+  const counts = { all: items.length, orders: 0, tasks: 0, inventory: 0, mentions: 0 };
+  for (const item of items) {
+    const category = notificationCategory(item);
+    if (Object.hasOwn(counts, category)) counts[category] += 1;
+  }
+  return counts;
+}
+
+export function isNotificationUnread(item, lastSeenAt) {
+  if (!item?.created_at) return false;
+  if (!lastSeenAt) return true;
+  return item.created_at > lastSeenAt;
 }
 
 export function normalizeAssignmentNotification(row) {

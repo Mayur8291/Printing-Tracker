@@ -83,8 +83,81 @@
 ## Uniware Bridge: "Uniware secrets not set"
 
 - **Symptom:** Sync inventory / Sync orders / Post transfer API step fails naming `UNIWARE_BASE_URL` (or the yellow banner).
-- **Root cause:** Staging edge has no Uniware login secrets yet. By design the mirror tables stay empty until the first successful sync.
-- **Fix:** Dashboard → Edge Functions → `uniware-bridge` → Secrets: `UNIWARE_BASE_URL`, `UNIWARE_USERNAME`, `UNIWARE_PASSWORD`, `UNIWARE_FACILITY`. Then Sync inventory. Ledger transfers still need a Platform Masters entity + a platform location + `UNIWARE-ECOM`.
+- **Root cause:** Staging edge has no Uniware login secrets, or you are on production (prod has no Uniware secrets).
+- **Fix:** Confirm header env is staging. Staging secrets were set 2026-09-04 on `uniware-bridge` (`UNIWARE_BASE_URL` = `https://scottinternational.unicommerce.com`, facility `scottinternational`). Password stays in Edge only. Then **Sync inventory**. Ledger transfers still need a Platform Masters entity + a platform location + `UNIWARE-ECOM`.
+
+## Uniware Bridge: Sync inventory returns 0 / old payload error
+
+- **Symptom:** Sync fails with `Unrecognized field "inventoryType"` or `Either Item Sku or Updated Since required`.
+- **Root cause:** Live Uniware snapshot API does not take `inventoryType`. It needs `updatedSinceInMinutes` (max 1440) or `itemTypeSKUs`. Empty Facility header can also return `LOOKUP_INVENTORY` denied.
+- **Fix:** Staging `uniware-bridge` sends last-24h **and** platform SKU chunks, one Facility header per warehouse (`scottinternational`, `WH1`, `WH2`, Amazon FBA). Redeploy after code change.
+
+## Uniware Bridge: only ~1000 SKUs show / export needed
+
+- **Symptom:** User knows 1000+ SKUs. Table looks capped. Hard to inspect in the UI.
+- **Root cause:** PostgREST returns 1000 rows per request. Sync and the UI each took page one. Hide zeros also hides empty catalog rows.
+- **Fix:** Refresh after the 2026-09-05 deploy. Click **Sync inventory** until toast no longer says catalog still paging. Use **Export xls**. Turn Hide zeros off to see empty SKUs.
+- **Queries:** `select count(distinct sku_code) from uni_inventory_mirror;` and `select count(*) from uni_item_sku;`
+
+## Uniware Bridge: Sold / DRR does not match Uniware
+
+- **Symptom:** Team compares a SKU’s sold qty or DRR to Uniware and the numbers differ. Period change looks instant / stale.
+- **Root cause:** Old sync merged shipping-package SKU summaries with `saleOrderItems` (empty status, extra qty). DRR also counted non-sale statuses. Many orders in the window still had no lines. Period change did not show a spinner.
+- **Fix:** Lines are exact `saleOrderItems` only. Sold / DRR use dispatched–invoiced statuses for the selected Days/Months/Years window. Spinner sits next to the period control until that window finishes. Click **Sync orders** until the incomplete banner is gone.
+- **Queries:** `select status, count(*), sum(qty) from uni_sale_order_line group by 1;` and `select * from uni_drr_by_sku(current_date - 30, 30, null) order by sold_qty desc limit 20;`
+
+## Uniware Bridge: Export xls does not match the table
+
+- **Symptom:** Spreadsheet has extra rows, extra columns, or different order than Inventory mirror.
+- **Root cause:** Old export dumped every facility (including hidden zeros) on the first sheet and raw ISO times.
+- **Fix:** Export xls now uses `visibleMirror` only — same columns (including Sold + DRR) and sort as the screen.
+
+## Uniware Bridge: what does a tiny DRR like 0.03 mean
+
+- **Symptom:** DRR shows 0.03 or 0.00 and looks like a multiplier.
+- **Root cause:** DRR is **pcs/day** = Uniware sold qty in the window ÷ days. 1 piece in 30 days = 0.03 pcs/day. 0.00 = no sold lines in that window (or lines not synced yet).
+- **Fix:** Column header and cells now say `pcs/day`. Use Sort DRR High to low to find movers.
+
+## Uniware Bridge: Sync orders 404 on saleOrder/get
+
+- **Symptom:** Toast `0 lines from 0 orders` and `get errors: Uniware /services/rest/v1/oms/saleOrder/get failed (404): {}`.
+- **Root cause:** Uniware get path is `/oms/saleorder/get` (lowercase). Search is `/oms/saleOrder/search` (camelCase). Wrong casing → empty 404.
+- **Fix:** Staging function uses lowercase get. Click **Sync orders** again after the 2026-09-05 redeploy.
+
+## Uniware Bridge: DRR is 0 on every SKU
+
+- **Symptom:** Inventory mirror DRR column is 0 for all rows after Sync orders.
+- **Root cause:** DRR reads `uni_sale_order_line`. A year-long header sync left **0 lines** (`select count(*) from uni_sale_order_line`). Search ate the edge deadline; `saleOrder/get` never ran.
+- **Fix:** Click **Sync orders** after the 2026-09-05 line-backfill deploy. Toast should show lines > 0. Repeat until “still need lines” is gone. Default 30-day window has ~2,400 orders; ~300 fills per click.
+- **Queries:** `select count(*) from uni_sale_order_line;` and `select count(*) from uni_sale_order where order_date >= current_date - 30 and lines_checked_at is null;`
+
+## Uniware Bridge: DRR all 0 / catalog still short
+
+- **Symptom:** DRR column is 0, or Sync inventory still misses SKUs that exist only in Uniware.
+- **Root cause:** DRR needs `uni_sale_order_line`. First Sync orders only fills 80 order-gets per click. Catalog `itemType/search` can truncate on the 70s budget.
+- **Fix:** Set DRR to the window you want (Days / Months / Years). Click **Sync orders** until the toast no longer says orders still need lines. Click **Sync inventory** again if catalog was truncated. Qty still do not enter Inventory on-hand.
+- **Queries:** `select count(*) from uni_sale_order_line;` and `select * from uni_drr_by_sku('2026-08-06', 30) limit 20;`
+
+## Uniware Bridge: Sync orders fails (non-2xx / date out of range)
+
+- **Symptom:** Red banner `Edge Function returned a non-2xx status code`. Inventory sync works. `sale_orders` stays never.
+- **Root cause:** Uniware `created` / `displayOrderDateTime` is epoch milliseconds (e.g. `1788470970000`). Old mapper did `String(created).slice(0, 10)` → `"1788470970"`, which Postgres rejects as a `date`. Error was stored as `[object Object]`.
+- **Fix:** Staging `uniware-bridge` converts epoch or ISO to `YYYY-MM-DD`. Click **Sync orders** again after the 2026-09-04 redeploy.
+- **Logs:** `uni_sync_log.error_text` for `sale_orders`. Postgres: `date/time field value out of range`.
+
+## Uniware Bridge: only ecom / no B2B orders
+
+- **Symptom:** Ecom orders tab empty, or only Amazon. User expects B2B.
+- **Root cause:** `sale_orders` feed was never synced, or old sync used last 180 minutes / 200 rows. Uniware B2B is channel `CUSTOM` (433 of 900 orders in a recent 7-day sample).
+- **Fix:** Click **Sync orders** after the 2026-09-04 function deploy. Tabs: All / B2B / CUSTOM / Ecom. New dashboard B2B still lives on Sales Orders (`so_order`), not this mirror.
+- **Queries:** `select channel, count(*) from uni_sale_order group by 1 order by 2 desc;`
+
+## Uniware Bridge: all qty look 0 / no facility tabs
+
+- **Symptom:** Inventory mirror is one long list, almost every Qty is 0, no per-warehouse view.
+- **Root cause:** First sync only pulled SKUs Uniware updated in 24 hours on facility `scottinternational`. Uniware `inventory` is **available** (often 0 while blocked/putaway still sit in the warehouse). Table was unsorted zeros.
+- **Fix:** Click **Sync inventory** again after the 2026-09-04 function deploy. Use facility tabs. Hide zeros is on by default. On hand = available + blocked + putaway.
+- **Queries:** `select facility_code, count(*), count(*) filter (where qty > 0) from uni_inventory_mirror group by 1;`
 
 ## Uniware Bridge tab empty / missing tables
 
@@ -256,13 +329,26 @@
 | **Fix** | Hard refresh. Open Tickets → **Raise an Issue**. Floor-required issue: Floor appears, pick a floor, then Comment. Food / Asset / Biometric / Lost belongings: no Floor, Comment only. Mix with Internet: Floor shows again. |
 | **Verify** | Internet alone: Floor then Comment after a floor. Food alone: no Floor, Comment only. Food + Internet: Floor shows, Comment waits for a floor. After Submit: thank-you sentence. |
 
+## Sampling SLA settings will not save
+
+| **Symptom** | Admin clicks SLA settings, Save fails or Due In stays 2 days. |
+| **Root cause** | Staging table `sample_job_sheet_settings` missing, or user is not admin (`jwt_user_is_admin`). |
+| **Fix** | Apply `20260908121033_sample_job_sheet_sla_settings.sql` on staging. Sign in as admin. Hard refresh. |
+| **Queries** | `select * from sample_job_sheet_settings;` |
+
+## Sample form still shows advance / approval fields
+
+| **Symptom** | Create Sample Jobsheet still has Advance amount, Full paid, Delivery city, Approval date. |
+| **Root cause** | Old bundle. Sample now uses `hideCommerceExtras`. |
+| **Fix** | Hard refresh. Open **Sampling Tracker** → Create Sample Jobsheet. Production Create Job sheet still has the full block. |
+
 ## Delivery required on still lets pick a past day
 
 | | |
 |--|--|
 | **Symptom** | Create Job sheet or Create Sample Jobsheet calendar still has yesterday and older days. |
 | **Root cause** | DatePicker must get `minDate` = today. Save also rejects `due_date` before today. |
-| **Fix** | Hard refresh. Open Create Job sheet or Create Sample Jobsheet → Delivery required on. |
+| **Fix** | Hard refresh. Open Create Job sheet → Delivery required on, or Create Sample Jobsheet → Sampling required on. |
 | **Verify** | Today and future days click. Past days grey / not selectable. Production still requires a date. Sample can leave it blank. |
 
 ## Sample Due In missing, wrong time, or SLA Breached too early
@@ -271,7 +357,7 @@
 |--|--|
 | **Symptom** | Sampling list has no **Due In** after Order date, View Sample Order has no Due In, countdown ignores **Delivery required on**, stays 48h when a date was filled, or **SLA Breached** shows while still inside the deadline. |
 | **Root cause** | If `due_date` is set, SLA is end of that local day. If blank, SLA is `created_at` + 48 hours. List column is Sampling `extraColumn` after Order date. Closed samples show — on the list and hide Due In in the view. Browser clock drives the tick. |
-| **Fix** | Hard refresh. Open **Sampling Tracker** → **All orders**. Check `due_date` and `created_at`. Create Sample Jobsheet can save without Delivery required on. Complete orders has no Due In column. |
+| **Fix** | Hard refresh. Open **Sampling Tracker** → **All orders**. Check `due_date` and `created_at`. Create Sample Jobsheet can save without Sampling required on. Complete orders has no Due In column. |
 | **Verify** | Save with a delivery date → All orders Due In counts to end of that day. Save with no date → near `48:00 Hrs Left`. Sampling Complete has no Due In. After Dispatched Successfully, view hides Due In. Past the deadline still open → red **SLA Breached**, no timer. |
 
 ## Sampling Complete still shows a Status dropdown or wrong status
@@ -915,6 +1001,14 @@ Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES
 - **Deploy:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase functions deploy scott-order-update-status`
 - **Statuses (exact strings for app):** `PENDING` → `PROCESSING` → `COMPLETE` | `FAILED` | `CANCELLED`. Webhook `order.status_changed` fires on each transition.
 
+## Ready Stock channel shows Unknown / utilization empty
+
+- **Symptom:** Ready Stock list Channel is Unknown, or **Channel utilization** button shows `0 ordered` / empty text after click. New partner order should have been NotFunny / Scott App.
+- **Root cause:** Order created before `20260904065942_ready_stock_order_channel.sql`, or create used the legacy env secret with no matching `dashboard_api_keys` row, or the channel is not linked to that API key and the body omitted `channel_code`. Utilization view missing on the connected project also returns empty (load still shows orders).
+- **Fix:** Apply the migration on staging. Admin → Integrations → Channels: link the partner API key. Redeploy `dashboard-stock-api` on the same project. New orders stamp the channel; old rows stay Unknown unless you update them by hand.
+- **Queries:** `select order_code, channel_code, channel_name from scott_orders order by created_at desc limit 20;` `select * from rpt_ready_stock_channel_utilization;` `select code, api_key_id, enabled from dashboard_channels;`
+- **Deploy:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase db push && npx supabase functions deploy dashboard-stock-api`
+
 ## Ready Stock Order tab empty though app orders exist
 
 - **Symptom:** Orders created via the Order API return 201 but the Ready Stock Order tab shows "No app orders yet".
@@ -1152,6 +1246,15 @@ Vite bakes `VITE_*` into the bundle **at build time**. After `.env` was removed 
 
 ### Verify
 Hard refresh production URL. Console has no Supabase env error. Network requests go to `levwrmvqdntngeasrtnb.supabase.co`.
+
+## Notifications tab filter looks empty
+
+| | |
+|--|--|
+| **Symptom** | Mentions (or another chip) shows 0. All still has rows. |
+| **Root cause** | Mentions is inward tags only. Time Select also hides older rows. No separate mention table. |
+| **Fix** | Switch to **All** or a wider time range. Confirm the user was tagged on an inward entry. |
+| **Verify** | Inward tag → Mentions count +1. Order status / assignment → Orders. Goal task → Tasks. Printing low stock → Inventory. |
 
 ## Notifications: goal task or order status missing
 

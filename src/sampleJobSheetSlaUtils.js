@@ -1,11 +1,37 @@
 import { sampleJobSheetIsClosed } from "./sampleJobSheetStages";
 
-/** Default SLA when Delivery Required On is empty: 2 days from save (`orders.created_at`). */
+/** Default SLA when Sampling required on is empty: 2 days from save (`orders.created_at`). */
 export const SAMPLE_JOB_SHEET_SLA_MS = 2 * 24 * 60 * 60 * 1000;
 
-const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
-const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+export const DEFAULT_SAMPLE_JOB_SHEET_SLA = Object.freeze({
+  defaultSlaDays: 2,
+  defaultSlaHours: 0,
+  warnHours: 24,
+  urgentHours: 12
+});
+
 const LOCAL_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export function clampSampleSlaDays(raw) {
+  const n = Math.floor(Number(raw) || 0);
+  return Math.min(30, Math.max(1, n));
+}
+
+export function clampSampleSlaHours(raw) {
+  const n = Math.floor(Number(raw) || 0);
+  return Math.min(23, Math.max(0, n));
+}
+
+export function clampSampleSlaWarnHours(raw) {
+  const n = Math.floor(Number(raw) || 0);
+  return Math.min(168, Math.max(1, n));
+}
+
+export function sampleJobSheetSlaDurationMs(policy = DEFAULT_SAMPLE_JOB_SHEET_SLA) {
+  const days = clampSampleSlaDays(policy.defaultSlaDays);
+  const hours = clampSampleSlaHours(policy.defaultSlaHours);
+  return (days * 24 + hours) * 60 * 60 * 1000;
+}
 
 function sampleJobSheetDeliveryDeadlineMs(raw) {
   const text = String(raw ?? "").trim();
@@ -16,19 +42,20 @@ function sampleJobSheetDeliveryDeadlineMs(raw) {
   return Number.isFinite(end) ? end : null;
 }
 
-function sampleJobSheetDefaultDeadlineMs(order) {
+function sampleJobSheetDefaultDeadlineMs(order, policy) {
+  const duration = sampleJobSheetSlaDurationMs(policy);
   const created = Date.parse(order?.created_at);
-  if (Number.isFinite(created)) return created + SAMPLE_JOB_SHEET_SLA_MS;
+  if (Number.isFinite(created)) return created + duration;
   const date = String(order?.order_date ?? "").trim();
   if (!date) return null;
   const start = new Date(`${date}T00:00:00`).getTime();
   if (!Number.isFinite(start)) return null;
-  return start + SAMPLE_JOB_SHEET_SLA_MS;
+  return start + duration;
 }
 
-/** Delivery Required On end-of-day when set; otherwise save time + 2 days. */
-export function sampleJobSheetSlaDeadlineMs(order) {
-  return sampleJobSheetDeliveryDeadlineMs(order?.due_date) ?? sampleJobSheetDefaultDeadlineMs(order);
+/** Sampling required on end-of-day when set; otherwise save time + admin SLA. */
+export function sampleJobSheetSlaDeadlineMs(order, policy = DEFAULT_SAMPLE_JOB_SHEET_SLA) {
+  return sampleJobSheetDeliveryDeadlineMs(order?.due_date) ?? sampleJobSheetDefaultDeadlineMs(order, policy);
 }
 
 function pad2(n) {
@@ -43,9 +70,11 @@ export function formatSampleJobSheetSlaCountdown(remainingMs) {
   return `${pad2(hours)}:${pad2(minutes)} Hrs Left`;
 }
 
-export function sampleJobSheetSlaUrgency(remainingMs) {
-  if (remainingMs < TWELVE_HOURS_MS) return "urgent";
-  if (remainingMs < TWENTY_FOUR_HOURS_MS) return "warn";
+export function sampleJobSheetSlaUrgency(remainingMs, policy = DEFAULT_SAMPLE_JOB_SHEET_SLA) {
+  const urgentMs = clampSampleSlaWarnHours(policy.urgentHours) * 60 * 60 * 1000;
+  const warnMs = clampSampleSlaWarnHours(policy.warnHours) * 60 * 60 * 1000;
+  if (remainingMs < urgentMs) return "urgent";
+  if (remainingMs < warnMs) return "warn";
   return "ok";
 }
 
@@ -55,11 +84,11 @@ export function sampleJobSheetSlaUrgency(remainingMs) {
  * breached = still open and past deadline (no timer).
  * countdown = still open and time left.
  */
-export function getSampleJobSheetSlaSnapshot(order, nowMs = Date.now()) {
+export function getSampleJobSheetSlaSnapshot(order, nowMs = Date.now(), policy = DEFAULT_SAMPLE_JOB_SHEET_SLA) {
   if (!order || sampleJobSheetIsClosed(order)) {
     return { kind: "hidden" };
   }
-  const deadline = sampleJobSheetSlaDeadlineMs(order);
+  const deadline = sampleJobSheetSlaDeadlineMs(order, policy);
   if (deadline == null) return { kind: "hidden" };
   const remainingMs = deadline - nowMs;
   if (remainingMs <= 0) {
@@ -68,6 +97,6 @@ export function getSampleJobSheetSlaSnapshot(order, nowMs = Date.now()) {
   return {
     kind: "countdown",
     label: formatSampleJobSheetSlaCountdown(remainingMs),
-    urgency: sampleJobSheetSlaUrgency(remainingMs)
+    urgency: sampleJobSheetSlaUrgency(remainingMs, policy)
   };
 }
