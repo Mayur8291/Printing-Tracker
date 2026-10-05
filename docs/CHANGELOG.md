@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05 — Assigned enquiry view is contact history + status only
+
+- **Change:** Non-admin assignees no longer see Mark verified, Mark contacted, Close pick, reach-out, notes, tag, or assign. Their detail is phone + case text, **Contact history** (add event), and **Status**. Admin / Support admin keep the full concierge dialog. Status checklists land in a follow-up (`enquiryStatusChecklist.js` is empty until then).
+- **Files:** `EnquiryDetailDialog.jsx`, `enquiryActivityUtils.js`, `enquiryStatusChecklist.js` (new)
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md
+
 ## 2026-10-05 — Enquiry desk pagination
 
 - **Feature:** Enquiry and Complaints tables paginate with the shared `usePagination` / `OrdersPagination` / `OrdersPerPageControl` (default 10, stored per desk). Filter or search resets to page 1.

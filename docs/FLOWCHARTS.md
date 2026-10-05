@@ -11,6 +11,21 @@ flowchart TD
   Feed --> Open[View Enquiry → Support tab]
 ```
 
+## Assigned staff vs admin enquiry detail
+
+```mermaid
+flowchart TD
+  Open[Open enquiry detail] --> Role{isAdmin?}
+  Role -->|yes| Admin[Full dialog: facts, pick, reach-out, notes, assign, activity, status]
+  Role -->|no| Staff[Slim dialog]
+  Staff --> Facts[Phone + case text]
+  Staff --> Hist[Contact history + add event]
+  Staff --> Stat[Status change]
+  Hist --> Log[(enquiry_activity_log action=contact)]
+  Stat --> StatusFn[updateEnquiryStatus]
+  Admin -->|Mark verified / contacted / Close| Pick[pickEnquiry]
+```
+
 ## Support admin vs platform admin
 
 ```mermaid
@@ -21,9 +36,10 @@ flowchart TD
   PA --> Fn
   Fn -->|true| All[See all enquiries / assign / tags / SLA]
   Fn -->|false| Scoped[Assignee / creator / tag / SLA fallback only]
-  All --> Act[Actions]
-  Scoped --> Act
+  All --> Act[Admin actions]
+  Scoped --> Staff[Contact history + status]
   Act --> Log[(enquiry_activity_log)]
+  Staff --> Log
   Act -->|reach-out comment| Row[enquiries.last_reached_out_*]
 ```
 
@@ -565,9 +581,11 @@ flowchart TD
   G -->|Delay alert| DA[Queue delay text + next buttons]
   G -->|Prod status auto| PS[Backend queues status WhatsApp]
   G -->|Create| H[Order lookup + photos + insert]
-  G -->|Assign| I[Team member or unknown to Gargi]
-  G -->|Mark verified| J[picked_at]
-  G -->|Mark contacted| K[in_progress]
+  G -->|Assign admin| I[Team member or unknown to Gargi]
+  G -->|Mark verified admin| J[picked_at]
+  G -->|Mark contacted admin| K[in_progress]
+  G -->|Staff contact event| CH[enquiry_activity_log contact]
+  G -->|Staff status| SS[updateEnquiryStatus]
   G -->|Close| L[closed + queue survey text]
   L --> M[WhatsApp simulator shows Feedback]
 ```

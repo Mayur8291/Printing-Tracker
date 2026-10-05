@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-05 — Assigned staff see contact history + status only
+
+**Context:** Enquiry detail was the same packed dialog for admin and assignee. Assigned users were asked to Mark verified / Mark contacted / reach-out while also seeing notes, tag, SLA, feedback, and assign.
+
+**Options:** (1) Hide two buttons only. (2) Separate staff dialog: case facts + contact history events + status. (3) Two routes.
+
+**Decision:** Option 2. `isStaffView = !isAdmin`. Admin / Support admin keep concierge actions. Staff add `contact` activity rows instead of pick buttons. Status checklists (`enquiryStatusChecklist.js`) wait for the next product list — Update status still saves immediately until that list exists.
+
+**Tradeoffs:** Staff cannot close via the old Close pick button; they use Status → Closed. Reach-out timestamps stay admin-only. SLA still stops when staff move status to in_progress / resolved / closed (`picked_at`).
+
 ## 2026-10-05 — Support updates fan out via one security-definer RPC
 
 **Context:** Assignee and admin must see every enquiry change in the Notifications inbox. Staff cannot reliably SELECT every admin id under RLS.

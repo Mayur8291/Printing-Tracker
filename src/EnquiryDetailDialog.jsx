@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
@@ -82,7 +84,7 @@ export default function EnquiryDetailDialog({
   teamProfiles,
   profileById,
   isAdmin,
-  canEdit,
+  canEdit: _canEdit,
   sessionUserId,
   onUpdated,
   tags = [],
@@ -94,6 +96,7 @@ export default function EnquiryDetailDialog({
   const [notesDraft, setNotesDraft] = useState("");
   const [tagDraft, setTagDraft] = useState("");
   const [reachOutDraft, setReachOutDraft] = useState("");
+  const [contactDraft, setContactDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -102,14 +105,15 @@ export default function EnquiryDetailDialog({
   const [outbound, setOutbound] = useState([]);
 
   const mayAssign = isAdmin;
-  const mayEditDetails = isAdmin || canEdit;
+  const mayEditDetails = isAdmin;
+  const isStaffView = !isAdmin;
   const isAssignee = enquiry?.assignee_id === sessionUserId;
   const isSlaFallback = enquiry?.escalated_to_id === sessionUserId;
   const isTagMember = Boolean(enquiry?.tag_id && sessionTagIds?.has?.(enquiry.tag_id));
   const mayUpdateStatus = isAdmin || isAssignee || isSlaFallback || isTagMember;
   const isEnquiryKind = String(enquiry?.ticket_kind ?? "") === "enquiry";
   const tagName = enquiry?.tag_id ? tags.find((t) => t.id === enquiry.tag_id)?.name ?? "" : "";
-  const mayPick = mayUpdateStatus && enquiry && enquiry.status !== "closed";
+  const mayPick = isAdmin && enquiry && enquiry.status !== "closed";
 
   useEffect(() => {
     if (!open || !enquiry) return;
@@ -119,6 +123,7 @@ export default function EnquiryDetailDialog({
     setNotesDraft(enquiry.notes || "");
     setTagDraft(enquiry.tag_id || "");
     setReachOutDraft("");
+    setContactDraft("");
     setError("");
     void fetchEnquiryActivity(enquiry.id)
       .then(setActivity)
@@ -229,6 +234,36 @@ export default function EnquiryDetailDialog({
     }
   }
 
+  async function handleAddContactEvent() {
+    if (!mayUpdateStatus) return;
+    const note = contactDraft.trim();
+    if (!note) {
+      setError("Write what you told the customer.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await logEnquiryActivity({
+        enquiryId: enquiry.id,
+        actorId: sessionUserId,
+        action: "contact",
+        detail: note
+      });
+      await notifyEnquiryWatchers({
+        enquiryId: enquiry.id,
+        kind: "details",
+        summary: "Contact history added"
+      });
+      setContactDraft("");
+      await emitUpdated(enquiry);
+    } catch (e) {
+      setError(friendlyEnquiryDbError(e) || e.message || "Could not save contact history.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handlePick(action) {
     if (!mayPick) return;
     setPicking(true);
@@ -323,10 +358,118 @@ export default function EnquiryDetailDialog({
           </DialogTitle>
           <DialogDescription>
             {enquiry.customer_name}
-            {enquiry.source ? ` · ${enquiry.source}` : ""}
+            {isStaffView ? "" : enquiry.source ? ` · ${enquiry.source}` : ""}
           </DialogDescription>
         </DialogHeader>
 
+        {isStaffView ? (
+          <div className="flex flex-col gap-4">
+            <dl className="grid gap-2 text-sm">
+              <div className="grid grid-cols-[7rem_1fr] gap-2">
+                <dt className="text-muted-foreground">Phone</dt>
+                <dd>
+                  {enquiry.customer_phone ? (
+                    <a className="underline underline-offset-2" href={`tel:${enquiry.customer_phone}`}>
+                      {enquiry.customer_phone}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
+              </div>
+              {isEnquiryKind ? null : (
+                <div className="grid grid-cols-[7rem_1fr] gap-2">
+                  <dt className="text-muted-foreground">Order ID</dt>
+                  <dd>{enquiry.order_id || "—"}</dd>
+                </div>
+              )}
+              <div className="grid grid-cols-[7rem_1fr] gap-2">
+                <dt className="text-muted-foreground">
+                  {isEnquiryKind ? "Enquiry details" : "Concerns"}
+                </dt>
+                <dd className="whitespace-pre-wrap">{enquiry.product_details || "—"}</dd>
+              </div>
+            </dl>
+
+            <Separator />
+
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Contact history</FieldLabel>
+                {activity.length ? (
+                  <ul className="max-h-48 flex flex-col gap-1 overflow-y-auto text-sm">
+                    {activity.map((row) => {
+                      const actor = profileById?.[row.actor_id];
+                      return (
+                        <li key={row.id} className="text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            {ENQUIRY_ACTIVITY_LABEL[row.action] ?? row.action}
+                          </span>
+                          {" · "}
+                          {profileDisplayName(actor)}
+                          {row.detail ? ` · ${row.detail}` : ""}
+                          {" · "}
+                          {formatDateTime(row.created_at)}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No contact events yet.</p>
+                )}
+              </Field>
+              {mayUpdateStatus && enquiry.status !== "closed" ? (
+                <Field>
+                  <FieldLabel htmlFor="enquiry-contact-event">Add contact event</FieldLabel>
+                  <Textarea
+                    id="enquiry-contact-event"
+                    value={contactDraft}
+                    onChange={(e) => setContactDraft(e.target.value)}
+                    rows={3}
+                    placeholder="What you said / next step…"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={saving || !contactDraft.trim()}
+                    onClick={() => void handleAddContactEvent()}
+                  >
+                    {saving ? "Saving…" : "Add to history"}
+                  </Button>
+                </Field>
+              ) : null}
+            </FieldGroup>
+
+            {mayUpdateStatus ? (
+              <>
+                <Separator />
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel>Status</FieldLabel>
+                    <Select value={statusDraft} onValueChange={setStatusDraft}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ENQUIRY_STATUSES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {ENQUIRY_STATUS_LABEL[s]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" disabled={saving} onClick={() => void handleSaveStatus()}>
+                      {saving ? "Updating…" : "Update status"}
+                    </Button>
+                  </Field>
+                </FieldGroup>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+
+        {isStaffView ? null : (
+        <>
         <dl className="grid gap-2 text-sm">
           <div className="grid grid-cols-[7rem_1fr] gap-2">
             <dt className="text-muted-foreground">Phone</dt>
@@ -400,10 +543,6 @@ export default function EnquiryDetailDialog({
               </dd>
             </div>
           )}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Received</dt>
-            <dd>{formatDateTime(enquiry.created_at)}</dd>
-          </div>
           {enquiry.opened_at ? (
             <div className="grid grid-cols-[7rem_1fr] gap-2">
               <dt className="text-muted-foreground">Opened</dt>
@@ -676,6 +815,8 @@ export default function EnquiryDetailDialog({
             </Button>
           </div>
         ) : null}
+        </>
+        )}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

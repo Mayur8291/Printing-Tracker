@@ -1,5 +1,15 @@
 # Debugging
 
+## Assigned user still sees Mark verified / Mark contacted
+
+| | |
+|--|--|
+| **Symptom** | Staff open an assigned enquiry and still see Mark verified, Mark contacted, reach-out, notes, or assign. |
+| **Root cause** | That login is a platform admin or Support admin (`isAdmin` is true), or the browser is on a stale bundle. |
+| **Investigate** | Admin → Edit user: is Support admin on? `profiles.role`? Hard refresh. |
+| **Fix** | Turn Support admin off for that user if they should get the slim desk. Deploy includes `EnquiryDetailDialog` staff view (`!isAdmin`). |
+| **Verify** | Non-admin assignee sees phone, case text, contact history, status only. |
+
 ## Enquiry with a tag is not visible to a staff user
 
 | | |
@@ -8,7 +18,7 @@
 | **Root cause** | User is not ticked under that tag, or the tag was changed after the user loaded the page, or the user is looking at the Complaints sub-tab (default). |
 | **Investigate** | Admin → Enquiry desk → **Tags** → select the tag → is the user ticked? SQL: `select * from enquiry_tag_members where user_id = '<id>'`. Then `select enquiry_code, tag_id from enquiries where enquiry_code = 'ENQ-…'`. |
 | **Fix** | Tick the user. Realtime on `enquiry_tag_members` refetches tags, and the `enquiries` channel refetches rows — else hard refresh. |
-| **Verify** | Row appears on the user's Enquiry sub-tab with the Tag badge; they can Mark contacted. |
+| **Verify** | Row appears on the user's Enquiry sub-tab with the Tag badge; they can add contact history and change status. |
 
 ## Bulk upload: wrong dates / month and day swapped
 
@@ -917,7 +927,7 @@
 |--|--|
 | **Symptom** | Assign picker missing, or error “Only an admin can assign enquiries”. |
 | **Root cause** | Assign is admin-only. Simulator as non-admin creates **New** (unassigned) for admin. |
-| **Fix** | Sign in as admin to assign. Staff use Mark verified / Contacted / Close on tickets already assigned to them. Admin opens the row → **Activity** to see staff work. |
+| **Fix** | Sign in as admin to assign. Assigned staff use **Contact history** + **Status** only. Admin opens the row → **Activity** to see staff work. |
 
 ## Enquiry: WhatsApp simulator does not create a ticket
 
@@ -935,7 +945,7 @@
 | **Symptom** | Support → Complaints error about schema cache / missing column (`order_id`, `picked_at`, `attachments`). Create enquiry fails. |
 | **Root cause** | Migration `20260818082754_enquiry_concierge_desk.sql` not on this Supabase project, or PostgREST schema cache stale. |
 | **Fix** | Apply that migration on **staging** (`scvojtvgnkmbupvyslmb`). Then `NOTIFY pgrst, 'reload schema';`. Hard refresh the app. |
-| **Verify** | New enquiry with Order ID + photo; detail shows Mark verified / Contacted / Close. |
+| **Verify** | New enquiry with Order ID + photo; admin detail shows Mark verified / Contacted / Close. Assigned staff see contact history + status only. |
 
 ## Enquiry: Close does not send automatic text
 
