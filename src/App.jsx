@@ -50,6 +50,7 @@ import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Theme } from "@radix-ui/themes";
 import { cn } from "./lib/utils";
+import { uuid } from "./lib/uuid";
 import SharedLinksPanel from "./SharedLinksPanel";
 import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
 import EnquiryPanel from "./EnquiryPanel";
@@ -4201,7 +4202,7 @@ function App() {
     const author = teamProfiles.find((p) => String(p.id) === String(row.author_id));
     const name = messageAuthorDisplayName(row, author) || "Someone";
     const body = conversationPreviewText(row) || "New message";
-    const id = `chat-${row.id ?? crypto.randomUUID()}`;
+    const id = `chat-${row.id ?? uuid()}`;
     setChatIncomingToasts((prev) => {
       const next = prev.filter((t) => t.id !== id);
       return [...next, { id, name, body }].slice(-6);

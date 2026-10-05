@@ -1,5 +1,98 @@
 # Debugging
 
+## Enquiry with a tag is not visible to a staff user
+
+| | |
+|--|--|
+| **Symptom** | Admin tagged an enquiry Pets; a Pets user opens Support → Enquiry and the row is missing. |
+| **Root cause** | User is not ticked under that tag, or the tag was changed after the user loaded the page, or the user is looking at the Complaints sub-tab (default). |
+| **Investigate** | Admin → Enquiry desk → **Tags** → select the tag → is the user ticked? SQL: `select * from enquiry_tag_members where user_id = '<id>'`. Then `select enquiry_code, tag_id from enquiries where enquiry_code = 'ENQ-…'`. |
+| **Fix** | Tick the user. Realtime on `enquiry_tag_members` refetches tags, and the `enquiries` channel refetches rows — else hard refresh. |
+| **Verify** | Row appears on the user's Enquiry sub-tab with the Tag badge; they can Mark contacted. |
+
+## Bulk upload: wrong dates / month and day swapped
+
+| | |
+|--|--|
+| **Symptom** | CSV date `03/04/2026` lands as 3 April but sheet meant 4 March (or vice versa). |
+| **Root cause** | `parseCsvDate` treats `a/b/yyyy` as **dd/mm/yyyy** (Indian). US-style **CSV** sheets break. Real Excel date cells in `.xlsx` are unaffected (read as UTC day). |
+| **Fix** | Upload the `.xlsx` instead, or export CSV as `yyyy-mm-dd` / `dd/mm/yyyy`. |
+
+## Bulk upload: dropdowns missing in the template
+
+| | |
+|--|--|
+| **Symptom** | Opened `enquiries-template.xlsx`, Source/Tag/City cells have no arrow. |
+| **Root cause** | Opened in an app that ignores data validation (some previewers, Google Sheets import sometimes drops it), or the row is beyond 1000, or no tags exist (Tag validation is skipped when the list is empty). |
+| **Fix** | Open in Excel / LibreOffice / Numbers. Admin → Tags → add tags, re-download. Rows >1000: split the file. |
+
+## Bulk upload: "Reference" source rejected by Excel
+
+| | |
+|--|--|
+| **Symptom** | Typing `Reference - Amit` in Source pops a warning. |
+| **Root cause** | Source validation is `warning` style on purpose so the name can be typed. |
+| **Fix** | Click **Yes** / continue. Import normalises it to `Reference - Amit`. |
+
+## Bulk upload: tag / city blank after import
+
+| | |
+|--|--|
+| **Symptom** | Preview note `Tag "X" not found` or `City "Y" not in list`. |
+| **Root cause** | Tag matched by name against `enquiry_tags` (any active state); City against `INDIAN_CITY_STATE` keys + aliases. Spelling differs. |
+| **Fix** | Admin → Tags → add the tag first, or fix spelling in the sheet. Unknown city is still saved as typed; only state stays empty. |
+
+## Bulk upload: "Row N" does not match the spreadsheet line
+
+| | |
+|--|--|
+| **Root cause** | `mastersUtils.parseCsv` drops fully blank lines, so Row counts data rows only. |
+| **Fix** | Remove blank lines from the sheet, or count non-blank rows after the header. |
+
+## Enquiry never turns "Opened" when staff view it
+
+| | |
+|--|--|
+| **Symptom** | Assignee opens the ticket; status stays New / Assigned; admin sees no Opened. |
+| **Root cause** | One of: viewer is admin (by design, no change); ticket already has `picked_at`; status not `new`/`assigned`; viewer is not assignee / tag holder / SLA fallback (RLS blocks update); project lacks `opened` in `enquiries_status_check` → console `enquiry opened mark: … violates check constraint`. |
+| **Investigate** | DevTools console for `enquiry opened mark:`. SQL: `select status, opened_at, picked_at, assignee_id, tag_id from enquiries where enquiry_code = 'ENQ-…'`. |
+| **Fix** | Apply `20261005063756_enquiry_opened_status.sql` on that project (staging done). Otherwise confirm the viewer is actually the assignee or holds the tag. |
+
+## "Opened" count card shows but status filter pill missing
+
+| | |
+|--|--|
+| **Symptom** | Admin sees Opened card, no Opened pill in the status filter. |
+| **Root cause** | Pills come from `ENQUIRY_STATUSES` in `enquiryUtils.js`; cards are a literal list in `SupportTicketDesk.jsx`. Someone edited one, not the other. |
+| **Fix** | Keep both lists in step (both include `opened` as of 2026-10-05). |
+
+## State box stays empty / city not saved on enquiry
+
+| | |
+|--|--|
+| **Symptom** | State input blank after picking city, or saved enquiry has no Location in detail. |
+| **Root cause** | City name not in `INDIAN_CITY_STATE` (state only derives from that map), or project lacks `customer_city` / `customer_state` columns so the legacy insert fallback drops them silently. |
+| **Investigate** | `select customer_city, customer_state from enquiries order by created_at desc limit 5`. If columns missing → migration `20261005063356_enquiry_customer_city_state.sql` not applied there. |
+| **Fix** | Add the city to `src/indianCities.js` map, or apply the migration (staging done; production only on release). |
+
+## Tag Select empty in New enquiry
+
+| | |
+|--|--|
+| **Symptom** | Only "No tag" in the Tag dropdown. Console warns `enquiry tags: Could not find the table`. |
+| **Root cause** | Migration `20261005062316_enquiry_tags.sql` not applied on this project, or every tag is switched off. |
+| **Fix** | Staging: already applied. Other project: `npx supabase db push` on that link (production only on explicit release). Or admin → **Tags** → switch the tag on. |
+
+## White screen only on another machine / phone on the LAN
+
+| | |
+|--|--|
+| **Symptom** | A tab (first seen: Support) is blank on a second device opening `http://192.168.x.x:5173`. Dev machine on `http://localhost:5173` is fine. Console: `TypeError: crypto.randomUUID is not a function`. |
+| **Root cause** | `crypto.randomUUID` is a secure-context API. Plain `http://` on a LAN IP is not secure, so the browser removes it. Any render-time call throws and React drops the whole tree. |
+| **Fix** | Import `uuid` from `src/lib/uuid.js` instead of calling `crypto.randomUUID()`. Never add a bare `crypto.randomUUID()` in `src/` (grep before commit). |
+| **Verify** | `rg 'crypto\.randomUUID\(\)' src` returns only `src/lib/uuid.js` and the frozen `src/scott/list/filterEngine.js` (already guarded). Open Support over the LAN IP — loads. |
+| **Related** | Other secure-context-only APIs that will bite the same way on LAN: `navigator.clipboard`, `navigator.mediaDevices` (voice notes), Service Workers. Guard them or test over `localhost` / HTTPS. |
+
 ## Purchase Order Status still looks like a colored badge
 
 | | |

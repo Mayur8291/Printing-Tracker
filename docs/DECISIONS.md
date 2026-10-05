@@ -2,6 +2,88 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-05 — Bulk template is .xlsx with validation, not .csv
+
+**Context:** User wants dropdowns for Source, City, Tag in the template to stop mismatches. CSV cannot carry validation.
+
+**Options:** (1) Keep CSV, rely on import-time normalisation only. (2) `.xlsx` built in-browser with `exceljs` data validation + hidden list sheet. (3) Server-generated file via edge function.
+
+**Decision:** Option 2. `exceljs` is already a dependency (SKU pricing import) and lazy-loaded, so no bundle cost on Support until the button is pressed. Lists are embedded at download time so the Tag list always matches the current staging/prod tags. CSV upload still accepted for legacy sheets. Source validation is `warning` (not `stop`) so `Reference - <name>` can be typed; Tag/City are `stop`.
+
+**Tradeoffs:** Validation covers rows 2–1000 only. Google Sheets may drop validation on import. Template reflects tags at download time — a tag added later needs a fresh download.
+
+## 2026-10-05 — Bulk enquiry import goes row-by-row through `createEnquiry`
+
+**Context:** Team has historical enquiries in Excel; wants a one-shot upload with forgiving data.
+
+**Options:** (1) Server-side RPC that bulk-inserts a JSON array. (2) Client loop calling the same `createEnquiry` used by the form. (3) New dependency (papaparse / xlsx) and a staging table.
+
+**Decision:** Option 2. Codes come from `allocateTicketCode` per row (gapless-ish `ENQ-`), activity rows and legacy-column fallback come for free, RLS is the same path as manual create. CSV parsed with the existing `mastersUtils.parseCsv` — no new dependency. Missing cells are allowed because the data already exists and will be cleaned in-app; only rows with nothing identifying (no name/phone/email) are skipped.
+
+**Tradeoffs:** Sequential inserts — a few hundred rows takes tens of seconds; progress is shown. Partial success is possible and reported per row (no transaction). Date is accepted from the sheet into `created_at` (capped at tomorrow) so history sorts correctly; this means a staff user can back-date an enquiry, which is intended for import and harmless for SLA (old rows will show escalated).
+
+## 2026-10-05 — "Opened" is a status, not a pick
+
+**Context:** Admin wants to know when the assignee has looked at an enquiry but done nothing.
+
+**Options:** (1) Only log an activity row "opened". (2) New status `opened` + `opened_at`, written by the client when a worker opens the detail. (3) Treat open as pick (`picked_at`).
+
+**Decision:** Option 2. A status shows in the table and count cards without opening every ticket; activity row alone hides it. Open is **not** a pick — otherwise viewing would stop the SLA clock and defeat the escalation. Admin views never change status. Mark verified from Opened returns to Assigned so the old path still works.
+
+**Tradeoffs:** Written from the browser (not a DB trigger) because "open" is a UI event; RLS still limits who can update the row. A worker who opens and closes the dialog by accident still flips the ticket to Opened — acceptable, it is the truth.
+
+## 2026-10-05 — WhatsApp simulator unwired from Support
+
+**Context:** Simulator was a dev aid for the Concierge WhatsApp flow; staff do not use it and it cluttered the desk header.
+
+**Decision:** Remove button, state and render from `EnquiryPanel`. Keep `EnquiryWhatsAppSimulator.jsx` + `enquiryWhatsAppSimulatorFlow.js` on disk for now (no import). Delete in a later cleanup if nobody asks for it back.
+
+## 2026-10-05 — Enquiry city picks from app list; state stored, not joined
+
+**Context:** Enquiry needs customer city, and state shown beside it.
+
+**Options:** (1) Free-text city + free-text state. (2) City Select from existing `INDIAN_CITIES`, state derived from a city→state map and stored as plain text. (3) New `core_cities` master table.
+
+**Decision:** Option 2. Reuses the Job sheet list (one source), zero typing errors on state, no extra table for ~90 rows. State is stored at save so reports do not depend on the JS map staying put.
+
+**Tradeoffs:** Cities outside the list cannot be picked ("Not set"). If a city's state ever needs correcting, old rows keep the stored value. Revisit with a `core_` master if the list grows or needs admin editing.
+
+## 2026-10-05 — Enquiry tags route visibility through RLS, one tag per enquiry
+
+**Context:** Team wants enquiries tagged (Pets, HR, …) and each tag's enquiries to show only for the users who own that tag. Admin must manage both the tag list and the user mapping.
+
+**Options:** (1) Free-text tag column + client-side filter. (2) `enquiry_tags` master + `enquiry_tag_members` mapping, one `tag_id` on the enquiry, visibility in RLS. (3) Many-to-many tags per enquiry.
+
+**Decision:** Option 2. Law 1 (master, not free text) and Law 9 (RLS, not UI). Tag holders get the same work rights as an assignee (pick / status / notes) so the enquiry is actionable, not just visible. Re-tag is admin-only via the existing guard trigger. Complaints never carry a tag.
+
+**Why:** One tag per enquiry keeps the routing question simple ("whose desk?"). RLS means a staff member cannot see or widen scope from the browser.
+
+**Tradeoffs:** No multi-tag. Deactivating a tag hides it from the form but existing enquiries keep it and stay visible to its holders. The seeded list is staging-only until a production release.
+
+## 2026-10-05 — Reference name lives inside `enquiries.source`
+
+**Context:** New Source option **Reference** must capture who referred the customer.
+
+**Options:** (1) New `reference_name` column + migration. (2) Encode as `Reference - <name>` in the existing free-text `source`.
+
+**Decision:** Option 2.
+
+**Why:** Zero schema change. Table, detail header, and search already read `source`, so the name shows and is searchable everywhere with no extra wiring.
+
+**Tradeoffs:** Not a structured field — no grouping by referrer without string parsing. If referral reporting is needed later, add a column and backfill from the prefix.
+
+## 2026-10-05 — One `uuid()` helper, no bare `crypto.randomUUID()`
+
+**Context:** Support tab white-screened on a LAN device because `crypto.randomUUID` is secure-context only.
+
+**Options:** (1) Guard each call site inline. (2) Add the `uuid` npm package. (3) One tiny `src/lib/uuid.js` with native → `getRandomValues` → `Math.random` fallback.
+
+**Decision:** Option 3. Every app call site imports `uuid()`. `src/scott/**` keeps its own guard (frozen).
+
+**Why:** Zero dependency, one place to fix, same v4 shape so storage paths and ids look identical to before.
+
+**Tradeoffs:** `Math.random` branch is not cryptographically strong — acceptable because these ids are file-name suffixes, temp message ids, and UI keys, never security tokens.
+
 ## 2026-09-08 — Notifications chips reuse existing kinds
 
 **Context:** Notifications tab needed a filter row like All / Orders / Tasks / Inventory / Mentions.

@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { uuid } from "./lib/uuid";
 import {
   GROUP_AVATAR_BUCKET,
   sanitizeAvatarFileName,
@@ -146,7 +147,7 @@ export async function uploadGroupConversationAvatar(conversationId, file) {
   if (validationError) throw new Error(validationError);
 
   const safeName = sanitizeAvatarFileName(file.name);
-  const path = `${conversationId}/${crypto.randomUUID()}-${safeName}`;
+  const path = `${conversationId}/${uuid()}-${safeName}`;
   const { error: uploadErr } = await supabase.storage
     .from(GROUP_AVATAR_BUCKET)
     .upload(path, file, { upsert: false, contentType: file.type || undefined });
@@ -299,7 +300,7 @@ export async function uploadChatAttachment(sessionUserId, file) {
   const validationError = validateChatAttachmentFile(file);
   if (validationError) throw new Error(validationError);
 
-  const uploadId = crypto.randomUUID();
+  const uploadId = uuid();
   const safeName = sanitizeChatFileName(file.name);
   const storagePath = `${sessionUserId}/${uploadId}/${safeName}`;
   const { error: uploadErr } = await supabase.storage

@@ -82,10 +82,13 @@ export function normalizeOrderCode(raw) {
   return String(raw ?? "").trim().toUpperCase().replace(/\s+/g, "");
 }
 
+/** Statuses before any real action; `opened` = seen but not worked, still counts for SLA. */
+export const ENQUIRY_UNWORKED_STATUSES = ["new", "assigned", "opened"];
+
 export function isEnquiryUnpicked(enquiry) {
   if (!enquiry) return false;
   if (enquiry.picked_at) return false;
-  return enquiry.status === "new" || enquiry.status === "assigned";
+  return ENQUIRY_UNWORKED_STATUSES.includes(enquiry.status);
 }
 
 export function minutesWaiting(submittedAt, now = Date.now()) {
@@ -246,12 +249,36 @@ export async function fetchEnquirySlaEscalations() {
   return data ?? [];
 }
 
-export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin }) {
+/**
+ * Worker opened the ticket but took no action yet → status `opened` so admin can see it was seen.
+ * Admin opening does nothing. Not a pick: `picked_at` stays null and SLA keeps counting.
+ * Returns the updated row, or null when nothing changed.
+ */
+export async function markEnquiryOpened({ enquiry, sessionUserId, isAdmin, isTagMember = false }) {
+  if (!enquiry?.id || !sessionUserId || isAdmin) return null;
+  if (enquiry.picked_at) return null;
+  if (enquiry.status !== "new" && enquiry.status !== "assigned") return null;
+  const isAssignee = enquiry.assignee_id === sessionUserId;
+  const isFallback = enquiry.escalated_to_id === sessionUserId;
+  if (!isAssignee && !isFallback && !isTagMember) return null;
+
+  const now = new Date().toISOString();
+  const updated = await patchEnquiry(enquiry.id, { status: "opened", opened_at: now });
+  await logEnquiryActivity({
+    enquiryId: enquiry.id,
+    actorId: sessionUserId,
+    action: "opened",
+    detail: enquiry.enquiry_code
+  });
+  return updated;
+}
+
+export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin, isTagMember = false }) {
   if (!enquiry?.id) throw new Error("Enquiry not found.");
   const isAssignee = enquiry.assignee_id === sessionUserId;
   const isFallback = enquiry.escalated_to_id === sessionUserId;
-  if (!isAdmin && !isAssignee && !isFallback) {
-    throw new Error("Only the assignee, SLA fallback, or an admin can pick this enquiry.");
+  if (!isAdmin && !isAssignee && !isFallback && !isTagMember) {
+    throw new Error("Only the assignee, SLA fallback, tag holder, or an admin can pick this enquiry.");
   }
 
   const now = new Date().toISOString();
@@ -259,7 +286,7 @@ export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin }) {
   if (!enquiry.picked_at) patch.picked_at = now;
 
   if (action === "verified") {
-    if (enquiry.status === "new") patch.status = "assigned";
+    if (enquiry.status === "new" || enquiry.status === "opened") patch.status = "assigned";
   } else if (action === "contacted") {
     patch.status = "in_progress";
   } else if (action === "closed") {

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { uuid } from "@/lib/uuid";
 
 function appBasePath() {
   const raw = import.meta.env.BASE ?? "/";
@@ -418,7 +419,7 @@ async function buildGridMockupBlob({ layersBySide, garmentHex }) {
 }
 
 function newId() {
-  return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `ly-${Date.now()}-${Math.random()}`;
+  return uuid();
 }
 
 function makeLayerFromPlacement(url, placementId, z) {

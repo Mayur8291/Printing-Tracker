@@ -66,7 +66,7 @@ flowchart LR
 | Notifications | `src/NotificationsPanel.jsx` | Unified alert feed. Chips All / Orders / Tasks / Inventory / Mentions + time Select. Mentions = inward tags. |
 | Asset Management | `src/AssetManagementPanel.jsx`, `src/hrAssetUtils.js` | Tools tab (`asset_management`). **Add asset** / **Save asset** writes staging `hr_assets`. **Assets** lists that register. Tags `IT-00001`+. Click a row → that tag only; Back clears it. Assign/check-in update the same row. Separate from Inventory SKUs. |
 | Internal Support Platform | `src/InternalSupportPlatformPanel.jsx`, `src/internalSupportIssueUtils.js` | Tools tab (`internal_support`, LifeBuoy). **Open Tickets** + **Resolved** (`internal_support_issues`). **Raise an Issue** button opens the form Dialog. Admin sees all rows and can change Status until Resolved. Non-admin sees own issues and read-only status. Separate from Support Enquiry. |
-| Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Delay alert and production status texts are their own tabs after Complaints. Report blank. |
+| Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/EnquiryTagSettingsDialog.jsx`, `src/enquiryTagUtils.js`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Enquiries carry one **Tag** (admin-managed list; admin maps users to tags; tag holders see those enquiries via RLS). Complaints keep Order ID / Help path. Delay alert and production status texts are their own tabs after Complaints. Report blank. |
 | Purchase Order | `src/PurchaseOrderPanel.jsx`, `src/PurchaseOrderLayoutGrid.jsx`, `src/PurchaseOrderHistoryTable.jsx`, `src/PurchaseOrderHistoryFilters.jsx`, `src/purchaseOrderLayout.js`, `src/purchaseOrderVoucherUtils.js`, `src/purchaseOrderHistoryUtils.js` | Main sidebar tab after Inventory. Heading left, separate tabs **All PO Orders** / **Create new PO** / **PO History**. Open panel = All PO Orders (Pending, PO sent, PO Approved; admin can change those plus Completed). Status column is icon + name like job-sheet Status (names unchanged). Create = A4 heading + table after click. Generate writes `po_sent`. History = Completed only after backend update; no status pick. Filters + View PO print. Spreadsheet icon. Not Inventory POs. |
 | Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
 
@@ -89,7 +89,7 @@ flowchart LR
 - **Language:** JavaScript (JSX), ES modules
 - **State:** React `useState` / `useEffect` / context (e.g. `InventoryDataContext`) — no Redux
 - **Charts:** Recharts
-- **Excel/export:** ExcelJS, JSZip
+- **Excel/export:** ExcelJS (lazy-loaded: SKU pricing import, enquiry bulk-upload template + .xlsx read), JSZip
 - **Barcodes/QR:** jsbarcode, qrcode
 - **Env vars:** `VITE_*` injected at build time (Netlify env for production)
 

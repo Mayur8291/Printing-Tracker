@@ -3,6 +3,7 @@ import { supabase } from "./supabaseClient";
 export const ENQUIRY_ACTIVITY_LABEL = {
   created: "Logged enquiry",
   assigned: "Assigned",
+  opened: "Opened enquiry",
   verified: "Marked verified",
   contacted: "Marked contacted",
   closed: "Closed",

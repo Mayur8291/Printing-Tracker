@@ -1,5 +1,6 @@
 import { supabase } from "./supabaseClient";
 import { PRESET_AVATAR_BY_ID, PRESET_AVATAR_PREFIX } from "./presetAvatars";
+import { uuid } from "./lib/uuid";
 
 export { PRESET_AVATAR_PREFIX } from "./presetAvatars";
 export { parsePresetAvatarId, presetAvatarPublicUrl, isPresetAvatarPath } from "./presetAvatars";
@@ -98,7 +99,7 @@ export async function uploadProfileAvatar(userId, file) {
 
   const previousPath = await fetchProfileAvatarPath(userId);
   const safeName = sanitizeAvatarFileName(file.name);
-  const path = `${userId}/${crypto.randomUUID()}-${safeName}`;
+  const path = `${userId}/${uuid()}-${safeName}`;
   const { error: uploadErr } = await supabase.storage
     .from(PROFILE_AVATAR_BUCKET)
     .upload(path, file, { upsert: true, contentType: file.type || undefined });

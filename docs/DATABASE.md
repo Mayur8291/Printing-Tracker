@@ -252,9 +252,10 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | `customer_name` | text | Required |
 | `customer_phone` / `customer_email` | text | Optional contact |
 | `product_details` | text | What customer asked for |
-| `source` | text | Phone, Email, Walk-in, etc. |
+| `source` | text | Free text. Form offers Facebook, WhatsApp, Insta Reel, Insta Post, Google, Distributor, Walk-in, Reference. Reference saves as `Reference - <name>`. Old rows may still hold Phone / Email / Website / Other. |
 | `notes` | text | Internal notes |
-| `status` | text | `new`, `assigned`, `in_progress`, `resolved`, `closed` (UI format unchanged) |
+| `status` | text | `new`, `assigned`, `opened`, `in_progress`, `resolved`, `closed`. `opened` = worker viewed the ticket, no action yet (migration `20261005063756_enquiry_opened_status.sql`). |
+| `opened_at` | timestamptz | First time assignee / tag holder / SLA fallback opened the detail. Null when admin-only views. |
 | `priority` | text | `low`, `normal`, `high`, `urgent` |
 | `order_id` | text | Optional linked order code (Ready Stock or tracker) |
 | `order_type` | text | `regular` or `customized` |
@@ -270,11 +271,46 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | `assignee_id` | uuid | FK → `profiles.id` — who works on it |
 | `assigned_by` / `assigned_at` | uuid / timestamptz | Admin assignment audit |
 | `created_by` | uuid | FK → `profiles.id` — who logged enquiry |
-| `created_at` / `updated_at` | timestamptz | Audit |
+| `tag_id` | uuid | FK → `enquiry_tags.id` (nullable, `on delete set null`). Enquiries only; complaints stay null. Index `enquiries_tag_idx`. |
+| `customer_city` / `customer_state` | text | Enquiry contact location. City from `src/indianCities.js`; state derived client-side at save (`stateForCity`). Nullable. Migration `20261005063356_enquiry_customer_city_state.sql`. Rollback: drop both columns. |
+| `created_at` / `updated_at` | timestamptz | Audit. Bulk CSV import may set `created_at` from the sheet's Date column (client-side cap: not after tomorrow). |
 
-**RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields**; creator can update own rows (photos after insert); insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits. Migration `20260819120000_enquiries_creator_update.sql`.
+**RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; **tag holder** (`enquiry_tag_visible(tag_id)`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields or `tag_id`**; creator can update own rows (photos after insert); insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits and non-admin tag changes. Migration `20260819120000_enquiries_creator_update.sql`, `20261005062316_enquiry_tags.sql`.
 
-**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql`, code prefixes `20260819100000_enquiry_complaint_code_prefixes.sql` (staging: `ticket_kind`, `complaint_code_seq`, relabel complaint `ENQ-` → `CS-`).
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql`, code prefixes `20260819100000_enquiry_complaint_code_prefixes.sql` (staging: `ticket_kind`, `complaint_code_seq`, relabel complaint `ENQ-` → `CS-`), tags `20261005062316_enquiry_tags.sql`, city/state `20261005063356_enquiry_customer_city_state.sql`, opened status `20261005063756_enquiry_opened_status.sql` (rollback: drop `opened_at`, restore 5-value check after moving `opened` rows to `assigned`, recreate old index).
+
+**Drift note (2026-10-05):** staging `enquiries` has **no** `ticket_kind` column and no `enquiries update creator` policy — `20260819100000` / `20260819120000` never ran there. App reads kind from `help_topic` via its legacy select fallback. Reconcile before production release.
+
+### `enquiry_tags`
+
+Admin-managed topic list for enquiries (seed: Pets, HR, Corporate Giftings, End customer, Event).
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | PK |
+| `name` | text | Unique case-insensitive (`lower(btrim(name))`) |
+| `sort_order` | integer | Form order; admin adds get `last + 10` |
+| `is_active` | boolean | `false` hides the tag from **New enquiry**; existing rows keep it |
+| `created_by` | uuid | FK → `profiles.id` |
+| `created_at` | timestamptz | Audit |
+
+**RLS:** any authenticated reads; admin (`jwt_user_is_admin()`) writes. In `supabase_realtime`.
+
+### `enquiry_tag_members`
+
+Which users hold which tag. A tagged enquiry is visible to its tag holders.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `tag_id` | uuid | FK → `enquiry_tags.id` cascade |
+| `user_id` | uuid | FK → `profiles.id` cascade |
+| `created_at` | timestamptz | Audit |
+
+PK `(tag_id, user_id)`. Index on `user_id`. **RLS:** admin reads/writes all; a user reads only their own rows. In `supabase_realtime`.
+
+**Function:** `enquiry_tag_visible(uuid) → boolean`, security definer, stable: true when `auth.uid()` holds that tag. Used by `enquiries select scoped` and `enquiries update tag member`.
+
+**Rollback:** drop policy `enquiries update tag member`; recreate `enquiries select scoped` without the tag clause; restore the previous `enquiries_guard_assignee_change` body; `alter table enquiries drop column tag_id`; drop `enquiry_tag_members`, `enquiry_tags`, `enquiry_tag_visible`.
 
 ### `enquiry_sla_escalations`
 
@@ -290,7 +326,7 @@ One row per enquiry after 2 hours unpicked. Admin and `recipient_user_id` (Gargi
 
 **Storage bucket:** `enquiry-attachments` (public URLs, authenticated upload to `{auth.uid()}/…`).
 
-**Query pattern:** list newest 500 enquiries; unpicked SLA partial index `(created_at) WHERE picked_at IS NULL AND status IN ('new','assigned')`.
+**Query pattern:** list newest 500 enquiries; unpicked SLA partial index `(created_at) WHERE picked_at IS NULL AND status IN ('new','assigned','opened')`.
 
 **Rollback:** drop new columns / table / bucket policies; restore prior `enquiries select scoped` policy (no `escalated_to_id`).
 

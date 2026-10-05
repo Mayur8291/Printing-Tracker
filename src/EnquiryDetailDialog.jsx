@@ -36,6 +36,7 @@ import {
   complaintsHelpPathLabel,
   findFallbackManagerProfile,
   isEnquiryUnpicked,
+  markEnquiryOpened,
   pickEnquiry
 } from "./enquiryConciergeUtils";
 import { normalizeEnquiryAttachments } from "./enquiryAttachmentUtils";
@@ -81,12 +82,15 @@ export default function EnquiryDetailDialog({
   isAdmin,
   canEdit,
   sessionUserId,
-  onUpdated
+  onUpdated,
+  tags = [],
+  sessionTagIds
 }) {
   const [assigneeId, setAssigneeId] = useState("");
   const [statusDraft, setStatusDraft] = useState("new");
   const [priorityDraft, setPriorityDraft] = useState("normal");
   const [notesDraft, setNotesDraft] = useState("");
+  const [tagDraft, setTagDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -98,7 +102,10 @@ export default function EnquiryDetailDialog({
   const mayEditDetails = isAdmin || canEdit;
   const isAssignee = enquiry?.assignee_id === sessionUserId;
   const isSlaFallback = enquiry?.escalated_to_id === sessionUserId;
-  const mayUpdateStatus = isAdmin || isAssignee || isSlaFallback;
+  const isTagMember = Boolean(enquiry?.tag_id && sessionTagIds?.has?.(enquiry.tag_id));
+  const mayUpdateStatus = isAdmin || isAssignee || isSlaFallback || isTagMember;
+  const isEnquiryKind = String(enquiry?.ticket_kind ?? "") === "enquiry";
+  const tagName = enquiry?.tag_id ? tags.find((t) => t.id === enquiry.tag_id)?.name ?? "" : "";
   const mayPick = mayUpdateStatus && enquiry && enquiry.status !== "closed";
 
   useEffect(() => {
@@ -107,6 +114,7 @@ export default function EnquiryDetailDialog({
     setStatusDraft(enquiry.status || "new");
     setPriorityDraft(enquiry.priority || "normal");
     setNotesDraft(enquiry.notes || "");
+    setTagDraft(enquiry.tag_id || "");
     setError("");
     void fetchEnquiryActivity(enquiry.id)
       .then(setActivity)
@@ -115,6 +123,21 @@ export default function EnquiryDetailDialog({
       .then(setOutbound)
       .catch(() => setOutbound([]));
   }, [open, enquiry]);
+
+  // Worker (not admin) opened a new/assigned ticket → status "opened" so admin sees it was seen.
+  useEffect(() => {
+    if (!open || !enquiry || isAdmin) return;
+    let cancelled = false;
+    void markEnquiryOpened({ enquiry, sessionUserId, isAdmin, isTagMember })
+      .then((updated) => {
+        if (!cancelled && updated) onUpdated?.(updated);
+      })
+      .catch((e) => console.warn("enquiry opened mark:", e?.message || e));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, enquiry?.id, enquiry?.status, enquiry?.picked_at, isAdmin, isTagMember, sessionUserId]);
 
   const activeProfiles = useMemo(
     () =>
@@ -185,7 +208,8 @@ export default function EnquiryDetailDialog({
         enquiry,
         action,
         sessionUserId,
-        isAdmin
+        isAdmin,
+        isTagMember
       });
       await emitUpdated(updated);
       if (action === "closed" && !String(updated.customer_phone ?? "").trim()) {
@@ -203,10 +227,12 @@ export default function EnquiryDetailDialog({
     setSaving(true);
     setError("");
     try {
-      const updated = await updateEnquiryFields(enquiry.id, {
+      const patch = {
         notes: notesDraft.trim() || null,
         priority: priorityDraft
-      });
+      };
+      if (isAdmin && isEnquiryKind) patch.tag_id = tagDraft || null;
+      const updated = await updateEnquiryFields(enquiry.id, patch);
       await logEnquiryActivity({
         enquiryId: enquiry.id,
         actorId: sessionUserId,
@@ -232,7 +258,8 @@ export default function EnquiryDetailDialog({
         isAdmin,
         assigneeId: enquiry.assignee_id,
         sessionUserId,
-        enquiry
+        enquiry,
+        isTagMember
       });
       await emitUpdated(updated);
     } catch (e) {
@@ -274,6 +301,12 @@ export default function EnquiryDetailDialog({
             <dt className="text-muted-foreground">Email</dt>
             <dd>{enquiry.customer_email || "—"}</dd>
           </div>
+          {enquiry.customer_city || enquiry.customer_state ? (
+            <div className="grid grid-cols-[7rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Location</dt>
+              <dd>{[enquiry.customer_city, enquiry.customer_state].filter(Boolean).join(", ")}</dd>
+            </div>
+          ) : null}
           <div className="grid grid-cols-[7rem_1fr] gap-2">
             <dt className="text-muted-foreground">Created</dt>
             <dd>{formatDateTime(enquiry.created_at)}</dd>
@@ -294,14 +327,25 @@ export default function EnquiryDetailDialog({
               </dd>
             </div>
           ) : null}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Order ID</dt>
-            <dd>{enquiry.order_id || "—"}</dd>
-          </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Help path</dt>
-            <dd>{complaintsHelpPathLabel(enquiry)}</dd>
-          </div>
+          {isEnquiryKind ? (
+            <div className="grid grid-cols-[7rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Tag</dt>
+              <dd>
+                {tagName ? <Badge variant="secondary">{tagName}</Badge> : "—"}
+              </dd>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-[7rem_1fr] gap-2">
+                <dt className="text-muted-foreground">Order ID</dt>
+                <dd>{enquiry.order_id || "—"}</dd>
+              </div>
+              <div className="grid grid-cols-[7rem_1fr] gap-2">
+                <dt className="text-muted-foreground">Help path</dt>
+                <dd>{complaintsHelpPathLabel(enquiry)}</dd>
+              </div>
+            </>
+          )}
           <div className="grid grid-cols-[7rem_1fr] gap-2">
             <dt className="text-muted-foreground">
               {String(enquiry.ticket_kind ?? "") === "enquiry" ? "Enquiry details" : "Concerns"}
@@ -311,18 +355,29 @@ export default function EnquiryDetailDialog({
               <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
             </dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Ownership</dt>
-            <dd>
-              {enquiry.ownership_verified
-                ? "Verified — phone matched the order"
-                : "Not verified — do not assume this customer owns the order"}
-            </dd>
-          </div>
+          {isEnquiryKind ? null : (
+            <div className="grid grid-cols-[7rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Ownership</dt>
+              <dd>
+                {enquiry.ownership_verified
+                  ? "Verified — phone matched the order"
+                  : "Not verified — do not assume this customer owns the order"}
+              </dd>
+            </div>
+          )}
           <div className="grid grid-cols-[7rem_1fr] gap-2">
             <dt className="text-muted-foreground">Received</dt>
             <dd>{formatDateTime(enquiry.created_at)}</dd>
           </div>
+          {enquiry.opened_at ? (
+            <div className="grid grid-cols-[7rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Opened</dt>
+              <dd>
+                {formatDateTime(enquiry.opened_at)}
+                {enquiry.status === "opened" ? " — seen, no action yet" : ""}
+              </dd>
+            </div>
+          ) : null}
           <div className="grid grid-cols-[7rem_1fr] gap-2">
             <dt className="text-muted-foreground">Picked</dt>
             <dd>
@@ -438,6 +493,29 @@ export default function EnquiryDetailDialog({
                 </SelectContent>
               </Select>
             </div>
+            {isAdmin && isEnquiryKind ? (
+              <div className="space-y-2">
+                <Label>Tag</Label>
+                <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
+                  <SelectTrigger aria-label="Enquiry tag">
+                    <SelectValue placeholder="No tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No tag</SelectItem>
+                    {tags
+                      .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
+                      .map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Changing the tag changes who can see this enquiry.
+                </p>
+              </div>
+            ) : null}
             <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSaveDetails()}>
               {saving ? "Saving…" : "Save details"}
             </Button>

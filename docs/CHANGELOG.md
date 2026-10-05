@@ -1,5 +1,68 @@
 # Changelog
 
+## 2026-10-05 — Enquiry desk drops Order ID column
+
+- **Change:** `SupportTicketDesk` gets `showOrderId` prop (default `true`). Enquiry desk passes `false`; Complaints unchanged. Empty-state `colSpan` now computed from visible columns.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-10-05 — Bulk upload template is Excel with dropdowns
+
+- **Change:** **Download Excel template** → `enquiries-template.xlsx`. Sheet `Enquiries` (headers + sample, 1000 validated rows), very-hidden sheet `Lists` (Sources, Tags, Cities). Data validation: **Tag** and **City** hard-stop on anything not in list; **Source** warns so `Reference - <name>` can still be typed. Date column formatted `dd/mm/yyyy`, Phone forced text.
+- **Upload accepts .xlsx or .csv.** `parseEnquiryFile` routes by extension; `parseEnquiryWorkbook` reads sheet `Enquiries` (or first visible) via lazy `exceljs` (already a dependency, same as SKU import). Excel date cells are read as UTC day → `yyyy-mm-dd`, so dd/mm vs mm/dd ambiguity is gone for real Excel dates.
+- **Files:** `enquiryBulkUploadUtils.js` (`buildEnquiryXlsxTemplate`, `parseEnquiryWorkbook`, `parseEnquiryFile`, `parseEnquiryMatrix`, `downloadBinaryFile`), `EnquiryBulkUploadDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md
+
+## 2026-10-05 — Bulk CSV upload for enquiries
+
+- **Feature:** **Bulk upload** button on the Enquiry desk (anyone who can create). Dialog: **Download template**, CSV picker, preview table with per-row notes, **Import N** with progress, result summary with failed rows.
+- **CSV columns:** `Customer name, Concerns, Source, Tag, Date, Phone, Email, City`. Header match is forgiving (case/spaces/aliases like "Phone number", "Enquiry details"). Blank cells allowed. Row with no name, phone, and email is skipped. Blank name → phone/email/"Unknown customer".
+- **Normalisation:** Source → canonical list casing (`wa`→WhatsApp, `fb`→Facebook, `ref Name`→`Reference - Name`), unknown kept as typed. Tag matched by name, unknown → blank + note. City matched to `INDIAN_CITIES` (+ aliases Bengaluru/Bombay/…), unknown kept as typed with no state. Date reads `dd/mm/yyyy`, `dd-mm-yy`, `yyyy-mm-dd`, Excel serial; blank/bad → today. Sheet date becomes `enquiries.created_at` (`createEnquiry` now honours `form.created_at`, capped at tomorrow).
+- **No schema change.** Rows insert one by one via `createEnquiry` (own `ENQ-` code + activity row each). Staging verified: viewer insert with past `created_at` accepted.
+- **Files:** `enquiryBulkUploadUtils.js` (new), `EnquiryBulkUploadDialog.jsx` (new), `EnquiryPanel.jsx`, `enquiryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md
+
+## 2026-10-05 — Enquiry "Opened" status + WhatsApp simulator removed from Support
+
+- **Feature:** New enquiry status **`opened`** (label "Opened") between Assigned and In progress. When the assignee, tag holder, or SLA fallback (not admin) opens the detail of a `new`/`assigned` ticket, the app sets `status = opened`, `opened_at = now()`, logs activity "Opened enquiry". Not a pick — `picked_at` stays null, SLA keeps counting. Admin sees Opened badge in table, an **Opened** count card, Opened time in detail, and the activity row. Mark verified on an opened ticket goes back to Assigned.
+- **Removed:** **WhatsApp simulator** button and dialog from the Support desks (`EnquiryPanel`). Component file `EnquiryWhatsAppSimulator.jsx` is still on disk, unused.
+- **Migration (staging applied):** `20261005063756_enquiry_opened_status.sql` — status check adds `opened`, `enquiries.opened_at`, SLA partial index widened to `('new','assigned','opened')`. Verified on staging: assignee can set `opened`; unknown status still rejected.
+- **Files:** `enquiryUtils.js`, `enquiryConciergeUtils.js` (`markEnquiryOpened`, `ENQUIRY_UNWORKED_STATUSES`), `enquiryActivityUtils.js`, `EnquiryDetailDialog.jsx`, `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md
+
+## 2026-10-05 — Enquiry contact City → State + Support opens on Enquiry
+
+- **Feature:** **New enquiry** gets a **City** Select (same list as Job sheet delivery city) with a read-only **State** box beside it that fills from the city. Row sits after Phone/Email, before Enquiry details. Complaint form unchanged. Detail dialog shows **Location** (City, State). Search matches city/state.
+- **Fix:** Support tab now opens on **Enquiry** sub-tab (was Complaints).
+- **Migration (staging applied):** `20261005063356_enquiry_customer_city_state.sql` — `enquiries.customer_city`, `enquiries.customer_state`. Legacy select/insert fallback strips both on projects without it.
+- **Files:** `indianCities.js` (now city→state map, `stateForCity`), `enquiryUtils.js`, `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, DECISIONS.md
+
+## 2026-10-05 — Enquiry tags: route enquiries to users
+
+- **Feature:** **New enquiry** drops Order ID and Help path; gets a **Tag** Select (Pets, HR, Corporate Giftings, End customer, Event). Complaint form unchanged.
+- **Admin:** **Tags** button on the Enquiry desk → dialog: add tags, show/hide a tag in the form, tick which users hold each tag.
+- **Visibility:** A tagged enquiry shows for admins and for users who hold that tag (RLS). Tag holders can pick / update status like an assignee. Only admin can change a tag (guard trigger). Enquiry table gets a Tag column; detail shows tag, admin can change it in Save details.
+- **Migration (staging applied):** `20261005062316_enquiry_tags.sql` — `enquiry_tags`, `enquiry_tag_members`, `enquiries.tag_id`, `enquiry_tag_visible()`, policies, realtime publication, seed. RLS verified on staging with a simulated viewer.
+- **Files:** `enquiryTagUtils.js` (new), `EnquiryTagSettingsDialog.jsx` (new), `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `SupportTicketDesk.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`
+- **Noticed (not changed):** staging `enquiries` has no `ticket_kind` column and no `enquiries update creator` policy — migrations `20260819100000` / `20260819120000` never landed there. App uses its legacy fallback.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, OVERVIEW.md
+
+## 2026-10-05 — Enquiry Source list replaced + Reference name
+
+- **Issue:** New enquiry / complaint Source offered Phone, Email, Website, Other. Team wants marketing channels.
+- **Fix:** Source is now Facebook, WhatsApp, Insta Reel, Insta Post, Google, Distributor, Walk-in, Reference. **Reference** shows a required Reference name input; stored as `Reference - <name>` in the existing `source` text column. No migration. Old rows keep their old source text.
+- **Files:** `enquiryUtils.js`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DECISIONS.md
+
+## 2026-10-05 — Support tab white screen over LAN (`crypto.randomUUID`)
+
+- **Issue:** Support tab blank on another machine on the same Wi-Fi. Fine on the dev machine.
+- **Reason:** Other machine opened `http://192.168.x.x:5173`. `crypto.randomUUID()` exists only on `https://` or `localhost`. `EnquiryWhatsAppSimulator` called it while rendering → `TypeError` → no root error boundary → white page. Same bare call sat in Chat, Contact Book, avatar and tone upload, Mockup Studio.
+- **Fix:** New `src/lib/uuid.js` — native `randomUUID` when present, else `getRandomValues` v4, else `Math.random` v4. All 11 call sites swapped. Scott API filter helper untouched (frozen, already guarded).
+- **Files:** `src/lib/uuid.js`, `EnquiryWhatsAppSimulator.jsx`, `enquiryUtils.js`, `MockupStudio.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `ContactBookPanel.jsx`, `App.jsx`, `notificationToneUtils.js`, `avatarUtils.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DECISIONS.md, ARCHITECTURE.md
+
 ## 2026-09-08 — Notifications tab filter list
 
 - **Issue:** Notifications tab was a plain click-row list. No category or time filter.

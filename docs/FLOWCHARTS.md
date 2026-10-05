@@ -1,5 +1,79 @@
 # Flowcharts
 
+## Enquiry bulk CSV upload
+
+```mermaid
+flowchart TD
+  Btn[Bulk upload button] --> Dlg[EnquiryBulkUploadDialog]
+  Dlg -->|Download template| Tpl[enquiries-template.csv]
+  Dlg -->|pick .csv| Parse[parseEnquiryCsv]
+  Parse --> Hdr[map headers by alias]
+  Hdr --> Rows{each row}
+  Rows -->|no name+phone+email| Skip[skipped]
+  Rows -->|else| Norm[normalise Source / Tag / City / Date]
+  Norm --> Preview[preview table + notes]
+  Preview -->|Import N| Loop[importEnquiryRows]
+  Loop -->|per row| Create[createEnquiry → ENQ- code + activity]
+  Create -->|ok| Desk[prepend to Enquiry desk]
+  Create -->|error| Fail[failed list by row]
+```
+
+## Enquiry status machine (with Opened)
+
+```mermaid
+stateDiagram-v2
+  [*] --> new: created
+  new --> assigned: admin assigns / Mark verified
+  new --> opened: worker opens detail
+  assigned --> opened: worker opens detail
+  opened --> assigned: Mark verified
+  opened --> in_progress: Mark contacted
+  new --> in_progress: Mark contacted
+  assigned --> in_progress: Mark contacted
+  in_progress --> resolved: status select
+  new --> closed: Close
+  assigned --> closed: Close
+  opened --> closed: Close
+  in_progress --> closed: Close
+  resolved --> closed: Close
+  note right of opened
+    picked_at stays null
+    SLA clock keeps running
+    admin viewing never triggers
+  end note
+```
+
+## Enquiry tags — who sees a tagged enquiry
+
+```mermaid
+flowchart TD
+  Admin[Admin: Tags dialog] -->|add / show-hide| Tags[(enquiry_tags)]
+  Admin -->|tick users| Members[(enquiry_tag_members)]
+  Create[New enquiry form] -->|tag_id| Enq[(enquiries)]
+  Detail[Detail: Save details, admin] -->|tag_id| Enq
+  Enq --> RLS{enquiries select scoped}
+  RLS -->|admin| Show[Row visible]
+  RLS -->|assignee / creator / SLA fallback| Show
+  RLS -->|enquiry_tag_visible tag_id| Members
+  Members -->|auth.uid holds tag| Show
+  RLS -->|none match| Hide[Row hidden]
+  Show --> Work[Pick / status / notes]
+  Work -->|non-admin changes tag_id| Guard[Trigger raises]
+```
+
+```mermaid
+sequenceDiagram
+  participant A as Admin
+  participant D as EnquiryTagSettingsDialog
+  participant SB as Supabase
+  participant U as Tag holder browser
+  A->>D: Tick user under Pets
+  D->>SB: upsert enquiry_tag_members
+  SB-->>U: realtime enquiry_tag_members
+  U->>SB: refetch enquiries (RLS now includes Pets rows)
+  SB-->>U: Pets enquiries + Tag badge
+```
+
 ## Notifications tab filters
 
 ```mermaid

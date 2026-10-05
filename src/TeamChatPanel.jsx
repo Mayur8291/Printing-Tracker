@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { uuid } from "@/lib/uuid";
 import { ChatMessageBody } from "@/components/chat/ChatMessageBody";
 import { ChatMessageAttachment, ChatMessageGif } from "@/components/chat/ChatMessageMedia";
 import { ChatForwardDialog } from "@/components/chat/ChatForwardDialog";
@@ -1055,7 +1056,7 @@ export default function TeamChatPanel({
     setSelectedMessageIds(new Set());
     wantComposerFocusRef.current = true;
 
-    const tempId = `temp-${crypto.randomUUID()}`;
+    const tempId = `temp-${uuid()}`;
     let conversationId = composePeer ? null : activeConversationId;
     let didAppend = false;
 

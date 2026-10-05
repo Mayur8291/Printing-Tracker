@@ -95,8 +95,11 @@ export default function SupportTicketDesk({
   waitingAlerts = [],
   openEscalations = [],
   onRefresh,
-  onOpenDetail
+  onOpenDetail,
+  showTag = false,
+  showOrderId = true
 }) {
+  const columnCount = 8 + (showTag ? 1 : 0) + (showOrderId ? 1 : 0);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
@@ -165,10 +168,11 @@ export default function SupportTicketDesk({
         : null}
 
       {isAdmin ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
             { key: "new", label: "New" },
             { key: "assigned", label: "Assigned" },
+            { key: "opened", label: "Opened" },
             { key: "in_progress", label: "In progress" },
             { key: "resolved", label: "Resolved" },
             { key: "closed", label: "Closed" }
@@ -236,9 +240,10 @@ export default function SupportTicketDesk({
               <TableRow>
                 <TableHead>Code</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead>Order ID</TableHead>
+                {showOrderId ? <TableHead>Order ID</TableHead> : null}
                 <TableHead>Concerns</TableHead>
                 <TableHead>Source</TableHead>
+                {showTag ? <TableHead>Tag</TableHead> : null}
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Assignee</TableHead>
@@ -248,7 +253,7 @@ export default function SupportTicketDesk({
             <TableBody>
               {visibleRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={columnCount} className="py-8 text-center text-muted-foreground">
                     {emptyMessage}
                   </TableCell>
                 </TableRow>
@@ -267,13 +272,24 @@ export default function SupportTicketDesk({
                     >
                       <TableCell className="font-medium">{row.enquiry_code}</TableCell>
                       <TableCell>{row.customer_name}</TableCell>
-                      <TableCell className="whitespace-nowrap font-medium">
-                        {row.order_id || "—"}
-                      </TableCell>
+                      {showOrderId ? (
+                        <TableCell className="whitespace-nowrap font-medium">{row.order_id || "—"}</TableCell>
+                      ) : null}
                       <TableCell className="max-w-[220px] truncate" title={row.product_details || ""}>
                         {row.product_details || "—"}
                       </TableCell>
                       <TableCell>{row.source || "—"}</TableCell>
+                      {showTag ? (
+                        <TableCell>
+                          {row.tag_name ? (
+                            <Badge variant="secondary" className="whitespace-nowrap">
+                              {row.tag_name}
+                            </Badge>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1">
                           <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[row.status])}>

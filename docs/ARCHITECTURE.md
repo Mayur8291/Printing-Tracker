@@ -34,6 +34,7 @@ Frontend must **not** depend on Edge Functions for core CRUD (only admin/promote
 | **RPC** | Multi-step or security-definer logic | `get_or_create_direct_conversation` |
 | **Storage upload** | Binary assets | `supabase.storage.from('...').upload()` |
 | **Realtime subscribe** | Live chat, notifications, dashboard data sync | `subscribePostgresChanges()` in `src/realtimeUtils.js` |
+| **Client ids** | Storage path suffixes, temp message ids, UI keys | `uuid()` from `src/lib/uuid.js` — never bare `crypto.randomUUID()` (secure-context only; breaks on `http://LAN-ip`) |
 
 ## Dashboard realtime (2026-07-09)
 
