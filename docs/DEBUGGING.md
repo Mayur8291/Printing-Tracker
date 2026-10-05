@@ -1,5 +1,15 @@
 # Debugging
 
+## Support SLA bell missing on staging / local
+
+| | |
+|--|--|
+| **Symptom** | Support → Enquiry has Refresh / Tags / New enquiry but no mini bell. |
+| **Root cause** | Bell used to render only when `slaItems.length > 0`. Staging tickets are all picked (`unpicked = 0`), so the control disappeared. |
+| **Investigate** | Staging: `select count(*) filter (where picked_at is null and status in ('new','assigned','opened')) from enquiries`. Zero → old UI hid the bell. |
+| **Fix** | Bell always mounts. Empty popover: “No waiting or escalated tickets.” Badge only when alerts exist. |
+| **Verify** | Support → Enquiry: bell left of Refresh. Click it. Hard refresh after develop deploy. |
+
 ## Assigned user still sees Mark verified / Mark contacted
 
 | | |

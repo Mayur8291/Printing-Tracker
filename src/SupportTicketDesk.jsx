@@ -116,22 +116,20 @@ export default function SupportTicketDesk({
       body: `${row.enquiry_code || "Enquiry"} · ${row.customer_name || "Customer"} — not picked. Customer is not told.`,
       enquiryId: row.enquiry_id
     }));
-    const waiting = isAdmin
-      ? (waitingAlerts ?? []).map((row) => ({
-          id: `wait-${row.enquiryId}`,
-          tone: "wait",
-          title: "Waiting over 1 hour",
-          body: `${row.enquiryCode || "Enquiry"} · ${row.customerName || "Customer"}`,
-          enquiryId: row.enquiryId
-        }))
-      : [];
+    const waiting = (waitingAlerts ?? []).map((row) => ({
+      id: `wait-${row.enquiryId}`,
+      tone: "wait",
+      title: "Waiting over 1 hour",
+      body: `${row.enquiryCode || "Enquiry"} · ${row.customerName || "Customer"}`,
+      enquiryId: row.enquiryId
+    }));
     const seen = new Set();
     return [...escalated, ...waiting].filter((item) => {
       if (seen.has(item.enquiryId)) return false;
       seen.add(item.enquiryId);
       return true;
     });
-  }, [openEscalations, waitingAlerts, isAdmin]);
+  }, [openEscalations, waitingAlerts]);
   const visibleRows = useMemo(
     () =>
       filterEnquiries(rows, {
@@ -157,30 +155,32 @@ export default function SupportTicketDesk({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="text-sm text-muted-foreground">{description}</p>
         <div className="flex flex-wrap gap-2">
-          {slaItems.length ? (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="relative"
-                  aria-label={`SLA alerts, ${slaItems.length}`}
-                >
-                  <Bell className="h-4 w-4" aria-hidden />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="relative"
+                aria-label={slaItems.length ? `SLA alerts, ${slaItems.length}` : "SLA alerts"}
+              >
+                <Bell data-icon="inline-start" aria-hidden />
+                {slaItems.length ? (
                   <Badge
                     variant="destructive"
                     className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]"
                   >
                     {slaItems.length > 99 ? "99+" : slaItems.length}
                   </Badge>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0">
-                <div className="border-b px-3 py-2">
-                  <p className="text-sm font-medium">SLA alerts</p>
-                  <p className="text-xs text-muted-foreground">Unpicked enquiries. Customer is not told.</p>
-                </div>
+                ) : null}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              <div className="border-b px-3 py-2">
+                <p className="text-sm font-medium">SLA alerts</p>
+                <p className="text-xs text-muted-foreground">Unpicked enquiries. Customer is not told.</p>
+              </div>
+              {slaItems.length ? (
                 <ScrollArea className="max-h-72">
                   <ul className="p-1">
                     {slaItems.map((item) => (
@@ -207,9 +207,13 @@ export default function SupportTicketDesk({
                     ))}
                   </ul>
                 </ScrollArea>
-              </PopoverContent>
-            </Popover>
-          ) : null}
+              ) : (
+                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  No waiting or escalated tickets.
+                </p>
+              )}
+            </PopoverContent>
+          </Popover>
           <Button type="button" variant="outline" size="sm" onClick={() => void onRefresh?.()}>
             <RefreshCw className="mr-1 h-4 w-4" aria-hidden />
             Refresh

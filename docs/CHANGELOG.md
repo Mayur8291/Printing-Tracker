@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05 — Support SLA bell always visible on staging
+
+- **Bug fix:** Mini SLA bell next to Refresh only rendered when there was a waiting/escalated ticket. Staging has no unpicked enquiries, so the bell vanished. Bell now always shows; badge only when count > 0.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
 ## 2026-10-05 — Agent auto-pushes develop after each task
 
 - **Change:** Standing rule: finish work → commit task files → `git push origin develop`. No ask. Still never `main` / production unless the user names production.

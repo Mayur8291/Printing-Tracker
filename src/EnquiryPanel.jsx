@@ -539,14 +539,8 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
     [enquiries, tagNameById]
   );
 
-  const complaintWaiting = useMemo(
-    () => (isAdmin ? listWaitingAlerts(complaintRows) : []),
-    [complaintRows, isAdmin]
-  );
-  const enquiryWaiting = useMemo(
-    () => (isAdmin ? listWaitingAlerts(enquiryRows) : []),
-    [enquiryRows, isAdmin]
-  );
+  const complaintWaiting = useMemo(() => listWaitingAlerts(complaintRows), [complaintRows]);
+  const enquiryWaiting = useMemo(() => listWaitingAlerts(enquiryRows), [enquiryRows]);
 
   const complaintEscalations = useMemo(
     () =>
