@@ -452,10 +452,14 @@ Automatic Concierge texts when `orders.status` changes.
 | `recipient_user_id` | uuid | Assignee inbox |
 | `enquiry_id` | uuid | FK → `enquiries.id` |
 | `enquiry_code` / `customer_name` | text | Denormalized for notification list |
-| `assigned_by_user_id` | uuid | Admin who assigned |
-| `created_at` | timestamptz | When assigned |
+| `assigned_by_user_id` | uuid | Actor who caused the event (`auth.uid()` via RPC) |
+| `kind` | text | `created`, `assigned`, `status`, `details`, `reached_out`, `verified`, `contacted`, `closed`, `feedback` (default `assigned`) |
+| `summary` | text | Short inbox line (what changed) |
+| `created_at` | timestamptz | When |
 
-**Migration:** same as above. Realtime publication enabled for both tables.
+**Who receives:** assignee + assigned_by + all platform admins + all `support_admins`, minus the actor. Written by RPC `notify_enquiry_watchers(enquiry_id, kind, summary)` (security definer). RLS: recipient reads own rows; insert normally `assigned_by_user_id = auth.uid()` (RPC bypasses RLS).
+
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`, kinds `20261005085620_enquiry_update_notifications.sql`. Realtime publication enabled.
 
 ## Password reset requests
 

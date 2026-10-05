@@ -49,6 +49,15 @@
 | **Root cause** | `mastersUtils.parseCsv` drops fully blank lines, so Row counts data rows only. |
 | **Fix** | Remove blank lines from the sheet, or count non-blank rows after the header. |
 
+## Support notification never appears in the inbox
+
+| | |
+|--|--|
+| **Symptom** | Assign / reach-out happens; Notifications tab empty for assignee or admin. |
+| **Root cause** | RPC `notify_enquiry_watchers` not applied; or viewer is the actor (self is skipped); or filter is not **Support** / **All**; or hard-refresh needed for realtime subscribe. |
+| **Investigate** | `select * from enquiry_assignment_notifications order by created_at desc limit 10`. Console: `notify_enquiry_watchers missing`. |
+| **Fix** | Apply `20261005085620_enquiry_update_notifications.sql` (staging done). Open Notifications → Support. Assignee and *other* admins should see the row. |
+
 ## Support admin still only sees their own enquiries
 
 | | |

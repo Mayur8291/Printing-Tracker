@@ -1,5 +1,16 @@
 # Flowcharts
 
+## Support enquiry notification fan-out
+
+```mermaid
+flowchart TD
+  Act[Staff or admin updates enquiry] --> RPC[notify_enquiry_watchers]
+  RPC --> Recipients{assignee + assigned_by + platform admins + support admins minus actor}
+  Recipients --> Inbox[(enquiry_assignment_notifications)]
+  Inbox --> Feed[Notifications tab / Support filter]
+  Feed --> Open[View Enquiry → Support tab]
+```
+
 ## Support admin vs platform admin
 
 ```mermaid

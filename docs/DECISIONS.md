@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-05 — Support updates fan out via one security-definer RPC
+
+**Context:** Assignee and admin must see every enquiry change in the Notifications inbox. Staff cannot reliably SELECT every admin id under RLS.
+
+**Options:** (1) Client inserts one row per recipient (needs an admin-id list). (2) Expand `enquiry_assignment_notifications` + RPC `notify_enquiry_watchers` that unions assignee, assigned_by, `profiles.role = admin`, `support_admins`. (3) New table.
+
+**Decision:** Option 2. Reuse the existing inbox table (already realtime + RLS). RPC runs as definer, skips `auth.uid()`, writes `kind` + `summary`. Inbox already keyed by `recipient_user_id`. Bulk create passes `notify: false`.
+
+**Tradeoffs:** Table name still says "assignment". Actor gets no row (they already know). Every admin gets every Support event — that is what the user asked.
+
 ## 2026-10-05 — Support admin is a table, not a new profile role
 
 **Context:** Lead monitors need Support admin powers (see all, assign) without the Admin tab / user management.

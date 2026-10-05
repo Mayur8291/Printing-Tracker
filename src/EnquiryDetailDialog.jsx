@@ -42,6 +42,7 @@ import {
 } from "./enquiryConciergeUtils";
 import { normalizeEnquiryAttachments } from "./enquiryAttachmentUtils";
 import { ENQUIRY_ACTIVITY_LABEL, fetchEnquiryActivity, logEnquiryActivity } from "./enquiryActivityUtils";
+import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { fetchEnquiryOutbound } from "./enquiryCloseNotify";
 import { viewerIsActive } from "./viewerUserListUtils";
 
@@ -267,6 +268,11 @@ export default function EnquiryDetailDialog({
         actorId: sessionUserId,
         action: "details",
         detail: enquiry.enquiry_code
+      });
+      await notifyEnquiryWatchers({
+        enquiryId: enquiry.id,
+        kind: "details",
+        summary: "Notes / priority / tag updated"
       });
       await emitUpdated(updated);
     } catch (e) {

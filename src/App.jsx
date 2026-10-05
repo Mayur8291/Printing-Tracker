@@ -4012,6 +4012,10 @@ function App() {
       handleNotificationPrintingInventoryOpen();
       return;
     }
+    if (item.kind === "enquiry") {
+      selectDashboardTab("enquiry");
+      return;
+    }
     void handleNotificationAssignmentOpen(item);
   }
 

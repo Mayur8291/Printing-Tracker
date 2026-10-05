@@ -9,6 +9,7 @@ export const NOTIFICATIONS_SEEN_STORAGE_PREFIX = "printing-tracker-notifications
 export const NOTIFICATION_CATEGORY_FILTERS = [
   { id: "all", label: "All" },
   { id: "orders", label: "Orders" },
+  { id: "support", label: "Support" },
   { id: "tasks", label: "Tasks" },
   { id: "inventory", label: "Inventory" },
   { id: "mentions", label: "Mentions" }
@@ -56,6 +57,7 @@ export function formatNotificationWhenLong(iso) {
 
 /** Filter chips: orders = assignment + status; mentions = inward tags (no mention table). */
 export function notificationCategory(item) {
+  if (item?.kind === "enquiry") return "support";
   if (item?.kind === "goal_task") return "tasks";
   if (item?.kind === "printing_inventory") return "inventory";
   if (item?.kind === "inward") return "mentions";
@@ -63,6 +65,7 @@ export function notificationCategory(item) {
 }
 
 export function notificationActionLabel(item) {
+  if (item?.kind === "enquiry") return "View Enquiry";
   if (item?.kind === "goal_task") return "View Task";
   if (item?.kind === "printing_inventory") return "View Inventory";
   if (item?.kind === "inward") return "View Inward";
@@ -70,6 +73,7 @@ export function notificationActionLabel(item) {
 }
 
 export function notificationCopyValue(item) {
+  if (item?.enquiry_code) return String(item.enquiry_code).trim();
   if (item?.order_display_id) return String(item.order_display_id).trim();
   if (item?.task_title) return String(item.task_title).trim();
   if (item?.material_label || item?.material_key) {
@@ -93,7 +97,7 @@ export function notificationInTimeRange(item, range) {
 }
 
 export function countNotificationsByCategory(items) {
-  const counts = { all: items.length, orders: 0, tasks: 0, inventory: 0, mentions: 0 };
+  const counts = { all: items.length, orders: 0, support: 0, tasks: 0, inventory: 0, mentions: 0 };
   for (const item of items) {
     const category = notificationCategory(item);
     if (Object.hasOwn(counts, category)) counts[category] += 1;
@@ -160,6 +164,20 @@ export function normalizeGoalTaskNotification(row) {
   };
 }
 
+export function normalizeEnquiryNotification(row) {
+  return {
+    id: `enquiry-${row.id}`,
+    rawId: row.id,
+    kind: "enquiry",
+    enquiry_kind: row.kind || "assigned",
+    created_at: row.created_at,
+    enquiry_id: row.enquiry_id,
+    enquiry_code: row.enquiry_code,
+    customer_name: row.customer_name,
+    summary: row.summary
+  };
+}
+
 export function normalizeOrderStatusNotification(row) {
   return {
     id: `order-status-${row.id}`,
@@ -186,7 +204,20 @@ export function formatOrderStatusCode(code) {
   return orderStatusLabel(code);
 }
 
+const ENQUIRY_NOTIF_TITLE = {
+  created: "New enquiry",
+  assigned: "Enquiry assigned",
+  status: "Enquiry status updated",
+  details: "Enquiry details updated",
+  reached_out: "Customer reached out",
+  verified: "Enquiry marked verified",
+  contacted: "Enquiry marked contacted",
+  closed: "Enquiry closed",
+  feedback: "Enquiry feedback logged"
+};
+
 export function notificationTitle(item) {
+  if (item?.kind === "enquiry") return ENQUIRY_NOTIF_TITLE[item.enquiry_kind] ?? "Enquiry updated";
   if (item?.kind === "inward") return "Tagged on inward entry";
   if (item?.kind === "printing_inventory") return "Printing inventory low stock";
   if (item?.kind === "goal_task") return "Task assigned to you";
@@ -195,6 +226,13 @@ export function notificationTitle(item) {
 }
 
 export function notificationBodyText(item) {
+  if (item?.kind === "enquiry") {
+    const code = String(item.enquiry_code ?? "").trim() || "Enquiry";
+    const name = String(item.customer_name ?? "").trim();
+    const extra = String(item.summary ?? "").trim();
+    const head = name ? `${code} · ${name}` : code;
+    return extra ? `${head} · ${extra}` : head;
+  }
   if (item?.kind === "inward") {
     const product = String(item.product_material ?? "").trim() || "Inward entry";
     const dept = String(item.department ?? "").trim();
@@ -246,11 +284,17 @@ export function countUnreadNotifications(items, lastSeenAt) {
 
 export async function fetchUserNotifications(userId, limit = 80) {
   if (!userId) return [];
-  const perTable = Math.max(20, Math.ceil(limit / 5));
-  const [assignmentRes, inwardRes, printingInvRes, goalTaskRes, orderStatusRes] = await Promise.all([
+  const perTable = Math.max(20, Math.ceil(limit / 6));
+  const [assignmentRes, enquiryRes, inwardRes, printingInvRes, goalTaskRes, orderStatusRes] = await Promise.all([
     supabase
       .from("order_assignment_notifications")
       .select("id, order_id, order_display_id, coordinator_name, created_at")
+      .eq("recipient_user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(perTable),
+    supabase
+      .from("enquiry_assignment_notifications")
+      .select("id, enquiry_id, enquiry_code, customer_name, kind, summary, created_at")
       .eq("recipient_user_id", userId)
       .order("created_at", { ascending: false })
       .limit(perTable),
@@ -280,6 +324,13 @@ export async function fetchUserNotifications(userId, limit = 80) {
       .limit(perTable)
   ]);
 
+  const enquiryRows = enquiryRes.error?.message?.includes("Could not find the table")
+    ? []
+    : enquiryRes.data ?? [];
+  if (enquiryRes.error && !enquiryRes.error.message?.includes("Could not find the table")) {
+    console.warn("enquiry_assignment_notifications:", enquiryRes.error.message);
+  }
+
   const printingRows =
     printingInvRes.error?.message?.includes("Could not find the table") ? [] : printingInvRes.data ?? [];
   if (printingInvRes.error && !printingInvRes.error.message?.includes("Could not find the table")) {
@@ -300,6 +351,7 @@ export async function fetchUserNotifications(userId, limit = 80) {
 
   return [
     ...(assignmentRes.data ?? []).map(normalizeAssignmentNotification),
+    ...enquiryRows.map(normalizeEnquiryNotification),
     ...(inwardRes.data ?? []).map(normalizeInwardNotification),
     ...printingRows.map(normalizePrintingInventoryNotification),
     ...goalTaskRows.map(normalizeGoalTaskNotification),
@@ -325,6 +377,21 @@ export function subscribeUserNotifications(userId, onInsert) {
         const row = payload.new;
         if (row && typeof row === "object") {
           onInsert(normalizeAssignmentNotification(row));
+        }
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "enquiry_assignment_notifications",
+        filter: `recipient_user_id=eq.${userId}`
+      },
+      (payload) => {
+        const row = payload.new;
+        if (row && typeof row === "object") {
+          onInsert(normalizeEnquiryNotification(row));
         }
       }
     )

@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { insertEnquiryAssignmentNotification } from "./enquiryNotificationUtils";
+import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { logEnquiryActivity } from "./enquiryActivityUtils";
 import { queueCloseSurveyIfNeeded } from "./enquiryCloseNotify";
 import { applyEnquiryClosePatch, updateEnquiryFields } from "./enquiryUtils";
@@ -310,6 +310,11 @@ export async function markEnquiryReachedOut({
     action: "reached_out",
     detail: note
   });
+  await notifyEnquiryWatchers({
+    enquiryId: enquiry.id,
+    kind: "reached_out",
+    summary: note
+  });
   return updated;
 }
 
@@ -347,6 +352,18 @@ export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin, isT
     action,
     detail: enquiry.enquiry_code
   });
+  await notifyEnquiryWatchers({
+    enquiryId: enquiry.id,
+    kind: action === "closed" ? "closed" : action,
+    summary:
+      action === "verified"
+        ? "Marked verified"
+        : action === "contacted"
+          ? "Marked contacted"
+          : action === "closed"
+            ? "Closed"
+            : action
+  });
   if (action === "closed" && enquiry.status !== "closed") {
     await queueCloseSurveyIfNeeded(updated, sessionUserId);
   }
@@ -374,6 +391,11 @@ export async function saveEnquiryFeedback({ enquiry, rating, comment, sessionUse
     actorId: sessionUserId,
     action: "feedback",
     detail: nextRating
+  });
+  await notifyEnquiryWatchers({
+    enquiryId: enquiry.id,
+    kind: "feedback",
+    summary: `Feedback: ${nextRating}`
   });
   return updated;
 }
@@ -409,12 +431,10 @@ export async function escalateUnpickedEnquiry({ enquiry, teamProfiles, profileBy
     console.warn("enquiry SLA escalation insert:", escErr.message);
   }
 
-  await insertEnquiryAssignmentNotification({
+  await notifyEnquiryWatchers({
     enquiryId: enquiry.id,
-    enquiryCode: enquiry.enquiry_code,
-    customerName: enquiry.customer_name,
-    assigneeId: fallback.id,
-    assignedByUserId: enquiry.assignee_id || enquiry.created_by
+    kind: "status",
+    summary: `SLA escalated — still unpicked`
   });
 
   return updated;

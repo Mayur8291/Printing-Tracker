@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { insertEnquiryAssignmentNotification } from "./enquiryNotificationUtils";
+import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { logEnquiryActivity } from "./enquiryActivityUtils";
 import { queueCloseSurveyIfNeeded } from "./enquiryCloseNotify";
 import { uploadEnquiryPhotos } from "./enquiryAttachmentUtils";
@@ -353,6 +353,15 @@ export async function createEnquiry({ createdBy, form }) {
       detail: "Assigned on create"
     });
   }
+  if (form.notify !== false) {
+    await notifyEnquiryWatchers({
+      enquiryId: data.id,
+      kind: data.assignee_id ? "assigned" : "created",
+      summary: data.assignee_id
+        ? `${data.enquiry_code} logged and assigned`
+        : `${data.enquiry_code} logged`
+    });
+  }
   return data;
 }
 
@@ -425,12 +434,10 @@ export async function assignEnquiry({
 
   const updated = await updateEnquiryFields(enquiry.id, patch);
 
-  await insertEnquiryAssignmentNotification({
+  await notifyEnquiryWatchers({
     enquiryId: updated.id,
-    enquiryCode: updated.enquiry_code,
-    customerName: updated.customer_name,
-    assigneeId,
-    assignedByUserId
+    kind: "assigned",
+    summary: `Assigned ${updated.enquiry_code}`
   });
 
   await logEnquiryActivity({
@@ -473,6 +480,11 @@ export async function updateEnquiryStatus({
     actorId: sessionUserId,
     action: "status",
     detail: next
+  });
+  await notifyEnquiryWatchers({
+    enquiryId,
+    kind: next === "closed" ? "closed" : "status",
+    summary: `Status → ${ENQUIRY_STATUS_LABEL[next] ?? next}`
   });
   if (next === "closed" && enquiry?.status !== "closed") {
     await queueCloseSurveyIfNeeded(updated, sessionUserId);

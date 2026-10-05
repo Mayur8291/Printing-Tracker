@@ -4,6 +4,7 @@ import {
   Calendar,
   ClipboardList,
   FileText,
+  Headphones,
   MoreVertical,
   Tag,
   TriangleAlert,
@@ -75,6 +76,11 @@ const CATEGORY_TONE = {
     dot: "bg-rose-500",
     iconWrap: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
     badge: "border-transparent bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300"
+  },
+  support: {
+    dot: "bg-sky-500",
+    iconWrap: "bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+    badge: "border-transparent bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300"
   }
 };
 
@@ -93,6 +99,7 @@ function NotificationIcon({ item }) {
   if (item?.kind === "printing_inventory") return <TriangleAlert />;
   if (item?.kind === "inward") return <Tag />;
   if (item?.kind === "assignment") return <ClipboardList />;
+  if (item?.kind === "enquiry") return <Headphones />;
   return <FileText />;
 }
 
@@ -116,6 +123,19 @@ function NotificationBody({ item, onOpen }) {
           "Order · "
         )}
         {from} → {to}
+      </>
+    );
+  }
+
+  if (item?.kind === "enquiry" && item.enquiry_code) {
+    const extra = String(item.summary ?? "").trim();
+    return (
+      <>
+        <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={open}>
+          {item.enquiry_code}
+        </Button>
+        {item.customer_name ? ` · ${item.customer_name}` : ""}
+        {extra ? ` · ${extra}` : ""}
       </>
     );
   }
@@ -263,7 +283,7 @@ export default function NotificationsPanel({ userId, onOpenNotification }) {
           Notifications
         </h2>
         <p className="text-sm text-muted-foreground">
-          Order assignments, status updates, task assignments, inward tags, and printing inventory alerts.
+          Order assignments, Support enquiry updates, task assignments, inward tags, and printing inventory alerts.
         </p>
       </div>
 

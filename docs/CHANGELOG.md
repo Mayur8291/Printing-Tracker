@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-05 — Support inbox: assignee + admin get every enquiry update
+
+- **Feature:** Notifications tab now shows Support events (new **Support** filter). Click **View Enquiry** opens the Support tab.
+- **Who gets a row:** assignee, the admin who assigned, every `profiles.role = admin`, every Support admin. Actor is skipped (you do not notify yourself).
+- **When:** new enquiry (admins), assign, status, details, reach-out, verified/contacted/closed, feedback, SLA escalate. Bulk CSV import stays silent (`notify: false`) so history loads do not flood inboxes.
+- **How:** RPC `notify_enquiry_watchers` (security definer) writes `enquiry_assignment_notifications` with new `kind` + `summary`. Inbox fetch + realtime subscribe that table.
+- **Migration (staging applied):** `20261005085620_enquiry_update_notifications.sql`. Verified: assignee actor got 0 rows; admin got `reached_out`.
+- **Files:** `enquiryNotificationUtils.js`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `enquiryBulkUploadUtils.js`, `EnquiryDetailDialog.jsx`, `notificationsUtils.js`, `NotificationsPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md
+
 ## 2026-10-05 — Support admin privilege + reach-out comments
 
 - **Feature:** Platform Admin can grant **Support admin** on Edit user (switch). That user sees every enquiry, can assign, manage tags, and see SLA cards — **not** the Admin tab / user management. Enforced by RLS (`jwt_user_can_admin_enquiries()`), not UI. Grant/revoke written to `support_admin_audit`.

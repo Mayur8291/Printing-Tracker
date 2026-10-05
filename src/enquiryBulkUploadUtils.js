@@ -385,7 +385,7 @@ export async function importEnquiryRows({ rows, createdBy, onProgress }) {
   for (let i = 0; i < todo.length; i += 1) {
     const r = todo[i];
     try {
-      const row = await createEnquiry({ createdBy, form: r.form });
+      const row = await createEnquiry({ createdBy, form: { ...r.form, notify: false } });
       created.push(row);
     } catch (e) {
       failed.push({ line: r.line, error: e?.message || "Could not save" });
