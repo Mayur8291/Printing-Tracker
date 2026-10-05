@@ -49,6 +49,23 @@
 | **Root cause** | `mastersUtils.parseCsv` drops fully blank lines, so Row counts data rows only. |
 | **Fix** | Remove blank lines from the sheet, or count non-blank rows after the header. |
 
+## Support admin still only sees their own enquiries
+
+| | |
+|--|--|
+| **Symptom** | User has Support admin switch on; Support tab still looks like a staff desk. |
+| **Root cause** | Migration `20261005074841` not applied, or they need a hard refresh so `support_admins` is loaded, or they were never granted (Save not clicked). |
+| **Investigate** | `select * from support_admins where user_id = '<id>'`. `select public.jwt_user_can_admin_enquiries();` as that user (won't work from MCP as postgres). |
+| **Fix** | Apply the migration on that project (staging done). Admin → Edit user → Support admin on → Save. User hard refresh. |
+
+## Reach-out button does nothing / comment not saved
+
+| | |
+|--|--|
+| **Symptom** | Save reach-out stays disabled or error after click. |
+| **Root cause** | Comment empty (required). Or project lacks `last_reached_out_*` columns. Or viewer is not assignee / tag holder / Support admin. |
+| **Fix** | Type a comment. Apply `20261005074841_support_admins_and_reach_out.sql`. |
+
 ## Enquiry never turns "Opened" when staff view it
 
 | | |

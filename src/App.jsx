@@ -119,6 +119,7 @@ import ViewerUserEditModal from "./ViewerUserEditModal";
 import { Calculator, Pencil, Trash2 } from "lucide-react";
 import PrintCalculatorModal from "./printCalculator/PrintCalculatorModal";
 import { filterViewerProfiles, formatProfileAccessLabel, profileAccessRole, viewerIsActive } from "./viewerUserListUtils";
+import { fetchSupportAdminIds, setSupportAdminMember } from "./supportAdminUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
 import NotificationBellButton from "./NotificationBellButton";
 import NotificationsPanel from "./NotificationsPanel";
@@ -719,6 +720,10 @@ function App() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
   const isAdminUser = (profile?.role ?? "").trim().toLowerCase() === "admin";
+  const [supportAdminIds, setSupportAdminIds] = useState([]);
+  const [supportAdminDrafts, setSupportAdminDrafts] = useState({});
+  const supportAdminIdSet = useMemo(() => new Set(supportAdminIds), [supportAdminIds]);
+  const isSupportAdminUser = isAdminUser || supportAdminIdSet.has(session?.user?.id);
 
   const statusTonesEnabled = profile?.status_tones_enabled !== false;
   useEffect(() => {
@@ -1248,9 +1253,11 @@ function App() {
   useEffect(() => {
     if (!session?.user) {
       setTeamProfiles([]);
+      setSupportAdminIds([]);
       return;
     }
     fetchTeamProfiles();
+    void loadSupportAdmins();
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -1503,6 +1510,15 @@ function App() {
     setTeamProfiles(data ?? []);
   }
 
+  async function loadSupportAdmins() {
+    try {
+      setSupportAdminIds(await fetchSupportAdminIds());
+    } catch (e) {
+      console.warn("support admins:", e.message || e);
+      setSupportAdminIds([]);
+    }
+  }
+
   async function fetchViewersAndPermissions() {
     const role = (profile?.role ?? "").trim().toLowerCase();
     if (role === "admin") {
@@ -1605,9 +1621,10 @@ function App() {
     const isAdminRole = (profile?.role ?? "").trim().toLowerCase() === "admin";
     return subscribePostgresChanges({
       channelName: `dashboard-profiles-${session.user.id}`,
-      tables: ["profiles"],
+      tables: ["profiles", "support_admins"],
       onEvent: () => {
         void fetchTeamProfiles();
+        void loadSupportAdmins();
         if (isAdminRole) void fetchViewersAndPermissions();
       }
     });
@@ -3485,6 +3502,22 @@ function App() {
     }
 
     if (profileAccessRole(viewer) !== "admin") {
+      const nextSupportAdmin =
+        supportAdminDrafts[viewerId] !== undefined
+          ? Boolean(supportAdminDrafts[viewerId])
+          : supportAdminIdSet.has(viewerId);
+      if (nextSupportAdmin !== supportAdminIdSet.has(viewerId)) {
+        try {
+          await setSupportAdminMember({
+            userId: viewerId,
+            member: nextSupportAdmin,
+            grantedBy: session?.user?.id
+          });
+        } catch (saErr) {
+          alert(saErr instanceof Error ? saErr.message : String(saErr));
+          return;
+        }
+      }
       const { error: permErr } = await supabase.from("profile_order_permissions").upsert(
         {
           user_id: viewerId,
@@ -3529,6 +3562,12 @@ function App() {
       delete next[viewerId];
       return next;
     });
+    setSupportAdminDrafts((prev) => {
+      const next = { ...prev };
+      delete next[viewerId];
+      return next;
+    });
+    await loadSupportAdmins();
     const refreshed = await fetchViewersAndPermissions();
     if (dashboardTab === ADMIN_DASHBOARD_TAB.id && refreshed?.viewerPermissions) {
       setPermissionDrafts((prev) => ({
@@ -3563,6 +3602,10 @@ function App() {
     setViewerActiveDrafts((prev) => ({
       ...prev,
       [id]: prev[id] !== undefined ? Boolean(prev[id]) : viewerIsActive(viewer)
+    }));
+    setSupportAdminDrafts((prev) => ({
+      ...prev,
+      [id]: prev[id] !== undefined ? Boolean(prev[id]) : supportAdminIdSet.has(id)
     }));
     setPermissionDrafts((prev) => ({
       ...prev,
@@ -4605,12 +4648,12 @@ function App() {
   const filteredViewerProfiles = useMemo(
     () =>
       filterViewerProfiles(
-        viewerProfiles,
+        viewerProfiles.map((v) => ({ ...v, is_support_admin: supportAdminIdSet.has(v.id) })),
         viewerListSearch,
         viewerListStatusFilter,
         viewerListAccessFilter
       ),
-    [viewerProfiles, viewerListSearch, viewerListStatusFilter, viewerListAccessFilter]
+    [viewerProfiles, viewerListSearch, viewerListStatusFilter, viewerListAccessFilter, supportAdminIdSet]
   );
 
   const viewerListPaginationKey = `${viewerListSearch}|${viewerListStatusFilter}|${viewerListAccessFilter}`;
@@ -5937,7 +5980,7 @@ function App() {
 
           {dashboardTab === "enquiry" && session?.user && (
             <EnquiryPanel
-              isAdmin={isAdmin}
+              isAdmin={isAdmin || isSupportAdminUser}
               canEdit={viewerCanEditCurrentTab}
               sessionUserId={session.user.id}
               teamProfiles={teamProfiles}
@@ -6538,6 +6581,7 @@ function App() {
                         >
                           <option value="all">All access</option>
                           <option value="admin">Admin only</option>
+                          <option value="support_admin">Support admin</option>
                           <option value="viewer">Viewer only</option>
                         </select>
                       </label>
@@ -6594,7 +6638,7 @@ function App() {
                                             : "user-access-pill user-access-pill--viewer"
                                         }
                                       >
-                                        {formatProfileAccessLabel(viewer)}
+                                        {formatProfileAccessLabel(viewer, supportAdminIdSet.has(viewer.id))}
                                       </span>
                                     </td>
                                     <td>
@@ -6761,6 +6805,14 @@ function App() {
                       onRemove={() => handleRemoveUser(editingViewer)}
                       removing={removingUserId === editingViewer.id}
                       isAdminAccount={profileAccessRole(editingViewer) === "admin"}
+                      isSupportAdmin={
+                        supportAdminDrafts[editingViewer.id] !== undefined
+                          ? Boolean(supportAdminDrafts[editingViewer.id])
+                          : supportAdminIdSet.has(editingViewer.id)
+                      }
+                      onSupportAdminChange={(v) =>
+                        setSupportAdminDrafts((prev) => ({ ...prev, [editingViewer.id]: Boolean(v) }))
+                      }
                       onClose={closeViewerEdit}
                     />
                   ) : null}

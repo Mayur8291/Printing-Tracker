@@ -37,6 +37,7 @@ import {
   findFallbackManagerProfile,
   isEnquiryUnpicked,
   markEnquiryOpened,
+  markEnquiryReachedOut,
   pickEnquiry
 } from "./enquiryConciergeUtils";
 import { normalizeEnquiryAttachments } from "./enquiryAttachmentUtils";
@@ -91,6 +92,7 @@ export default function EnquiryDetailDialog({
   const [priorityDraft, setPriorityDraft] = useState("normal");
   const [notesDraft, setNotesDraft] = useState("");
   const [tagDraft, setTagDraft] = useState("");
+  const [reachOutDraft, setReachOutDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -115,6 +117,7 @@ export default function EnquiryDetailDialog({
     setPriorityDraft(enquiry.priority || "normal");
     setNotesDraft(enquiry.notes || "");
     setTagDraft(enquiry.tag_id || "");
+    setReachOutDraft("");
     setError("");
     void fetchEnquiryActivity(enquiry.id)
       .then(setActivity)
@@ -196,6 +199,32 @@ export default function EnquiryDetailDialog({
       setError(e.message || "Could not assign enquiry.");
     } finally {
       setAssigning(false);
+    }
+  }
+
+  async function handleReachOut() {
+    if (!mayPick) return;
+    const note = reachOutDraft.trim();
+    if (!note) {
+      setError("Add a comment about what you told the customer.");
+      return;
+    }
+    setPicking(true);
+    setError("");
+    try {
+      const updated = await markEnquiryReachedOut({
+        enquiry,
+        comment: note,
+        sessionUserId,
+        isAdmin,
+        isTagMember
+      });
+      setReachOutDraft("");
+      await emitUpdated(updated);
+    } catch (e) {
+      setError(friendlyEnquiryDbError(e) || e.message || "Could not save reach-out.");
+    } finally {
+      setPicking(false);
     }
   }
 
@@ -383,9 +412,23 @@ export default function EnquiryDetailDialog({
             <dd>
               {enquiry.picked_at
                 ? formatDateTime(enquiry.picked_at)
-                : "Not picked yet — Verified / Contacted / Close counts as pick"}
+                : "Not picked yet — Verified / Contacted / Reached out / Close counts as pick"}
             </dd>
           </div>
+          {enquiry.last_reached_out_at ? (
+            <div className="grid grid-cols-[7rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Reached out</dt>
+              <dd>
+                {formatDateTime(enquiry.last_reached_out_at)}
+                {enquiry.last_reached_out_by && profileById?.[enquiry.last_reached_out_by]
+                  ? ` · ${profileDisplayName(profileById[enquiry.last_reached_out_by])}`
+                  : ""}
+                {enquiry.last_reached_out_comment ? (
+                  <span className="mt-1 block whitespace-pre-wrap">{enquiry.last_reached_out_comment}</span>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
           {enquiry.sla_escalated_at ? (
             <div className="grid grid-cols-[7rem_1fr] gap-2">
               <dt className="text-muted-foreground">SLA</dt>
@@ -461,6 +504,24 @@ export default function EnquiryDetailDialog({
               </Button>
               <Button type="button" variant="outline" disabled={picking} onClick={() => void handlePick("closed")}>
                 Close
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="enquiry-reach-out">Reached out to customer</Label>
+              <Textarea
+                id="enquiry-reach-out"
+                value={reachOutDraft}
+                onChange={(e) => setReachOutDraft(e.target.value)}
+                rows={2}
+                placeholder="What you said / next step… required"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={picking || !reachOutDraft.trim()}
+                onClick={() => void handleReachOut()}
+              >
+                {picking ? "Saving…" : "Save reach-out"}
               </Button>
             </div>
           </div>

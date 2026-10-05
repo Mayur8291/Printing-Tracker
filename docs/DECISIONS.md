@@ -2,6 +2,22 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-05 — Support admin is a table, not a new profile role
+
+**Context:** Lead monitors need Support admin powers (see all, assign) without the Admin tab / user management.
+
+**Options:** (1) New `profiles.role = support_admin` — would touch every `role === 'admin'` check. (2) Reuse sidebar Edit on Support — UI only, RLS still hides other people's tickets. (3) `support_admins` membership table + `jwt_user_can_admin_enquiries()`.
+
+**Decision:** Option 3. Platform admin stays `profiles.role`. Support powers are granted from Edit user. Enquiry RLS, tag write, activity, SLA, and the assignee/tag guard all use the new function. Grant/revoke writes `support_admin_audit`.
+
+**Tradeoffs:** Two admin concepts. Support admin cannot create users or open Admin. JWT is not refreshed for this flag — RLS reads the table live (security definer), so revoke is immediate.
+
+## 2026-10-05 — Reach-out is a logged comment, not a silent status flip
+
+**Context:** Staff must record that they contacted the customer, with what they said.
+
+**Decision:** Dedicated `markEnquiryReachedOut` with required comment. Writes `last_reached_out_*` for the latest note and an activity row for history. Also counts as a pick and moves unworked tickets to `in_progress`. "Mark contacted" stays as the old one-click path.
+
 ## 2026-10-05 — Bulk template is .xlsx with validation, not .csv
 
 **Context:** User wants dropdowns for Source, City, Tag in the template to stop mismatches. CSV cannot carry validation.

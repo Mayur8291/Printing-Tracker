@@ -6,6 +6,7 @@ export const ENQUIRY_ACTIVITY_LABEL = {
   opened: "Opened enquiry",
   verified: "Marked verified",
   contacted: "Marked contacted",
+  reached_out: "Reached out to customer",
   closed: "Closed",
   status: "Updated status",
   details: "Updated details",

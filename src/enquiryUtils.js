@@ -171,10 +171,19 @@ export async function relabelComplaintCodes(rows) {
 }
 
 const ENQUIRY_SELECT =
-  "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at, order_id, order_type, help_topic, ticket_kind, ownership_verified, assigned_because_unknown, picked_at, sla_escalated_at, escalated_to_id, closed_at, feedback_rating, feedback_comment, feedback_at, feedback_requested_at, attachments, tag_id, customer_city, customer_state, opened_at";
+  "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at, order_id, order_type, help_topic, ticket_kind, ownership_verified, assigned_because_unknown, picked_at, sla_escalated_at, escalated_to_id, closed_at, feedback_rating, feedback_comment, feedback_at, feedback_requested_at, attachments, tag_id, customer_city, customer_state, opened_at, last_reached_out_at, last_reached_out_comment, last_reached_out_by";
 
 /** Columns added after the first schema; stripped when a project lacks them. */
-const ENQUIRY_LATE_COLUMNS = ["ticket_kind", "tag_id", "customer_city", "customer_state", "opened_at"];
+const ENQUIRY_LATE_COLUMNS = [
+  "ticket_kind",
+  "tag_id",
+  "customer_city",
+  "customer_state",
+  "opened_at",
+  "last_reached_out_at",
+  "last_reached_out_comment",
+  "last_reached_out_by"
+];
 
 /** Schema before `ticket_kind` (20260819) / `tag_id`, `customer_city` + `customer_state`, `opened_at` (20261005) landed. */
 const ENQUIRY_SELECT_LEGACY = ENQUIRY_LATE_COLUMNS.reduce(
@@ -488,6 +497,7 @@ export function filterEnquiries(enquiries, { statusFilter, searchQuery, assignee
       row.customer_email,
       row.customer_city,
       row.customer_state,
+      row.last_reached_out_comment,
       row.product_details,
       row.source,
       row.notes,

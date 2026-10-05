@@ -273,6 +273,46 @@ export async function markEnquiryOpened({ enquiry, sessionUserId, isAdmin, isTag
   return updated;
 }
 
+/**
+ * Staff logged that they reached the customer. Comment is required and written to
+ * activity + last_reached_out_* so Support admin can see who said what.
+ * Counts as a pick (picked_at) and moves unworked tickets to in_progress.
+ */
+export async function markEnquiryReachedOut({
+  enquiry,
+  comment,
+  sessionUserId,
+  isAdmin,
+  isTagMember = false
+}) {
+  if (!enquiry?.id) throw new Error("Enquiry not found.");
+  const note = String(comment ?? "").trim();
+  if (!note) throw new Error("Add a comment about what you told the customer.");
+  const isAssignee = enquiry.assignee_id === sessionUserId;
+  const isFallback = enquiry.escalated_to_id === sessionUserId;
+  if (!isAdmin && !isAssignee && !isFallback && !isTagMember) {
+    throw new Error("Only the assignee, SLA fallback, tag holder, or an admin can log a reach-out.");
+  }
+
+  const now = new Date().toISOString();
+  const patch = {
+    last_reached_out_at: now,
+    last_reached_out_comment: note,
+    last_reached_out_by: sessionUserId
+  };
+  if (!enquiry.picked_at) patch.picked_at = now;
+  if (ENQUIRY_UNWORKED_STATUSES.includes(enquiry.status)) patch.status = "in_progress";
+
+  const updated = await patchEnquiry(enquiry.id, patch);
+  await logEnquiryActivity({
+    enquiryId: enquiry.id,
+    actorId: sessionUserId,
+    action: "reached_out",
+    detail: note
+  });
+  return updated;
+}
+
 export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin, isTagMember = false }) {
   if (!enquiry?.id) throw new Error("Enquiry not found.");
   const isAssignee = enquiry.assignee_id === sessionUserId;

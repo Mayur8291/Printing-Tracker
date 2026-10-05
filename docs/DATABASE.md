@@ -256,6 +256,7 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | `notes` | text | Internal notes |
 | `status` | text | `new`, `assigned`, `opened`, `in_progress`, `resolved`, `closed`. `opened` = worker viewed the ticket, no action yet (migration `20261005063756_enquiry_opened_status.sql`). |
 | `opened_at` | timestamptz | First time assignee / tag holder / SLA fallback opened the detail. Null when admin-only views. |
+| `last_reached_out_at` / `last_reached_out_comment` / `last_reached_out_by` | timestamptz / text / uuid | Latest staff reach-out to the customer. Comment required. FK `last_reached_out_by` → `profiles.id`. Migration `20261005074841_support_admins_and_reach_out.sql`. |
 | `priority` | text | `low`, `normal`, `high`, `urgent` |
 | `order_id` | text | Optional linked order code (Ready Stock or tracker) |
 | `order_type` | text | `regular` or `customized` |
@@ -277,7 +278,7 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 
 **RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; **tag holder** (`enquiry_tag_visible(tag_id)`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields or `tag_id`**; creator can update own rows (photos after insert); insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits and non-admin tag changes. Migration `20260819120000_enquiries_creator_update.sql`, `20261005062316_enquiry_tags.sql`.
 
-**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql`, code prefixes `20260819100000_enquiry_complaint_code_prefixes.sql` (staging: `ticket_kind`, `complaint_code_seq`, relabel complaint `ENQ-` → `CS-`), tags `20261005062316_enquiry_tags.sql`, city/state `20261005063356_enquiry_customer_city_state.sql`, opened status `20261005063756_enquiry_opened_status.sql` (rollback: drop `opened_at`, restore 5-value check after moving `opened` rows to `assigned`, recreate old index).
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql`, code prefixes `20260819100000_enquiry_complaint_code_prefixes.sql` (staging: `ticket_kind`, `complaint_code_seq`, relabel complaint `ENQ-` → `CS-`), tags `20261005062316_enquiry_tags.sql`, city/state `20261005063356_enquiry_customer_city_state.sql`, opened status `20261005063756_enquiry_opened_status.sql` (rollback: drop `opened_at`, restore 5-value check after moving `opened` rows to `assigned`, recreate old index), support admin + reach-out `20261005074841_support_admins_and_reach_out.sql`.
 
 **Drift note (2026-10-05):** staging `enquiries` has **no** `ticket_kind` column and no `enquiries update creator` policy — `20260819100000` / `20260819120000` never ran there. App reads kind from `help_topic` via its legacy select fallback. Reconcile before production release.
 
@@ -310,6 +311,26 @@ PK `(tag_id, user_id)`. Index on `user_id`. **RLS:** admin reads/writes all; a u
 
 **Function:** `enquiry_tag_visible(uuid) → boolean`, security definer, stable: true when `auth.uid()` holds that tag. Used by `enquiries select scoped` and `enquiries update tag member`.
 
+### `support_admins`
+
+Who may admin Support without `profiles.role = admin`.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `user_id` | uuid | PK, FK → `profiles.id` cascade |
+| `granted_by` | uuid | Platform admin who granted |
+| `granted_at` | timestamptz | When |
+
+**RLS:** any authenticated reads; only `jwt_user_is_admin()` writes. In `supabase_realtime`.
+
+**Functions:** `jwt_user_is_support_admin()`, `jwt_user_can_admin_enquiries()` (`admin OR support_admin`). Enquiry select/update-admin/delete/insert-assign, tag write, activity select, SLA select use `jwt_user_can_admin_enquiries()`.
+
+### `support_admin_audit`
+
+Grant/revoke log. Platform admin reads and inserts (`actor_id = auth.uid()`).
+
+**Rollback:** restore policies to `jwt_user_is_admin()`; restore previous guard body; drop reach-out columns; drop both tables and both functions.
+
 **Rollback:** drop policy `enquiries update tag member`; recreate `enquiries select scoped` without the tag clause; restore the previous `enquiries_guard_assignee_change` body; `alter table enquiries drop column tag_id`; drop `enquiry_tag_members`, `enquiry_tags`, `enquiry_tag_visible`.
 
 ### `enquiry_sla_escalations`
@@ -338,11 +359,11 @@ Staff/admin actions on an enquiry so admin can see pick, status, notes, close.
 |--------|------|---------|
 | `enquiry_id` | uuid | FK → `enquiries.id` |
 | `actor_id` | uuid | Who did the action |
-| `action` | text | `created`, `assigned`, `verified`, `contacted`, `closed`, `status`, `details`, `feedback` |
+| `action` | text | `created`, `assigned`, `opened`, `verified`, `contacted`, `reached_out`, `closed`, `status`, `details`, `feedback` |
 | `detail` | text | Extra (status value, code) |
 | `created_at` | timestamptz | When |
 
-**RLS:** Admin reads all; actor reads own; assignee/creator/SLA fallback read for that enquiry. Insert only as self (`actor_id = auth.uid()`).
+**RLS:** Platform admin + Support admin read all; actor reads own; assignee/creator/SLA fallback/tag holder read for that enquiry. Insert only as self (`actor_id = auth.uid()`).
 
 **Migration:** `20260818100000_enquiry_admin_assign_activity.sql`
 

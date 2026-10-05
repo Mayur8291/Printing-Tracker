@@ -1,5 +1,21 @@
 # Flowcharts
 
+## Support admin vs platform admin
+
+```mermaid
+flowchart TD
+  PA[Platform admin: profiles.role admin] -->|Edit user switch| SA[(support_admins)]
+  PA -->|audit| Audit[(support_admin_audit)]
+  SA --> Fn{jwt_user_can_admin_enquiries}
+  PA --> Fn
+  Fn -->|true| All[See all enquiries / assign / tags / SLA]
+  Fn -->|false| Scoped[Assignee / creator / tag / SLA fallback only]
+  All --> Act[Actions]
+  Scoped --> Act
+  Act --> Log[(enquiry_activity_log)]
+  Act -->|reach-out comment| Row[enquiries.last_reached_out_*]
+```
+
 ## Enquiry bulk CSV upload
 
 ```mermaid

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-05 — Support admin privilege + reach-out comments
+
+- **Feature:** Platform Admin can grant **Support admin** on Edit user (switch). That user sees every enquiry, can assign, manage tags, and see SLA cards — **not** the Admin tab / user management. Enforced by RLS (`jwt_user_can_admin_enquiries()`), not UI. Grant/revoke written to `support_admin_audit`.
+- **Feature:** Enquiry detail has **Reached out to customer** with a required comment. Saves `last_reached_out_at/comment/by`, logs activity "Reached out to customer", counts as a pick, moves new/assigned/opened → In progress.
+- **Migration (staging applied):** `20261005074841_support_admins_and_reach_out.sql`. RLS verified: support-admin viewer saw a foreign enquiry and wrote a reach-out comment (rolled back).
+- **Files:** `supportAdminUtils.js` (new), `App.jsx`, `ViewerUserEditModal.jsx`, `viewerUserListUtils.js`, `enquiryConciergeUtils.js`, `enquiryUtils.js`, `enquiryActivityUtils.js`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md
+
 ## 2026-10-05 — Enquiry desk drops Order ID column
 
 - **Change:** `SupportTicketDesk` gets `showOrderId` prop (default `true`). Enquiry desk passes `false`; Complaints unchanged. Empty-state `colSpan` now computed from visible columns.
