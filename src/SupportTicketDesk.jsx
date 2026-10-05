@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +19,8 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
@@ -31,7 +32,7 @@ import {
   profileDisplayName
 } from "./enquiryUtils";
 import { isEnquiryUnpicked } from "./enquiryConciergeUtils";
-import { AlertCircle, Clock, RefreshCw } from "lucide-react";
+import { Bell, RefreshCw } from "lucide-react";
 
 const STATUS_FILTERS = [{ id: "all", label: "All" }, ...ENQUIRY_STATUSES.map((id) => ({
   id,
@@ -105,6 +106,30 @@ export default function SupportTicketDesk({
   const [assigneeFilter, setAssigneeFilter] = useState("all");
 
   const counts = useMemo(() => enquiryStatusCounts(rows), [rows]);
+  const slaItems = useMemo(() => {
+    const escalated = (openEscalations ?? []).map((row) => ({
+      id: `esc-${row.id}`,
+      tone: "destructive",
+      title: "SLA escalation",
+      body: `${row.enquiry_code || "Enquiry"} · ${row.customer_name || "Customer"} — not picked. Customer is not told.`,
+      enquiryId: row.enquiry_id
+    }));
+    const waiting = isAdmin
+      ? (waitingAlerts ?? []).map((row) => ({
+          id: `wait-${row.enquiryId}`,
+          tone: "wait",
+          title: "Waiting over 1 hour",
+          body: `${row.enquiryCode || "Enquiry"} · ${row.customerName || "Customer"}`,
+          enquiryId: row.enquiryId
+        }))
+      : [];
+    const seen = new Set();
+    return [...escalated, ...waiting].filter((item) => {
+      if (seen.has(item.enquiryId)) return false;
+      seen.add(item.enquiryId);
+      return true;
+    });
+  }, [openEscalations, waitingAlerts, isAdmin]);
   const visibleRows = useMemo(
     () =>
       filterEnquiries(rows, {
@@ -120,6 +145,59 @@ export default function SupportTicketDesk({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="text-sm text-muted-foreground">{description}</p>
         <div className="flex flex-wrap gap-2">
+          {slaItems.length ? (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="relative"
+                  aria-label={`SLA alerts, ${slaItems.length}`}
+                >
+                  <Bell className="h-4 w-4" aria-hidden />
+                  <Badge
+                    variant="destructive"
+                    className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]"
+                  >
+                    {slaItems.length > 99 ? "99+" : slaItems.length}
+                  </Badge>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0">
+                <div className="border-b px-3 py-2">
+                  <p className="text-sm font-medium">SLA alerts</p>
+                  <p className="text-xs text-muted-foreground">Unpicked enquiries. Customer is not told.</p>
+                </div>
+                <ScrollArea className="max-h-72">
+                  <ul className="p-1">
+                    {slaItems.map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className="w-full rounded-sm px-2 py-2 text-left hover:bg-accent"
+                          onClick={() => {
+                            const match = rows.find((e) => e.id === item.enquiryId);
+                            if (match) onOpenDetail?.(match);
+                          }}
+                        >
+                          <p
+                            className={cn(
+                              "text-xs font-medium",
+                              item.tone === "destructive" ? "text-destructive" : "text-foreground"
+                            )}
+                          >
+                            {item.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{item.body}</p>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
+          ) : null}
           <Button type="button" variant="outline" size="sm" onClick={() => void onRefresh?.()}>
             <RefreshCw className="mr-1 h-4 w-4" aria-hidden />
             Refresh
@@ -127,45 +205,6 @@ export default function SupportTicketDesk({
           {headerActions}
         </div>
       </div>
-
-      {openEscalations.map((row) => (
-        <Alert
-          key={row.id}
-          variant="destructive"
-          className="cursor-pointer"
-          onClick={() => {
-            const match = rows.find((e) => e.id === row.enquiry_id);
-            if (match) onOpenDetail?.(match);
-          }}
-        >
-          <AlertCircle className="h-4 w-4" aria-hidden />
-          <AlertTitle>SLA escalation</AlertTitle>
-          <AlertDescription>
-            {row.message} Customer {row.customer_name}
-            {row.order_id ? ` · Order ${row.order_id}` : ""}. Customer is not told.
-          </AlertDescription>
-        </Alert>
-      ))}
-
-      {isAdmin
-        ? waitingAlerts.map((row) => (
-            <Alert
-              key={`wait-${row.enquiryId}`}
-              className="cursor-pointer"
-              onClick={() => {
-                const match = rows.find((e) => e.id === row.enquiryId);
-                if (match) onOpenDetail?.(match);
-              }}
-            >
-              <Clock className="h-4 w-4" aria-hidden />
-              <AlertTitle>Waiting over 1 hour (ops)</AlertTitle>
-              <AlertDescription>
-                {row.message} {row.customerName}
-                {row.orderId ? ` · Order ${row.orderId}` : ""}. Not shown to the assignee desk copy.
-              </AlertDescription>
-            </Alert>
-          ))
-        : null}
 
       {isAdmin ? (
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">

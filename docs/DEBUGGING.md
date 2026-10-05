@@ -947,12 +947,22 @@
 | **Verify** | Detail shows **Customer message sent**. Simulator shows Feedback button. |
 | **Note** | This dashboard does not send live Meta WhatsApp. Real phone SMS/WA stays in `Scott_concierge` unless an Edge Function is added later. |
 
+## SLA list gone from the Enquiry desk
+
 | | |
 |--|--|
-| **Symptom** | Assigned ticket older than 2 hours, no red SLA banner. |
+| **Symptom** | No red banners; thought SLA broke. |
+| **Root cause** | Banners moved to a **bell** next to Refresh (2026-10-05). Badge shows count. |
+| **Fix** | Click the bell. Empty bell = no unpicked tickets over 1h / 2h. |
+
+## Assigned ticket older than 2 hours, no SLA alert in the bell
+
+| | |
+|--|--|
+| **Symptom** | Bell missing or count 0 though tickets are old. |
 | **Root cause** | Ticket already has `picked_at`, or no profile named **Gargi** (fallback is first admin), or opener has no write RLS so persist is skipped. |
-| **Fix** | Confirm status is still New/Assigned and Pending badge shows. Add a user whose `full_name` is Gargi. Open Enquiry as admin so the client SLA pass can write `enquiry_sla_escalations`. |
-| **Note** | Missed-pick SLA still does not message the customer. Close **does** queue the Concierge feedback text for the ticket phone (simulator). Live WhatsApp Cloud API stays in `Scott_concierge`. |
+| **Fix** | Confirm status is still New/Assigned/Opened. Add a user whose `full_name` is Gargi. Open Enquiry as admin so the client SLA pass can write `enquiry_sla_escalations`. |
+| **Note** | Missed-pick SLA still does not message the customer. |
 
 Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
 

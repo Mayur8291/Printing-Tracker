@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05 — Enquiry SLA alerts live in a header bell
+
+- **Change:** Removed the stacked SLA / "Waiting over 1 hour" banners from the Support desk. Same alerts now sit in a small **bell** next to Refresh (badge = count). Popover lists unique unpicked tickets; click opens the enquiry. Customer still not told.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
 ## 2026-10-05 — Support inbox: assignee + admin get every enquiry update
 
 - **Feature:** Notifications tab now shows Support events (new **Support** filter). Click **View Enquiry** opens the Support tab.
