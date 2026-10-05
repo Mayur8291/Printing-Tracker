@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-05 — Finish work means push develop, no ask
+
+**Context:** User was being asked to confirm commit/push after every Support change.
+
+**Options:** (1) Keep asking. (2) Auto commit + push `develop` after each finished task.
+
+**Decision:** Option 2. Rule `.cursor/rules/auto-push-develop.mdc`. Production / `main` still needs an explicit production request.
+
+**Tradeoffs:** Faster staging deploys. Unrelated dirty files must stay unstaged.
+
 ## 2026-10-05 — Assigned staff see contact history + status only
 
 **Context:** Enquiry detail was the same packed dialog for admin and assignee. Assigned users were asked to Mark verified / Mark contacted / reach-out while also seeing notes, tag, SLA, feedback, and assign.

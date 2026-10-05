@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05 — Agent auto-pushes develop after each task
+
+- **Change:** Standing rule: finish work → commit task files → `git push origin develop`. No ask. Still never `main` / production unless the user names production.
+- **Files:** `.cursor/rules/auto-push-develop.mdc`
+- **Documentation updated:** CHANGELOG.md, DECISIONS.md
+
 ## 2026-10-05 — Assigned enquiry view is contact history + status only
 
 - **Change:** Non-admin assignees no longer see Mark verified, Mark contacted, Close pick, reach-out, notes, tag, or assign. Their detail is phone + case text, **Contact history** (add event), and **Status**. Admin / Support admin keep the full concierge dialog. Status checklists land in a follow-up (`enquiryStatusChecklist.js` is empty until then).
