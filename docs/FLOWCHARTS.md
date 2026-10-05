@@ -575,7 +575,8 @@ flowchart TD
   D -->|yes| E[Write sla_escalated_at + notify Gargi]
   D -->|no| F[Show table + cards]
   E --> F
-  F --> G{User action}
+  F --> Bell[SLA bell always visible]
+  Bell --> G{User action}
   G -->|WhatsApp simulator| S[Fake chat files ticket]
   G -->|Enquiry path| EP[Name phone optional order details then ENQ code]
   G -->|Delay alert| DA[Queue delay text + next buttons]
