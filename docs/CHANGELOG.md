@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05 — Enquiry desk pagination
+
+- **Feature:** Enquiry and Complaints tables paginate with the shared `usePagination` / `OrdersPagination` / `OrdersPerPageControl` (default 10, stored per desk). Filter or search resets to page 1.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
 ## 2026-10-05 — Enquiry SLA alerts live in a header bell
 
 - **Change:** Removed the stacked SLA / "Waiting over 1 hour" banners from the Support desk. Same alerts now sit in a small **bell** next to Refresh (badge = count). Popover lists unique unpicked tickets; click opens the enquiry. Customer still not told.

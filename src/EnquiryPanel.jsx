@@ -649,6 +649,7 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
             openEscalations={enquiryEscalations}
             onRefresh={() => void loadEnquiries()}
             onOpenDetail={openDetail}
+            pageSizeKey="support-enquiry"
           />
         </TabsContent>
 
@@ -671,6 +672,7 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
             openEscalations={complaintEscalations}
             onRefresh={() => void loadEnquiries()}
             onOpenDetail={openDetail}
+            pageSizeKey="support-complaints"
           />
         </TabsContent>
 

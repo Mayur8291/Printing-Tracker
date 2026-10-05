@@ -32,6 +32,7 @@ import {
   profileDisplayName
 } from "./enquiryUtils";
 import { isEnquiryUnpicked } from "./enquiryConciergeUtils";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import { Bell, RefreshCw } from "lucide-react";
 
 const STATUS_FILTERS = [{ id: "all", label: "All" }, ...ENQUIRY_STATUSES.map((id) => ({
@@ -98,7 +99,8 @@ export default function SupportTicketDesk({
   onRefresh,
   onOpenDetail,
   showTag = false,
-  showOrderId = true
+  showOrderId = true,
+  pageSizeKey = "support-tickets"
 }) {
   const columnCount = 8 + (showTag ? 1 : 0) + (showOrderId ? 1 : 0);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -139,6 +141,16 @@ export default function SupportTicketDesk({
       }),
     [rows, statusFilter, searchQuery, assigneeFilter, isAdmin]
   );
+  const paginationKey = `${statusFilter}|${searchQuery}|${assigneeFilter}`;
+  const {
+    visible: pageRows,
+    total: pageTotal,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages
+  } = usePagination(visibleRows, pageSizeKey, paginationKey);
 
   return (
     <div className="space-y-4">
@@ -290,14 +302,14 @@ export default function SupportTicketDesk({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visibleRows.length === 0 ? (
+              {pageRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columnCount} className="py-8 text-center text-muted-foreground">
                     {emptyMessage}
                   </TableCell>
                 </TableRow>
               ) : (
-                visibleRows.map((row) => {
+                pageRows.map((row) => {
                   const assignee = row.assignee_id ? profileById[row.assignee_id] : null;
                   return (
                     <TableRow
@@ -358,6 +370,23 @@ export default function SupportTicketDesk({
           </Table>
         </div>
       )}
+
+      {!loading ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <OrdersPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            total={pageTotal}
+            pageSize={pageSize}
+          />
+          <OrdersPerPageControl
+            idPrefix={`${pageSizeKey}-per-page`}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
