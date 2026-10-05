@@ -1,5 +1,14 @@
 # Debugging
 
+## Support SLA popover list does not scroll (production)
+
+| | |
+|--|--|
+| **Symptom** | Many SLA alerts; popover grows or clips; wheel / trackpad does not move the list. |
+| **Root cause** | `ScrollArea` viewport is `h-full`. Parent used `max-h-72` only, so the root grew to the full list height and never overflowed. |
+| **Fix** | `ScrollArea` `className="h-72"` (same as shadcn demo) and `type="always"` so the scrollbar shows. |
+| **Verify** | Support → bell with more than ~8 alerts → scrollbar → wheel to the last row. |
+
 ## Support SLA bell missing on staging / local
 
 | | |

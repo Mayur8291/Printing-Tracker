@@ -175,13 +175,17 @@ export default function SupportTicketDesk({
                 ) : null}
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-80 p-0">
+            <PopoverContent
+              align="end"
+              collisionPadding={12}
+              className="w-80 overflow-hidden p-0"
+            >
               <div className="border-b px-3 py-2">
                 <p className="text-sm font-medium">SLA alerts</p>
                 <p className="text-xs text-muted-foreground">Unpicked enquiries. Customer is not told.</p>
               </div>
               {slaItems.length ? (
-                <ScrollArea className="max-h-72">
+                <ScrollArea type="always" className="h-72">
                   <ul className="p-1">
                     {slaItems.map((item) => (
                       <li key={item.id}>

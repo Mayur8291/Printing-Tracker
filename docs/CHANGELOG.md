@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05 — Support SLA alert list can scroll
+
+- **Bug fix:** SLA popover used `ScrollArea` with `max-h-72`. Radix viewport is `h-full`, so the box grew with every row and wheel/trackpad did nothing on production (many unpicked tickets). Use a fixed `h-72` plus `type="always"` like the shadcn scroll-area demo.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
 ## 2026-10-05 — Support SLA bell always visible on staging
 
 - **Bug fix:** Mini SLA bell next to Refresh only rendered when there was a waiting/escalated ticket. Staging has no unpicked enquiries, so the bell vanished. Bell now always shows; badge only when count > 0.
