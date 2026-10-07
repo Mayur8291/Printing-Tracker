@@ -17,6 +17,8 @@ flowchart TD
 flowchart TD
   List[Support desk table] -->|row click / SLA bell / after create| Page[Full-page enquiry detail]
   Page -->|Back or Escape| List
+  Page -->|Activity button| Sheet[Activity sheet: what / who / when]
+  Page -->|Mark verified| Tick[Green tick by customer name]
 ```
 
 ## Assigned staff vs admin enquiry detail
