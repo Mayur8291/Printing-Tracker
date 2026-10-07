@@ -124,9 +124,7 @@ function enumColumn(base, field, optionsByResource, relationsAsText) {
   }
 
   const resource = typeof field.optionsResource === "string" ? field.optionsResource : "";
-  // No resource to read (e.g. `rmp_price_types.zone_id`, sourced from the local Supabase
-  // zones master) — an empty dropdown is unanswerable, so it degrades to an id input,
-  // exactly as the row dialog does.
+  // Without an option source, retain an ID input in the bulk grid.
   if (!resource || relationsAsText) {
     return { ...base, type: "text", width: WIDTHS.text };
   }

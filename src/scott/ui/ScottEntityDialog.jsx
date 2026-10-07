@@ -31,6 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { proxifyScottImageUrl } from "@/scott/scottImage";
 import ScottMultiSelect, { toIdArray } from "@/scott/ui/ScottMultiSelect";
+import ScottZoneSelect from "@/scott/ui/ScottZoneSelect";
 
 const DEFAULT_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/gif";
 const FULL_WIDTH_TYPES = new Set(["textarea", "images", "image", "multiselect"]);
@@ -297,6 +298,8 @@ export default function ScottEntityDialog({
   config,
   fields,
   record = null,
+  zoneRows,
+  zoneRowsComplete = false,
   onSubmit,
   onClose,
   title,
@@ -437,6 +440,20 @@ export default function ScottEntityDialog({
     const value = form[field.key];
 
     switch (field.type) {
+      case "scott-zone":
+        return (
+          <ScottZoneSelect
+            id={id}
+            value={String(value ?? "")}
+            record={record}
+            seedRows={zoneRows}
+            seedComplete={zoneRowsComplete}
+            onChange={(next) => set(field.key, next)}
+            disabled={disabled}
+            required={field.required}
+          />
+        );
+
       case "textarea":
         return (
           <Textarea
