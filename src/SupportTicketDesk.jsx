@@ -100,6 +100,7 @@ export default function SupportTicketDesk({
   onOpenDetail,
   showTag = false,
   showOrderId = true,
+  detailsColumnLabel = "Concerns",
   pageSizeKey = "support-tickets"
 }) {
   const columnCount = 8 + (showTag ? 1 : 0) + (showOrderId ? 1 : 0);
@@ -300,7 +301,7 @@ export default function SupportTicketDesk({
                 <TableHead>Code</TableHead>
                 <TableHead>Customer</TableHead>
                 {showOrderId ? <TableHead>Order ID</TableHead> : null}
-                <TableHead>Concerns</TableHead>
+                <TableHead>{detailsColumnLabel}</TableHead>
                 <TableHead>Source</TableHead>
                 {showTag ? <TableHead>Tag</TableHead> : null}
                 <TableHead>Status</TableHead>

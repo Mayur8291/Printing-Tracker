@@ -281,7 +281,7 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, des
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-enquiry-product">{isEnquiryDesk ? "Enquiry details" : "Concerns"}</Label>
+            <Label htmlFor="new-enquiry-product">{isEnquiryDesk ? "Enquiry requirement" : "Concerns"}</Label>
             <Textarea
               id="new-enquiry-product"
               value={form.product_details}
@@ -664,6 +664,7 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
             }
             showTag
             showOrderId={false}
+            detailsColumnLabel="Enquiry requirement"
             headerActions={deskActions("enquiry")}
             waitingAlerts={enquiryWaiting}
             openEscalations={enquiryEscalations}

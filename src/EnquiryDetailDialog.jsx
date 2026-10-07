@@ -34,19 +34,27 @@ import {
 import {
   ENQUIRY_FALLBACK_MANAGER_NAME,
   UNKNOWN_ACCOUNT_MANAGER_VALUE,
-  complaintsHelpPathLabel,
   findFallbackManagerProfile,
+  isEnquiryHelpPath,
   isEnquiryUnpicked,
   markEnquiryOpened,
   markEnquiryReachedOut,
   pickEnquiry
 } from "./enquiryConciergeUtils";
 import { normalizeEnquiryAttachments } from "./enquiryAttachmentUtils";
-import { ENQUIRY_ACTIVITY_LABEL, fetchEnquiryActivity, logEnquiryActivity } from "./enquiryActivityUtils";
+import { describeEnquiryActivity, fetchEnquiryActivity, logEnquiryActivity } from "./enquiryActivityUtils";
 import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { fetchEnquiryOutbound } from "./enquiryCloseNotify";
 import { viewerIsActive } from "./viewerUserListUtils";
-import { ArrowLeft } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, CheckCircle2, History } from "lucide-react";
 
 const STATUS_BADGE_CLASS = {
   new: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
@@ -102,6 +110,7 @@ export default function EnquiryDetailDialog({
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState("");
   const [activity, setActivity] = useState([]);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [outbound, setOutbound] = useState([]);
 
   const mayAssign = isAdmin;
@@ -111,9 +120,11 @@ export default function EnquiryDetailDialog({
   const isSlaFallback = enquiry?.escalated_to_id === sessionUserId;
   const isTagMember = Boolean(enquiry?.tag_id && sessionTagIds?.has?.(enquiry.tag_id));
   const mayUpdateStatus = isAdmin || isAssignee || isSlaFallback || isTagMember;
-  const isEnquiryKind = String(enquiry?.ticket_kind ?? "") === "enquiry";
+  const isEnquiryKind = isEnquiryHelpPath(enquiry);
+  const requirementLabel = isEnquiryKind ? "Enquiry requirement" : "Concerns";
   const tagName = enquiry?.tag_id ? tags.find((t) => t.id === enquiry.tag_id)?.name ?? "" : "";
   const mayPick = isAdmin && enquiry && enquiry.status !== "closed";
+  const customerVerified = activity.some((row) => row.action === "verified");
 
   useEffect(() => {
     if (!open || !enquiry) return;
@@ -124,6 +135,7 @@ export default function EnquiryDetailDialog({
     setTagDraft(enquiry.tag_id || "");
     setReachOutDraft("");
     setContactDraft("");
+    setActivityOpen(false);
     setError("");
     void fetchEnquiryActivity(enquiry.id)
       .then(setActivity)
@@ -151,11 +163,13 @@ export default function EnquiryDetailDialog({
   useEffect(() => {
     if (!open) return undefined;
     function onKey(event) {
-      if (event.key === "Escape") onOpenChange?.(false);
+      if (event.key !== "Escape") return;
+      if (activityOpen) return;
+      onOpenChange?.(false);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, activityOpen]);
 
   const activeProfiles = useMemo(
     () =>
@@ -366,26 +380,40 @@ export default function EnquiryDetailDialog({
       </Button>
       <Card>
         <CardHeader>
-          <CardTitle className="flex flex-wrap items-center gap-2">
-            <span>{enquiry.enquiry_code}</span>
-            <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[enquiry.status])}>
-              {ENQUIRY_STATUS_LABEL[enquiry.status] ?? enquiry.status}
-            </Badge>
-            <Badge variant="outline" className={cn(PRIORITY_BADGE_CLASS[enquiry.priority])}>
-              {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
-            </Badge>
-          </CardTitle>
-          <CardDescription>
-            {enquiry.customer_name}
-            {isStaffView ? "" : enquiry.source ? ` · ${enquiry.source}` : ""}
-          </CardDescription>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-1.5">
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>{enquiry.enquiry_code}</span>
+                <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[enquiry.status])}>
+                  {ENQUIRY_STATUS_LABEL[enquiry.status] ?? enquiry.status}
+                </Badge>
+                <Badge variant="outline" className={cn(PRIORITY_BADGE_CLASS[enquiry.priority])}>
+                  {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
+                </Badge>
+              </CardTitle>
+              <CardDescription className="flex flex-wrap items-center gap-2">
+                <span>{enquiry.customer_name}</span>
+                {customerVerified ? (
+                  <CheckCircle2
+                    className="size-4 text-emerald-600 dark:text-emerald-400"
+                    aria-label="Customer verified"
+                  />
+                ) : null}
+                {isStaffView ? null : enquiry.source ? <span>· {enquiry.source}</span> : null}
+              </CardDescription>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={() => setActivityOpen(true)}>
+              <History data-icon="inline-start" />
+              Activity
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
 
         {isStaffView ? (
           <div className="flex flex-col gap-4">
             <dl className="grid gap-2 text-sm">
-              <div className="grid grid-cols-[7rem_1fr] gap-2">
+              <div className="grid grid-cols-[9.5rem_1fr] gap-2">
                 <dt className="text-muted-foreground">Phone</dt>
                 <dd>
                   {enquiry.customer_phone ? (
@@ -398,15 +426,13 @@ export default function EnquiryDetailDialog({
                 </dd>
               </div>
               {isEnquiryKind ? null : (
-                <div className="grid grid-cols-[7rem_1fr] gap-2">
+                <div className="grid grid-cols-[9.5rem_1fr] gap-2">
                   <dt className="text-muted-foreground">Order ID</dt>
                   <dd>{enquiry.order_id || "—"}</dd>
                 </div>
               )}
-              <div className="grid grid-cols-[7rem_1fr] gap-2">
-                <dt className="text-muted-foreground">
-                  {isEnquiryKind ? "Enquiry details" : "Concerns"}
-                </dt>
+              <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+                <dt className="text-muted-foreground">{requirementLabel}</dt>
                 <dd className="whitespace-pre-wrap">{enquiry.product_details || "—"}</dd>
               </div>
             </dl>
@@ -417,19 +443,17 @@ export default function EnquiryDetailDialog({
               <Field>
                 <FieldLabel>Contact history</FieldLabel>
                 {activity.length ? (
-                  <ul className="max-h-48 flex flex-col gap-1 overflow-y-auto text-sm">
+                  <ul className="flex max-h-48 flex-col gap-2 overflow-y-auto text-sm">
                     {activity.map((row) => {
-                      const actor = profileById?.[row.actor_id];
+                      const described = describeEnquiryActivity(
+                        row,
+                        profileDisplayName(profileById?.[row.actor_id])
+                      );
                       return (
-                        <li key={row.id} className="text-muted-foreground">
-                          <span className="font-medium text-foreground">
-                            {ENQUIRY_ACTIVITY_LABEL[row.action] ?? row.action}
-                          </span>
-                          {" · "}
-                          {profileDisplayName(actor)}
-                          {row.detail ? ` · ${row.detail}` : ""}
-                          {" · "}
-                          {formatDateTime(row.created_at)}
+                        <li key={row.id} className="flex flex-col gap-0.5">
+                          <span className="font-medium text-foreground">{described.title}</span>
+                          <span className="text-muted-foreground">{described.body}</span>
+                          <span className="text-xs text-muted-foreground">{formatDateTime(row.created_at)}</span>
                         </li>
                       );
                     })}
@@ -491,30 +515,30 @@ export default function EnquiryDetailDialog({
         {isStaffView ? null : (
         <>
         <dl className="grid gap-2 text-sm">
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Phone</dt>
             <dd>{enquiry.customer_phone || "—"}</dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Email</dt>
             <dd>{enquiry.customer_email || "—"}</dd>
           </div>
           {enquiry.customer_city || enquiry.customer_state ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Location</dt>
               <dd>{[enquiry.customer_city, enquiry.customer_state].filter(Boolean).join(", ")}</dd>
             </div>
           ) : null}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Created</dt>
             <dd>{formatDateTime(enquiry.created_at)}</dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Logged by</dt>
             <dd>{profileDisplayName(creatorProfile)}</dd>
           </div>
           {enquiry.assigned_at ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Assigned</dt>
               <dd>
                 {formatDateTime(enquiry.assigned_at)}
@@ -526,45 +550,27 @@ export default function EnquiryDetailDialog({
             </div>
           ) : null}
           {isEnquiryKind ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Tag</dt>
               <dd>
                 {tagName ? <Badge variant="secondary">{tagName}</Badge> : "—"}
               </dd>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-[7rem_1fr] gap-2">
-                <dt className="text-muted-foreground">Order ID</dt>
-                <dd>{enquiry.order_id || "—"}</dd>
-              </div>
-              <div className="grid grid-cols-[7rem_1fr] gap-2">
-                <dt className="text-muted-foreground">Help path</dt>
-                <dd>{complaintsHelpPathLabel(enquiry)}</dd>
-              </div>
-            </>
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Order ID</dt>
+              <dd>{enquiry.order_id || "—"}</dd>
+            </div>
           )}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">
-              {String(enquiry.ticket_kind ?? "") === "enquiry" ? "Enquiry details" : "Concerns"}
-            </dt>
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+            <dt className="text-muted-foreground">{requirementLabel}</dt>
             <dd className="whitespace-pre-wrap">
               {enquiry.product_details || "—"}
               <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
             </dd>
           </div>
-          {isEnquiryKind ? null : (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
-              <dt className="text-muted-foreground">Ownership</dt>
-              <dd>
-                {enquiry.ownership_verified
-                  ? "Verified — phone matched the order"
-                  : "Not verified — do not assume this customer owns the order"}
-              </dd>
-            </div>
-          )}
           {enquiry.opened_at ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Opened</dt>
               <dd>
                 {formatDateTime(enquiry.opened_at)}
@@ -572,7 +578,7 @@ export default function EnquiryDetailDialog({
               </dd>
             </div>
           ) : null}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Picked</dt>
             <dd>
               {enquiry.picked_at
@@ -581,7 +587,7 @@ export default function EnquiryDetailDialog({
             </dd>
           </div>
           {enquiry.last_reached_out_at ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Reached out</dt>
               <dd>
                 {formatDateTime(enquiry.last_reached_out_at)}
@@ -595,7 +601,7 @@ export default function EnquiryDetailDialog({
             </div>
           ) : null}
           {enquiry.sla_escalated_at ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">SLA</dt>
               <dd>
                 Escalated {formatDateTime(enquiry.sla_escalated_at)}
@@ -603,11 +609,11 @@ export default function EnquiryDetailDialog({
               </dd>
             </div>
           ) : null}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Photos</dt>
             <dd>{normalizeEnquiryAttachments(enquiry.attachments).length} image(s)</dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Feedback</dt>
             <dd>
               {enquiry.feedback_rating
@@ -661,8 +667,13 @@ export default function EnquiryDetailDialog({
               open with the same number to see it. Live Meta WhatsApp is not sent from this dashboard.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="secondary" disabled={picking} onClick={() => void handlePick("verified")}>
-                Mark verified
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={picking || customerVerified}
+                onClick={() => void handlePick("verified")}
+              >
+                {customerVerified ? "Verified" : "Mark verified"}
               </Button>
               <Button type="button" variant="secondary" disabled={picking} onClick={() => void handlePick("contacted")}>
                 Mark contacted
@@ -789,32 +800,6 @@ export default function EnquiryDetailDialog({
           </p>
         )}
 
-        {activity.length ? (
-          <div className="space-y-2 border-t pt-4">
-            <Label>Activity</Label>
-            <p className="text-xs text-muted-foreground">
-              {isAdmin ? "Every staff action shows here." : "Your updates also show to admin."}
-            </p>
-            <ul className="max-h-40 space-y-1 overflow-y-auto text-sm">
-              {activity.map((row) => {
-                const actor = profileById?.[row.actor_id];
-                return (
-                  <li key={row.id} className="text-muted-foreground">
-                    <span className="font-medium text-foreground">
-                      {ENQUIRY_ACTIVITY_LABEL[row.action] ?? row.action}
-                    </span>
-                    {" · "}
-                    {profileDisplayName(actor)}
-                    {row.detail ? ` · ${row.detail}` : ""}
-                    {" · "}
-                    {formatDateTime(row.created_at)}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-
         {mayUpdateStatus ? (
           <div className="space-y-2 border-t pt-4">
             <Label>Status</Label>
@@ -841,6 +826,35 @@ export default function EnquiryDetailDialog({
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </CardContent>
       </Card>
+
+      <Sheet open={activityOpen} onOpenChange={setActivityOpen}>
+        <SheetContent className="flex flex-col">
+          <SheetHeader>
+            <SheetTitle>Activity</SheetTitle>
+            <SheetDescription>
+              What changed on {enquiry.enquiry_code}. Newest first.
+            </SheetDescription>
+          </SheetHeader>
+          {activity.length ? (
+            <ScrollArea className="h-72">
+              <ul className="flex flex-col gap-3 pr-4">
+                {activity.map((row) => {
+                  const described = describeEnquiryActivity(row, profileDisplayName(profileById?.[row.actor_id]));
+                  return (
+                    <li key={row.id} className="flex flex-col gap-0.5 border-b pb-3 last:border-b-0">
+                      <p className="text-sm font-medium">{described.title}</p>
+                      <p className="text-sm text-muted-foreground">{described.body}</p>
+                      <p className="text-xs text-muted-foreground">{formatDateTime(row.created_at)}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </ScrollArea>
+          ) : (
+            <p className="text-sm text-muted-foreground">No activity yet.</p>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

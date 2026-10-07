@@ -1,5 +1,14 @@
 # Debugging
 
+## Mark verified does not show a tick / Help path still on an ENQ
+
+| | |
+|--|--|
+| **Symptom** | Enquiry detail shows Help path / Ownership / Concerns. Mark verified does nothing visible. |
+| **Root cause** | Display used `ticket_kind === enquiry` only. Staging ENQ rows often lack `ticket_kind`, so they used the complaint layout. Verified was only an activity row, not a badge. |
+| **Fix** | Use `isEnquiryHelpPath`. Verified = activity `verified` → green tick + disabled button. Activity is a header button → sheet. |
+| **Verify** | Open ENQ → no Help path / Ownership. Label **Enquiry requirement**. Mark verified → tick by name, button says Verified and stays off. |
+
 ## Enquiry still opens as a small overlay
 
 | | |

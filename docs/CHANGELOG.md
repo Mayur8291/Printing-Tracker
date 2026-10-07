@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-07 — Enquiry verified tick, labels, Activity sheet
+
+- **Change:** Mark verified shows a green tick beside the customer name and disables the button. Help path and Ownership rows removed. Enquiry body labelled **Enquiry requirement**. Activity is an **Activity** button on the case that opens a sheet with who/what/when.
+- **Bug fix:** ENQ rows without `ticket_kind` were treated as complaints (Help path + Concerns). Display now uses `isEnquiryHelpPath`.
+- **Files:** `EnquiryDetailDialog.jsx`, `enquiryActivityUtils.js`, `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
 ## 2026-10-07 — Enquiry opens as a full page
 
 - **Change:** Clicking an enquiry/complaint row replaces the Support list with a full-width detail page. Small **Back** (and Escape) returns to the desk. No overlay dialog.
