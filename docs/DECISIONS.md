@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-07 — Enquiry detail is a full page, not a modal
+
+**Context:** The enquiry overlay was cramped (`sm:max-w-lg`) and hid the desk behind a dim layer.
+
+**Options:** (1) Widen the Dialog. (2) Sheet from the side. (3) Swap the Support list for a full-page Card with Back.
+
+**Decision:** Option 3. Same `EnquiryDetailDialog` component, no Dialog shell. Escape and **Back** restore the desk.
+
+**Tradeoffs:** No overlay; create/tags/bulk stay as dialogs. Browser history is not used (SPA tab state).
+
 ## 2026-10-05 — Finish work means push develop, no ask
 
 **Context:** User was being asked to confirm commit/push after every Support change.

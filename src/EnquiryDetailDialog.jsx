@@ -2,13 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import {
@@ -47,6 +46,7 @@ import { ENQUIRY_ACTIVITY_LABEL, fetchEnquiryActivity, logEnquiryActivity } from
 import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { fetchEnquiryOutbound } from "./enquiryCloseNotify";
 import { viewerIsActive } from "./viewerUserListUtils";
+import { ArrowLeft } from "lucide-react";
 
 const STATUS_BADGE_CLASS = {
   new: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
@@ -148,6 +148,15 @@ export default function EnquiryDetailDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, enquiry?.id, enquiry?.status, enquiry?.picked_at, isAdmin, isTagMember, sessionUserId]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    function onKey(event) {
+      if (event.key === "Escape") onOpenChange?.(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onOpenChange]);
+
   const activeProfiles = useMemo(
     () =>
       [...(teamProfiles ?? [])]
@@ -156,7 +165,7 @@ export default function EnquiryDetailDialog({
     [teamProfiles]
   );
 
-  if (!enquiry) return null;
+  if (!open || !enquiry) return null;
 
   async function emitUpdated(updated) {
     onUpdated?.(updated);
@@ -344,10 +353,20 @@ export default function EnquiryDetailDialog({
   const creatorProfile = enquiry.created_by ? profileById?.[enquiry.created_by] : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-4">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-fit"
+        onClick={() => onOpenChange?.(false)}
+      >
+        <ArrowLeft data-icon="inline-start" />
+        Back
+      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <span>{enquiry.enquiry_code}</span>
             <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[enquiry.status])}>
               {ENQUIRY_STATUS_LABEL[enquiry.status] ?? enquiry.status}
@@ -355,12 +374,13 @@ export default function EnquiryDetailDialog({
             <Badge variant="outline" className={cn(PRIORITY_BADGE_CLASS[enquiry.priority])}>
               {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
             </Badge>
-          </DialogTitle>
-          <DialogDescription>
+          </CardTitle>
+          <CardDescription>
             {enquiry.customer_name}
             {isStaffView ? "" : enquiry.source ? ` · ${enquiry.source}` : ""}
-          </DialogDescription>
-        </DialogHeader>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
 
         {isStaffView ? (
           <div className="flex flex-col gap-4">
@@ -819,13 +839,8 @@ export default function EnquiryDetailDialog({
         )}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

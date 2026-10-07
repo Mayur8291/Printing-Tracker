@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-07 — Enquiry opens as a full page
+
+- **Change:** Clicking an enquiry/complaint row replaces the Support list with a full-width detail page. Small **Back** (and Escape) returns to the desk. No overlay dialog.
+- **Files:** `EnquiryDetailDialog.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md, DECISIONS.md
+
 ## 2026-10-05 — Support SLA alert list can scroll
 
 - **Bug fix:** SLA popover used `ScrollArea` with `max-h-72`. Radix viewport is `h-full`, so the box grew with every row and wheel/trackpad did nothing on production (many unpicked tickets). Use a fixed `h-72` plus `type="always"` like the shadcn scroll-area demo.

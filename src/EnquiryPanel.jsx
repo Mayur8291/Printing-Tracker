@@ -564,6 +564,11 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
     setDetailOpen(true);
   }
 
+  function closeDetail() {
+    setDetailOpen(false);
+    setSelectedEnquiry(null);
+  }
+
   function handleEnquiryUpdated(updated) {
     setEnquiries((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
     setSelectedEnquiry(updated);
@@ -606,8 +611,29 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
     );
   }
 
+  const showingDetail = Boolean(detailOpen && selectedEnquiry);
+
   return (
-    <section className="panel table-panel dashboard-card space-y-4">
+    <section className="panel table-panel dashboard-card flex flex-col gap-4">
+      {showingDetail ? (
+        <EnquiryDetailDialog
+          open={detailOpen}
+          onOpenChange={(next) => {
+            if (next) setDetailOpen(true);
+            else closeDetail();
+          }}
+          enquiry={selectedEnquiry}
+          teamProfiles={teamProfiles}
+          profileById={profileById}
+          isAdmin={isAdmin}
+          canEdit={canEdit}
+          sessionUserId={sessionUserId}
+          onUpdated={handleEnquiryUpdated}
+          tags={tags}
+          sessionTagIds={sessionTagIds}
+        />
+      ) : (
+        <>
       <h2 className="dashboard-section-title flex items-center gap-2">
         <Headphones className="h-5 w-5" aria-hidden />
         Support
@@ -682,6 +708,8 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
           <div className="min-h-[12rem]" />
         </TabsContent>
       </Tabs>
+        </>
+      )}
 
       <CreateEnquiryDialog
         open={createOpen}
@@ -690,20 +718,6 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
         onCreated={handleEnquiryCreated}
         deskKind={createDeskKind}
         tags={formTags}
-      />
-
-      <EnquiryDetailDialog
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-        enquiry={selectedEnquiry}
-        teamProfiles={teamProfiles}
-        profileById={profileById}
-        isAdmin={isAdmin}
-        canEdit={canEdit}
-        sessionUserId={sessionUserId}
-        onUpdated={handleEnquiryUpdated}
-        tags={tags}
-        sessionTagIds={sessionTagIds}
       />
 
       {isAdmin ? (

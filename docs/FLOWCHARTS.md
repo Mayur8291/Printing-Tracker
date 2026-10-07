@@ -11,6 +11,14 @@ flowchart TD
   Feed --> Open[View Enquiry → Support tab]
 ```
 
+## Enquiry list vs full-page detail
+
+```mermaid
+flowchart TD
+  List[Support desk table] -->|row click / SLA bell / after create| Page[Full-page enquiry detail]
+  Page -->|Back or Escape| List
+```
+
 ## Assigned staff vs admin enquiry detail
 
 ```mermaid

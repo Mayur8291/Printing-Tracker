@@ -1,5 +1,14 @@
 # Debugging
 
+## Enquiry still opens as a small overlay
+
+| | |
+|--|--|
+| **Symptom** | Click a Support row; a centered dialog appears instead of a full page. |
+| **Root cause** | Old bundle still mounts `EnquiryDetailDialog` as shadcn `Dialog`. |
+| **Fix** | Hard refresh after develop deploy. Detail now swaps the desk for a Card page with **Back**. |
+| **Verify** | Support → click row → list gone, Back top-left, full width. Back restores the table. |
+
 ## Support SLA popover list does not scroll (production)
 
 | | |
