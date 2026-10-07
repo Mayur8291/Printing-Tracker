@@ -324,7 +324,7 @@ export default function EnquiryDetailDialog({
         enquiryId: enquiry.id,
         actorId: sessionUserId,
         action: "details",
-        detail: enquiry.enquiry_code
+        detail: patch.tag_id ? "tag / notes / priority" : "notes / priority"
       });
       await notifyEnquiryWatchers({
         enquiryId: enquiry.id,

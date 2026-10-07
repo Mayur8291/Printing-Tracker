@@ -569,14 +569,24 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
     setSelectedEnquiry(null);
   }
 
+  function decorateEnquiryRow(row) {
+    if (!row) return row;
+    return {
+      ...row,
+      tag_name: row.tag_id ? tagNameById[row.tag_id] ?? "" : ""
+    };
+  }
+
   function handleEnquiryUpdated(updated) {
-    setEnquiries((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-    setSelectedEnquiry(updated);
+    const next = decorateEnquiryRow(updated);
+    setEnquiries((prev) => prev.map((r) => (r.id === next.id ? next : r)));
+    setSelectedEnquiry(next);
   }
 
   function handleEnquiryCreated(row) {
-    setEnquiries((prev) => [row, ...prev]);
-    openDetail(row);
+    const next = decorateEnquiryRow(row);
+    setEnquiries((prev) => [next, ...prev]);
+    openDetail(next);
   }
 
   function deskActions(kind) {

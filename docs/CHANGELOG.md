@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-07 — Enquiry tags save and show again
+
+- **Bug fix:** Staging `enquiries` has `tag_id` but not `ticket_kind`. The late-column fallback stripped **every** extra column, so fetch/update dropped `tag_id`. Save looked like it failed (select reset to No tag). Fallback now omits only the missing column.
+- **Files:** `enquiryUtils.js`, `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
 ## 2026-10-07 — Support desk column is Assigned to
 
 - **Change:** Enquiry/Complaints table header **Assignee** → **Assigned to**.

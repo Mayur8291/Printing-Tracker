@@ -1,5 +1,14 @@
 # Debugging
 
+## Enquiry tag does not save or disappears after Save details
+
+| | |
+|--|--|
+| **Symptom** | Pick a tag, Save details, dropdown snaps back to No tag. Desk Tag column stays blank. |
+| **Root cause** | Staging has `tag_id` but no `ticket_kind`. `update`/`select` failed on `ticket_kind`, then the fallback select omitted **all** late columns including `tag_id`. Returned row had no tag, so the form reset. |
+| **Fix** | `enquiryUtils` retry omits only the columns named in the error. Keep `tag_id` in select/patch. After save, panel copies `tag_name` onto the row. |
+| **Verify** | Open ENQ → Tag Pets → Save details. Tag stays Pets. Desk Tag column shows Pets. |
+
 ## Mark verified does not show a tick / Help path still on an ENQ
 
 | | |

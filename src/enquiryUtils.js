@@ -173,7 +173,7 @@ export async function relabelComplaintCodes(rows) {
 const ENQUIRY_SELECT =
   "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at, order_id, order_type, help_topic, ticket_kind, ownership_verified, assigned_because_unknown, picked_at, sla_escalated_at, escalated_to_id, closed_at, feedback_rating, feedback_comment, feedback_at, feedback_requested_at, attachments, tag_id, customer_city, customer_state, opened_at, last_reached_out_at, last_reached_out_comment, last_reached_out_by";
 
-/** Columns added after the first schema; stripped when a project lacks them. */
+/** Columns added after the first schema; stripped only when that column is missing. */
 const ENQUIRY_LATE_COLUMNS = [
   "ticket_kind",
   "tag_id",
@@ -185,15 +185,23 @@ const ENQUIRY_LATE_COLUMNS = [
   "last_reached_out_by"
 ];
 
-/** Schema before `ticket_kind` (20260819) / `tag_id`, `customer_city` + `customer_state`, `opened_at` (20261005) landed. */
-const ENQUIRY_SELECT_LEGACY = ENQUIRY_LATE_COLUMNS.reduce(
-  (sel, col) => sel.replace(`, ${col}`, ""),
-  ENQUIRY_SELECT
-);
-
-function missingTicketKindColumn(error) {
+function lateColumnsNamedInError(error) {
   const msg = String(error?.message ?? "");
-  return ENQUIRY_LATE_COLUMNS.some((col) => msg.includes(col));
+  return ENQUIRY_LATE_COLUMNS.filter((col) => msg.includes(col));
+}
+
+function enquirySelectOmitting(cols) {
+  return cols.reduce((sel, col) => sel.replace(`, ${col}`, ""), ENQUIRY_SELECT);
+}
+
+function omitKeys(obj, cols) {
+  const next = { ...obj };
+  for (const col of cols) delete next[col];
+  return next;
+}
+
+function missingLateEnquiryColumn(error) {
+  return lateColumnsNamedInError(error).length > 0;
 }
 
 export function friendlyEnquiryDbError(error) {
@@ -231,14 +239,17 @@ async function insertEnquiryRow(payload) {
     if (!payload.enquiry_code || attempt > 0) {
       payload.enquiry_code = await allocateTicketCode(ticketKindFromForm(payload));
     }
-    let { data, error } = await supabase.from("enquiries").insert(payload).select(ENQUIRY_SELECT).maybeSingle();
-    if (error && missingTicketKindColumn(error)) {
-      const retryPayload = { ...payload };
-      for (const col of ENQUIRY_LATE_COLUMNS) delete retryPayload[col];
+    let selectCols = ENQUIRY_SELECT;
+    let insertPayload = payload;
+    let { data, error } = await supabase.from("enquiries").insert(insertPayload).select(selectCols).maybeSingle();
+    if (error && missingLateEnquiryColumn(error)) {
+      const missing = lateColumnsNamedInError(error);
+      insertPayload = omitKeys(payload, missing);
+      selectCols = enquirySelectOmitting(missing);
       ({ data, error } = await supabase
         .from("enquiries")
-        .insert(retryPayload)
-        .select(ENQUIRY_SELECT_LEGACY)
+        .insert(insertPayload)
+        .select(selectCols)
         .maybeSingle());
     }
     if (error && isUniqueEnquiryCodeError(error)) {
@@ -280,10 +291,10 @@ export async function fetchEnquiries() {
     .select(ENQUIRY_SELECT)
     .order("created_at", { ascending: false })
     .limit(500);
-  if (error && missingTicketKindColumn(error)) {
+  if (error && missingLateEnquiryColumn(error)) {
     ({ data, error } = await supabase
       .from("enquiries")
-      .select(ENQUIRY_SELECT_LEGACY)
+      .select(enquirySelectOmitting(lateColumnsNamedInError(error)))
       .order("created_at", { ascending: false })
       .limit(500));
   }
@@ -398,19 +409,20 @@ export async function updateEnquiryFields(enquiryId, patch) {
     .eq("id", enquiryId)
     .select(ENQUIRY_SELECT)
     .maybeSingle();
-  if (error && missingTicketKindColumn(error)) {
+  if (error && missingLateEnquiryColumn(error)) {
+    const missing = lateColumnsNamedInError(error);
     ({ data, error } = await supabase
       .from("enquiries")
-      .update(patch)
+      .update(omitKeys(patch, missing))
       .eq("id", enquiryId)
-      .select(ENQUIRY_SELECT_LEGACY)
+      .select(enquirySelectOmitting(missing))
       .maybeSingle());
   }
   if (error) throw new Error(friendlyEnquiryDbError(error));
   if (!data) {
     throw new Error("Could not update this ticket. Refresh Support and try again.");
   }
-  return data;
+  return { ...data, ...patch };
 }
 
 export async function assignEnquiry({
