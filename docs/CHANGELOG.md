@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-07 — Enquiry detail form fields no longer full-width
+
+- **Change:** Notes, Priority, Tag, Assign, and Status sit in a `max-w-md` column (Priority + Tag on one row). Full-page detail no longer stretches selects across the card.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
 ## 2026-10-07 — Enquiry verified tick, labels, Activity sheet
 
 - **Change:** Mark verified shows a green tick beside the customer name and disables the button. Help path and Ownership rows removed. Enquiry body labelled **Enquiry requirement**. Activity is an **Activity** button on the case that opens a sheet with who/what/when.

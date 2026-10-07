@@ -8,8 +8,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -411,7 +410,7 @@ export default function EnquiryDetailDialog({
         <CardContent className="flex flex-col gap-4">
 
         {isStaffView ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex w-full max-w-md flex-col gap-4">
             <dl className="grid gap-2 text-sm">
               <div className="grid grid-cols-[9.5rem_1fr] gap-2">
                 <dt className="text-muted-foreground">Phone</dt>
@@ -661,8 +660,8 @@ export default function EnquiryDetailDialog({
         ) : null}
 
         {mayPick ? (
-          <div className="space-y-2 border-t pt-4">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col gap-3 border-t pt-4">
+            <p className="max-w-md text-sm text-muted-foreground">
               Close queues the Concierge feedback text to this customer phone. Keep WhatsApp simulator
               open with the same number to see it. Live Meta WhatsApp is not sent from this dashboard.
             </p>
@@ -682,117 +681,122 @@ export default function EnquiryDetailDialog({
                 Close
               </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="enquiry-reach-out">Reached out to customer</Label>
-              <Textarea
-                id="enquiry-reach-out"
-                value={reachOutDraft}
-                onChange={(e) => setReachOutDraft(e.target.value)}
-                rows={2}
-                placeholder="What you said / next step… required"
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={picking || !reachOutDraft.trim()}
-                onClick={() => void handleReachOut()}
-              >
-                {picking ? "Saving…" : "Save reach-out"}
-              </Button>
+            <div className="w-full max-w-md">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="enquiry-reach-out">Reached out to customer</FieldLabel>
+                  <Textarea
+                    id="enquiry-reach-out"
+                    value={reachOutDraft}
+                    onChange={(e) => setReachOutDraft(e.target.value)}
+                    rows={2}
+                    placeholder="What you said / next step… required"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={picking || !reachOutDraft.trim()}
+                    onClick={() => void handleReachOut()}
+                  >
+                    {picking ? "Saving…" : "Save reach-out"}
+                  </Button>
+                </Field>
+              </FieldGroup>
             </div>
           </div>
         ) : null}
 
+        <div className="w-full max-w-md">
         {mayEditDetails ? (
-          <div className="space-y-3 border-t pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="enquiry-notes">Notes</Label>
+          <FieldGroup className="border-t pt-4">
+            <Field>
+              <FieldLabel htmlFor="enquiry-notes">Notes</FieldLabel>
               <Textarea
                 id="enquiry-notes"
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
-                rows={2}
+                rows={3}
                 placeholder="Internal notes…"
               />
+            </Field>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field>
+                <FieldLabel>Priority</FieldLabel>
+                <Select value={priorityDraft} onValueChange={setPriorityDraft}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ENQUIRY_PRIORITIES.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {ENQUIRY_PRIORITY_LABEL[p]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {isAdmin && isEnquiryKind ? (
+                <Field>
+                  <FieldLabel>Tag</FieldLabel>
+                  <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
+                    <SelectTrigger aria-label="Enquiry tag">
+                      <SelectValue placeholder="No tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No tag</SelectItem>
+                      {tags
+                        .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
+                        .map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>Changing the tag changes who can see this enquiry.</FieldDescription>
+                </Field>
+              ) : null}
             </div>
-            <div className="space-y-2">
-              <Label>Priority</Label>
-              <Select value={priorityDraft} onValueChange={setPriorityDraft}>
+            <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSaveDetails()}>
+              {saving ? "Saving…" : "Save details"}
+            </Button>
+          </FieldGroup>
+        ) : (
+          <p className="border-t pt-4 text-sm">
+            <span className="text-muted-foreground">Notes: </span>
+            {enquiry.notes || "—"}
+          </p>
+        )}
+
+        {mayAssign ? (
+          <FieldGroup className="border-t pt-4">
+            <Field>
+              <FieldLabel>Assign to</FieldLabel>
+              <Select value={assigneeId || "__none__"} onValueChange={(v) => setAssigneeId(v === "__none__" ? "" : v)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Pick team member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ENQUIRY_PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {ENQUIRY_PRIORITY_LABEL[p]}
+                  <SelectItem value="__none__">Unassigned</SelectItem>
+                  <SelectItem value={UNKNOWN_ACCOUNT_MANAGER_VALUE}>
+                    I don't know my Account manager → {ENQUIRY_FALLBACK_MANAGER_NAME}
+                  </SelectItem>
+                  {activeProfiles.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {profileDisplayName(p)}
+                      {p.department ? ` · ${p.department}` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            {isAdmin && isEnquiryKind ? (
-              <div className="space-y-2">
-                <Label>Tag</Label>
-                <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
-                  <SelectTrigger aria-label="Enquiry tag">
-                    <SelectValue placeholder="No tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">No tag</SelectItem>
-                    {tags
-                      .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
-                      .map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Changing the tag changes who can see this enquiry.
-                </p>
-              </div>
-            ) : null}
-            <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSaveDetails()}>
-              {saving ? "Saving…" : "Save details"}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-2 border-t pt-4 text-sm">
-            <p>
-              <span className="text-muted-foreground">Notes: </span>
-              {enquiry.notes || "—"}
-            </p>
-          </div>
-        )}
-
-        {mayAssign ? (
-          <div className="space-y-2 border-t pt-4">
-            <Label>Assign to</Label>
-            <Select value={assigneeId || "__none__"} onValueChange={(v) => setAssigneeId(v === "__none__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pick team member" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Unassigned</SelectItem>
-                <SelectItem value={UNKNOWN_ACCOUNT_MANAGER_VALUE}>
-                  I don't know my Account manager → {ENQUIRY_FALLBACK_MANAGER_NAME}
-                </SelectItem>
-                {activeProfiles.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {profileDisplayName(p)}
-                    {p.department ? ` · ${p.department}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Current: {assigneeProfile ? profileDisplayName(assigneeProfile) : "Nobody assigned yet"}
-            </p>
+              <FieldDescription>
+                Current: {assigneeProfile ? profileDisplayName(assigneeProfile) : "Nobody assigned yet"}
+              </FieldDescription>
+            </Field>
             <Button type="button" disabled={assigning || !assigneeId} onClick={() => void handleAssign()}>
               {assigning ? "Assigning…" : "Assign user"}
             </Button>
-          </div>
+          </FieldGroup>
         ) : (
           <p className="border-t pt-4 text-sm">
             <span className="text-muted-foreground">Assigned to: </span>
@@ -801,25 +805,28 @@ export default function EnquiryDetailDialog({
         )}
 
         {mayUpdateStatus ? (
-          <div className="space-y-2 border-t pt-4">
-            <Label>Status</Label>
-            <Select value={statusDraft} onValueChange={setStatusDraft}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ENQUIRY_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {ENQUIRY_STATUS_LABEL[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <FieldGroup className="border-t pt-4">
+            <Field>
+              <FieldLabel>Status</FieldLabel>
+              <Select value={statusDraft} onValueChange={setStatusDraft}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENQUIRY_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {ENQUIRY_STATUS_LABEL[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
             <Button type="button" variant="outline" disabled={saving} onClick={() => void handleSaveStatus()}>
               {saving ? "Updating…" : "Update status"}
             </Button>
-          </div>
+          </FieldGroup>
         ) : null}
+        </div>
         </>
         )}
 
