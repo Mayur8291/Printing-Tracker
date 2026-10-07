@@ -560,79 +560,15 @@ export default function EnquiryDetailDialog({
             </div>
           )}
         </dl>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
-          <dl className="grid gap-2 text-sm">
-            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+        <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+          <dl className="grid min-w-0 max-w-xl grow-0 gap-2 text-sm">
+            <div className="grid grid-cols-[9.5rem_minmax(0,1fr)] gap-2">
               <dt className="text-muted-foreground">{requirementLabel}</dt>
               <dd className="whitespace-pre-wrap">
                 {enquiry.product_details || "—"}
                 <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
               </dd>
             </div>
-          </dl>
-          {mayEditDetails ? (
-            <FieldGroup>
-              <Field>
-                <FieldLabel>Priority</FieldLabel>
-                <Select value={priorityDraft} onValueChange={setPriorityDraft}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENQUIRY_PRIORITIES.map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {ENQUIRY_PRIORITY_LABEL[p]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              {isAdmin && isEnquiryKind ? (
-                <Field>
-                  <FieldLabel>Tag</FieldLabel>
-                  <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
-                    <SelectTrigger aria-label="Enquiry tag">
-                      <SelectValue placeholder="No tag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">No tag</SelectItem>
-                      {tags
-                        .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
-                        .map((t) => (
-                          <SelectItem key={t.id} value={t.id}>
-                            {t.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FieldDescription>Tag controls who can see this enquiry.</FieldDescription>
-                </Field>
-              ) : (
-                <p className="text-sm">
-                  <span className="text-muted-foreground">Tag: </span>
-                  {tagName || "—"}
-                </p>
-              )}
-              <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSavePriorityTag()}>
-                {saving ? "Saving…" : "Save priority / tag"}
-              </Button>
-            </FieldGroup>
-          ) : (
-            <div className="flex flex-col gap-1 text-sm">
-              <p>
-                <span className="text-muted-foreground">Priority: </span>
-                {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
-              </p>
-              {isEnquiryKind ? (
-                <p>
-                  <span className="text-muted-foreground">Tag: </span>
-                  {tagName || "—"}
-                </p>
-              ) : null}
-            </div>
-          )}
-        </div>
-        <dl className="grid gap-2 text-sm">
           {enquiry.opened_at ? (
             <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Opened</dt>
@@ -694,7 +630,69 @@ export default function EnquiryDetailDialog({
               </span>
             </dd>
           </div>
-        </dl>
+          </dl>
+          {mayEditDetails ? (
+            <FieldGroup className="w-56 shrink-0 gap-3">
+              <Field>
+                <FieldLabel>Priority</FieldLabel>
+                <Select value={priorityDraft} onValueChange={setPriorityDraft}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ENQUIRY_PRIORITIES.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {ENQUIRY_PRIORITY_LABEL[p]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {isAdmin && isEnquiryKind ? (
+                <Field>
+                  <FieldLabel>Tag</FieldLabel>
+                  <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
+                    <SelectTrigger aria-label="Enquiry tag">
+                      <SelectValue placeholder="No tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No tag</SelectItem>
+                      {tags
+                        .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
+                        .map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>Tag controls who can see this enquiry.</FieldDescription>
+                </Field>
+              ) : (
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Tag: </span>
+                  {tagName || "—"}
+                </p>
+              )}
+              <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSavePriorityTag()}>
+                {saving ? "Saving…" : "Save priority / tag"}
+              </Button>
+            </FieldGroup>
+          ) : (
+            <div className="flex w-56 shrink-0 flex-col gap-1 text-sm">
+              <p>
+                <span className="text-muted-foreground">Priority: </span>
+                {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
+              </p>
+              {isEnquiryKind ? (
+                <p>
+                  <span className="text-muted-foreground">Tag: </span>
+                  {tagName || "—"}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </div>
 
         {enquiry.status === "closed" && outbound.length ? (
           <div className="space-y-2 rounded-md border bg-muted/40 p-3 text-sm">
@@ -742,8 +740,8 @@ export default function EnquiryDetailDialog({
                 Close
               </Button>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field>
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+              <Field className="w-full max-w-md">
                 <FieldLabel htmlFor="enquiry-reach-out">Reached out to customer</FieldLabel>
                 <Textarea
                   id="enquiry-reach-out"
@@ -762,7 +760,7 @@ export default function EnquiryDetailDialog({
                 </Button>
               </Field>
               {mayEditDetails ? (
-                <Field>
+                <Field className="w-full max-w-md">
                   <FieldLabel htmlFor="enquiry-internal-note">Internal note</FieldLabel>
                   <Textarea
                     id="enquiry-internal-note"

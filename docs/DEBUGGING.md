@@ -15,8 +15,17 @@
 |--|--|
 | **Symptom** | Notes, Priority, and Tag sit under Assign instead of next to reach-out / requirement. |
 | **Root cause** | Old admin form stacked notes + priority + tag in one `max-w-md` FieldGroup. |
-| **Fix** | Priority/Tag sit in a two-column grid beside Enquiry requirement. Internal note sits beside Save reach-out. |
-| **Verify** | Open ENQ as admin. Requirement row has Priority/Tag on the right. Reach-out row has Internal note on the right. |
+| **Fix** | Priority/Tag sit in a compact `w-56` column beside a `max-w-xl` facts column (not a full-width `1fr` grid). Internal note sits beside Save reach-out, each `max-w-md`. |
+| **Verify** | Open ENQ as admin. Small gap only between requirement text and Priority. Picked sits under requirement, not under the Save button. |
+
+## Enquiry detail has a huge blank gap beside requirement
+
+| | |
+|--|--|
+| **Symptom** | Priority/Tag hug the right edge of the card. Wide empty strip between requirement text and the selects. |
+| **Root cause** | `lg:grid-cols-[minmax(0,1fr)_16rem]` grew the left column across the full page. |
+| **Fix** | Flex wrap: left facts `max-w-xl grow-0`, Priority/Tag `w-56 shrink-0`. |
+| **Verify** | Priority starts just after the requirement column, not at the far right. |
 
 ## Mark verified does not show a tick / Help path still on an ENQ
 

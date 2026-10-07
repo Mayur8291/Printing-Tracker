@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-07 — Enquiry detail: no canyon between requirement and priority
+
+- **Bug fix:** Priority/Tag sat at the far right of the full-page card because the left column was `1fr`. Requirement + later facts now sit in a `max-w-xl` column; Priority/Tag is a tight `w-56` column beside it. Reach-out and Internal note use the same wrap, each `max-w-md`.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
 ## 2026-10-07 — Enquiry internal note beside reach-out; priority/tag beside details
 
 - **Change:** Admin enquiry page puts **Priority** and **Tag** beside **Enquiry requirement** (Save priority / tag). **Internal note** sits beside **Reached out to customer** (Save note). Assign and Status stay in the narrow column below.
