@@ -78,6 +78,7 @@ import ScottMasterCsvImportDialog from "@/scott/masters/ScottMasterCsvImportDial
 import { useMasterRelationOptions } from "@/scott/masters/useMasterRelationOptions";
 import ScottAirtableSyncControl from "@/scott/ui/ScottAirtableSyncControl";
 import ScottEntityDialog from "@/scott/ui/ScottEntityDialog";
+import { hasCompleteZoneRows } from "@/scott/data/zoneOptions";
 import ScottListPage from "@/scott/ui/ScottListPage";
 
 /** Radix Select forbids an empty item value, so "no filter" needs a sentinel. */
@@ -702,6 +703,8 @@ export default function ScottMasterListScreen({ config: master, mayEdit = false,
           config={config}
           fields={dialogFields}
           record={dialogRecord}
+          zoneRows={config.key === "rmp_price_types" ? list.rows : undefined}
+          zoneRowsComplete={config.key === "rmp_price_types" && hasCompleteZoneRows(list)}
           readOnly={!mayEdit}
           idPrefix={`scott-master-${config.key}`}
           description={
