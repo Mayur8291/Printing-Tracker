@@ -26,7 +26,7 @@ flowchart TD
 ```mermaid
 flowchart TD
   Open[Open enquiry detail] --> Role{isAdmin?}
-  Role -->|yes| Admin[Full dialog: facts, pick, reach-out, notes, assign, activity, status]
+  Role -->|yes| Admin[Full page: facts + priority/tag, pick, reach-out + internal note, assign, status]
   Role -->|no| Staff[Slim dialog]
   Staff --> Facts[Phone + case text]
   Staff --> Hist[Contact history + add event]
@@ -103,7 +103,7 @@ flowchart TD
   Admin[Admin: Tags dialog] -->|add / show-hide| Tags[(enquiry_tags)]
   Admin -->|tick users| Members[(enquiry_tag_members)]
   Create[New enquiry form] -->|tag_id| Enq[(enquiries)]
-  Detail[Detail: Save details, admin] -->|tag_id| Enq
+  Detail[Detail: Save priority / tag, admin] -->|tag_id| Enq
   Enq --> RLS{enquiries select scoped}
   RLS -->|admin| Show[Row visible]
   RLS -->|assignee / creator / SLA fallback| Show

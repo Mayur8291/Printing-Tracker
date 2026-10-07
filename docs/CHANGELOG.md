@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-07 — Enquiry internal note beside reach-out; priority/tag beside details
+
+- **Change:** Admin enquiry page puts **Priority** and **Tag** beside **Enquiry requirement** (Save priority / tag). **Internal note** sits beside **Reached out to customer** (Save note). Assign and Status stay in the narrow column below.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md
+
 ## 2026-10-07 — Enquiry tags save and show again
 
 - **Bug fix:** Staging `enquiries` has `tag_id` but not `ticket_kind`. The late-column fallback stripped **every** extra column, so fetch/update dropped `tag_id`. Save looked like it failed (select reset to No tag). Fallback now omits only the missing column.

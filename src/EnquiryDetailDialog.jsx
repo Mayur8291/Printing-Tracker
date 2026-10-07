@@ -309,27 +309,22 @@ export default function EnquiryDetailDialog({
     }
   }
 
-  async function handleSaveDetails() {
+  async function saveEnquiryPatch(patch, summary) {
     if (!mayEditDetails) return;
     setSaving(true);
     setError("");
     try {
-      const patch = {
-        notes: notesDraft.trim() || null,
-        priority: priorityDraft
-      };
-      if (isAdmin && isEnquiryKind) patch.tag_id = tagDraft || null;
       const updated = await updateEnquiryFields(enquiry.id, patch);
       await logEnquiryActivity({
         enquiryId: enquiry.id,
         actorId: sessionUserId,
         action: "details",
-        detail: patch.tag_id ? "tag / notes / priority" : "notes / priority"
+        detail: summary
       });
       await notifyEnquiryWatchers({
         enquiryId: enquiry.id,
         kind: "details",
-        summary: "Notes / priority / tag updated"
+        summary
       });
       await emitUpdated(updated);
     } catch (e) {
@@ -337,6 +332,16 @@ export default function EnquiryDetailDialog({
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleSavePriorityTag() {
+    const patch = { priority: priorityDraft };
+    if (isAdmin && isEnquiryKind) patch.tag_id = tagDraft || null;
+    await saveEnquiryPatch(patch, "priority / tag");
+  }
+
+  async function handleSaveInternalNote() {
+    await saveEnquiryPatch({ notes: notesDraft.trim() || null }, "internal note");
   }
 
   async function handleSaveStatus() {
@@ -548,26 +553,86 @@ export default function EnquiryDetailDialog({
               </dd>
             </div>
           ) : null}
-          {isEnquiryKind ? (
-            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
-              <dt className="text-muted-foreground">Tag</dt>
-              <dd>
-                {tagName ? <Badge variant="secondary">{tagName}</Badge> : "—"}
-              </dd>
-            </div>
-          ) : (
+          {isEnquiryKind ? null : (
             <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Order ID</dt>
               <dd>{enquiry.order_id || "—"}</dd>
             </div>
           )}
-          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
-            <dt className="text-muted-foreground">{requirementLabel}</dt>
-            <dd className="whitespace-pre-wrap">
-              {enquiry.product_details || "—"}
-              <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
-            </dd>
-          </div>
+        </dl>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
+          <dl className="grid gap-2 text-sm">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+              <dt className="text-muted-foreground">{requirementLabel}</dt>
+              <dd className="whitespace-pre-wrap">
+                {enquiry.product_details || "—"}
+                <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
+              </dd>
+            </div>
+          </dl>
+          {mayEditDetails ? (
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Priority</FieldLabel>
+                <Select value={priorityDraft} onValueChange={setPriorityDraft}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ENQUIRY_PRIORITIES.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {ENQUIRY_PRIORITY_LABEL[p]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {isAdmin && isEnquiryKind ? (
+                <Field>
+                  <FieldLabel>Tag</FieldLabel>
+                  <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
+                    <SelectTrigger aria-label="Enquiry tag">
+                      <SelectValue placeholder="No tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No tag</SelectItem>
+                      {tags
+                        .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
+                        .map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>Tag controls who can see this enquiry.</FieldDescription>
+                </Field>
+              ) : (
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Tag: </span>
+                  {tagName || "—"}
+                </p>
+              )}
+              <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSavePriorityTag()}>
+                {saving ? "Saving…" : "Save priority / tag"}
+              </Button>
+            </FieldGroup>
+          ) : (
+            <div className="flex flex-col gap-1 text-sm">
+              <p>
+                <span className="text-muted-foreground">Priority: </span>
+                {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
+              </p>
+              {isEnquiryKind ? (
+                <p>
+                  <span className="text-muted-foreground">Tag: </span>
+                  {tagName || "—"}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </div>
+        <dl className="grid gap-2 text-sm">
           {enquiry.opened_at ? (
             <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Opened</dt>
@@ -677,92 +742,77 @@ export default function EnquiryDetailDialog({
                 Close
               </Button>
             </div>
-            <div className="w-full max-w-md">
-              <FieldGroup>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="enquiry-reach-out">Reached out to customer</FieldLabel>
+                <Textarea
+                  id="enquiry-reach-out"
+                  value={reachOutDraft}
+                  onChange={(e) => setReachOutDraft(e.target.value)}
+                  rows={3}
+                  placeholder="What you told the customer…"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={picking || !reachOutDraft.trim()}
+                  onClick={() => void handleReachOut()}
+                >
+                  {picking ? "Saving…" : "Save reach-out"}
+                </Button>
+              </Field>
+              {mayEditDetails ? (
                 <Field>
-                  <FieldLabel htmlFor="enquiry-reach-out">Reached out to customer</FieldLabel>
+                  <FieldLabel htmlFor="enquiry-internal-note">Internal note</FieldLabel>
                   <Textarea
-                    id="enquiry-reach-out"
-                    value={reachOutDraft}
-                    onChange={(e) => setReachOutDraft(e.target.value)}
-                    rows={2}
-                    placeholder="What you said / next step… required"
+                    id="enquiry-internal-note"
+                    value={notesDraft}
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                    rows={3}
+                    placeholder="Team-only note…"
                   />
+                  <FieldDescription>Only staff see this. Customer does not.</FieldDescription>
                   <Button
                     type="button"
                     variant="secondary"
-                    disabled={picking || !reachOutDraft.trim()}
-                    onClick={() => void handleReachOut()}
+                    disabled={saving}
+                    onClick={() => void handleSaveInternalNote()}
                   >
-                    {picking ? "Saving…" : "Save reach-out"}
+                    {saving ? "Saving…" : "Save note"}
                   </Button>
                 </Field>
-              </FieldGroup>
+              ) : (
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Internal note: </span>
+                  {enquiry.notes || "—"}
+                </p>
+              )}
             </div>
           </div>
-        ) : null}
-
-        <div className="w-full max-w-md">
-        {mayEditDetails ? (
-          <FieldGroup className="border-t pt-4">
+        ) : mayEditDetails ? (
+          <div className="w-full max-w-md border-t pt-4">
             <Field>
-              <FieldLabel htmlFor="enquiry-notes">Notes</FieldLabel>
+              <FieldLabel htmlFor="enquiry-internal-note-closed">Internal note</FieldLabel>
               <Textarea
-                id="enquiry-notes"
+                id="enquiry-internal-note-closed"
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
                 rows={3}
-                placeholder="Internal notes…"
+                placeholder="Team-only note…"
               />
+              <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSaveInternalNote()}>
+                {saving ? "Saving…" : "Save note"}
+              </Button>
             </Field>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel>Priority</FieldLabel>
-                <Select value={priorityDraft} onValueChange={setPriorityDraft}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENQUIRY_PRIORITIES.map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {ENQUIRY_PRIORITY_LABEL[p]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              {isAdmin && isEnquiryKind ? (
-                <Field>
-                  <FieldLabel>Tag</FieldLabel>
-                  <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
-                    <SelectTrigger aria-label="Enquiry tag">
-                      <SelectValue placeholder="No tag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">No tag</SelectItem>
-                      {tags
-                        .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
-                        .map((t) => (
-                          <SelectItem key={t.id} value={t.id}>
-                            {t.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FieldDescription>Changing the tag changes who can see this enquiry.</FieldDescription>
-                </Field>
-              ) : null}
-            </div>
-            <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSaveDetails()}>
-              {saving ? "Saving…" : "Save details"}
-            </Button>
-          </FieldGroup>
+          </div>
         ) : (
           <p className="border-t pt-4 text-sm">
-            <span className="text-muted-foreground">Notes: </span>
+            <span className="text-muted-foreground">Internal note: </span>
             {enquiry.notes || "—"}
           </p>
         )}
+
+        <div className="w-full max-w-md">
 
         {mayAssign ? (
           <FieldGroup className="border-t pt-4">
