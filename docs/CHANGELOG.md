@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-07 — Support desk column is Assigned to
+
+- **Change:** Enquiry/Complaints table header **Assignee** → **Assigned to**.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
 ## 2026-10-07 — Remove Concierge WhatsApp hint from enquiry detail
 
 - **Change:** Dropped the “Close queues the Concierge feedback text…” copy above Mark verified / Close.

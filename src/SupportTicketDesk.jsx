@@ -306,7 +306,7 @@ export default function SupportTicketDesk({
                 {showTag ? <TableHead>Tag</TableHead> : null}
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
-                <TableHead>Assignee</TableHead>
+                <TableHead>Assigned to</TableHead>
                 <TableHead>Created</TableHead>
               </TableRow>
             </TableHeader>
