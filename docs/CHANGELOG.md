@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-07 — Remove Concierge WhatsApp hint from enquiry detail
+
+- **Change:** Dropped the “Close queues the Concierge feedback text…” copy above Mark verified / Close.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
 ## 2026-10-07 — Enquiry detail form fields no longer full-width
 
 - **Change:** Notes, Priority, Tag, Assign, and Status sit in a `max-w-md` column (Priority + Tag on one row). Full-page detail no longer stretches selects across the card.

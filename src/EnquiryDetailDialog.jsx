@@ -661,10 +661,6 @@ export default function EnquiryDetailDialog({
 
         {mayPick ? (
           <div className="flex flex-col gap-3 border-t pt-4">
-            <p className="max-w-md text-sm text-muted-foreground">
-              Close queues the Concierge feedback text to this customer phone. Keep WhatsApp simulator
-              open with the same number to see it. Live Meta WhatsApp is not sent from this dashboard.
-            </p>
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
