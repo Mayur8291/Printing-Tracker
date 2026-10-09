@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-09 — Daily ops briefing on Home (no auto-orders)
+
+- **Feature:** Home **Today** card lists the signed-in user’s open printing jobs, production follow-ups, and pending pay. **Make task** writes `user_goal_tasks` via `ops_create_followup_task` (one open task per source). Morning `pg_cron` (09:00 IST) inserts `ops_briefing_notifications`. Optional Ask AI sheet talks to staging Edge `ops-ai-chat` (Claude API key); without the key, briefing still works. Does not place job sheets.
+- **Files:** `supabase/migrations/20261009102008_ops_daily_briefing.sql`, `supabase/functions/ops-ai-chat/index.ts`, `OpsBriefingPanel.jsx`, `opsBriefingUtils.js`, `App.jsx`, `notificationsUtils.js`, `NotificationsPanel.jsx`, `realtimeUtils.js`, `sidebarTabActivity.js`, `supabase/config.toml`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, API.md, SECURITY.md
+
 ## 2026-10-07 — Enquiry detail: no canyon between requirement and priority
 
 - **Bug fix:** Priority/Tag sat at the far right of the full-page card because the left column was `1fr`. Requirement + later facts now sit in a `max-w-xl` column; Priority/Tag is a tight `w-56` column beside it. Reach-out and Internal note use the same wrap, each `max-w-md`.

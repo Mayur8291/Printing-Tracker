@@ -109,6 +109,9 @@ const { data, error } = await supabase.rpc('mark_conversation_read', {
 | `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International M2M API — stock (snapshot, reserve, fulfill, adjust) + order lifecycle (create/edit/cancel/get/status) |
 | `tenor-gif-search` | Optional | Legacy GIF proxy |
 | `uniware-bridge` | Admin JWT | Step 5 Uniware: `status`, `sync_inventory`, `sync_orders`, `adjust`. Secrets: `UNIWARE_BASE_URL`, `UNIWARE_USERNAME`, `UNIWARE_PASSWORD`, `UNIWARE_FACILITY`. Staging only until a production release. |
+| `ops-ai-chat` | User JWT | Daily briefing chat. Body `{ ping: true }` or `{ message, history }`. Tool `create_followup_task` only. Secret `ANTHROPIC_API_KEY` (optional). No key → `{ chatEnabled: false }`. Staging. |
+
+RPC `ops_create_followup_task(p_source_kind, p_source_id, p_title, p_description)` — authenticated; returns `user_goal_tasks` row.
 
 Full contracts: [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) · [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md) · **All-in-one handoff:** [SCOTT_INTEGRATION_REFERENCE.md](./SCOTT_INTEGRATION_REFERENCE.md) (APIs + webhooks + realtime) · OpenAPI: [openapi/dashboard-stock-api.yaml](./openapi/dashboard-stock-api.yaml) · Mobile integration guide (keys, code samples): [MOBILE_API_INTEGRATION.md](./MOBILE_API_INTEGRATION.md)
 

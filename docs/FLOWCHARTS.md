@@ -1,5 +1,21 @@
 # Flowcharts
 
+## Daily ops briefing
+
+```mermaid
+flowchart TD
+  Views[rpt_ops_my_open_jobs production pending_pay] --> Home[Home Today card]
+  Home -->|Make task| Rpc[ops_create_followup_task]
+  Rpc --> Tasks[(user_goal_tasks)]
+  Rpc --> Link[(ops_followup_task_link)]
+  Cron[pg_cron 09:00 IST] --> Brief[(ops_briefing_notifications)]
+  Brief --> Notif[Notifications Tasks chip]
+  Notif -->|Open Today| Home
+  Home -->|Ask AI Wispr Textarea| Edge[ops-ai-chat]
+  Edge --> Claude[Anthropic API optional]
+  Claude -->|create_followup_task only| Rpc
+```
+
 ## Support enquiry notification fan-out
 
 ```mermaid

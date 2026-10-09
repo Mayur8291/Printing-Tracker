@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-09 — Daily ops briefing: SQL queue + optional Claude API, no auto job sheets
+
+**Context:** Users wanted AI to nag follow-ups (orders they placed, production, pending bills) and create daily tasks. Claude Max and Wispr Flow are already on staff machines.
+
+**Options:** (1) Wire Claude Max into the app. (2) Morning SQL briefing + Make task, optional Anthropic API chat. (3) Let the model place printing orders.
+
+**Decision:** Option 2. Claude Max cannot call the dashboard. Wispr only types into a Textarea. AI tool is `create_followup_task` only.
+
+**Tradeoffs:** Chat needs a paid Anthropic key (separate from Max). No auto job-sheet. Match jobs by `created_by`, not free-text sales name.
+
 ## 2026-10-07 — Enquiry detail is a full page, not a modal
 
 **Context:** The enquiry overlay was cramped (`sm:max-w-lg`) and hid the desk behind a dim layer.

@@ -29,6 +29,7 @@ import GoalTrackerPanel from "./GoalTrackerPanel";
 import AdminRolesGoalsPanel from "./AdminRolesGoalsPanel";
 import AdminPasswordResetRequestsPanel from "./AdminPasswordResetRequestsPanel";
 import HomeGoalTrackerPanel from "./components/goals/HomeGoalTrackerPanel";
+import OpsBriefingPanel from "./OpsBriefingPanel";
 import AssetManagementPanel from "./AssetManagementPanel";
 import HomeStatusPanel from "./components/home/HomeStatusPanel";
 import { Dialog, DialogContent } from "./components/ui/dialog";
@@ -3996,6 +3997,10 @@ function App() {
 
   function handleOpenDashboardNotification(item) {
     if (!item) return;
+    if (item.kind === "ops_briefing") {
+      selectDashboardTab("home");
+      return;
+    }
     if (item.kind === "goal_task") {
       selectDashboardTab("goals");
       return;
@@ -5659,6 +5664,13 @@ function App() {
                 onRefresh={() => void refreshHomeStatus()}
                 lastUpdatedLabel={homeLastUpdatedLabel}
                 renderStageIcon={renderStageIcon}
+              />
+            ) : null}
+
+            {session?.user ? (
+              <OpsBriefingPanel
+                userId={session.user.id}
+                onOpenGoalsTab={() => selectDashboardTab("goals")}
               />
             ) : null}
 

@@ -10,6 +10,7 @@
 # npx supabase functions deploy admin-list-password-reset-requests
 # npx supabase functions deploy scott-dashboard-masters
 # npx supabase functions deploy uniware-bridge
+# npx supabase functions deploy ops-ai-chat
 
 [functions.admin-create-user]
 verify_jwt = true
@@ -48,4 +49,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.uniware-bridge]
+verify_jwt = true
+
+[functions.ops-ai-chat]
 verify_jwt = true

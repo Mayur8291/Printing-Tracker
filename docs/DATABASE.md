@@ -1,5 +1,45 @@
 # Database
 
+## Daily ops briefing
+
+**Purpose:** Per-user follow-up queue and one open task per source. Staging migration `20261009102008_ops_daily_briefing.sql`.
+
+### Views (security_invoker)
+
+| View | Rows |
+|------|------|
+| `rpt_ops_my_open_jobs` | Incomplete `orders` where `created_by = auth.uid()`. Flags overdue / due soon / open 7+ days. |
+| `rpt_ops_my_production` | Same user, `is_production_order` and not complete. |
+| `rpt_ops_my_pending_pay` | Job-sheet pending amount on those orders; admins also AR they own from `ar_invoice_outstanding_view`. |
+
+### `ops_followup_task_link`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `assignee_id` | uuid | Task owner (`auth.uid()`) |
+| `source_kind` | text | `open_job` / `production` / `pending_pay` / `ar_invoice` |
+| `source_id` | text | Order pk or invoice uuid |
+| `task_id` | uuid | FK `user_goal_tasks` |
+
+Unique `(assignee_id, source_kind, source_id)`. RLS: read/insert/delete own.
+
+### `ops_briefing_notifications`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `recipient_user_id` | uuid | Who sees the nag |
+| `briefing_date` | date | IST calendar day |
+| `open_jobs_count` / `production_count` / `pending_pay_count` | int | Snapshot counts |
+
+Unique `(recipient_user_id, briefing_date)`. Select own. Insert via `ops_insert_daily_briefings` (cron).
+
+### RPCs
+
+- `ops_create_followup_task(p_source_kind, p_source_id, p_title, p_description)` — security definer; must own the queue row.
+- `ops_insert_daily_briefings()` — postgres/cron only. Schedule `30 3 * * *` UTC.
+
+**Rollback:** unschedule cron; drop functions, views, tables.
+
 ## Asset Management register
 
 Company IT assets from Tools → Asset Management → **Add asset** / **New asset**. List lives in **Assets**.

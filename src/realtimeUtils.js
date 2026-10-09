@@ -71,5 +71,7 @@ export const DASHBOARD_REALTIME_TABLES = [
   "printing_utilization_entries",
   "user_annual_goals",
   "user_goal_tasks",
-  "user_goal_status_remarks"
+  "user_goal_status_remarks",
+  "ops_followup_task_link",
+  "ops_briefing_notifications"
 ];

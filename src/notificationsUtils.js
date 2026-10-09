@@ -58,7 +58,7 @@ export function formatNotificationWhenLong(iso) {
 /** Filter chips: orders = assignment + status; mentions = inward tags (no mention table). */
 export function notificationCategory(item) {
   if (item?.kind === "enquiry") return "support";
-  if (item?.kind === "goal_task") return "tasks";
+  if (item?.kind === "goal_task" || item?.kind === "ops_briefing") return "tasks";
   if (item?.kind === "printing_inventory") return "inventory";
   if (item?.kind === "inward") return "mentions";
   return "orders";
@@ -66,6 +66,7 @@ export function notificationCategory(item) {
 
 export function notificationActionLabel(item) {
   if (item?.kind === "enquiry") return "View Enquiry";
+  if (item?.kind === "ops_briefing") return "Open Today";
   if (item?.kind === "goal_task") return "View Task";
   if (item?.kind === "printing_inventory") return "View Inventory";
   if (item?.kind === "inward") return "View Inward";
@@ -149,6 +150,19 @@ export function normalizePrintingInventoryNotification(row) {
   };
 }
 
+export function normalizeOpsBriefingNotification(row) {
+  return {
+    id: `ops-briefing-${row.id}`,
+    rawId: row.id,
+    kind: "ops_briefing",
+    created_at: row.created_at,
+    briefing_date: row.briefing_date,
+    open_jobs_count: row.open_jobs_count,
+    production_count: row.production_count,
+    pending_pay_count: row.pending_pay_count
+  };
+}
+
 export function normalizeGoalTaskNotification(row) {
   return {
     id: `goal-task-${row.id}`,
@@ -220,6 +234,7 @@ export function notificationTitle(item) {
   if (item?.kind === "enquiry") return ENQUIRY_NOTIF_TITLE[item.enquiry_kind] ?? "Enquiry updated";
   if (item?.kind === "inward") return "Tagged on inward entry";
   if (item?.kind === "printing_inventory") return "Printing inventory low stock";
+  if (item?.kind === "ops_briefing") return "Daily follow-up briefing";
   if (item?.kind === "goal_task") return "Task assigned to you";
   if (item?.kind === "order_status") return "Order status updated";
   return "Order assigned to you";
@@ -245,6 +260,12 @@ export function notificationBodyText(item) {
     const stockText = Number.isFinite(stock) ? stock.toLocaleString() : "—";
     const thresholdText = Number.isFinite(threshold) ? threshold.toLocaleString() : "—";
     return `${label} · ${stockText} left (threshold ${thresholdText})`;
+  }
+  if (item?.kind === "ops_briefing") {
+    const jobs = Number(item.open_jobs_count) || 0;
+    const prod = Number(item.production_count) || 0;
+    const pay = Number(item.pending_pay_count) || 0;
+    return `${jobs} open jobs · ${prod} production · ${pay} pending pay`;
   }
   if (item?.kind === "goal_task") {
     const title = String(item.task_title ?? "").trim() || "Task";
@@ -284,8 +305,8 @@ export function countUnreadNotifications(items, lastSeenAt) {
 
 export async function fetchUserNotifications(userId, limit = 80) {
   if (!userId) return [];
-  const perTable = Math.max(20, Math.ceil(limit / 6));
-  const [assignmentRes, enquiryRes, inwardRes, printingInvRes, goalTaskRes, orderStatusRes] = await Promise.all([
+  const perTable = Math.max(20, Math.ceil(limit / 7));
+  const [assignmentRes, enquiryRes, inwardRes, printingInvRes, goalTaskRes, orderStatusRes, briefingRes] = await Promise.all([
     supabase
       .from("order_assignment_notifications")
       .select("id, order_id, order_display_id, coordinator_name, created_at")
@@ -321,6 +342,12 @@ export async function fetchUserNotifications(userId, limit = 80) {
       .select("id, order_id, order_display_id, previous_status, new_status, changed_by_user_id, created_at")
       .eq("recipient_user_id", userId)
       .order("created_at", { ascending: false })
+      .limit(perTable),
+    supabase
+      .from("ops_briefing_notifications")
+      .select("id, briefing_date, open_jobs_count, production_count, pending_pay_count, created_at")
+      .eq("recipient_user_id", userId)
+      .order("created_at", { ascending: false })
       .limit(perTable)
   ]);
 
@@ -349,13 +376,20 @@ export async function fetchUserNotifications(userId, limit = 80) {
     console.warn("order_status_notifications:", orderStatusRes.error.message);
   }
 
+  const briefingRows =
+    briefingRes.error?.message?.includes("Could not find the table") ? [] : briefingRes.data ?? [];
+  if (briefingRes.error && !briefingRes.error.message?.includes("Could not find the table")) {
+    console.warn("ops_briefing_notifications:", briefingRes.error.message);
+  }
+
   return [
     ...(assignmentRes.data ?? []).map(normalizeAssignmentNotification),
     ...enquiryRows.map(normalizeEnquiryNotification),
     ...(inwardRes.data ?? []).map(normalizeInwardNotification),
     ...printingRows.map(normalizePrintingInventoryNotification),
     ...goalTaskRows.map(normalizeGoalTaskNotification),
-    ...orderStatusRows.map(normalizeOrderStatusNotification)
+    ...orderStatusRows.map(normalizeOrderStatusNotification),
+    ...briefingRows.map(normalizeOpsBriefingNotification)
   ]
     .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
     .slice(0, limit);
@@ -452,6 +486,21 @@ export function subscribeUserNotifications(userId, onInsert) {
         const row = payload.new;
         if (row && typeof row === "object") {
           onInsert(normalizeOrderStatusNotification(row));
+        }
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "ops_briefing_notifications",
+        filter: `recipient_user_id=eq.${userId}`
+      },
+      (payload) => {
+        const row = payload.new;
+        if (row && typeof row === "object") {
+          onInsert(normalizeOpsBriefingNotification(row));
         }
       }
     )

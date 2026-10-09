@@ -76,6 +76,7 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) and migration `2026071012
 | Ready Stock Order | `ReadyStockOrdersPanel.jsx`, `ReadyStockOrderDetailDialog.jsx`, `readyStockChannelUtils.js` | `scott_orders` channel snapshot + `rpt_ready_stock_channel_utilization` |
 | Chat | `TeamChatPanel`, `teamChatService.js`, `teamChatReceipts.js`, `dashboardPresence.js` | Supabase + Storage. Chat tab is `FULL_BLEED_TABS` — panel owns scroll; card is `h-full overflow-hidden`. Presence heartbeat from App. Message actions via RPCs. Delete icon only when every selected Chats/Groups row is the current user. `http`/`https` in the bubble is a clickable link. Inbox tab badges sum unopened text `unread_count` by conversation kind. Voice notes upload as audio attachments. Channels are org-wide; only admins create and post. Delivery ticks on own DM posts use `last_read_at` plus Online presence (active dashboard + not seen = 2 grey). Group ticks use `last_read_at` only. Group admin RPCs mutate membership and `avatar_path`. Photos in `team-chat-group-avatars`. Incoming messages toast from `App.jsx` realtime with `sounds/chat-message.mp3`. |
 | Goals | `GoalTrackerPanel`, `goalTrackerUtils.js` | Supabase RPC/tables |
+| Daily ops briefing | `OpsBriefingPanel.jsx`, `opsBriefingUtils.js`, `ops-ai-chat` | Home Today views + `ops_create_followup_task`; optional Anthropic via Edge |
 | Layout | `components/layout/*` | Sidebar config |
 | Auth/profile | `supabaseClient.js`, `avatarUtils.js` | Supabase Auth |
 
@@ -105,7 +106,7 @@ Recommended: introduce **BFF** before mobile production launch; keep RLS as last
 
 ## Background jobs
 
-Today: **PostgreSQL triggers** (notifications, status change, Enquiry close-survey queue, production-status WhatsApp queue), **scheduled purge** RPCs (chat attachment expiry), **GitHub Actions** (prod migrations + optional Netlify hook). Enquiry **2-hour SLA** is a **client pass** when the Support tab loads (same timings as Scott Concierge; no WhatsApp to Gargi from this app). Close survey, delay alerts, and production status texts are queued in Postgres; the temporary WhatsApp simulator displays them.
+Today: **PostgreSQL triggers** (notifications, status change, Enquiry close-survey queue, production-status WhatsApp queue), **pg_cron** (`ops-daily-briefing` 09:00 IST), **scheduled purge** RPCs (chat attachment expiry), **GitHub Actions** (prod migrations + optional Netlify hook). Enquiry **2-hour SLA** is a **client pass** when the Support tab loads (same timings as Scott Concierge; no WhatsApp to Gargi from this app). Close survey, delay alerts, and production status texts are queued in Postgres; the temporary WhatsApp simulator displays them.
 
 Future: dedicated **worker service** for Uniware sync, reports, bulk imports.
 

@@ -383,9 +383,19 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **Skip:** No dot on the tab you are currently viewing (you already see live data there).
 6. **Chat:** Still uses numeric badge for unread messages, not the activity dot.
 
+## Daily ops briefing (Home Today)
+
+1. **Trigger:** signed-in user opens **Home**. `OpsBriefingPanel` loads `rpt_ops_my_open_jobs`, `rpt_ops_my_production`, `rpt_ops_my_pending_pay` (each row `created_by = auth.uid()`; admin pending pay also includes owned AR).
+2. **Make task:** button calls RPC `ops_create_followup_task`. Inserts `user_goal_tasks` (self-assigned, deadline today IST, P1) and `ops_followup_task_link`. If an open task already exists for that source, returns it. Completed links can be replaced.
+3. **Morning nag:** `pg_cron` `ops-daily-briefing` at 03:30 UTC (09:00 IST) runs `ops_insert_daily_briefings`. One `ops_briefing_notifications` row per active profile with a non-empty queue, unique per user × date. Does **not** auto-insert tasks.
+4. **Notifications:** kind `ops_briefing` under Tasks. Click **Open Today** → Home.
+5. **Ask AI:** Home **Ask AI** Sheet. Large Textarea for Wispr Flow. Edge `ops-ai-chat` (user JWT). Tool `create_followup_task` only. No Anthropic key → “Briefing works. Chat off until API key.” Claude Max is not used.
+6. **Failure:** missing views → empty lists. Duplicate Make task → same open task. AI cannot insert `orders` or invoices.
+7. **Exit:** Tasks show on Goals & Tasks. User still creates printing job sheets by hand.
+
 ## Notifications
 
-Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges five sources, sorted by `created_at`.
+Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges assignment, enquiry, inward, printing inventory, goal tasks, order status, and ops briefing, sorted by `created_at`.
 
 **Tab UI (`NotificationsPanel`):** shadcn chips All / Orders / Tasks / Inventory / Mentions + time Select (All time / Today / Last 7 days / Last 30 days). Counts follow the time range. Mentions = `inward` tags (no mention table). Unread tint uses the seen timestamp from before this visit (bell still clears the badge). **View Order / Task / Inventory / Inward** and more-menu **Open** call `handleOpenDashboardNotification`. Order IDs in the body are link buttons. Empty = shadcn `Empty`. Loading = `Skeleton`.
 
@@ -394,6 +404,7 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 | `assignment` | Order saved with coordinator name | Matched profile | Open order |
 | `order_status` | `orders.status` updated | Coordinator + `created_by` (not actor) | Open order |
 | `goal_task` | `createGoalTask()` | Assignee (not self) | Goals & Tasks tab |
+| `ops_briefing` | Morning cron `ops_insert_daily_briefings` | User with a non-empty Today queue | Home Today |
 | `inward` | User tagged on inward entry | Tagged user | Inward entry |
 | `printing_inventory` | Stock below threshold | Subscribed users | Printing inventory |
 

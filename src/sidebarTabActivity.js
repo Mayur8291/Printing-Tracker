@@ -4,6 +4,8 @@ import { supabase } from "./supabaseClient";
 export const SIDEBAR_ACTIVITY_TABLE_TABS = {
   user_annual_goals: ["goals"],
   user_goal_tasks: ["goals"],
+  ops_briefing_notifications: ["home"],
+  ops_followup_task_link: ["home"],
   user_goal_status_remarks: ["goals"],
   outward_challans: ["dispatch"],
   inward_entries: ["dispatch"],

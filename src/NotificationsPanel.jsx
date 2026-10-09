@@ -95,6 +95,7 @@ function categoryTone(item) {
 }
 
 function NotificationIcon({ item }) {
+  if (item?.kind === "ops_briefing") return <Calendar />;
   if (item?.kind === "goal_task") return <UserPlus />;
   if (item?.kind === "printing_inventory") return <TriangleAlert />;
   if (item?.kind === "inward") return <Tag />;

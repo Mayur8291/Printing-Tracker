@@ -1,5 +1,23 @@
 # Debugging
 
+## Home Today lists are empty / Make task says not in queue
+
+| | |
+|--|--|
+| **Symptom** | Today cards show 0. Or Make task errors “not in your follow-up queue”. |
+| **Root cause** | Views only include `orders.created_by = auth.uid()`. Sales-incharge name is ignored. Complete jobs and paid job sheets drop out. |
+| **Fix** | Confirm the job’s `created_by` is the signed-in user. Staging migration `20261009102008_ops_daily_briefing` applied. |
+| **Verify** | Create a printing job as yourself, leave it incomplete, refresh Home. |
+
+## Ask AI says briefing works, chat off
+
+| | |
+|--|--|
+| **Symptom** | Ask AI sheet: “Briefing works. Chat off until API key.” |
+| **Root cause** | Claude Max is not an API. Edge `ops-ai-chat` needs secret `ANTHROPIC_API_KEY` on staging. |
+| **Fix** | Set the secret on staging `scvojtvgnkmbupvyslmb` only. Do not put the key in Vite env. |
+| **Verify** | Ask AI → speak with Wispr → Send. Make task still works with no key. |
+
 ## Enquiry tag does not save or disappears after Save details
 
 | | |
