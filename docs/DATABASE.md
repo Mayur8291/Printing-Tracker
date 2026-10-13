@@ -4,7 +4,7 @@
 
 **Purpose:** Saved repeat-order forms for Printing Orders.
 
-**RLS:** SELECT any authenticated user (`order templates read authenticated`, migration `20261013064231_order_templates_shared_read.sql`). INSERT `user_id = auth.uid()`. UPDATE/DELETE owner or `jwt_user_is_admin()`.
+**RLS:** SELECT any authenticated user (`order templates read authenticated`, migration `20261013064231_order_templates_shared_read.sql`). INSERT `user_id = auth.uid()`. UPDATE/DELETE owner or `jwt_user_is_admin()`. Applied on staging and production.
 
 **Query:** list `order by updated_at desc`. Images in public bucket `order-template-images`.
 
@@ -12,7 +12,7 @@
 
 ## Daily ops briefing
 
-**Purpose:** Per-user follow-up queue and one open task per source. Staging migration `20261009102008_ops_daily_briefing.sql`.
+**Purpose:** Per-user follow-up queue and one open task per source. Migration `20261009102008_ops_daily_briefing.sql` — applied on staging and production.
 
 ### Views (security_invoker)
 

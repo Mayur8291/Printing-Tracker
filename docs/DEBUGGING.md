@@ -6,8 +6,8 @@
 |--|--|
 | **Symptom** | Admin sees saved templates. Viewer / other user opens Repeat order and gets “No templates yet.” |
 | **Root cause** | SELECT was owner-or-admin. Admin save writes `user_id` = admin, so staff RLS hid the rows. |
-| **Fix** | Authenticated SELECT on `order_templates`. Write stays owner/admin. Staging migration `20261013064231_order_templates_shared_read.sql`. |
-| **Verify** | Sign in as a create-order viewer. Open Repeat order. Team templates appear. Use works. Edit/Delete only on own rows (or as admin). |
+| **Fix** | Authenticated SELECT on `order_templates`. Write stays owner/admin. Applied on staging and production (`order_templates_shared_read`). |
+| **Verify** | Sign in as a create-order viewer on live. Open Repeat order. Team templates appear. Use works. Edit/Delete only on own rows (or as admin). Hard refresh if old bundle. |
 
 ## Home Today lists are empty / Make task says not in queue
 
@@ -15,7 +15,7 @@
 |--|--|
 | **Symptom** | Today cards show 0. Or Make task errors “not in your follow-up queue”. |
 | **Root cause** | Views only include `orders.created_by = auth.uid()`. Sales-incharge name is ignored. Complete jobs and paid job sheets drop out. |
-| **Fix** | Confirm the job’s `created_by` is the signed-in user. Staging migration `20261009102008_ops_daily_briefing` applied. |
+| **Fix** | Confirm the job’s `created_by` is the signed-in user. `ops_daily_briefing` applied on staging and production. |
 | **Verify** | Create a printing job as yourself, leave it incomplete, refresh Home. |
 
 ## Ask AI says briefing works, chat off

@@ -1,11 +1,19 @@
 # Changelog
 
+## 2026-10-13 — Production release (`360c1cc`)
+
+- **Release:** Fast-forward `origin/main` `f813e51` → `360c1cc`. Live site `printingtracker.netlify.app` builds from `main`.
+- **Production DB (`levwrmvqdntngeasrtnb`):** `order_templates_shared_read` (SELECT `using (true)`; 13 templates now readable by staff). `ops_daily_briefing` (queues, `ops_create_followup_task`, 09:00 IST cron). Write policies unchanged.
+- **Not deployed:** Edge `ops-ai-chat` (optional; needs `ANTHROPIC_API_KEY`). Home Today works without it.
+- **CLI:** still linked to staging `scvojtvgnkmbupvyslmb`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DATABASE.md
+
 ## 2026-10-13 — Non-admin can see team repeat-order templates
 
 - **Bug fix:** Repeat-order SELECT was `user_id = auth.uid()` or admin. Templates admin saved (`user_id` = admin) were invisible to other users. Authenticated users can now **read / Use** every template. Insert/update/delete stay owner or admin. UI hides Edit/Delete unless owner or admin.
 - **Files:** `supabase/migrations/20261013064231_order_templates_shared_read.sql`, `App.jsx`, `supabase/schema.sql`
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md, SECURITY.md, DECISIONS.md
-- **Staging:** policy applied on `scvojtvgnkmbupvyslmb`. Production still needs an explicit release.
+- **Staging + production:** policy applied on `scvojtvgnkmbupvyslmb` and `levwrmvqdntngeasrtnb`.
 
 ## 2026-10-09 — Daily ops briefing on Home (no auto-orders)
 
