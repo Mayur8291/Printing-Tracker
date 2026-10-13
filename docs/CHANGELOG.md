@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-13 — Non-admin can see team repeat-order templates
+
+- **Bug fix:** Repeat-order SELECT was `user_id = auth.uid()` or admin. Templates admin saved (`user_id` = admin) were invisible to other users. Authenticated users can now **read / Use** every template. Insert/update/delete stay owner or admin. UI hides Edit/Delete unless owner or admin.
+- **Files:** `supabase/migrations/20261013064231_order_templates_shared_read.sql`, `App.jsx`, `supabase/schema.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md, SECURITY.md, DECISIONS.md
+- **Staging:** policy applied on `scvojtvgnkmbupvyslmb`. Production still needs an explicit release.
+
 ## 2026-10-09 — Daily ops briefing on Home (no auto-orders)
 
 - **Feature:** Home **Today** card lists the signed-in user’s open printing jobs, production follow-ups, and pending pay. **Make task** writes `user_goal_tasks` via `ops_create_followup_task` (one open task per source). Morning `pg_cron` (09:00 IST) inserts `ops_briefing_notifications`. Optional Ask AI sheet talks to staging Edge `ops-ai-chat` (Claude API key); without the key, briefing still works. Does not place job sheets.

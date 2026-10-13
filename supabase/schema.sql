@@ -1227,10 +1227,11 @@ create index if not exists order_templates_user_id_idx
 alter table public.order_templates enable row level security;
 
 drop policy if exists "order templates read own" on public.order_templates;
-create policy "order templates read own"
+drop policy if exists "order templates read authenticated" on public.order_templates;
+create policy "order templates read authenticated"
 on public.order_templates
 for select to authenticated
-using (auth.uid() = user_id or public.jwt_user_is_admin());
+using (true);
 
 drop policy if exists "order templates insert own" on public.order_templates;
 create policy "order templates insert own"

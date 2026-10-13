@@ -2901,7 +2901,7 @@ function App() {
       const { data, error } = await supabase
         .from("order_templates")
         .select(
-          "id, name, owner_name, customer_name, coordinator_name, product_name, colors, size_breakdown, printing_mtrs, order_cost, printing_cost, remarks, is_production_order, expected_handover_to_printing, payment_method, delivery_method, image_paths, updated_at"
+          "id, user_id, name, owner_name, customer_name, coordinator_name, product_name, colors, size_breakdown, printing_mtrs, order_cost, printing_cost, remarks, is_production_order, expected_handover_to_printing, payment_method, delivery_method, image_paths, updated_at"
         )
         .order("updated_at", { ascending: false });
       if (error) throw new Error(error.message);
@@ -7097,20 +7097,24 @@ function App() {
                           >
                             Use
                           </button>
-                          <button
-                            type="button"
-                            className="repeat-order-template-btn"
-                            onClick={() => startEditTemplate(tpl)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="repeat-order-template-btn repeat-order-template-btn--danger"
-                            onClick={() => handleDeleteTemplate(tpl)}
-                          >
-                            Delete
-                          </button>
+                          {isAdmin || String(tpl.user_id ?? "") === String(session?.user?.id ?? "") ? (
+                            <>
+                              <button
+                                type="button"
+                                className="repeat-order-template-btn"
+                                onClick={() => startEditTemplate(tpl)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="repeat-order-template-btn repeat-order-template-btn--danger"
+                                onClick={() => handleDeleteTemplate(tpl)}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          ) : null}
                         </div>
                       </li>
                     );

@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-13 — Repeat-order templates are a shared read catalog
+
+**Context:** Admin saved templates for the team. Staff saw an empty Repeat order list.
+
+**Options:** (1) Keep owner-only read. (2) Shared SELECT, write still owner/admin. (3) Per-user share list.
+
+**Decision:** Option 2. Repeat order is a team catalog. Edit/Delete stay owner or admin.
+
+**Tradeoffs:** Every signed-in user can see template names and customers. That matches how the desk already shares orders.
+
 ## 2026-10-09 — Daily ops briefing: SQL queue + optional Claude API, no auto job sheets
 
 **Context:** Users wanted AI to nag follow-ups (orders they placed, production, pending bills) and create daily tasks. Claude Max and Wispr Flow are already on staff machines.

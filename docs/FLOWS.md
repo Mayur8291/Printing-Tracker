@@ -410,6 +410,15 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 
 **Realtime:** `subscribeUserNotifications()` + dedicated toast channels in `App.jsx` for each table.
 
+## Repeat order templates
+
+1. **Trigger:** Printing Orders → Repeat order (admin or viewer who can create orders).
+2. **Fetch:** `order_templates` SELECT for any authenticated user. Admin-created rows now show for staff.
+3. **Use:** fills the create-order form. Does not change write rules.
+4. **Save / edit / delete:** insert `user_id = auth.uid()`. Update/delete only owner or admin. Other users see **Use** only.
+5. **Failure:** empty list used to mean “no templates” when RLS hid admin rows.
+6. **Exit:** close the picker; new order is still unsaved until the user submits.
+
 ## Printing order create — product SKU → colors
 
 1. **Trigger:** User opens Create order and picks a product from inventory (`PrintingOrderProductField`).

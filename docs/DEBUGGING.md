@@ -1,5 +1,14 @@
 # Debugging
 
+## Repeat order templates show for admin but not other users
+
+| | |
+|--|--|
+| **Symptom** | Admin sees saved templates. Viewer / other user opens Repeat order and gets “No templates yet.” |
+| **Root cause** | SELECT was owner-or-admin. Admin save writes `user_id` = admin, so staff RLS hid the rows. |
+| **Fix** | Authenticated SELECT on `order_templates`. Write stays owner/admin. Staging migration `20261013064231_order_templates_shared_read.sql`. |
+| **Verify** | Sign in as a create-order viewer. Open Repeat order. Team templates appear. Use works. Edit/Delete only on own rows (or as admin). |
+
 ## Home Today lists are empty / Make task says not in queue
 
 | | |
