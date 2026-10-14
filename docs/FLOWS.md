@@ -342,14 +342,15 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 4. **Sent to Dispatch → Complete:** status `sent_to_dispatch` stamps `orders.status_sent_to_dispatch_at`. Existing poll/cron RPC `promote_stale_new_orders_to_pending` sets `is_complete = true` 10 minutes later. Job then appears on **Complete orders**. Client poll is every 30s while signed in; pg_cron every 10 min.
 5. **Failure:** Viewer cannot set `is_complete` from the app (trigger). Auto-complete uses a transaction GUC so the RPC write is allowed. Console `Auto status promote failed` if the RPC errors.
 
-### Print calculator (DTF cost)
+### Print cost calculator (DTF cost)
 
-1. **Trigger:** Printing orders tab → **Print calculator** button (next to All orders / Complete orders / Print Queue).
-2. **Usage:** Upload artwork images → set width/height in inches (auto-filled at 150 DPI from pixels) → per-artwork and total cost in ₹.
-3. **Formula:** `(Height + 1) × (Width + 1) × rate_per_sq_in` — rate stored in `print_calculator_settings`.
-4. **Background removal:** per artwork **Remove background** (lazy-loads `@imgly/background-removal` + ONNX model ~40MB on first use); crops to opaque PNG pixels; **W/H inches auto-set from result at 150 DPI**; **Download PNG** after removal.
-5. **Admin:** Save new **rate per square inch** (admin RLS only); all users see updated rate on next open.
-6. **Failure:** invalid rate ≤ 0 blocked on save; missing settings row defaults to rate `1`; background removal errors show alert (network/model download).
+1. **Trigger:** Printing orders tab → **Print cost calculator** (next to All orders / Complete orders / Print Queue).
+2. **Entry:** `PrintCalculatorModal`. Upload PNG/JPG/WebP (drop or click). Each file starts at **1 copy**.
+3. **Size:** Width and height in inches. Empty size is guessed at **150 DPI** from image pixels. **Remove background** crops to opaque pixels and replaces inches from that PNG.
+4. **Formula:** billed area = `(width + 1) × (height + 1)` square inches. Line cost = billed area × saved `rate_per_sq_in` × whole copies. Paise rounded per line, then summed. Each card shows artwork size, billed size, area × rate × copies, and line cost.
+5. **Footer:** pieces, total billed area (area × copies), saved rate, total ₹. **Copy quote** writes the same breakdown as plain text. Closing the modal drops the artworks (not saved).
+6. **Admin:** Edit and **Save rate** into `print_calculator_settings` (admin RLS). Totals keep using the last saved rate until save succeeds. Non-admin sees the saved rate as text only.
+7. **Failure:** rate ≤ 0 blocked on save; missing settings row defaults to rate `1`; copies blank or below 1 make that line ₹0; background removal errors show an alert (network / ~40MB model download). Clipboard denied → short footer note.
 
 ## Home tab
 

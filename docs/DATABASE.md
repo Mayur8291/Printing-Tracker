@@ -543,7 +543,7 @@ Singleton config for the Printing orders **Print calculator** modal (DTF cost).
 | Column | Type | Purpose |
 |--------|------|---------|
 | `id` | int | Always `1` (singleton) |
-| `rate_per_sq_in` | numeric | ₹ per square inch — used in `(H+1)×(W+1)×rate` |
+| `rate_per_sq_in` | numeric | ₹ per square inch — `(H+1)×(W+1)×rate×copies`. Copies are not stored; they live only in the open modal. |
 | `updated_at` | timestamptz | Last change |
 | `updated_by` | uuid | Admin who saved rate |
 

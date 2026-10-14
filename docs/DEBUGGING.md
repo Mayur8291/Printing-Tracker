@@ -1,5 +1,14 @@
 # Debugging
 
+## Print cost higher than width × height × rate
+
+| | |
+|--|--|
+| **Symptom** | A 4×6 in artwork at ₹1 is not ₹24. It is ₹35 for 1 copy. |
+| **Root cause** | Billing adds 1 in to width and 1 in to height first: `(4+1)×(6+1)×rate×copies`. Copies default to 1. Totals use the **saved** rate, not an admin draft that was not saved. |
+| **Fix** | Read the line on the card: Artwork, Billed (+1 in), Area × rate × copies. Save rate if the badge says **Not saved**. |
+| **Verify** | 4.00 × 6.00 in, 1 copy, rate ₹1.00 → billed 5.00 × 7.00 = 35.00 sq in → ₹35.00. |
+
 ## Repeat order templates show for admin but not other users
 
 | | |

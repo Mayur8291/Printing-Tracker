@@ -5731,7 +5731,7 @@ function App() {
                   onClick={() => setPrintCalculatorOpen(true)}
                 >
                   <Calculator className="size-4" aria-hidden />
-                  Print calculator
+                  Print cost calculator
                 </Button>
               </div>
 

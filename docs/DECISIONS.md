@@ -2,6 +2,16 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-14 — Print cost quote shows bleed and copies; copies are not stored
+
+**Context:** The calculator hid `(width + 1) × (height + 1) × rate` and had no copy count, so the rupee total looked arbitrary.
+
+**Options:** (1) Show the existing formula and add session copies. (2) Store every quote as an order document. (3) Change the +1 in bleed.
+
+**Decision:** Option 1. Same DTF formula. Each artwork has copies (default 1) only while the modal is open. Admin rate stays the singleton `print_calculator_settings` row. Totals ignore an unsaved rate draft.
+
+**Tradeoffs:** Quotes disappear on close. No link to `orders.printing_cost`. The extra inch is still +1 on each dimension, not +1 per edge.
+
 ## 2026-10-13 — Repeat-order templates are a shared read catalog
 
 **Context:** Admin saved templates for the team. Staff saw an empty Repeat order list.

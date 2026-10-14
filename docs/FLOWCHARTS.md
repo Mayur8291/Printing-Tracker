@@ -1,5 +1,33 @@
 # Flowcharts
 
+## Print cost calculator
+
+```mermaid
+flowchart TD
+  Open[Printing orders: Print cost calculator] --> Rate[Load print_calculator_settings]
+  Rate --> Upload[Drop artwork images]
+  Upload --> Size[Width and height inches]
+  Size --> Bleed["Billed size = W+1 by H+1"]
+  Bleed --> Line["Line = billed sq in × saved rate × copies"]
+  Line --> Total[Footer pieces, billed area, total]
+  Total --> Copy[Copy quote text]
+  Admin[Admin Save rate] --> Rate
+```
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Modal as PrintCalculatorModal
+  participant Db as print_calculator_settings
+  User->>Modal: Open calculator
+  Modal->>Db: select rate id=1
+  Db-->>Modal: rate_per_sq_in
+  User->>Modal: Upload art, set inches and copies
+  Modal-->>User: Line cost and total
+  User->>Modal: Copy quote
+  Modal-->>User: Clipboard text
+```
+
 ## Daily ops briefing
 
 ```mermaid
