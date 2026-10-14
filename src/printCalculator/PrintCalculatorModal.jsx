@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Calculator, Copy, Download, Eraser, ImagePlus, Trash2 } from "lucide-react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Calculator, Copy, Download, Eraser, ImagePlus, Settings2, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,20 +17,28 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { removeArtworkBackground } from "./printCalculatorBackgroundRemoval";
-import { fetchPrintCalculatorSettings, savePrintCalculatorRate } from "./printCalculatorDb";
+import { fetchPrintCalculatorSettings, savePrintCalculatorRates } from "./printCalculatorDb";
 import {
+  PRINT_AUDIENCES,
   PRINT_BLEED_INCHES,
   PRINT_CALCULATOR_DPI,
+  PRINT_PRICE_SLABS,
+  audienceLabel,
   buildPrintQuoteText,
   downloadImageUrl,
+  emptyPriceLists,
   formatInches,
   formatInrAmount,
   formatRateAmount,
-  formatSqIn,
+  formatSqM,
   pixelsToInches,
+  priceDraftDirty,
+  priceListsToDraft,
   printLineQuote,
+  rateForCopies,
   summarizePrintQuotes
 } from "./printCalculatorUtils";
 
@@ -132,9 +140,14 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
               <dd className="text-right tabular-nums">
                 {formatInches(quote.billedWidth)} × {formatInches(quote.billedHeight)} in
               </dd>
+              <dt className="text-muted-foreground">Qty slab</dt>
+              <dd className="text-right">
+                {quote.slab?.label} qty
+                {quote.aboveMax ? " (above 1000 uses this rate)" : ""}
+              </dd>
               <dt className="text-muted-foreground">Area × rate × copies</dt>
               <dd className="text-right tabular-nums">
-                {formatSqIn(quote.areaSqIn)} × {formatRateAmount(quote.rate)} × {quote.copies}
+                {formatSqM(quote.areaSqM)} × {formatRateAmount(quote.rate)} × {quote.copies}
               </dd>
               <dt className="font-medium">Line cost</dt>
               <dd className="text-right font-semibold tabular-nums">{formatInrAmount(quote.cost)}</dd>
@@ -142,7 +155,8 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
           ) : (
             <p className="text-sm text-muted-foreground">
               Enter width, height, and at least 1 copy. Cost adds {PRINT_BLEED_INCHES} in to the width
-              and {PRINT_BLEED_INCHES} in to the height, then multiplies by the rate and copies.
+              and {PRINT_BLEED_INCHES} in to the height, converts that to square meters, then multiplies
+              by the slab rate and copies.
             </p>
           )}
           {artwork.bgStatus ? (
@@ -196,8 +210,10 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
 
 export default function PrintCalculatorModal({ open, onClose, isAdmin, userId }) {
   const [artworks, setArtworks] = useState([]);
-  const [ratePerSqIn, setRatePerSqIn] = useState(1);
-  const [rateDraft, setRateDraft] = useState("1");
+  const [audience, setAudience] = useState("customer");
+  const [priceLists, setPriceLists] = useState(() => emptyPriceLists());
+  const [rateDraft, setRateDraft] = useState(() => emptyPriceLists());
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [savingRate, setSavingRate] = useState(false);
   const [settingsError, setSettingsError] = useState("");
@@ -211,8 +227,8 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
     setSettingsError("");
     try {
       const settings = await fetchPrintCalculatorSettings();
-      setRatePerSqIn(settings.ratePerSqIn);
-      setRateDraft(String(settings.ratePerSqIn));
+      setPriceLists(settings.priceLists);
+      setRateDraft(priceListsToDraft(settings.priceLists));
     } catch (err) {
       setSettingsError(err?.message || "Could not load calculator settings.");
     } finally {
@@ -239,11 +255,19 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
 
   const quotedRows = useMemo(
     () =>
-      artworks.map((artwork) => ({
-        fileName: artwork.fileName,
-        quote: printLineQuote(artwork.heightInches, artwork.widthInches, ratePerSqIn, artwork.copies)
-      })),
-    [artworks, ratePerSqIn]
+      artworks.map((artwork) => {
+        const picked = rateForCopies(priceLists, audience, artwork.copies);
+        return {
+          fileName: artwork.fileName,
+          quote: printLineQuote(
+            artwork.heightInches,
+            artwork.widthInches,
+            picked.rate,
+            artwork.copies
+          )
+        };
+      }),
+    [artworks, audience, priceLists]
   );
 
   const summary = useMemo(
@@ -251,8 +275,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
     [quotedRows]
   );
 
-  const rateDirty =
-    isAdmin && rateDraft !== "" && Number(rateDraft) !== Number(ratePerSqIn);
+  const rateDirty = isAdmin && priceDraftDirty(rateDraft, priceLists);
 
   function addFiles(fileList) {
     const files = Array.from(fileList || []).filter((f) => f.type.startsWith("image/"));
@@ -329,9 +352,9 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
     setSavingRate(true);
     setSettingsError("");
     try {
-      const saved = await savePrintCalculatorRate(rateDraft, userId);
-      setRatePerSqIn(saved.ratePerSqIn);
-      setRateDraft(String(saved.ratePerSqIn));
+      const saved = await savePrintCalculatorRates(rateDraft, userId);
+      setPriceLists(saved.priceLists);
+      setRateDraft(priceListsToDraft(saved.priceLists));
     } catch (err) {
       setSettingsError(err?.message || "Could not save rate.");
     } finally {
@@ -340,7 +363,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
   }
 
   async function handleCopyQuote() {
-    const text = buildPrintQuoteText(quotedRows, ratePerSqIn);
+    const text = buildPrintQuoteText(quotedRows, audience);
     try {
       await navigator.clipboard.writeText(text);
       setQuoteNotice("Quote copied.");
@@ -360,60 +383,113 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
             Print cost calculator
           </DialogTitle>
           <DialogDescription>
-            (width + {PRINT_BLEED_INCHES} in) × (height + {PRINT_BLEED_INCHES} in) × rate × copies.
+            Square meters × ₹ per sq m × copies. Rate follows the price list and each print&apos;s qty slab.
           </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-6 py-4">
           <div className="flex flex-col gap-4 pb-2">
             <Card>
-              <CardHeader className="p-4">
-                <CardTitle className="text-sm">Rate per square inch</CardTitle>
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 p-4">
+                <CardTitle className="text-sm">Price list</CardTitle>
+                <div className="flex flex-wrap items-center gap-2">
+                  <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    size="sm"
+                    value={audience}
+                    onValueChange={(value) => {
+                      if (value) setAudience(value);
+                    }}
+                    aria-label="Price list"
+                  >
+                    {PRINT_AUDIENCES.map((item) => (
+                      <ToggleGroupItem key={item.id} value={item.id} className="px-3">
+                        {item.label}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                  {isAdmin ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setSettingsOpen((openNow) => !openNow)}
+                    >
+                      <Settings2 className="size-3.5" />
+                      Pricing settings
+                    </Button>
+                  ) : null}
+                </div>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 p-4 pt-0">
-                {isAdmin ? (
-                  <>
-                    <FieldGroup className="gap-3 sm:flex-row sm:items-end">
-                      <Field className="max-w-[10rem]">
-                        <FieldLabel htmlFor="print-calc-rate">Saved rate (₹)</FieldLabel>
-                        <Input
-                          id="print-calc-rate"
-                          type="number"
-                          min="0.01"
-                          step="0.01"
-                          value={rateDraft}
-                          onChange={(e) => setRateDraft(e.target.value)}
-                          disabled={loadingSettings || savingRate}
-                        />
-                      </Field>
+                <p className="text-sm text-muted-foreground">
+                  {audienceLabel(audience)} rates are ₹ per square meter. Each print uses the slab for its own copies.
+                </p>
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+                  {PRINT_PRICE_SLABS.map((slab) => (
+                    <Fragment key={slab.id}>
+                      <dt className="text-muted-foreground">{slab.label} qty</dt>
+                      <dd className="text-right font-medium tabular-nums">
+                        {formatRateAmount(priceLists?.[audience]?.[slab.id])} / sq m
+                      </dd>
+                    </Fragment>
+                  ))}
+                </dl>
+                <FieldDescription>
+                  1–10 uses 0–10. 11–200 uses 10–200. 201–1000 uses 200–1000. Above 1000 keeps the 200–1000 rate.
+                  Size is still entered in inches. Guessed size uses {PRINT_CALCULATOR_DPI} DPI.
+                </FieldDescription>
+                {isAdmin && settingsOpen ? (
+                  <div className="flex flex-col gap-3 rounded-lg border p-3">
+                    <p className="text-sm font-medium">Set ₹ per square meter</p>
+                    <div className="grid grid-cols-[minmax(0,6rem)_1fr_1fr] gap-2 text-xs text-muted-foreground">
+                      <span>Qty</span>
+                      <span>Internal team</span>
+                      <span>Customer</span>
+                    </div>
+                    {PRINT_PRICE_SLABS.map((slab) => (
+                      <div key={slab.id} className="grid grid-cols-[minmax(0,6rem)_1fr_1fr] items-center gap-2">
+                        <span className="text-sm">{slab.label}</span>
+                        {PRINT_AUDIENCES.map((item) => (
+                          <Input
+                            key={item.id}
+                            id={`print-rate-${item.id}-${slab.id}`}
+                            aria-label={`${item.label} ${slab.label} rupees per square meter`}
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            value={rateDraft?.[item.id]?.[slab.id] ?? ""}
+                            disabled={loadingSettings || savingRate}
+                            onChange={(e) =>
+                              setRateDraft((prev) => ({
+                                ...prev,
+                                [item.id]: { ...prev[item.id], [slab.id]: e.target.value }
+                              }))
+                            }
+                          />
+                        ))}
+                      </div>
+                    ))}
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         type="button"
                         size="sm"
                         onClick={() => void handleSaveRate()}
                         disabled={savingRate || loadingSettings}
                       >
-                        {savingRate ? "Saving…" : "Save rate"}
+                        {savingRate ? "Saving…" : "Save pricing"}
                       </Button>
-                    </FieldGroup>
-                    {rateDirty ? (
-                      <Badge variant="outline">Not saved — totals use {formatRateAmount(ratePerSqIn)}</Badge>
-                    ) : null}
-                    {!loadingSettings ? (
-                      <FieldDescription>
-                        Guessed size uses {PRINT_CALCULATOR_DPI} DPI. Remove background crops to the ink
-                        and sets inches from that PNG.
-                      </FieldDescription>
-                    ) : null}
-                  </>
-                ) : (
-                  <p className="text-sm text-foreground">
-                    Rate per square inch is{" "}
-                    <strong className="font-semibold">{formatInrAmount(ratePerSqIn)}</strong>
-                  </p>
-                )}
+                      {rateDirty ? (
+                        <Badge variant="outline">Not saved — totals use the saved rates</Badge>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
                 {settingsError ? (
                   <Alert variant="destructive">
-                    <AlertTitle>Rate not saved</AlertTitle>
+                    <AlertTitle>Pricing not saved</AlertTitle>
                     <AlertDescription>{settingsError}</AlertDescription>
                   </Alert>
                 ) : null}
@@ -457,13 +533,25 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
                 }}
               />
               <ImagePlus className="mb-2 size-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Drop images here or click to upload</p>
-              <p className="text-xs text-muted-foreground">PNG, JPG, WebP. Each file starts at 1 copy.</p>
+              <p className="text-sm font-medium">Drop one or many prints, or click to upload</p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, WebP. Add more anytime. Each print starts at 1 copy.</p>
             </div>
 
             {artworks.length ? (
               <div className="flex flex-col gap-3">
-                <h3 className="text-sm font-semibold">Artworks ({artworks.length})</h3>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">Prints ({artworks.length})</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImagePlus className="size-3.5" />
+                    Add more prints
+                  </Button>
+                </div>
                 {artworks.map((artwork, index) => (
                   <ArtworkCard
                     key={artwork.id}
@@ -483,16 +571,20 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
           <div className="flex min-w-0 flex-col gap-1 text-left">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>
+                Prints <strong className="text-foreground tabular-nums">{artworks.length}</strong>
+              </span>
+              <Separator orientation="vertical" className="hidden h-3 sm:block" />
+              <span>
                 Pieces <strong className="text-foreground tabular-nums">{summary.pieces}</strong>
               </span>
               <Separator orientation="vertical" className="hidden h-3 sm:block" />
               <span>
                 Billed area{" "}
-                <strong className="text-foreground tabular-nums">{formatSqIn(summary.areaSqIn)}</strong>
+                <strong className="text-foreground tabular-nums">{formatSqM(summary.areaSqM)}</strong>
               </span>
               <Separator orientation="vertical" className="hidden h-3 sm:block" />
               <span>
-                Rate <strong className="text-foreground tabular-nums">{formatRateAmount(ratePerSqIn)}</strong>
+                List <strong className="text-foreground">{audienceLabel(audience)}</strong>
               </span>
             </div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Total print cost</p>

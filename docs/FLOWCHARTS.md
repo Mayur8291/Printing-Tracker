@@ -5,13 +5,16 @@
 ```mermaid
 flowchart TD
   Open[Printing orders: Print cost calculator] --> Rate[Load print_calculator_settings]
-  Rate --> Upload[Drop artwork images]
-  Upload --> Size[Width and height inches]
-  Size --> Bleed["Billed size = W+1 by H+1"]
-  Bleed --> Line["Line = billed sq in × saved rate × copies"]
-  Line --> Total[Footer pieces, billed area, total]
+  Rate --> List{Internal team or Customer}
+  List --> Upload[Drop one or many prints]
+  Upload --> Size[Width and height inches plus copies]
+  Size --> Slab{Copies 1-10 or 11-200 or 201+}
+  Slab --> Bleed["Billed inches = W+1 by H+1"]
+  Bleed --> Sqm[Convert billed area to square meters]
+  Sqm --> Line["Line = sq m × slab rate × copies"]
+  Line --> Total[Footer prints, pieces, sq m, total]
   Total --> Copy[Copy quote text]
-  Admin[Admin Save rate] --> Rate
+  Admin[Admin Pricing settings Save] --> Rate
 ```
 
 ```mermaid
@@ -20,10 +23,10 @@ sequenceDiagram
   participant Modal as PrintCalculatorModal
   participant Db as print_calculator_settings
   User->>Modal: Open calculator
-  Modal->>Db: select rate id=1
-  Db-->>Modal: rate_per_sq_in
-  User->>Modal: Upload art, set inches and copies
-  Modal-->>User: Line cost and total
+  Modal->>Db: select six slab rates id=1
+  Db-->>Modal: internal and customer ₹ per sq m
+  User->>Modal: Pick list, upload prints, set inches and copies
+  Modal-->>User: Slab line cost and total
   User->>Modal: Copy quote
   Modal-->>User: Clipboard text
 ```

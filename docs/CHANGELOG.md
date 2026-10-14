@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-14 — Print cost: internal and customer rates by qty, per square meter
+
+- **Feature:** Admin **Pricing settings** saves six ₹ per square meter rates: Internal team and Customer, each for qty **0–10**, **10–200**, and **200–1000**. The quote toggle picks the list. Each print’s copies pick the slab (1–10, 11–200, 201 and above). Drop or **Add more prints** for many artworks in one total.
+- **Formula:** `(width + 1 in) × (height + 1 in)` converted to square meters × slab rate × copies. Existing ₹/sq in is seeded into every slab so totals stay the same until an admin saves new prices.
+- **Staging:** columns applied on `scvojtvgnkmbupvyslmb`. `db push` is blocked by older remote-only migration versions, so the same SQL was applied directly. File: `20261014115203_print_calculator_qty_price_lists.sql`.
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorUtils.js`, `printCalculatorDb.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-10-14 — Print cost calculator shows the quote
 
 - **Feature:** Printing orders **Print cost calculator** now shows the DTF line: artwork size, billed size (width + 1 in, height + 1 in), area × rate × copies, and line cost. Footer shows pieces, billed area, saved rate, and total. **Copy quote** puts that text on the clipboard. Copies stay in the browser session (default 1).
