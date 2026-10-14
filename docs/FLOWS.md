@@ -346,7 +346,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 1. **Trigger:** Printing orders tab → **Print cost calculator** (next to All orders / Complete orders / Print Queue).
 2. **Entry:** `PrintCalculatorModal`. Drop or click to upload **one or many** PNG/JPG/WebP prints. **Add more prints** appends another batch. The dialog body scrolls; the total bar stays put.
-3. **Quantity:** One number at the top. It multiplies **every** print and picks the slab: 1–10 → **0–10**, 11–200 → **10–200**, 201–1000 and above → **200–1000**. Toggle **Internal team** or **Customer** for the ₹ per square inch list.
+3. **Quantity:** One number at the top. It multiplies **every** print and picks the slab: 1–10 → **0–10**, 11–200 → **10–200**, 201–1000 and above → **200–1000**. Toggle **Internal team** or **Customer**. The quote does not list the three rates or the slab rules. Admin opens **Pricing settings** to see and edit them.
 4. **Size:** Width and height in inches. Empty size is guessed at **150 DPI**. **Remove background** crops to opaque pixels and replaces inches from that PNG.
 5. **Formula:** billed area = `(width + 1) × (height + 1)` square inches. Line cost = billed square inches × slab rate × the shared quantity. Paise rounded per line, then summed.
 6. **Footer:** print count, the shared quantity, billed square inches, list name, total ₹. **Copy quote** writes the same breakdown. Closing the modal drops the artworks and resets quantity to 1 (not saved on the order).

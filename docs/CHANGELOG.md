@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-14 — Hide print calculator rate explanation
+
+- **UI:** Quantity stays. The slab note, the three rate lines, and the “how the slabs work” text are no longer on the quote. Admin still edits rates under **Pricing settings**.
+- **Files:** `PrintCalculatorModal.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
 ## 2026-10-14 — Print calculator scrolls, one quantity for every print
 
 - **Bug fix:** The calculator dialog clipped the print card. The middle of the dialog now scrolls; the total stays pinned at the bottom.

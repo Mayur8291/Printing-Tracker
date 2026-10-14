@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Calculator, Copy, Download, Eraser, ImagePlus, Settings2, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
@@ -23,7 +23,6 @@ import { fetchPrintCalculatorSettings, savePrintCalculatorRates } from "./printC
 import {
   PRINT_AUDIENCES,
   PRINT_BLEED_INCHES,
-  PRINT_CALCULATOR_DPI,
   PRINT_PRICE_SLABS,
   audienceLabel,
   buildPrintQuoteText,
@@ -424,29 +423,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                   />
-                  <FieldDescription>
-                    Multiplies every print below.
-                    {quantitySlab ? ` Slab ${quantitySlab.label}.` : " Enter at least 1."}
-                  </FieldDescription>
                 </Field>
-                <p className="text-sm text-muted-foreground">
-                  {audienceLabel(audience)} rates are ₹ per square inch. This quantity picks the slab for every print.
-                </p>
-                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-                  {PRINT_PRICE_SLABS.map((slab) => (
-                    <Fragment key={slab.id}>
-                      <dt className="text-muted-foreground">{slab.label} qty</dt>
-                      <dd className="text-right font-medium tabular-nums">
-                        {formatRateAmount(priceLists?.[audience]?.[slab.id])} / sq in
-                        {quantitySlab?.id === slab.id ? " · this quote" : ""}
-                      </dd>
-                    </Fragment>
-                  ))}
-                </dl>
-                <FieldDescription>
-                  1–10 uses 0–10. 11–200 uses 10–200. 201–1000 uses 200–1000. Above 1000 keeps the 200–1000 rate.
-                  Size is still entered in inches. Guessed size uses {PRINT_CALCULATOR_DPI} DPI.
-                </FieldDescription>
                 {isAdmin && settingsOpen ? (
                   <div className="flex flex-col gap-3 rounded-lg border p-3">
                     <p className="text-sm font-medium">Set ₹ per square inch</p>
