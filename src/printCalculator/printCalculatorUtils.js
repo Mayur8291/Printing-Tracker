@@ -161,7 +161,8 @@ export function printLineQuote(heightInches, widthInches, ratePerSqIn, qty = 1) 
   const billedWidth = ready ? width + PRINT_BLEED_INCHES : 0;
   const billedHeight = ready ? height + PRINT_BLEED_INCHES : 0;
   const areaSqIn = ready ? roundMoney(billedWidth * billedHeight) : 0;
-  const cost = ready ? roundMoney(areaSqIn * rate * copies) : 0;
+  const unitCost = ready ? roundMoney(areaSqIn * rate) : 0;
+  const cost = ready ? roundMoney(unitCost * copies) : 0;
   return {
     ready,
     widthInches: width,
@@ -173,6 +174,7 @@ export function printLineQuote(heightInches, widthInches, ratePerSqIn, qty = 1) 
     rate,
     slab,
     aboveMax: copies > 1000,
+    unitCost,
     cost
   };
 }
@@ -248,7 +250,7 @@ export function buildPrintQuoteText(rows, audience) {
     }
     const above = quote.aboveMax ? " (above 1000, 200–1000 rate)" : "";
     lines.push(
-      `${index + 1}. ${name} — ${formatInches(quote.widthInches)}×${formatInches(quote.heightInches)} in, billed ${formatSqIn(quote.areaSqIn)} × ${formatRateAmount(quote.rate)}/sq in × ${quote.copies} (${quote.slab?.label} qty${above}) = ${formatInrAmount(quote.cost)}`
+      `${index + 1}. ${name} — ${formatInches(quote.widthInches)}×${formatInches(quote.heightInches)} in, single pc ${formatInrAmount(quote.unitCost)} × ${quote.copies} = ${formatInrAmount(quote.cost)} (${quote.slab?.label} qty${above})`
     );
   });
   const summary = summarizePrintQuotes(rows.map((row) => row.quote));

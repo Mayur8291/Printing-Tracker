@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-14 — Print calculator shows single pc amount
+
+- **UI:** Each print shows **Single pc** (billed square inches × ₹ per sq in) above **Line cost** (single pc × quantity).
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
 ## 2026-10-14 — Hide print calculator rate explanation
 
 - **UI:** Quantity stays. The slab note, the three rate lines, and the “how the slabs work” text are no longer on the quote. Admin still edits rates under **Pricing settings**.

@@ -136,6 +136,8 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
               <dd className="text-right tabular-nums">
                 {formatSqIn(quote.areaSqIn)} × {formatRateAmount(quote.rate)} × {quote.copies}
               </dd>
+              <dt className="font-medium">Single pc</dt>
+              <dd className="text-right font-semibold tabular-nums">{formatInrAmount(quote.unitCost)}</dd>
               <dt className="font-medium">Line cost</dt>
               <dd className="text-right font-semibold tabular-nums">{formatInrAmount(quote.cost)}</dd>
             </dl>
