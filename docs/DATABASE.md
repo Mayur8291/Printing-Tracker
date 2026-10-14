@@ -544,20 +544,20 @@ Singleton config for the Printing orders **Print calculator** modal (DTF cost).
 |--------|------|---------|
 | `id` | int | Always `1` (singleton) |
 | `rate_per_sq_in` | numeric | Legacy ₹ per square inch. Seed only. New quotes do not read this column. |
-| `internal_rate_1_10` | numeric | Internal team ₹ per square meter, copies 1–10 |
-| `internal_rate_11_200` | numeric | Internal team ₹ per square meter, copies 11–200 |
-| `internal_rate_201_1000` | numeric | Internal team ₹ per square meter, copies 201–1000 (also above 1000) |
-| `customer_rate_1_10` | numeric | Customer ₹ per square meter, copies 1–10 |
-| `customer_rate_11_200` | numeric | Customer ₹ per square meter, copies 11–200 |
-| `customer_rate_201_1000` | numeric | Customer ₹ per square meter, copies 201–1000 (also above 1000) |
+| `internal_rate_1_10` | numeric | Internal team ₹ per square inch, copies 1–10 |
+| `internal_rate_11_200` | numeric | Internal team ₹ per square inch, copies 11–200 |
+| `internal_rate_201_1000` | numeric | Internal team ₹ per square inch, copies 201–1000 (also above 1000) |
+| `customer_rate_1_10` | numeric | Customer ₹ per square inch, copies 1–10 |
+| `customer_rate_11_200` | numeric | Customer ₹ per square inch, copies 11–200 |
+| `customer_rate_201_1000` | numeric | Customer ₹ per square inch, copies 201–1000 (also above 1000) |
 | `updated_at` | timestamptz | Last change |
 | `updated_by` | uuid | Admin who saved rates |
 
-Copies and uploaded prints are not stored. They live only while the modal is open. Billed area is `(width in + 1) × (height in + 1) × 0.0254²` square meters.
+Copies and uploaded prints are not stored. They live only while the modal is open. Billed area is `(width in + 1) × (height in + 1)` square inches.
 
 RLS: all authenticated **read**; **write** admin only (`jwt_user_is_admin()`).
 
-**Migrations:** `20260731140000_print_calculator_settings.sql`, `20261014115203_print_calculator_qty_price_lists.sql` (applied on staging `scvojtvgnkmbupvyslmb`). Seed copies the old ₹/sq in into every slab as ₹/sq m so existing totals stay put until an admin saves new prices.
+**Migrations:** `20260731140000_print_calculator_settings.sql`, `20261014115203_print_calculator_qty_price_lists.sql`, `20261014115752_print_calculator_rates_per_sq_inch.sql` (staging `scvojtvgnkmbupvyslmb`). Slabs are ₹ per square inch. A short-lived square-meter seed is put back to `rate_per_sq_in` when it is still untouched.
 
 ## Goal tracker
 

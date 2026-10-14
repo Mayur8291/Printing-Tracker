@@ -3,9 +3,6 @@ export const PRINT_CALCULATOR_DPI = 150;
 /** Extra inch added to width and to height before billing. */
 export const PRINT_BLEED_INCHES = 1;
 
-/** Square meters in one square inch. */
-export const SQ_M_PER_SQ_IN = 0.0254 * 0.0254;
-
 export const PRINT_AUDIENCES = [
   { id: "internal", label: "Internal team" },
   { id: "customer", label: "Customer" }
@@ -73,13 +70,12 @@ export function emptyPriceLists() {
 }
 
 export function priceListsFromRow(row, fallbackPerSqIn = 1) {
-  const fallbackPerSqM = roundRate(Number(fallbackPerSqIn) / SQ_M_PER_SQ_IN);
+  const fallback = roundRate(fallbackPerSqIn);
   const lists = { internal: {}, customer: {} };
   for (const audience of PRINT_AUDIENCES) {
     for (const slab of PRINT_PRICE_SLABS) {
       const raw = Number(row?.[RATE_COLUMNS[audience.id][slab.id]]);
-      lists[audience.id][slab.id] =
-        Number.isFinite(raw) && raw > 0 ? raw : fallbackPerSqM;
+      lists[audience.id][slab.id] = Number.isFinite(raw) && raw > 0 ? raw : fallback;
     }
   }
   return lists;
@@ -153,21 +149,19 @@ export function rateForCopies(priceLists, audience, copies) {
 /**
  * One print.
  * Billed inches = width + 1 and height + 1.
- * Area in square meters × ₹ per sq m × copies.
- * The ₹/sq m comes from the price list and this print's copy slab.
+ * Cost = billed square inches × ₹ per square inch × copies.
  */
-export function printLineQuote(heightInches, widthInches, ratePerSqM, qty = 1) {
+export function printLineQuote(heightInches, widthInches, ratePerSqIn, qty = 1) {
   const height = positiveNumber(heightInches);
   const width = positiveNumber(widthInches);
-  const rate = positiveNumber(ratePerSqM);
+  const rate = positiveNumber(ratePerSqIn);
   const copies = parseCopyCount(qty);
   const slab = slabForCopies(qty);
   const ready = height != null && width != null && rate != null && copies > 0 && slab != null;
   const billedWidth = ready ? width + PRINT_BLEED_INCHES : 0;
   const billedHeight = ready ? height + PRINT_BLEED_INCHES : 0;
-  const areaSqIn = ready ? billedWidth * billedHeight : 0;
-  const areaSqM = ready ? areaSqIn * SQ_M_PER_SQ_IN : 0;
-  const cost = ready ? roundMoney(areaSqM * rate * copies) : 0;
+  const areaSqIn = ready ? roundMoney(billedWidth * billedHeight) : 0;
+  const cost = ready ? roundMoney(areaSqIn * rate * copies) : 0;
   return {
     ready,
     widthInches: width,
@@ -175,7 +169,6 @@ export function printLineQuote(heightInches, widthInches, ratePerSqM, qty = 1) {
     billedWidth,
     billedHeight,
     areaSqIn,
-    areaSqM,
     copies,
     rate,
     slab,
@@ -184,8 +177,8 @@ export function printLineQuote(heightInches, widthInches, ratePerSqM, qty = 1) {
   };
 }
 
-export function computePrintCost(heightInches, widthInches, ratePerSqM, qty = 1) {
-  return printLineQuote(heightInches, widthInches, ratePerSqM, qty).cost;
+export function computePrintCost(heightInches, widthInches, ratePerSqIn, qty = 1) {
+  return printLineQuote(heightInches, widthInches, ratePerSqIn, qty).cost;
 }
 
 export function summarizePrintQuotes(quotes) {
@@ -193,12 +186,12 @@ export function summarizePrintQuotes(quotes) {
     (acc, quote) => {
       if (!quote?.ready) return acc;
       acc.pieces += quote.copies;
-      acc.areaSqM += quote.areaSqM * quote.copies;
+      acc.areaSqIn = roundMoney(acc.areaSqIn + quote.areaSqIn * quote.copies);
       acc.cost = roundMoney(acc.cost + quote.cost);
       acc.readyLines += 1;
       return acc;
     },
-    { pieces: 0, areaSqM: 0, cost: 0, readyLines: 0 }
+    { pieces: 0, areaSqIn: 0, cost: 0, readyLines: 0 }
   );
 }
 
@@ -229,13 +222,8 @@ export function formatInches(value) {
   });
 }
 
-export function formatSqM(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "—";
-  return `${n.toLocaleString("en-IN", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4
-  })} sq m`;
+export function formatSqIn(value) {
+  return `${formatInches(value)} sq in`;
 }
 
 export function audienceLabel(audienceId) {
@@ -246,7 +234,7 @@ export function buildPrintQuoteText(rows, audience) {
   const lines = [
     "Print cost quote",
     `Price list: ${audienceLabel(audience)}`,
-    "Rate: ₹ per square meter, from this print's copy count",
+    "Rate: ₹ per square inch, from this print's copy count",
     "Slabs: 1–10 uses 0–10, 11–200 uses 10–200, 201 and above uses 200–1000",
     `Bleed: +${PRINT_BLEED_INCHES} in on width and +${PRINT_BLEED_INCHES} in on height`,
     ""
@@ -260,14 +248,14 @@ export function buildPrintQuoteText(rows, audience) {
     }
     const above = quote.aboveMax ? " (above 1000, 200–1000 rate)" : "";
     lines.push(
-      `${index + 1}. ${name} — ${formatInches(quote.widthInches)}×${formatInches(quote.heightInches)} in, billed ${formatSqM(quote.areaSqM)} × ${formatRateAmount(quote.rate)}/sq m × ${quote.copies} (${quote.slab?.label} qty${above}) = ${formatInrAmount(quote.cost)}`
+      `${index + 1}. ${name} — ${formatInches(quote.widthInches)}×${formatInches(quote.heightInches)} in, billed ${formatSqIn(quote.areaSqIn)} × ${formatRateAmount(quote.rate)}/sq in × ${quote.copies} (${quote.slab?.label} qty${above}) = ${formatInrAmount(quote.cost)}`
     );
   });
   const summary = summarizePrintQuotes(rows.map((row) => row.quote));
   lines.push("");
   lines.push(`Prints: ${rows.length}`);
   lines.push(`Pieces: ${summary.pieces}`);
-  lines.push(`Billed area: ${formatSqM(summary.areaSqM)}`);
+  lines.push(`Billed area: ${formatSqIn(summary.areaSqIn)}`);
   lines.push(`Total: ${formatInrAmount(summary.cost)}`);
   return lines.join("\n");
 }

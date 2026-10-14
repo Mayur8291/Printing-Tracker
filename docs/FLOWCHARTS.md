@@ -10,9 +10,8 @@ flowchart TD
   Upload --> Size[Width and height inches plus copies]
   Size --> Slab{Copies 1-10 or 11-200 or 201+}
   Slab --> Bleed["Billed inches = W+1 by H+1"]
-  Bleed --> Sqm[Convert billed area to square meters]
-  Sqm --> Line["Line = sq m × slab rate × copies"]
-  Line --> Total[Footer prints, pieces, sq m, total]
+  Bleed --> Line["Line = billed sq in × slab rate × copies"]
+  Line --> Total[Footer prints, pieces, sq in, total]
   Total --> Copy[Copy quote text]
   Admin[Admin Pricing settings Save] --> Rate
 ```
@@ -24,7 +23,7 @@ sequenceDiagram
   participant Db as print_calculator_settings
   User->>Modal: Open calculator
   Modal->>Db: select six slab rates id=1
-  Db-->>Modal: internal and customer ₹ per sq m
+  Db-->>Modal: internal and customer ₹ per sq in
   User->>Modal: Pick list, upload prints, set inches and copies
   Modal-->>User: Slab line cost and total
   User->>Modal: Copy quote

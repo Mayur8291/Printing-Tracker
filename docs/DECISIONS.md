@@ -2,15 +2,21 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
-## 2026-10-14 — Print rates are ₹ per square meter, two lists, three qty slabs
+## 2026-10-14 — Print slab rates are ₹ per square inch
+
+**Context:** The six qty rates were first stored as ₹ per square meter. The shop prices per square inch.
+
+**Decision:** Cost is billed square inches × ₹ per square inch × copies. Untouched square-meter seeds on staging return to `rate_per_sq_in`.
+
+## 2026-10-14 — Print rates are two lists and three qty slabs
 
 **Context:** One ₹ per square inch could not price internal team work differently from customer work, or drop the rate when the copy count grows. Jobs also carry more than one print.
 
-**Options:** (1) Six saved rates: Internal team and Customer, each with 0–10, 10–200, and 200–1000. Bill square meters from the inch size. (2) Keep one ₹/sq in. (3) Store each quote on the order.
+**Options:** (1) Six saved rates: Internal team and Customer, each with 0–10, 10–200, and 200–1000, still ₹ per square inch. (2) Keep one rate. (3) Store each quote on the order.
 
-**Decision:** Option 1. Size stays in inches. Cost uses `(width + 1) × (height + 1)` converted with `0.0254²`. Each print’s own copies pick the slab (10 stays in 0–10, 200 stays in 10–200, above 1000 keeps 200–1000). Many images upload in one quote. Rates stay on the singleton settings row. Quotes still disappear on close.
+**Decision:** Option 1. Size stays in inches. Cost uses `(width + 1) × (height + 1)` square inches × the slab rate × copies. Each print’s own copies pick the slab (10 stays in 0–10, 200 stays in 10–200, above 1000 keeps 200–1000). Many images upload in one quote. Rates stay on the singleton settings row. Quotes still disappear on close.
 
-**Tradeoffs:** Boundary qty is the top of the lower slab. `db push` could not run because staging history has remote-only versions; the SQL was applied on staging with the same statements as `20261014115203_print_calculator_qty_price_lists.sql`.
+**Tradeoffs:** Boundary qty is the top of the lower slab. `db push` could not run because staging history has remote-only versions; the SQL was applied on staging.
 
 ## 2026-10-14 — Print cost quote shows bleed and copies; copies are not stored
 

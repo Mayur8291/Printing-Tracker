@@ -1,13 +1,13 @@
 # Debugging
 
-## Print cost does not match width × height × a square-inch rate
+## Print cost does not match width × height × rate
 
 | | |
 |--|--|
-| **Symptom** | A 4×6 in print is not `4 × 6 × rate`. Two prints with different copy counts get different ₹ per sq m. |
-| **Root cause** | Billing adds 1 in to width and 1 in to height, converts that rectangle to **square meters**, then uses the saved slab for **that print's copies**. Lists: Internal team and Customer. Slabs: 1–10 → 0–10 rate, 11–200 → 10–200 rate, 201 and above → 200–1000 rate. Unsaved **Pricing settings** do not change the total. |
-| **Fix** | Open **Pricing settings**, save both lists, pick the list toggle, set copies on each print. |
-| **Verify** | Old ₹4 / sq in seeds every slab at about ₹6200.0124 / sq m, so 4×6 in and 1 copy still lands near ₹140 (`5×7` sq in × ₹4). |
+| **Symptom** | A 4×6 in print at ₹4 is not ₹96. Two prints with different copy counts can show different ₹ per sq in. |
+| **Root cause** | Billing adds 1 in to width and 1 in to height first: `(4+1)×(6+1)` square inches × the slab rate × copies. The slab comes from that print’s copies on the Internal team or Customer list. Unsaved **Pricing settings** do not change the total. |
+| **Fix** | Read the line: Artwork, Billed (+1 in), Area × rate × copies. Save pricing if the badge says **Not saved**. |
+| **Verify** | 4.00 × 6.00 in, 1 copy, ₹4.00 / sq in → 35.00 sq in → ₹140.00. |
 
 ## Repeat order templates show for admin but not other users
 

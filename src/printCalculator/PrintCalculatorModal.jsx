@@ -33,7 +33,7 @@ import {
   formatInches,
   formatInrAmount,
   formatRateAmount,
-  formatSqM,
+  formatSqIn,
   pixelsToInches,
   priceDraftDirty,
   priceListsToDraft,
@@ -147,7 +147,7 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
               </dd>
               <dt className="text-muted-foreground">Area × rate × copies</dt>
               <dd className="text-right tabular-nums">
-                {formatSqM(quote.areaSqM)} × {formatRateAmount(quote.rate)} × {quote.copies}
+                {formatSqIn(quote.areaSqIn)} × {formatRateAmount(quote.rate)} × {quote.copies}
               </dd>
               <dt className="font-medium">Line cost</dt>
               <dd className="text-right font-semibold tabular-nums">{formatInrAmount(quote.cost)}</dd>
@@ -155,8 +155,8 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
           ) : (
             <p className="text-sm text-muted-foreground">
               Enter width, height, and at least 1 copy. Cost adds {PRINT_BLEED_INCHES} in to the width
-              and {PRINT_BLEED_INCHES} in to the height, converts that to square meters, then multiplies
-              by the slab rate and copies.
+              and {PRINT_BLEED_INCHES} in to the height, then multiplies that square-inch area by the slab
+              rate and copies.
             </p>
           )}
           {artwork.bgStatus ? (
@@ -383,7 +383,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
             Print cost calculator
           </DialogTitle>
           <DialogDescription>
-            Square meters × ₹ per sq m × copies. Rate follows the price list and each print&apos;s qty slab.
+            Square inches × ₹ per sq in × copies. Rate follows the price list and each print&apos;s qty slab.
           </DialogDescription>
         </DialogHeader>
 
@@ -425,14 +425,14 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
               </CardHeader>
               <CardContent className="flex flex-col gap-3 p-4 pt-0">
                 <p className="text-sm text-muted-foreground">
-                  {audienceLabel(audience)} rates are ₹ per square meter. Each print uses the slab for its own copies.
+                  {audienceLabel(audience)} rates are ₹ per square inch. Each print uses the slab for its own copies.
                 </p>
                 <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                   {PRINT_PRICE_SLABS.map((slab) => (
                     <Fragment key={slab.id}>
                       <dt className="text-muted-foreground">{slab.label} qty</dt>
                       <dd className="text-right font-medium tabular-nums">
-                        {formatRateAmount(priceLists?.[audience]?.[slab.id])} / sq m
+                        {formatRateAmount(priceLists?.[audience]?.[slab.id])} / sq in
                       </dd>
                     </Fragment>
                   ))}
@@ -443,7 +443,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
                 </FieldDescription>
                 {isAdmin && settingsOpen ? (
                   <div className="flex flex-col gap-3 rounded-lg border p-3">
-                    <p className="text-sm font-medium">Set ₹ per square meter</p>
+                    <p className="text-sm font-medium">Set ₹ per square inch</p>
                     <div className="grid grid-cols-[minmax(0,6rem)_1fr_1fr] gap-2 text-xs text-muted-foreground">
                       <span>Qty</span>
                       <span>Internal team</span>
@@ -456,7 +456,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
                           <Input
                             key={item.id}
                             id={`print-rate-${item.id}-${slab.id}`}
-                            aria-label={`${item.label} ${slab.label} rupees per square meter`}
+                            aria-label={`${item.label} ${slab.label} rupees per square inch`}
                             type="number"
                             min="0.01"
                             step="0.01"
@@ -580,7 +580,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
               <Separator orientation="vertical" className="hidden h-3 sm:block" />
               <span>
                 Billed area{" "}
-                <strong className="text-foreground tabular-nums">{formatSqM(summary.areaSqM)}</strong>
+                <strong className="text-foreground tabular-nums">{formatSqIn(summary.areaSqIn)}</strong>
               </span>
               <Separator orientation="vertical" className="hidden h-3 sm:block" />
               <span>

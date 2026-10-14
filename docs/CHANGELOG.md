@@ -1,6 +1,14 @@
 # Changelog
 
+## 2026-10-14 — Print cost rates are ₹ per square inch
+
+- **Fix:** Slab prices are ₹ per square inch. Cost is billed square inches × rate × copies. Staging rows that were still the square-meter seed (about ₹6200) go back to the legacy ₹4 per square inch.
+- **Files:** `printCalculatorUtils.js`, `PrintCalculatorModal.jsx`, `20261014115752_print_calculator_rates_per_sq_inch.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-10-14 — Print cost: internal and customer rates by qty, per square meter
+
+Superseded the same day. Rates are ₹ per square inch. See the entry above.
 
 - **Feature:** Admin **Pricing settings** saves six ₹ per square meter rates: Internal team and Customer, each for qty **0–10**, **10–200**, and **200–1000**. The quote toggle picks the list. Each print’s copies pick the slab (1–10, 11–200, 201 and above). Drop or **Add more prints** for many artworks in one total.
 - **Formula:** `(width + 1 in) × (height + 1 in)` converted to square meters × slab rate × copies. Existing ₹/sq in is seeded into every slab so totals stay the same until an admin saves new prices.
