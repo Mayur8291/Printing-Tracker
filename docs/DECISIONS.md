@@ -14,7 +14,7 @@ Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant c
 
 **Options:** (1) Six saved rates: Internal team and Customer, each with 0–10, 10–200, and 200–1000, still ₹ per square inch. (2) Keep one rate. (3) Store each quote on the order.
 
-**Decision:** Option 1. Size stays in inches. Cost uses `(width + 1) × (height + 1)` square inches × the slab rate × copies. Each print’s own copies pick the slab (10 stays in 0–10, 200 stays in 10–200, above 1000 keeps 200–1000). Many images upload in one quote. Rates stay on the singleton settings row. Quotes still disappear on close.
+**Decision:** Option 1. Size stays in inches. Cost uses `(width + 1) × (height + 1)` square inches × the slab rate × one shared quantity. That quantity multiplies every uploaded print and picks the slab (10 stays in 0–10, 200 stays in 10–200, above 1000 keeps 200–1000). Many images upload in one quote. Rates stay on the singleton settings row. Quotes still disappear on close.
 
 **Tradeoffs:** Boundary qty is the top of the lower slab. `db push` could not run because staging history has remote-only versions; the SQL was applied on staging.
 

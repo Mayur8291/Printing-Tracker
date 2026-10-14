@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-14 — Print calculator scrolls, one quantity for every print
+
+- **Bug fix:** The calculator dialog clipped the print card. The middle of the dialog now scrolls; the total stays pinned at the bottom.
+- **Change:** Copies are gone from each print. One **Quantity** multiplies every uploaded print and picks the qty slab.
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
 ## 2026-10-14 — Print cost rates are ₹ per square inch
 
 - **Fix:** Slab prices are ₹ per square inch. Cost is billed square inches × rate × copies. Staging rows that were still the square-meter seed (about ₹6200) go back to the legacy ₹4 per square inch.

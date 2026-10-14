@@ -234,7 +234,7 @@ export function buildPrintQuoteText(rows, audience) {
   const lines = [
     "Print cost quote",
     `Price list: ${audienceLabel(audience)}`,
-    "Rate: ₹ per square inch, from this print's copy count",
+    "Rate: ₹ per square inch. One quantity multiplies every print.",
     "Slabs: 1–10 uses 0–10, 11–200 uses 10–200, 201 and above uses 200–1000",
     `Bleed: +${PRINT_BLEED_INCHES} in on width and +${PRINT_BLEED_INCHES} in on height`,
     ""
@@ -243,7 +243,7 @@ export function buildPrintQuoteText(rows, audience) {
     const name = row.fileName || `Print ${index + 1}`;
     const quote = row.quote;
     if (!quote?.ready) {
-      lines.push(`${index + 1}. ${name} — size or copies missing`);
+      lines.push(`${index + 1}. ${name} — size or quantity missing`);
       return;
     }
     const above = quote.aboveMax ? " (above 1000, 200–1000 rate)" : "";
@@ -254,6 +254,7 @@ export function buildPrintQuoteText(rows, audience) {
   const summary = summarizePrintQuotes(rows.map((row) => row.quote));
   lines.push("");
   lines.push(`Prints: ${rows.length}`);
+  lines.push(`Quantity each: ${rows.find((row) => row.quote?.ready)?.quote.copies || 0}`);
   lines.push(`Pieces: ${summary.pieces}`);
   lines.push(`Billed area: ${formatSqIn(summary.areaSqIn)}`);
   lines.push(`Total: ${formatInrAmount(summary.cost)}`);

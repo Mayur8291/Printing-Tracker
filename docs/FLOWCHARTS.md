@@ -7,8 +7,9 @@ flowchart TD
   Open[Printing orders: Print cost calculator] --> Rate[Load print_calculator_settings]
   Rate --> List{Internal team or Customer}
   List --> Upload[Drop one or many prints]
-  Upload --> Size[Width and height inches plus copies]
-  Size --> Slab{Copies 1-10 or 11-200 or 201+}
+  Upload --> Qty[One quantity for every print]
+  Qty --> Size[Width and height inches]
+  Size --> Slab{Quantity 1-10 or 11-200 or 201+}
   Slab --> Bleed["Billed inches = W+1 by H+1"]
   Bleed --> Line["Line = billed sq in × slab rate × copies"]
   Line --> Total[Footer prints, pieces, sq in, total]

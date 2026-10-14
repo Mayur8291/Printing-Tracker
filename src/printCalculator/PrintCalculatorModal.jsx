@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -39,6 +38,7 @@ import {
   priceListsToDraft,
   printLineQuote,
   rateForCopies,
+  slabForCopies,
   summarizePrintQuotes
 } from "./printCalculatorUtils";
 
@@ -92,7 +92,7 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
           />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <FieldGroup className="gap-3 sm:grid sm:grid-cols-3">
+          <FieldGroup className="gap-3 sm:grid sm:grid-cols-2">
             <Field>
               <FieldLabel htmlFor={`print-calc-w-${artwork.id}`}>Width (in)</FieldLabel>
               <Input
@@ -117,18 +117,6 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
                 disabled={artwork.removingBg}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor={`print-calc-qty-${artwork.id}`}>Copies</FieldLabel>
-              <Input
-                id={`print-calc-qty-${artwork.id}`}
-                type="number"
-                min="1"
-                step="1"
-                value={artwork.copies}
-                onChange={(e) => onChange(artwork.id, { copies: e.target.value })}
-                disabled={artwork.removingBg}
-              />
-            </Field>
           </FieldGroup>
           {quote.ready ? (
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
@@ -145,7 +133,7 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
                 {quote.slab?.label} qty
                 {quote.aboveMax ? " (above 1000 uses this rate)" : ""}
               </dd>
-              <dt className="text-muted-foreground">Area × rate × copies</dt>
+              <dt className="text-muted-foreground">Area × rate × quantity</dt>
               <dd className="text-right tabular-nums">
                 {formatSqIn(quote.areaSqIn)} × {formatRateAmount(quote.rate)} × {quote.copies}
               </dd>
@@ -154,9 +142,7 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
             </dl>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Enter width, height, and at least 1 copy. Cost adds {PRINT_BLEED_INCHES} in to the width
-              and {PRINT_BLEED_INCHES} in to the height, then multiplies that square-inch area by the slab
-              rate and copies.
+              Enter width and height. Quantity at the top multiplies this print and every other print.
             </p>
           )}
           {artwork.bgStatus ? (
@@ -211,6 +197,7 @@ function ArtworkCard({ artwork, quote, onChange, onRemove, onRemoveBackground })
 export default function PrintCalculatorModal({ open, onClose, isAdmin, userId }) {
   const [artworks, setArtworks] = useState([]);
   const [audience, setAudience] = useState("customer");
+  const [quantity, setQuantity] = useState("1");
   const [priceLists, setPriceLists] = useState(() => emptyPriceLists());
   const [rateDraft, setRateDraft] = useState(() => emptyPriceLists());
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -248,6 +235,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
         return [];
       });
       setDragOver(false);
+      setQuantity("1");
       setQuoteNotice("");
       window.clearTimeout(quoteNoticeTimer.current);
     }
@@ -256,19 +244,21 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
   const quotedRows = useMemo(
     () =>
       artworks.map((artwork) => {
-        const picked = rateForCopies(priceLists, audience, artwork.copies);
+        const picked = rateForCopies(priceLists, audience, quantity);
         return {
           fileName: artwork.fileName,
           quote: printLineQuote(
             artwork.heightInches,
             artwork.widthInches,
             picked.rate,
-            artwork.copies
+            quantity
           )
         };
       }),
-    [artworks, audience, priceLists]
+    [artworks, audience, priceLists, quantity]
   );
+
+  const quantitySlab = slabForCopies(quantity);
 
   const summary = useMemo(
     () => summarizePrintQuotes(quotedRows.map((row) => row.quote)),
@@ -289,7 +279,6 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
         previewUrl: URL.createObjectURL(file),
         widthInches: "",
         heightInches: "",
-        copies: "1",
         backgroundRemoved: false,
         removingBg: false,
         bgStatus: ""
@@ -377,17 +366,17 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="border-b px-6 py-4">
+        <DialogHeader className="shrink-0 border-b px-6 py-4">
           <DialogTitle className="flex items-center gap-2">
             <Calculator className="size-5" />
             Print cost calculator
           </DialogTitle>
           <DialogDescription>
-            Square inches × ₹ per sq in × copies. Rate follows the price list and each print&apos;s qty slab.
+            Square inches × ₹ per sq in × quantity. One quantity multiplies every print.
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
           <div className="flex flex-col gap-4 pb-2">
             <Card>
               <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 p-4">
@@ -424,8 +413,24 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 p-4 pt-0">
+                <Field className="max-w-[12rem]">
+                  <FieldLabel htmlFor="print-calc-quantity">Quantity</FieldLabel>
+                  <Input
+                    id="print-calc-quantity"
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputMode="numeric"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                  />
+                  <FieldDescription>
+                    Multiplies every print below.
+                    {quantitySlab ? ` Slab ${quantitySlab.label}.` : " Enter at least 1."}
+                  </FieldDescription>
+                </Field>
                 <p className="text-sm text-muted-foreground">
-                  {audienceLabel(audience)} rates are ₹ per square inch. Each print uses the slab for its own copies.
+                  {audienceLabel(audience)} rates are ₹ per square inch. This quantity picks the slab for every print.
                 </p>
                 <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                   {PRINT_PRICE_SLABS.map((slab) => (
@@ -433,6 +438,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
                       <dt className="text-muted-foreground">{slab.label} qty</dt>
                       <dd className="text-right font-medium tabular-nums">
                         {formatRateAmount(priceLists?.[audience]?.[slab.id])} / sq in
+                        {quantitySlab?.id === slab.id ? " · this quote" : ""}
                       </dd>
                     </Fragment>
                   ))}
@@ -534,7 +540,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
               />
               <ImagePlus className="mb-2 size-8 text-muted-foreground" />
               <p className="text-sm font-medium">Drop one or many prints, or click to upload</p>
-              <p className="text-xs text-muted-foreground">PNG, JPG, WebP. Add more anytime. Each print starts at 1 copy.</p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, WebP. Add more anytime. Quantity above applies to all of them.</p>
             </div>
 
             {artworks.length ? (
@@ -565,9 +571,9 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
               </div>
             ) : null}
           </div>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="flex-row flex-wrap items-center justify-between gap-4 border-t px-6 py-4 sm:justify-between">
+        <DialogFooter className="shrink-0 flex-row flex-wrap items-center justify-between gap-4 border-t bg-background px-6 py-4 sm:justify-between">
           <div className="flex min-w-0 flex-col gap-1 text-left">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>
@@ -575,7 +581,7 @@ export default function PrintCalculatorModal({ open, onClose, isAdmin, userId })
               </span>
               <Separator orientation="vertical" className="hidden h-3 sm:block" />
               <span>
-                Pieces <strong className="text-foreground tabular-nums">{summary.pieces}</strong>
+                Quantity <strong className="text-foreground tabular-nums">{quantitySlab ? parseInt(quantity, 10) : 0}</strong>
               </span>
               <Separator orientation="vertical" className="hidden h-3 sm:block" />
               <span>

@@ -345,13 +345,13 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Print cost calculator (DTF cost)
 
 1. **Trigger:** Printing orders tab → **Print cost calculator** (next to All orders / Complete orders / Print Queue).
-2. **Entry:** `PrintCalculatorModal`. Drop or click to upload **one or many** PNG/JPG/WebP prints. **Add more prints** appends another batch. Each file starts at **1 copy**.
-3. **Price list:** Toggle **Internal team** or **Customer**. Each print picks a ₹ per square inch from that list using its own copies: 1–10 → **0–10**, 11–200 → **10–200**, 201–1000 and above → **200–1000**.
+2. **Entry:** `PrintCalculatorModal`. Drop or click to upload **one or many** PNG/JPG/WebP prints. **Add more prints** appends another batch. The dialog body scrolls; the total bar stays put.
+3. **Quantity:** One number at the top. It multiplies **every** print and picks the slab: 1–10 → **0–10**, 11–200 → **10–200**, 201–1000 and above → **200–1000**. Toggle **Internal team** or **Customer** for the ₹ per square inch list.
 4. **Size:** Width and height in inches. Empty size is guessed at **150 DPI**. **Remove background** crops to opaque pixels and replaces inches from that PNG.
-5. **Formula:** billed area = `(width + 1) × (height + 1)` square inches. Line cost = billed square inches × slab rate × whole copies. Paise rounded per line, then summed.
-6. **Footer:** print count, pieces, billed square inches, list name, total ₹. **Copy quote** writes the same breakdown. Closing the modal drops the artworks (not saved on the order).
+5. **Formula:** billed area = `(width + 1) × (height + 1)` square inches. Line cost = billed square inches × slab rate × the shared quantity. Paise rounded per line, then summed.
+6. **Footer:** print count, the shared quantity, billed square inches, list name, total ₹. **Copy quote** writes the same breakdown. Closing the modal drops the artworks and resets quantity to 1 (not saved on the order).
 7. **Admin:** **Pricing settings** edits all six rates (two lists × three slabs) and **Save pricing** writes `print_calculator_settings` (admin RLS). Totals keep the last saved rates until save succeeds.
-8. **Failure:** any rate ≤ 0 blocked on save; missing tier falls back to legacy `rate_per_sq_in`; copies blank or below 1 make that line ₹0; background removal errors show an alert (network / ~40MB model download). Clipboard denied → short footer note.
+8. **Failure:** any rate ≤ 0 blocked on save; missing tier falls back to legacy `rate_per_sq_in`; quantity blank or below 1 makes every line ₹0; background removal errors show an alert (network / ~40MB model download). Clipboard denied → short footer note. If the print card is cut off, scroll the middle of the dialog (the total bar does not scroll away).
 
 ## Home tab
 

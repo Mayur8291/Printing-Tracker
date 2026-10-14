@@ -1,11 +1,20 @@
 # Debugging
 
+## Print cost calculator will not scroll
+
+| | |
+|--|--|
+| **Symptom** | The print card is cut off. The mouse wheel does nothing. The total bar sits on top of the card. |
+| **Root cause** | The dialog is capped at 90% of the screen. The middle pane could not shrink, so it never became a scroll box. |
+| **Fix** | The middle pane is `min-h-0 flex-1 overflow-y-auto`. Header and total stay fixed. |
+| **Verify** | Add a print. The card’s line cost is visible, or the middle of the dialog scrolls until it is. The total stays at the bottom. |
+
 ## Print cost does not match width × height × rate
 
 | | |
 |--|--|
 | **Symptom** | A 4×6 in print at ₹4 is not ₹96. Two prints with different copy counts can show different ₹ per sq in. |
-| **Root cause** | Billing adds 1 in to width and 1 in to height first: `(4+1)×(6+1)` square inches × the slab rate × copies. The slab comes from that print’s copies on the Internal team or Customer list. Unsaved **Pricing settings** do not change the total. |
+| **Root cause** | Billing adds 1 in to width and 1 in to height first: `(4+1)×(6+1)` square inches × the slab rate × the one **Quantity**. That quantity multiplies every print and picks the slab on the Internal team or Customer list. Unsaved **Pricing settings** do not change the total. |
 | **Fix** | Read the line: Artwork, Billed (+1 in), Area × rate × copies. Save pricing if the badge says **Not saved**. |
 | **Verify** | 4.00 × 6.00 in, 1 copy, ₹4.00 / sq in → 35.00 sq in → ₹140.00. |
 
