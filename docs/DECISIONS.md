@@ -2,6 +2,1451 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-10-14 — Print slab rates are ₹ per square inch
+
+**Context:** The six qty rates were first stored as ₹ per square meter. The shop prices per square inch.
+
+**Decision:** Cost is billed square inches × ₹ per square inch × copies. Untouched square-meter seeds on staging return to `rate_per_sq_in`.
+
+## 2026-10-14 — Print rates are two lists and three qty slabs
+
+**Context:** One ₹ per square inch could not price internal team work differently from customer work, or drop the rate when the copy count grows. Jobs also carry more than one print.
+
+**Options:** (1) Six saved rates: Internal team and Customer, each with 0–10, 10–200, and 200–1000, still ₹ per square inch. (2) Keep one rate. (3) Store each quote on the order.
+
+**Decision:** Option 1. Size stays in inches. Cost uses `(width + 1) × (height + 1)` square inches × the slab rate × one shared quantity. That quantity multiplies every uploaded print and picks the slab (10 stays in 0–10, 200 stays in 10–200, above 1000 keeps 200–1000). Many images upload in one quote. Rates stay on the singleton settings row. Quotes still disappear on close.
+
+**Tradeoffs:** Boundary qty is the top of the lower slab. `db push` could not run because staging history has remote-only versions; the SQL was applied on staging.
+
+## 2026-10-14 — Print cost quote shows bleed and copies; copies are not stored
+
+**Context:** The calculator hid `(width + 1) × (height + 1) × rate` and had no copy count, so the rupee total looked arbitrary.
+
+**Options:** (1) Show the existing formula and add session copies. (2) Store every quote as an order document. (3) Change the +1 in bleed.
+
+**Decision:** Option 1. Same DTF formula. Each artwork has copies (default 1) only while the modal is open. Admin rate stays the singleton `print_calculator_settings` row. Totals ignore an unsaved rate draft.
+
+**Tradeoffs:** Quotes disappear on close. No link to `orders.printing_cost`. The extra inch is still +1 on each dimension, not +1 per edge.
+
+## 2026-10-13 — Repeat-order templates are a shared read catalog
+
+**Context:** Admin saved templates for the team. Staff saw an empty Repeat order list.
+
+**Options:** (1) Keep owner-only read. (2) Shared SELECT, write still owner/admin. (3) Per-user share list.
+
+**Decision:** Option 2. Repeat order is a team catalog. Edit/Delete stay owner or admin.
+
+**Tradeoffs:** Every signed-in user can see template names and customers. That matches how the desk already shares orders.
+
+## 2026-10-09 — Daily ops briefing: SQL queue + optional Claude API, no auto job sheets
+
+**Context:** Users wanted AI to nag follow-ups (orders they placed, production, pending bills) and create daily tasks. Claude Max and Wispr Flow are already on staff machines.
+
+**Options:** (1) Wire Claude Max into the app. (2) Morning SQL briefing + Make task, optional Anthropic API chat. (3) Let the model place printing orders.
+
+**Decision:** Option 2. Claude Max cannot call the dashboard. Wispr only types into a Textarea. AI tool is `create_followup_task` only.
+
+**Tradeoffs:** Chat needs a paid Anthropic key (separate from Max). No auto job-sheet. Match jobs by `created_by`, not free-text sales name.
+
+## 2026-10-07 — Enquiry detail is a full page, not a modal
+
+**Context:** The enquiry overlay was cramped (`sm:max-w-lg`) and hid the desk behind a dim layer.
+
+**Options:** (1) Widen the Dialog. (2) Sheet from the side. (3) Swap the Support list for a full-page Card with Back.
+
+**Decision:** Option 3. Same `EnquiryDetailDialog` component, no Dialog shell. Escape and **Back** restore the desk.
+
+**Tradeoffs:** No overlay; create/tags/bulk stay as dialogs. Browser history is not used (SPA tab state).
+
+## 2026-10-05 — Finish work means push develop, no ask
+
+**Context:** User was being asked to confirm commit/push after every Support change.
+
+**Options:** (1) Keep asking. (2) Auto commit + push `develop` after each finished task.
+
+**Decision:** Option 2. Rule `.cursor/rules/auto-push-develop.mdc`. Production / `main` still needs an explicit production request.
+
+**Tradeoffs:** Faster staging deploys. Unrelated dirty files must stay unstaged.
+
+## 2026-10-05 — Assigned staff see contact history + status only
+
+**Context:** Enquiry detail was the same packed dialog for admin and assignee. Assigned users were asked to Mark verified / Mark contacted / reach-out while also seeing notes, tag, SLA, feedback, and assign.
+
+**Options:** (1) Hide two buttons only. (2) Separate staff dialog: case facts + contact history events + status. (3) Two routes.
+
+**Decision:** Option 2. `isStaffView = !isAdmin`. Admin / Support admin keep concierge actions. Staff add `contact` activity rows instead of pick buttons. Status checklists (`enquiryStatusChecklist.js`) wait for the next product list — Update status still saves immediately until that list exists.
+
+**Tradeoffs:** Staff cannot close via the old Close pick button; they use Status → Closed. Reach-out timestamps stay admin-only. SLA still stops when staff move status to in_progress / resolved / closed (`picked_at`).
+
+## 2026-10-05 — Support updates fan out via one security-definer RPC
+
+**Context:** Assignee and admin must see every enquiry change in the Notifications inbox. Staff cannot reliably SELECT every admin id under RLS.
+
+**Options:** (1) Client inserts one row per recipient (needs an admin-id list). (2) Expand `enquiry_assignment_notifications` + RPC `notify_enquiry_watchers` that unions assignee, assigned_by, `profiles.role = admin`, `support_admins`. (3) New table.
+
+**Decision:** Option 2. Reuse the existing inbox table (already realtime + RLS). RPC runs as definer, skips `auth.uid()`, writes `kind` + `summary`. Inbox already keyed by `recipient_user_id`. Bulk create passes `notify: false`.
+
+**Tradeoffs:** Table name still says "assignment". Actor gets no row (they already know). Every admin gets every Support event — that is what the user asked.
+
+## 2026-10-05 — Support admin is a table, not a new profile role
+
+**Context:** Lead monitors need Support admin powers (see all, assign) without the Admin tab / user management.
+
+**Options:** (1) New `profiles.role = support_admin` — would touch every `role === 'admin'` check. (2) Reuse sidebar Edit on Support — UI only, RLS still hides other people's tickets. (3) `support_admins` membership table + `jwt_user_can_admin_enquiries()`.
+
+**Decision:** Option 3. Platform admin stays `profiles.role`. Support powers are granted from Edit user. Enquiry RLS, tag write, activity, SLA, and the assignee/tag guard all use the new function. Grant/revoke writes `support_admin_audit`.
+
+**Tradeoffs:** Two admin concepts. Support admin cannot create users or open Admin. JWT is not refreshed for this flag — RLS reads the table live (security definer), so revoke is immediate.
+
+## 2026-10-05 — Reach-out is a logged comment, not a silent status flip
+
+**Context:** Staff must record that they contacted the customer, with what they said.
+
+**Decision:** Dedicated `markEnquiryReachedOut` with required comment. Writes `last_reached_out_*` for the latest note and an activity row for history. Also counts as a pick and moves unworked tickets to `in_progress`. "Mark contacted" stays as the old one-click path.
+
+## 2026-10-05 — Bulk template is .xlsx with validation, not .csv
+
+**Context:** User wants dropdowns for Source, City, Tag in the template to stop mismatches. CSV cannot carry validation.
+
+**Options:** (1) Keep CSV, rely on import-time normalisation only. (2) `.xlsx` built in-browser with `exceljs` data validation + hidden list sheet. (3) Server-generated file via edge function.
+
+**Decision:** Option 2. `exceljs` is already a dependency (SKU pricing import) and lazy-loaded, so no bundle cost on Support until the button is pressed. Lists are embedded at download time so the Tag list always matches the current staging/prod tags. CSV upload still accepted for legacy sheets. Source validation is `warning` (not `stop`) so `Reference - <name>` can be typed; Tag/City are `stop`.
+
+**Tradeoffs:** Validation covers rows 2–1000 only. Google Sheets may drop validation on import. Template reflects tags at download time — a tag added later needs a fresh download.
+
+## 2026-10-05 — Bulk enquiry import goes row-by-row through `createEnquiry`
+
+**Context:** Team has historical enquiries in Excel; wants a one-shot upload with forgiving data.
+
+**Options:** (1) Server-side RPC that bulk-inserts a JSON array. (2) Client loop calling the same `createEnquiry` used by the form. (3) New dependency (papaparse / xlsx) and a staging table.
+
+**Decision:** Option 2. Codes come from `allocateTicketCode` per row (gapless-ish `ENQ-`), activity rows and legacy-column fallback come for free, RLS is the same path as manual create. CSV parsed with the existing `mastersUtils.parseCsv` — no new dependency. Missing cells are allowed because the data already exists and will be cleaned in-app; only rows with nothing identifying (no name/phone/email) are skipped.
+
+**Tradeoffs:** Sequential inserts — a few hundred rows takes tens of seconds; progress is shown. Partial success is possible and reported per row (no transaction). Date is accepted from the sheet into `created_at` (capped at tomorrow) so history sorts correctly; this means a staff user can back-date an enquiry, which is intended for import and harmless for SLA (old rows will show escalated).
+
+## 2026-10-05 — "Opened" is a status, not a pick
+
+**Context:** Admin wants to know when the assignee has looked at an enquiry but done nothing.
+
+**Options:** (1) Only log an activity row "opened". (2) New status `opened` + `opened_at`, written by the client when a worker opens the detail. (3) Treat open as pick (`picked_at`).
+
+**Decision:** Option 2. A status shows in the table and count cards without opening every ticket; activity row alone hides it. Open is **not** a pick — otherwise viewing would stop the SLA clock and defeat the escalation. Admin views never change status. Mark verified from Opened returns to Assigned so the old path still works.
+
+**Tradeoffs:** Written from the browser (not a DB trigger) because "open" is a UI event; RLS still limits who can update the row. A worker who opens and closes the dialog by accident still flips the ticket to Opened — acceptable, it is the truth.
+
+## 2026-10-05 — WhatsApp simulator unwired from Support
+
+**Context:** Simulator was a dev aid for the Concierge WhatsApp flow; staff do not use it and it cluttered the desk header.
+
+**Decision:** Remove button, state and render from `EnquiryPanel`. Keep `EnquiryWhatsAppSimulator.jsx` + `enquiryWhatsAppSimulatorFlow.js` on disk for now (no import). Delete in a later cleanup if nobody asks for it back.
+
+## 2026-10-05 — Enquiry city picks from app list; state stored, not joined
+
+**Context:** Enquiry needs customer city, and state shown beside it.
+
+**Options:** (1) Free-text city + free-text state. (2) City Select from existing `INDIAN_CITIES`, state derived from a city→state map and stored as plain text. (3) New `core_cities` master table.
+
+**Decision:** Option 2. Reuses the Job sheet list (one source), zero typing errors on state, no extra table for ~90 rows. State is stored at save so reports do not depend on the JS map staying put.
+
+**Tradeoffs:** Cities outside the list cannot be picked ("Not set"). If a city's state ever needs correcting, old rows keep the stored value. Revisit with a `core_` master if the list grows or needs admin editing.
+
+## 2026-10-05 — Enquiry tags route visibility through RLS, one tag per enquiry
+
+**Context:** Team wants enquiries tagged (Pets, HR, …) and each tag's enquiries to show only for the users who own that tag. Admin must manage both the tag list and the user mapping.
+
+**Options:** (1) Free-text tag column + client-side filter. (2) `enquiry_tags` master + `enquiry_tag_members` mapping, one `tag_id` on the enquiry, visibility in RLS. (3) Many-to-many tags per enquiry.
+
+**Decision:** Option 2. Law 1 (master, not free text) and Law 9 (RLS, not UI). Tag holders get the same work rights as an assignee (pick / status / notes) so the enquiry is actionable, not just visible. Re-tag is admin-only via the existing guard trigger. Complaints never carry a tag.
+
+**Why:** One tag per enquiry keeps the routing question simple ("whose desk?"). RLS means a staff member cannot see or widen scope from the browser.
+
+**Tradeoffs:** No multi-tag. Deactivating a tag hides it from the form but existing enquiries keep it and stay visible to its holders. The seeded list is staging-only until a production release.
+
+## 2026-10-05 — Reference name lives inside `enquiries.source`
+
+**Context:** New Source option **Reference** must capture who referred the customer.
+
+**Options:** (1) New `reference_name` column + migration. (2) Encode as `Reference - <name>` in the existing free-text `source`.
+
+**Decision:** Option 2.
+
+**Why:** Zero schema change. Table, detail header, and search already read `source`, so the name shows and is searchable everywhere with no extra wiring.
+
+**Tradeoffs:** Not a structured field — no grouping by referrer without string parsing. If referral reporting is needed later, add a column and backfill from the prefix.
+
+## 2026-10-05 — One `uuid()` helper, no bare `crypto.randomUUID()`
+
+**Context:** Support tab white-screened on a LAN device because `crypto.randomUUID` is secure-context only.
+
+**Options:** (1) Guard each call site inline. (2) Add the `uuid` npm package. (3) One tiny `src/lib/uuid.js` with native → `getRandomValues` → `Math.random` fallback.
+
+**Decision:** Option 3. Every app call site imports `uuid()`. `src/scott/**` keeps its own guard (frozen).
+
+**Why:** Zero dependency, one place to fix, same v4 shape so storage paths and ids look identical to before.
+
+**Tradeoffs:** `Math.random` branch is not cryptographically strong — acceptable because these ids are file-name suffixes, temp message ids, and UI keys, never security tokens.
+
+## 2026-09-08 — Notifications chips reuse existing kinds
+
+**Context:** Notifications tab needed a filter row like All / Orders / Tasks / Inventory / Mentions.
+
+**Options:** (1) New mention table. (2) Map existing kinds only. (3) Fake demo rows.
+
+**Decision:** Option 2. Orders = `assignment` + `order_status`. Tasks = `goal_task`. Inventory = `printing_inventory`. Mentions = `inward` tags.
+
+**Why:** Same fetch/subscribe/open path. No new backend.
+
+**Tradeoffs:** Mentions is empty until someone is tagged on inward. Unread highlight is a visit snapshot; the bell still marks seen for the badge.
+
+## 2026-09-08 — Admin can edit Sampling SLA
+
+**Context:** Due In fallback was hard-coded at 2 days. Admin wants a Settings button.
+
+**Options:** (1) Local-only constant. (2) Browser localStorage. (3) Singleton `sample_job_sheet_settings` with admin RLS.
+
+**Decision:** Option 3. Settings on Sampling Tracker. Days + extra hours + warn/urgent hours. Sampling required on still wins.
+
+**Why:** Every user must see the same clock. Admin-only write.
+
+**Tradeoffs:** Open jobs change Due In immediately when admin saves. No per-order override.
+
+## 2026-09-08 — Sample payment modes drop cheque / PI advance / credit
+
+**Context:** Sample Mode of payment showed the full Production list.
+
+**Decision:** Sample uses `SAMPLE_JOB_SHEET_PAYMENT_MODES`. Drop cheque, `pi_advance_received`, `credit_partial`. Labels: `pi_pending` → **payment pending**, `neft_rtgs` → **NEFT**, `card_pos` → **Card**. Keep stored values so old rows still match.
+
+**Why:** Sample is not a Production payment flow.
+
+**Tradeoffs:** Production Create Job sheet still has the long list.
+
+## 2026-09-08 — Sample job sheet drops Production pay/approval fields
+
+**Context:** Create Sample Jobsheet reused the full Production payment block. Team only wants Sampling required on, Mode of payment, Total amount, Payment proof.
+
+**Options:** (1) Fork a second form. (2) Hide extras on the shared form when `sample_job_sheet`.
+
+**Decision:** Option 2. `hideCommerceExtras` + `deliveryDateLabel`. Sample save writes null for hidden money/approval columns. Production Create Job sheet stays full.
+
+**Why:** Same size/product grid. No second form to drift.
+
+**Tradeoffs:** View Sample Order does not show the Production payment section (`isJobSheetOrder` is false for samples). SLA still reads `due_date`.
+
+## 2026-09-04 — Ready Stock channel is a snapshot, not a live join
+
+**Context:** Ready Stock orders need a channel indicator so reports can show where product is used. `dashboard_channels` already exists but RLS is admin-only, so authenticated warehouse users cannot join it.
+
+**Options:** (1) Grant `authenticated` SELECT on `dashboard_channels`. (2) Snapshot `channel_code` / `channel_name` / `channel_type` on `scott_orders` at create. (3) Infer channel later from API logs (none exist).
+
+**Decision:** Option 2 plus report view `rpt_ready_stock_channel_utilization`. Resolve channel from optional create-body code, else the API key’s linked channel, else `UNKNOWN`.
+
+**Why:** List and reports stay correct if a channel is renamed or an admin loses access. Law 8: the utilization metric lives in one SQL view.
+
+**Tradeoffs:** Old orders cannot recover a true source (backfilled Unknown). Channel name on an old order does not change if admin later edits the registry.
+
+## 2026-09-07 — One Giphy client key for Chat GIF Search
+
+**Context:** GIF Search needs a Giphy API key. Putting it only in gitignored `.env` means production and staging Netlify builds have no key.
+
+**Options:** (1) Netlify UI env only. (2) Bundle the public client key in code + `netlify.toml` so every deploy uses the same key.
+
+**Decision:** Option 2. `GIPHY_CLIENT_KEY` in `giphyGifApi.js` is the source of truth. `VITE_GIPHY_API_KEY` in `netlify.toml` `[build.environment]` matches it for local/examples. Giphy web keys are public (they ship in the browser).
+
+**Why:** User asked that production keep the same key after push. A UI-only env var is easy to forget or override per context.
+
+**Tradeoffs:** Rotating the key means a code change. Restrict the key to Scott Dashboard domains in the Giphy dashboard. Netlify secret scan must omit `VITE_GIPHY_API_KEY` and `giphyGifApi.js` / `dist` or publish fails. That omit is intentional.
+
+## 2026-09-07 — Ticks only when the thread is opened
+
+**Context:** Blue ticks showed when the peer had not opened the chat. Groups were supposed to use 1 grey / 2 grey / 2 blue from who actually saw the post. Send also blocked the tab for about a second.
+
+**Options:** (1) Keep Online = 2 grey delivered. (2) Count only `last_read_at` (they opened that thread).
+
+**Decision:** Groups stay open-thread only (0 / some / all). Chat DMs also use Online: dashboard active + not opened → 2 grey; Away/Offline + not opened → 1 grey; opened → 2 blue. Send paints an optimistic bubble and reloads the inbox in the background.
+
+**Why:** User wants 2 grey when the peer is on the dashboard but has not opened that DM. Groups still ignore Online for the nobody-seen case.
+
+**Tradeoffs:** Online is the 5-minute dashboard grace, not “they opened this chat”.
+
+## 2026-09-05 — Name line click vs Media button
+
+**Context:** User does not want the Chat/Group title to look like a button. Clicking the name line should open details. A separate **Media** control should show shared files.
+
+**Decision:** Keep the title as normal `h3` text. The name block is clickable without button chrome. **Media** is an outline button on the right. Details sheet covers DMs (two people) and groups. Media sheet has Photos/Videos, Documents, Links.
+
+**Why:** Matches the old look and WhatsApp-style media tabs.
+
+**Tradeoffs:** Channels have neither. Videos/Excel only appear if those files were stored; upload still allows images, PDF, and voice.
+
+## 2026-09-05 — Chat alerts use a dedicated MP3 and a 45s corner card
+
+**Context:** User wants every received Chat / Group / Channel message to play a specific Drive sound and show Name + Message for 45 seconds at the bottom-right, including when they are on another browser tab.
+
+**Decision:** Store the clip as `public/sounds/chat-message.mp3`. `App.jsx` realtime INSERT (membership check) plays that file and pushes a shadcn card. Audio is primed after first click so a hidden tab can still `play()`. Status-tone mute does not apply. Own messages never alert.
+
+**Why:** One file, same for everyone. Browser cannot play if the dashboard tab is closed.
+
+**Tradeoffs:** Other-tab sound needs a prior click on the dashboard (autoplay policy). No OS notification permission flow.
+
+## 2026-09-05 — Group creator is admin; membership changes are RPCs
+
+**Context:** User wants the group creator to be admin, and only admins add people, promote admins, change the group photo, and remove people. Clicking the group name opens details.
+
+**Decision:** Keep `role` on `team_chat_conversation_members` (creator already `admin`). New security-definer RPCs for add / promote / remove / avatar. `avatar_path` on the conversation. Photo bucket `team-chat-group-avatars`. Header click opens a shadcn Sheet.
+
+**Why:** No UPDATE/DELETE RLS on members — a client write would be unsafe. RPCs check `jwt_user_is_group_admin`. Last admin cannot be removed.
+
+**Tradeoffs:** Dashboard `profiles.role = admin` is not a group admin unless they created the group or were promoted. Admins cannot remove themselves.
+
+## 2026-09-05 — Chat receipts reuse last_read_at + presence
+
+**Context:** User wants WhatsApp ticks on Chats and Groups, plus a group viewers list for the sender.
+
+**Options:** (1) New per-message read table. (2) Reuse conversation `last_read_at` (opening the thread marks all older posts seen) plus `hr_user_presence` Online.
+
+**Superseded 2026-09-07:** Presence is no longer a tick input. See “Ticks only when the thread is opened”.
+
+**Decision:** Option 2. DM: 1 grey = not seen and peer not Online; 2 grey = not seen and peer Online; 2 blue = peer `last_read_at` ≥ message time. Group: 2 blue only when every other member has seen it. One or more seen but not all → 2 grey (ignore presence). Nobody seen yet → same Online/Offline rule as before. Channels have no ticks. Group Info lists Seen / Not seen for the author only.
+
+**Why:** Open-thread already writes `last_read_at`. No extra write on every scroll. Presence already means “dashboard active”.
+
+**Tradeoffs:** Opening the thread marks every older message seen (same as current unread). Away counts as not dashboard-active. Ticks live on outgoing bubbles only. Open-thread heartbeat + 4s poll keep ticks moving even if one Realtime event is missed. `REPLICA IDENTITY FULL` on members is required for RLS Realtime.
+
+## 2026-09-04 — Channels are org-wide; only admins post
+
+**Context:** Channels tab is for the whole Scott Dashboard. Only admins create channels and post. Everyone else only reacts, copies, and forwards.
+
+**Decision:** New `kind=channel`. RPC `create_channel_conversation` is admin-only and memberships every profile. New profiles join via trigger. Insert RLS blocks non-admin posts. UI hides **New Channel** and the composer for non-admins.
+
+**Why:** Membership-based RLS already gates reads. Adding everyone as a member makes the channel show in every inbox without a second access model.
+
+**Tradeoffs:** A new user must get a profile row to join. Forward into a channel is also a post, so non-admins cannot pick a channel as a forward target.
+
+## 2026-09-04 — Chat copy and paste are icons
+
+**Context:** User wants a Copy symbol on single and multi select, and a Paste symbol in the composer row.
+
+**Decision:** Copy on the select bar for one or many. Paste after mic. Copy writes text (or a file/GIF label). Paste inserts at the cursor via `clipboard.readText`.
+
+**Why:** Matches the existing icon-only bars. No new table.
+
+**Tradeoffs:** Browser may ask for clipboard permission. Images on the clipboard do not paste into the box.
+
+## 2026-09-04 — Chat bubbles wrap long text
+
+**Context:** Long text with no spaces overflowed the thread. User must see the full message in the bubble.
+
+**Decision:** Keep `whitespace-pre-wrap` for real line breaks. Add `overflow-wrap: anywhere` and constrain the bubble to the thread (`min-w-0`, `max-w-full`). Override native button `nowrap`.
+
+**Why:** `break-words` does nothing if the flex/table parent grows with the word.
+
+**Tradeoffs:** A long token may break mid-character.
+
+## 2026-09-04 — Chat composer actions under the box
+
+**Context:** Four action buttons stacked left of a two-line textarea made the composer tall and the box skinny.
+
+**Decision:** Full-width textarea on top. Horizontal action row under it: emoji, GIF, file, mic left; Send right. Box starts at one line and grows to five.
+
+**Why:** Same handlers, less leftover space, works on a narrow phone row.
+
+**Tradeoffs:** Popovers now open from the bottom row.
+
+## 2026-09-04 — Chat voice notes reuse file attachments
+
+**Context:** User wants a mic on Chats/Groups compose. Click records. Stop appears only after record starts. Then Send ships the clip.
+
+**Decision:** Same `team-chat-files` attachment path. Mic in the left compose stack. Stop replaces Mic while recording. After stop, clip is `pendingFile`. No new table.
+
+**Why:** Storage, RLS, and forward already work for files. Stop hidden when idle matches the request.
+
+**Tradeoffs:** Browser must allow the mic. Safari/Chrome mime differs (webm vs mp4). Voice-only is not an unread text.
+
+## 2026-09-04 — Inbox tab badges count unopened text only
+
+**Context:** User wants a number beside Chats / Groups / Channels for new messages. Only unopened text.
+
+**Decision:** Count messages with a non-empty body, not from self, not deleted, newer than `last_read_at`. Sum directs on Chats, groups on Groups. Channels 0 until channels exist. Hide badge at 0. Cap display at 99+.
+
+**Why:** GIF/file-only is not a text message. Opening the thread still clears that conversation via `mark_conversation_read`.
+
+**Tradeoffs:** Tab total is message count, not chat count. A row badge uses the same `unread_count`. Count walks recent messages on fetch (PostgREST row cap can undercount very large inboxes).
+
+## 2026-09-04 — Chat presence is dashboard heartbeat, not chat-tab only
+
+**Context:** User wants Online when the dashboard is the active browser tab, Away when they leave it, Offline if they never opened it or have been Away 2 hours. List dot and open-chat label must match.
+
+**Options:** (1) Presence only while Chat tab is open. (2) App-wide heartbeat from `App.jsx`.
+
+**Decision:** Option 2. Table `hr_user_presence`. Green / yellow / red tokens `--presence-online|away|offline`.
+
+**Why:** “Active in the Dashboard” is the whole app, not only Chat.
+
+**Tradeoffs:** Blur (another window) used to count as Away immediately. Updated: 5 minute Online grace after leaving the dashboard tab, then Away.
+
+## 2026-09-04 — 5 minute Online grace after leaving the dashboard
+
+**Context:** User wants Online to hold for 5 minutes if they open another browser tab.
+
+**Decision:** Freeze `last_seen_at` when they leave. Display Online while that stamp is under 5 minutes, then Away, then Offline at 2 hours.
+
+**Why:** A short tab switch should not look like they left.
+
+**Tradeoffs:** Others still see Online for 5 minutes after close/crash.
+
+## 2026-09-07 — Chat attachments have no 15 MB app cap
+
+**Context:** User could not send documents over 15 MB and wanted a download icon beside files, not links.
+
+**Options:** (1) Keep 15 MB. (2) Drop the client cap, raise the bucket, add a download arrow that saves via blob.
+
+**Decision:** Option 2. Office types allowed. Links in the body stay click-only.
+
+**Why:** Matches the request. True unlimited is not possible; 10 GB bucket + browser/project limits remain.
+
+**Tradeoffs:** Huge files use memory on upload and on download-as-blob.
+
+## 2026-09-07 — Inbox search is a popover next to New
+
+**Context:** User asked for a search symbol left of New chat, and the same on Groups.
+
+**Options:** (1) Filter the inbox list in place. (2) Popover with type-ahead names.
+
+**Decision:** Option 2. Chats search people (open existing DM or compose). Groups search group titles.
+
+**Why:** Matches the header slot they pointed at. Empty query still lists everyone / every group.
+
+**Tradeoffs:** Channels have no search yet.
+
+## 2026-09-05 — Select uses the full message row
+
+**Context:** Users had to click the bubble. Empty space on that line did nothing.
+
+**Decision:** The `article` row is the hit target. Nested links / downloads / react chips stop the click.
+
+**Why:** Matches “click anywhere on that message line.”
+
+**Tradeoffs:** Row is not `role=button` so reaction Buttons stay valid.
+
+## 2026-09-05 — Long chat URLs wrap, never clip
+
+**Context:** Shared seller URLs overflowed the bubble as one nowrap line.
+
+**Options:** (1) Clip with `overflow-hidden`. (2) Wrap the full string inside the bubble.
+
+**Decision:** Option 2. Override Button `whitespace-nowrap` / `inline-flex` on the link.
+
+**Why:** User asked for line-wise display with no hidden or merged text.
+
+**Tradeoffs:** A very long token uses more vertical space.
+
+## 2026-09-05 — Thread history uses native scroll
+
+**Context:** After pane-lock, older group messages vanished; only the last bubble sat under empty white.
+
+**Options:** (1) Keep Radix ScrollArea and fight `display:table`. (2) Native `overflow-y-auto` for the thread.
+
+**Decision:** Option 2. Inbox can keep Radix. Thread `scrollTop = scrollHeight`. Newest 200 then reverse.
+
+**Why:** Table viewport + overflow clip hid real rows that still exist in Postgres.
+
+**Tradeoffs:** Thread scrollbar is the browser bar, not the Radix thumb.
+
+## 2026-09-05 — Groups inbox must stay
+
+**Context:** After locking chat pane size, Groups looked gone.
+
+**Options:** (1) Assume data delete. (2) Keep list visible except on a real phone, and bind the open thread to the inbox tab kind.
+
+**Decision:** Option 2. Staging still has groups. Two-pane from `sm`. Groups tab never auto-opens a DM.
+
+**Why:** Vanish was layout + tab mismatch, not a delete.
+
+**Tradeoffs:** Phone still uses Back to return to the list.
+
+## 2026-09-05 — Chat links, own-only delete, locked pane
+
+**Context:** Shared URLs were not clickable in the bubble. Delete showed whenever any own message was in the selection. Long posts resized the whole Chat screen.
+
+**Options:** (1) Keep links only in Media. (2) Make `http`/`https` in the body a real `<a>`. Delete hidden unless every selected row is the current user. Lock Chat as full-bleed like Inventory.
+
+**Decision:** Option 2. Channel admin still sees Delete. Phone stays list-or-thread.
+
+**Why:** Matches the request. Soft-delete RPC already only owns rows.
+
+**Tradeoffs:** Nested `<a>` inside a `role=button` bubble; click on the URL uses `stopPropagation` so it does not toggle select.
+
+## 2026-09-04 — Chat actions are icons; delete is soft
+
+**Context:** User wants selectable messages in Chats/Groups with reply, react, delete, forward, pin. Multi-select only forward and delete. No written labels on the actions.
+
+**Options:** (1) Context menu with words. (2) Icon toolbar in the thread header after click-select.
+
+**Decision:** Option 2. Soft-delete own messages (`deleted_at`). One reaction per user. Forward copies into another conversation.
+
+**Why:** Matches the request. Hard delete is not allowed.
+
+**Tradeoffs:** Delete does nothing for other people's messages. Hover tooltip still names the icon for access.
+
+## 2026-09-04 — Split inbox by conversation kind
+
+**Context:** User wants created groups only on Groups, created chats only on Chats.
+
+**Options:** (1) Keep mixed list on Chats. (2) Filter `kind=direct` vs `kind=group`.
+
+**Decision:** Option 2. Auto-open first DM, not General. Thread follows the open tab kind.
+
+**Why:** One place per conversation type.
+
+**Tradeoffs:** General no longer opens by default on Chats.
+
+## 2026-09-04 — Inbox tab panel stays at the bottom
+
+**Context:** User pointed at the Chats / Groups / Channels bar and said keep that panel at the bottom only.
+
+**Options:** (1) Tabs at top. (2) Same bar last in the left inbox.
+
+**Decision:** Option 2. List heading + New chat / New group stay above the list. Chat rows unchanged.
+
+**Why:** That bar is the switcher, not the page title.
+
+**Tradeoffs:** Tab labels appear twice (heading + bottom bar).
+
+## 2026-09-04 — Groups and Channels share Chats chrome
+
+**Context:** User said Groups/Channels changing layout was wrong. New group should live on Groups, same header slot as New chat.
+
+**Options:** (1) Keep full-width Empty on Groups/Channels. (2) Same left list + right thread on every inbox tab; only heading, action, and list body swap.
+
+**Decision:** Option 2. New group only on Groups. Channels has heading and empty list, no extra button yet.
+
+**Why:** Tab switch should not restyle the Chat panel.
+
+**Tradeoffs:** Group chats still appear in the Chats list until Groups list is specified.
+
+## 2026-09-04 — Chat inbox tabs live under the list, not under the composer
+
+**Context:** User asked for a panel under Chats with Chats, Groups, Channels in one horizontal row. Groups and Channels stay empty for now.
+
+**Options:** (1) Full-width Tabs under the whole chat Card (bar sits under the message box). (2) Tabs only in the left inbox; bar under the conversation list; thread only when Chats is selected.
+
+**Decision:** Option 2. Default `inboxTab` is `chats`. Groups/Channels use shadcn `Empty`.
+
+**Why:** “Under the Chats” means under the list. Composer stays clean. Existing chat behavior stays on Chats.
+
+**Tradeoffs:** Phone thread view hides the bar until Back. Groups/Channels have no data yet.
+
+**Superseded:** Tab panel sits at the bottom. See “Inbox tab panel stays at the bottom”.
+
+## 2026-09-03 — Purchase Order Status Select matches job-sheet format
+
+**Context:** User wants All PO Orders Status to look like the Production status dropdown (icon then name). Do not rename the list.
+
+**Options:** (1) Keep colored Badge + Lucide. (2) Same Select layout as job sheets: colorful icon + existing labels.
+
+**Decision:** Option 2. Names stay Pending, PO sent, PO Approved, Completed. Pending uses `/icons/pending.png`.
+
+**Why:** One status Select look across tracker and Purchase Order.
+
+**Tradeoffs:** PO statuses are not production stages. Icons are PO-specific except Pending's shared PNG.
+
+## 2026-09-03 — Production NF inbound on; outbound webhook off
+
+**Context:** NotFunny validated staging webhooks. User asked to ship production and hand them production API keys. NF earlier said they will send separate production webhook credentials. Scott app login stays unchanged.
+
+**Options:** (1) Copy staging `SCOTT_WEBHOOK_*` onto production so live events hit the same NF function. (2) Deploy API + schema only; leave production outbound webhooks unset. (3) Wait for NF prod URL before any production ship.
+
+**Decision (updated same day):** NF later confirmed that receiver **is** production. Option 1 is now in effect: same `SCOTT_WEBHOOK_*` on `levwrmvqdntngeasrtnb`. Inbound NotFunny key still production-only. Scott `SCOTT_AUTH_*` still not copied.
+
+**Why:** They asked production keys to go live on the URL they already sent. Echo `evt_prod_1331ec06c6ad` returned `200 {"received":true}`.
+
+**Tradeoffs:** Staging and production both POST to one NF function. Dedup is by `event_id`. Scott API tabs on the live site still need `SCOTT_AUTH_*` on production before those edge calls work.
+
+## 2026-09-03 — Asset Management register is `hr_assets`
+
+**Context:** Save asset only prepended to in-memory `rawAssets`. Leaving the tab unmounted the panel. Assets looked empty.
+
+**Options:** (1) localStorage. (2) Keep panel mounted. (3) Staging table `hr_assets`, authenticated read, insert own, update for assign/check-in.
+
+**Decision:** Option 3. Prefix `hr_` because these are company assets assigned to people (`profiles`), not SKU stock.
+
+**Why:** One register for every user. Survive refresh. Match Internal Support / Contact Book pattern.
+
+**Tradeoffs:** Staging only until a production release. No hard delete (Retired later). Tag allocated in the client with unique retry, not a gapless FY sequence.
+
+## 2026-09-02 — Inventory Transfer is a facility-to-facility move
+
+**Context:** Users need to move stock Makali ↔ Guthalli. The Adjust dialog had one warehouse and Transfer did not touch facility on-hand.
+
+**Options:** (1) Two client calls to `adjust_sku_facility_stock`. (2) One DB function that deducts and adds under lock.
+
+**Decision:** Option 2. `transfer_sku_facility_stock`. UI shows From and To.
+
+**Why:** Two client calls can succeed on one side and fail on the other. Total SKU stock must stay the same.
+
+**Tradeoffs:** Transfer cannot change overall qty (use IN/OUT/ADJUST for that). Reserved qty at source cannot be transferred.
+
+## 2026-09-02 — Inventory list follows facility availability, not sku.stock_qty
+
+**Context:** Adjust updated the DB; staging UI looked unchanged.
+
+**Options:** (1) Paint `stock_qty` again. (2) Keep availability as truth and reload it after every refresh/adjust.
+
+**Decision:** Option 2. Await `loadAvailability()` inside `refresh()`. Adjust writes the warehouse the user picked.
+
+**Why:** Reserved qty only lives on `inventory_facility_stock`. Showing `stock_qty` would lie about sellable stock.
+
+**Tradeoffs:** Extra availability fetch on silent refresh. Correct qty beats a cheap stale paint.
+
+## 2026-09-05 — Uniware Sold / DRR is exact saleOrderItems
+
+**Context:** Team said Sold / DRR did not match Uniware. Period change had no loading signal.
+
+**Options:** (1) Trust inventory snapshot. (2) Sum every mirrored line including package summaries. (3) Store only Uniware `saleOrderItems` and count sold/invoiced statuses in the UI window.
+
+**Decision:** Option 3. `saleorder/get` → `saleOrderItems` only (1 row ≈ 1 pc). `uni_drr_by_sku` sums dispatched / delivered / invoiced (and packed / picking-for-invoice) for the selected Days/Months/Years window. Facility tab filters by line/order facility. Spinner until that window finishes.
+
+**Why:** Package `items` is a SKU summary and double-counted. Uniware “sales” is fulfilled qty, not UNFULFILLABLE / CREATED.
+
+**Tradeoffs:** Window is incomplete until Sync orders fills remaining headers. Qty still never enter Inventory on-hand.
+
+## 2026-09-05 — Uniware DRR is computed, not fetched
+
+**Context:** User wants full Uniware inventory plus DRR with a days / months / years window.
+
+**Options:** (1) Expect DRR on inventory snapshot. (2) Store a static DRR cell. (3) Mirror order lines and compute sold ÷ days.
+
+**Decision:** Option 3. Snapshot + `itemType/search` for catalog qty. `uni_sale_order_line` + `uni_drr_by_sku`. UI filter only changes the window.
+
+**Why:** Uniware snapshot has no DRR field. Same window must drive Sync orders lookback.
+
+**Tradeoffs:** Year windows need several Sync orders clicks (80 line-gets per run). Qty still never enter Inventory on-hand.
+
+## 2026-09-02 — Step 5 Uniware mirror is a separate ledger
+
+**Context:** Roadmap Step 5. Risk of double-counting ecom stock if the snapshot is summed into `inv_balance` or Inventory.
+
+**Options:** (1) Pull Uniware qty into `inv_balance`. (2) Separate `uni_*` mirror + transfer document; never sum.
+
+**Decision:** Option 2. Uniware sale orders (ecom **and** CUSTOM/B2B already in Uniware) stay on `uni_sale_order`, not mixed into `so_order`. New B2B raised in the dashboard still uses `so_order`. Cross-boundary only via `uni_transfer` + Uniware adjust API. Contract in `docs/UNIWARE_BOUNDARY.md`.
+
+**Why:** Law 5 — one owner per location. Uniware owns the ecom facility.
+
+**Tradeoffs:** Two B2B lists — new platform B2B on `so_order`, historical Uniware CUSTOM on `uni_sale_order`. WBR ecom rows wait until reporting reads the mirror. Sync is empty until edge secrets are set and admin clicks Sync.
+
+## 2026-09-02 — Support table rows stay readable in Dark Mode
+
+**Context:** Support desk rows use pale priority backgrounds. Dark Mode panel text is light. Values disappear.
+
+**Options:** (1) Drop row tints. (2) Dark-mode row + badge colors with `text-foreground`.
+
+**Decision:** Option 2. Keep priority left border. Enquiry and Complaints share `SupportTicketDesk`.
+
+**Why:** Tint still shows urgency. Text must contrast.
+
+**Tradeoffs:** Delay Alert / Order status have no tinted table; only success copy on Delay Alert got a dark text token.
+
+## 2026-09-02 — Issue sits after Status on one line with View Issue
+
+**Context:** User wants Issue next to Status but not before it, and `Power Cut - 2nd Floor → View Issue` on one line.
+
+**Options:** (1) Issue before Status, stacked link. (2) Name | Status | Issue | Date; summary + arrow + View Issue inline.
+
+**Decision:** Option 2.
+
+**Why:** Status then Issue. Link is beside the text they typed, not under it.
+
+**Tradeoffs:** Long type lists wrap with the link.
+
+## 2026-09-02 — Issue column sits next to Status with type and floor
+
+**Context:** User wants Issue next to Status, text like `Power Cut - 2nd Floor`, and **View Issue** under it. Do not restyle the table.
+
+**Options:** (1) Keep View Issue as the only Issue cell. (2) Swap Name/Issue order; summary line + View Issue link.
+
+**Decision:** Option 2. Columns: Name | Issue | Status | Date. Floor omitted when they did not pick one.
+
+**Why:** Issue and Status belong together. The line is the input they gave.
+
+**Tradeoffs:** Many issue types join with commas before ` - Floor`.
+
+## 2026-09-02 — Raise an Issue is a button on Open Tickets
+
+**Context:** User wants History renamed **Open Tickets**, no Raise tab, and all raise fields behind one **Raise an Issue** button.
+
+**Options:** (1) Keep three tabs. (2) Two tabs; Dialog from the Open Tickets button holds the form.
+
+**Decision:** Option 2. Default tab is Open Tickets. Same issue / floor / comment / submit rules.
+
+**Why:** List first. Raise is an action, not a place.
+
+**Tradeoffs:** Form is overlay, not a full page.
+
+## 2026-09-02 — Resolved tab is locked after mark
+
+**Context:** User wants a **Resolved** tab for `status = Resolved`, visible to admin and non-admin. After that mark, no one may change Status.
+
+**Options:** (1) Filter only in History. (2) Third tab + UI lock. (3) Third tab + UI lock + staging RLS `status <> Resolved` on update.
+
+**Decision:** Option 3. History excludes Resolved. Resolved tab has the same filters; Name filter stays admin only. Non-admin still sees only own rows.
+
+**Why:** “Move them” needs its own tab. “Don’t give access” needs more than a hidden Select.
+
+**Tradeoffs:** Closed stays in History. Admin cannot reopen a Resolved row without a later product change.
+
+## 2026-09-02 — History is admin-all, non-admin own only
+
+**Context:** User wants admin to see every History row and change Status. Non-admin should see only their own issues, read the status admin set, and not get a Name filter.
+
+**Options:** (1) Client hide only. (2) Client hide + staging RLS (`raised_by = auth.uid()` or `jwt_user_is_admin()`; update admin only).
+
+**Decision:** Option 2.
+
+**Why:** UI hide is not enough. API would still leak other people’s rows.
+
+**Tradeoffs:** Non-admin cannot change even their own status. Production table still not created.
+
+## 2026-09-02 — Status Select copies Production Tracker symbol + name
+
+**Context:** User wants History Status to look like the order-list dropdown: colorful symbol + name in the closed box and in every list row.
+
+**Options:** (1) Lucide line icons. (2) Same `SelectValue` children + `.stage-icon` emoji as `OrderListStatusCell`.
+
+**Decision:** Option 2. Open 📂, In Progress ⏳, Resolved ✅, Closed 🔒. Names stay those four words.
+
+**Why:** Match the Production Tracker Status picker picture.
+
+**Tradeoffs:** Emoji, not custom PNGs. Production stages stay on the tracker.
+
+## 2026-09-02 — Status is one Select with icon inside
+
+**Context:** Badge + Select made two boxes for the same status.
+
+**Options:** (1) Keep both. (2) One Select; icon + name in trigger and items.
+
+**Decision:** Option 2. Names stay Open, In Progress, Resolved, Closed.
+
+**Why:** Match the single dropdown picture.
+
+**Tradeoffs:** Color is on the icon via semantic tokens, not a second Badge.
+
+## 2026-09-02 — History filters match PO History; View order is a link
+
+**Context:** User wants From/To/Clear/Search/Name/page filters above History, status symbols/colors, and the Issue action as underlined **View order**.
+
+**Options:** (1) Custom filters. (2) Same shadcn DatePicker + Input + Select + OrdersPerPageControl as PO History. Badge variants for status. `Button variant="link"` for View order.
+
+**Decision:** Option 2. Name dropdown is the coordinator-slot. Status: Open secondary + Circle, In Progress default + Clock, Resolved outline + Check, Closed destructive + X.
+
+**Why:** Match the picture and stay shadcn.
+
+**Tradeoffs:** Link text later changed to **View Issue** (2026-09-02).
+
+## 2026-09-02 — Internal Support History is a shared staging table
+
+**Context:** User wants History of whoever submits: Issue (View Issue), Name, Status dropdown, Date.
+
+**Options:** (1) Browser-only list. (2) Staging table `internal_support_issues`, authenticated read, insert own, update status.
+
+**Decision:** Option 2. Name snapshot at submit. Status: Open, In Progress, Resolved, Closed. View Issue Dialog shows types, floor, comment, name, date, status. Staging only.
+
+**Why:** “Whoever submits” means shared History, not one browser.
+
+**Tradeoffs:** Any signed-in staff who can open the tab can change Status. No production table until an explicit release.
+
+## 2026-09-02 — Internal Support form lives in Raise an Issue tab
+
+**Context:** User wants a tab **Raise an Issue** that holds the existing issue form.
+
+**Options:** (1) Keep one Card, no tabs. (2) shadcn Tabs; first tab is Raise an Issue with the current form.
+
+**Decision:** Option 2. `defaultValue="raise_issue"`. Other tabs can be added later.
+
+**Why:** Same form, clearer place, room for more tabs.
+
+**Tradeoffs:** Only one tab for now.
+
+## 2026-09-02 — Step 4 billing design choices
+
+- **Context:** roadmap Step 4 — invoices generated not typed; ageing as a view; collections with owners. Same DB-first money laws as AP in Step 2.
+- **One invoice per dispatch:** `unique (dispatch_id)` — partial dispatch already produced a dispatch document, so each dispatch invoices what actually left the warehouse. Alternative (one invoice per order) rejected: mixed GST dates and e-way ties to the consignment.
+- **GSTIN-scoped sequences:** `ops_next_gstin_doc_no` — the law is gapless per GSTIN per FY, not per entity. Receipts stay entity-scoped (`RCPT/`) because they are not GST documents.
+- **Soft credit check only:** `ar_credit_check` warns on confirm; hard block waits for department roles (roadmap: "hard block by role"). Blocking CEO/admin today would freeze real orders.
+- **CGST/SGST paisa split:** tax rounded once, then CGST = round(tax/2), SGST = tax − CGST so halves always sum to the tax.
+- **Unallocated receipts are advances:** allocation is optional; leftover receipt amount reduces customer exposure in the ledger but does not attach to an invoice until a later receipt/allocation (v1 does not support allocating an existing advance — next receipt can cover the invoice).
+- **Deferred (need picks, not more schema guesswork):** GSP for IRN/QR and e-way; Tally XML daily batch + typed recon screen (the ₹27.93L gap); distributor incentive engine (`dist_incentive_scheme` as data); `bill_quote`/proforma numbering. Existing Billing / quotation Word flows stay until those land.
+- **UI admin-only** (`ops_ar`) during build-out; existing Workspace Billing tab not touched.
+
+## 2026-09-02 — Step 3 sales orders design choices
+
+- **Context:** roadmap Step 3 — orders that reserve stock, drive dispatch, job work, SLA. Same DB-first discipline as Steps 1–2.
+- **Partial allocation on confirm:** `so_confirm` reserves whatever is available instead of failing on shortfall — production fills the rest and `so_allocate` re-runs (top-up, idempotent). The hard gates sit later: ready requires full reservation, dispatch caps at reserved. Alternative (all-or-nothing confirm) rejected: real orders confirm before stock exists.
+- **Reservation consumption splits rows:** dispatch consumes reservations FIFO; a partially used row is shrunk and a consumed row inserted for the used grain, so the reservation trail stays complete for audit instead of silently mutating quantities.
+- **Dispatches append-only, no direct write policies:** like payments in Step 2 — `so_post_dispatch` is the only writer; corrections are `return_in` movements + note. LR/e-way fields live on the document for Step 4 invoicing.
+- **Job-work loss = worker-location balance:** receive burns declared consumption and books declared outputs; whatever input remains at the worker location is the visible pending/loss (no separate loss ledger to maintain, the stock ledger already is one). Issued jobs cannot cancel — stock must come back through movements.
+- **SLA measured from stage timestamps** (`confirmed_at` → `production_started_at` → `ready_at` → `dispatched_at`) against `sla_policy` targets in business hours (Mon–Sat 09:30–18:30 IST) — never typed dates. Escalation/notification deferred; the view carries `breached` for a later job.
+- **Counter sales are a channel, not a module:** `channel='counter'` on `so_order`, per roadmap ("the walk-in register becomes a quick-order screen writing to the same so_order").
+- **Enquiry hand-off deferred:** the roadmap's "won enquiry creates a draft so_order" needs the live Support module's enquiry schema; wiring it now risks the running module. Revisit as a small follow-up (create draft `so_order` + convert contact to `crm_party` from an enquiry action).
+- **UI stays admin-only** (`ops_sales` in `DASHBOARD_ADMIN_ONLY_TAB_IDS`) during the build-out, same as Steps 0–2; existing SALES_MASTER/Job Sheet workflows untouched until cutover.
+
+## 2026-09-02 — Step 2 procurement design choices
+
+**Context:** Third roadmap migration (`20260902120000_step2_procurement.sql`), staging only. User decisions: QC gate on by default, approval = admin access, tolerances editable.
+
+**Decisions:**
+
+1. **Status flips only through functions, enforced in the DB.** Guard triggers block any status change unless a transaction-local flag (`ops.allow_status_change`) is set — and only the SECURITY DEFINER functions set it. Admin RLS write on the document tables therefore covers *drafting only*; nobody can flip a PO to approved with a direct update.
+2. **Numbers assigned at approval/posting, not creation.** Drafts never burn a gapless sequence number; `ops_next_doc_no` auto-provisions the `core_sequence` row (prefix `PO/<FY>/`, `GRN/<FY>/`) so no manual sequence setup is needed.
+3. **`sent`/`open` PO statuses deferred.** The roadmap machine includes them, but they only mean something once PO PDF/email exists. v1: draft → approved → partially_received → fulfilled → closed (+short_closed/cancelled). Amendments post-approval = short-close + fresh PO (no `po_version` machinery yet).
+4. **Ledger gained `to_state` instead of a QC-location hack.** QC pass/fail is a state change at the same location; faking it with virtual locations would have polluted location masters. Same-location movements are only legal when the state changes.
+5. **Double billing is structurally impossible**: one bill line per GRN line (unique index), one vendor invoice number per vendor (unique index) — not just validated in code.
+6. **Billed > received is a hard stop; rate variance is an override.** Quantity fraud is never acceptable; rate differences happen (freight, revisions) and are allowed with a recorded reason (`match_status='override'`).
+7. **MSME due-date cap editable** (`msme_due_cap_days`, default 45) applied to micro/small vendors at bill approval, flagged `msme_capped`.
+8. **Payments have no RLS write path at all** — only `ap_record_payment` writes them, and block triggers make them append-only. Corrections are counter entries.
+9. **Fulfilment counts only positive pending** (`greatest(pending, 0)`) so over-receipt on one line cannot mask a short line — found during the smoke test design.
+10. **Existing Purchase Order voucher tab untouched**; the new module lives under `ops_procurement` until cutover.
+
+## 2026-09-01 — Step 1 stock ledger design choices
+
+**Context:** Second roadmap migration (`20260901191500_step1_stock_ledger.sql`), staging only.
+
+**Decisions:**
+
+1. **Role gate pattern `auth.uid() is not null and not jwt_user_is_admin()`.** Blocks non-admin app users while allowing admin users and server contexts (SQL/service, where `auth.uid()` is null). Warehouse-department roles come with the scanner flow; the gate lives in one helper (`inv_assert_can_post`) so widening it is a one-line change.
+2. **Append-only enforced by trigger, not just policy.** RLS alone would not stop the table owner; the trigger raises for everyone. Corrections are reversing movements.
+3. **Balances maintained synchronously by the posting function** (not by a trigger on `inv_movement`) so the negative-stock check and the lock happen in one place; the nightly recompute is the safety net (drift alerts, pg_cron 02:30 IST).
+4. **Reservations are generic (`ref_type`/`ref_id`)**, not FK'd to order lines — `so_order` arrives in Step 3 and will pass its own refs. `inv_allocate(order_id)` lands then.
+5. **Count sessions/lines are admin-writable directly** — they are working documents; only `inv_count_post` moves stock. Expected qty snapshots at line insert via trigger.
+6. **Smoke test by rollback:** the whole scenario ran in one transaction ending in a deliberate raise, so staging keeps zero test rows while the assertions (balances, blocked over-issue/over-reserve/edit, drift 0) are proven.
+7. **Existing Inventory tab and Scott stock integration untouched** — the new ledger runs beside them until cutover; nothing reads or writes the frozen integration tables.
+
+## 2026-09-01 — Step 0 masters schema choices (One Source of Truth)
+
+**Context:** First migration of the roadmap ([ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md)). Schema only, staging only, no UI.
+
+**Decisions:**
+
+1. **`cat_sku.colour_id` nullable at first.** Legacy/Uniware SKUs import before styles/colours are structured; the column must be filled before Step 1 (stock ledger) goes live. Alternative (not null from day one) would block the import-then-reconcile flow the roadmap prescribes.
+2. **No audit trigger on `core_sequence`.** Every allocated number is an update; auditing it means one audit row per invoice. The numbered documents are the audit trail.
+3. **Bank details in `crm_party_bank`, admin-only RLS.** There is no `accounts` DB role yet; admin gate now, dedicated accounts role when Step 4 lands. Masking in-row was rejected — separate table keeps RLS simple and provable.
+4. **`core_next_sequence()` is SECURITY DEFINER, granted to `authenticated`.** Non-admin billing users must allocate numbers while the sequence table itself stays admin-write-only. Function only increments a locked counter; `search_path` pinned; revoked from `anon`/`public`.
+5. **Unique normalized names** (`lower`, collapsed whitespace) per kind on `crm_party` (unmerged rows only), `core_entity`, `cat_brand` — law 1's typo-split protection at the index level.
+6. **Existing SKU codes inherited as-is.** Nothing the Scott integration maps on is renamed (hard guard in laws.md).
+
+**Tradeoffs:** admin-only writes are coarse until per-department roles exist; acceptable while there is no masters UI.
+
+## 2026-09-01 — Hide Floor row for Food, Asset, Biometric, Lost belongings
+
+**Context:** User does not want Floor on screen for Food, Issue with Asset, Issue with Biometric, Lost Personnal Belongings. If they also pick another issue, Floor must show.
+
+**Options:** (1) Always show Floor, optional for those four. (2) Hide Floor unless any selected issue needs a location.
+
+**Decision:** Option 2. `floorRequired` gates both visibility and Submit. Mix with Internet shows Floor again.
+
+**Why:** Those four go straight to Comment. Other issues still need a floor.
+
+**Tradeoffs:** First load has no Floor until a floor-required issue is picked.
+
+## 2026-09-01 — Internal Support Submit thank-you copy
+
+**Context:** User does not want the check + Submitted + “ticket save comes next” Alert.
+
+**Options:** (1) Keep that placeholder. (2) One-line thank-you in AlertDescription.
+
+**Decision:** Option 2. Exact copy: Thank you. Your issue has been submitted and the concerned team will look into it shortly.
+
+**Why:** That is the message staff should see after Submit.
+
+**Tradeoffs:** Still no database ticket; the words say submitted.
+
+## 2026-09-01 — Floor optional for Food, Asset, Biometric, Lost belongings
+
+**Context:** Floor should be mandatory before Comment, except Food, Issue with Asset, Issue with Biometric, Lost Personnal Belongings.
+
+**Options:** (1) Always require floor. (2) Require floor only when a non-exception issue is selected. Mixed picks still require floor.
+
+**Decision:** Option 2. Comment + Submit wait for a floor unless every selected issue is in the exception list. Labels match the Buttons (including Personnal).
+
+**Why:** Those four are not tied to a floor the same way Internet / Lift / Hygiene are.
+
+**Tradeoffs:** Food + Internet still needs a floor. Floor row still shows for exception-only picks; it is just optional.
+
+## 2026-09-01 — Internal Support floor is a single pick under issues
+
+**Context:** User wants heading **Select your Floor** under the issue list, with Ground Floor through 5th Floor.
+
+**Options:** (1) ToggleGroup. (2) Same shadcn Buttons as issues, one selected at a time.
+
+**Decision:** Option 2. Match the issue Buttons. Floor sits under issues, before Comment. Submit needs a floor.
+
+**Why:** Same shadcn Button look as the issue row. One person is on one floor.
+
+**Tradeoffs:** ToggleGroup is not installed; Buttons stay consistent with this panel.
+
+## 2026-09-01 — Internal Support Comment waits for one issue pick
+
+**Context:** User wants the Comment box only after at least one issue Button is selected.
+
+**Options:** (1) Always show Comment. (2) Show Comment + Submit only when `selectedIssues.length > 0`.
+
+**Decision:** Option 2. Un-pick the last issue hides Comment again. Typed text stays in state.
+
+**Why:** No comment until they say what kind of problem.
+
+**Tradeoffs:** After Submit, picks clear so Comment hides; success Alert still shows.
+
+## 2026-09-01 — Internal Support comment + Submit are local only
+
+**Context:** User wants a comment box under the issue Buttons and a Submit button under that.
+
+**Options:** (1) Textarea + Submit, no save. (2) Write a tickets table now.
+
+**Decision:** Option 1. shadcn Field + Textarea + Submit. Require at least one issue and a comment. Alert tells them save is not wired.
+
+**Why:** User asked for the box and the button. Ticket backend was not in this step.
+
+**Tradeoffs:** Submit feels done but nothing lands in Supabase yet.
+
+## 2026-09-01 — Internal Support issue Buttons are multi-select
+
+**Context:** User wants more than one issue type on at the same time.
+
+**Options:** (1) Keep single string. (2) Toggle membership in a local array.
+
+**Decision:** Option 2. Click on = add. Click again = remove. Still shadcn Buttons, no ticket save.
+
+**Why:** One person can have Internet and Lift not working at once.
+
+**Tradeoffs:** Heading still says “the option”. Refresh still clears the list.
+
+## 2026-09-01 — Internal Support issue types are shadcn Buttons
+
+**Context:** User wants a heading and ten clickable issue options on Internal Support Platform.
+
+**Options:** (1) ToggleGroup. (2) RadioGroup / FieldSet. (3) shadcn `Button` outline grid, selected = `variant="default"`.
+
+**Decision:** Option 3. Labels kept as given (including Hygeine / Personnal). Local select only.
+
+**Why:** User asked for Clickable Button. Ten options is more than ToggleGroup’s 2–7 range. Ticket save is not in this step.
+
+**Tradeoffs:** Refresh loses the pick. Spelling matches the request, not dictionary.
+
+## 2026-09-01 — Internal Support Platform is a Tools tab, not Support Enquiry
+
+**Context:** User wants an Internal Support Platform panel under Tools, with a relevant symbol.
+
+**Options:** (1) Reuse Support (`enquiry`). (2) New Tools tab `internal_support` with LifeBuoy icon and a Card shell.
+
+**Decision:** Option 2. Grantable like other Tools. No tickets yet.
+
+**Why:** Support Enquiry is customer-facing desks. This is an internal workspace. LifeBuoy is distinct from Headphones.
+
+**Tradeoffs:** Viewers with a frozen allowed-tab list will not see it until an admin grants `internal_support`.
+
+## 2026-08-31 — Job sheet Delivery required on is today or later
+
+**Context:** Create Job sheet and Create Sample Jobsheet must not offer past days for Delivery required on.
+
+**Options:** (1) Allow any date. (2) Calendar min = today; save also rejects past.
+
+**Decision:** Option 2. Same DatePicker on both forms. Sample date still optional.
+
+**Why:** User asked only running day and future days.
+
+**Tradeoffs:** Uses the device local calendar day, same as order date. View order can still change an existing due date.
+
+## 2026-08-31 — Production / Sampling tabs match the All / Complete pill
+
+**Context:** User wants Production Tracker and Sampling Tracker buttons to look like All orders / Complete orders, and to drop the green / orange colours.
+
+**Options:** (1) Keep apart coloured tabs. (2) Same default muted TabsList pill as All / Complete, two stacked rows.
+
+**Decision:** Option 2. No custom trigger colours. Lists still stay split by kind.
+
+**Why:** Same visibility and format as the list pill. Colour was extra.
+
+**Tradeoffs:** The two pill rows now look alike. Labels still tell them apart.
+
+## 2026-08-31 — Sampling SLA is Delivery Required On, else 2 days from save
+
+**Context:** After Create Sample Jobsheet save, Due In must follow **Delivery required on** when the user filled it. If they left it blank, keep a 2-day default to Dispatched Successfully.
+
+**Options:** (1) Always 2 days from save. (2) Always `due_date`. (3) `due_date` end-of-day when set, else `created_at` + 48h.
+
+**Decision:** Option 3. Sample create does not require Delivery required on. Production job sheet still does. Sampling **All orders** has **Due In** after Order date. Sampling **Complete orders** has no Due In. Hide Due In in the view when closed. Breach uses destructive Badge on the list and Alert in the view.
+
+**Why:** User asked for the filled date, and 2 days only as the fallback.
+
+**Tradeoffs:** Browser clock can drift. End of local day means a same-day delivery date still has hours left that evening. Editing `order_date` does not move the default SLA.
+
+## 2026-08-31 — Sampling Complete is Dispatched Successfully and status is locked
+
+**Context:** Sampling Complete must take jobs that are Dispatched Successfully or Mark as complete. After that, status must show Dispatched Successfully and must not change.
+
+**Options:** (1) Only `is_complete`. (2) Treat `dispatched_successfully` as closed too, because viewers cannot write `is_complete` (RLS). Display overlay + hide Select.
+
+**Decision:** Option 2. Admin Mark as complete also writes `status = dispatched_successfully` and `is_complete`. Viewer status pick writes status only. Complete tab `canEditStatus` is false.
+
+**Why:** Both user paths work. RLS stays as-is. Production Complete is unchanged.
+
+**Tradeoffs:** A viewer-closed sample may have `is_complete = false` until an admin marks complete; the list still treats it as complete.
+
+## 2026-08-31 — Tracker All / Complete pill is separate from Production / Sampling switch
+
+**Context:** User wants All orders / Complete orders under both trackers (Printing pill). Production and Sampling lists must not mix.
+
+**Options:** (1) Same TabsList for both rows. (2) Tracker switch as apart bordered tabs (PO style); All/Complete as muted pill TabsList. Separate `is_complete` filters per `order_kind`.
+
+**Decision:** Independent All/Complete state per tracker. Mark complete routes to that tracker’s Complete tab. Visual later matched the All/Complete pill (no colour).
+
+**Why:** Same Complete UI. Sample complete never appears in Production Complete.
+
+**Tradeoffs:** Two list-tab states in App.
+
+## 2026-09-03 — Mark complete does not switch list tab
+
+**Context:** User does not want the page to jump to Complete orders after Mark as complete.
+
+**Options:** (1) Keep routing to Complete so the job stays visible. (2) Stay on the current list; job leaves All because it is complete.
+
+**Decision:** Option 2. `handleMarkComplete` / sample-complete status save do not call `setOrdersTab("complete")` or tracker Complete.
+
+**Why:** Operator stays in the All-orders workflow. Complete list is still there when they want it.
+
+**Tradeoffs:** The completed row disappears from All immediately. User must open Complete orders to see it.
+
+## 2026-09-03 — Sent to Dispatch auto-completes after 10 minutes
+
+**Context:** Sent to Dispatch stayed on All forever because Complete is `is_complete`, not that status. Viewer trigger blocks `is_complete`.
+
+**Options:** (1) Treat `sent_to_dispatch` as complete in the list filter. (2) After 10 minutes set `is_complete` in the existing promote RPC. (3) Disable the scope trigger around that UPDATE.
+
+**Decision:** Option 2. Stamp `status_sent_to_dispatch_at`. RPC completes matching rows. Transaction GUC lets the scope trigger allow that write (no table-lock DISABLE TRIGGER).
+
+**Why:** Same Complete flag as Mark as complete. 10-minute window matches the request. Client already polls the RPC every 30s.
+
+**Tradeoffs:** Jobs already on Sent to Dispatch get a fresh 10-minute window on migrate (`now()`, not `created_at`).
+
+## 2026-08-31 — Sampling Tracker has its own status pipeline
+
+**Context:** Sampling Tracker Status must not use Production or Printing stages. User listed nine sample stages with symbols, same dropdown UI.
+
+**Options:** (1) Reuse Production codes with different labels (breaks Production labels for shared codes). (2) New sampling codes; reuse only `qc` and `ready` where the label already matches.
+
+**Decision:** Option 2. Dedicated codes for Pattern Making, Sample Cutting, Sample Stitching, Trim + Iron, Branding, Packaging, Dispatched Successfully. Reuse `qc` and `ready`. Do not use `dispatched` (that is Dispatch tab). Same shadcn Select + `renderStageIcon` as Production. New sample jobs start at `pattern_making`.
+
+**Why:** Production dropdown stays the same. Sample jobs never land in Dispatch Processed.
+
+**Tradeoffs:** `orders_status_check` grows. Existing sample rows backfill to Pattern Making.
+
+## 2026-08-31 — Sampling Tracker reuses Production list with different words and fewer columns
+
+**Context:** After Create Sample Jobsheet, Sampling Tracker needs a saved-job list like Production Tracker. Words and a few columns must differ. Production Tracker must stay the same.
+
+**Options:** (1) New table component. (2) Reuse `LinkedOrdersTabPanel` with optional props (hide summary/Qty/extra column; relabel view/date/badge).
+
+**Decision:** Option 2. Date column reads `order.order_date`. Badge text **Sample Order**. Action **View Sample Order**. No count card, no Qty, no Handover. Sub-tab state lives in App so save can stay on Sampling.
+
+**Why:** Same table look. Production defaults unchanged.
+
+**Tradeoffs:** From/To is the shared App date range (same as Production), filtered on `order_date`.
+
+## 2026-08-31 — Sample job sheets use SA-0001 and a new order_kind
+
+**Context:** Sampling Tracker needs the Production job-sheet form without Total quantity. Order IDs must be sequential `SA-0001` and must not mix with Production job sheets.
+
+**Options:** (1) Reuse `job_sheet` + SA- prefix. (2) New `sample_job_sheet` kind, `is_production_order = false`, unique `order_id` among samples.
+
+**Decision:** Option 2. Next ID = max existing SA number + 1. Retry on unique conflict.
+
+**Why:** Production list stays clean. Numbers stay in order.
+
+**Tradeoffs:** Sampling list later reused `LinkedOrdersTabPanel`; this ADR kept the create-ID choice.
+
+## 2026-08-31 — Production Tracker sub-tabs; Sampling left empty
+
+**Context:** User wants Production Tracker and Sampling Tracker under the Production tracker sidebar tab. Current list must stay as-is. Sampling stays empty.
+
+**Options:** (1) Restyle like Purchase Order separated pills. (2) Reuse Printing Orders `TabsList` format; wrap the existing list without changing `LinkedOrdersTabPanel`.
+
+**Decision:** Option 2. `ProductionTrackerPanel` wraps children. Sampling renders nothing yet.
+
+**Why:** No list UI change. Shared tab `cn()` / Tabs format stays.
+
+**Tradeoffs:** Sampling list was empty at first; history list landed in a later ADR.
+
+## 2026-08-31 — Sampling Tracker bar is a stub, same shadcn filters
+
+**Context:** User wants From / To / Clear / Create Sample Jobsheet / View on Sampling Tracker, matching Production Tracker. Create must not fill a form yet.
+
+**Decision:** Reuse `OrdersListFilters` and a shadcn `Button`. Sampling pins Create Sample Jobsheet far right and yellow. Production Create Job sheet stays outline in the filter cluster.
+
+**Why:** Same CN / shadcn format as Production Tracker. Form comes later.
+
+**Tradeoffs:** Dates and View N later filter the Sampling history list (see later ADR).
+
+## 2026-08-24 — Admin-only PO status; History has no picker
+
+**Context:** User wants status change on Purchase Order for admin only, and no status change on PO History for anyone.
+
+**Options:** (1) Dropdown for every signed-in user. (2) Admin dropdown on All PO Orders only; History always a Completed badge.
+
+**Decision:** Option 2. `isAdmin` from App (`profiles.role`). Update helper re-checks admin. All PO Orders dropdown includes Pending / PO sent / PO Approved / Completed.
+
+**Why:** Completed still comes from the backend. Non-admin must not change workflow status.
+
+**Tradeoffs:** RLS still allows authenticated UPDATE of the row; the SPA and helper block non-admin status writes.
+
+## 2026-08-22 — Open POs vs History; Generate is PO sent
+
+**Context:** User wants Generate to land as **PO sent**. Completed comes from the backend and then appears only in **PO History**. Opening the panel should list Pending / PO Approved / PO sent. Create new PO should open the sheet only after that click.
+
+**Options:** (1) One History list with all statuses. (2) Split Open POs (in progress) and History (Completed); Generate writes `po_sent`; Create sheet mounts on the Create tab.
+
+**Decision:** Option 2. Tabs: **All PO Orders** (default), **Create new PO**, **PO History**. Status is display-only. Tab names sit apart (gap, not one pill).
+
+**Why:** Staff see live POs first. Completed archive stays clean. Sheet does not allocate a voucher until Create is opened.
+
+**Tradeoffs:** A PO disappears from All PO Orders when the backend marks Completed.
+
+## 2026-08-22 — Purchase Order opens on History; History status is Completed
+
+**Context:** User wants the panel to open on full PO History. History should display only **Completed**. Create new PO should show the heading and table.
+
+**Options:** (1) Keep Create as default and four status picks. (2) Default History; Status column is Completed only; Create still mounts the A4 heading + table.
+
+**Decision:** Option 2. Backend may still store other status keys. History UI does not show or edit them.
+
+**Why:** Staff see History details immediately. Create stays a sheet they open on purpose.
+
+**Tradeoffs:** Pending / PO sent / PO Approved no longer appear in History.
+
+## 2026-08-22 — PO History filters are exact and date-only Clear
+
+**Context:** User wanted a History filter bar like the mock: From/To, Clear, Search, Coordinator, View N / page.
+
+**Options:** (1) Substring search like orders. (2) Exact match on seq after last `/`, full voucher, supplier, or coordinator. Clear all filters vs dates only.
+
+**Decision:** Option 2. Dates filter `po_date` inclusive. **Clear** only empties From/To. Coordinator list comes from generated History names. View N / page uses shared `usePagination` (default 10).
+
+**Why:** Staff type `392` not the full `PO/26-27/392`. Exact match avoids accidental partial hits.
+
+**Tradeoffs:** Typing `39` shows nothing until the full seq or name is entered.
+
+## 2026-08-22 — View PO Print uses Create Print rules
+
+**Context:** User wants History → View PO → Print to print the same sheet they see, plus C23, same as Create new PO Print.
+
+**Options:** (1) Separate View print layout. (2) Same print CSS as Create; flatten the dialog so the A4 root is not trapped.
+
+**Decision:** Option 2. One print path: heading + table + C23. Dialog overlay/close/Print button stay `data-po-no-print`.
+
+**Why:** One paper look for both tabs.
+
+**Tradeoffs:** Print CSS must reset Dialog `transform` / `overflow`.
+
+## 2026-08-22 — C23 signature is print-only
+
+**Context:** User wants a signature box only when they click Print. Width like C42–C82. Height like R22. Bottom-right of C13.
+
+**Options:** (1) Always show on the sheet. (2) Print-only via `data-po-print-only` (Create Print and View PO Print).
+
+**Decision:** Option 2. Top-right **for SCOTT INTERNATIONAL** (small). Bottom-right **Authorised Signatory** (smaller). Never show the C23 id. Hide only in `@media screen`. Print fills the A4 card again. C23 overlays C13 bottom-right so C13 stays a complete row.
+
+**Why:** Screen stay clean. Paper gets a sign block and the full table.
+
+**Tradeoffs:** Preview on screen has no signature. Print preview / Print is the check.
+
+## 2026-08-22 — View PO is the A4 print, not a summary
+
+**Context:** User wants View PO to show the print of the Purchase Order heading and table.
+
+**Options:** (1) Keep a field list. (2) Replay the saved A4 sheet (heading + R/C table) from `sheet_snapshot`.
+
+**Decision:** Option 2. `PurchaseOrderPrintSheet` is read-only. Dialog chrome is not part of the print.
+
+**Why:** History should look like the paper they generated.
+
+**Tradeoffs:** Address lines under Supplier reload from `inventory_suppliers` by saved id; name still comes from the snapshot if the vendor is gone.
+
+## 2026-08-22 — R12 Dated is today, not voucher reserve day
+
+**Context:** User wants Dated to be the PO-create day and to change every day. A reserved voucher from yesterday was freezing R12 on that old `created_at`.
+
+**Options:** (1) Keep freeze on voucher `created_at`. (2) Live today in IST, flip when the calendar day changes. (3) Date picker.
+
+**Decision:** Option 2. Create sheet always shows today. Generate stores that face as `po_date`. History stays frozen.
+
+**Why:** PO creation day is when they make the PO, not when the number was reserved.
+
+**Tradeoffs:** A sheet left open overnight updates Dated; staff cannot back-date from R12.
+
+## 2026-08-22 — Generate PO requires supplier and goods line fields
+
+**Context:** User did not want empty POs in History. Mandatory: Supplier (Bill form), Description of Goods, Due on, Quantity, Quantity unit, Rate.
+
+**Options:** (1) Soft warn and still save. (2) Block Generate, exact copy **Mandatory details are Missing**, paint empty cells red.
+
+**Decision:** Option 2. Every current goods line must be complete, including Quantity unit. Extra empty lines also fail until filled or removed. Save path throws the same message. UI shows that one sentence only — no field list under it.
+
+**Why:** History should only hold usable POs.
+
+**Tradeoffs:** Adding a blank extra line blocks Generate until that line is filled or deleted.
+
+## 2026-08-22 — Generate PO writes History; reserved vouchers stay hidden
+
+**Context:** User wanted PO History after **Generate PO**, with PO print + View PO, voucher only, bold supplier name, backend status, coordinator, Dated, and C42 qty.
+
+**Options:** (1) Insert a second history table. (2) Reuse `dashboard_purchase_orders` and stamp `generated_at` on the reserved voucher. (3) Treat every reserved voucher as history.
+
+**Decision:** Option 2. Sheet open / Plus still reserves a number. History `WHERE generated_at IS NOT NULL`. Status values: `pending`, `po_sent`, `po_approved`, `completed`. Coordinator is the signed-in profile name at generate time.
+
+**Why:** One row per voucher. Unused reserved numbers do not clutter History.
+
+**Tradeoffs:** Generate is an UPDATE (needs authenticated UPDATE RLS). Local-only fallback vouchers insert on generate if the reserved row is missing.
+
+## 2026-08-22 — Create PO print block vs action buttons
+
+**Context:** User wanted **PURCHASE ORDER** on the sheet for future print, and **Generate PO** / **Print** under the table in a different section.
+
+**Decision:** Title lives inside the A4 card (`data-po-print-root`). Action buttons sit below the card (`data-po-no-print`). Print = `window.print()` + CSS that keeps only the print root.
+
+**Why:** Print must not include dashboard chrome or the action row. Generate now saves History.
+
+**Tradeoffs:** Title uses a little of the A4 height.
+
+## 2026-08-22 — Purchase Order has Create and History tabs
+
+**Context:** User wanted **Create new PO** and **PO History** opposite the Purchase Order heading. Create must show the full sheet.
+
+**Decision:** House Tabs idiom (triggers only). Heading left, `TabsList` right. Create mounts `PurchaseOrderLayoutGrid`. History mounts `PurchaseOrderHistoryTable` after Generate PO.
+
+**Why:** Same pattern as other dashboard sub-tabs. Keeps the sheet off-screen when History is open.
+
+**Tradeoffs:** History is empty for now. The in-progress sheet unmounts when you leave Create (Plus voucher state is still in session).
+
+## 2026-08-22 — C13 heading and height follow R2
+
+**Context:** User wanted C13 to read **Amount Chargable (in words):** and be as tall as Consignee (R2). Shrink C11–C81 if the A4 sheet is tight.
+
+**Decision:** Change the heading string. Measure R2 with ResizeObserver and set C13 to that height. Goods band min row 1.25rem.
+
+**Why:** Words block should look like the Consignee tile, not a one-line leftover.
+
+**Tradeoffs:** Extra goods lines share a shorter leftover band.
+
+## 2026-08-22 — C42 is bold qty total; C82 is bold one line
+
+**Context:** User wanted C42 to add Quantity numbers in bold, and C82 to stay on one line in bold.
+
+**Decision:** C42 = `sumPurchaseOrderQuantities` (whole numbers). C82 keeps ` ₹ 1000.00` with nowrap, bold, and non-breaking spaces.
+
+**Why:** Total row should match Tally: qty count under Quantity, money under Amount.
+
+**Tradeoffs:** Amount column is a bit wider so the rupee total fits.
+
+## 2026-08-22 — C82 is the rupee total of Amount
+
+**Context:** User wanted C82 to add every goods-line Amount and show ` ₹ 1000.00`.
+
+**Decision:** C82 is display-only. Sum line amounts (2 decimals). Face ` ₹ ` + `toFixed(2)`. C13 words use the same numeric total.
+
+**Why:** Tally total sits under Amount. Words must match the printed total.
+
+**Tradeoffs:** Disc % still not in the sum.
+
+## 2026-08-22 — Amount is Quantity × Rate
+
+**Context:** User wanted Amount to auto-fill from Quantity × Rate, 2 decimals, on every goods line.
+
+**Decision:** C81 is display-only. `formatPurchaseOrderLineAmount`. Disc % is not applied yet.
+
+**Why:** Same Tally goods math. No typed Amount so the product cannot drift.
+
+**Tradeoffs:** C82 / words row still wait for a later total.
+
+## 2026-08-22 — Rate is the same open number as Quantity, 2 decimals
+
+**Context:** User wanted Rate to match Quantity’s no-box number input, face like `450.00`, digits only, max 2 decimals, on every goods line.
+
+**Decision:** Session `lineRates`. Type with `sanitizePurchaseOrderRate`. Blur with `formatPurchaseOrderRate` (`toFixed(2)`). Same Input chrome as Quantity.
+
+**Why:** Tally rate column is money, not a free text box.
+
+**Tradeoffs:** Format applies on blur so typing `450` is not forced to `450.00` mid-keystroke.
+
+## 2026-08-22 — Quantity is number + unit; per is unit text only
+
+**Context:** User wanted Quantity to look like a fill-in blank (`---`) plus a boxed unit dropdown. Number and unit must be the same size. per should auto-show that unit, not the typed number, and not sit in a box.
+
+**Decision:** Session state per goods line (`lineQtys`, `lineUnits`). C41 = numeric Input (no box, no `___` line) + small `font-normal` shadcn Select (PCS, Kg, Mtr, Nos, Roll, Set), same 11px face. Extra rows reuse the same control. C61 = plain text of the selected unit at the top of the cell.
+
+**Why:** Matches Tally-style qty / per. Number stays in Quantity. per is the unit of measure.
+
+**Tradeoffs:** Quantity column is wider so the blank and the box fit. Units are not saved to the database yet.
+
+## 2026-08-22 — C11–C81 extra lines via hover + / −
+
+**Context:** User wants sub-rows only on demand, with a Word-style blue circle + / − on the left outline.
+
+**Decision:** Keep one C11–C81 row. Hover left rail shows **+** (insert after) and **−** on extra rows (delete). Session state; card Plus resets. Cap 8 extra lines.
+
+**Why:** Matches the sketch. First row always stays so the sheet never has zero goods lines.
+
+**Tradeoffs:** Extra cell ids are `C21:L2` in `data-po-cell` only. Middle height is shared across line rows.
+
+## 2026-08-22 — C13 is a new words row under C12–C82
+
+**Context:** User wanted a long amount-in-words cell *under* C12–C82, not instead of that row. Code name C13; do not show that name.
+
+**Decision:** Keep C12–C82 as eight tiles. Add C13 spanning all 8 columns under them. Words from C82.
+
+**Why:** First pass ate the C12–C82 row. User said keep it.
+
+**Tradeoffs:** C table is 4 rows. Middle row still takes leftover height.
+
+## 2026-08-22 — R32 R41 R42 grow-to-fit type cells; flush sheet
+
+**Context:** User wanted Other References / Dispatched through / Destination typeable, typed text bold, no scroll, no gaps anywhere on the sheet.
+
+**Options:** (1) Fixed textarea + scroll. (2) Auto-grow textarea + `gap-0` / `rounded-none`.
+
+**Decision:** Option 2. Session-only state; Plus clears.
+
+**Why:** Same “adjust the cell to the words” rule as R1–R3. Gaps were the holes they already rejected.
+
+**Tradeoffs:** Adjacent 1px borders meet (looks like a thicker line). Long text in R32/R41/R42 grows the right 4×2.
+
+## 2026-08-22 — C1–C8 are goods column titles
+
+**Context:** User named the top C row like a Tally goods table.
+
+**Decision:** Store titles in `PURCHASE_ORDER_C_HEADINGS`. Render that text only. Cell ids stay in `data-po-cell`.
+
+**Why:** Same fill-by-id pattern as R11/R12. Sketch codes stay hidden.
+
+**Tradeoffs:** Narrow columns wrap long titles (Description of Goods sits in wide C2).
+
+## 2026-08-22 — R3 growth must not stretch voucher rows
+
+**Context:** After supplier pick, R3 grew and holes opened between cells.
+
+**Options:** (1) Keep one 5-row grid and let rows share R3 height. (2) Split left stack vs right 4×2 so they do not share row tracks.
+
+**Decision:** Option 2. R21B fills leftover beside R2/R3.
+
+**Why:** User said no empty space between cells. Shared rows were the hole.
+
+**Tradeoffs:** R1 is no longer a CSS row-span over the 4×2; visual alignment is by column width only.
+
+## 2026-08-22 — R1 R2 R3 one left stack
+
+**Context:** After R1 hugged its text, a hole opened between Invoice To and Consignee.
+
+**Options:** (1) Stretch R1 down to fill the 4-row hole. (2) Stack R1, R2, R3 in one left column so R2 sits in that leftover space.
+
+**Decision:** Option 2. Same `gap-1` as other tiles. Right 4x2 and R21B stay.
+
+**Why:** User asked to close the space between R1 and R2 by moving those cells, not by growing Invoice To.
+
+**Tradeoffs:** R21B sits in the fifth grid row beside the lower left stack, not in a separate band.
+
+## 2026-08-22 — R1 R2 R3 stretch right; A4 sheet stays short
+
+**Context:** User wanted R1/R2/R3 longer to the right, and the whole PO as short as possible, still A4.
+
+**Options:** (1) Keep 50/50 columns and tall Terms box. (2) Widen the left cells (~3.2fr), shrink type/padding/Terms/C-rows, lock card to `210mm × 297mm`.
+
+**Decision:** Option 2. Outer map stays (R tiles + C table). Left address cells are the long ones.
+
+**Why:** Same format, more room for invoice/consignee/supplier, one A4 page.
+
+**Tradeoffs:** Right voucher tiles and Terms box are narrower/shorter.
+
+## 2026-08-22 — Purchase Order second table is C-grid on an A4 card
+
+**Context:** User attached a C1–C82 sketch under the existing R sheet. No labels on screen. Whole table A4 size.
+
+**Options:** (1) Same compact `max-w-3xl` card. (2) A4 page (`210mm × 297mm`) with the C-grid under the R-grid.
+
+**Decision:** Option 2. Col 2 wide, middle row tall. Ids only in `data-po-cell`. Cells empty until filled.
+
+**Why:** Matches the sketch and paper size.
+
+**Tradeoffs:** Card is wider than the old `max-w-3xl`. On a narrow window it still `max-w-full`.
+
+## 2026-08-21 — Sketch R21 opposite Consignee is R21B
+
+**Context:** User asked for Terms of Delivery in **R21 opposite R2**. The sketch also used R21 for a small top-right cell.
+
+**Options:** (1) Fill small R21. (2) Fill the large block next to Consignee (`R21B`).
+
+**Decision:** Option 2. Heading **Terms of Delivery**. Below it a shadcn Textarea that fills the remaining cell. Plus clears. Small R21 stays empty.
+
+**Why:** That large cell sits beside R2. Delivery terms need type space.
+
+**Tradeoffs:** Sketch name R21 vs code R21B. UI still does not print those ids.
+
+## 2026-08-21 — Purchase Order Dated is create day, not a picker
+
+**Context:** R12 must show `Dated` then `17-Aug-26` style. User wants the day the PO was created (today → `21-Aug-26`).
+
+**Options:** (1) Live clock that changes every day. (2) Date picker. (3) Freeze `created_at` of the voucher row, format IST `DD-Mmm-YY`.
+
+**Decision:** Option 3. Same row as R11. Plus = new voucher = new Dated (today). Refresh keeps the old create day.
+
+**Why:** Matches Tally-style PO header. Date is the books date of that voucher.
+
+**Tradeoffs:** Staff cannot back-date from R12 yet. IST so a late-night US clock does not show the wrong calendar day.
+
+## 2026-08-21 — Purchase Order voucher uses Indian FY and a per-year sequence
+
+**Context:** R11 must show `Voucher No.` then `PO/26-27/392`. Serial +1 on each new PO. `26-27` is 1 Apr 2026–31 Mar 2027; from 1 Apr 2027 it becomes `27-28`.
+
+**Options:** (1) Client-only counter. (2) One global sequence forever. (3) Per-FY sequence in `dashboard_purchase_orders`, calendar in `Asia/Kolkata`.
+
+**Decision:** Option 3. Format `PO/{yy}-{yy+1}/{seq}`. FY 26-27 first unused seq is **392** so the first sheet matches the sample. Later FYs start at **1**. Plus button allocates the next row. Same browser session keeps the current voucher on refresh.
+
+**Why:** Matches Indian books and the sample number. IST so the year does not flip at local midnight on a US/EU PC.
+
+**Tradeoffs:** Opening the tab the first time in a session reserves a number. Two people clicking Plus at once rely on unique `(fy_code, seq)` + retry. Production does not get this table until an explicit prod release.
+
+## 2026-08-21 — Purchase Order sheet is compact, not a giant table
+
+**Context:** First grid filled the viewport. User still wants the same placing, but smaller and more like other dashboard cards — not a raw table.
+
+**Options:** (1) Keep full-bleed table. (2) Compact Card with muted tiles and the same CSS grid placing.
+
+**Decision:** Option 2. `max-w-2xl`, short rows, `gap-2`, rounded muted cells. Full-bleed off. Labels stay hidden. `R21B` still the large bottom-right.
+
+**Why:** Same map, dashboard look.
+
+**Tradeoffs:** Sheet is denser; content later must fit the compact cells.
+
+## 2026-08-21 — Purchase Order sheet cells stay unlabeled
+
+**Context:** User gave a cell map (R1, R11…R42, R2, R3, plus a large R21) and asked to build that layout without showing the names. Table size should follow the dashboard, not a tiny fixed box.
+
+**Options:** (1) Show labels in cells. (2) Empty cells with ids only in code/`data-po-cell`.
+
+**Decision:** Option 2. Grid fills the Purchase Order panel (full-bleed). Large bottom-right is `R21B` because the sketch reused R21. Plus button now allocates the next voucher (R11) and clears R3.
+
+**Why:** User will name the values later by cell id.
+
+**Tradeoffs:** Empty sheet until content is assigned. Duplicate sketch label R21 is disambiguated in code.
+
+## 2026-08-20 — Purchase Order is a main sidebar tab
+
+**Context:** User asked for **Purchase Order** as a main Scott Dashboard tab with an icon, not a Support sub-tab.
+
+**Options:** (1) Keep it under Support. (2) Add `purchase_order` to the main sidebar (Inventory section) with a spreadsheet/document icon.
+
+**Decision:** Option 2. Tab id `purchase_order`. Icon Lucide `FileSpreadsheet`. Panel `PurchaseOrderPanel.jsx` is a placeholder. Support sub-tabs stay Enquiry / Complaints / Delay alert / Order status / Report.
+
+**Why:** User wants it next to Inventory / Support, not nested.
+
+**Tradeoffs:** Viewers with an explicit allowed-tab list must be granted `purchase_order` by an admin. Inventory POs stay under Inventory until this desk is built.
+
 ## 2026-08-19 — No Windows-only Rollup package in dependencies
 
 **Context:** Vercel Linux `npm install` failed because `@rollup/rollup-win32-x64-msvc` was a required dependency.

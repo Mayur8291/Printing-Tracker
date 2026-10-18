@@ -56,13 +56,19 @@ flowchart LR
 | Module | Location | Purpose |
 |--------|----------|---------|
 | Core shell & routing | `src/App.jsx` | Tab navigation, auth, orders, admin (~7.6k lines — refactor candidate) |
-| Printing / production | `src/App.jsx`, `src/PrintingDepartmentPanel.jsx` | Orders, job sheets, status workflow |
+| Printing / production | `src/App.jsx`, `src/PrintingDepartmentPanel.jsx`, `src/ProductionTrackerPanel.jsx`, `src/LinkedOrdersTabPanel.jsx`, `src/printCalculator/*` | Orders, job sheets, status workflow. **Print cost calculator** on Printing orders: many prints, Internal team or Customer, qty slabs 0–10 / 10–200 / 200–1000, ₹ per square inch. Printing All orders Status is a Select for admin / `can_edit_status`. Mark complete does not switch list tab. Sent to Dispatch auto-completes after 10 minutes. Production tracker sidebar has **Production Tracker** / **Sampling Tracker** and **All orders** / **Complete orders** as the same muted pill under each. Lists stay split by kind. Create Sample Jobsheet (far right, yellow) = Production layout, no Total quantity, IDs `SA-0001`+. Sample pay block is Sampling required on + Mode of payment + Total amount + Payment proof only. Sampling **All orders** **Due In** after Order date = SLA to Dispatched Successfully (`due_date` end of day if filled, else admin SLA settings from save). Admin **SLA settings** on Sampling Tracker. Sampling Complete has no Due In. Same clock in View Sample Order while open. |
 | Dispatch & logistics | `src/DispatchTabPanel.jsx`, inward/outward modals | GRN, challans, verification |
-| Inventory | `src/inventory/*` | SKUs, warehouses, POs, suppliers, alerts |
-| Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js` | DMs, groups, attachments, GIFs |
+| Inventory | `src/inventory/*` | SKUs, warehouses, POs, suppliers, alerts. List qty = facility availability, not a lone `stock_qty` cell. |
+| Ready Stock Order | `src/ReadyStockOrdersPanel.jsx`, `src/ReadyStockOrderDetailDialog.jsx`, `src/readyStockChannelUtils.js` | Partner RMP orders (`scott_orders`). Channel badge + filter. Utilization report sits behind one **Channel utilization** button (`rpt_ready_stock_channel_utilization`). |
+| Ops Platform | `src/MastersPanel.jsx`, `StockLedgerPanel.jsx`, `ProcurementPanel.jsx`, `SalesOrdersPanel.jsx`, `BillingArPanel.jsx`, `UniwareBridgePanel.jsx` | One Source of Truth Steps 0–5 (admin). Uniware Bridge is a read-only Uniware mirror (full catalog snapshot + exact saleOrderItems Sold + DRR for the selected days/months/years) — not Inventory on-hand. New B2B you create here still lives on Sales Orders. |
+| Team chat | `src/TeamChatPanel.jsx`, `src/teamChatService.js`, `src/teamChatReceipts.js`, `src/dashboardPresence.js` | DMs, groups, org-wide channels (admin post only), attachments, GIFs, voice notes. Search glass left of New chat / New group filters people or group titles as you type; click opens that thread. `http`/`https` in a bubble is clickable. Click own or others to select; Delete only if every selected post is yours. Chat pane is full-bleed and stays one size; long text wraps in the bubble. Own Chats/Groups bubbles show 1 grey / 2 grey / 2 blue ticks. Chat: Online + not opened → 2 grey; Away/Offline + not opened → 1 grey; opened → 2 blue. Group: nobody seen → 1 grey; at least one seen → 2 grey; all seen → 2 blue. Group sender Info lists Seen / Not seen. Click the Chat/Group name line for the details sheet. **Media** on the right lists photos, documents, and links. Group creator is admin and can add people, make admins, change the photo, and remove members. Incoming Chat / Group / Channel messages play `sounds/chat-message.mp3` and a 45s bottom-right name + message card. Bottom inbox tabs Chats / Groups / Channels show unopened text-message counts. Presence: Online / Away / Offline (green / yellow / red). Same status on list dot and under the DM name. |
 | Goals & tasks | `src/GoalTrackerPanel.jsx` | Annual goals, assignable tasks |
-| Notifications | `src/NotificationsPanel.jsx` | Unified alert feed |
-| Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Delay alert and production status texts are their own tabs after Complaints. Report blank. |
+| Daily ops briefing | `src/OpsBriefingPanel.jsx`, `src/opsBriefingUtils.js` | Home **Today**: follow-ups / production / pending pay + Make task. Optional Ask AI (`ops-ai-chat`). |
+| Notifications | `src/NotificationsPanel.jsx` | Unified alert feed. Chips All / Orders / Tasks / Inventory / Mentions + time Select. Mentions = inward tags. |
+| Asset Management | `src/AssetManagementPanel.jsx`, `src/hrAssetUtils.js` | Tools tab (`asset_management`). **Add asset** / **Save asset** writes staging `hr_assets`. **Assets** lists that register. Tags `IT-00001`+. Click a row → that tag only; Back clears it. Assign/check-in update the same row. Separate from Inventory SKUs. |
+| Internal Support Platform | `src/InternalSupportPlatformPanel.jsx`, `src/internalSupportIssueUtils.js` | Tools tab (`internal_support`, LifeBuoy). **Open Tickets** + **Resolved** (`internal_support_issues`). **Raise an Issue** button opens the form Dialog. Admin sees all rows and can change Status until Resolved. Non-admin sees own issues and read-only status. Separate from Support Enquiry. |
+| Support (Enquiry / Complaints / Delay alert / Order status / Report) | `src/EnquiryPanel.jsx`, `src/SupportTicketDesk.jsx`, `src/EnquiryTagSettingsDialog.jsx`, `src/enquiryTagUtils.js`, `src/SupportDelayAlertCard.jsx`, `src/SupportProductionStatusCard.jsx` | Enquiry desk (`ENQ-`) and Complaints desk (`CS-`). Enquiries carry one **Tag** (admin-managed list; admin maps users to tags; tag holders see those enquiries via RLS). Platform admin can grant **Support admin** (see all / assign / tags, not the Admin tab). Assigned staff open a slim detail: contact history + status. Admin still has Mark verified / contacted / reach-out. Complaints keep Order ID / Help path. Delay alert and production status texts are their own tabs after Complaints. Report blank. |
+| Purchase Order | `src/PurchaseOrderPanel.jsx`, `src/PurchaseOrderLayoutGrid.jsx`, `src/PurchaseOrderHistoryTable.jsx`, `src/PurchaseOrderHistoryFilters.jsx`, `src/purchaseOrderLayout.js`, `src/purchaseOrderVoucherUtils.js`, `src/purchaseOrderHistoryUtils.js` | Main sidebar tab after Inventory. Heading left, separate tabs **All PO Orders** / **Create new PO** / **PO History**. Open panel = All PO Orders (Pending, PO sent, PO Approved; admin can change those plus Completed). Status column is icon + name like job-sheet Status (names unchanged). Create = A4 heading + table after click. Generate writes `po_sent`. History = Completed only after backend update; no status pick. Filters + View PO print. Spreadsheet icon. Not Inventory POs. |
 | Admin | User mgmt, deploy, roles | Edge Functions for privileged actions |
 
 ### Data flow (typical)
@@ -84,7 +90,7 @@ flowchart LR
 - **Language:** JavaScript (JSX), ES modules
 - **State:** React `useState` / `useEffect` / context (e.g. `InventoryDataContext`) — no Redux
 - **Charts:** Recharts
-- **Excel/export:** ExcelJS, JSZip
+- **Excel/export:** ExcelJS (lazy-loaded: SKU pricing import, enquiry bulk-upload template + .xlsx read), JSZip
 - **Barcodes/QR:** jsbarcode, qrcode
 - **Env vars:** `VITE_*` injected at build time (Netlify env for production)
 
@@ -93,7 +99,7 @@ flowchart LR
 - **Database:** PostgreSQL with **103+ migrations** in `supabase/migrations/`
 - **Auth:** Email/password; roles `admin` | `viewer` on `profiles`
 - **API surface today:** Auto-generated **PostgREST** REST API + RPC functions in SQL
-- **Edge Functions** (Deno/TypeScript): `admin-create-user`, `admin-delete-user`, `admin-reset-password`, `admin-promote-production`, `tenor-gif-search`
+- **Edge Functions** (Deno/TypeScript): `admin-create-user`, `admin-delete-user`, `admin-reset-password`, `admin-promote-production`, `tenor-gif-search`, `uniware-bridge`
 - **Storage buckets:** e.g. approved designs, profile avatars, notification tones, chat attachments, contact photos
 
 ### Infrastructure
@@ -138,5 +144,8 @@ See [ENVIRONMENTS.md](./ENVIRONMENTS.md) and [RELEASE_AUTOMATION.md](./RELEASE_A
 | [DEBUGGING.md](./DEBUGGING.md) | Common failures |
 | [SECURITY.md](./SECURITY.md) | Auth, secrets, API keys |
 | [VULNERABILITIES.md](./VULNERABILITIES.md) | Whole-build vulnerability audit (2026-08-17) |
+| [ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md) | Scott Ops Platform build roadmap (Steps 0–10) |
+| [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md) | Step 5 ownership: Uniware owns ecom stock; platform mirrors only |
+| [laws.md](./laws.md) | Nine binding laws + six-question gate + Scott API freeze |
 
 For a **Word-friendly export**, open `docs/export/Scott_Dashboard_Platform_Overview.html` in Microsoft Word → **Save As → .docx**.

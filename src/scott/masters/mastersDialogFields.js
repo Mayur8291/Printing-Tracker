@@ -32,7 +32,7 @@
 //
 // `select` fields naming an `optionsResource` are filled in from that master's own service —
 // see `useMasterRelationOptions.js`. A `select` with neither static options nor a resource we
-// can read (`rmp_price_types.zone_id`, sourced from the local Supabase zones master) would be
+// can read would be
 // an un-answerable empty dropdown, so it degrades to a plain id input.
 
 /** Field types `ScottEntityDialog` can render. */
@@ -42,6 +42,7 @@ export const DIALOG_FIELD_TYPES = Object.freeze(
     "number",
     "textarea",
     "select",
+    "scott-zone",
     "enum",
     "multiselect",
     "boolean",

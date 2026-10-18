@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +19,8 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
@@ -31,7 +32,8 @@ import {
   profileDisplayName
 } from "./enquiryUtils";
 import { isEnquiryUnpicked } from "./enquiryConciergeUtils";
-import { AlertCircle, Clock, RefreshCw } from "lucide-react";
+import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
+import { Bell, RefreshCw } from "lucide-react";
 
 const STATUS_FILTERS = [{ id: "all", label: "All" }, ...ENQUIRY_STATUSES.map((id) => ({
   id,
@@ -39,26 +41,30 @@ const STATUS_FILTERS = [{ id: "all", label: "All" }, ...ENQUIRY_STATUSES.map((id
 }))];
 
 const STATUS_BADGE_CLASS = {
-  new: "bg-slate-100 text-slate-700 border-slate-200",
-  assigned: "bg-violet-50 text-violet-700 border-violet-200",
-  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
-  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  closed: "bg-zinc-100 text-zinc-600 border-zinc-200"
+  new: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
+  assigned: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-200 dark:border-violet-700",
+  in_progress: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-700",
+  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-700",
+  closed: "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-600"
 };
 
 const PRIORITY_BADGE_CLASS = {
-  low: "bg-zinc-50 text-zinc-600 border-zinc-200",
-  normal: "bg-slate-50 text-slate-700 border-slate-200",
-  high: "bg-amber-50 text-amber-700 border-amber-200",
-  urgent: "bg-red-50 text-red-700 border-red-200"
+  low: "bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-600",
+  normal: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
+  high: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700",
+  urgent: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-200 dark:border-red-700"
 };
 
 /** Whole-row tint for Enquiry and Complaints desks (admin and staff). */
 const PRIORITY_ROW_CLASS = {
-  urgent: "bg-red-50 hover:bg-red-100/90 border-l-4 border-l-red-500",
-  high: "bg-amber-50 hover:bg-amber-100/90 border-l-4 border-l-amber-500",
-  normal: "bg-sky-50 hover:bg-sky-100/90 border-l-4 border-l-sky-400",
-  low: "bg-zinc-50 hover:bg-zinc-100/90 border-l-4 border-l-zinc-400"
+  urgent:
+    "bg-red-50 text-foreground hover:bg-red-100/90 border-l-4 border-l-red-500 dark:bg-red-950/55 dark:hover:bg-red-900/50 dark:text-foreground",
+  high:
+    "bg-amber-50 text-foreground hover:bg-amber-100/90 border-l-4 border-l-amber-500 dark:bg-amber-950/55 dark:hover:bg-amber-900/50 dark:text-foreground",
+  normal:
+    "bg-sky-50 text-foreground hover:bg-sky-100/90 border-l-4 border-l-sky-400 dark:bg-sky-950/55 dark:hover:bg-sky-900/50 dark:text-foreground",
+  low:
+    "bg-zinc-50 text-foreground hover:bg-zinc-100/90 border-l-4 border-l-zinc-400 dark:bg-zinc-900/70 dark:hover:bg-zinc-800/80 dark:text-foreground"
 };
 
 function formatDateTime(iso) {
@@ -91,13 +97,40 @@ export default function SupportTicketDesk({
   waitingAlerts = [],
   openEscalations = [],
   onRefresh,
-  onOpenDetail
+  onOpenDetail,
+  showTag = false,
+  showOrderId = true,
+  detailsColumnLabel = "Concerns",
+  pageSizeKey = "support-tickets"
 }) {
+  const columnCount = 8 + (showTag ? 1 : 0) + (showOrderId ? 1 : 0);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
 
   const counts = useMemo(() => enquiryStatusCounts(rows), [rows]);
+  const slaItems = useMemo(() => {
+    const escalated = (openEscalations ?? []).map((row) => ({
+      id: `esc-${row.id}`,
+      tone: "destructive",
+      title: "SLA escalation",
+      body: `${row.enquiry_code || "Enquiry"} · ${row.customer_name || "Customer"} — not picked. Customer is not told.`,
+      enquiryId: row.enquiry_id
+    }));
+    const waiting = (waitingAlerts ?? []).map((row) => ({
+      id: `wait-${row.enquiryId}`,
+      tone: "wait",
+      title: "Waiting over 1 hour",
+      body: `${row.enquiryCode || "Enquiry"} · ${row.customerName || "Customer"}`,
+      enquiryId: row.enquiryId
+    }));
+    const seen = new Set();
+    return [...escalated, ...waiting].filter((item) => {
+      if (seen.has(item.enquiryId)) return false;
+      seen.add(item.enquiryId);
+      return true;
+    });
+  }, [openEscalations, waitingAlerts]);
   const visibleRows = useMemo(
     () =>
       filterEnquiries(rows, {
@@ -107,12 +140,85 @@ export default function SupportTicketDesk({
       }),
     [rows, statusFilter, searchQuery, assigneeFilter, isAdmin]
   );
+  const paginationKey = `${statusFilter}|${searchQuery}|${assigneeFilter}`;
+  const {
+    visible: pageRows,
+    total: pageTotal,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages
+  } = usePagination(visibleRows, pageSizeKey, paginationKey);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="text-sm text-muted-foreground">{description}</p>
         <div className="flex flex-wrap gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="relative"
+                aria-label={slaItems.length ? `SLA alerts, ${slaItems.length}` : "SLA alerts"}
+              >
+                <Bell data-icon="inline-start" aria-hidden />
+                {slaItems.length ? (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]"
+                  >
+                    {slaItems.length > 99 ? "99+" : slaItems.length}
+                  </Badge>
+                ) : null}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              collisionPadding={12}
+              className="w-80 overflow-hidden p-0"
+            >
+              <div className="border-b px-3 py-2">
+                <p className="text-sm font-medium">SLA alerts</p>
+                <p className="text-xs text-muted-foreground">Unpicked enquiries. Customer is not told.</p>
+              </div>
+              {slaItems.length ? (
+                <ScrollArea type="always" className="h-72">
+                  <ul className="p-1">
+                    {slaItems.map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className="w-full rounded-sm px-2 py-2 text-left hover:bg-accent"
+                          onClick={() => {
+                            const match = rows.find((e) => e.id === item.enquiryId);
+                            if (match) onOpenDetail?.(match);
+                          }}
+                        >
+                          <p
+                            className={cn(
+                              "text-xs font-medium",
+                              item.tone === "destructive" ? "text-destructive" : "text-foreground"
+                            )}
+                          >
+                            {item.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{item.body}</p>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollArea>
+              ) : (
+                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  No waiting or escalated tickets.
+                </p>
+              )}
+            </PopoverContent>
+          </Popover>
           <Button type="button" variant="outline" size="sm" onClick={() => void onRefresh?.()}>
             <RefreshCw className="mr-1 h-4 w-4" aria-hidden />
             Refresh
@@ -121,50 +227,12 @@ export default function SupportTicketDesk({
         </div>
       </div>
 
-      {openEscalations.map((row) => (
-        <Alert
-          key={row.id}
-          variant="destructive"
-          className="cursor-pointer"
-          onClick={() => {
-            const match = rows.find((e) => e.id === row.enquiry_id);
-            if (match) onOpenDetail?.(match);
-          }}
-        >
-          <AlertCircle className="h-4 w-4" aria-hidden />
-          <AlertTitle>SLA escalation</AlertTitle>
-          <AlertDescription>
-            {row.message} Customer {row.customer_name}
-            {row.order_id ? ` · Order ${row.order_id}` : ""}. Customer is not told.
-          </AlertDescription>
-        </Alert>
-      ))}
-
-      {isAdmin
-        ? waitingAlerts.map((row) => (
-            <Alert
-              key={`wait-${row.enquiryId}`}
-              className="cursor-pointer"
-              onClick={() => {
-                const match = rows.find((e) => e.id === row.enquiryId);
-                if (match) onOpenDetail?.(match);
-              }}
-            >
-              <Clock className="h-4 w-4" aria-hidden />
-              <AlertTitle>Waiting over 1 hour (ops)</AlertTitle>
-              <AlertDescription>
-                {row.message} {row.customerName}
-                {row.orderId ? ` · Order ${row.orderId}` : ""}. Not shown to the assignee desk copy.
-              </AlertDescription>
-            </Alert>
-          ))
-        : null}
-
       {isAdmin ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
             { key: "new", label: "New" },
             { key: "assigned", label: "Assigned" },
+            { key: "opened", label: "Opened" },
             { key: "in_progress", label: "In progress" },
             { key: "resolved", label: "Resolved" },
             { key: "closed", label: "Closed" }
@@ -232,24 +300,25 @@ export default function SupportTicketDesk({
               <TableRow>
                 <TableHead>Code</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Concerns</TableHead>
+                {showOrderId ? <TableHead>Order ID</TableHead> : null}
+                <TableHead>{detailsColumnLabel}</TableHead>
                 <TableHead>Source</TableHead>
+                {showTag ? <TableHead>Tag</TableHead> : null}
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
-                <TableHead>Assignee</TableHead>
+                <TableHead>Assigned to</TableHead>
                 <TableHead>Created</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visibleRows.length === 0 ? (
+              {pageRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={columnCount} className="py-8 text-center text-muted-foreground">
                     {emptyMessage}
                   </TableCell>
                 </TableRow>
               ) : (
-                visibleRows.map((row) => {
+                pageRows.map((row) => {
                   const assignee = row.assignee_id ? profileById[row.assignee_id] : null;
                   return (
                     <TableRow
@@ -263,20 +332,31 @@ export default function SupportTicketDesk({
                     >
                       <TableCell className="font-medium">{row.enquiry_code}</TableCell>
                       <TableCell>{row.customer_name}</TableCell>
-                      <TableCell className="whitespace-nowrap font-medium">
-                        {row.order_id || "—"}
-                      </TableCell>
+                      {showOrderId ? (
+                        <TableCell className="whitespace-nowrap font-medium">{row.order_id || "—"}</TableCell>
+                      ) : null}
                       <TableCell className="max-w-[220px] truncate" title={row.product_details || ""}>
                         {row.product_details || "—"}
                       </TableCell>
                       <TableCell>{row.source || "—"}</TableCell>
+                      {showTag ? (
+                        <TableCell>
+                          {row.tag_name ? (
+                            <Badge variant="secondary" className="whitespace-nowrap">
+                              {row.tag_name}
+                            </Badge>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1">
                           <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[row.status])}>
                             {ENQUIRY_STATUS_LABEL[row.status] ?? row.status}
                           </Badge>
                           {isEnquiryUnpicked(row) ? (
-                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700">
                               Pending
                             </Badge>
                           ) : null}
@@ -299,6 +379,23 @@ export default function SupportTicketDesk({
           </Table>
         </div>
       )}
+
+      {!loading ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <OrdersPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            total={pageTotal}
+            pageSize={pageSize}
+          />
+          <OrdersPerPageControl
+            idPrefix={`${pageSizeKey}-per-page`}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

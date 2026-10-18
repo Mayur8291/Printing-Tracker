@@ -67,7 +67,8 @@ alter table public.orders drop constraint if exists orders_status_check;
 alter table public.orders add constraint orders_status_check
 check (status in (
   'new', 'approval_pending', 'in_production', 'printing', 'fusing', 'ironing', 'packing', 'pending', 'on_hold', 'ready', 'sent_to_dispatch', 'dispatch_fail', 'dispatched',
-  'quotation_approval', 'sampling', 'sourcing', 'sourcing_in_transit', 'inward', 'cutting', 'stitching', 'trimming', 'qc'
+  'quotation_approval', 'sampling', 'sourcing', 'sourcing_in_transit', 'inward', 'cutting', 'stitching', 'trimming', 'qc',
+  'pattern_making', 'sample_cutting', 'sample_stitching', 'trim_iron', 'branding', 'packaging', 'dispatched_successfully'
 ));
 
 alter table public.orders add column if not exists status_ready_at timestamptz;
@@ -1226,10 +1227,11 @@ create index if not exists order_templates_user_id_idx
 alter table public.order_templates enable row level security;
 
 drop policy if exists "order templates read own" on public.order_templates;
-create policy "order templates read own"
+drop policy if exists "order templates read authenticated" on public.order_templates;
+create policy "order templates read authenticated"
 on public.order_templates
 for select to authenticated
-using (auth.uid() = user_id or public.jwt_user_is_admin());
+using (true);
 
 drop policy if exists "order templates insert own" on public.order_templates;
 create policy "order templates insert own"
@@ -1333,11 +1335,11 @@ alter table public.order_templates
 -- Order kind: printing vs regular stock (see migration 20260605120000_add_order_kind.sql).
 alter table public.orders
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling', 'job_sheet'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling', 'job_sheet', 'sample_job_sheet'));
 
 alter table public.order_templates
   add column if not exists order_kind text not null default 'printing'
-  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling', 'job_sheet'));
+  check (order_kind in ('printing', 'regular_stock', 'sticker', 'sampling', 'job_sheet', 'sample_job_sheet'));
 
 -- Shared resource links (see migration 20260604120000_add_shared_resource_links.sql).
 create table if not exists public.shared_resource_links (

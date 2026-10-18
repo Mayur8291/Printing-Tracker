@@ -1,0 +1,23 @@
+---
+description: After any task, commit and push develop without asking
+alwaysApply: true
+---
+
+# Auto push develop (no ask)
+
+After finishing work in this repo, **commit the relevant files and `git push origin develop`**. Do not ask "say commit" or "say push".
+
+## Do
+
+- Commit only the files from this task (code + matching docs).
+- Push `origin develop` when the commit succeeds.
+- Tell the user the commit hash after push.
+
+## Do not
+
+- Do not push `main` or merge develop → main.
+- Do not touch production Supabase (`levwrmvqdntngeasrtnb`) unless the user explicitly asks for a production release.
+- Do not commit `node_modules`, `.env*`, secrets, or unrelated dirty files (`docs/ENVIRONMENTS.md` CRLF noise).
+- Do not `--no-verify`, force-push, or amend a pushed commit.
+
+"Push" / "commit" / "save" / finishing a feature = **develop only**.

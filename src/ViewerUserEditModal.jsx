@@ -61,6 +61,8 @@ export default function ViewerUserEditModal({
   onRemove,
   removing,
   isAdminAccount = false,
+  isSupportAdmin = false,
+  onSupportAdminChange,
   onClose
 }) {
   if (!viewer) return null;
@@ -153,6 +155,22 @@ export default function ViewerUserEditModal({
             </div>
             <Switch id="viewer-edit-tone" checked={toneEnabled} onCheckedChange={onToneChange} />
           </div>
+
+          {isAdminAccount ? null : (
+            <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+              <div className="space-y-0.5">
+                <Label htmlFor="viewer-edit-support-admin">Support admin</Label>
+                <p className="text-xs text-muted-foreground">
+                  See every enquiry, assign, manage tags. Not a platform admin. Every action is logged.
+                </p>
+              </div>
+              <Switch
+                id="viewer-edit-support-admin"
+                checked={isSupportAdmin}
+                onCheckedChange={onSupportAdminChange}
+              />
+            </div>
+          )}
 
           {isAdminAccount ? (
             <p className="rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground">

@@ -12,7 +12,7 @@ How to integrate the Scott Dashboard Stock API into the mobile application (Flut
 | Environment | Base URL | API key |
 |---|---|---|
 | **Staging** (use for all development & testing) | `https://scvojtvgnkmbupvyslmb.supabase.co/functions/v1/dashboard-stock-api` | `scott-staging-a50fde434c0470fb416954a08bb39f4c69585b90a6bbef94` |
-| **Production** | `https://levwrmvqdntngeasrtnb.supabase.co/functions/v1/dashboard-stock-api` | Not yet deployed — key will be issued at production release |
+| **Production** | `https://levwrmvqdntngeasrtnb.supabase.co/functions/v1/dashboard-stock-api` | Issued 2026-09-03 (NotFunny) — send over a private channel; not stored in git. Admin → Integrations shows prefix `scott_d1ef3cf4`. |
 
 > ⚠️ **Key handling:** never hard-code the API key in the mobile app binary if the app talks to this API through your own backend (recommended). If the mobile app calls the dashboard directly, store the key in secure storage / remote config, not in source control.
 

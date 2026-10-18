@@ -1,6 +1,7 @@
 export const TONE_DEFAULT_STATUS = "sounds/tone-01.mp3";
 export const TONE_READY_STATUS = "sounds/Tone-02.mp3";
 export const TONE_READY_OVERDUE = "sounds/Tone-03.mp3";
+export const TONE_CHAT_MESSAGE = "sounds/chat-message.mp3";
 
 let userCustomToneUrl = null;
 let muteStatusTones = false;
@@ -49,8 +50,8 @@ function getToneAudio(url) {
   return toneAudioCache.get(url);
 }
 
-function playUrl(url) {
-  if (!url || muteStatusTones) return;
+function playUrl(url, { ignoreMute = false } = {}) {
+  if (!url || (!ignoreMute && muteStatusTones)) return;
   try {
     const tryPlay = (el) => {
       if (!el) return Promise.reject(new Error("no audio"));
@@ -90,6 +91,10 @@ export function playNotificationTone(builtinFile = TONE_DEFAULT_STATUS) {
   playUrl(resolvePlaybackUrl(builtinFile));
 }
 
+export function playChatMessageTone() {
+  playUrl(resolveBuiltinToneUrl(TONE_CHAT_MESSAGE), { ignoreMute: true });
+}
+
 /** Tone-02 only when status becomes Ready to Dispatch; Tone-01 for other status changes (unless custom tone set). */
 export function playOrderStatusChangeTone(isReadyToDispatch) {
   if (muteStatusTones) return;
@@ -109,9 +114,12 @@ export function previewNotificationToneUrl(url) {
 
 /** Call once after a user gesture so autoplay policy allows tones later. */
 export function primeNotificationTonesFromUserGesture() {
-  const urls = userCustomToneUrl
-    ? [userCustomToneUrl]
-    : [TONE_DEFAULT_STATUS, TONE_READY_STATUS, TONE_READY_OVERDUE].map(resolveBuiltinToneUrl);
+  const urls = [
+    ...(userCustomToneUrl
+      ? [userCustomToneUrl]
+      : [TONE_DEFAULT_STATUS, TONE_READY_STATUS, TONE_READY_OVERDUE].map(resolveBuiltinToneUrl)),
+    resolveBuiltinToneUrl(TONE_CHAT_MESSAGE)
+  ];
 
   for (const url of urls) {
     if (tonePrimed.has(url)) continue;

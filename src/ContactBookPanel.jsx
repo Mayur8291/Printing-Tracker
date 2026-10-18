@@ -17,6 +17,7 @@ import {
   validateContactPhotoFile
 } from "./contactBookUtils";
 import { subscribePostgresChanges } from "./realtimeUtils";
+import { uuid } from "./lib/uuid";
 
 function ContactDetailRow({ label, value, href }) {
   const text = displayContactValue(value);
@@ -115,7 +116,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
 
   async function uploadContactPhoto(contactId, file) {
     const safeName = sanitizeContactPhotoName(file.name);
-    const path = `${contactId}/${crypto.randomUUID()}-${safeName}`;
+    const path = `${contactId}/${uuid()}-${safeName}`;
     const { error: uploadErr } = await supabase.storage
       .from(CONTACT_PHOTO_BUCKET)
       .upload(path, file, { upsert: true, contentType: file.type || undefined });
@@ -238,6 +239,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
             </button>
           </div>
 
+          <div className="contact-book-form-scroll">
           <div className="contact-book-photo-row">
             <AvatarUploadField
               name={form.name}
@@ -326,6 +328,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
               />
             </label>
           </div>
+          </div>
 
           <div className="contact-book-form-actions">
             {editingEntry ? (
@@ -352,6 +355,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
         </form>
       ) : null}
 
+      {showForm && mayEdit ? null : (
       <div className="contact-book-list-wrap">
         {loading ? (
           <p className="contact-book-empty">Loading contacts…</p>
@@ -466,6 +470,7 @@ export default function ContactBookPanel({ isAdmin, canEdit = false, sessionUser
           </>
         )}
       </div>
+      )}
     </section>
   );
 }

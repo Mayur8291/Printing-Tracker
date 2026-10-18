@@ -6,6 +6,7 @@ import {
   EMPTY_ENQUIRY_FORM,
   ENQUIRY_PRIORITIES,
   ENQUIRY_PRIORITY_LABEL,
+  ENQUIRY_SOURCE_REFERENCE,
   ENQUIRY_SOURCES,
   createEnquiryWithPhotos,
   fetchEnquiries,
@@ -25,6 +26,16 @@ import {
   runEnquirySlaPass
 } from "./enquiryConciergeUtils";
 import { validateEnquiryPhotoFile } from "./enquiryAttachmentUtils";
+import {
+  activeEnquiryTags,
+  enquiryTagIdsForUser,
+  enquiryTagNameById,
+  fetchEnquiryTagMembers,
+  fetchEnquiryTags
+} from "./enquiryTagUtils";
+import EnquiryTagSettingsDialog from "./EnquiryTagSettingsDialog";
+import EnquiryBulkUploadDialog from "./EnquiryBulkUploadDialog";
+import { INDIAN_CITIES, stateForCity } from "./indianCities";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -44,12 +55,11 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import EnquiryWhatsAppSimulator from "./EnquiryWhatsAppSimulator";
 import SupportDelayAlertCard from "./SupportDelayAlertCard";
 import SupportProductionStatusCard from "./SupportProductionStatusCard";
 import SupportTicketDesk from "./SupportTicketDesk";
 import { viewerIsActive } from "./viewerUserListUtils";
-import { Headphones, MessageCircle, Plus } from "lucide-react";
+import { Headphones, Plus, Tag, Upload } from "lucide-react";
 
 const SUPPORT_SUBTABS = [
   { id: "enquiry", label: "Enquiry" },
@@ -63,7 +73,7 @@ function emptyFormForDesk(deskKind) {
   return deskKind === "enquiry" ? { ...EMPTY_ENQUIRY_DESK_FORM } : { ...EMPTY_ENQUIRY_FORM };
 }
 
-function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, deskKind = "complaint" }) {
+function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, deskKind = "complaint", tags = [] }) {
   const isEnquiryDesk = deskKind === "enquiry";
   const [form, setForm] = useState(() => emptyFormForDesk(deskKind));
   const [saving, setSaving] = useState(false);
@@ -195,6 +205,40 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, des
               />
             </div>
           </div>
+          {isEnquiryDesk ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="new-enquiry-city">City</Label>
+                <Select
+                  value={form.customer_city || "__none__"}
+                  onValueChange={(v) => setField("customer_city", v === "__none__" ? "" : v)}
+                >
+                  <SelectTrigger id="new-enquiry-city" aria-label="Customer city">
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Not set</SelectItem>
+                    {INDIAN_CITIES.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-enquiry-state">State</Label>
+                <Input
+                  id="new-enquiry-state"
+                  value={stateForCity(form.customer_city)}
+                  readOnly
+                  tabIndex={-1}
+                  placeholder="Pick a city"
+                  className="bg-muted/40 text-muted-foreground"
+                />
+              </div>
+            </div>
+          ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Source</Label>
@@ -210,6 +254,15 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, des
                   ))}
                 </SelectContent>
               </Select>
+              {form.source === ENQUIRY_SOURCE_REFERENCE ? (
+                <Input
+                  id="new-enquiry-reference"
+                  aria-label="Reference name"
+                  value={form.reference_name ?? ""}
+                  onChange={(e) => setField("reference_name", e.target.value)}
+                  placeholder="Reference name *"
+                />
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label>Priority</Label>
@@ -228,7 +281,7 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, des
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-enquiry-product">{isEnquiryDesk ? "Enquiry details" : "Concerns"}</Label>
+            <Label htmlFor="new-enquiry-product">{isEnquiryDesk ? "Enquiry requirement" : "Concerns"}</Label>
             <Textarea
               id="new-enquiry-product"
               value={form.product_details}
@@ -241,9 +294,33 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, des
               }
             />
           </div>
+          {isEnquiryDesk ? (
+            <div className="space-y-2">
+              <Label>Tag</Label>
+              <Select
+                value={form.tag_id || "__none__"}
+                onValueChange={(v) => setField("tag_id", v === "__none__" ? "" : v)}
+              >
+                <SelectTrigger aria-label="Enquiry tag">
+                  <SelectValue placeholder="No tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No tag</SelectItem>
+                  {tags.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Tagged enquiries show for admins and for users who hold that tag.
+              </p>
+            </div>
+          ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="new-enquiry-order">Order ID{isEnquiryDesk ? " (optional)" : ""}</Label>
+              <Label htmlFor="new-enquiry-order">Order ID</Label>
               <Input
                 id="new-enquiry-order"
                 value={form.order_id}
@@ -252,29 +329,23 @@ function CreateEnquiryDialog({ open, onOpenChange, sessionUserId, onCreated, des
                 placeholder="SC123456"
               />
             </div>
-            {isEnquiryDesk ? (
-              <div className="space-y-2">
-                <Label>Help path</Label>
-                <p className="text-sm text-muted-foreground">Help with order → Customized → Enquiries</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label>Order type</Label>
-                <Select value={form.order_type} onValueChange={(v) => setField("order_type", v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENQUIRY_ORDER_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {ENQUIRY_ORDER_TYPE_LABEL[t]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>Order type</Label>
+              <Select value={form.order_type} onValueChange={(v) => setField("order_type", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENQUIRY_ORDER_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {ENQUIRY_ORDER_TYPE_LABEL[t]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          )}
           {isEnquiryDesk ? null : (
             <div className="space-y-2">
               <Label>Help path</Label>
@@ -348,9 +419,45 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
   const [detailOpen, setDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [createDeskKind, setCreateDeskKind] = useState("complaint");
-  const [simulatorOpen, setSimulatorOpen] = useState(false);
   const [slaEscalations, setSlaEscalations] = useState([]);
-  const [supportSubTab, setSupportSubTab] = useState("complaints");
+  const [supportSubTab, setSupportSubTab] = useState("enquiry");
+  const [tags, setTags] = useState([]);
+  const [tagMembers, setTagMembers] = useState([]);
+  const [tagSettingsOpen, setTagSettingsOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  const loadTags = useCallback(async () => {
+    try {
+      const [tagRows, memberRows] = await Promise.all([fetchEnquiryTags(), fetchEnquiryTagMembers()]);
+      setTags(tagRows);
+      setTagMembers(memberRows);
+    } catch (e) {
+      console.warn("enquiry tags:", e.message || e);
+      setTags([]);
+      setTagMembers([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTags();
+  }, [loadTags]);
+
+  useEffect(() => {
+    return subscribePostgresChanges({
+      channelName: "enquiry-tags-live",
+      tables: ["enquiry_tags", "enquiry_tag_members"],
+      onEvent: () => {
+        void loadTags();
+      }
+    });
+  }, [loadTags]);
+
+  const tagNameById = useMemo(() => enquiryTagNameById(tags), [tags]);
+  const formTags = useMemo(() => activeEnquiryTags(tags), [tags]);
+  const sessionTagIds = useMemo(
+    () => enquiryTagIdsForUser(tagMembers, sessionUserId),
+    [tagMembers, sessionUserId]
+  );
 
   const profileById = useMemo(() => {
     const map = {};
@@ -424,16 +531,16 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
   }, [loadEnquiries]);
 
   const complaintRows = useMemo(() => enquiries.filter(isComplaintsHelpPath), [enquiries]);
-  const enquiryRows = useMemo(() => enquiries.filter(isEnquiryHelpPath), [enquiries]);
+  const enquiryRows = useMemo(
+    () =>
+      enquiries
+        .filter(isEnquiryHelpPath)
+        .map((row) => (row.tag_id ? { ...row, tag_name: tagNameById[row.tag_id] ?? "" } : row)),
+    [enquiries, tagNameById]
+  );
 
-  const complaintWaiting = useMemo(
-    () => (isAdmin ? listWaitingAlerts(complaintRows) : []),
-    [complaintRows, isAdmin]
-  );
-  const enquiryWaiting = useMemo(
-    () => (isAdmin ? listWaitingAlerts(enquiryRows) : []),
-    [enquiryRows, isAdmin]
-  );
+  const complaintWaiting = useMemo(() => listWaitingAlerts(complaintRows), [complaintRows]);
+  const enquiryWaiting = useMemo(() => listWaitingAlerts(enquiryRows), [enquiryRows]);
 
   const complaintEscalations = useMemo(
     () =>
@@ -457,23 +564,44 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
     setDetailOpen(true);
   }
 
+  function closeDetail() {
+    setDetailOpen(false);
+    setSelectedEnquiry(null);
+  }
+
+  function decorateEnquiryRow(row) {
+    if (!row) return row;
+    return {
+      ...row,
+      tag_name: row.tag_id ? tagNameById[row.tag_id] ?? "" : ""
+    };
+  }
+
   function handleEnquiryUpdated(updated) {
-    setEnquiries((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-    setSelectedEnquiry(updated);
+    const next = decorateEnquiryRow(updated);
+    setEnquiries((prev) => prev.map((r) => (r.id === next.id ? next : r)));
+    setSelectedEnquiry(next);
   }
 
   function handleEnquiryCreated(row) {
-    setEnquiries((prev) => [row, ...prev]);
-    openDetail(row);
+    const next = decorateEnquiryRow(row);
+    setEnquiries((prev) => [next, ...prev]);
+    openDetail(next);
   }
 
   function deskActions(kind) {
     return (
       <>
-        {mayCreate ? (
-          <Button type="button" variant="outline" size="sm" onClick={() => setSimulatorOpen(true)}>
-            <MessageCircle className="mr-1 h-4 w-4" aria-hidden />
-            WhatsApp simulator
+        {isAdmin && kind === "enquiry" ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => setTagSettingsOpen(true)}>
+            <Tag className="mr-1 h-4 w-4" aria-hidden />
+            Tags
+          </Button>
+        ) : null}
+        {mayCreate && kind === "enquiry" ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+            <Upload className="mr-1 h-4 w-4" aria-hidden />
+            Bulk upload
           </Button>
         ) : null}
         {mayCreate ? (
@@ -493,8 +621,29 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
     );
   }
 
+  const showingDetail = Boolean(detailOpen && selectedEnquiry);
+
   return (
-    <section className="panel table-panel dashboard-card space-y-4">
+    <section className="panel table-panel dashboard-card flex flex-col gap-4">
+      {showingDetail ? (
+        <EnquiryDetailDialog
+          open={detailOpen}
+          onOpenChange={(next) => {
+            if (next) setDetailOpen(true);
+            else closeDetail();
+          }}
+          enquiry={selectedEnquiry}
+          teamProfiles={teamProfiles}
+          profileById={profileById}
+          isAdmin={isAdmin}
+          canEdit={canEdit}
+          sessionUserId={sessionUserId}
+          onUpdated={handleEnquiryUpdated}
+          tags={tags}
+          sessionTagIds={sessionTagIds}
+        />
+      ) : (
+        <>
       <h2 className="dashboard-section-title flex items-center gap-2">
         <Headphones className="h-5 w-5" aria-hidden />
         Support
@@ -517,17 +666,21 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
             isAdmin={isAdmin}
             loading={loading}
             error={error}
-            emptyMessage="No enquiries from Help with order → Customized → Enquiries."
+            emptyMessage="No enquiries yet."
             description={
               isAdmin
-                ? "Assign team members. Staff pick, notes, and close show here live."
-                : "Work enquiries assigned to you. You cannot assign. Admin sees your updates."
+                ? "Assign team members or tag enquiries. Staff pick, notes, and close show here live."
+                : "Enquiries assigned to you or matching your tags. You cannot assign. Admin sees your updates."
             }
+            showTag
+            showOrderId={false}
+            detailsColumnLabel="Enquiry requirement"
             headerActions={deskActions("enquiry")}
             waitingAlerts={enquiryWaiting}
             openEscalations={enquiryEscalations}
             onRefresh={() => void loadEnquiries()}
             onOpenDetail={openDetail}
+            pageSizeKey="support-enquiry"
           />
         </TabsContent>
 
@@ -550,6 +703,7 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
             openEscalations={complaintEscalations}
             onRefresh={() => void loadEnquiries()}
             onOpenDetail={openDetail}
+            pageSizeKey="support-complaints"
           />
         </TabsContent>
 
@@ -565,6 +719,8 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
           <div className="min-h-[12rem]" />
         </TabsContent>
       </Tabs>
+        </>
+      )}
 
       <CreateEnquiryDialog
         open={createOpen}
@@ -572,29 +728,29 @@ export default function EnquiryPanel({ isAdmin, canEdit = false, sessionUserId, 
         sessionUserId={sessionUserId}
         onCreated={handleEnquiryCreated}
         deskKind={createDeskKind}
+        tags={formTags}
       />
 
-      <EnquiryDetailDialog
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-        enquiry={selectedEnquiry}
-        teamProfiles={teamProfiles}
-        profileById={profileById}
-        isAdmin={isAdmin}
-        canEdit={canEdit}
-        sessionUserId={sessionUserId}
-        onUpdated={handleEnquiryUpdated}
-      />
-      <EnquiryWhatsAppSimulator
-        open={simulatorOpen}
-        onOpenChange={setSimulatorOpen}
-        sessionUserId={sessionUserId}
-        teamProfiles={teamProfiles}
-        isAdmin={isAdmin}
-        onCreated={(row) => {
-          setEnquiries((prev) => [row, ...prev]);
-        }}
-      />
+      {isAdmin ? (
+        <EnquiryTagSettingsDialog
+          open={tagSettingsOpen}
+          onOpenChange={setTagSettingsOpen}
+          tags={tags}
+          members={tagMembers}
+          teamProfiles={teamProfiles}
+          sessionUserId={sessionUserId}
+          onChanged={loadTags}
+        />
+      ) : null}
+      {mayCreate ? (
+        <EnquiryBulkUploadDialog
+          open={bulkOpen}
+          onOpenChange={setBulkOpen}
+          tags={tags}
+          sessionUserId={sessionUserId}
+          onImported={(rows) => setEnquiries((prev) => [...rows, ...prev])}
+        />
+      ) : null}
     </section>
   );
 }

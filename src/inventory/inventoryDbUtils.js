@@ -218,6 +218,14 @@ function mapSupplierRow(s) {
   };
 }
 
+export async function fetchInventorySuppliers() {
+  const { data, error } = await withSchemaCacheRetry(() =>
+    supabase.from("inventory_suppliers").select(INVENTORY_SUPPLIER_LIST_SELECT).order("name")
+  );
+  if (error) throw error;
+  return (data || []).map(mapSupplierRow);
+}
+
 function mapWarehouseRow(w) {
   return {
     id: w.id,
@@ -523,6 +531,29 @@ export async function applyFacilityStockAdjustment({
     p_sku_id: skuUuid,
     p_warehouse_id: warehouseId,
     p_target_on_hand: Math.max(0, Number(targetOnHand)),
+    p_reason: reason || "",
+    p_reference: reference || "",
+    p_user_id: userId || null
+  });
+  if (error) throw error;
+  return data;
+}
+
+/** Move on-hand qty from one warehouse facility to another (RPC transfer_sku_facility_stock). */
+export async function transferSkuFacilityStock({
+  skuUuid,
+  fromWarehouseId,
+  toWarehouseId,
+  qty,
+  reason,
+  reference,
+  userId
+}) {
+  const { data, error } = await supabase.rpc("transfer_sku_facility_stock", {
+    p_sku_id: skuUuid,
+    p_from_warehouse_id: fromWarehouseId,
+    p_to_warehouse_id: toWarehouseId,
+    p_qty: Math.abs(Number(qty)),
     p_reason: reason || "",
     p_reference: reference || "",
     p_user_id: userId || null

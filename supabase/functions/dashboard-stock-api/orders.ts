@@ -21,6 +21,84 @@ import {
 
 const TERMINAL = new Set(["COMPLETE", "CANCELLED", "FAILED"]);
 
+const FALLBACK_CHANNEL = {
+  id: null as string | null,
+  code: "UNKNOWN",
+  name: "Unknown",
+  channel_type: "OTHER"
+};
+
+export type OrderApiAuth = { keyId: string | null };
+
+type ChannelSnapshot = {
+  id: string | null;
+  code: string;
+  name: string;
+  channel_type: string;
+};
+
+function channelHintFromBody(body: Record<string, unknown>): string {
+  const raw = String(body.channel_code ?? body.channel ?? "").trim().toUpperCase();
+  return raw.replace(/[^A-Z0-9_]/g, "");
+}
+
+async function resolveChannel(
+  client: SupabaseAdmin,
+  body: Record<string, unknown>,
+  keyId: string | null
+): Promise<ChannelSnapshot> {
+  const hint = channelHintFromBody(body);
+  if (hint) {
+    const { data } = await client
+      .from("dashboard_channels")
+      .select("id, code, name, channel_type")
+      .eq("code", hint)
+      .eq("enabled", true)
+      .maybeSingle();
+    if (data) {
+      return {
+        id: data.id,
+        code: data.code,
+        name: data.name || data.code,
+        channel_type: data.channel_type
+      };
+    }
+  }
+
+  if (keyId) {
+    const { data } = await client
+      .from("dashboard_channels")
+      .select("id, code, name, channel_type")
+      .eq("api_key_id", keyId)
+      .eq("enabled", true)
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      return {
+        id: data.id,
+        code: data.code,
+        name: data.name || data.code,
+        channel_type: data.channel_type
+      };
+    }
+  }
+
+  const { data: unknownRow } = await client
+    .from("dashboard_channels")
+    .select("id, code, name, channel_type")
+    .eq("code", "UNKNOWN")
+    .maybeSingle();
+  if (unknownRow) {
+    return {
+      id: unknownRow.id,
+      code: unknownRow.code,
+      name: unknownRow.name || "Unknown",
+      channel_type: unknownRow.channel_type
+    };
+  }
+  return FALLBACK_CHANNEL;
+}
+
 async function getOrder(client: SupabaseAdmin, orderId: string) {
   const { data } = await client.from("scott_orders").select("*").eq("id", orderId).maybeSingle();
   return data;
@@ -34,7 +112,11 @@ async function getOrderItems(client: SupabaseAdmin, orderId: string) {
   return data ?? [];
 }
 
-export async function handleCreateOrder(req: Request, client: SupabaseAdmin) {
+export async function handleCreateOrder(
+  req: Request,
+  client: SupabaseAdmin,
+  auth: OrderApiAuth = { keyId: null }
+) {
   const body = await req.json();
   const order_code = String(body.order_code ?? "").trim();
   const facility_code = String(body.facility_code ?? "").trim();
@@ -67,6 +149,7 @@ export async function handleCreateOrder(req: Request, client: SupabaseAdmin) {
 
   const id = newId("ord_");
   const created_at = new Date().toISOString();
+  const channel = await resolveChannel(client, body as Record<string, unknown>, auth.keyId);
 
   const { error: orderErr } = await client.from("scott_orders").insert({
     id,
@@ -79,6 +162,10 @@ export async function handleCreateOrder(req: Request, client: SupabaseAdmin) {
     payment: body.payment ?? {},
     comment: String(body.comment ?? ""),
     reservation_id: reserved.reservation_id,
+    channel_id: channel.id,
+    channel_code: channel.code,
+    channel_name: channel.name,
+    channel_type: channel.channel_type,
     created_at,
     updated_at: created_at
   });
@@ -111,7 +198,17 @@ export async function handleCreateOrder(req: Request, client: SupabaseAdmin) {
     });
   }
 
-  return jsonResponse({ dashboard_order_id: id, order_code, status: "PENDING", created_at }, 201);
+  return jsonResponse(
+    {
+      dashboard_order_id: id,
+      order_code,
+      status: "PENDING",
+      created_at,
+      channel_code: channel.code,
+      channel_name: channel.name
+    },
+    201
+  );
 }
 
 export async function handleGetOrder(orderId: string, client: SupabaseAdmin) {
@@ -124,6 +221,9 @@ export async function handleGetOrder(orderId: string, client: SupabaseAdmin) {
     order_code: order.order_code,
     status: order.status,
     updated_at: order.updated_at,
+    channel_code: order.channel_code ?? "UNKNOWN",
+    channel_name: order.channel_name ?? "Unknown",
+    channel_type: order.channel_type ?? "OTHER",
     items: items.map((i) => ({
       sku_code: i.sku_code,
       quantity: Number(i.quantity),

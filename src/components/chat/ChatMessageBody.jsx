@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { splitChatTextWithLinks } from "@/teamChatMedia";
 import {
   orderChatToken,
   profileChatLabel,
@@ -9,8 +10,6 @@ import {
 } from "@/teamChatUtils";
 
 export function ChatMessageBody({ body, profiles, orders, onOpenOrder, inverted = false }) {
-  if (!(body ?? "").trim()) return null;
-
   const profileByLabel = useMemo(() => {
     const map = new Map();
     for (const p of profiles ?? []) {
@@ -29,16 +28,41 @@ export function ChatMessageBody({ body, profiles, orders, onOpenOrder, inverted 
     return map;
   }, [orders]);
 
+  if (!(body ?? "").trim()) return null;
+
   const parts = splitChatBodyTokens(body);
   const tokenClass = inverted
     ? "bg-primary-foreground/15 text-primary-foreground"
     : "bg-background/80 text-foreground";
 
   return (
-    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+    <p className="min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm leading-relaxed">
       {parts.map((part, i) => {
         if (part.kind === "text") {
-          return <span key={i}>{part.value}</span>;
+          return splitChatTextWithLinks(part.value).map((piece, j) =>
+            piece.kind === "link" ? (
+              <Button
+                key={`${i}-${j}`}
+                asChild
+                variant="link"
+                className={cn(
+                  "inline h-auto max-w-full whitespace-normal break-all px-0 py-0 text-left text-sm font-normal underline underline-offset-2 [overflow-wrap:anywhere] [word-break:break-all]",
+                  inverted ? "text-primary-foreground" : "text-sky-700"
+                )}
+              >
+                <a
+                  href={piece.value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {piece.value}
+                </a>
+              </Button>
+            ) : (
+              <span key={`${i}-${j}`}>{piece.value}</span>
+            )
+          );
         }
         const user = profileByLabel.get(part.value);
         if (user) {
@@ -59,7 +83,10 @@ export function ChatMessageBody({ body, profiles, orders, onOpenOrder, inverted 
                 "h-auto px-1 py-0 text-xs font-semibold underline-offset-2",
                 inverted ? "text-primary-foreground" : "text-primary"
               )}
-              onClick={() => onOpenOrder(order)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenOrder(order);
+              }}
             >
               {part.value}
             </Button>

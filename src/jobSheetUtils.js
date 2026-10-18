@@ -26,6 +26,7 @@ export function isPetsJobSheetGender(gender) {
 
 /** Production tracker job sheet — not a printing-floor order. */
 export function isJobSheetOrder(order) {
+  if ((order?.order_kind ?? "") === "sample_job_sheet") return false;
   if ((order?.order_kind ?? "printing") === "job_sheet") return true;
   if (!order?.is_production_order) return false;
   if (String(order.job_sheet_payment_mode ?? "").trim()) return true;
@@ -36,6 +37,22 @@ export function isJobSheetOrder(order) {
   const hasPrintingPayment = String(order.payment_method ?? "").trim();
   if (salesIncharge && !hasPrintingPayment) return true;
   return false;
+}
+
+/** Local calendar YYYY-MM-DD for the device. */
+export function jobSheetTodayLocalISODate() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Delivery required on may be today or later. Past days are blocked. */
+export function isJobSheetDeliveryDateAllowed(raw) {
+  const day = String(raw ?? "").trim().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
+  return day >= jobSheetTodayLocalISODate();
 }
 
 

@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export default function OrderViewActionCell({ order, onViewOrder, className }) {
+export default function OrderViewActionCell({ order, onViewOrder, className, viewLabel = "View order" }) {
   if (order?._isPending) {
     return (
       <span
@@ -23,7 +23,7 @@ export default function OrderViewActionCell({ order, onViewOrder, className }) {
       className={cn("h-auto px-0", className)}
       onClick={() => onViewOrder(order)}
     >
-      View order
+      {viewLabel}
     </Button>
   );
 }

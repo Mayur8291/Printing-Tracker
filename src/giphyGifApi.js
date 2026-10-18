@@ -1,4 +1,7 @@
-const GIPHY_KEY = (import.meta.env.VITE_GIPHY_API_KEY ?? "").trim();
+/** Public Giphy web key. Same on local, staging (`develop`), and production (`main`). Client keys are visible in the browser bundle by design. */
+export const GIPHY_CLIENT_KEY = "YP9q9wuUUuSB7bW2I0Zf9rF3L2GI9B3l";
+
+const GIPHY_KEY = GIPHY_CLIENT_KEY;
 const GIPHY_BASE = "https://api.giphy.com/v1/gifs";
 
 function mapGiphyItem(item) {
@@ -23,7 +26,7 @@ function mapGiphyItem(item) {
 
 async function giphyRequest(path, params) {
   if (!GIPHY_KEY) {
-    throw new Error("VITE_GIPHY_API_KEY missing in .env");
+    throw new Error("Giphy API key missing");
   }
 
   const search = new URLSearchParams({

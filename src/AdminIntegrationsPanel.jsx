@@ -412,7 +412,7 @@ function ChannelsSection({ facilities }) {
         <div>
           <CardTitle className="text-base">Channels</CardTitle>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Order sources (app, marketplaces). Link each channel to an API key and default facility.
+            Order sources (app, marketplaces). Link each channel to an API key so new Ready Stock orders stamp that channel.
           </p>
         </div>
         <Button type="button" size="sm" onClick={() => setShowForm(true)}>

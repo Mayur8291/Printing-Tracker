@@ -12,8 +12,13 @@ export function setTeamChatViewState({ panelVisible, conversationId } = {}) {
 }
 
 export function shouldPlayChatMessageTone(message, userId) {
-  if (!message || message.author_id === userId) return false;
-  if (chatPanelVisible && activeConversationId === message.conversation_id) return false;
+  return shouldNotifyIncomingChatMessage(message, userId);
+}
+
+export function shouldNotifyIncomingChatMessage(message, userId) {
+  if (!message || !userId) return false;
+  if (String(message.author_id) === String(userId)) return false;
+  if (message.deleted_at) return false;
   return true;
 }
 

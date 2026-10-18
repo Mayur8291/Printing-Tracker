@@ -1,5 +1,1500 @@
 # Changelog
 
+## 2026-10-14 — Print calculator shows single pc amount
+
+- **UI:** Each print shows **Single pc** (billed square inches × ₹ per sq in) above **Line cost** (single pc × quantity).
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-10-14 — Hide print calculator rate explanation
+
+- **UI:** Quantity stays. The slab note, the three rate lines, and the “how the slabs work” text are no longer on the quote. Admin still edits rates under **Pricing settings**.
+- **Files:** `PrintCalculatorModal.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-10-14 — Print calculator scrolls, one quantity for every print
+
+- **Bug fix:** The calculator dialog clipped the print card. The middle of the dialog now scrolls; the total stays pinned at the bottom.
+- **Change:** Copies are gone from each print. One **Quantity** multiplies every uploaded print and picks the qty slab.
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorUtils.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-10-14 — Print cost rates are ₹ per square inch
+
+- **Fix:** Slab prices are ₹ per square inch. Cost is billed square inches × rate × copies. Staging rows that were still the square-meter seed (about ₹6200) go back to the legacy ₹4 per square inch.
+- **Files:** `printCalculatorUtils.js`, `PrintCalculatorModal.jsx`, `20261014115752_print_calculator_rates_per_sq_inch.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-10-14 — Print cost: internal and customer rates by qty, per square meter
+
+Superseded the same day. Rates are ₹ per square inch. See the entry above.
+
+- **Feature:** Admin **Pricing settings** saves six ₹ per square meter rates: Internal team and Customer, each for qty **0–10**, **10–200**, and **200–1000**. The quote toggle picks the list. Each print’s copies pick the slab (1–10, 11–200, 201 and above). Drop or **Add more prints** for many artworks in one total.
+- **Formula:** `(width + 1 in) × (height + 1 in)` converted to square meters × slab rate × copies. Existing ₹/sq in is seeded into every slab so totals stay the same until an admin saves new prices.
+- **Staging:** columns applied on `scvojtvgnkmbupvyslmb`. `db push` is blocked by older remote-only migration versions, so the same SQL was applied directly. File: `20261014115203_print_calculator_qty_price_lists.sql`.
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorUtils.js`, `printCalculatorDb.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-10-14 — Print cost calculator shows the quote
+
+- **Feature:** Printing orders **Print cost calculator** now shows the DTF line: artwork size, billed size (width + 1 in, height + 1 in), area × rate × copies, and line cost. Footer shows pieces, billed area, saved rate, and total. **Copy quote** puts that text on the clipboard. Copies stay in the browser session (default 1).
+- **Admin:** Unsaved rate draft does not change the total until **Save rate**.
+- **Files:** `PrintCalculatorModal.jsx`, `printCalculatorUtils.js`, `App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-10-13 — Production release (`360c1cc`)
+
+- **Release:** Fast-forward `origin/main` `f813e51` → `360c1cc`. Live site `printingtracker.netlify.app` builds from `main`.
+- **Production DB (`levwrmvqdntngeasrtnb`):** `order_templates_shared_read` (SELECT `using (true)`; 13 templates now readable by staff). `ops_daily_briefing` (queues, `ops_create_followup_task`, 09:00 IST cron). Write policies unchanged.
+- **Not deployed:** Edge `ops-ai-chat` (optional; needs `ANTHROPIC_API_KEY`). Home Today works without it.
+- **CLI:** still linked to staging `scvojtvgnkmbupvyslmb`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DATABASE.md
+
+## 2026-10-13 — Non-admin can see team repeat-order templates
+
+- **Bug fix:** Repeat-order SELECT was `user_id = auth.uid()` or admin. Templates admin saved (`user_id` = admin) were invisible to other users. Authenticated users can now **read / Use** every template. Insert/update/delete stay owner or admin. UI hides Edit/Delete unless owner or admin.
+- **Files:** `supabase/migrations/20261013064231_order_templates_shared_read.sql`, `App.jsx`, `supabase/schema.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md, SECURITY.md, DECISIONS.md
+- **Staging + production:** policy applied on `scvojtvgnkmbupvyslmb` and `levwrmvqdntngeasrtnb`.
+
+## 2026-10-09 — Daily ops briefing on Home (no auto-orders)
+
+- **Feature:** Home **Today** card lists the signed-in user’s open printing jobs, production follow-ups, and pending pay. **Make task** writes `user_goal_tasks` via `ops_create_followup_task` (one open task per source). Morning `pg_cron` (09:00 IST) inserts `ops_briefing_notifications`. Optional Ask AI sheet talks to staging Edge `ops-ai-chat` (Claude API key); without the key, briefing still works. Does not place job sheets.
+- **Files:** `supabase/migrations/20261009102008_ops_daily_briefing.sql`, `supabase/functions/ops-ai-chat/index.ts`, `OpsBriefingPanel.jsx`, `opsBriefingUtils.js`, `App.jsx`, `notificationsUtils.js`, `NotificationsPanel.jsx`, `realtimeUtils.js`, `sidebarTabActivity.js`, `supabase/config.toml`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, API.md, SECURITY.md
+
+## 2026-10-07 — Enquiry detail: no canyon between requirement and priority
+
+- **Bug fix:** Priority/Tag sat at the far right of the full-page card because the left column was `1fr`. Requirement + later facts now sit in a `max-w-xl` column; Priority/Tag is a tight `w-56` column beside it. Reach-out and Internal note use the same wrap, each `max-w-md`.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-10-07 — Enquiry internal note beside reach-out; priority/tag beside details
+
+- **Change:** Admin enquiry page puts **Priority** and **Tag** beside **Enquiry requirement** (Save priority / tag). **Internal note** sits beside **Reached out to customer** (Save note). Assign and Status stay in the narrow column below.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md
+
+## 2026-10-07 — Enquiry tags save and show again
+
+- **Bug fix:** Staging `enquiries` has `tag_id` but not `ticket_kind`. The late-column fallback stripped **every** extra column, so fetch/update dropped `tag_id`. Save looked like it failed (select reset to No tag). Fallback now omits only the missing column.
+- **Files:** `enquiryUtils.js`, `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
+## 2026-10-07 — Support desk column is Assigned to
+
+- **Change:** Enquiry/Complaints table header **Assignee** → **Assigned to**.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-10-07 — Remove Concierge WhatsApp hint from enquiry detail
+
+- **Change:** Dropped the “Close queues the Concierge feedback text…” copy above Mark verified / Close.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-10-07 — Enquiry detail form fields no longer full-width
+
+- **Change:** Notes, Priority, Tag, Assign, and Status sit in a `max-w-md` column (Priority + Tag on one row). Full-page detail no longer stretches selects across the card.
+- **Files:** `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-10-07 — Enquiry verified tick, labels, Activity sheet
+
+- **Change:** Mark verified shows a green tick beside the customer name and disables the button. Help path and Ownership rows removed. Enquiry body labelled **Enquiry requirement**. Activity is an **Activity** button on the case that opens a sheet with who/what/when.
+- **Bug fix:** ENQ rows without `ticket_kind` were treated as complaints (Help path + Concerns). Display now uses `isEnquiryHelpPath`.
+- **Files:** `EnquiryDetailDialog.jsx`, `enquiryActivityUtils.js`, `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-10-07 — Enquiry opens as a full page
+
+- **Change:** Clicking an enquiry/complaint row replaces the Support list with a full-width detail page. Small **Back** (and Escape) returns to the desk. No overlay dialog.
+- **Files:** `EnquiryDetailDialog.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md, DECISIONS.md
+
+## 2026-10-05 — Support SLA alert list can scroll
+
+- **Bug fix:** SLA popover used `ScrollArea` with `max-h-72`. Radix viewport is `h-full`, so the box grew with every row and wheel/trackpad did nothing on production (many unpicked tickets). Use a fixed `h-72` plus `type="always"` like the shadcn scroll-area demo.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-10-05 — Support SLA bell always visible on staging
+
+- **Bug fix:** Mini SLA bell next to Refresh only rendered when there was a waiting/escalated ticket. Staging has no unpicked enquiries, so the bell vanished. Bell now always shows; badge only when count > 0.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-10-05 — Agent auto-pushes develop after each task
+
+- **Change:** Standing rule: finish work → commit task files → `git push origin develop`. No ask. Still never `main` / production unless the user names production.
+- **Files:** `.cursor/rules/auto-push-develop.mdc`
+- **Documentation updated:** CHANGELOG.md, DECISIONS.md
+
+## 2026-10-05 — Assigned enquiry view is contact history + status only
+
+- **Change:** Non-admin assignees no longer see Mark verified, Mark contacted, Close pick, reach-out, notes, tag, or assign. Their detail is phone + case text, **Contact history** (add event), and **Status**. Admin / Support admin keep the full concierge dialog. Status checklists land in a follow-up (`enquiryStatusChecklist.js` is empty until then).
+- **Files:** `EnquiryDetailDialog.jsx`, `enquiryActivityUtils.js`, `enquiryStatusChecklist.js` (new)
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md
+
+## 2026-10-05 — Enquiry desk pagination
+
+- **Feature:** Enquiry and Complaints tables paginate with the shared `usePagination` / `OrdersPagination` / `OrdersPerPageControl` (default 10, stored per desk). Filter or search resets to page 1.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-10-05 — Enquiry SLA alerts live in a header bell
+
+- **Change:** Removed the stacked SLA / "Waiting over 1 hour" banners from the Support desk. Same alerts now sit in a small **bell** next to Refresh (badge = count). Popover lists unique unpicked tickets; click opens the enquiry. Customer still not told.
+- **Files:** `SupportTicketDesk.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-10-05 — Support inbox: assignee + admin get every enquiry update
+
+- **Feature:** Notifications tab now shows Support events (new **Support** filter). Click **View Enquiry** opens the Support tab.
+- **Who gets a row:** assignee, the admin who assigned, every `profiles.role = admin`, every Support admin. Actor is skipped (you do not notify yourself).
+- **When:** new enquiry (admins), assign, status, details, reach-out, verified/contacted/closed, feedback, SLA escalate. Bulk CSV import stays silent (`notify: false`) so history loads do not flood inboxes.
+- **How:** RPC `notify_enquiry_watchers` (security definer) writes `enquiry_assignment_notifications` with new `kind` + `summary`. Inbox fetch + realtime subscribe that table.
+- **Migration (staging applied):** `20261005085620_enquiry_update_notifications.sql`. Verified: assignee actor got 0 rows; admin got `reached_out`.
+- **Files:** `enquiryNotificationUtils.js`, `enquiryUtils.js`, `enquiryConciergeUtils.js`, `enquiryBulkUploadUtils.js`, `EnquiryDetailDialog.jsx`, `notificationsUtils.js`, `NotificationsPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md
+
+## 2026-10-05 — Support admin privilege + reach-out comments
+
+- **Feature:** Platform Admin can grant **Support admin** on Edit user (switch). That user sees every enquiry, can assign, manage tags, and see SLA cards — **not** the Admin tab / user management. Enforced by RLS (`jwt_user_can_admin_enquiries()`), not UI. Grant/revoke written to `support_admin_audit`.
+- **Feature:** Enquiry detail has **Reached out to customer** with a required comment. Saves `last_reached_out_at/comment/by`, logs activity "Reached out to customer", counts as a pick, moves new/assigned/opened → In progress.
+- **Migration (staging applied):** `20261005074841_support_admins_and_reach_out.sql`. RLS verified: support-admin viewer saw a foreign enquiry and wrote a reach-out comment (rolled back).
+- **Files:** `supportAdminUtils.js` (new), `App.jsx`, `ViewerUserEditModal.jsx`, `viewerUserListUtils.js`, `enquiryConciergeUtils.js`, `enquiryUtils.js`, `enquiryActivityUtils.js`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md
+
+## 2026-10-05 — Enquiry desk drops Order ID column
+
+- **Change:** `SupportTicketDesk` gets `showOrderId` prop (default `true`). Enquiry desk passes `false`; Complaints unchanged. Empty-state `colSpan` now computed from visible columns.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md
+
+## 2026-10-05 — Bulk upload template is Excel with dropdowns
+
+- **Change:** **Download Excel template** → `enquiries-template.xlsx`. Sheet `Enquiries` (headers + sample, 1000 validated rows), very-hidden sheet `Lists` (Sources, Tags, Cities). Data validation: **Tag** and **City** hard-stop on anything not in list; **Source** warns so `Reference - <name>` can still be typed. Date column formatted `dd/mm/yyyy`, Phone forced text.
+- **Upload accepts .xlsx or .csv.** `parseEnquiryFile` routes by extension; `parseEnquiryWorkbook` reads sheet `Enquiries` (or first visible) via lazy `exceljs` (already a dependency, same as SKU import). Excel date cells are read as UTC day → `yyyy-mm-dd`, so dd/mm vs mm/dd ambiguity is gone for real Excel dates.
+- **Files:** `enquiryBulkUploadUtils.js` (`buildEnquiryXlsxTemplate`, `parseEnquiryWorkbook`, `parseEnquiryFile`, `parseEnquiryMatrix`, `downloadBinaryFile`), `EnquiryBulkUploadDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md
+
+## 2026-10-05 — Bulk CSV upload for enquiries
+
+- **Feature:** **Bulk upload** button on the Enquiry desk (anyone who can create). Dialog: **Download template**, CSV picker, preview table with per-row notes, **Import N** with progress, result summary with failed rows.
+- **CSV columns:** `Customer name, Concerns, Source, Tag, Date, Phone, Email, City`. Header match is forgiving (case/spaces/aliases like "Phone number", "Enquiry details"). Blank cells allowed. Row with no name, phone, and email is skipped. Blank name → phone/email/"Unknown customer".
+- **Normalisation:** Source → canonical list casing (`wa`→WhatsApp, `fb`→Facebook, `ref Name`→`Reference - Name`), unknown kept as typed. Tag matched by name, unknown → blank + note. City matched to `INDIAN_CITIES` (+ aliases Bengaluru/Bombay/…), unknown kept as typed with no state. Date reads `dd/mm/yyyy`, `dd-mm-yy`, `yyyy-mm-dd`, Excel serial; blank/bad → today. Sheet date becomes `enquiries.created_at` (`createEnquiry` now honours `form.created_at`, capped at tomorrow).
+- **No schema change.** Rows insert one by one via `createEnquiry` (own `ENQ-` code + activity row each). Staging verified: viewer insert with past `created_at` accepted.
+- **Files:** `enquiryBulkUploadUtils.js` (new), `EnquiryBulkUploadDialog.jsx` (new), `EnquiryPanel.jsx`, `enquiryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md
+
+## 2026-10-05 — Enquiry "Opened" status + WhatsApp simulator removed from Support
+
+- **Feature:** New enquiry status **`opened`** (label "Opened") between Assigned and In progress. When the assignee, tag holder, or SLA fallback (not admin) opens the detail of a `new`/`assigned` ticket, the app sets `status = opened`, `opened_at = now()`, logs activity "Opened enquiry". Not a pick — `picked_at` stays null, SLA keeps counting. Admin sees Opened badge in table, an **Opened** count card, Opened time in detail, and the activity row. Mark verified on an opened ticket goes back to Assigned.
+- **Removed:** **WhatsApp simulator** button and dialog from the Support desks (`EnquiryPanel`). Component file `EnquiryWhatsAppSimulator.jsx` is still on disk, unused.
+- **Migration (staging applied):** `20261005063756_enquiry_opened_status.sql` — status check adds `opened`, `enquiries.opened_at`, SLA partial index widened to `('new','assigned','opened')`. Verified on staging: assignee can set `opened`; unknown status still rejected.
+- **Files:** `enquiryUtils.js`, `enquiryConciergeUtils.js` (`markEnquiryOpened`, `ENQUIRY_UNWORKED_STATUSES`), `enquiryActivityUtils.js`, `EnquiryDetailDialog.jsx`, `SupportTicketDesk.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md
+
+## 2026-10-05 — Enquiry contact City → State + Support opens on Enquiry
+
+- **Feature:** **New enquiry** gets a **City** Select (same list as Job sheet delivery city) with a read-only **State** box beside it that fills from the city. Row sits after Phone/Email, before Enquiry details. Complaint form unchanged. Detail dialog shows **Location** (City, State). Search matches city/state.
+- **Fix:** Support tab now opens on **Enquiry** sub-tab (was Complaints).
+- **Migration (staging applied):** `20261005063356_enquiry_customer_city_state.sql` — `enquiries.customer_city`, `enquiries.customer_state`. Legacy select/insert fallback strips both on projects without it.
+- **Files:** `indianCities.js` (now city→state map, `stateForCity`), `enquiryUtils.js`, `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, DECISIONS.md
+
+## 2026-10-05 — Enquiry tags: route enquiries to users
+
+- **Feature:** **New enquiry** drops Order ID and Help path; gets a **Tag** Select (Pets, HR, Corporate Giftings, End customer, Event). Complaint form unchanged.
+- **Admin:** **Tags** button on the Enquiry desk → dialog: add tags, show/hide a tag in the form, tick which users hold each tag.
+- **Visibility:** A tagged enquiry shows for admins and for users who hold that tag (RLS). Tag holders can pick / update status like an assignee. Only admin can change a tag (guard trigger). Enquiry table gets a Tag column; detail shows tag, admin can change it in Save details.
+- **Migration (staging applied):** `20261005062316_enquiry_tags.sql` — `enquiry_tags`, `enquiry_tag_members`, `enquiries.tag_id`, `enquiry_tag_visible()`, policies, realtime publication, seed. RLS verified on staging with a simulated viewer.
+- **Files:** `enquiryTagUtils.js` (new), `EnquiryTagSettingsDialog.jsx` (new), `EnquiryPanel.jsx`, `EnquiryDetailDialog.jsx`, `SupportTicketDesk.jsx`, `enquiryUtils.js`, `enquiryConciergeUtils.js`
+- **Noticed (not changed):** staging `enquiries` has no `ticket_kind` column and no `enquiries update creator` policy — migrations `20260819100000` / `20260819120000` never landed there. App uses its legacy fallback.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, OVERVIEW.md
+
+## 2026-10-05 — Enquiry Source list replaced + Reference name
+
+- **Issue:** New enquiry / complaint Source offered Phone, Email, Website, Other. Team wants marketing channels.
+- **Fix:** Source is now Facebook, WhatsApp, Insta Reel, Insta Post, Google, Distributor, Walk-in, Reference. **Reference** shows a required Reference name input; stored as `Reference - <name>` in the existing `source` text column. No migration. Old rows keep their old source text.
+- **Files:** `enquiryUtils.js`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DECISIONS.md
+
+## 2026-10-05 — Support tab white screen over LAN (`crypto.randomUUID`)
+
+- **Issue:** Support tab blank on another machine on the same Wi-Fi. Fine on the dev machine.
+- **Reason:** Other machine opened `http://192.168.x.x:5173`. `crypto.randomUUID()` exists only on `https://` or `localhost`. `EnquiryWhatsAppSimulator` called it while rendering → `TypeError` → no root error boundary → white page. Same bare call sat in Chat, Contact Book, avatar and tone upload, Mockup Studio.
+- **Fix:** New `src/lib/uuid.js` — native `randomUUID` when present, else `getRandomValues` v4, else `Math.random` v4. All 11 call sites swapped. Scott API filter helper untouched (frozen, already guarded).
+- **Files:** `src/lib/uuid.js`, `EnquiryWhatsAppSimulator.jsx`, `enquiryUtils.js`, `MockupStudio.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `ContactBookPanel.jsx`, `App.jsx`, `notificationToneUtils.js`, `avatarUtils.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DECISIONS.md, ARCHITECTURE.md
+
+## 2026-09-08 — Notifications tab filter list
+
+- **Issue:** Notifications tab was a plain click-row list. No category or time filter.
+- **Reason:** First feed used legacy list markup, not the shadcn filter + row pattern.
+- **Fix:** Same five sources. Chips All / Orders / Tasks / Inventory / Mentions, time Select, unread tint, View + more menu. Mentions = inward tags. No new table.
+- **Files:** `NotificationsPanel.jsx`, `notificationsUtils.js`, `src/components/ui/empty.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, FLOWCHARTS.md
+
+## 2026-09-08 — Admin Sampling SLA settings
+
+- **Issue:** Sample Due In SLA was stuck at 2 days. Admin could not change it.
+- **Reason:** Fallback duration was a hard-coded constant.
+- **Fix:** Admin-only **SLA settings** on Sampling Tracker. Stores days, extra hours, warn/urgent hours in `sample_job_sheet_settings`. Sampling required on still wins when filled.
+- **Files:** `20260908121033_sample_job_sheet_sla_settings.sql`, `sampleJobSheetSlaUtils.js`, `sampleJobSheetSettings.js`, `SampleJobSheetSlaContext.jsx`, `SampleJobSheetSlaSettingsDialog.jsx`, `SampleJobSheetDueIn.jsx`, `LinkedOrdersTabPanel.jsx`, `App.jsx`
+- **Migration:** staging `sample_job_sheet_settings` singleton. Admin write via `jwt_user_is_admin()`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md
+
+## 2026-09-08 — Sample payment labels NEFT and Card
+
+- **Issue:** Sample Mode of payment still said NEFT / RTGS and Card / POS.
+- **Reason:** Sample list copied Production labels.
+- **Fix:** Sample labels are **NEFT** and **Card**. Stored values stay `neft_rtgs` / `card_pos`. Production list unchanged.
+- **Files:** `jobSheetPaymentUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md
+
+## 2026-09-08 — Sample payment modes trimmed
+
+- **Issue:** Sample Mode of payment still listed Cheque, PI — advance received, Credit / partial, and PI — pending payment.
+- **Reason:** Sample reused the full Production payment-mode list.
+- **Fix:** Sample list is Cash, UPI, Bank transfer, NEFT / RTGS, Card / POS, **payment pending** (`pi_pending`). Production Create Job sheet keeps the old list.
+- **Files:** `jobSheetPaymentUtils.js`, `CreateJobSheetForm.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md
+
+## 2026-09-08 — Sample form: Sampling required on + fewer pay fields
+
+- **Issue:** Create Sample Jobsheet showed Production pay/approval fields and said Delivery required on.
+- **Reason:** Sample reuse `CreateJobSheetForm` with only Total quantity hidden.
+- **Fix:** Sample keeps Sampling required on, Mode of payment, Total amount, Payment proof. Hides advance, balance, full paid, closure, transaction proof, city, transport, approval date/image/by. Production form unchanged. View Sample Order label matches.
+- **Files:** `CreateJobSheetForm.jsx`, `App.jsx`, `OrderDetailPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, OVERVIEW.md, DEBUGGING.md, FLOWCHARTS.md, DECISIONS.md
+
+## 2026-09-08 — Sampling Create Sample Jobsheet right + yellow
+
+- **Issue:** Create Sample Jobsheet sat mid-toolbar, same white outline as Clear.
+- **Reason:** `OrdersListFilters` painted extra actions before View N / page, with no end slot. Button used `outline`.
+- **Fix:** Sampling All orders pins the shadcn Button to the far right (`endActions` + `ml-auto`) and uses `variant="yellow"`. Production Create Job sheet stays mid-row outline.
+- **Files:** `OrdersListFilters.jsx`, `LinkedOrdersTabPanel.jsx`, `App.jsx`, `src/components/ui/button.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, OVERVIEW.md, DECISIONS.md
+
+## 2026-09-05 — Exact Uniware sales + DRR period spinner
+
+- **Issue:** Team said Sold / DRR did not match Uniware. Period change had no loading signal.
+- **Reason:** Sync mixed shipping-package summaries with `saleOrderItems` (empty status, extra qty). Client DRR counted open/unfulfillable-ish rows. Only part of the period had lines. Period change swapped numbers with no spinner.
+- **Fix:** Store exact Uniware `saleOrderItems` only. Sold / DRR use dispatched–invoiced statuses in the selected Days/Months/Years window (facility tab uses that facility). Spinner next to the period control until the window finishes loading. Incomplete-line banner remains until Sync orders fills the rest.
+- **Files:** `uniware-bridge/index.ts`, `20260905104510_uniware_exact_sales_drr.sql`, `uniwareUtils.js`, `uniwareDrrUtils.js`, `UniwareBridgePanel.jsx`, `uniwareMirrorExport.js`, `src/components/ui/spinner.jsx`
+- **Migration:** staging `20260905104510` — `facility_code` on lines, `uni_drr_by_sku(..., p_facility)`, delete empty-status junk rows. Qty still never enter Inventory on-hand.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, UNIWARE_BOUNDARY.md, DECISIONS.md
+
+## 2026-09-05 — Uniware Export xls matches the table
+
+- **Issue:** Excel did not match the tool.
+- **Reason:** Export wrote all facilities + hidden zeros + extra Sold column + ISO times. First sheet was not the filtered/sorted view.
+- **Fix:** One sheet, same 9 columns and row order as Inventory mirror (facility, hide zeros, search, DRR sort).
+- **Files:** `uniwareMirrorExport.js`, `UniwareBridgePanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-09-05 — Uniware DRR unit + sort
+
+- **Issue:** DRR showed 0.03 with no unit. No high/low sort.
+- **Reason:** DRR is pieces per day. Table listed by SKU only.
+- **Fix:** Column and cells use `pcs/day`. Sort: SKU / High to low / Low to high.
+- **Files:** `UniwareBridgePanel.jsx`, `uniwareDrrUtils.js`, `uniwareMirrorExport.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md
+
+## 2026-09-05 — Fix Uniware saleorder/get 404
+
+- **Issue:** Sync orders: 0 lines, 300 get errors, `saleOrder/get` 404 `{}`.
+- **Reason:** Uniware get URL is lowercase `saleorder/get`. We called camelCase `saleOrder/get`.
+- **Fix:** Use `/services/rest/v1/oms/saleorder/get`. Failed gets were not marked checked, so retry works.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
+## 2026-09-05 — Fix Uniware DRR all zeros
+
+- **Issue:** DRR column was 0 on every SKU.
+- **Reason:** `uni_sale_order` had 30,280 headers and **0 lines**. Sync spent the whole time budget re-searching headers, so `saleOrder/get` never ran. DRR is sold qty ÷ days from lines.
+- **Fix:** Backfill lines first (300 orders/click). Short header refresh only. Show get errors on the toast.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `20260905090805_uniware_order_line_backfill.sql`, `UniwareBridgePanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
+## 2026-09-05 — Fetch all Uniware SKUs + Excel export
+
+- **Issue:** User has 1000+ SKUs. Screen and sync looked capped. Need xls to investigate.
+- **Reason:** PostgREST pages 1000 rows. Edge `inventory_skus` select and the UI `.limit()` stopped at page one. ~4064 platform SKUs, only ~1907 in the mirror.
+- **Fix:** Page every SKU read. Persist `uni_item_sku` and resume `itemType/search`. **Export xls** dumps all facilities + current view + DRR.
+- **Files:** `supabase/migrations/20260905090157_uniware_catalog_sku_store.sql`, `uniware-bridge/index.ts`, `uniwareUtils.js`, `uniwareMirrorExport.js`, `UniwareBridgePanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md, UNIWARE_BOUNDARY.md
+
+## 2026-09-05 — Uniware full catalog + DRR window
+
+- **Issue:** Mirror missed quiet Uniware SKUs. No DRR. User wants days / months / years.
+- **Reason:** Snapshot has no DRR field. Old sync only pulled platform SKUs + last 24h updates. Orders were headers only.
+- **Fix:** `itemType/search` for catalog SKUs. `uni_sale_order_line` + `uni_drr_by_sku`. UI DRR column and Days/Months/Years filter. Sync orders lookback follows that window. Qty still never enter Inventory on-hand.
+- **Files:** `supabase/migrations/20260905085728_uniware_full_catalog_drr.sql`, `supabase/functions/uniware-bridge/index.ts`, `UniwareBridgePanel.jsx`, `uniwareUtils.js`, `uniwareDrrUtils.js`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, UNIWARE_BOUNDARY.md, DEBUGGING.md, OVERVIEW.md
+
+## 2026-09-04 — Fix Uniware Sync orders date crash
+
+- **Issue:** Sync orders died with generic non-2xx. Inventory still ok.
+- **Reason:** Uniware order `created` is epoch ms. Slice-to-10 made `"1788470970"`, invalid `date`. Error object stringified as `[object Object]`.
+- **Fix:** Parse epoch/ISO to `YYYY-MM-DD`. Real error text on the banner.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `src/uniwareUtils.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md
+
+## 2026-09-04 — Uniware order mirror includes B2B/CUSTOM
+
+- **Issue:** Ecom orders tab looked empty / ecom-only. User wants B2B too.
+- **Reason:** Sync never filtered ecom. It only looked at last 3 hours and 200 rows, and **Sync orders was never clicked**. Live Uniware last 7 days already has hundreds of `CUSTOM` (B2B) orders.
+- **Fix:** Sync last 14 days, all channels, extra CUSTOM pass. UI tabs All / B2B / Ecom. Still read-only on `uni_sale_order`.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `UniwareBridgePanel.jsx`, `uniwareUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, UNIWARE_BOUNDARY.md, DEBUGGING.md
+
+## 2026-09-04 — Uniware mirror by facility, full SKU pull
+
+- **Issue:** Inventory mirror was one facility, last-24h SKUs only, and Available often 0 so the table looked empty.
+- **Fix:** Sync walks every Uniware facility. Snapshot uses last 24h **plus** platform `inventory_skus` in chunks. UI has facility tabs, Hide zeros (on by default), Available / Blocked / Open sale / Putaway / On hand.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`, `UniwareBridgePanel.jsx`, `uniwareUtils.js`, `supabase/migrations/20260904093145_uniware_mirror_qty_and_facilities.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md
+
+## 2026-09-04 — Staging Uniware login + snapshot payload
+
+- **Ops:** Staging `uniware-bridge` now has Uniware Edge secrets (tenant `scottinternational`). Password is **not** in git. Production not set.
+- **Bug fix:** Snapshot body was `inventoryType` (Uniware rejects it). Now `updatedSinceInMinutes: 1440` per [Get Inventory Snapshot](https://documentation.unicommerce.com/docs/inventory-snapshot.html). Default facility `scottinternational`.
+- **Files:** `supabase/functions/uniware-bridge/index.ts`
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, FLOWS.md, SECURITY.md
+
+## 2026-09-04 — Ready Stock utilization behind one button
+
+- **UI:** Channel utilization no longer sits in a second always-open card. One **Channel utilization** button above the status tabs; click shows totals + SKU table under that button (closed by default). Header filters stay one row. Badges use muted/secondary tokens so they do not go bright white in dark mode.
+- **Files:** `ReadyStockOrdersPanel.jsx`, `readyStockChannelUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, OVERVIEW.md
+
+## 2026-09-04 — Ready Stock order channel + utilization
+
+- **Feature:** Each Ready Stock (`scott_orders`) row now snapshots the sales channel at create time. List and detail show a channel badge. Filter and search work by channel.
+- **Report:** SQL view `rpt_ready_stock_channel_utilization` groups ordered/dispatched qty by channel × SKU (cancelled/failed excluded). Ready Stock tab shows the table.
+- **API:** `POST /api/v1/orders` stamps channel from optional `channel_code` / `channel`, else the API key’s linked `dashboard_channels` row, else `UNKNOWN`. Hashed key lookup runs before the legacy env secret so NotFunny still maps to `NOTFUNNY_APP`.
+- **Migration (staging):** `20260904065942_ready_stock_order_channel.sql`. Existing orders backfilled as Unknown.
+- **Files:** `supabase/migrations/20260904065942_ready_stock_order_channel.sql`, `supabase/functions/dashboard-stock-api/{stockCore,orders,index}.ts`, `ReadyStockOrdersPanel.jsx`, `ReadyStockOrderDetailDialog.jsx`, `readyStockChannelUtils.js`, `AdminIntegrationsPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DASHBOARD_ORDER_API.md
+
+## 2026-09-08 — Chat stays on searched person after Send
+
+- **Issue:** Search a person, send. Message went to that person, then the screen jumped to the last chat.
+- **Fix:** That send pins the open thread. Inbox reload cannot switch it. Name stays that person until you click another chat.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
+## 2026-09-08 — Search send stays on that person (again)
+
+- **Issue:** Search a person, send, then Chat jumped back to the last person you were talking to.
+- **Fix:** Send always opens that person's DM even if the old chat id was still in memory. Search pick does not click through onto the list under the popup. Chats tab does not auto-open the first DM after you pick someone.
+- **Files:** `TeamChatPanel.jsx`, `ChatInboxSearch.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-09-08 — Chat search send stays on that person
+
+- **Issue:** Search a person, send a message, then the thread jumped to someone else.
+- **Fix:** Chats tab no longer auto-opens the first DM while a thread id is already chosen. First send pins that conversation and keeps an inbox stub so the empty-DM filter cannot steal the page.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-09-08 — Contact Book add form can scroll
+
+- **Issue:** Add / Edit contact cut off. Could not scroll to Address or Save.
+- **Fix:** Form body scrolls. Header and Save stay. Contact list hides while the form is open.
+- **Files:** `ContactBookPanel.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
+## 2026-09-07 — Netlify publish allows public Giphy key
+
+- **Issue:** Vercel published; Netlify stopped after secret scan saw the Giphy key.
+- **Fix:** `SECRETS_SCAN_OMIT_KEYS` / `SECRETS_SCAN_OMIT_PATHS` in `netlify.toml`. Giphy client key stays public on purpose.
+- **Files:** `netlify.toml`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, RELEASE_AUTOMATION.md, DECISIONS.md.
+
+## 2026-09-07 — Chat GIF search uses one Giphy key on all deploys
+
+- **Issue:** Chat GIF Search needed a Giphy key. Local `.env` does not ship with `main`, so production search stayed empty.
+- **Fix:** Public Giphy client key lives in `giphyGifApi.js` and `netlify.toml` `[build.environment]`. Same key on local, staging (`develop`), and production (`main`).
+- **Files:** `giphyGifApi.js`, `netlify.toml`, env examples
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, ENVIRONMENTS.md, RELEASE_AUTOMATION.md, PLATFORM_OVERVIEW.md.
+
+## 2026-09-07 — DM 2 grey ticks while peer is Online
+
+- **Issue:** DM showed 1 grey while the other person was active on the dashboard and had not opened the chat.
+- **Fix:** Chat: Online + not seen = **2 grey**. Away/Offline + not seen = **1 grey**. Opened = **2 blue**. Groups unchanged (0 / some / all seen).
+- **Files:** `teamChatReceipts.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-07 — Ticks from open-thread only + faster send
+
+- **Issue:** Blue ticks showed before the other person opened the chat. Groups used Online as 2 grey even when nobody had seen it. Send waited ~1s on a full reload.
+- **Fix:** Ticks ignore presence. Chat: not opened = 1 grey, opened = 2 blue. Group: 0 seen = 1 grey, some seen = 2 grey, all seen = 2 blue. Send shows the bubble immediately; inbox refresh is background.
+- **Files:** `teamChatReceipts.js`, `teamChatService.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-07 — Chat send keeps thread and composer focus
+
+- **Issue:** After Send, the Chat/Group page blinked away for a second. Cursor left the text box.
+- **Fix:** Same-thread refresh no longer shows “Loading messages…”. Composer stays enabled (`readOnly` only while send runs). Focus returns to the box after Send. First DM loads the conversation before leaving compose so the thread does not unmount.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md.
+
+## 2026-09-07 — Hide Voice note.webm label
+
+- **Issue:** Voice bubbles showed the file name `Voice note.webm` under the player.
+- **Fix:** Name is gone. Player + download arrow only.
+- **Files:** `ChatMessageMedia.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-09-07 — Voice notes play again with download
+
+- **Issue:** After the download arrow, voice notes showed a tiny white pill. No seek bar, hard to play.
+- **Fix:** Player is the old full-width `<audio controls>` (`min-w-[16rem]`). Download sits under the player, not beside the control. `Voice note.webm` still counts as audio if mime is odd.
+- **Files:** `ChatMessageMedia.jsx`, `teamChatUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-07 — Chat files any size + download icon
+
+- **Issue:** Paperclip blocked files over 15 MB. Download was a text link. Excel often rejected by type.
+- **Fix:** No client size cap. Images, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. Download arrow beside the file (and Media photos/docs) saves through the browser file manager. Links stay without that icon. Staging bucket `team-chat-files` limit 10 GB (`20260907110000_team_chat_files_no_size_cap.sql`).
+- **Files:** `teamChatUtils.js`, `ChatMessageMedia.jsx`, `ChatSharedMediaSheet.jsx`, `TeamChatPanel.jsx`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md.
+
+## 2026-09-07 — Inbox search next to New chat / New group
+
+- **Issue:** Chats and Groups had no search. Users had to scroll the list to find a person or group.
+- **Fix:** Magnifying-glass button sits left of **New chat** / **New group**. Type letters to filter names. Click a person to open that DM (existing thread, or compose). Click a group name to open that group.
+- **Files:** `ChatInboxSearch.jsx`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, FLOWCHARTS.md.
+
+## 2026-09-05 — Click the whole message row to select
+
+- **Issue:** Select only fired on the bubble, so empty space on that line did nothing.
+- **Fix:** The full-width row is the hit target (avatar, name, bubble, leftover strip). Links and downloads still do not toggle select.
+- **Files:** `TeamChatPanel.jsx`, `ChatMessageBody.jsx`, `ChatMessageMedia.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-05 — Long chat URLs wrap inside the bubble
+
+- **Issue:** A long Amazon (or any) URL painted as one line across the thread and sat on other bubbles.
+- **Fix:** Chat link Button drops `whitespace-nowrap` / `inline-flex`. URL wraps line by line inside the bubble. Full text stays; nothing is clipped.
+- **Files:** `ChatMessageBody.jsx`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-05 — Older chat messages show again
+
+- **Issue:** Scott Test Group has 6 live rows, but the thread only showed the last “hi” over a big white hole.
+- **Fix:** Thread uses a normal overflow scroll box (not Radix table viewport). Bubbles no longer `overflow-hidden`. Scroll sets `scrollTop` on that box. Load newest 200, then reverse.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-05 — Groups list no longer vanishes
+
+- **Issue:** After the pane-lock edit, Groups looked empty or the list disappeared when opening a group.
+- **Fix:** Groups still in the database. Inbox stays on screen from `sm` up. Groups tab keeps/opens a group, not a DM. Inbox overflow no longer collapses the list to zero height.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md.
+
+## 2026-09-05 — Clickable chat links, own-only delete, locked pane
+
+- **Issue:** URLs in a bubble were plain text. Delete still showed if any own message sat next to someone else's. Long posts grew the whole Chat tab and squeezed the layout.
+- **Fix:** `http`/`https` in the message body is a real link (new tab). Click own or others in Chats/Groups. Delete shows only when every selected row is yours (channel admin still can). Chat is a full-bleed pane: inbox + thread stay one size; long text wraps inside the bubble. Phone still uses list then thread.
+- **Files:** `ChatMessageBody.jsx`, `ChatMessageActionBar.jsx`, `teamChatMedia.js`, `TeamChatPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-05 — Selected chat rows use a sky-blue bar
+
+- **Issue:** Selected messages only had a ring on the bubble, so it was hard to see what was picked.
+- **Fix:** Chat/Group selection paints a light sky-blue horizontal bar across the row. The message bubble itself stays the same color.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-09-05 — Header click opens details; Media tabs
+
+- **Issue:** Group name looked like a button. Chat header did not open a profile page. No place to see shared photos, files, or links.
+- **Fix:** Name stays normal text. Click the name line on Chat or Group to open the details sheet (photo + people; group admin still adds/removes). **Media** on the right lists Photos/Videos, Documents, and Links.
+- **Files:** `TeamChatPanel.jsx`, `ChatGroupDetailsSheet.jsx`, `ChatSharedMediaSheet.jsx`, `teamChatMedia.js`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-09-05 — Incoming chat toast and dedicated sound
+
+- **Issue:** Incoming Chat / Group / Channel messages used the generic status tone and had no 45s name + message box.
+- **Fix:** New messages play `sounds/chat-message.mp3` (from the provided Drive clip). Recipients see a bottom-right card: name, then message, X to close, 45 seconds. Sound still plays if another browser tab is focused while the dashboard stays open.
+- **Files:** `public/sounds/chat-message.mp3`, `ChatIncomingToastStack.jsx`, `notificationTonePlayer.js`, `teamChatNotificationUtils.js`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, SECURITY.md.
+
+## 2026-09-05 — Group admin details sheet
+
+- **Issue:** Group creator was already admin in the DB, but nobody could add people, promote admins, change the group photo, or remove a member. Clicking the group name did nothing.
+- **Fix:** Click group name in the thread header opens a details sheet with every member. Creator stays admin. Admins can add people, make admins, change the photo, and remove others. Members only see the list. Staging migration `20260905153000_team_chat_group_admin.sql`.
+- **Files:** `ChatGroupDetailsSheet.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `teamChatUtils.js`, `avatarUtils.js`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-05 — Group ticks stay 2 grey until everyone seen
+
+- **Issue:** Group tick dropped to 1 grey after one person opened the post if others were Offline.
+- **Fix:** Group: one or more other members seen, but not all → always **2 grey**. **2 blue** only when every other member has seen that post. Nobody seen yet still uses Online for 2 grey / Offline for 1 grey. DMs unchanged.
+- **Files:** `teamChatReceipts.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-09-05 — Ticks refresh on every Chat/Group send type
+
+- **Issue:** Ticks stayed 1 grey after people opened the thread. Photo, file, GIF, emoji, and voice often lost the tick.
+- **Fix:** Staging `replica identity full` on members so peer `last_read_at` realtime works. Sender patches + polls member reads. Open thread heartbeats mark-read. Bubble is a `div` so media/links do not eat ticks. Same 1 grey / 2 grey / 2 blue rules for text, photo, file, GIF, emoji, voice. Channels still no ticks.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`, `teamChatReceipts.js`, `ChatMessageMedia.jsx`, `20260905105000_team_chat_member_read_realtime.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DATABASE.md, DECISIONS.md.
+
+## 2026-09-05 — Chat and group delivery ticks
+
+- **Issue:** Sent bubbles had no WhatsApp-style ticks. Group senders could not see who opened a post.
+- **Fix:** Own Chats/Groups messages show 1 grey / 2 grey / 2 blue from peer `last_read_at` + Online presence. Channels stay tick-free. Group sender, one selected post → Info lists Seen / Not seen. All others seen → blue. Any unread + someone Online → 2 grey. All others Offline/Away → 1 grey. Inbox now loads every member `last_read_at` and listens to all member row changes.
+- **Files:** `teamChatReceipts.js`, `ChatMessageTicks.jsx`, `ChatGroupViewersDialog.jsx`, `ChatMessageActionBar.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Org-wide Channels with admin-only posting
+
+- **Issue:** Channels tab was empty. Need a room everyone sees, but only admins create and post.
+- **Fix:** **New Channel** (admin only) asks for a name. Every profile is a member. Admins get the full composer and all message actions. Others can only react (emoji + count), copy, and forward. Long posts wrap. Staging migration `20260904124757_team_chat_channels.sql`.
+- **Files:** `CreateChannelDialog.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`, `ChatMessageActionBar.jsx`, `ChatForwardDialog.jsx`, `teamChatUtils.js`, migration
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Copy selected chat messages and paste into composer
+
+- **Issue:** Select bar and composer had no clipboard icons.
+- **Fix:** Copy icon on one or many selected messages (Chats and Groups). Paste icon in the row under the box with emoji / GIF / file / mic. Copy writes full text (or GIF/file label). Paste inserts at the cursor.
+- **Files:** `ChatMessageActionBar.jsx`, `TeamChatPanel.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, FLOWCHARTS.md.
+
+## 2026-09-04 — Long chat text wraps inside the bubble
+
+- **Issue:** A long message (especially one word with no spaces) stayed on one line and ran off the thread.
+- **Fix:** Bubbles stay inside the thread width. Text wraps and long tokens break. Whole body stays visible. Chats and Groups.
+- **Files:** `TeamChatPanel.jsx`, `ChatMessageBody.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-04 — Chat composer actions sit under a full-width box
+
+- **Issue:** Emoji, GIF, file, and mic stacked beside a two-line box.
+- **Fix:** Box is full width, one line then grows to about five then scrolls. Same four buttons in one row under the box, left. Send stays on the right of that row. No send/record logic change.
+- **Files:** `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-09-04 — Voice notes on Chats and Groups
+
+- **Issue:** Compose had no way to record sound.
+- **Fix:** Mic under paperclip. Click starts record. Stop shows only while recording. After stop, Send uploads the audio to `team-chat-files` like other files. Thread plays it. Max 5 minutes.
+- **Files:** `ChatVoiceControls.jsx`, `teamChatVoice.js`, `teamChatUtils.js`, `TeamChatPanel.jsx`, `ChatMessageMedia.jsx`, `teamChatService.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Unopened text count on Chats / Groups / Channels tabs
+
+- **Issue:** Bottom inbox tabs had no unread number.
+- **Fix:** Count unopened text-only messages (not GIF/file-only, not your own, not deleted, after `last_read_at`). Badge beside Chats and Groups. Channels stays 0. Hide badge at 0.
+- **Files:** `teamChatService.js`, `TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-04 — Stay Online 5 minutes after leaving the dashboard tab
+
+- **Issue:** Other browser tab flipped Away immediately.
+- **Fix:** `last_seen_at` only moves while the dashboard is focused. List + open DM stay Online for 5 minutes, then Away. Offline still after 2 hours from last dashboard focus.
+- **Files:** `dashboardPresence.js`, `supabase/migrations/20260904113100_hr_presence_online_grace.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md.
+
+## 2026-09-04 — Chat presence Online / Away / Offline
+
+- **Issue:** Chat list and open DM had no live status. Green on the list but Offline under the name would be wrong.
+- **Fix:** Dashboard heartbeat (`hr_user_presence`). Visible focused dashboard = Online (green + “Online”). Other browser tab or leave the app = Away (yellow + “Away”). No row, or Away 2 hours = Offline (red + “Offline”). Same status on the list dot and under the name.
+- **Files:** `dashboardPresence.js`, `person-avatar.jsx`, `TeamChatPanel.jsx`, `App.jsx`, `index.css`, `tailwind.config.js`, `supabase/migrations/20260904112200_hr_user_presence.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat message select actions (icons only)
+
+- **Issue:** Chats/Groups messages had no reply, react, delete, forward, or pin.
+- **Fix:** Click a message to select it. One selected → icon Reply, React, Pin, Forward, Delete. Several selected → icon Forward and Delete. Soft-delete own messages. Staging migration `20260904110500_team_chat_message_actions.sql`.
+- **Files:** `TeamChatPanel.jsx`, `teamChatService.js`, `ChatMessageActionBar.jsx`, `ChatForwardDialog.jsx`, `supabase/migrations/20260904110500_team_chat_message_actions.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, API.md, OVERVIEW.md.
+
+## 2026-09-04 — Direct chats on Chats tab; groups on Groups tab
+
+- **Issue:** Created groups still showed in the Chats list with DMs.
+- **Fix:** Chats lists `kind=direct` only. Groups lists `kind=group` only (including General). New chat stays on Chats. New group opens Groups. Thread on each tab only shows that kind.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-09-04 — Chat inbox tab panel stays at the bottom
+
+- **Issue:** Chats / Groups / Channels bar sat at the top.
+- **Fix:** Same three-tab panel is last in the left inbox (`border-t`). Chat rows unchanged. Headings stay at the top of each list.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Restore chat row format; tabs stay at top
+
+- **Issue:** Inbox rows became name-only. User only wanted tab names moved to the top.
+- **Fix:** Put back avatar, member/group name, time, preview, unread badge. Tabs stay at the top. Groups still uses the same row for group chats. Channels still empty.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat inbox tabs at top; name lists fill the pane
+
+- **Issue:** Chats / Groups / Channels sat at the bottom. Hidden tab panes still used `flex`, so the heading floated in a hole. Lists used fat chat rows (avatar, time, preview).
+- **Fix:** Tab names only at the top. Inactive panes no longer steal height. Under the tabs: a full-height scroll of names only. DMs on Chats, groups on Groups, Channels empty. **New chat** / **New group** stay as actions, no second title.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Groups and Channels keep Chats layout; New group on Groups
+
+- **Issue:** Groups and Channels swapped to a full-width Empty pane. New group sat on Chats.
+- **Fix:** All three tabs keep the left list + right thread chrome. **New group** sits on Groups in the same header slot as **New chat**. Groups/Channels lists stay empty until a later spec.
+- **Files:** `src/TeamChatPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-04 — Chat inbox bottom tabs (Chats / Groups / Channels)
+
+- **Issue:** Chat only had one list. User wants a bottom bar under that list: Chats, Groups, Channels in one row.
+- **Fix:** shadcn Tabs sit in the left inbox. TabsList is at the bottom, three equal triggers. **Chats** still shows the conversation list + thread. **Groups** and **Channels** show Empty “Coming soon.” Thread hides when those tabs are open.
+- **Files:** `src/TeamChatPanel.jsx`, `src/components/ui/empty.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-03 — View order mockup/asset preview open-close glitch
+
+- **Bug fix:** Mockup, design, and customer-asset preview no longer portals outside the View order Dialog (that forced `modal` on/off and flashed the page). Preview is an overlay inside an inner wrap. Do not put `relative` on DialogContent — Tailwind would drop `fixed` and the order sheet would vanish. Asset Management detail overlays the list instead of swapping to an empty page.
+- **Files:** `ImagePreviewModal.jsx`, `App.jsx`, `AssetManagementPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-09-03 — Purchase Order Status column uses icon + name
+
+- **Issue:** All PO Orders Status looked like a colored badge, not the job-sheet status Select.
+- **Fix:** Same names (Pending, PO sent, PO Approved, Completed). Trigger and list show a colorful icon then the name, like Production Status. Pending uses `/icons/pending.png`.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-03 — Local `npm run dev` killed by leftover picklist port
+
+- **Bug fix:** Stale `node server/index.js` on port 3001 made picklist exit `EADDRINUSE`, and the wrapper then killed Vite, so `localhost:5173` died. Wrapper now reuses a healthy picklist and keeps Vite if picklist fails. Listen errors on the picklist server are handled instead of an unhandled crash.
+- **Files:** `scripts/dev-with-picklist-api.mjs`, `server/index.js`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-09-03 — Printing status edit, asset view, complete stay put, dispatch auto-complete
+
+- **Bug fix:** Printing list showed a status badge only, so admin/staff could not change status in the table. View order also hid status if they opened the job from a tab they cannot edit. Status dropdown now works on the printing list and for anyone with `can_edit_status`. Radix Select no longer uses a dummy empty value that broke the control.
+- **Bug fix:** Asset detail fell back to the first asset and left the check-in dialog mounted, so open/close flickered. Detail now uses the clicked tag only; Back clears it; dialog mounts only when open.
+- **Bug fix:** Mark complete jumped to the Complete orders tab. It now stays on the current list.
+- **Feature:** Sent to Dispatch jobs move to Complete orders after 10 minutes (`status_sent_to_dispatch_at` + existing promote RPC). RPC uses a transaction GUC so the complete write does not lock `orders`. Staging migration `20260903125154_sent_to_dispatch_auto_complete.sql`.
+- **Files:** `App.jsx`, `OrderDetailPanel.jsx`, `OrderListStatusCell.jsx`, `AssetManagementPanel.jsx`, `supabase/migrations/20260903125154_sent_to_dispatch_auto_complete.sql`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DECISIONS.md.
+
+## 2026-09-03 — Production NF webhook enabled (same receiver as staging)
+
+- **Ops:** NF confirmed the earlier `scott-webhook` URL + HMAC secret are production too. Set `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` on production (`levwrmvqdntngeasrtnb`). Redeployed `dashboard-stock-api` and `admin-test-scott-webhook`. Echo `evt_prod_1331ec06c6ad` → `200 {"received":true}`. Scott auth unchanged.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-03 — Production release (develop → main)
+
+- **Release:** Merged `develop` → `main` (`08e9384`, plus follow-up `f147f82`). Netlify production builds from `main`.
+- **Production Supabase** (`levwrmvqdntngeasrtnb`): applied pending migrations from `20260716120000` through `20260903090955` (enquiry policy `20260819120000` applied then marked applied after a deadlock). Live `orders` stay bigint; 677 printing orders untouched. Inventory still empty on prod.
+- **Edge functions deployed** on production, including `dashboard-stock-api`. New production `DASHBOARD_API_KEY` set for NotFunny. Outbound `SCOTT_WEBHOOK_*` **not** set on production. Scott auth secrets **not** copied (Scott app login stays as-is).
+- **Fix in this release:** `20260819113000_production_status_whatsapp.sql` stores `order_uuid` as text so it works with bigint `orders.id`.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, DEBUGGING.md, MOBILE_API_INTEGRATION.md, DECISIONS.md.
+
+## 2026-09-03 — Staging Scott webhook echo test succeeded
+
+- **Ops:** Sent signed staging `stock.level_changed` test (`test: true`, `event_id` `evt_test_9d337f9b698c`) to NF `scott-webhook`. Path `/webhooks/stock/level_changed` returned `200 {"received":true}`. Repeat posts with the same `event_id` returned `200 {"received":true,"idempotent":true}`. Production not touched.
+- **Documentation updated:** DEBUGGING.md, ENVIRONMENTS.md, CHANGELOG.md.
+
+## 2026-09-03 — Asset Management Save writes to Assets register
+
+- **Issue:** New Asset entry did not stay in the Assets list after Save (or after leaving the tab).
+- **Fix:** Save inserts staging `hr_assets`. Assets / Dashboard load that table. Leave tab or refresh still shows the row. Tag still `IT-00001`+. Name required.
+- **Files:** `AssetManagementPanel.jsx`, `hrAssetUtils.js`, `App.jsx`, `supabase/migrations/20260903090955_hr_assets.sql`
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, API.md, SECURITY.md.
+
+## 2026-09-03 — Staging Scott outbound webhooks pointed at NF receiver
+
+- **Ops:** Set `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` on staging (`scvojtvgnkmbupvyslmb`) to the NF `scott-webhook` function. Redeployed `dashboard-stock-api` and `admin-test-scott-webhook`. Events already wired: `order.status_changed`, `stock.level_changed`, `stock.low_threshold` (HMAC `X-Dashboard-Signature`, outbox retry). No test send yet. Production not touched.
+- **Documentation updated:** DEBUGGING.md, ENVIRONMENTS.md, CHANGELOG.md.
+
+## 2026-09-02 — Inventory Transfer moves qty from warehouse A to warehouse B
+
+- **Bug fix:** Adjust → Transfer had one warehouse box, so from and to were the same bin. The RPC path skipped facility stock, so nothing left A and nothing arrived at B.
+- **Fix:** Transfer now asks **From warehouse** and **To warehouse**. RPC `transfer_sku_facility_stock` deducts available on-hand at from-facility and adds the same qty at to-facility in one transaction, then writes one `TRANSFER` movement. Total SKU stock stays the same.
+- **Files:** `src/inventory/modals/AdjustStockModal.jsx`, `src/inventory/InventoryDashboard.jsx`, `src/inventory/InventoryDataContext.jsx`, `src/inventory/inventoryDbUtils.js`, `supabase/migrations/20260902193000_transfer_sku_facility_stock.sql`
+- **Migration:** applied on **staging** only.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Inventory Adjust looked stuck + Step 5 Uniware bridge
+
+- **Bug fix:** Inventory Adjust wrote facility stock, but the list kept the old qty. List reads `inventory_sku_availability`, not `inventory_skus.stock_qty`. Silent refresh after Adjust never reloaded that map, and OUT/ADJUST ignored the warehouse you picked (wrote the SKU home bin). Fix: `refresh()` awaits `loadAvailability()`; Adjust uses the chosen warehouse; realtime also watches `inventory_facility_stock`.
+- **Feature:** One Source of Truth Step 5 Uniware bridge. Read-only `uni_inventory_mirror` / `uni_sale_order`. Cross-boundary stock only via `uni_transfer` + Uniware `inventory/adjust`. Mirror qty never enter Stock Ledger or Inventory on-hand. Admin tab **Uniware Bridge** (`ops_uniware`). Edge `uniware-bridge` (admin JWT). Secrets stay on the function, not in the SPA.
+- **Files:** `src/inventory/InventoryDataContext.jsx`, `src/inventory/InventoryDashboard.jsx`, `src/realtimeUtils.js`, `supabase/migrations/20260902180000_step5_uniware_bridge.sql`, `supabase/functions/uniware-bridge/index.ts`, `src/UniwareBridgePanel.jsx`, `src/uniwareUtils.js`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Seeds marker location `UNIWARE-ECOM` (`owner_system=uniware`). Production untouched.
+- **Deferred:** live Uniware pull needs edge secrets `UNIWARE_BASE_URL` / `UNIWARE_USERNAME` / `UNIWARE_PASSWORD` / `UNIWARE_FACILITY`. Marketplace labels/manifests stay in Uniware. Ecom orders stay in `uni_sale_order` (not mixed into `so_order`).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, API.md, SECURITY.md, UNIWARE_BOUNDARY.md, ENVIRONMENTS.md.
+
+## 2026-09-02 — Step 4 billing & receivables: invoice from dispatch, credit notes, ageing
+
+- **Feature:** One Source of Truth Step 4 money path. `bill_invoice` / `bill_invoice_line` generated from a dispatch (one invoice per dispatch); gapless `INV/<FY>/nnnn` per entity × GSTIN × FY; HSN from SKU, GST from the order line, IGST vs CGST+SGST from place of supply vs GSTIN state. Invoice immutable once numbered — corrections are `bill_credit_note`. `ar_receipt` + `ar_allocation` all-or-nothing; allocation cannot exceed invoice outstanding or receipt amount. Ageing view `ar_invoice_outstanding_view` (NOT DUE / 0–30 / 31–60 / 61–90 / 90+ / PAID); due date = invoice date + party credit days. `ar_customer_ledger_view`. `ar_followup` collections trail. Soft credit warning on Sales Order confirm (`ar_credit_check`); hard block deferred until department roles.
+- **UI:** new admin-only tab **Billing & AR** (`ops_ar`): generate invoice, invoice detail + credit note, receipts with allocations, ageing buckets + customer balances, follow-ups. Existing Billing tab untouched.
+- **Files:** `supabase/migrations/20260902170000_step4_billing_receivables.sql`, `src/billingArUtils.js`, `src/BillingArPanel.jsx`, `src/SalesOrdersPanel.jsx`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Smoke (rolled back): intra-state CGST split, inter-state IGST, order → invoiced, duplicate invoice blocked, invoice edit blocked, credit over-outstanding blocked, over-allocation blocked.
+- **Deferred:** GSP e-invoice IRN/QR, e-way bill API, Tally XML daily batch + recon screen, distributor incentive engine, `bill_quote`/proforma — need vendor/CA picks (see DECISIONS).
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Step 3 sales orders: order → reserve → dispatch, job work, SLA
+
+- **Feature:** One Source of Truth Step 3. `so_order`/`so_line` with a DB status machine (draft → confirmed → in_production → ready → partially_dispatched → dispatched → invoiced → closed, + cancelled); confirming assigns a gapless `SO/<FY>/nnnn` and reserves available stock (`so_allocate`, partial allowed, re-runnable); **ready requires full reservation** and **dispatch can never exceed reserved qty** (roadmap laws, enforced in the DB). `so_dispatch`/`so_dispatch_line` are append-only, written only by `so_post_dispatch` (consumes reservations, posts `dispatch` movements, rolls the order status). `jw_job` job work (printing/embroidery/sublimation/stitching): issue = challan out (transfer to worker location), receive = outputs in (`production_out`) + consumed inputs burned (`consumption`); leftover input at the worker location is the visible loss. `sla_policy` stage targets measured in business hours (Mon–Sat 09:30–18:30 IST, `ops_business_hours_between`) via `so_sla_view`. Views `so_open_view`, `so_sla_view`. Counter sales = `channel='counter'` on the same table.
+- **UI:** new admin-only tab **Sales Orders** (`ops_sales`, Ops Platform group): Orders (create draft, confirm & reserve, allocate, start production, mark ready, dispatch dialog capped at reserved, cancel with reason), Dispatches list, Job work (create/issue/receive/close), SLA (target editor + breach table).
+- **Files:** `supabase/migrations/20260902150000_step3_sales_orders.sql`, `src/salesOrdersUtils.js`, `src/SalesOrdersPanel.jsx`, `src/dashboardSidebarConfig.js`, `src/App.jsx`
+- **Migration:** applied on **staging** (`scvojtvgnkmbupvyslmb`) only. Smoke test (rolled back): partial allocation, ready-block, over-dispatch block, append-only dispatches, job-work round trip, SLA hours, drift 0.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Support desk tables readable in Dark Mode
+
+- **Issue:** Support Enquiry / Complaints table values vanished in Dark Mode.
+- **Fix:** Priority row tints and status/priority badges use dark backgrounds and `text-foreground` so light inherited panel text is not on pale `*-50` rows.
+- **Files:** `SupportTicketDesk.jsx`, `EnquiryDetailDialog.jsx`, `SupportDelayAlertCard.jsx`
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Issue column after Status, View Issue on the same line
+
+- **Issue:** Issue sat before Status. View Issue sat under the type/floor line.
+- **Fix:** Columns Name | Status | Issue | Date. Issue cell is one line: `Power Cut - 2nd Floor → View Issue`.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Open Tickets Issue column shows type and floor
+
+- **Issue:** Issue column was only **View Issue**, and it sat before Name, away from Status.
+- **Fix:** Columns are Name | Issue | Status | Date. Issue cell shows `Power Cut - 2nd Floor` from their picks; **View Issue** sits under that line. Same on Resolved. No floor → type only.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Open Tickets tab; Raise an Issue is a button
+
+- **Issue:** Raise an Issue was its own tab. History name did not match tickets.
+- **Fix:** Tabs are **Open Tickets** and **Resolved**. **Raise an Issue** is a button on Open Tickets. The button opens a Dialog with issue types, Floor, Comment, Submit, and thank-you.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-02 — Internal Support link says View Issue
+
+- **Issue:** History and Resolved Issue column said **View order**.
+- **Fix:** Link text is **View Issue**. Dialog title stays View Issue.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support Resolved tab
+
+- **Issue:** Resolved tickets stayed in History. Admin could still change Status after Resolved.
+- **Fix:** Third tab **Resolved** (admin and non-admin). History keeps Open / In Progress / Closed. Marking Resolved moves the row. Resolved tab is read-only status. Filters: From, To, Search, View / page. Name filter admin only. Staging RLS: update only when current status is not Resolved.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js`, `supabase/migrations/20260902054226_internal_support_issues_lock_resolved_status.sql`
+- **Migration:** staging `scvojtvgnkmbupvyslmb` only. Not production.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-02 — Internal Support History scoped by role
+
+- **Issue:** Every signed-in staff could see all History rows, change Status, and use the Name filter.
+- **Fix:** Admin sees every issue, can change Status, and gets the Name filter. Non-admin sees only own `raised_by` rows, Status as a read-only mark (admin’s current value), no Name filter. Staging RLS matches: select own or admin; update admin only.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `InternalSupportHistoryFilters.jsx`, `internalSupportIssueUtils.js`, `App.jsx`, `supabase/migrations/20260902051939_internal_support_issues_rls_own_and_admin.sql`
+- **Migration:** staging `scvojtvgnkmbupvyslmb` only. Not production.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, SECURITY.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-02 — Internal Support Status dropdown matches tracker icons
+
+- **Issue:** Status Select showed names only in the closed box. List icons were Lucide lines, not colorful symbols like Production Tracker.
+- **Fix:** Same Select pattern as `OrderListStatusCell`: `SelectValue` children = emoji + name. List items match. Open 📂, In Progress ⏳, Resolved ✅, Closed 🔒. Names unchanged.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support Status is one dropdown
+
+- **Issue:** Status showed a Badge box and a Select box for the same value.
+- **Fix:** One shadcn Select. Trigger and list show icon + Open / In Progress / Resolved / Closed in that box.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support History filters, status marks, View order
+
+- **Issue:** History had no From/To/Search filters. Status was plain text. View Issue was an outline Button.
+- **Fix:** Filters above the table: From, To, Clear, Search, Name, View / page. Status Badge + icon (Open gray, In Progress primary, Resolved outline check, Closed red). Issue cell is underlined **View order**.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `InternalSupportHistoryFilters.jsx`, `internalSupportIssueUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-02 — Internal Support History records each Submit
+
+- **Issue:** Submit did not save. No History of who raised what.
+- **Fix:** Staging table `internal_support_issues`. **History** tab: View Issue, Name, Status (Open / In Progress / Resolved / Closed), Date. Submit writes the row. Status Select updates it.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `internalSupportIssueUtils.js`, `App.jsx`, `supabase/migrations/20260902044605_internal_support_issues.sql`
+- **Migration:** staging `scvojtvgnkmbupvyslmb` only. Not production.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, DATABASE.md, SECURITY.md.
+
+## 2026-09-02 — Internal Support Raise an Issue tab
+
+- **Issue:** Issue form sat on the panel with no tab.
+- **Fix:** shadcn Tabs. **Raise an Issue** holds the heading, issue Buttons, Floor, Comment, Submit, and thank-you Alert. Same rules as before.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+## 2026-09-02 — Step 2 procurement: PO → GRN → QC → bill (three-way match) → payment
+
+- **Decisions (user):** QC gate ON by default (vendor-item `qc_exempt` skips it, fallback `crm_party.default_qc_required`); PO/bill approval = CEO / admin access; tolerances editable (`po_settings` singleton + `crm_vendor_item.over_receipt_pct` override).
+- **DB (staging):** migration `20260902120000_step2_procurement.sql` — `po_settings`, `po_purchase_order`/`po_line` (state machine draft→approved→partially_received→fulfilled→closed, short_closed/cancelled; status flips only via functions, enforced by trigger + transaction-local flag), `po_grn`/`po_grn_line` (posted GRNs immutable except QC counters), `ap_bill`/`ap_bill_line` (unique vendor+bill_no; one bill line per GRN line — double billing structurally impossible), `ap_debit_note`, `ap_payment`/`ap_payment_allocation` (append-only, function-only writes). Functions: `po_approve` (gapless `PO/<FY>/0001` via auto-provisioned `core_sequence`), `po_cancel`, `po_short_close`, `po_close`, `po_post_grn` (over-receipt tolerance, QC routing to qc_hold/good, PO counters — over-receipt on one line cannot mask a short line), `po_record_qc`, `ap_approve_bill` (three-way match: billed ≤ received hard stop, rate variance needs override reason; MSME micro/small due-date cap), `ap_cancel_bill`, `ap_record_payment` (allocation ≤ outstanding). Views: `po_active_view`, `ap_bill_outstanding_view`, `ap_vendor_ledger_view`, `po_vendor_performance_view` (all `security_invoker`). Smoke-tested via rolled-back transaction — all 7 guards held, drift 0.
+- **Ledger upgrade:** `inv_movement` gains `to_state` so QC can flip state at the same location (qc_hold → good/damaged); `inv_post_movement` takes optional `p_to_state`; drift recompute credits destination state. Stock Ledger tab shows `state → to_state`.
+- **UI:** new admin-only **Procurement** tab (`ops_procurement`, Ops Platform group): PO list/create/detail (approve, receive GRN, QC queue, short close, cancel, close), Bills (record against unbilled GRN lines, approve with variance-override path, MSME badge), Payments & ledger (vendor ledger, ageing, record payment with allocations), Settings (editable tolerances). `check:ui` passed.
+- **Fixes during build:** `ap_approve_bill` referenced `cat_sku.code` (column is `sku_code`); PO fulfilment originally summed raw pending so over-receipt could mask short lines.
+- **Untouched:** Scott API section, existing Purchase Order voucher tab (`purchase_order`) — the new tab is `ops_procurement`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-09-01 — Step 1 stock ledger: append-only movements + Stock Ledger tab
+
+- **DB (staging):** migration `20260901191500_step1_stock_ledger.sql` — `inv_movement` (append-only, trigger-enforced), `inv_balance` (locked upserts, never negative), `inv_reservation`, cycle-count tables, `inv_drift_alert`; functions `inv_post_movement`, `inv_reserve`/`inv_release_reservation`, `inv_kit_build`/`inv_kit_break`, `inv_count_post`, `inv_recompute_drift` (pg_cron nightly 02:30 IST). All stock mutations in SECURITY DEFINER functions with `FOR UPDATE`. Smoke-tested via rolled-back transaction — all guards held, drift 0.
+- **UI:** new admin-only **Stock Ledger** tab (`ops_stock`, Ops Platform group): stock by location (on-hand/reserved/available), movement history, post-movement dialog (GRN/transfer/issue/return/adjustment±), drift banner. `check:ui` passed.
+- **Untouched:** Scott API section, existing Inventory tab, Scott stock integration.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-09-01 — Platform Masters tab: screens + CSV import with dedupe report
+
+- **What:** New admin-only sidebar tab **Platform Masters** (`ops_masters`, group "Ops Platform") over the Step 0 tables: Parties, SKUs, Entities & GSTINs, Locations — list/search/create/edit dialogs, plus CSV import for Parties and SKUs with a dedupe report (New / Already in masters / Duplicate in file / Invalid; only New rows import). Templates downloadable.
+- **Files:** `MastersPanel.jsx`, `MastersImportDialog.jsx`, `mastersUtils.js` (standalone CSV parser — no dependency on frozen Scott code), `dashboardSidebarConfig.js`, `App.jsx`.
+- **Guard:** distinct from the Scott API "Masters" tab, which is untouched. `check:ui` passed.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-09-01 — Step 0 masters schema on staging (One Source of Truth)
+
+- **What:** Migration `20260901180000_step0_masters_and_entities.sql` — 19 tables: `core_entity`/`core_gstin`/`core_sequence`/`core_location`, `cat_*` catalog (brand→style→colour→sku, kits, channel listings, GST slabs), `crm_*` party master (+GSTIN, address, contact, bank, vendor-item), `hr_employee`, `audit_log` with triggers on every master. `core_next_sequence()` gapless numbering (locked, smoke-tested TST/0001→0002). RLS: read authenticated, write admin; bank + audit admin-only.
+- **Where:** STAGING only (`scvojtvgnkmbupvyslmb`). No UI, no data except 8 seeded brands. Scott API untouched.
+- **Docs:** DATABASE.md (table reference + rollback), DECISIONS.md (6 schema decisions), FLOWCHARTS.md (ERD), CHANGELOG.md.
+
+## 2026-09-01 — One Source of Truth roadmap + laws + Cursor rule (docs only)
+
+- **What:** Captured the full Scott Ops Platform build roadmap in [ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md); the nine binding laws + six-question gate in [laws.md](./laws.md); new always-apply rule `.cursor/rules/single-source-of-truth.mdc`.
+- **Scott API freeze:** the rule and laws hard-guard `src/scott/**`, `scott_customers`/`scott_reports`/`scott_masters` tabs, `scott-*` edge functions, and the existing inventory-fetch integration — never modified by roadmap work.
+- **No code / schema change** in this pass. Step 0 (masters) starts only after scope confirmation.
+- **Documentation updated:** CHANGELOG.md, OVERVIEW.md, laws.md, ONE_SOURCE_OF_TRUTH_ROADMAP.md.
+
+## 2026-09-01 — Hide Floor for Food, Asset, Biometric, Lost belongings
+
+- **Issue:** Floor still showed for Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings.
+- **Fix:** Those four hide **Select your Floor**. Only Comment. If they also pick Internet (or any other issue), Floor shows again and is required.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support thank-you after Submit
+
+- **Issue:** Submit showed a check, **Submitted**, and “ticket save comes next.”
+- **Fix:** After Submit, shadcn Alert only shows: **Thank you. Your issue has been submitted and the concerned team will look into it shortly.** No check icon, no Submitted heading.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-09-01 — Internal Support floor required except four issue types
+
+- **Issue:** Comment showed after any issue. Floor was always required, even for Food / Asset / Biometric / Lost belongings.
+- **Fix:** Comment + Submit wait for a floor when any picked issue needs a floor. Floor not required for **Food**, **Issue with Asset**, **Issue with Biometric**, **Lost Personnal Belongings**. Mix with Internet (etc.) still needs a floor.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support Select your Floor
+
+- **Issue:** After issue Buttons, no floor pick.
+- **Fix:** Heading **Select your Floor**. shadcn Buttons: Ground Floor, 1st–5th Floor. One floor at a time. Submit needs a floor.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support Comment shows after one issue pick
+
+- **Issue:** Comment box showed before anyone picked an issue.
+- **Fix:** Comment (and Submit under it) only render after at least one issue Button is selected. Clear all picks → Comment hides again. Typed comment stays in memory if they pick again.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support comment box and Submit
+
+- **Issue:** After issue Buttons, no place to explain the problem, and no Submit.
+- **Fix:** shadcn Textarea **Comment** under the Buttons (`Explain the issue in detail`). **Submit** under that. Need at least one issue and a comment. Local only; form clears; Alert says ticket save comes next.
+- **Files:** `InternalSupportPlatformPanel.jsx`, `src/components/ui/field.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md.
+
+## 2026-09-01 — Internal Support issue buttons are multi-select
+
+- **Issue:** Issue Buttons only kept one pick. Click a second option, first one dropped.
+- **Fix:** Click toggles. Many Buttons can stay filled at once. Click again to clear that one. Still local only; no ticket save.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Internal Support Platform issue buttons
+
+- **Issue:** Internal Support Platform was an empty Card. Need a heading plus clickable issue types.
+- **Fix:** Heading **Facing an issue? Select the option below that best describes your problem.** Under it, shadcn outline Buttons: Internet, Power Cut, Water Issue, Machinery, Food, Issue with Asset, Lift not working, Issue with Biometric, Floor Hygeine, Lost Personnal Belongings. Click highlights the pick. No ticket save yet.
+- **Files:** `InternalSupportPlatformPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-09-01 — Tools Internal Support Platform panel
+
+- **Issue:** Tools had no Internal Support Platform. Need a panel with a support symbol.
+- **Fix:** Tools item **Internal Support Platform** with LifeBuoy icon. Opens a shadcn Card workspace. Separate from Support (Enquiry). Grantable like other Tools tabs.
+- **Files:** `dashboardSidebarConfig.js`, `DashboardAppSidebar.jsx`, `dashboardSidebarIcons.jsx`, `InternalSupportPlatformPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md.
+
+## 2026-08-31 — Job sheet Delivery required on is today or later
+
+- **Issue:** Create Job sheet and Create Sample Jobsheet let people pick past days for Delivery required on.
+- **Fix:** Calendar only today and future. Save also blocks a past date. Same rule on both forms.
+- **Files:** `CreateJobSheetForm.jsx`, `jobSheetUtils.js`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-31 — Production / Sampling tabs match All / Complete pill
+
+- **Issue:** Production Tracker and Sampling Tracker buttons used apart green / orange. User wants the same look as All orders / Complete orders, no extra colour.
+- **Fix:** Both rows use the default muted shadcn TabsList pill. Green / orange and bold-apart styling removed.
+- **Files:** `ProductionTrackerPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-31 — Hide Due In on Sampling Complete orders
+
+- **Issue:** Sampling Complete still showed Due In. Finished jobs do not need a clock.
+- **Fix:** Due In column only on Sampling **All orders**. Complete orders table has no Due In.
+- **Files:** `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md.
+
+## 2026-08-31 — Sample SLA follows Delivery Required On, else 2 days
+
+- **Issue:** Due In always used 2 days from save. User wants the filled **Delivery required on** date when present.
+- **Fix:** If `due_date` is set, deadline is end of that day. If blank, keep 2 days from save. Create Sample Jobsheet does not require Delivery required on. Production job sheet still requires it.
+- **Files:** `sampleJobSheetSlaUtils.js`, `CreateJobSheetForm.jsx`, `App.jsx`, `orderPendingUtils.js`, `OrderDetailPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-31 — Sampling Tracker Due In column after Order date
+
+- **Issue:** Due In only showed in View Sample Order. List after Order date had no timeline.
+- **Fix:** Sampling Tracker table adds **Due In** after Order date. Same 2-day clock: live `HH:MM Hrs Left` or red **SLA Breached**. Closed samples show —. Production Tracker still has Handover, no Due In.
+- **Files:** `SampleJobSheetDueIn.jsx`, `App.jsx`, `LinkedOrdersTabPanel.jsx` (existing extraColumn)
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, OVERVIEW.md.
+
+## 2026-08-31 — Sampling Tracker 2-day SLA in View Sample Order
+
+- **Issue:** Sample jobs had no due clock after save. Need 2 days to reach Dispatched Successfully, with a live countdown and a red SLA Breached mark if late.
+- **Fix:** View Sample Order **Due In** starts at save (`created_at` + 48h). Open jobs show `HH:MM Hrs Left` (Badge colours by time left). Past the deadline and not Dispatched Successfully → red **SLA Breached**, timer gone. Dispatched Successfully / complete hides Due In. No new DB column. Production Tracker unchanged.
+- **Files:** `sampleJobSheetSlaUtils.js`, `SampleJobSheetDueIn.jsx`, `OrderDetailPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-31 — Production / Sampling tab colours
+
+- **Issue:** Production Tracker and Sampling Tracker tab buttons looked the same.
+- **Fix:** Production = very light green. Sampling = very light orange. Selected tab text is bold. All / Complete pill unchanged.
+- **Files:** `ProductionTrackerPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-31 — Sampling Complete locks Dispatched Successfully
+
+- **Issue:** Sampling Complete only followed Mark as complete. Dispatched Successfully stayed on All. Complete still let users change Status.
+- **Fix:** Status **Dispatched Successfully** or **Mark as complete** moves the sample to Complete, shows Dispatched Successfully, and Status becomes a badge (not a dropdown). Viewers write status only (RLS blocks `is_complete`); admin Mark as complete writes both.
+- **Files:** `sampleJobSheetStages.js`, `orderTabUtils.js`, `App.jsx`, `OrderListStatusCell.jsx`, `OrderDetailPanel.jsx`, `globalSearchUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, FLOWCHARTS.md.
+
+## 2026-08-31 — Production and Sampling All / Complete orders tabs
+
+- **Issue:** Production Tracker and Sampling Tracker had no Complete list. Finished jobs stayed mixed with open ones, or vanished.
+- **Fix:** Same All orders / Complete orders pill (Printing style) under both trackers. Production / Sampling switch sits apart so it does not look like that pill. Complete Production and Complete Sampling stay separate lists. Mark as complete on a tracker job opens that tracker’s Complete tab.
+- **Files:** `ProductionTrackerPanel.jsx`, `App.jsx`, `orderTabUtils.js`, `globalSearchUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-31 — Sampling Tracker status pipeline
+
+- **Issue:** Sampling Tracker Status used printing/production dropdown options.
+- **Fix:** Sampling-only stages with the same Select UI and symbols: Pattern Making, Sample Cutting, Sample Stitching, Trim + Iron, Branding, QC, Packaging, Ready to Dispatch, Dispatched Successfully. New sample jobs start at Pattern Making. Staging constraint updated.
+- **Files:** `sampleJobSheetStages.js`, `OrderListStatusCell.jsx`, `OrderDetailPanel.jsx`, `OrderStatusBadge.jsx`, `stickerOrderUtils.js`, `App.jsx`, `orderPendingUtils.js`, `notificationsUtils.js`, `supabase/migrations/20260831065000_sample_job_sheet_statuses.sql`
+- **Migration:** staging `20260831065000_sample_job_sheet_statuses.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md.
+
+## 2026-08-31 — Sampling Tracker history list after Create Sample Jobsheet
+
+- **Issue:** Saved sample job sheets had no list. Sampling Tracker was only a filter bar.
+- **Fix:** Same `LinkedOrdersTabPanel` table as Production Tracker. Sampling-only words: **View Sample Order**, **Sample Order** badge, **Order date** from job-sheet `order_date`. No Production jobs count, no Qty, no Handover to printing. After save, stay on Sampling Tracker.
+- **Files:** `LinkedOrdersTabPanel.jsx`, `ProductionTrackerPanel.jsx`, `App.jsx`, `orderTabUtils.js`, `orderPendingUtils.js`, `OrderViewActionCell.jsx`, `SampleJobSheetOrderIdBadge.jsx`, `globalSearchUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md, DATABASE.md.
+
+## 2026-08-31 — Create Sample Jobsheet (SA-0001 sequential, no Total quantity)
+
+- **Issue:** Create Sample Jobsheet had no form. Need the Production job-sheet layout, without Total quantity, with sequential SA-#### IDs.
+- **Fix:** Same `CreateJobSheetForm` layout and Cancel / Save. Hide Total quantity. Allocate `SA-0001` then `SA-0002` from existing sample rows. Staging kind `sample_job_sheet` + unique `order_id`.
+- **Files:** `CreateJobSheetForm.jsx`, `App.jsx`, `ProductionTrackerPanel.jsx`, `sampleJobSheetUtils.js`, `orderTabUtils.js`, `jobSheetUtils.js`, `sidebarTabActivity.js`, `supabase/migrations/20260831060510_add_order_kind_sample_job_sheet.sql`
+- **Migration:** staging `20260831060510_add_order_kind_sample_job_sheet.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, OVERVIEW.md, FLOWCHARTS.md.
+
+## 2026-08-31 — Sampling Tracker filter bar (From, To, Clear, Create Sample Jobsheet, View)
+
+- **Issue:** Sampling Tracker was blank. User wants the same top controls as Production Tracker.
+- **Fix:** Reuse `OrdersListFilters` + outline **Create Sample Jobsheet**. No job-sheet form or prefill. View N / page works locally.
+- **Files:** `ProductionTrackerPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-31 — Production Tracker has Production / Sampling tabs
+
+- **Issue:** Production Tracker was one list. User wants Production Tracker and Sampling Tracker tabs.
+- **Fix:** Same Printing-orders `Tabs` / `TabsList` / `TabsTrigger` format. Current job-sheet list stays under **Production Tracker**. **Sampling Tracker** is empty. List UI and `cn()` row classes unchanged.
+- **Files:** `ProductionTrackerPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-24 — All PO Orders status dropdown includes Completed
+
+- **Issue:** Admin status dropdown on All PO Orders had no Completed.
+- **Fix:** Add Completed. Admin pick it → row leaves All PO Orders and shows in PO History. History still has no picker.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, FLOWCHARTS.md.
+
+## 2026-08-24 — PO status change is admin-only; none on History
+
+- **Issue:** Status change must be admin-only. History must never offer a status pick.
+- **Fix:** All PO Orders: admin gets Pending / PO sent / PO Approved dropdown. Non-admin see a badge. Update checks `profiles.role`. PO History always shows Completed badge only.
+- **Files:** `App.jsx`, `PurchaseOrderPanel.jsx`, `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, SECURITY.md.
+
+## 2026-08-29 — Redeploy develop so Vercel picks up Kundan Scott API
+
+- **Why:** Kundan already merged Scott API + edit-prefill fix into `develop` (`ea91dcc`, `e316dd2`). A later push was a no-op (`Everything up-to-date`), so Vercel may not have rebuilt.
+- **This commit:** New SHA on `develop` to trigger Git-connected Vercel. No app behavior change.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md.
+
+## 2026-08-22 — Purchase Order tab label All PO Orders; tabs sit apart
+
+- **Issue:** First tab said Open POs. The three tabs sat in one attached pill.
+- **Fix:** Label is **All PO Orders**. TabsList is transparent with gap so each name is its own button.
+- **Files:** `PurchaseOrderPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — Generate is PO sent; History is Completed only; open panel shows open POs
+
+- **Issue:** Generate wrote Pending. History showed every PO. Panel opened on History. Create sheet was too easy to hit first.
+- **Fix:** Generate writes **PO sent**. Open panel on **Open POs** (Pending / PO sent / PO Approved). **Create new PO** mounts the heading + table. **PO History** lists only **Completed** after the backend updates status.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — Purchase Order opens on History; status is Completed only
+
+- **Issue:** Opening Purchase Order landed on Create. History hid four statuses. User wants History first and Status = Completed only.
+- **Fix:** Default sub-tab is **PO History** with all History details. Status column shows only **Completed**. **Create new PO** still shows the PURCHASE ORDER heading and table.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderHistoryTable.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — PO History From/To, search, coordinator, View N / page
+
+- **Issue:** PO History listed every generated PO. No date range, search, coordinator pick, or page size.
+- **Fix:** Filter bar on History: **From** / **To** (PO date, inclusive), **Clear** (dates only), **Search** (exact match on voucher seq after last `/`, full PO number, supplier, or coordinator), **Coordinator** dropdown (or All coordinators), **View N / page** (default 10). Table paginates the filtered list.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderHistoryFilters.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — View PO Print matches Create Print
+
+- **Issue:** View PO Print did not follow Create new PO Print. Sheet stayed trapped in the dialog. C23 easy to miss.
+- **Fix:** View PO Print uses the same A4 rules: print the open sheet, fill the page, show C23. Dialog transform/overflow flatten on print.
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Print fills the A4 page again; C13 stays complete
+
+- **Issue:** Packed print made the table look small. User wants the old full-page fill, with C13 fully visible.
+- **Fix:** Print again uses the 210mm × 297mm sheet (`@page` A4, margin 0). C table stretches like the screen. C13 keeps full R2 height. C23 overlays C13 bottom-right so it does not clip the words row.
+- **Files:** `styles.css`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPrintSheet.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Print shows full table and C23
+
+- **Issue:** Create Print preview clipped the sheet. C23 missing. Big empty goods band.
+- **Fix:** Print packs the C table (`height: auto`). C23 sits after C13 in flow. Hide C23 only on `@media screen`. `@page` A4 with 8mm margin.
+- **Files:** `styles.css`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPrintSheet.jsx`, `PurchaseOrderC23Signature.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Print-only C23 signature cell
+
+- **Issue:** Print had no signature box at the bottom-right of C13.
+- **Fix:** Print-only **C23** (hidden on screen). Width C42–C82, height R22. Top-right **for SCOTT INTERNATIONAL**. Bottom-right **Authorised Signatory**. Shows only after Print.
+- **Files:** `PurchaseOrderC23Signature.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPrintSheet.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — View PO shows the printed sheet
+
+- **Issue:** View PO was a field summary, not the PO print.
+- **Fix:** View PO opens the saved A4 print: **PURCHASE ORDER** heading plus the R/C table (same face as Create / Print).
+- **Files:** `PurchaseOrderHistoryTable.jsx`, `PurchaseOrderPrintSheet.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — Quantity unit mandatory; Dated is always today
+
+- **Issue:** Generate allowed empty Quantity unit. R12 Dated stayed on voucher reserve day.
+- **Fix:** Unit is mandatory (same error + red). R12 Dated is today's IST date and flips when the day changes. Generate stores that today as PO date.
+- **Files:** `purchaseOrderHistoryUtils.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md.
+
+## 2026-08-22 — Generate PO error is one line only
+
+- **Issue:** Generate error also listed which fields to fill.
+- **Fix:** Show only **Mandatory details are Missing**.
+- **Files:** `PurchaseOrderPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DECISIONS.md.
+
+## 2026-08-22 — Generate PO mandatory fields
+
+- **Issue:** Generate PO saved empty Supplier / Description / Due on / Quantity / Rate.
+- **Fix:** Generate blocks until those are filled. Error **Mandatory details are Missing**. Empty cells turn red. Fill them, then Generate saves to PO History.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderHistoryUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — PO History after Generate PO
+
+- **Issue:** PO History was empty. Generate PO did not save a row.
+- **Fix:** Generate PO writes history fields on the reserved voucher (`generated_at`, bold supplier name, coordinator, R12 date, C42 qty, status `pending`, sheet snapshot). History table columns: PO (print + View PO), PO Number (voucher only), Supplier (bold name), Status (Pending / PO sent / PO Approved / Completed with color + icon), Coordinator, PO date, Quantity. Staging migration `20260822104145_dashboard_purchase_order_history.sql`.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderHistoryTable.jsx`, `purchaseOrderHistoryUtils.js`, `purchaseOrderVoucherUtils.js`, `supabase/migrations/20260822104145_dashboard_purchase_order_history.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, DATABASE.md, OVERVIEW.md, ARCHITECTURE.md, SECURITY.md.
+
+## 2026-08-22 — Create PO title plus Generate / Print
+
+- **Issue:** Create new PO had no sheet title and no Generate/Print under the table.
+- **Fix:** **PURCHASE ORDER** sits on top of the A4 sheet (prints with it). **Generate PO** and **Print** sit in a separate row under the table (not printed). Print hides chrome and the Plus control.
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Purchase Order Create / History tabs
+
+- **Issue:** Purchase Order was one sheet with no Create vs History split. Tabs need to sit opposite the heading.
+- **Fix:** Header row: **Purchase Order** left, shadcn Tabs right (**Create new PO** / **PO History**). Create shows the A4 sheet. History is an empty card until save-list exists.
+- **Files:** `PurchaseOrderPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — C13 heading and height match R2
+
+- **Issue:** C13 said "Amount in words" and was shorter than Consignee (R2).
+- **Fix:** Heading is **Amount Chargable (in words):**. C13 height copies R2. C11–C81 rows can shrink (`minmax(1.25rem)`) so the A4 sheet still fits.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C42 qty total bold; C82 one-line bold
+
+- **Issue:** C42 empty. C82 wrapped and was not bold.
+- **Fix:** C42 shows the sum of Quantity numbers in bold. C82 stays ` ₹ 1000.00` on one line and bold. Amount column a bit wider so the rupee total fits.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C82 is the Amount column total
+
+- **Issue:** C82 empty. Need the sum of every goods-line Amount as ` ₹ 1000.00`.
+- **Fix:** `sumPurchaseOrderLineAmounts` adds each row’s qty × rate. C82 shows ` ₹ ` + 2 decimals. C13 words now read that same total.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderAmountWords.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Quantity is whole numbers only
+
+- **Issue:** Quantity still took decimals (`3.5`).
+- **Fix:** `sanitizePurchaseOrderQty` keeps digits only. No `.`. Rate still allows 2 decimals. Amount is still qty × rate.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Amount is Quantity × Rate, 2 decimals
+
+- **Issue:** Amount (C81) empty. Need qty × rate on every goods line, 2 decimals.
+- **Fix:** C81 / `C81:L*` show `formatPurchaseOrderLineAmount` as normal top text (no box). Blank until both Quantity and Rate have numbers. Extra rows each compute their own.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Rate same open number as Quantity, 450.00
+
+- **Issue:** Rate (C51) empty. Need the same no-box number input as Quantity, money face `450.00`, 2 decimals, every goods line.
+- **Fix:** C51 / `C51:L*` use the same open Input. Digits only, max 2 decimals while typing. Blur formats to `450.00`. Plus / delete-row clears that line’s rate.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Quantity drop the ___ lines
+
+- **Issue:** Extra underscore lines sat under Quantity after the number/unit layout was right.
+- **Fix:** Removed the `___` row. Number + unit box stay the same.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, FLOWCHARTS.md.
+
+## 2026-08-22 — Quantity number visible, no box, full cell width
+
+- **Issue:** Typed qty (e.g. 3) sat in a tiny black box and looked missing. Number + unit bunched top-left; empty space beside the unit.
+- **Fix:** Number uses a 1.25rem open field (no border/outline) so the digit is readable. `___` runs under that field. Number area grows; unit stays on the right of the same top row.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Quantity ___ always shown; unit normal and visible
+
+- **Issue:** After pick, unit looked bold / clipped. `___` under the number was gone.
+- **Fix:** `___` sits under the number (grows if more digits). Unit is shown as `font-normal` text in a small box that is wide enough to read. per stays normal text.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Quantity __ stays visible; smaller unit box
+
+- **Issue:** Dash hid after typing. Unit box too big. Unit text not plain.
+- **Fix:** `__` sits under the number and stays. Unit Select is a small box, `font-normal`. Same on every goods line.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Quantity dash and unit same size, no number box
+
+- **Issue:** Quantity number looked boxed or bigger than PCS/Kg. New rows must match.
+- **Fix:** Number is dash `---` only (no box, no stretch). Number + unit + per share the same 11px face. Same control on every extra goods line.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — Quantity ___ plus unit box; per copies unit
+
+- **Issue:** Quantity (C41) empty. Need a number blank and a unit pick. per (C61) must show that unit, not the number.
+- **Fix:** Each goods line: `___` numeric Input (digits / one decimal) at the top, then a boxed Select (PCS, Kg, Mtr, Nos, Roll, Set). per shows the same unit as normal top text, no box. Plus / delete-row clears that line’s qty and unit.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — Due on date stays one line
+
+- **Issue:** `14-Aug -26` wrapped in the skinny Due on column.
+- **Fix:** Date is `whitespace-nowrap`. C table cols: Due on min `5.5rem`, Description still wide, other cols share the rest.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-22 — Due on calendar icon, today-or-later
+
+- **Issue:** Due on (C31) empty. Need a calendar, not an inner box.
+- **Fix:** Calendar icon in each goods-line Due on cell. Pick date → **14-Aug -26** at the top. Past IST days disabled. Plus / delete-row clears that line’s date.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `purchaseOrderVoucherUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-22 — Description cell is the type area
+
+- **Issue:** Description looked like a small box inside C21.
+- **Fix:** Textarea fills the whole cell. No inner box, no grow-to-content leftover.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Description of Goods typeable on every line
+
+- **Issue:** C21 (Description of Goods body) was empty.
+- **Fix:** Each goods line has a normal-text type box in C21 / C21:L*. Plus clears them. Extra-row delete drops that line’s text.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-22 — Sl No. sits at top of cell
+
+- **Issue:** 1. 2. were vertically centered in C11.
+- **Fix:** Align serials to the top of the cell (`items-start`).
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-22 — Sl No. auto 1. 2. 3.
+
+- **Issue:** Sl No. column empty. Need 1. on one row, then 2. 3. when lines are added, and renumber if a line is inserted in the middle.
+- **Fix:** C11 (and extra C11:L* cells) show `lineIndex + 1` plus a dot. Add/delete/insert recounts.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-08-22 — Extra-line − pinned; same table borders
+
+- **Issue:** − followed the mouse. New row split was a blue double line.
+- **Fix:** − only at the left end of that extra row’s join. Split uses the same cell border as the rest of the sheet.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — C11–C81 + follows the full left outline
+
+- **Issue:** + only sat at the bottom of a row, so inserting between lines was hard.
+- **Fix:** One full-height left rail. **+** follows the mouse on that outline. Click inserts after the row under the cursor. Rows still split the band equally. **−** when the pointer is near an extra-row join.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — C11–C81 hover + / − sub-rows
+
+- **Issue:** User wants extra goods lines only when needed, with a blue circle + / − on the left outline like the sheet sketch.
+- **Fix:** C11–C81 stays one tall row. Hover the left edge → **+** on the bottom line; click inserts a row under it (blue double line). Extra rows: hover left edge → **−** on the top connector to delete. First row cannot be deleted. Plus on the card resets extra rows. Max 8 extra lines. Ids stay in `data-po-cell` only.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C22 Total
+
+- **Issue:** C22 empty.
+- **Fix:** Bold **Total** in C22. No C-code on screen.
+- **Files:** `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-08-22 — Restore C12–C82; add C13 words row under it
+
+- **Issue:** C12–C82 row was removed. User wanted that row kept, plus a new long row under it.
+- **Fix:** Put C12–C82 back (8 empty tiles). New row **C13** under them: **Amount in words** from C82. Do not print C13 on screen.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `purchaseOrderAmountWords.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-22 — C12–C82 one long amount-in-words row
+
+## 2026-08-22 — R32 R41 R42 type fields; no cell gaps
+
+- **Issue:** R32/R41/R42 empty. User wants type space, bold typed words, no scroll, no holes between cells.
+- **Fix:** Headings **Other References**, **Dispatched through**, **Destination** (normal). Auto-grow shadcn Textarea, typed text bold. Sheet gaps `0`, cells `rounded-none`. Plus clears the three fields.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — C1–C8 goods-table headings
+
+- **Issue:** Top C row was empty.
+- **Fix:** C1 **Sl No.**, C2 **Description of Goods**, C3 **Due on**, C4 **Quantity**, C5 **Rate**, C6 **per**, C7 **Disc %**, C8 **Amount**. Still no C-codes on screen.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-22 — No hole after R3 supplier pick
+
+- **Issue:** After picking a supplier in R3, empty space opened between cells.
+- **Fix:** Left stack (R1/R2/R3) no longer shares CSS rows with the right 4×2. Voucher tiles stay short. R21B only fills leftover beside R2/R3.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md, FLOWCHARTS.md.
+
+## 2026-08-22 — Close the gap between R1 and R2
+
+- **Issue:** Empty band between Invoice To (R1) and Consignee (R2).
+- **Fix:** Stack R1, R2, R3 in one left column with the same `gap-1` as other cells. No leftover grid hole under R1.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — R1 R2 R3 hug content, no R2 scrollbar
+
+- **Issue:** R2 had a scrollbar. R2/R3 sat in a rigid split and felt too low.
+- **Fix:** Only R1/R2/R3: height follows the text, align top, `overflow-visible`. Other cells unchanged.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — Restore C-table row sizes
+
+- **Issue:** After shrinking C11 and growing C1/C12, the C-table looked worse.
+- **Fix:** Put C rows back: short C1/C12, tall middle C11 (`1fr`) like the previous A4 sheet.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-22 — PO R1–R3 wider, A4 sheet shorter
+
+- **Issue:** R1/R2/R3 looked short. Whole sheet too tall.
+- **Fix:** Those cells stretch farther right (~3.2fr vs the small right tiles). Text `11px`, tight padding. Terms box and C-rows shorter. Card is fixed A4 `210mm × 297mm`.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-22 — Purchase Order C-table under the R sheet, A4 page
+
+- **Issue:** Need a second unlabeled table under the current PO sheet, same as the C1–C82 sketch, whole page A4 size.
+- **Fix:** A4 card (`210mm × 297mm`). C-grid attached under R-grid. Col 2 wide, middle row tall. Ids in `data-po-cell` / `purchaseOrderLayout.js`. No C-labels on screen. Cells stay empty for later fill.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md.
+
+## 2026-08-21 — Terms of Delivery is a tall box, not one line
+
+- **Issue:** Down R21 type field still looked like a one-line Input.
+- **Fix:** Sit that cell beside Consignee/Supplier in its own row. Textarea uses `rows={12}` and `min-height: 18rem` so it cannot collapse to one line. Fills the leftover height of that cell.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `styles.css`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-21 — Terms of Delivery box fills down R21
+
+- **Issue:** Text box in down R21 still looked small inside the large cell.
+- **Fix:** R21B uses a min height. Textarea is in a `1fr` row so it fills the leftover cell (full width and remaining height) under **Terms of Delivery**.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-08-21 — Purchase Order delivery box fills the cell
+
+- **Issue:** Terms of Delivery type box was a short line. Rest of the large cell looked empty.
+- **Fix:** Use a shadcn **Textarea** that stretches to fill the remaining R21B cell (full width and leftover height). Heading stays on the first line.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-21 — Purchase Order R21B terms of delivery
+
+- **Issue:** Large cell opposite Consignee (R2) empty. User asked R21 there: **Terms of Delivery** plus a typable second line.
+- **Fix:** That sketch cell is **R21B** (small top R21 stays empty). First line **Terms of Delivery**. Second line shadcn **Input**. Plus clears the text.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-08-21 — Purchase Order R22 payment terms
+
+- **Issue:** R22 empty. Needed **Mode/terms of Payment** plus **30 days**.
+- **Fix:** First line that heading (normal). Second line **30 days** bold.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-08-21 — Purchase Order R31 reference
+
+- **Issue:** R31 empty. Needed **Reference No. & date.** plus the same voucher as R11.
+- **Fix:** First line that heading (normal). Second line copies R11 voucher, bold (`PO/26-27/393`). Plus updates both together.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderVoucherUtils.js`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-08-21 — Purchase Order R11 R12 value bold
+
+- **Issue:** R11 and R12 text all same weight. User wants everything bold except first lines.
+- **Fix:** Labels **Voucher No.** and **Dated** stay normal. Voucher code and date use `font-bold`.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-21 — Purchase Order R12 dated
+
+- **Issue:** R12 empty. Needed **Dated** plus PO create day like `17-Aug-26`.
+- **Fix:** R12 first line **Dated**. Second line is create day in IST `DD-Mmm-YY` (today → `21-Aug-26`). Same `created_at` as the R11 voucher. Plus makes a new PO so Dated becomes today.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderVoucherUtils.js`, `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DATABASE.md, DECISIONS.md.
+
+## 2026-08-21 — Purchase Order R11 voucher number
+
+- **Issue:** R11 empty. Needed Voucher No. plus `PO/26-27/392`, +1 each new PO, Indian FY Apr–Mar.
+- **Fix:** R11 first line **Voucher No.** Second line `PO/{yy}-{yy+1}/{seq}`. FY from 1 Apr IST. FY 26-27 first seq is 392; later years start at 1. Plus allocates the next number and clears supplier. Numbers stored in `dashboard_purchase_orders` on staging.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderVoucherUtils.js`, `purchaseOrderLayout.js`, `supabase/migrations/20260821064834_dashboard_purchase_order_vouchers.sql`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, SECURITY.md, ARCHITECTURE.md, OVERVIEW.md.
+- **Migration:** staging only (`scvojtvgnkmbupvyslmb`). Not production.
+
+## 2026-08-21 — Purchase Order R3 supplier picker
+
+- **Issue:** R3 needed Supplier (Bill form) plus Inventory suppliers.
+- **Fix:** First line is that heading. Dropdown lists supplier **name** only (the bold name from Inventory). After pick, R3 shows stored name/address/contact/GSTIN/city/country/payment terms. No extra labels. List comes from `inventory_suppliers`.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `inventoryDbUtils.js`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, SECURITY.md, DATABASE.md.
+
+## 2026-08-21 — Purchase Order R2 Consignee block
+
+- **Issue:** R2 was empty. User asked for Consignee (Ship to) copy there.
+- **Fix:** R2 shows Consignee (Ship to), bold **SCOTT INTERNATIONAL**, then address / contact / email / GST / state as normal text.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-21 — Fix Nagappa Street spelling in PO R1
+
+- **Issue:** Invoice address said Nagappa Steet.
+- **Fix:** Correct to Nagappa Street.
+- **Files:** `purchaseOrderLayout.js`
+- **Documentation updated:** CHANGELOG.md.
+
+## 2026-08-21 — Purchase Order R1 Invoice To block
+
+- **Issue:** R1 was empty. User asked for Scott invoice-to copy there.
+- **Fix:** R1 shows Invoice To, bold **SCOTT INTERNATIONAL**, then address / contact / GST / state as normal text. Other cells stay blank. Grid rows can grow so the block fits.
+- **Files:** `purchaseOrderLayout.js`, `PurchaseOrderLayoutGrid.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-08-21 — Purchase Order sheet is a compact card
+
+- **Issue:** Sheet filled the page like a giant empty table.
+- **Fix:** Same cell placing, smaller card like other panels (`max-w-2xl`, short rows, muted rounded tiles, gap). Not full-bleed. Still no R-labels.
+- **Files:** `PurchaseOrderLayoutGrid.jsx`, `PurchaseOrderPanel.jsx`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md, OVERVIEW.md, ARCHITECTURE.md.
+
+## 2026-08-21 — Purchase Order sheet layout (blank cells)
+
+- **Issue:** Purchase Order tab needed the sketched sheet layout, without showing cell names.
+- **Fix:** CSS grid matching R1 + 4×2 top-right + R2/R3 + large bottom-right. Cells stay empty. Ids live in `purchaseOrderLayout.js` (`data-po-cell`). Large bottom-right is `R21B` because the sketch reused R21. Plus button is outline icon only. Sheet fills the panel (full-bleed).
+- **Files:** `PurchaseOrderPanel.jsx`, `PurchaseOrderLayoutGrid.jsx`, `purchaseOrderLayout.js`, `App.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md, DECISIONS.md, DEBUGGING.md.
+
+## 2026-08-20 — Purchase Order as main sidebar tab
+
+- **Issue:** Purchase Order was a sub-tab inside Support. User wants a main Scott Dashboard tab with an icon.
+- **Fix:** Remove it from Support. Add sidebar **Purchase Order** (`purchase_order`) after Inventory with Lucide `FileSpreadsheet` icon. Placeholder panel until PO workflow is defined. Grantable like other workspace tabs.
+- **Files:** `dashboardSidebarConfig.js`, `DashboardAppSidebar.jsx`, `dashboardSidebarIcons.jsx`, `PurchaseOrderPanel.jsx`, `App.jsx`, `EnquiryPanel.jsx`
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md, DECISIONS.md, DEBUGGING.md, SECURITY.md.
+
 ## 2026-08-19 — Fix Vercel EBADPLATFORM on Windows Rollup
 
 - **Issue:** Vercel `develop` build failed at `npm install` with `EBADPLATFORM` for `@rollup/rollup-win32-x64-msvc`.

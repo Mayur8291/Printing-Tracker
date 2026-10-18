@@ -1,14 +1,17 @@
 import { supabase } from "./supabaseClient";
-import { insertEnquiryAssignmentNotification } from "./enquiryNotificationUtils";
+import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { logEnquiryActivity } from "./enquiryActivityUtils";
 import { queueCloseSurveyIfNeeded } from "./enquiryCloseNotify";
 import { uploadEnquiryPhotos } from "./enquiryAttachmentUtils";
+import { uuid } from "./lib/uuid";
+import { stateForCity } from "./indianCities";
 
-export const ENQUIRY_STATUSES = ["new", "assigned", "in_progress", "resolved", "closed"];
+export const ENQUIRY_STATUSES = ["new", "assigned", "opened", "in_progress", "resolved", "closed"];
 
 export const ENQUIRY_STATUS_LABEL = {
   new: "New",
   assigned: "Assigned",
+  opened: "Opened",
   in_progress: "In progress",
   resolved: "Resolved",
   closed: "Closed"
@@ -23,15 +26,28 @@ export const ENQUIRY_PRIORITY_LABEL = {
   urgent: "Urgent"
 };
 
+/** Picking this source asks for a reference name; stored as `Reference - <name>`. */
+export const ENQUIRY_SOURCE_REFERENCE = "Reference";
+
 export const ENQUIRY_SOURCES = [
+  "Facebook",
   "WhatsApp",
-  "Phone",
-  "Email",
-  "Walk-in",
-  "Website",
+  "Insta Reel",
+  "Insta Post",
+  "Google",
   "Distributor",
-  "Other"
+  "Walk-in",
+  ENQUIRY_SOURCE_REFERENCE
 ];
+
+/** Final `source` text for the row. Reference needs a name. */
+export function resolveEnquirySource(form) {
+  const source = String(form?.source ?? "").trim();
+  if (source !== ENQUIRY_SOURCE_REFERENCE) return source || null;
+  const name = String(form?.reference_name ?? "").trim();
+  if (!name) throw new Error("Reference name is required.");
+  return `${ENQUIRY_SOURCE_REFERENCE} - ${name}`;
+}
 
 export const EMPTY_ENQUIRY_FORM = {
   customer_name: "",
@@ -39,6 +55,7 @@ export const EMPTY_ENQUIRY_FORM = {
   customer_email: "",
   product_details: "",
   source: "WhatsApp",
+  reference_name: "",
   priority: "normal",
   notes: "",
   order_id: "",
@@ -51,14 +68,17 @@ export const EMPTY_ENQUIRY_DESK_FORM = {
   customer_name: "",
   customer_phone: "",
   customer_email: "",
+  customer_city: "",
   product_details: "",
   source: "WhatsApp",
+  reference_name: "",
   priority: "normal",
   notes: "",
   order_id: "",
   order_type: "customized",
   help_topic: "enquiry",
-  ticket_kind: "enquiry"
+  ticket_kind: "enquiry",
+  tag_id: ""
 };
 
 export function ticketKindFromForm(form) {
@@ -151,12 +171,37 @@ export async function relabelComplaintCodes(rows) {
 }
 
 const ENQUIRY_SELECT =
-  "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at, order_id, order_type, help_topic, ticket_kind, ownership_verified, assigned_because_unknown, picked_at, sla_escalated_at, escalated_to_id, closed_at, feedback_rating, feedback_comment, feedback_at, feedback_requested_at, attachments";
+  "id, enquiry_code, customer_name, customer_phone, customer_email, product_details, source, notes, status, priority, assignee_id, assigned_by, assigned_at, created_by, created_at, updated_at, order_id, order_type, help_topic, ticket_kind, ownership_verified, assigned_because_unknown, picked_at, sla_escalated_at, escalated_to_id, closed_at, feedback_rating, feedback_comment, feedback_at, feedback_requested_at, attachments, tag_id, customer_city, customer_state, opened_at, last_reached_out_at, last_reached_out_comment, last_reached_out_by";
 
-const ENQUIRY_SELECT_LEGACY = ENQUIRY_SELECT.replace(", ticket_kind", "");
+/** Columns added after the first schema; stripped only when that column is missing. */
+const ENQUIRY_LATE_COLUMNS = [
+  "ticket_kind",
+  "tag_id",
+  "customer_city",
+  "customer_state",
+  "opened_at",
+  "last_reached_out_at",
+  "last_reached_out_comment",
+  "last_reached_out_by"
+];
 
-function missingTicketKindColumn(error) {
-  return String(error?.message ?? "").includes("ticket_kind");
+function lateColumnsNamedInError(error) {
+  const msg = String(error?.message ?? "");
+  return ENQUIRY_LATE_COLUMNS.filter((col) => msg.includes(col));
+}
+
+function enquirySelectOmitting(cols) {
+  return cols.reduce((sel, col) => sel.replace(`, ${col}`, ""), ENQUIRY_SELECT);
+}
+
+function omitKeys(obj, cols) {
+  const next = { ...obj };
+  for (const col of cols) delete next[col];
+  return next;
+}
+
+function missingLateEnquiryColumn(error) {
+  return lateColumnsNamedInError(error).length > 0;
 }
 
 export function friendlyEnquiryDbError(error) {
@@ -194,14 +239,17 @@ async function insertEnquiryRow(payload) {
     if (!payload.enquiry_code || attempt > 0) {
       payload.enquiry_code = await allocateTicketCode(ticketKindFromForm(payload));
     }
-    let { data, error } = await supabase.from("enquiries").insert(payload).select(ENQUIRY_SELECT).maybeSingle();
-    if (error && missingTicketKindColumn(error) && payload.ticket_kind) {
-      const retryPayload = { ...payload };
-      delete retryPayload.ticket_kind;
+    let selectCols = ENQUIRY_SELECT;
+    let insertPayload = payload;
+    let { data, error } = await supabase.from("enquiries").insert(insertPayload).select(selectCols).maybeSingle();
+    if (error && missingLateEnquiryColumn(error)) {
+      const missing = lateColumnsNamedInError(error);
+      insertPayload = omitKeys(payload, missing);
+      selectCols = enquirySelectOmitting(missing);
       ({ data, error } = await supabase
         .from("enquiries")
-        .insert(retryPayload)
-        .select(ENQUIRY_SELECT_LEGACY)
+        .insert(insertPayload)
+        .select(selectCols)
         .maybeSingle());
     }
     if (error && isUniqueEnquiryCodeError(error)) {
@@ -243,10 +291,10 @@ export async function fetchEnquiries() {
     .select(ENQUIRY_SELECT)
     .order("created_at", { ascending: false })
     .limit(500);
-  if (error && missingTicketKindColumn(error)) {
+  if (error && missingLateEnquiryColumn(error)) {
     ({ data, error } = await supabase
       .from("enquiries")
-      .select(ENQUIRY_SELECT_LEGACY)
+      .select(enquirySelectOmitting(lateColumnsNamedInError(error)))
       .order("created_at", { ascending: false })
       .limit(500));
   }
@@ -260,7 +308,7 @@ export async function createEnquiry({ createdBy, form }) {
     customer_phone: String(form.customer_phone ?? "").trim() || null,
     customer_email: String(form.customer_email ?? "").trim() || null,
     product_details: String(form.product_details ?? "").trim() || null,
-    source: String(form.source ?? "").trim() || null,
+    source: resolveEnquirySource(form),
     priority: normalizeEnquiryPriority(form.priority),
     notes: String(form.notes ?? "").trim() || null,
     status: "new",
@@ -272,7 +320,10 @@ export async function createEnquiry({ createdBy, form }) {
       : "enquiry",
     ticket_kind: ticketKindFromForm(form),
     ownership_verified: Boolean(form.ownership_verified),
-    attachments: Array.isArray(form.attachments) ? form.attachments : []
+    attachments: Array.isArray(form.attachments) ? form.attachments : [],
+    tag_id: String(form.tag_id ?? "").trim() || null,
+    customer_city: String(form.customer_city ?? "").trim() || null,
+    customer_state: stateForCity(form.customer_city) || null
   };
   if (!payload.customer_name) {
     throw new Error("Customer name is required.");
@@ -280,6 +331,14 @@ export async function createEnquiry({ createdBy, form }) {
 
   if (form.id) {
     payload.id = form.id;
+  }
+
+  // Bulk CSV import: keep the date from the sheet so history sorts right.
+  if (form.created_at) {
+    const d = new Date(form.created_at);
+    if (!Number.isNaN(d.getTime()) && d.getTime() <= Date.now() + 86400000) {
+      payload.created_at = d.toISOString();
+    }
   }
 
   if (form.allowAssign === true && form.assignee_id) {
@@ -305,6 +364,15 @@ export async function createEnquiry({ createdBy, form }) {
       detail: "Assigned on create"
     });
   }
+  if (form.notify !== false) {
+    await notifyEnquiryWatchers({
+      enquiryId: data.id,
+      kind: data.assignee_id ? "assigned" : "created",
+      summary: data.assignee_id
+        ? `${data.enquiry_code} logged and assigned`
+        : `${data.enquiry_code} logged`
+    });
+  }
   return data;
 }
 
@@ -314,7 +382,7 @@ export async function createEnquiryWithPhotos({ createdBy, form, files }) {
   if (!createdBy) {
     throw new Error("Sign in again before filing this ticket.");
   }
-  const enquiryId = list.length ? crypto.randomUUID() : form.id;
+  const enquiryId = list.length ? uuid() : form.id;
   let attachments = Array.isArray(form.attachments) ? form.attachments : [];
   if (list.length) {
     const uploaded = await uploadEnquiryPhotos({
@@ -341,19 +409,20 @@ export async function updateEnquiryFields(enquiryId, patch) {
     .eq("id", enquiryId)
     .select(ENQUIRY_SELECT)
     .maybeSingle();
-  if (error && missingTicketKindColumn(error)) {
+  if (error && missingLateEnquiryColumn(error)) {
+    const missing = lateColumnsNamedInError(error);
     ({ data, error } = await supabase
       .from("enquiries")
-      .update(patch)
+      .update(omitKeys(patch, missing))
       .eq("id", enquiryId)
-      .select(ENQUIRY_SELECT_LEGACY)
+      .select(enquirySelectOmitting(missing))
       .maybeSingle());
   }
   if (error) throw new Error(friendlyEnquiryDbError(error));
   if (!data) {
     throw new Error("Could not update this ticket. Refresh Support and try again.");
   }
-  return data;
+  return { ...data, ...patch };
 }
 
 export async function assignEnquiry({
@@ -377,12 +446,10 @@ export async function assignEnquiry({
 
   const updated = await updateEnquiryFields(enquiry.id, patch);
 
-  await insertEnquiryAssignmentNotification({
+  await notifyEnquiryWatchers({
     enquiryId: updated.id,
-    enquiryCode: updated.enquiry_code,
-    customerName: updated.customer_name,
-    assigneeId,
-    assignedByUserId
+    kind: "assigned",
+    summary: `Assigned ${updated.enquiry_code}`
   });
 
   await logEnquiryActivity({
@@ -395,10 +462,18 @@ export async function assignEnquiry({
   return updated;
 }
 
-export async function updateEnquiryStatus({ enquiryId, status, isAdmin, assigneeId, sessionUserId, enquiry }) {
+export async function updateEnquiryStatus({
+  enquiryId,
+  status,
+  isAdmin,
+  assigneeId,
+  sessionUserId,
+  enquiry,
+  isTagMember = false
+}) {
   const next = normalizeEnquiryStatus(status);
-  if (!isAdmin && assigneeId !== sessionUserId && enquiry?.escalated_to_id !== sessionUserId) {
-    throw new Error("Only the assignee, SLA fallback, or an admin can update status.");
+  if (!isAdmin && !isTagMember && assigneeId !== sessionUserId && enquiry?.escalated_to_id !== sessionUserId) {
+    throw new Error("Only the assignee, SLA fallback, tag holder, or an admin can update status.");
   }
   const patch = { status: next };
   const now = new Date().toISOString();
@@ -417,6 +492,11 @@ export async function updateEnquiryStatus({ enquiryId, status, isAdmin, assignee
     actorId: sessionUserId,
     action: "status",
     detail: next
+  });
+  await notifyEnquiryWatchers({
+    enquiryId,
+    kind: next === "closed" ? "closed" : "status",
+    summary: `Status → ${ENQUIRY_STATUS_LABEL[next] ?? next}`
   });
   if (next === "closed" && enquiry?.status !== "closed") {
     await queueCloseSurveyIfNeeded(updated, sessionUserId);
@@ -439,13 +519,17 @@ export function filterEnquiries(enquiries, { statusFilter, searchQuery, assignee
       row.customer_name,
       row.customer_phone,
       row.customer_email,
+      row.customer_city,
+      row.customer_state,
+      row.last_reached_out_comment,
       row.product_details,
       row.source,
       row.notes,
       row.status,
       row.order_id,
       row.help_topic,
-      row.ticket_kind
+      row.ticket_kind,
+      row.tag_name
     ]
       .map((v) => String(v ?? "").toLowerCase())
       .join(" ");

@@ -30,7 +30,18 @@ const STATUS_STYLES = {
   stitching:
     "border-transparent bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-950 dark:text-fuchsia-300",
   trimming: "border-transparent bg-pink-100 text-pink-900 dark:bg-pink-950 dark:text-pink-300",
-  qc: "border-transparent bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-300"
+  qc: "border-transparent bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-300",
+  pattern_making:
+    "border-transparent bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-300",
+  sample_cutting:
+    "border-transparent bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-300",
+  sample_stitching:
+    "border-transparent bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-950 dark:text-fuchsia-300",
+  trim_iron: "border-transparent bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  branding: "border-transparent bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-300",
+  packaging: "border-transparent bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300",
+  dispatched_successfully:
+    "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
 };
 
 export default function OrderStatusBadge({ status, label, icon = null, className }) {

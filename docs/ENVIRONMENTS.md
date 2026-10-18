@@ -29,6 +29,22 @@ npm run dev
 
 Schema changes: apply migrations to **staging** first (`supabase link --project-ref scvojtvgnkmbupvyslmb`, then `db push`). **Never** push migrations or deploy edge functions to production unless you explicitly request a production release. See `.cursor/rules/staging-first-supabase.mdc`. **First-time staging:** run `schema.sql` in SQL Editor, then `migration repair` — see [supabase/README-staging.md](../supabase/README-staging.md) (do not run bare `db push` on an empty project).
 
+**Uniware Bridge (Step 5) staging secrets** (edge `uniware-bridge` only — not Vite env):
+
+Set on staging `scvojtvgnkmbupvyslmb` on 2026-09-04. Values live in Edge secrets only — never in git or `.env`.
+
+- `UNIWARE_BASE_URL` = `https://scottinternational.unicommerce.com`
+- `UNIWARE_USERNAME` / `UNIWARE_PASSWORD` = Uniware login (same as [tenant SSO](https://sso.unicommerce.com))
+- `UNIWARE_FACILITY` = `scottinternational` (also have `WH1`, `WH2`, plus Amazon FBA codes)
+
+Without them the tab still loads; Sync inventory / Sync orders show “secrets not set”. Snapshot is last 24 hours of updates (`updatedSinceInMinutes: 1440`). Production does **not** have these secrets.
+
+**NF / Scott outbound webhooks (staging, 2026-09-03):** `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` are set on staging Edge (`dashboard-stock-api`). Receiver: `https://yigdnihnkdwkbakwptwz.supabase.co/functions/v1/scott-webhook`. Secret stays in Supabase only — never commit it. Echo test `stock.level_changed` returned `200 {"received":true}` (`event_id` `evt_test_9d337f9b698c`); same id replayed as `idempotent:true`.
+
+**Production (2026-09-03 release):** Stock/Order API is live at `https://levwrmvqdntngeasrtnb.supabase.co/functions/v1/dashboard-stock-api`. NotFunny key lives in Edge secret `DASHBOARD_API_KEY` + `dashboard_api_keys` label `NotFunny` (plaintext given once over a private channel). Scott `SCOTT_AUTH_*` secrets were not changed or copied.
+
+**Production webhooks (2026-09-03, NF confirmed same receiver):** `SCOTT_WEBHOOK_BASE_URL` + `SCOTT_WEBHOOK_SECRET` are set on production Edge to the same NF `scott-webhook` URL as staging. Redeployed `dashboard-stock-api` + `admin-test-scott-webhook`. Echo `evt_prod_1331ec06c6ad` returned `200 {"received":true}`. Live stock/order events on production now deliver there.
+
 ---
 
 ## Git branches
@@ -88,6 +104,9 @@ Repo: [Mayur8291/Printing-Tracker](https://github.com/Mayur8291/Printing-Tracker
    | `VITE_APP_ENV` | `production` (hides Admin → Test & deploy on live site) | `staging` |
    | `VITE_SUPABASE_URL` | `https://levwrmvqdntngeasrtnb.supabase.co` | `https://YOUR_STAGING_REF.supabase.co` |
    | `VITE_SUPABASE_ANON_KEY` | prod anon key | staging anon key |
+   | `VITE_GIPHY_API_KEY` | Same public Giphy client key (also in `netlify.toml` + `giphyGifApi.js`) | Same key |
+
+   Chat GIF Search uses the bundled Giphy key, so Search keeps working after a production push even if the Netlify UI omits this row.
 
    `netlify.toml` sets `VITE_APP_ENV` per context; you can mirror it in the dashboard if UI vars override the file.
 
@@ -198,3 +217,7 @@ Then refresh **List users** in Admin. Redeploy edge function after code changes:
 npx supabase link --project-ref levwrmvqdntngeasrtnb   # production
 npx supabase functions deploy admin-create-user
 ```
+
+## Vercel (staging site)
+
+GitHub `develop` is the source for the staging Vercel project. Production Branch should be **`develop`**. A new push to `develop` starts a build. If Git already matches remote (`Everything up-to-date`), Vercel will not rebuild until there is a new commit — use **Deployments → Redeploy**, or push a new `develop` commit.

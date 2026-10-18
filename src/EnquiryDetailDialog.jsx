@@ -2,14 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
@@ -33,29 +33,41 @@ import {
 import {
   ENQUIRY_FALLBACK_MANAGER_NAME,
   UNKNOWN_ACCOUNT_MANAGER_VALUE,
-  complaintsHelpPathLabel,
   findFallbackManagerProfile,
+  isEnquiryHelpPath,
   isEnquiryUnpicked,
+  markEnquiryOpened,
+  markEnquiryReachedOut,
   pickEnquiry
 } from "./enquiryConciergeUtils";
 import { normalizeEnquiryAttachments } from "./enquiryAttachmentUtils";
-import { ENQUIRY_ACTIVITY_LABEL, fetchEnquiryActivity, logEnquiryActivity } from "./enquiryActivityUtils";
+import { describeEnquiryActivity, fetchEnquiryActivity, logEnquiryActivity } from "./enquiryActivityUtils";
+import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { fetchEnquiryOutbound } from "./enquiryCloseNotify";
 import { viewerIsActive } from "./viewerUserListUtils";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, CheckCircle2, History } from "lucide-react";
 
 const STATUS_BADGE_CLASS = {
-  new: "bg-slate-100 text-slate-700 border-slate-200",
-  assigned: "bg-violet-50 text-violet-700 border-violet-200",
-  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
-  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  closed: "bg-zinc-100 text-zinc-600 border-zinc-200"
+  new: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
+  assigned: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-200 dark:border-violet-700",
+  in_progress: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-700",
+  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-700",
+  closed: "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-600"
 };
 
 const PRIORITY_BADGE_CLASS = {
-  low: "bg-zinc-50 text-zinc-600 border-zinc-200",
-  normal: "bg-slate-50 text-slate-700 border-slate-200",
-  high: "bg-amber-50 text-amber-700 border-amber-200",
-  urgent: "bg-red-50 text-red-700 border-red-200"
+  low: "bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-600",
+  normal: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600",
+  high: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700",
+  urgent: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-200 dark:border-red-700"
 };
 
 function formatDateTime(iso) {
@@ -79,27 +91,39 @@ export default function EnquiryDetailDialog({
   teamProfiles,
   profileById,
   isAdmin,
-  canEdit,
+  canEdit: _canEdit,
   sessionUserId,
-  onUpdated
+  onUpdated,
+  tags = [],
+  sessionTagIds
 }) {
   const [assigneeId, setAssigneeId] = useState("");
   const [statusDraft, setStatusDraft] = useState("new");
   const [priorityDraft, setPriorityDraft] = useState("normal");
   const [notesDraft, setNotesDraft] = useState("");
+  const [tagDraft, setTagDraft] = useState("");
+  const [reachOutDraft, setReachOutDraft] = useState("");
+  const [contactDraft, setContactDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState("");
   const [activity, setActivity] = useState([]);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [outbound, setOutbound] = useState([]);
 
   const mayAssign = isAdmin;
-  const mayEditDetails = isAdmin || canEdit;
+  const mayEditDetails = isAdmin;
+  const isStaffView = !isAdmin;
   const isAssignee = enquiry?.assignee_id === sessionUserId;
   const isSlaFallback = enquiry?.escalated_to_id === sessionUserId;
-  const mayUpdateStatus = isAdmin || isAssignee || isSlaFallback;
-  const mayPick = mayUpdateStatus && enquiry && enquiry.status !== "closed";
+  const isTagMember = Boolean(enquiry?.tag_id && sessionTagIds?.has?.(enquiry.tag_id));
+  const mayUpdateStatus = isAdmin || isAssignee || isSlaFallback || isTagMember;
+  const isEnquiryKind = isEnquiryHelpPath(enquiry);
+  const requirementLabel = isEnquiryKind ? "Enquiry requirement" : "Concerns";
+  const tagName = enquiry?.tag_id ? tags.find((t) => t.id === enquiry.tag_id)?.name ?? "" : "";
+  const mayPick = isAdmin && enquiry && enquiry.status !== "closed";
+  const customerVerified = activity.some((row) => row.action === "verified");
 
   useEffect(() => {
     if (!open || !enquiry) return;
@@ -107,6 +131,10 @@ export default function EnquiryDetailDialog({
     setStatusDraft(enquiry.status || "new");
     setPriorityDraft(enquiry.priority || "normal");
     setNotesDraft(enquiry.notes || "");
+    setTagDraft(enquiry.tag_id || "");
+    setReachOutDraft("");
+    setContactDraft("");
+    setActivityOpen(false);
     setError("");
     void fetchEnquiryActivity(enquiry.id)
       .then(setActivity)
@@ -116,6 +144,32 @@ export default function EnquiryDetailDialog({
       .catch(() => setOutbound([]));
   }, [open, enquiry]);
 
+  // Worker (not admin) opened a new/assigned ticket → status "opened" so admin sees it was seen.
+  useEffect(() => {
+    if (!open || !enquiry || isAdmin) return;
+    let cancelled = false;
+    void markEnquiryOpened({ enquiry, sessionUserId, isAdmin, isTagMember })
+      .then((updated) => {
+        if (!cancelled && updated) onUpdated?.(updated);
+      })
+      .catch((e) => console.warn("enquiry opened mark:", e?.message || e));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, enquiry?.id, enquiry?.status, enquiry?.picked_at, isAdmin, isTagMember, sessionUserId]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    function onKey(event) {
+      if (event.key !== "Escape") return;
+      if (activityOpen) return;
+      onOpenChange?.(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onOpenChange, activityOpen]);
+
   const activeProfiles = useMemo(
     () =>
       [...(teamProfiles ?? [])]
@@ -124,7 +178,7 @@ export default function EnquiryDetailDialog({
     [teamProfiles]
   );
 
-  if (!enquiry) return null;
+  if (!open || !enquiry) return null;
 
   async function emitUpdated(updated) {
     onUpdated?.(updated);
@@ -176,6 +230,62 @@ export default function EnquiryDetailDialog({
     }
   }
 
+  async function handleReachOut() {
+    if (!mayPick) return;
+    const note = reachOutDraft.trim();
+    if (!note) {
+      setError("Add a comment about what you told the customer.");
+      return;
+    }
+    setPicking(true);
+    setError("");
+    try {
+      const updated = await markEnquiryReachedOut({
+        enquiry,
+        comment: note,
+        sessionUserId,
+        isAdmin,
+        isTagMember
+      });
+      setReachOutDraft("");
+      await emitUpdated(updated);
+    } catch (e) {
+      setError(friendlyEnquiryDbError(e) || e.message || "Could not save reach-out.");
+    } finally {
+      setPicking(false);
+    }
+  }
+
+  async function handleAddContactEvent() {
+    if (!mayUpdateStatus) return;
+    const note = contactDraft.trim();
+    if (!note) {
+      setError("Write what you told the customer.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await logEnquiryActivity({
+        enquiryId: enquiry.id,
+        actorId: sessionUserId,
+        action: "contact",
+        detail: note
+      });
+      await notifyEnquiryWatchers({
+        enquiryId: enquiry.id,
+        kind: "details",
+        summary: "Contact history added"
+      });
+      setContactDraft("");
+      await emitUpdated(enquiry);
+    } catch (e) {
+      setError(friendlyEnquiryDbError(e) || e.message || "Could not save contact history.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handlePick(action) {
     if (!mayPick) return;
     setPicking(true);
@@ -185,7 +295,8 @@ export default function EnquiryDetailDialog({
         enquiry,
         action,
         sessionUserId,
-        isAdmin
+        isAdmin,
+        isTagMember
       });
       await emitUpdated(updated);
       if (action === "closed" && !String(updated.customer_phone ?? "").trim()) {
@@ -198,20 +309,22 @@ export default function EnquiryDetailDialog({
     }
   }
 
-  async function handleSaveDetails() {
+  async function saveEnquiryPatch(patch, summary) {
     if (!mayEditDetails) return;
     setSaving(true);
     setError("");
     try {
-      const updated = await updateEnquiryFields(enquiry.id, {
-        notes: notesDraft.trim() || null,
-        priority: priorityDraft
-      });
+      const updated = await updateEnquiryFields(enquiry.id, patch);
       await logEnquiryActivity({
         enquiryId: enquiry.id,
         actorId: sessionUserId,
         action: "details",
-        detail: enquiry.enquiry_code
+        detail: summary
+      });
+      await notifyEnquiryWatchers({
+        enquiryId: enquiry.id,
+        kind: "details",
+        summary
       });
       await emitUpdated(updated);
     } catch (e) {
@@ -219,6 +332,16 @@ export default function EnquiryDetailDialog({
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleSavePriorityTag() {
+    const patch = { priority: priorityDraft };
+    if (isAdmin && isEnquiryKind) patch.tag_id = tagDraft || null;
+    await saveEnquiryPatch(patch, "priority / tag");
+  }
+
+  async function handleSaveInternalNote() {
+    await saveEnquiryPatch({ notes: notesDraft.trim() || null }, "internal note");
   }
 
   async function handleSaveStatus() {
@@ -232,7 +355,8 @@ export default function EnquiryDetailDialog({
         isAdmin,
         assigneeId: enquiry.assignee_id,
         sessionUserId,
-        enquiry
+        enquiry,
+        isTagMember
       });
       await emitUpdated(updated);
     } catch (e) {
@@ -247,43 +371,178 @@ export default function EnquiryDetailDialog({
   const creatorProfile = enquiry.created_by ? profileById?.[enquiry.created_by] : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex flex-wrap items-center gap-2">
-            <span>{enquiry.enquiry_code}</span>
-            <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[enquiry.status])}>
-              {ENQUIRY_STATUS_LABEL[enquiry.status] ?? enquiry.status}
-            </Badge>
-            <Badge variant="outline" className={cn(PRIORITY_BADGE_CLASS[enquiry.priority])}>
-              {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
-            </Badge>
-          </DialogTitle>
-          <DialogDescription>
-            {enquiry.customer_name}
-            {enquiry.source ? ` · ${enquiry.source}` : ""}
-          </DialogDescription>
-        </DialogHeader>
+    <div className="flex flex-col gap-4">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-fit"
+        onClick={() => onOpenChange?.(false)}
+      >
+        <ArrowLeft data-icon="inline-start" />
+        Back
+      </Button>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-1.5">
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>{enquiry.enquiry_code}</span>
+                <Badge variant="outline" className={cn(STATUS_BADGE_CLASS[enquiry.status])}>
+                  {ENQUIRY_STATUS_LABEL[enquiry.status] ?? enquiry.status}
+                </Badge>
+                <Badge variant="outline" className={cn(PRIORITY_BADGE_CLASS[enquiry.priority])}>
+                  {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
+                </Badge>
+              </CardTitle>
+              <CardDescription className="flex flex-wrap items-center gap-2">
+                <span>{enquiry.customer_name}</span>
+                {customerVerified ? (
+                  <CheckCircle2
+                    className="size-4 text-emerald-600 dark:text-emerald-400"
+                    aria-label="Customer verified"
+                  />
+                ) : null}
+                {isStaffView ? null : enquiry.source ? <span>· {enquiry.source}</span> : null}
+              </CardDescription>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={() => setActivityOpen(true)}>
+              <History data-icon="inline-start" />
+              Activity
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
 
+        {isStaffView ? (
+          <div className="flex w-full max-w-md flex-col gap-4">
+            <dl className="grid gap-2 text-sm">
+              <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+                <dt className="text-muted-foreground">Phone</dt>
+                <dd>
+                  {enquiry.customer_phone ? (
+                    <a className="underline underline-offset-2" href={`tel:${enquiry.customer_phone}`}>
+                      {enquiry.customer_phone}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
+              </div>
+              {isEnquiryKind ? null : (
+                <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+                  <dt className="text-muted-foreground">Order ID</dt>
+                  <dd>{enquiry.order_id || "—"}</dd>
+                </div>
+              )}
+              <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+                <dt className="text-muted-foreground">{requirementLabel}</dt>
+                <dd className="whitespace-pre-wrap">{enquiry.product_details || "—"}</dd>
+              </div>
+            </dl>
+
+            <Separator />
+
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Contact history</FieldLabel>
+                {activity.length ? (
+                  <ul className="flex max-h-48 flex-col gap-2 overflow-y-auto text-sm">
+                    {activity.map((row) => {
+                      const described = describeEnquiryActivity(
+                        row,
+                        profileDisplayName(profileById?.[row.actor_id])
+                      );
+                      return (
+                        <li key={row.id} className="flex flex-col gap-0.5">
+                          <span className="font-medium text-foreground">{described.title}</span>
+                          <span className="text-muted-foreground">{described.body}</span>
+                          <span className="text-xs text-muted-foreground">{formatDateTime(row.created_at)}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No contact events yet.</p>
+                )}
+              </Field>
+              {mayUpdateStatus && enquiry.status !== "closed" ? (
+                <Field>
+                  <FieldLabel htmlFor="enquiry-contact-event">Add contact event</FieldLabel>
+                  <Textarea
+                    id="enquiry-contact-event"
+                    value={contactDraft}
+                    onChange={(e) => setContactDraft(e.target.value)}
+                    rows={3}
+                    placeholder="What you said / next step…"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={saving || !contactDraft.trim()}
+                    onClick={() => void handleAddContactEvent()}
+                  >
+                    {saving ? "Saving…" : "Add to history"}
+                  </Button>
+                </Field>
+              ) : null}
+            </FieldGroup>
+
+            {mayUpdateStatus ? (
+              <>
+                <Separator />
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel>Status</FieldLabel>
+                    <Select value={statusDraft} onValueChange={setStatusDraft}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ENQUIRY_STATUSES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {ENQUIRY_STATUS_LABEL[s]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" disabled={saving} onClick={() => void handleSaveStatus()}>
+                      {saving ? "Updating…" : "Update status"}
+                    </Button>
+                  </Field>
+                </FieldGroup>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+
+        {isStaffView ? null : (
+        <>
         <dl className="grid gap-2 text-sm">
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Phone</dt>
             <dd>{enquiry.customer_phone || "—"}</dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Email</dt>
             <dd>{enquiry.customer_email || "—"}</dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          {enquiry.customer_city || enquiry.customer_state ? (
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Location</dt>
+              <dd>{[enquiry.customer_city, enquiry.customer_state].filter(Boolean).join(", ")}</dd>
+            </div>
+          ) : null}
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Created</dt>
             <dd>{formatDateTime(enquiry.created_at)}</dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Logged by</dt>
             <dd>{profileDisplayName(creatorProfile)}</dd>
           </div>
           {enquiry.assigned_at ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">Assigned</dt>
               <dd>
                 {formatDateTime(enquiry.assigned_at)}
@@ -294,45 +553,55 @@ export default function EnquiryDetailDialog({
               </dd>
             </div>
           ) : null}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Order ID</dt>
-            <dd>{enquiry.order_id || "—"}</dd>
-          </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Help path</dt>
-            <dd>{complaintsHelpPathLabel(enquiry)}</dd>
-          </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">
-              {String(enquiry.ticket_kind ?? "") === "enquiry" ? "Enquiry details" : "Concerns"}
-            </dt>
-            <dd className="whitespace-pre-wrap">
-              {enquiry.product_details || "—"}
-              <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
-            </dd>
-          </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Ownership</dt>
-            <dd>
-              {enquiry.ownership_verified
-                ? "Verified — phone matched the order"
-                : "Not verified — do not assume this customer owns the order"}
-            </dd>
-          </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
-            <dt className="text-muted-foreground">Received</dt>
-            <dd>{formatDateTime(enquiry.created_at)}</dd>
-          </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          {isEnquiryKind ? null : (
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Order ID</dt>
+              <dd>{enquiry.order_id || "—"}</dd>
+            </div>
+          )}
+        </dl>
+        <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+          <dl className="grid min-w-0 max-w-xl grow-0 gap-2 text-sm">
+            <div className="grid grid-cols-[9.5rem_minmax(0,1fr)] gap-2">
+              <dt className="text-muted-foreground">{requirementLabel}</dt>
+              <dd className="whitespace-pre-wrap">
+                {enquiry.product_details || "—"}
+                <span className="mt-1 block text-xs text-muted-foreground">Locked after receive. Not editable.</span>
+              </dd>
+            </div>
+          {enquiry.opened_at ? (
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Opened</dt>
+              <dd>
+                {formatDateTime(enquiry.opened_at)}
+                {enquiry.status === "opened" ? " — seen, no action yet" : ""}
+              </dd>
+            </div>
+          ) : null}
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Picked</dt>
             <dd>
               {enquiry.picked_at
                 ? formatDateTime(enquiry.picked_at)
-                : "Not picked yet — Verified / Contacted / Close counts as pick"}
+                : "Not picked yet — Verified / Contacted / Reached out / Close counts as pick"}
             </dd>
           </div>
+          {enquiry.last_reached_out_at ? (
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
+              <dt className="text-muted-foreground">Reached out</dt>
+              <dd>
+                {formatDateTime(enquiry.last_reached_out_at)}
+                {enquiry.last_reached_out_by && profileById?.[enquiry.last_reached_out_by]
+                  ? ` · ${profileDisplayName(profileById[enquiry.last_reached_out_by])}`
+                  : ""}
+                {enquiry.last_reached_out_comment ? (
+                  <span className="mt-1 block whitespace-pre-wrap">{enquiry.last_reached_out_comment}</span>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
           {enquiry.sla_escalated_at ? (
-            <div className="grid grid-cols-[7rem_1fr] gap-2">
+            <div className="grid grid-cols-[9.5rem_1fr] gap-2">
               <dt className="text-muted-foreground">SLA</dt>
               <dd>
                 Escalated {formatDateTime(enquiry.sla_escalated_at)}
@@ -340,11 +609,11 @@ export default function EnquiryDetailDialog({
               </dd>
             </div>
           ) : null}
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Photos</dt>
             <dd>{normalizeEnquiryAttachments(enquiry.attachments).length} image(s)</dd>
           </div>
-          <div className="grid grid-cols-[7rem_1fr] gap-2">
+          <div className="grid grid-cols-[9.5rem_1fr] gap-2">
             <dt className="text-muted-foreground">Feedback</dt>
             <dd>
               {enquiry.feedback_rating
@@ -361,7 +630,69 @@ export default function EnquiryDetailDialog({
               </span>
             </dd>
           </div>
-        </dl>
+          </dl>
+          {mayEditDetails ? (
+            <FieldGroup className="w-56 shrink-0 gap-3">
+              <Field>
+                <FieldLabel>Priority</FieldLabel>
+                <Select value={priorityDraft} onValueChange={setPriorityDraft}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ENQUIRY_PRIORITIES.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {ENQUIRY_PRIORITY_LABEL[p]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {isAdmin && isEnquiryKind ? (
+                <Field>
+                  <FieldLabel>Tag</FieldLabel>
+                  <Select value={tagDraft || "__none__"} onValueChange={(v) => setTagDraft(v === "__none__" ? "" : v)}>
+                    <SelectTrigger aria-label="Enquiry tag">
+                      <SelectValue placeholder="No tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No tag</SelectItem>
+                      {tags
+                        .filter((t) => t.is_active !== false || t.id === enquiry.tag_id)
+                        .map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>Tag controls who can see this enquiry.</FieldDescription>
+                </Field>
+              ) : (
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Tag: </span>
+                  {tagName || "—"}
+                </p>
+              )}
+              <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSavePriorityTag()}>
+                {saving ? "Saving…" : "Save priority / tag"}
+              </Button>
+            </FieldGroup>
+          ) : (
+            <div className="flex w-56 shrink-0 flex-col gap-1 text-sm">
+              <p>
+                <span className="text-muted-foreground">Priority: </span>
+                {ENQUIRY_PRIORITY_LABEL[enquiry.priority] ?? enquiry.priority}
+              </p>
+              {isEnquiryKind ? (
+                <p>
+                  <span className="text-muted-foreground">Tag: </span>
+                  {tagName || "—"}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </div>
 
         {enquiry.status === "closed" && outbound.length ? (
           <div className="space-y-2 rounded-md border bg-muted/40 p-3 text-sm">
@@ -392,14 +723,15 @@ export default function EnquiryDetailDialog({
         ) : null}
 
         {mayPick ? (
-          <div className="space-y-2 border-t pt-4">
-            <p className="text-sm text-muted-foreground">
-              Close queues the Concierge feedback text to this customer phone. Keep WhatsApp simulator
-              open with the same number to see it. Live Meta WhatsApp is not sent from this dashboard.
-            </p>
+          <div className="flex flex-col gap-3 border-t pt-4">
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="secondary" disabled={picking} onClick={() => void handlePick("verified")}>
-                Mark verified
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={picking || customerVerified}
+                onClick={() => void handlePick("verified")}
+              >
+                {customerVerified ? "Verified" : "Mark verified"}
               </Button>
               <Button type="button" variant="secondary" disabled={picking} onClick={() => void handlePick("contacted")}>
                 Mark contacted
@@ -408,76 +740,107 @@ export default function EnquiryDetailDialog({
                 Close
               </Button>
             </div>
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+              <Field className="w-full max-w-md">
+                <FieldLabel htmlFor="enquiry-reach-out">Reached out to customer</FieldLabel>
+                <Textarea
+                  id="enquiry-reach-out"
+                  value={reachOutDraft}
+                  onChange={(e) => setReachOutDraft(e.target.value)}
+                  rows={3}
+                  placeholder="What you told the customer…"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={picking || !reachOutDraft.trim()}
+                  onClick={() => void handleReachOut()}
+                >
+                  {picking ? "Saving…" : "Save reach-out"}
+                </Button>
+              </Field>
+              {mayEditDetails ? (
+                <Field className="w-full max-w-md">
+                  <FieldLabel htmlFor="enquiry-internal-note">Internal note</FieldLabel>
+                  <Textarea
+                    id="enquiry-internal-note"
+                    value={notesDraft}
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                    rows={3}
+                    placeholder="Team-only note…"
+                  />
+                  <FieldDescription>Only staff see this. Customer does not.</FieldDescription>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={saving}
+                    onClick={() => void handleSaveInternalNote()}
+                  >
+                    {saving ? "Saving…" : "Save note"}
+                  </Button>
+                </Field>
+              ) : (
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Internal note: </span>
+                  {enquiry.notes || "—"}
+                </p>
+              )}
+            </div>
           </div>
-        ) : null}
-
-        {mayEditDetails ? (
-          <div className="space-y-3 border-t pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="enquiry-notes">Notes</Label>
+        ) : mayEditDetails ? (
+          <div className="w-full max-w-md border-t pt-4">
+            <Field>
+              <FieldLabel htmlFor="enquiry-internal-note-closed">Internal note</FieldLabel>
               <Textarea
-                id="enquiry-notes"
+                id="enquiry-internal-note-closed"
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
-                rows={2}
-                placeholder="Internal notes…"
+                rows={3}
+                placeholder="Team-only note…"
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Priority</Label>
-              <Select value={priorityDraft} onValueChange={setPriorityDraft}>
+              <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSaveInternalNote()}>
+                {saving ? "Saving…" : "Save note"}
+              </Button>
+            </Field>
+          </div>
+        ) : (
+          <p className="border-t pt-4 text-sm">
+            <span className="text-muted-foreground">Internal note: </span>
+            {enquiry.notes || "—"}
+          </p>
+        )}
+
+        <div className="w-full max-w-md">
+
+        {mayAssign ? (
+          <FieldGroup className="border-t pt-4">
+            <Field>
+              <FieldLabel>Assign to</FieldLabel>
+              <Select value={assigneeId || "__none__"} onValueChange={(v) => setAssigneeId(v === "__none__" ? "" : v)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Pick team member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ENQUIRY_PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {ENQUIRY_PRIORITY_LABEL[p]}
+                  <SelectItem value="__none__">Unassigned</SelectItem>
+                  <SelectItem value={UNKNOWN_ACCOUNT_MANAGER_VALUE}>
+                    I don't know my Account manager → {ENQUIRY_FALLBACK_MANAGER_NAME}
+                  </SelectItem>
+                  {activeProfiles.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {profileDisplayName(p)}
+                      {p.department ? ` · ${p.department}` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <Button type="button" variant="secondary" disabled={saving} onClick={() => void handleSaveDetails()}>
-              {saving ? "Saving…" : "Save details"}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-2 border-t pt-4 text-sm">
-            <p>
-              <span className="text-muted-foreground">Notes: </span>
-              {enquiry.notes || "—"}
-            </p>
-          </div>
-        )}
-
-        {mayAssign ? (
-          <div className="space-y-2 border-t pt-4">
-            <Label>Assign to</Label>
-            <Select value={assigneeId || "__none__"} onValueChange={(v) => setAssigneeId(v === "__none__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pick team member" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Unassigned</SelectItem>
-                <SelectItem value={UNKNOWN_ACCOUNT_MANAGER_VALUE}>
-                  I don't know my Account manager → {ENQUIRY_FALLBACK_MANAGER_NAME}
-                </SelectItem>
-                {activeProfiles.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {profileDisplayName(p)}
-                    {p.department ? ` · ${p.department}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Current: {assigneeProfile ? profileDisplayName(assigneeProfile) : "Nobody assigned yet"}
-            </p>
+              <FieldDescription>
+                Current: {assigneeProfile ? profileDisplayName(assigneeProfile) : "Nobody assigned yet"}
+              </FieldDescription>
+            </Field>
             <Button type="button" disabled={assigning || !assigneeId} onClick={() => void handleAssign()}>
               {assigning ? "Assigning…" : "Assign user"}
             </Button>
-          </div>
+          </FieldGroup>
         ) : (
           <p className="border-t pt-4 text-sm">
             <span className="text-muted-foreground">Assigned to: </span>
@@ -485,61 +848,64 @@ export default function EnquiryDetailDialog({
           </p>
         )}
 
-        {activity.length ? (
-          <div className="space-y-2 border-t pt-4">
-            <Label>Activity</Label>
-            <p className="text-xs text-muted-foreground">
-              {isAdmin ? "Every staff action shows here." : "Your updates also show to admin."}
-            </p>
-            <ul className="max-h-40 space-y-1 overflow-y-auto text-sm">
-              {activity.map((row) => {
-                const actor = profileById?.[row.actor_id];
-                return (
-                  <li key={row.id} className="text-muted-foreground">
-                    <span className="font-medium text-foreground">
-                      {ENQUIRY_ACTIVITY_LABEL[row.action] ?? row.action}
-                    </span>
-                    {" · "}
-                    {profileDisplayName(actor)}
-                    {row.detail ? ` · ${row.detail}` : ""}
-                    {" · "}
-                    {formatDateTime(row.created_at)}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-
         {mayUpdateStatus ? (
-          <div className="space-y-2 border-t pt-4">
-            <Label>Status</Label>
-            <Select value={statusDraft} onValueChange={setStatusDraft}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ENQUIRY_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {ENQUIRY_STATUS_LABEL[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <FieldGroup className="border-t pt-4">
+            <Field>
+              <FieldLabel>Status</FieldLabel>
+              <Select value={statusDraft} onValueChange={setStatusDraft}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENQUIRY_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {ENQUIRY_STATUS_LABEL[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
             <Button type="button" variant="outline" disabled={saving} onClick={() => void handleSaveStatus()}>
               {saving ? "Updating…" : "Update status"}
             </Button>
-          </div>
+          </FieldGroup>
         ) : null}
+        </div>
+        </>
+        )}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        </CardContent>
+      </Card>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <Sheet open={activityOpen} onOpenChange={setActivityOpen}>
+        <SheetContent className="flex flex-col">
+          <SheetHeader>
+            <SheetTitle>Activity</SheetTitle>
+            <SheetDescription>
+              What changed on {enquiry.enquiry_code}. Newest first.
+            </SheetDescription>
+          </SheetHeader>
+          {activity.length ? (
+            <ScrollArea className="h-72">
+              <ul className="flex flex-col gap-3 pr-4">
+                {activity.map((row) => {
+                  const described = describeEnquiryActivity(row, profileDisplayName(profileById?.[row.actor_id]));
+                  return (
+                    <li key={row.id} className="flex flex-col gap-0.5 border-b pb-3 last:border-b-0">
+                      <p className="text-sm font-medium">{described.title}</p>
+                      <p className="text-sm text-muted-foreground">{described.body}</p>
+                      <p className="text-xs text-muted-foreground">{formatDateTime(row.created_at)}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </ScrollArea>
+          ) : (
+            <p className="text-sm text-muted-foreground">No activity yet.</p>
+          )}
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 }

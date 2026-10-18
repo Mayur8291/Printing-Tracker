@@ -1,5 +1,293 @@
 # Database
 
+## Repeat order templates (`order_templates`)
+
+**Purpose:** Saved repeat-order forms for Printing Orders.
+
+**RLS:** SELECT any authenticated user (`order templates read authenticated`, migration `20261013064231_order_templates_shared_read.sql`). INSERT `user_id = auth.uid()`. UPDATE/DELETE owner or `jwt_user_is_admin()`. Applied on staging and production.
+
+**Query:** list `order by updated_at desc`. Images in public bucket `order-template-images`.
+
+**Rollback:** restore SELECT `auth.uid() = user_id or jwt_user_is_admin()`.
+
+## Daily ops briefing
+
+**Purpose:** Per-user follow-up queue and one open task per source. Migration `20261009102008_ops_daily_briefing.sql` — applied on staging and production.
+
+### Views (security_invoker)
+
+| View | Rows |
+|------|------|
+| `rpt_ops_my_open_jobs` | Incomplete `orders` where `created_by = auth.uid()`. Flags overdue / due soon / open 7+ days. |
+| `rpt_ops_my_production` | Same user, `is_production_order` and not complete. |
+| `rpt_ops_my_pending_pay` | Job-sheet pending amount on those orders; admins also AR they own from `ar_invoice_outstanding_view`. |
+
+### `ops_followup_task_link`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `assignee_id` | uuid | Task owner (`auth.uid()`) |
+| `source_kind` | text | `open_job` / `production` / `pending_pay` / `ar_invoice` |
+| `source_id` | text | Order pk or invoice uuid |
+| `task_id` | uuid | FK `user_goal_tasks` |
+
+Unique `(assignee_id, source_kind, source_id)`. RLS: read/insert/delete own.
+
+### `ops_briefing_notifications`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `recipient_user_id` | uuid | Who sees the nag |
+| `briefing_date` | date | IST calendar day |
+| `open_jobs_count` / `production_count` / `pending_pay_count` | int | Snapshot counts |
+
+Unique `(recipient_user_id, briefing_date)`. Select own. Insert via `ops_insert_daily_briefings` (cron).
+
+### RPCs
+
+- `ops_create_followup_task(p_source_kind, p_source_id, p_title, p_description)` — security definer; must own the queue row.
+- `ops_insert_daily_briefings()` — postgres/cron only. Schedule `30 3 * * *` UTC.
+
+**Rollback:** unschedule cron; drop functions, views, tables.
+
+## Asset Management register
+
+Company IT assets from Tools → Asset Management → **Add asset** / **New asset**. List lives in **Assets**.
+
+### `hr_assets`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `tag` | text unique | Sequential `IT-00001`+ barcode id |
+| `name` | text | Asset name (required) |
+| `category` | text | Laptop, Monitor, Phone, … |
+| `manufacturer` | text | Optional |
+| `model` | text | Optional |
+| `serial_number` | text | Optional |
+| `purchase_date` | text | Optional free text from the form |
+| `location` | text | Home location |
+| `status` | text | `Available`, `Checked out`, `Maintenance`, `Retired` |
+| `assignee_user_id` | uuid | FK → `profiles.id` when checked out; null when available |
+| `assignee_name` | text | Name snapshot |
+| `notes` | text | Optional |
+| `charger_included` | boolean | Form Yes/No |
+| `created_by` | uuid | FK → `profiles.id` (`auth.uid()` on insert) |
+| `created_at` | timestamptz | Insert time |
+| `updated_at` | timestamptz | Assign / check-in / row touch |
+
+**Indexes:** unique `tag`; `created_at desc`; `(status, created_at desc)`.
+
+**Constraints:** name not empty; tag `IT-` + digits; assignee set ⇔ status `Checked out`.
+
+**RLS:** Select authenticated. Insert `created_by = auth.uid()`. Update authenticated. No delete. Realtime publication on.
+
+**Migration:** `20260903090955_hr_assets.sql` — **staging only** (`scvojtvgnkmbupvyslmb`). Not on production until an explicit release.
+
+**Query pattern:** List `order by created_at desc`. Insert from Save asset (client allocates next tag, retries on unique clash). Assign / check-in update `status` + assignee fields.
+
+**Rollback:** drop trigger, function, policies, then `hr_assets`.
+
+## Step 5 Uniware bridge — One Source of Truth (2026-09-02)
+
+Uniware owns ecom-facility on-hand. The platform stores a **read-only mirror**. Migration `20260902180000_step5_uniware_bridge.sql`, applied on **staging**. Contract: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).
+
+| Object | Purpose |
+|---|---|
+| `uni_settings` | Singleton: default entity, Uniware marker location, optional facility code. Admin RLS write. |
+| `uni_sync_log` | Per-feed run log (`inventory`, `sale_orders`, `shipments`, `invoices`, `returns`, `adjust_out`). Watermark on success. |
+| `uni_inventory_mirror` | Facility × SKU × inventory_type from Uniware snapshot. `qty` = available; `qty_blocked` / `qty_open_sale` / `qty_putaway` since `20260904093145`. No client write. |
+| `uni_sale_order` / `uni_shipment` / `uni_invoice` / `uni_return` | Idempotent upserts keyed on Uniware code. Not `so_order`. `uni_sale_order` holds **all Uniware channels** from Sync orders (Amazon / Flipkart / Not Funny / CUSTOM B2B). New platform B2B stays on `so_order`. |
+| `uni_sale_order_line` | Exact Uniware `saleOrderItems` from `saleorder/get` (1 row ≈ 1 pc). `facility_code` since `20260905104510`. Used for Sold + DRR. Never package summaries. |
+| `uni_item_sku` | Uniware item-type catalog codes so Sync inventory can resume past 1000-row pages. `uni_settings.catalog_search_start` / `catalog_complete`. Migration `20260905090157`. |
+| `uni_transfer` | Draft → posted (platform ledger) → `api_ok` / `api_failed`. Number `UTR/<FY>/nnnn`. |
+| `uni_feed_health_view` | Last finished run per feed; `stale` if missing, error, or older than 2 hours. `security_invoker`. |
+| `core_location` `UNIWARE-ECOM` | Seeded virtual `uniware_facility` marker (`owner_system=uniware`). Never counted as platform stock. |
+
+**Functions** (`ops_assert_admin()` except `uni_finish_sync`):
+
+- `uni_begin_sync(feed)` / `uni_finish_sync(log, ok, rows, error)` — edge bookkeeping.
+- `uni_drr_by_sku(p_from date, p_days int, p_facility text default null)` — Sold qty + DRR from exact Uniware items in sold/invoiced statuses (`DISPATCHED`, `DELIVERED`, `INVOICED`, …). Optional facility. Empty-status package rows are not sales.
+- `uni_post_transfer(id)` — posts `inv_post_movement` only when from/to `owner_system` matches direction. Does **not** call Uniware.
+- `uni_mark_transfer_api(id, ok, ref, error)` — records the adjust API result.
+
+**RLS:** authenticated SELECT on all `uni_*`. Admin write on `uni_settings` + `uni_transfer` only. Mirror tables: edge service role.
+
+**Rollback:** drop `uni_*` tables/views/functions; keep `UNIWARE-ECOM` location or mark inactive.
+
+## Step 4 billing & receivables — One Source of Truth (2026-09-02)
+
+Invoices generated from dispatch; money is a document (law 3). Migration `20260902170000_step4_billing_receivables.sql`, applied on **staging**. Money tables have **no direct write policies** — `bill_generate_from_dispatch`, `ar_issue_credit_note`, `ar_record_receipt` are the only doors. Documents are immutable once numbered (`bill_block_change`; totals write uses `ops.allow_status_change`).
+
+| Object | Purpose |
+|---|---|
+| `ops_next_gstin_doc_no(entity, gstin, doc_type, date)` | Gapless sequence per entity × GSTIN × FY (law). Prefix `INV/` / `CN/`. Internal (no authenticated grant). |
+| `bill_invoice` | One row per dispatch (`unique dispatch_id`). GSTIN, place of supply (2-digit), intra_state, credit_days snapshot, due_date, owner (from party, overridable), GST split totals. `invoice_no` unique. |
+| `bill_invoice_line` | One row per dispatch line (`unique dispatch_line_id`): HSN, qty, rate, taxable, gst_rate, IGST or CGST+SGST, line_total. Paisa-safe CGST/SGST split (halves sum to tax). |
+| `bill_credit_note` | Correction document; amount capped at invoice outstanding under lock. |
+| `ar_receipt` / `ar_allocation` | Receipt (mode bank/upi/cash/cheque/adjustment, UTR) + allocations. Unique (receipt, invoice). Unallocated remainder = advance. |
+| `ar_followup` | Collections working document (admin RLS write): next_date, note, outcome, open/done/cancelled. |
+| `ar_invoice_outstanding_view` | total − credits − allocations; bucket NOT_DUE / 0-30 / 31-60 / 61-90 / 90+ / PAID; days_past_due. `security_invoker`. |
+| `ar_customer_ledger_view` | invoiced − credited − received (receipt totals, so advances count). |
+
+**Functions** (`ops_assert_admin()`):
+
+- `bill_generate_from_dispatch(dispatch, gstin, pos, date, owner, note)` → numbers the invoice, copies dispatch lines × order rates, GST split, rolls `so_order` to `invoiced` when every dispatch of a fully-dispatched order is invoiced.
+- `ar_issue_credit_note(invoice, amount, reason, date)` — reason required; amount ≤ outstanding.
+- `ar_record_receipt(customer, entity, amount, date, mode, utr, note, allocations jsonb)` — allocation customer must match; amount ≤ outstanding; sum(alloc) ≤ receipt.
+- `ar_credit_check(customer)` → `{credit_limit, outstanding, over_limit, oldest_overdue_days}` (soft warning for confirm).
+- `ar_invoice_outstanding_locked` — internal, `FOR UPDATE`.
+
+**RLS:** read authenticated; no write on money tables; admin write on `ar_followup` only. Audit on invoice, credit note, receipt, follow-up.
+
+**Smoke-tested on staging** (rolled back): 10×₹200 @ 12% intra-state = ₹2240 (CGST 120); 2×₹100 @ 18% inter-state = ₹236 IGST; order status `invoiced`; edit/dup/over-CN/over-alloc blocked.
+
+**Rollback:** reversing migration dropping `bill_`/`ar_` tables, views, functions. Posted staging documents would be lost.
+
+## Internal Support issues
+
+Staff-raised tickets from Tools → Internal Support Platform → Open Tickets → **Raise an Issue**. Open Tickets: admin sees every non-Resolved submit; non-admin sees only their own.
+
+### `internal_support_issues`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `raised_by` | uuid | FK → `profiles.id` — who submitted (`auth.uid()` on insert) |
+| `raised_by_name` | text | Name snapshot at submit (`profiles.full_name` or email) |
+| `issue_types` | text[] | One or more issue Buttons (Internet, Food, …) |
+| `floor` | text | Optional. Null when Food / Asset / Biometric / Lost belongings only |
+| `comment` | text | Detail they typed |
+| `status` | text | `Open`, `In Progress`, `Resolved`, `Closed` |
+| `created_at` | timestamptz | Issue raised date |
+| `updated_at` | timestamptz | Status / row touch |
+
+**Indexes:** `created_at desc`; `(status, created_at desc)`; `(raised_by, created_at desc)`.
+
+**RLS:** Select `raised_by = auth.uid()` or `jwt_user_is_admin()`. Insert only `raised_by = auth.uid()`. Update admin only and only when current `status <> 'Resolved'`. No delete. Realtime publication on.
+
+**Migration:** `20260902044605_internal_support_issues.sql` (table), `20260902051939_internal_support_issues_rls_own_and_admin.sql` (own/admin RLS), `20260902054226_internal_support_issues_lock_resolved_status.sql` (lock Resolved) — **staging only** (`scvojtvgnkmbupvyslmb`). Not on production until an explicit release.
+
+**Query pattern:** History `order by created_at desc`. Non-admin query adds `raised_by = session user`. Insert from Raise an Issue. Admin Status Select updates `status`.
+
+**Rollback:** drop trigger, function, policies, then `internal_support_issues`.
+
+## Step 3 sales orders — One Source of Truth (2026-09-02)
+
+Orders that reserve stock, dispatch against reservations, job work, SLA (roadmap Step 3). Migration `20260902150000_step3_sales_orders.sql`, applied on **staging**. Same discipline as Step 2: drafting is admin RLS; numbering, reservations, stock moves and status flips only through SECURITY DEFINER functions guarded by triggers + the `ops.allow_status_change` transaction-local flag.
+
+| Object | Purpose |
+|---|---|
+| `so_order` | Order header: customer (`crm_party`), entity, channel (b2b/counter/distributor/enquiry/ecom_uniware), fulfilment `location_id` (reservations + dispatches run against it), promised date, branding flag. Status machine draft → confirmed → in_production → ready → partially_dispatched → dispatched → invoiced → closed, + cancelled. Stage timestamps (`confirmed_at`, `production_started_at`, `ready_at`, `dispatched_at`) feed the SLA view. `so_no` assigned at confirm (`SO/<FY>/nnnn`). Commercial fields freeze after draft. |
+| `so_line` | One row per SKU (per size) — never "LABEL-QTY" strings. qty/rate/tax + function-maintained counters `qty_reserved` (active) and `qty_dispatched`. Unique (so_id, sku_id). |
+| `so_dispatch` / `so_dispatch_line` | Dispatch document: transporter, LR no, boxes, weight, e-way bill no, POD url. **Append-only** (block triggers, no direct write policies) — written only by `so_post_dispatch`. |
+| `jw_job` / `jw_job_line` | Job work: kind (printing/embroidery/sublimation/stitching/other), worker party or in-house, source + worker locations (must differ), lines split input/output with qty_planned/qty_moved. Status draft → issued → received → closed, + cancelled (draft only). |
+| `sla_policy` | Stage target hours per channel × stage (confirm_to_production / production_to_ready / ready_to_dispatch), unique per pair, admin-editable. |
+
+**Functions** (SECURITY DEFINER, `ops_assert_admin()` gate):
+
+- `so_confirm(so)` → assigns the gapless number, then `so_allocate`.
+- `so_allocate(so)` → per line under lock: available = `inv_balance` (good) − active `inv_reservation`; reserves `least(need, available)` (partial OK, re-runnable after production/new stock). Returns qty newly reserved.
+- `so_set_status(so, status, reason)` → transition matrix; **ready blocked unless every line has qty_reserved + qty_dispatched ≥ qty** (roadmap rule). Sets stage timestamps.
+- `so_cancel(so, reason)` → only before any dispatch; releases active reservations, zeroes counters.
+- `so_post_dispatch(so, lines jsonb, …)` → order must be ready/partially_dispatched; per line under lock: qty ≤ `qty_reserved` (roadmap rule) and ≤ open qty; consumes reservations FIFO via `so_consume_reservation` (partial rows split so every grain stays auditable), posts `dispatch` movements (ref `so_dispatch`), updates counters, rolls status to partially_dispatched/dispatched. Returns `DISP/<FY>/nnnn`. |
+- `jw_issue(job)` → challan out: transfer movements source → worker location for input lines; assigns `JW/<FY>/nnnn`.
+- `jw_receive(job, outputs jsonb, consumed jsonb, note)` → outputs must be declared lines (hard error otherwise); `production_out` into the source location, `consumption` burns inputs at the worker location. Leftover worker-location balance = pending/loss, visible in Stock Ledger.
+- `jw_close(job)` (received only) / `jw_cancel(job, reason)` (draft only — issued jobs must receive/return stock).
+- `ops_business_hours_between(from, to)` → business hours Mon–Sat 09:30–18:30 IST (Sundays off), used by the SLA view.
+
+**Views** (`security_invoker = true`): `so_open_view` (qty ordered/reserved/dispatched, value, days overdue vs promised) and `so_sla_view` (order × applicable stage: elapsed business hours vs `sla_policy` target, `stage_done`, `breached`; open stages measure against `now()`).
+
+**RLS:** read authenticated everywhere; admin write on drafting tables (`so_order`, `so_line`, `jw_job`, `jw_job_line`, `sla_policy`); **no write policies** on `so_dispatch`/`so_dispatch_line`. Audit triggers (law 4) on `so_order`, `so_dispatch`, `jw_job`, `sla_policy`. `so_consume_reservation` has no authenticated grant (internal).
+
+**Smoke-tested on staging** (rolled-back transaction): 20 in stock → order 1 (15) fully reserved, order 2 (10) got only the remaining 5; ready blocked on the short order; two-part dispatch rolled partially_dispatched → dispatched; over-dispatch, direct status flips, dispatch edits and undeclared job outputs all blocked; cancel released reservations; job work round trip left exact balances; business hours = 2.00 for a 2-hour Tuesday window; drift 0.
+
+**Rollback:** reversing migration dropping `so_`/`jw_`/`sla_` tables, views and functions. Posted staging documents would be lost.
+
+## Step 2 procurement — One Source of Truth (2026-09-02)
+
+PO lifecycle → GRN → QC → payables (law 3: money is a document). Migration `20260902120000_step2_procurement.sql`, applied on **staging**. Drafting documents are admin-writable via RLS; everything that moves stock/money or flips a status goes through SECURITY DEFINER functions. Status columns are protected by guard triggers + a transaction-local flag (`ops.allow_status_change`) only the functions set.
+
+| Object | Purpose |
+|---|---|
+| `po_settings` | Singleton (id=1), admin-editable: `over_receipt_tolerance_pct` (default 5), `rate_variance_tolerance_pct` (default 2), `msme_due_cap_days` (default 45). |
+| `crm_vendor_item.over_receipt_pct` | New column: per vendor-item tolerance override (beats the global setting). |
+| `po_purchase_order` | PO header. Status machine: draft → approved → partially_received → fulfilled → closed; short_closed from approved/partially; cancelled from draft/approved with no receipts. `po_no` assigned at approval (gapless, per entity × FY, prefix `PO/<FY>/`). Commercial fields freeze after draft. Roadmap's sent/open deferred (see DECISIONS). |
+| `po_line` | sku, qty_ordered, rate, tax_pct + counters qty_received/qty_rejected/qty_cancelled (function-maintained; frozen fields guarded after draft). Unique (po_id, sku_id). |
+| `po_grn` / `po_grn_line` | Goods receipt working paper (draft) → posted by `po_post_grn` (grn_no `GRN/<FY>/0001`). Posted GRNs immutable except QC counters on lines. |
+| `ap_bill` / `ap_bill_line` | Vendor bill. `unique (vendor_id, bill_no)` blocks double entry; `unique (grn_line_id)` on lines makes double billing structurally impossible. Approved bills immutable — corrections are debit notes. |
+| `ap_debit_note` | Rejections / shortages / rate corrections (open/settled/cancelled), admin-writable. |
+| `ap_payment` / `ap_payment_allocation` | Append-only (block triggers, **no** direct write policies) — written only by `ap_record_payment`. |
+
+**Functions** (all SECURITY DEFINER, `ops_assert_admin()` gate = admin app users or server contexts):
+
+- `po_approve(po)` → assigns number via `ops_next_doc_no` (auto-provisions the `core_sequence` row, then `core_next_sequence` under lock).
+- `po_cancel(po, reason)` / `po_short_close(po, reason)` (kills pending qty) / `po_close(po)`.
+- `po_post_grn(grn)` → per line under `FOR UPDATE`: vendor match, PO open, over-receipt check (pending + tolerance% of ordered; vendor-item override wins), QC routing (`qc_exempt` → good, else qc_hold), `inv_post_movement`, PO counters + status (only **positive** pending counts toward fulfilment).
+- `po_record_qc(grn_line, pass, fail, note)` → same-location state-change movements (qc_hold→good / qc_hold→damaged); fail requires a note and bumps `po_line.qty_rejected`.
+- `ap_approve_bill(bill, override_reason)` → three-way match: billed qty > received = hard stop; rate variance beyond tolerance needs override (recorded as `match_status='override'` + reason). Computes totals and due date: vendor credit days, capped at `msme_due_cap_days` for micro/small vendors (`msme_capped` flag).
+- `ap_cancel_bill(bill, reason)` (draft only), `ap_record_payment(vendor, entity, amount, …, allocations jsonb)` (validates per-bill outstanding under lock).
+- Helpers: `ops_assert_admin`, `ops_fy_label` (Apr–Mar), `ops_next_doc_no`, `ops_status_change_allowed`.
+
+**Views** (`security_invoker = true`): `po_active_view` (pending qty/value, days overdue), `ap_bill_outstanding_view` (paid/outstanding/overdue), `ap_vendor_ledger_view` (billed − open debit notes − paid), `po_vendor_performance_view` (rejection %, on-time %).
+
+**Step 1 ledger change:** `inv_movement.to_state` added; the old `from ≠ to` check became `from ≠ to OR to_state <> state` (constraint `inv_movement_loc_or_state_check`), `inv_post_movement` gained `p_to_state` (11th arg, default null = same state), `inv_recompute_drift` credits the destination with `coalesce(to_state, state)`.
+
+**RLS:** read authenticated on all `po_`/`ap_` tables; admin write on drafting documents; no write policies at all on payments/allocations. Audit triggers (law 4) on `po_settings`, `po_purchase_order`, `po_grn`, `ap_bill`, `ap_debit_note`, `ap_payment`.
+
+**Rollback:** drop the `po_`/`ap_` tables + views + functions, drop `inv_movement.to_state` and restore the old constraint/function — but only via a reversing migration; posted documents on staging would be lost.
+
+## Step 1 stock ledger — One Source of Truth (2026-09-01)
+
+Append-only stock ledger (law 2). Migration `20260901191500_step1_stock_ledger.sql`, applied on **staging**. All mutations go through SECURITY DEFINER functions with `FOR UPDATE` locks — no client code ever writes these tables. Role gate v1: admin app users + server contexts (`inv_assert_can_post`); department roles later.
+
+| Object | Purpose |
+|---|---|
+| `inv_movement` | Append-only ledger: sku, from/to location, qty>0, state (good/qc_hold/damaged), reason (grn, qc_pass, qc_fail, putaway, transfer, pick, dispatch, return_in, adjustment, kit_build, kit_break, consumption, production_out, cycle_count), ref, lot, note, actor. UPDATE/DELETE blocked by trigger — corrections are reversing movements. |
+| `inv_balance` | sku × location × state → qty (≥ 0), maintained only by `inv_apply_balance()` under row lock. |
+| `inv_reservation` | Active reservations; available = balance − active reservations. |
+| `inv_count_session` / `inv_count_line` | Cycle counts; `expected_qty` snapshots from balance on line insert (trigger); posting turns variances into `cycle_count` movements. Admin may write these two directly (working documents). |
+| `inv_drift_alert` | Ledger-vs-balance mismatches found by the nightly recompute. |
+| `inv_post_movement(...)` | The only door for stock changes. Validates qty/locations, requires a note for adjustments/cycle counts, applies balances under lock (never negative), inserts the ledger row. Returns movement id. |
+| `inv_reserve` / `inv_release_reservation` | Reservation under lock against available; idempotent release. |
+| `inv_kit_build` / `inv_kit_break` | Paired movements from `cat_kit` sharing one ref. |
+| `inv_count_post(session)` | Posts count variances as movements, marks session posted. |
+| `inv_recompute_drift()` | Full ledger recompute vs balances → `inv_drift_alert` rows. pg_cron `inv-drift-nightly` at 21:00 UTC (02:30 IST). |
+
+**RLS:** select for `authenticated` on all; **no direct write policies** on movement/balance/reservation (functions only); count tables admin-write; drift admin-update. Function grants: `authenticated` may execute the public functions; `inv_apply_balance` and `inv_recompute_drift` are internal (no authenticated grant).
+
+**Smoke-tested on staging** (rolled-back transaction): GRN → transfer → kit build → cycle count produced exact balances; over-issue, note-less adjustment, over-reserve and ledger UPDATE all blocked; drift = 0.
+
+**Rollback:** drop the 6 `inv_*` tables + 9 functions, `cron.unschedule('inv-drift-nightly')`.
+
+## Step 0 masters — One Source of Truth (2026-09-01)
+
+Foundation masters for the Scott Ops Platform roadmap ([ONE_SOURCE_OF_TRUTH_ROADMAP.md](./ONE_SOURCE_OF_TRUTH_ROADMAP.md), laws in [laws.md](./laws.md)). Migration `20260901180000_step0_masters_and_entities.sql`, applied on **staging**. No UI yet; no data loaded except the 8 seeded brands. Scott API tables untouched.
+
+| Table | Purpose |
+|---|---|
+| `core_entity` / `core_gstin` | Legal entities and every seller GSTIN (15). Every future document carries `entity_id` + `gstin_id`. |
+| `core_sequence` | Gapless doc numbering per entity × gstin × doc type × FY. Allocate **only** via `core_next_sequence()` (SECURITY DEFINER, `FOR UPDATE` row lock, raises if no sequence configured). |
+| `core_location` | Warehouses, zones, bins, virtual locations (`qc_hold`, `damaged`, `in_transit`, `job_worker`, `amazon_fc`, `distributor`, `uniware_facility`); `owner_system` = platform \| uniware \| external (law 5); `party_id` links job-worker/distributor locations. Check: `kind='virtual'` ⇔ `virtual_kind` set. |
+| `cat_brand` → `cat_style` → `cat_colour` → `cat_sku` | Catalog. `cat_sku.sku_code` unique, **inherited as-is** (incl. Scott integration codes). `colour_id` nullable until legacy import is structured (must be filled before Step 1 go-live). `item_kind` finished_good \| raw_material \| packaging \| consumable. |
+| `cat_gst_slab` | GST rate by price band as data, with effective dates. |
+| `cat_kit` | Kit SKU → component SKUs × qty (kit ≠ component, qty > 0). |
+| `cat_channel_listing` | SKU ↔ channel + ASIN/FSN/seller-SKU + entity. Unique (sku, channel, entity). |
+| `crm_party` | One party master: customer \| vendor \| job_worker \| transporter \| principal. Owner, credit days/limit, PAN, `parent_id` (branches), `merged_into_id` (dedupe keeps history), MSME/Udyam fields, lead time, payment terms, `default_qc_required`. Unique normalized name per kind among unmerged rows. |
+| `crm_party_gstin` / `crm_address` / `crm_contact` | Party detail rows (cascade delete with party). |
+| `crm_party_bank` | Bank details, **admin-only RLS** (even select). |
+| `crm_vendor_item` | Vendor × SKU: last rate, MOQ, lead time, `qc_exempt`, preferred rank. Rate history comes in Step 2. |
+| `hr_employee` | People master linked to `profiles`; department, tier 1–6, manager, in-time, status. |
+| `audit_log` | Who/when/what for every master change, written by `audit_row_change()` trigger (SECURITY DEFINER) on all Step 0 tables except `core_sequence`. Admin-only read; no direct writes. |
+
+**RLS pattern:** select for `authenticated`; insert/update/delete admin-only via `jwt_user_is_admin()`. Exceptions: `crm_party_bank` (admin-only everything), `audit_log` (admin read only).
+
+**Triggers:** `set_updated_at()` before update on all; `audit_row_change()` after insert/update/delete on all except `core_sequence` (a number allocation per document would flood the log — the documents are the trail).
+
+**Rollback:** drop the 19 tables + `core_next_sequence`, `audit_row_change`, `set_updated_at`. No existing table was altered.
+
+**UI:** admin-only **Platform Masters** tab (`MastersPanel.jsx`) — Parties / SKUs / Entities & GSTINs / Locations, with CSV import + dedupe report for Parties and SKUs (see FLOWS.md → Platform Masters).
+
 ## Enquiries
 
 Customer/product enquiries logged in the dashboard; admin assigns team members to follow up.
@@ -14,9 +302,11 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | `customer_name` | text | Required |
 | `customer_phone` / `customer_email` | text | Optional contact |
 | `product_details` | text | What customer asked for |
-| `source` | text | Phone, Email, Walk-in, etc. |
+| `source` | text | Free text. Form offers Facebook, WhatsApp, Insta Reel, Insta Post, Google, Distributor, Walk-in, Reference. Reference saves as `Reference - <name>`. Old rows may still hold Phone / Email / Website / Other. |
 | `notes` | text | Internal notes |
-| `status` | text | `new`, `assigned`, `in_progress`, `resolved`, `closed` (UI format unchanged) |
+| `status` | text | `new`, `assigned`, `opened`, `in_progress`, `resolved`, `closed`. `opened` = worker viewed the ticket, no action yet (migration `20261005063756_enquiry_opened_status.sql`). |
+| `opened_at` | timestamptz | First time assignee / tag holder / SLA fallback opened the detail. Null when admin-only views. |
+| `last_reached_out_at` / `last_reached_out_comment` / `last_reached_out_by` | timestamptz / text / uuid | Latest staff reach-out to the customer. Comment required. FK `last_reached_out_by` → `profiles.id`. Migration `20261005074841_support_admins_and_reach_out.sql`. |
 | `priority` | text | `low`, `normal`, `high`, `urgent` |
 | `order_id` | text | Optional linked order code (Ready Stock or tracker) |
 | `order_type` | text | `regular` or `customized` |
@@ -32,11 +322,66 @@ Customer/product enquiries logged in the dashboard; admin assigns team members t
 | `assignee_id` | uuid | FK → `profiles.id` — who works on it |
 | `assigned_by` / `assigned_at` | uuid / timestamptz | Admin assignment audit |
 | `created_by` | uuid | FK → `profiles.id` — who logged enquiry |
-| `created_at` / `updated_at` | timestamptz | Audit |
+| `tag_id` | uuid | FK → `enquiry_tags.id` (nullable, `on delete set null`). Enquiries only; complaints stay null. Index `enquiries_tag_idx`. |
+| `customer_city` / `customer_state` | text | Enquiry contact location. City from `src/indianCities.js`; state derived client-side at save (`stateForCity`). Nullable. Migration `20261005063356_enquiry_customer_city_state.sql`. Rollback: drop both columns. |
+| `created_at` / `updated_at` | timestamptz | Audit. Bulk CSV import may set `created_at` from the sheet's Date column (client-side cap: not after tomorrow). |
 
-**RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields**; creator can update own rows (photos after insert); insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits. Migration `20260819120000_enquiries_creator_update.sql`.
+**RLS:** Admin full access; assignee and creator can read; SLA fallback (`escalated_to_id`) can read/update; **tag holder** (`enquiry_tag_visible(tag_id)`) can read/update; assignee can update status/notes on own rows **but cannot change assignee fields or `tag_id`**; creator can update own rows (photos after insert); insert: any authenticated as creator; **non-admin insert cannot set assignee_id**. Trigger `enquiries_guard_assignee_change` blocks non-admin assignee edits and non-admin tag changes. Migration `20260819120000_enquiries_creator_update.sql`, `20261005062316_enquiry_tags.sql`.
 
-**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql`, code prefixes `20260819100000_enquiry_complaint_code_prefixes.sql` (staging: `ticket_kind`, `complaint_code_seq`, relabel complaint `ENQ-` → `CS-`).
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`, Concierge desk `20260818082754_enquiry_concierge_desk.sql`, admin-assign + activity `20260818100000_enquiry_admin_assign_activity.sql`, close survey `20260818113000_enquiry_close_survey_message.sql`, code prefixes `20260819100000_enquiry_complaint_code_prefixes.sql` (staging: `ticket_kind`, `complaint_code_seq`, relabel complaint `ENQ-` → `CS-`), tags `20261005062316_enquiry_tags.sql`, city/state `20261005063356_enquiry_customer_city_state.sql`, opened status `20261005063756_enquiry_opened_status.sql` (rollback: drop `opened_at`, restore 5-value check after moving `opened` rows to `assigned`, recreate old index), support admin + reach-out `20261005074841_support_admins_and_reach_out.sql`.
+
+**Drift note (2026-10-05):** staging `enquiries` has **no** `ticket_kind` column and no `enquiries update creator` policy — `20260819100000` / `20260819120000` never ran there. App reads kind from `help_topic` via its legacy select fallback. Reconcile before production release.
+
+### `enquiry_tags`
+
+Admin-managed topic list for enquiries (seed: Pets, HR, Corporate Giftings, End customer, Event).
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | PK |
+| `name` | text | Unique case-insensitive (`lower(btrim(name))`) |
+| `sort_order` | integer | Form order; admin adds get `last + 10` |
+| `is_active` | boolean | `false` hides the tag from **New enquiry**; existing rows keep it |
+| `created_by` | uuid | FK → `profiles.id` |
+| `created_at` | timestamptz | Audit |
+
+**RLS:** any authenticated reads; admin (`jwt_user_is_admin()`) writes. In `supabase_realtime`.
+
+### `enquiry_tag_members`
+
+Which users hold which tag. A tagged enquiry is visible to its tag holders.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `tag_id` | uuid | FK → `enquiry_tags.id` cascade |
+| `user_id` | uuid | FK → `profiles.id` cascade |
+| `created_at` | timestamptz | Audit |
+
+PK `(tag_id, user_id)`. Index on `user_id`. **RLS:** admin reads/writes all; a user reads only their own rows. In `supabase_realtime`.
+
+**Function:** `enquiry_tag_visible(uuid) → boolean`, security definer, stable: true when `auth.uid()` holds that tag. Used by `enquiries select scoped` and `enquiries update tag member`.
+
+### `support_admins`
+
+Who may admin Support without `profiles.role = admin`.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `user_id` | uuid | PK, FK → `profiles.id` cascade |
+| `granted_by` | uuid | Platform admin who granted |
+| `granted_at` | timestamptz | When |
+
+**RLS:** any authenticated reads; only `jwt_user_is_admin()` writes. In `supabase_realtime`.
+
+**Functions:** `jwt_user_is_support_admin()`, `jwt_user_can_admin_enquiries()` (`admin OR support_admin`). Enquiry select/update-admin/delete/insert-assign, tag write, activity select, SLA select use `jwt_user_can_admin_enquiries()`.
+
+### `support_admin_audit`
+
+Grant/revoke log. Platform admin reads and inserts (`actor_id = auth.uid()`).
+
+**Rollback:** restore policies to `jwt_user_is_admin()`; restore previous guard body; drop reach-out columns; drop both tables and both functions.
+
+**Rollback:** drop policy `enquiries update tag member`; recreate `enquiries select scoped` without the tag clause; restore the previous `enquiries_guard_assignee_change` body; `alter table enquiries drop column tag_id`; drop `enquiry_tag_members`, `enquiry_tags`, `enquiry_tag_visible`.
 
 ### `enquiry_sla_escalations`
 
@@ -52,7 +397,7 @@ One row per enquiry after 2 hours unpicked. Admin and `recipient_user_id` (Gargi
 
 **Storage bucket:** `enquiry-attachments` (public URLs, authenticated upload to `{auth.uid()}/…`).
 
-**Query pattern:** list newest 500 enquiries; unpicked SLA partial index `(created_at) WHERE picked_at IS NULL AND status IN ('new','assigned')`.
+**Query pattern:** list newest 500 enquiries; unpicked SLA partial index `(created_at) WHERE picked_at IS NULL AND status IN ('new','assigned','opened')`.
 
 **Rollback:** drop new columns / table / bucket policies; restore prior `enquiries select scoped` policy (no `escalated_to_id`).
 
@@ -64,11 +409,11 @@ Staff/admin actions on an enquiry so admin can see pick, status, notes, close.
 |--------|------|---------|
 | `enquiry_id` | uuid | FK → `enquiries.id` |
 | `actor_id` | uuid | Who did the action |
-| `action` | text | `created`, `assigned`, `verified`, `contacted`, `closed`, `status`, `details`, `feedback` |
+| `action` | text | `created`, `assigned`, `opened`, `verified`, `contacted`, `reached_out`, `closed`, `status`, `details`, `feedback` |
 | `detail` | text | Extra (status value, code) |
 | `created_at` | timestamptz | When |
 
-**RLS:** Admin reads all; actor reads own; assignee/creator/SLA fallback read for that enquiry. Insert only as self (`actor_id = auth.uid()`).
+**RLS:** Platform admin + Support admin read all; actor reads own; assignee/creator/SLA fallback/tag holder read for that enquiry. Insert only as self (`actor_id = auth.uid()`).
 
 **Migration:** `20260818100000_enquiry_admin_assign_activity.sql`
 
@@ -157,10 +502,14 @@ Automatic Concierge texts when `orders.status` changes.
 | `recipient_user_id` | uuid | Assignee inbox |
 | `enquiry_id` | uuid | FK → `enquiries.id` |
 | `enquiry_code` / `customer_name` | text | Denormalized for notification list |
-| `assigned_by_user_id` | uuid | Admin who assigned |
-| `created_at` | timestamptz | When assigned |
+| `assigned_by_user_id` | uuid | Actor who caused the event (`auth.uid()` via RPC) |
+| `kind` | text | `created`, `assigned`, `status`, `details`, `reached_out`, `verified`, `contacted`, `closed`, `feedback` (default `assigned`) |
+| `summary` | text | Short inbox line (what changed) |
+| `created_at` | timestamptz | When |
 
-**Migration:** same as above. Realtime publication enabled for both tables.
+**Who receives:** assignee + assigned_by + all platform admins + all `support_admins`, minus the actor. Written by RPC `notify_enquiry_watchers(enquiry_id, kind, summary)` (security definer). RLS: recipient reads own rows; insert normally `assigned_by_user_id = auth.uid()` (RPC bypasses RLS).
+
+**Migration:** `20260817130922_add_enquiries_dashboard.sql`, kinds `20261005085620_enquiry_update_notifications.sql`. Realtime publication enabled.
 
 ## Password reset requests
 
@@ -194,13 +543,21 @@ Singleton config for the Printing orders **Print calculator** modal (DTF cost).
 | Column | Type | Purpose |
 |--------|------|---------|
 | `id` | int | Always `1` (singleton) |
-| `rate_per_sq_in` | numeric | ₹ per square inch — used in `(H+1)×(W+1)×rate` |
+| `rate_per_sq_in` | numeric | Legacy ₹ per square inch. Seed only. New quotes do not read this column. |
+| `internal_rate_1_10` | numeric | Internal team ₹ per square inch, copies 1–10 |
+| `internal_rate_11_200` | numeric | Internal team ₹ per square inch, copies 11–200 |
+| `internal_rate_201_1000` | numeric | Internal team ₹ per square inch, copies 201–1000 (also above 1000) |
+| `customer_rate_1_10` | numeric | Customer ₹ per square inch, copies 1–10 |
+| `customer_rate_11_200` | numeric | Customer ₹ per square inch, copies 11–200 |
+| `customer_rate_201_1000` | numeric | Customer ₹ per square inch, copies 201–1000 (also above 1000) |
 | `updated_at` | timestamptz | Last change |
-| `updated_by` | uuid | Admin who saved rate |
+| `updated_by` | uuid | Admin who saved rates |
+
+Copies and uploaded prints are not stored. They live only while the modal is open. Billed area is `(width in + 1) × (height in + 1)` square inches.
 
 RLS: all authenticated **read**; **write** admin only (`jwt_user_is_admin()`).
 
-**Migration:** `20260731140000_print_calculator_settings.sql`
+**Migrations:** `20260731140000_print_calculator_settings.sql`, `20261014115203_print_calculator_qty_price_lists.sql`, `20261014115752_print_calculator_rates_per_sq_inch.sql` (staging `scvojtvgnkmbupvyslmb`). Slabs are ₹ per square inch. A short-lived square-meter seed is put back to `rate_per_sq_in` when it is still untouched.
 
 ## Goal tracker
 
@@ -314,18 +671,19 @@ Security-definer RPC for **Assign task → Link to goal**. Returns annual goals 
 
 ## Team chat
 
-Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments. Legacy wall messages live in **General** group.
+Conversation-scoped messaging: direct (1:1), groups, org-wide channels, GIF URLs, file attachments. Legacy wall messages live in **General** group.
 
 ### `team_chat_conversations`
 
 | Column | Type | Purpose |
 |--------|------|---------|
 | `id` | uuid | Primary key |
-| `kind` | text | `direct` or `group` |
-| `title` | text | Group name (null for direct) |
+| `kind` | text | `direct`, `group`, or `channel` |
+| `title` | text | Group/channel name (null for direct) |
 | `created_by` | uuid | FK → `profiles.id` |
 | `last_message_at` | timestamptz | Inbox sort |
 | `created_at` | timestamptz | Created time |
+| `avatar_path` | text | Group photo in `team-chat-group-avatars` (null = icon) |
 
 ### `team_chat_conversation_members`
 
@@ -333,11 +691,28 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 |--------|------|---------|
 | `conversation_id` | uuid | FK → `team_chat_conversations.id` |
 | `user_id` | uuid | FK → `profiles.id` |
-| `role` | text | `admin` or `member` |
+| `role` | text | `admin` or `member`. Group creator is `admin`. |
 | `joined_at` | timestamptz | Join time |
-| `last_read_at` | timestamptz | Unread tracking |
+| `last_read_at` | timestamptz | Unread + delivery ticks. Opening a thread (and a 4s heartbeat while it stays open) sets this. Peer `last_read_at` ≥ message `created_at` = seen. |
+
+**Realtime:** `REPLICA IDENTITY FULL` so other members receive `last_read_at` updates. Migration `20260905105000_team_chat_member_read_realtime.sql` (staging). Rollback: `alter table … replica identity default`.
 
 **PK:** `(conversation_id, user_id)`.
+
+### `hr_user_presence`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `user_id` | uuid | PK, FK → `profiles.id` |
+| `client_state` | text | `online` or `away` from this browser |
+| `last_seen_at` | timestamptz | Last heartbeat |
+| `updated_at` | timestamptz | Row touch |
+
+Display status is derived: no row or seen ≥ 2 hours → Offline. Seen &lt; 5 minutes → Online. Else Away. `last_seen_at` only updates on `online` heartbeats.
+
+**RLS:** Authenticated SELECT. Writes only via `set_my_dashboard_presence`.
+
+**Migration:** `20260904112200_hr_user_presence.sql` (staging). Rollback: drop function + table.
 
 ### `team_chat_messages` (extended)
 
@@ -345,10 +720,27 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 |--------|------|---------|
 | `conversation_id` | uuid | FK → `team_chat_conversations.id` (required for new messages) |
 | `gif_url` | text | External GIF URL (Giphy search or preset) |
-| `attachment_*` | text/bigint | File in `team-chat-files` bucket |
+| `attachment_*` | text/bigint | File in `team-chat-files` bucket (images, office, PDF, audio/video). No 15 MB app cap. Staging bucket `file_size_limit` 10 GB (`20260907110000_team_chat_files_no_size_cap.sql`). |
 | `mentioned_user_ids` / `mentioned_order_ids` | uuid[] / bigint[] | @user and #order tokens |
+| `reply_to_message_id` | bigint | Optional FK to the quoted message |
+| `forwarded_from_message_id` | bigint | Source message when forwarded |
+| `deleted_at` / `deleted_by` | timestamptz / uuid | Soft delete (author only) |
+| `pinned_at` / `pinned_by` | timestamptz / uuid | Pin toggle for members |
 
-**RLS:** SELECT/INSERT only when `jwt_user_in_conversation(conversation_id)`.
+**RLS:** SELECT/INSERT only when `jwt_user_in_conversation(conversation_id)`. Delete/pin/react go through RPCs.
+
+### `team_chat_message_reactions`
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `message_id` | bigint | FK → `team_chat_messages.id` |
+| `user_id` | uuid | Who reacted |
+| `emoji` | text | One emoji per user per message |
+| `created_at` | timestamptz | When set |
+
+**PK:** `(message_id, user_id)`.
+
+**Migration:** `20260904110500_team_chat_message_actions.sql` — staging first. Soft-delete, not hard delete. Rollback: drop RPCs/table/columns.
 
 ### RPCs
 
@@ -359,6 +751,16 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 | `mark_conversation_read(p_conversation_id)` | Sets `last_read_at` for current user |
 | `jwt_user_in_conversation(conversation_id)` | RLS helper |
 | `list_team_chat_directory()` | Mention picker profiles |
+| `soft_delete_team_chat_messages(p_ids)` | Soft-delete own messages |
+| `toggle_team_chat_message_pin(p_id)` | Pin / unpin |
+| `set_team_chat_message_reaction(p_id, p_emoji)` | Set or clear own reaction |
+| `jwt_user_can_react_to_message(p_id)` | Reaction RLS helper |
+| `set_my_dashboard_presence(p_client_state)` | Upsert own `hr_user_presence` |
+| `jwt_user_is_group_admin(p_conversation_id)` | True if current user is a group admin |
+| `add_group_conversation_members(p_conversation_id, p_member_ids)` | Admin adds people as members |
+| `remove_group_conversation_member(p_conversation_id, p_user_id)` | Admin removes one person (not self / last admin) |
+| `set_group_conversation_member_role(p_conversation_id, p_user_id, p_role)` | Admin promotes a member to admin |
+| `set_group_conversation_avatar(p_conversation_id, p_avatar_path)` | Admin sets group photo path |
 
 ### Migrations
 
@@ -367,6 +769,12 @@ Conversation-scoped messaging: direct (1:1), groups, GIF URLs, file attachments.
 | `20260526120000_add_team_chat.sql` | Initial messages table |
 | `20260706130000_team_chat_directory_avatars.sql` | Directory RPC + avatars |
 | `20260709180000_team_chat_conversations.sql` | Conversations, members, GIF, member RLS, General migration |
+| `20260904110500_team_chat_message_actions.sql` | Reply, reactions, soft-delete, forward, pin (staging) |
+| `20260904124757_team_chat_channels.sql` | `kind=channel`, admin create/post RPCs, new-profile join trigger (staging) |
+| `20260905105000_team_chat_member_read_realtime.sql` | Members `REPLICA IDENTITY FULL` so peer `last_read_at` Realtime works (staging) |
+| `20260905153000_team_chat_group_admin.sql` | Group `avatar_path`, admin RPCs, `team-chat-group-avatars` bucket (staging) |
+| `20260904112200_hr_user_presence.sql` | Dashboard Online/Away heartbeat (staging) |
+| `20260904113100_hr_presence_online_grace.sql` | Away write does not bump `last_seen_at` (5 min Online grace) |
 
 ## `inward_grn_entries`
 
@@ -423,6 +831,34 @@ Parent style table from an earlier dashboard grouping feature. **No longer used 
 | `kind` | text | `fabric`, `trim`, or `apparel` |
 | `created_by` | uuid | Auth user |
 | `created_at` | timestamptz | Insert time |
+
+### `dashboard_purchase_orders`
+
+Scott Dashboard Purchase Order sheet vouchers (cell **R11**) and create day (cell **R12**). After **Generate PO**, the same row holds History fields. Not Inventory POs.
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid | Primary key |
+| `voucher_code` | text | Unique display code, e.g. `PO/26-27/392` |
+| `fy_code` | text | Indian FY `YY-YY+1` (1 Apr–31 Mar) |
+| `seq` | integer | Serial in that FY. Unique with `fy_code` |
+| `created_by` | uuid | Auth user, nullable |
+| `created_at` | timestamptz | Voucher reserve time. R12 Dated no longer uses this — Create sheet shows today |
+| `generated_at` | timestamptz | Set on Generate PO. History lists only non-null |
+| `supplier_name` | text | Bold R3 Supplier (Bill form) name |
+| `coordinator_name` | text | Signed-in profile name at generate |
+| `po_date` | text | R12 Dated face at Generate (`DD-Mmm-YY`, today IST) |
+| `quantity` | integer | C42 quantity total |
+| `status` | text | `pending` \| `po_sent` \| `po_approved` \| `completed` (default `pending`) |
+| `sheet_snapshot` | jsonb | Sheet fields at generate for View PO |
+
+**Query pattern:** max `seq` for current `fy_code`, then insert `seq+1`. First FY `26-27` starts at 392 if the table is empty. Later FYs start at 1. History: `generated_at IS NOT NULL` order `generated_at desc`. Generate: UPDATE that voucher.
+
+**Migrations:** `20260821064834_dashboard_purchase_order_vouchers.sql` (create). `20260822104145_dashboard_purchase_order_history.sql` (history columns + authenticated UPDATE). Staging first. Rollback history: drop the new columns and UPDATE policy. Rollback vouchers: drop table (loses reserved numbers).
+
+### `inventory_suppliers`
+
+Vendor master used by Inventory → Suppliers and Purchase Order **R3** (`fetchInventorySuppliers`). Select: `id, name, country, city, lead_days, rating, contact, payment_terms, gstin, address, supplier_type`.
 
 ### `inventory_skus`
 
@@ -485,6 +921,8 @@ Sync (since `20260716140000_sync_sku_stock_to_facility.sql`): trigger `inventory
 
 **Warehouse-scoped adjust (since `20260722180000_warehouse_facility_stock_adjust.sql`):** RPC `adjust_sku_facility_stock(sku_id, warehouse_id, target_on_hand, reason, reference, user_id)` — sets on-hand for one facility, recomputes SKU total from all facilities, logs movement. Used by manual Adjust when a warehouse is selected. Trigger skip flag `app.skip_facility_sync` prevents double-count on total recompute. Since `20260806110948`, also sets `warehouse_id = coalesce(warehouse_id, p_warehouse_id)`.
 
+**Facility transfer (since `20260902193000_transfer_sku_facility_stock.sql`):** RPC `transfer_sku_facility_stock(sku_id, from_warehouse_id, to_warehouse_id, qty, reason, reference, user_id)` — locks both facility rows, deducts available qty at from (blocks if qty > on_hand − reserved), adds the same qty at to, recomputes SKU total (unchanged), logs one `TRANSFER` movement. Same facility code on both warehouses is rejected. Staging only until a production release.
+
 **Bulk batch adjust (since `20260725180000_bulk_adjust_facility_stock.sql`):** RPC `bulk_adjust_sku_facility_stock(warehouse_id, adjustments jsonb, user_id)` — applies many `{sku_id, target_on_hand, reason, reference}` entries in one transaction (used by Warehouses → Upload Bulk in batches of 100). Returns `{applied, failed, results[]}`.
 
 **Bulk pricing metrics (since `20260730220000_bulk_update_sku_metrics.sql`):** RPC `bulk_update_sku_metrics(updates jsonb, user_id)` — applies many `{sku_id, unit_cost?, retail_price?, reorder_point?, doc?}` patches in one transaction (Inventory → Import metrics and pricings, batches of 100). Only keys present in each object are updated. DRR unchanged (auto from orders).
@@ -514,8 +952,16 @@ Scott International RMP orders — the external order lifecycle (`order-api-requ
 | `reservation_id` | FK → `inventory_stock_reservations` (the stock hold; `on delete set null`) |
 | `cancel_reason`, `cancelled_at`, `dispatched_at` | Lifecycle metadata |
 | `picklist_no`, `picklist_generated_at` | Warehouse picklist (since `20260722120000`); unique index on `picklist_no` when set |
+| `channel_id` | Optional FK → `dashboard_channels.id` (`on delete set null`) |
+| `channel_code` / `channel_name` / `channel_type` | Snapshot at create (defaults `UNKNOWN` / `Unknown` / `OTHER`). Index on `channel_code`. `channel_type` check matches `dashboard_channels`. |
 
 `scott_order_items`: `order_id` (cascade), `item_code`, `sku_code`, `quantity`, `unit_price`, `dispatched_quantity` (set to `quantity` on COMPLETE).
+
+**Channel stamp (since `20260904065942_ready_stock_order_channel.sql`):** Order API writes the snapshot so the Ready Stock list and reports do not need an admin-only join to `dashboard_channels`. Seeded fallback channels: `UNKNOWN`, `SCOTT_APP`. Existing rows backfilled as `UNKNOWN`.
+
+**Report view `rpt_ready_stock_channel_utilization` (`security_invoker`):** `channel_code`, `channel_name`, `channel_type`, `sku_code`, `ordered_qty`, `dispatched_qty`, `order_count`. Source: `scott_orders` + `scott_order_items` where status is PENDING/PROCESSING/COMPLETE. SELECT granted to `authenticated`.
+
+**Rollback:** drop view; drop index/constraint/columns on `scott_orders`; keep or delete seeded `UNKNOWN`/`SCOTT_APP` channel rows.
 
 Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the outbox on **INSERT** (`status: CREATED`, `previous_status: null`) and on **UPDATE** when `status` changes (`PENDING`, `PROCESSING`, `COMPLETE`, `CANCELLED`, `FAILED`). Includes `dispatched_at` when new status is COMPLETE. Order API mutations use `service_role` via `dashboard-stock-api`; picklist generation uses `scott-order-generate-picklist` (authenticated JWT → service role update). `authenticated` has read-only SELECT on orders/items.
 
@@ -524,7 +970,7 @@ Trigger `scott_orders_status_changed` enqueues `order.status_changed` into the o
 Admin Panel → Integrations.
 
 - `dashboard_api_keys`: M2M keys for `dashboard-stock-api`. `key_hash` (SHA-256 hex, unique) + `key_prefix` for display — **plaintext never stored**. `status` active/disabled, `last_used_at` bumped by the edge function on successful auth. RLS: all ops require `jwt_user_is_admin()`; service_role has select/update.
-- `dashboard_channels`: order-source registry — unique `code`, `channel_type` (CUSTOM/MOBILE_APP/SHOPIFY/AMAZON/FLIPKART/MYNTRA/JIOMART/OTHER check), `enabled`, optional `api_key_id` FK and `default_facility_code`. RLS: admin-only, service_role read.
+- `dashboard_channels`: order-source registry — unique `code`, `channel_type` (CUSTOM/MOBILE_APP/SHOPIFY/AMAZON/FLIPKART/MYNTRA/JIOMART/OTHER check), `enabled`, optional `api_key_id` FK and `default_facility_code`. RLS: admin-only, service_role read. Linking `api_key_id` is how Ready Stock create stamps the channel when the partner does not send `channel_code`. Seeded `UNKNOWN` + `SCOTT_APP` since `20260904065942`.
 
 ### RPC (stock API)
 
@@ -578,12 +1024,45 @@ Production tracker job sheets store payment and approval data on the same `order
 | `printing` | Standard printing floor order |
 | `job_sheet` | Production tracker job sheet only — **excluded** from Printing orders tab |
 | `sticker`, `sampling`, `regular_stock` | Other specialized flows |
+| `sample_job_sheet` | Sampling Tracker history list. Order ID `SA-0001`, `SA-0002`, … sequential. Not listed on Production Tracker or Printing Orders. Date column is `order_date`. SLA: `due_date` end of day when set, else `created_at` + admin `sample_job_sheet_settings` duration. |
 
-Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet`.
+### `sample_job_sheet_settings`
+
+Singleton (`id = 1`). Admin tweaks Sampling Due In fallback.
+
+| Column | Purpose |
+|--------|---------|
+| `default_sla_days` | 1–30. Default 2. Used when Sampling required on is empty. |
+| `default_sla_hours` | 0–23 extra hours after the days. |
+| `warn_hours` / `urgent_hours` | Badge thresholds (1–168). Defaults 24 / 12. |
+| `updated_at` / `updated_by` | Last admin save. |
+
+**RLS:** authenticated SELECT. Write `jwt_user_is_admin()` only.
+
+**Migration:** `20260908121033_sample_job_sheet_sla_settings.sql` — staging.
+
+**Rollback:** drop table. Due In falls back to 2 days in code.
+
+Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet` and `sample_job_sheet`.
+
+### Printing `sent_to_dispatch` auto-complete
+
+| Column / object | Purpose |
+|-----------------|--------|
+| `orders.status_sent_to_dispatch_at` | Set when status becomes `sent_to_dispatch`; cleared when status leaves it. |
+| Trigger `trg_track_status_sent_to_dispatch_at` | BEFORE insert/update of `status`. |
+| RPC `promote_stale_new_orders_to_pending` | Also `SET is_complete = true` when that timestamp (else `created_at`) is ≥ 10 minutes old. Uses GUC `app.auto_complete_sent_to_dispatch` so `trg_enforce_order_update_scope` allows the write. |
+
+| Migration | Change |
+|-----------|--------|
+| `20260903125154_sent_to_dispatch_auto_complete.sql` | Column, stamp trigger, RPC complete path, inject GUC bypass into live `enforce_order_update_scope`. |
+
+**Rollback:** drop trigger/function `track_status_sent_to_dispatch_at`, drop column, restore previous `promote_stale_new_orders_to_pending` body. Re-deploy prior `enforce_order_update_scope` if the GUC inject must be removed.
 
 | Migration | Change |
 |-----------|--------|
 | `20260703200000_add_order_kind_job_sheet.sql` | Add `job_sheet` to check constraint; backfill existing job sheet rows |
+| `20260831060510_add_order_kind_sample_job_sheet.sql` | Add `sample_job_sheet`; unique `order_id` among sample job sheets |
 
 ## Job sheet production status (`orders.status`)
 
@@ -607,6 +1086,28 @@ Garment pipeline for Production tracker (`order_kind = job_sheet`). Updated by p
 | Migration | Change |
 |-----------|--------|
 | `20260703183000_job_sheet_production_stages.sql` | Extend `orders_status_check`; update `status_label()`; backfill `new` → `quotation_approval` for job sheets |
+
+## Sample job sheet status (`orders.status`)
+
+Sampling Tracker pipeline (`order_kind = sample_job_sheet`). Same Status Select UI as Production Tracker; different options. New rows start at `pattern_making`. `qc` and `ready` are shared codes with Production (same labels). `dispatched_successfully` is sampling-only so rows do not enter Dispatch.
+
+| Code | Label |
+|------|-------|
+| `pattern_making` | Pattern Making |
+| `sample_cutting` | Sample Cutting |
+| `sample_stitching` | Sample Stitching |
+| `trim_iron` | Trim + Iron |
+| `branding` | Branding |
+| `qc` | QC |
+| `packaging` | Packaging |
+| `ready` | Ready to Dispatch |
+| `dispatched_successfully` | Dispatched Successfully |
+
+Sampling Complete lists rows with `is_complete` **or** `status = dispatched_successfully`. Closed samples always display that status; Status is not editable. Admin Mark as complete also writes `is_complete` and this status.
+
+| Migration | Change |
+|-----------|--------|
+| `20260831065000_sample_job_sheet_statuses.sql` | Add sampling status codes; update `status_label()`; backfill sample rows to `pattern_making` |
 
 ## `order_activity_log`
 

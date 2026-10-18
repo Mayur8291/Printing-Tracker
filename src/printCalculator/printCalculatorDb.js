@@ -1,39 +1,43 @@
 import { supabase } from "../supabaseClient";
+import {
+  parsePriceListDraft,
+  priceListPayload,
+  priceListsFromRow
+} from "./printCalculatorUtils";
 
-const DEFAULT_RATE = 1;
+const RATE_COLUMNS =
+  "internal_rate_1_10, internal_rate_11_200, internal_rate_201_1000, customer_rate_1_10, customer_rate_11_200, customer_rate_201_1000, rate_per_sq_in, updated_at";
 
 export async function fetchPrintCalculatorSettings() {
   const { data, error } = await supabase
     .from("print_calculator_settings")
-    .select("rate_per_sq_in, updated_at")
+    .select(RATE_COLUMNS)
     .eq("id", 1)
     .maybeSingle();
   if (error) throw error;
-  const rate = Number(data?.rate_per_sq_in);
+  const legacy = Number(data?.rate_per_sq_in);
   return {
-    ratePerSqIn: Number.isFinite(rate) && rate > 0 ? rate : DEFAULT_RATE,
+    priceLists: priceListsFromRow(data, Number.isFinite(legacy) && legacy > 0 ? legacy : 1),
     updatedAt: data?.updated_at ?? null
   };
 }
 
-export async function savePrintCalculatorRate(ratePerSqIn, userId) {
-  const rate = Number(ratePerSqIn);
-  if (!Number.isFinite(rate) || rate <= 0) {
-    throw new Error("Rate per square inch must be greater than zero.");
-  }
+export async function savePrintCalculatorRates(draft, userId) {
+  const parsed = parsePriceListDraft(draft);
   const { data, error } = await supabase
     .from("print_calculator_settings")
     .upsert({
       id: 1,
-      rate_per_sq_in: rate,
+      ...priceListPayload(parsed),
       updated_by: userId || null,
       updated_at: new Date().toISOString()
     })
-    .select("rate_per_sq_in, updated_at")
+    .select(RATE_COLUMNS)
     .single();
   if (error) throw error;
+  const legacy = Number(data?.rate_per_sq_in);
   return {
-    ratePerSqIn: Number(data.rate_per_sq_in),
+    priceLists: priceListsFromRow(data, Number.isFinite(legacy) && legacy > 0 ? legacy : 1),
     updatedAt: data.updated_at
   };
 }

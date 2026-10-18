@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { insertEnquiryAssignmentNotification } from "./enquiryNotificationUtils";
+import { notifyEnquiryWatchers } from "./enquiryNotificationUtils";
 import { logEnquiryActivity } from "./enquiryActivityUtils";
 import { queueCloseSurveyIfNeeded } from "./enquiryCloseNotify";
 import { applyEnquiryClosePatch, updateEnquiryFields } from "./enquiryUtils";
@@ -82,10 +82,13 @@ export function normalizeOrderCode(raw) {
   return String(raw ?? "").trim().toUpperCase().replace(/\s+/g, "");
 }
 
+/** Statuses before any real action; `opened` = seen but not worked, still counts for SLA. */
+export const ENQUIRY_UNWORKED_STATUSES = ["new", "assigned", "opened"];
+
 export function isEnquiryUnpicked(enquiry) {
   if (!enquiry) return false;
   if (enquiry.picked_at) return false;
-  return enquiry.status === "new" || enquiry.status === "assigned";
+  return ENQUIRY_UNWORKED_STATUSES.includes(enquiry.status);
 }
 
 export function minutesWaiting(submittedAt, now = Date.now()) {
@@ -246,12 +249,81 @@ export async function fetchEnquirySlaEscalations() {
   return data ?? [];
 }
 
-export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin }) {
+/**
+ * Worker opened the ticket but took no action yet → status `opened` so admin can see it was seen.
+ * Admin opening does nothing. Not a pick: `picked_at` stays null and SLA keeps counting.
+ * Returns the updated row, or null when nothing changed.
+ */
+export async function markEnquiryOpened({ enquiry, sessionUserId, isAdmin, isTagMember = false }) {
+  if (!enquiry?.id || !sessionUserId || isAdmin) return null;
+  if (enquiry.picked_at) return null;
+  if (enquiry.status !== "new" && enquiry.status !== "assigned") return null;
+  const isAssignee = enquiry.assignee_id === sessionUserId;
+  const isFallback = enquiry.escalated_to_id === sessionUserId;
+  if (!isAssignee && !isFallback && !isTagMember) return null;
+
+  const now = new Date().toISOString();
+  const updated = await patchEnquiry(enquiry.id, { status: "opened", opened_at: now });
+  await logEnquiryActivity({
+    enquiryId: enquiry.id,
+    actorId: sessionUserId,
+    action: "opened",
+    detail: enquiry.enquiry_code
+  });
+  return updated;
+}
+
+/**
+ * Staff logged that they reached the customer. Comment is required and written to
+ * activity + last_reached_out_* so Support admin can see who said what.
+ * Counts as a pick (picked_at) and moves unworked tickets to in_progress.
+ */
+export async function markEnquiryReachedOut({
+  enquiry,
+  comment,
+  sessionUserId,
+  isAdmin,
+  isTagMember = false
+}) {
+  if (!enquiry?.id) throw new Error("Enquiry not found.");
+  const note = String(comment ?? "").trim();
+  if (!note) throw new Error("Add a comment about what you told the customer.");
+  const isAssignee = enquiry.assignee_id === sessionUserId;
+  const isFallback = enquiry.escalated_to_id === sessionUserId;
+  if (!isAdmin && !isAssignee && !isFallback && !isTagMember) {
+    throw new Error("Only the assignee, SLA fallback, tag holder, or an admin can log a reach-out.");
+  }
+
+  const now = new Date().toISOString();
+  const patch = {
+    last_reached_out_at: now,
+    last_reached_out_comment: note,
+    last_reached_out_by: sessionUserId
+  };
+  if (!enquiry.picked_at) patch.picked_at = now;
+  if (ENQUIRY_UNWORKED_STATUSES.includes(enquiry.status)) patch.status = "in_progress";
+
+  const updated = await patchEnquiry(enquiry.id, patch);
+  await logEnquiryActivity({
+    enquiryId: enquiry.id,
+    actorId: sessionUserId,
+    action: "reached_out",
+    detail: note
+  });
+  await notifyEnquiryWatchers({
+    enquiryId: enquiry.id,
+    kind: "reached_out",
+    summary: note
+  });
+  return updated;
+}
+
+export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin, isTagMember = false }) {
   if (!enquiry?.id) throw new Error("Enquiry not found.");
   const isAssignee = enquiry.assignee_id === sessionUserId;
   const isFallback = enquiry.escalated_to_id === sessionUserId;
-  if (!isAdmin && !isAssignee && !isFallback) {
-    throw new Error("Only the assignee, SLA fallback, or an admin can pick this enquiry.");
+  if (!isAdmin && !isAssignee && !isFallback && !isTagMember) {
+    throw new Error("Only the assignee, SLA fallback, tag holder, or an admin can pick this enquiry.");
   }
 
   const now = new Date().toISOString();
@@ -259,7 +331,7 @@ export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin }) {
   if (!enquiry.picked_at) patch.picked_at = now;
 
   if (action === "verified") {
-    if (enquiry.status === "new") patch.status = "assigned";
+    if (enquiry.status === "new" || enquiry.status === "opened") patch.status = "assigned";
   } else if (action === "contacted") {
     patch.status = "in_progress";
   } else if (action === "closed") {
@@ -279,6 +351,18 @@ export async function pickEnquiry({ enquiry, action, sessionUserId, isAdmin }) {
     actorId: sessionUserId,
     action,
     detail: enquiry.enquiry_code
+  });
+  await notifyEnquiryWatchers({
+    enquiryId: enquiry.id,
+    kind: action === "closed" ? "closed" : action,
+    summary:
+      action === "verified"
+        ? "Marked verified"
+        : action === "contacted"
+          ? "Marked contacted"
+          : action === "closed"
+            ? "Closed"
+            : action
   });
   if (action === "closed" && enquiry.status !== "closed") {
     await queueCloseSurveyIfNeeded(updated, sessionUserId);
@@ -307,6 +391,11 @@ export async function saveEnquiryFeedback({ enquiry, rating, comment, sessionUse
     actorId: sessionUserId,
     action: "feedback",
     detail: nextRating
+  });
+  await notifyEnquiryWatchers({
+    enquiryId: enquiry.id,
+    kind: "feedback",
+    summary: `Feedback: ${nextRating}`
   });
   return updated;
 }
@@ -342,12 +431,10 @@ export async function escalateUnpickedEnquiry({ enquiry, teamProfiles, profileBy
     console.warn("enquiry SLA escalation insert:", escErr.message);
   }
 
-  await insertEnquiryAssignmentNotification({
+  await notifyEnquiryWatchers({
     enquiryId: enquiry.id,
-    enquiryCode: enquiry.enquiry_code,
-    customerName: enquiry.customer_name,
-    assigneeId: fallback.id,
-    assignedByUserId: enquiry.assignee_id || enquiry.created_by
+    kind: "status",
+    summary: `SLA escalated — still unpicked`
   });
 
   return updated;

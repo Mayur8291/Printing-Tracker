@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { uuid } from "./lib/uuid";
 
 export const NOTIFICATION_TONE_BUCKET = "notification-tones";
 export const NOTIFICATION_TONE_MAX_BYTES = 2 * 1024 * 1024;
@@ -41,7 +42,7 @@ export async function uploadProfileNotificationTone(userId, file) {
   if (validationError) throw new Error(validationError);
 
   const safeName = sanitizeNotificationToneFileName(file.name);
-  const path = `${userId}/${crypto.randomUUID()}-${safeName}`;
+  const path = `${userId}/${uuid()}-${safeName}`;
   const contentType = file.type || "audio/mpeg";
 
   const { error: uploadErr } = await supabase.storage

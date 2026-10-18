@@ -1,5 +1,96 @@
 # Flows
 
+## Asset Management (IT register)
+
+1. **Trigger:** sidebar Tools → **Asset Management** (`dashboardTab === "asset_management"`).
+2. **Entry:** `AssetManagementPanel` loads `hr_assets` on mount. Default screen is Dashboard. **Assets** is the register list. **Add asset** / header **New asset** is the form.
+3. **Auth:** signed-in user. Insert needs `created_by = auth.uid()` and a `profiles` row. Select is any authenticated user. Production has no table until an explicit release.
+4. **Logic:** Fill Asset name (required), category, optional manufacturer/model/serial/purchase date, location, optional assignee, charger, notes. **Save asset** inserts `hr_assets` with next `IT-#####` tag (client + unique retry). Status `Checked out` if assignee set, else `Available`. Then the panel opens **Assets**. Click a row → detail overlay on the same list (list stays mounted). **Back to assets** clears the selected tag and any check-in/out dialog. Assign / check-in on detail updates the same row. Check-in/out Dialog mounts only while that modal is open.
+5. **Database:** insert/select/update `hr_assets`. No delete.
+6. **Failure:** missing name or missing session → Alert on the form. RLS / missing table → `[hr-assets] insert failed` / list error Alert. Leave tab unmounts the panel; reload reads the table so the row stays.
+7. **Edge:** two saves at once may clash on tag; insert retries a new tag. Empty name blocked. Unassigned + Checked out blocked by DB check.
+8. **Exit:** Assets table shows the new Tag / name / status. Refresh or leave tab and return still shows it.
+
+## Uniware Bridge (Step 5, One Source of Truth)
+
+Admin-only tab **Uniware Bridge** (`ops_uniware`, Ops Platform). Distinct from Inventory and Stock Ledger. Boundary: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).
+
+1. **Trigger:** admin opens Uniware Bridge (`UniwareBridgePanel`). Loads feed health, inventory mirror, Uniware sale orders (all channels), transfers, settings, locations/entities/SKUs, plus edge `status`.
+2. **Sync inventory:** Sync inventory → page all `inventory_skus` (not first 1000) → resume `itemType/search` into `uni_item_sku` → snapshot each facility → upsert `uni_inventory_mirror`. UI pages all mirror rows. **Sold** is exact Uniware `saleOrderItems` in the DRR period (dispatched / delivered / invoiced). DRR is **pcs/day** (sold ÷ days); Sort DRR high/low. Changing Days/Months/Years shows a spinner until that window’s Sold/DRR reload (and a Uniware pull if lines are missing). **Export xls** writes the on-screen table only (same filters and sort). Qty never enter Inventory on-hand. Click Sync inventory again if toast says catalog still paging.
+3. **Sync orders:** Short header refresh (last 3 days if headers already exist) → `uni_orders_missing_lines` → `POST /oms/saleorder/get` (lowercase) → replace that order’s `uni_sale_order_line` with exact `saleOrderItems` only (never package summaries). Sold + DRR follow the UI period. Click again until the incomplete banner is gone. New dashboard B2B still lives on `so_order`.
+4. **Transfer:** pick direction, SKU code, qty, from/to locations → draft `uni_transfer` → `uni_post_transfer` (owner_system must match direction) → edge `adjust` (`ADD` or `REMOVE`). Ledger posts even if the API fails (`api_failed` + message).
+5. **Settings:** default entity + Uniware marker location. API login is edge secrets only.
+6. **Failure:** missing secrets → banner, tables still load. Stale feed (no success in 2 hours) → amber badge. Transfer location mismatch → DB exception.
+
+## Billing & Receivables (Step 4, One Source of Truth)
+
+Admin-only tab **Billing & AR** (`ops_ar`, Ops Platform). Distinct from the existing Workspace **Billing** tab, which stays as-is.
+
+1. **Trigger:** admin opens Billing & AR (`BillingArPanel`); parallel load of invoices, uninvoiced dispatches, credit notes, receipts, `ar_invoice_outstanding_view`, `ar_customer_ledger_view`, follow-ups, entities (+ GSTINs).
+2. **Generate invoice:** pick an uninvoiced dispatch + the billing GSTIN + optional place-of-supply state code (blank = GSTIN state) → RPC `bill_generate_from_dispatch`. Lines/rates/HSN/GST come from the dispatch + order + SKU. Number `INV/<FY>/nnnn` is gapless per GSTIN. Document is immutable. When the order is fully dispatched and every dispatch is invoiced, `so_order.status` becomes `invoiced`.
+3. **Credit note:** invoice detail → amount + reason → `ar_issue_credit_note`. Capped at outstanding. Number `CN/<FY>/nnnn`.
+4. **Receipt:** customer + entity + amount + mode/UTR → optional allocations against that customer's open invoices → `ar_record_receipt`. DB blocks over-allocation. Unallocated remainder is an advance (still reduces customer exposure).
+5. **Ageing:** same view everywhere — buckets Not due / 0–30 / 31–60 / 61–90 / 90+; due date = invoice date + party credit days (snapshotted on the invoice). Customer ledger: invoiced − credited − received.
+6. **Follow-ups:** next date + note, optional invoice; mark done. Admin RLS writes.
+7. **Credit warning on confirm:** Sales Order detail (draft) calls `ar_credit_check`. Soft amber warning if over limit or any overdue — confirm still allowed. Hard block waits for department roles.
+8. **Failure cases:** every money rule is in the DB (immutability, one invoice per dispatch, credit/receipt caps, GSTIN/entity match). UI surfaces the raised message.
+
+## Sales Orders (Step 3, One Source of Truth)
+
+Admin-only tab **Sales Orders** (`ops_sales`, sidebar group "Ops Platform"). Counter sales use the same screen with channel = Counter sale.
+
+1. **Trigger:** admin opens Sales Orders (`SalesOrdersPanel`); parallel load of orders (+lines), dispatches, job-work orders, SLA policies + `so_sla_view`, and parties/entities/locations/SKUs from the Step 0 masters.
+2. **New order:** dialog (customer, channel, entity, fulfilment location, promised date, lines by SKU code — one row per SKU/size) → draft rows in `so_order`/`so_line` (admin RLS). Drafts have no number.
+3. **Confirm & reserve:** order detail → Confirm → RPC `so_confirm` assigns the gapless `SO/<FY>/nnnn` and runs `so_allocate`: reserves whatever is available (balance − active reservations) per line. Shortfall stays visible as Reserved < Ordered.
+4. **Allocate again:** after production or new receipts, Allocate stock re-runs `so_allocate` and reports the newly reserved pieces.
+5. **Stage moves:** Start production / Mark ready → `so_set_status`. **Ready is blocked by the DB until reservations cover every line.** Stage timestamps recorded for the SLA clock.
+6. **Dispatch:** ready/partially dispatched only → dialog pre-fills each line at min(reserved, open), caps at reserved (DB enforces too) → `so_post_dispatch` consumes reservations FIFO, posts `dispatch` movements from the order's location, writes the append-only `so_dispatch` document (`DISP/<FY>/nnnn`), rolls status to partially_dispatched or dispatched. Partial dispatch allowed; repeat until done.
+7. **Cancel:** reason required; only before any dispatch. Releases all active reservations.
+8. **Job work:** New job (kind, worker party or in-house, source + worker locations, input/output lines) → Issue = `jw_issue` (challan out: transfers inputs to the worker location, assigns `JW/<FY>/nnnn`) → Receive = `jw_receive` (outputs into the source location as `production_out`, consumed inputs burned at the worker location) → Close. Leftover input at the worker location is the loss, visible in the Stock Ledger.
+9. **SLA:** targets per channel × stage in business hours (Mon–Sat 09:30–18:30 IST) saved to `sla_policy`; the tab lists breaches (or all measured stages) from `so_sla_view` — elapsed vs target, still-open stages measured against now.
+10. **Failure cases:** every rule lives in the DB (ready gate, dispatch cap, immutable documents, status matrix, undeclared job outputs) — the UI surfaces the raised messages inline.
+
+## Procurement (Step 2, One Source of Truth)
+
+Admin-only tab **Procurement** (`ops_procurement`, sidebar group "Ops Platform") — distinct from the existing Purchase Order voucher tab, which keeps running unchanged.
+
+1. **Trigger:** admin opens Procurement (`ProcurementPanel`); parallel load of POs (+lines), bills (+lines), outstanding/ledger/performance views, payments, `po_settings`, plus parties/entities/locations/SKUs from the Step 0 masters. Missing tables → inline message naming migration `20260902120000`.
+2. **New PO:** dialog (vendor → prefills credit days, entity, delivery location, lines by SKU code resolved against masters) → draft rows in `po_purchase_order`/`po_line` (admin RLS). Drafts have no number.
+3. **Approve:** PO detail → Approve → RPC `po_approve` (admin gate) assigns the gapless `PO/<FY>/nnnn` and locks commercial fields (guard trigger).
+4. **Receive goods:** detail → Receive goods → per-line quantities → `receiveGrn` creates a draft GRN + lines then calls `po_post_grn`: over-receipt tolerance check (vendor-item override or `po_settings`), stock posted through `inv_post_movement` (QC-required → `qc_hold`, exempt → `good`), PO counters/status roll forward, `GRN/<FY>/nnnn` assigned. Failure (e.g. tolerance) deletes the draft GRN and surfaces the DB error.
+5. **QC:** detail shows a QC queue for posted, QC-required GRN lines with remaining hold qty → pass/fail/note → `po_record_qc` → same-location state-change movements; fails require a note and bump `qty_rejected`.
+6. **Short close / cancel / close:** reason-gated function calls; short close kills pending qty per line.
+7. **Record bill:** Bills tab → dialog: vendor → unbilled posted GRN lines (billed ones filtered via `ap_bill_line`), qty/rate/tax prefilled from GRN/PO → draft `ap_bill` + lines. Duplicate vendor invoice numbers rejected by the DB.
+8. **Approve bill:** `ap_approve_bill` runs the three-way match. Variance error → dialog switches to override mode (reason required, recorded on the document). Due date = credit days, MSME-capped (badge in UI).
+9. **Payment:** Payments & ledger tab → dialog: vendor, entity, amount, mode/UTR, optional allocations against outstanding bills → `ap_record_payment` (all-or-nothing, allocation ≤ outstanding under lock). Payments append-only.
+10. **Ledger & ageing:** vendor ledger view (billed − debits − paid), outstanding bills with overdue days, payment history.
+11. **Settings:** editable tolerances (`po_settings`) — apply to the next GRN / bill approval.
+12. **Failure cases:** every business rule lives in the DB (tolerance, match, statuses, duplicates, allocations) — the UI just surfaces the raised messages inline.
+
+## Platform Masters (Step 0, One Source of Truth)
+
+Admin-only tab **Platform Masters** (`ops_masters`, sidebar group "Ops Platform" — distinct from the frozen Scott API "Masters" tab).
+
+1. **Trigger:** admin opens sidebar → Platform Masters (`MastersPanel`). Non-admin never sees the tab (`DASHBOARD_ADMIN_ONLY_TAB_IDS`) and render is `isAdmin`-guarded.
+2. **Fetch:** parallel load of `crm_party` (unmerged, 2000), `cat_sku` (5000), `core_entity` + nested `core_gstin`, `core_location`. Missing tables → inline message naming migration `20260901180000`.
+3. **Tabs:** Parties (search + kind filter), SKUs (search), Entities & GSTINs, Locations — shadcn Tabs/Table/Dialog throughout.
+4. **Create/edit:** dialogs write through `mastersUtils.js` (`saveParty`, `saveSku`, `saveEntity`, `addGstin`, `saveLocation`). RLS: writes admin-only; DB unique indexes reject duplicate normalized names / codes and surface as inline errors.
+5. **CSV import (Parties, SKUs):** template download → file parse (standalone quoted-CSV parser) → **dedupe report** classifying each row `New` / `Already in masters` / `Duplicate in file` / `Invalid` (law 1) → import writes only `New` rows, chunked 100 with per-row fallback so one bad row fails alone → failed rows listed with reasons.
+6. **Edge cases:** header missing (`legal_name`/`sku_code`) → parse error, no import; GSTIN must be 15 chars; virtual location requires `virtual_kind`; SKU code is immutable on edit (inherited codes never renamed); zero-ready file disables the import button.
+7. **Exit:** panel refetches after import; row edits update in place.
+
+## Stock Ledger (Step 1, One Source of Truth)
+
+Admin-only tab **Stock Ledger** (`ops_stock`, sidebar group "Ops Platform"). Distinct from the existing Inventory tab and the Scott stock integration — those keep running unchanged.
+
+1. **Trigger:** admin opens Stock Ledger (`StockLedgerPanel`); loads balances, latest 200 movements, active reservations, unresolved drift alerts, plus SKU/location masters for the dialog.
+2. **Views:** Stock by location (on-hand / reserved / available per sku × location × state, search + state filter) and Movements (ledger rows with from→to, reason, note/ref).
+3. **Post movement:** dialog types — Receive (GRN), Transfer, Issue/dispatch, Return in, Adjustment ± (note required). SKU typed by code and resolved against masters; calls RPC `inv_post_movement` — the DB function validates, locks balances, blocks negatives, writes the ledger row.
+4. **Guarantees (DB, not UI):** ledger is append-only (UPDATE/DELETE raise); balance can never go below zero; adjustments without a note are rejected; non-admin app users are rejected by `inv_assert_can_post`.
+5. **Drift:** nightly `inv_recompute_drift` (pg_cron 02:30 IST) compares ledger sums to balances; unresolved alerts render as a destructive banner in the panel.
+6. **Failure:** missing migration → inline message naming `20260901191500`; RPC errors (insufficient stock, missing note) surface in the dialog; page never blanks.
+7. **Deferred:** cycle-count screens and reservation UI (functions exist; UI lands with the barcode/scanner flow). Uniware mirror is Step 5 (`ops_uniware`).
+
 ## Dashboard Stock API (Scott International)
 
 External order backend ↔ Scott Dashboard inventory (M2M, not browser).
@@ -33,12 +124,12 @@ See [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md).
 
 ### Order lifecycle (Scott RMP orders)
 
-1. **Create:** Scott backend → `POST .../api/v1/orders` (`order_code`, `facility_code`, `customer`, `shipping_address`, `payment`, `items[]`).
-2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via idempotent reservation (`reserveStockIdempotent` — reuses existing `RESERVED` row for same `order_code` + `facility_code` if partner already called `/stock/reserve`); duplicate SKU lines in one payload are merged; `409 INSUFFICIENT_STOCK` if short; row in `scott_orders` + items with `reservation_id`. Cancel / FAILED release **all** open holds for that order at the facility.
+1. **Create:** Partner backend → `POST .../api/v1/orders` (`order_code`, `facility_code`, `customer`, `shipping_address`, `payment`, `items[]`, optional `channel_code` / `channel`).
+2. **Logic:** duplicate open `order_code` → `409 ORDER_EXISTS`; stock held via idempotent reservation (`reserveStockIdempotent` — reuses existing `RESERVED` row for same `order_code` + `facility_code` if partner already called `/stock/reserve`); duplicate SKU lines in one payload are merged; `409 INSUFFICIENT_STOCK` if short; row in `scott_orders` + items with `reservation_id`. **Channel snapshot:** optional body `channel_code`/`channel` (enabled `dashboard_channels` row) → else channel linked to the hashed API key → else `UNKNOWN`. Cancel / FAILED release **all** open holds for that order at the facility.
 3. **Edit:** `PATCH .../orders/:id` — terminal status → `409 ORDER_NOT_EDITABLE`. Item replace checks feasibility crediting the order's own held stock, then releases the old reservation and creates a new one; items table replaced.
 4. **Cancel:** `DELETE .../orders/:id?reason=...` — idempotent for already-cancelled; releases the reservation, sets `CANCELLED` + `cancel_reason`.
 5. **Progress:** dashboard-internal `POST .../orders/:id/status` — `PROCESSING` (from PENDING), `COMPLETE` (fulfills reservation: on-hand deducted, movements written, `stock_qty` synced, `dispatched_at` + items' `dispatched_quantity` set), `FAILED` (releases reservation). **Dashboard UI:** Ready Stock Order detail → **Update status (syncs to app)** dropdown calls edge function `scott-order-update-status` (same transitions + cancel); webhooks fire via `scott_orders` trigger.
-6. **Read:** `GET .../orders/:id` returns status + items with `dispatched_quantity`.
+6. **Read:** `GET .../orders/:id` returns status + channel snapshot + items with `dispatched_quantity`.
 7. **Webhooks:** DB trigger on `scott_orders` INSERT/UPDATE enqueues `order.status_changed` — INSERT sends `status: CREATED` (`previous_status: null`); updates send `PENDING` / `PROCESSING` / `COMPLETE` / `CANCELLED` / `FAILED` with `previous_status` set. `dispatched_at` included when new status is COMPLETE. Delivered via `dashboard_webhook_outbox` (HMAC `X-Dashboard-Signature`). Stock changes additionally fire `stock.level_changed`.
 
 See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
@@ -47,7 +138,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 1. **Entry:** Admin Panel → "Integrations" tab (`AdminIntegrationsPanel`, admin-only).
 2. **API keys:** generate → random `scott_*` key created in the browser, SHA-256 hashed, hash+prefix inserted into `dashboard_api_keys`, plaintext shown once with copy. Disable/enable/delete rows; the edge function checks the hash on every M2M request and bumps `last_used_at`.
-3. **Channels:** add/enable/disable/delete rows in `dashboard_channels` (code, type, linked API key, default facility). Connector status badge derived from enabled + linked-key state.
+3. **Channels:** add/enable/disable/delete rows in `dashboard_channels` (code, type, linked API key, default facility). Connector status badge derived from enabled + linked-key state. Linked key stamps that channel on new Ready Stock orders created with the key.
 4. **Facilities:** inline edit of `inventory_warehouses.facility_code` (sanitized uppercase; duplicate code error shown inline). Same field the Stock/Order API keys on.
 5. **Failure:** RLS rejects non-admins; errors shown inline, page never blanks.
 
@@ -62,8 +153,8 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Ready Stock Order tab (app orders in the dashboard)
 
 1. **Trigger:** user opens sidebar → "Ready Stock Order" (`dashboardTab === "regular"` → `ReadyStockOrdersPanel`).
-2. **Fetch:** `scott_orders` (newest first, limit 500) + `scott_order_items` for those ids + SKU display names from `inventory_skus` (authenticated read-only policies).
-3. **Display:** shadcn table like the RMP order list — order code/id, placed time, facility, customer, status badge, payment (method / INR amount = Σ qty × unit_price / COD), item list (name, SKU, quantity, dispatched), due/dispatched date. Status filter tabs with counts + search.
+2. **Fetch:** `scott_orders` (newest first, limit 500, includes channel snapshot) + `scott_order_items` for those ids + SKU display names from `inventory_skus` + `rpt_ready_stock_channel_utilization` (authenticated read-only policies).
+3. **Display:** one Card. Header is one row (title left; channel Select, search, Refresh right, no wrap). **Channel utilization** is a closed outline button; click shows totals + SKU qty under the button (grouped by channel, no repeated channel badge). Status tabs, then order table — order code/id, placed, facility, **channel badge**, customer, status, payment, items, due/dispatched.
 4. **Realtime:** subscription on `scott_orders` + `scott_order_items` (publication via `20260720130000`) → silent refetch, so an order placed in the app appears without refresh.
 5. **Order detail:** click order code → `ReadyStockOrderDetailDialog` (ORDER ITEMS tab; SHIPMENTS/INVOICES/RETURNS/ACTIVITIES placeholders disabled).
 6. **Generate picklist:** button on detail header → `scott-order-generate-picklist` edge function (authenticated JWT). First run assigns `picklist_no` (`PK#####`), sets `picklist_generated_at`, moves `PENDING` → `PROCESSING`. Client maps response to `PicklistData` and `POST /api/picklist/pdf` (Puppeteer) → PDF opens in new tab + downloads `{picklistNo}.pdf`. Reprint when already PROCESSING returns same picklist without status change.
@@ -79,19 +170,47 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Preview (dev):** `/#/picklist-preview` (React + sample data) or `GET /api/picklist/preview` / `GET /api/picklist/pdf/sample`.
 7. **Edge cases:** terminal orders cannot generate; empty items → 400; pop-up blocked → alert; picklist API down → error with start hint.
 
+### Purchase Order tab
+
+1. **Trigger:** user opens sidebar → **Purchase Order** (`dashboardTab === "purchase_order"` → `PurchaseOrderPanel`).
+2. **Auth:** same dashboard session. Admin always sees the tab. Viewers need `purchase_order` in `allowed_dashboard_tabs` (or null = all tabs).
+2b. **Sub-tabs:** Header row — **Purchase Order** on the left, shadcn Tabs on the right as separate buttons (gap, not one attached pill): **All PO Orders** (default), **Create new PO**, **PO History**. Open the panel on **All PO Orders** (Pending / PO sent / PO Approved). Click **Create new PO** to mount the A4 heading + table sheet. Click **PO History** for Completed rows only (backend sets Completed). Inactive view unmounts. Create sheet title is **PURCHASE ORDER**. Under the sheet (own section): **Generate PO** and **Print**. Print uses `window.print()` and the same full A4 sheet (210mm × 297mm, `@page` margin 0) so the C table fills the paper. C13 stays the full words row (height like R2). Print-only **C23** sits in the C13 bottom-right. C23 is hidden on screen (`@media screen`).
+2c. **Generate PO:** First checks mandatory fields: **Supplier (Bill form)**, **Description of Goods**, **Due on**, **Quantity**, **Quantity unit**, **Rate** on every goods line. If any empty → stop, show only **Mandatory details are Missing** (no field list), paint those cells red. After they are filled, reads the live sheet snapshot (voucher, R12 Dated, R3 bold supplier name, C42 qty, line fields). Updates that reserved `dashboard_purchase_orders` row: `generated_at`, `supplier_name`, `coordinator_name` (signed-in `profiles` display name), `po_date`, `quantity`, `status=po_sent`, `sheet_snapshot`. Then allocates the next voucher and switches to **All PO Orders**. All PO Orders lists generated rows in Pending / PO sent / PO Approved. **PO History** lists only `completed` after the backend updates status.
+2d. **All PO Orders / PO History tables:** Same filter bar: **From** / **To** date pickers (inclusive on `po_date` / Dated), **Clear** (wipes From and To only), **Search** (exact trim + case-insensitive match on the voucher token after the last `/`, or the full PO Number, or supplier name, or coordinator name), **Coordinator** dropdown (names from generated rows, plus **All coordinators**), **View N / page** (numeric, default 10, saved in localStorage). Then columns **PO** (paper print + clickable **View PO**), **PO Number** (voucher value only), **Supplier** (bold R3 name), **Status** (All PO Orders: admin Select is icon + name, same list Pending / PO sent / PO Approved / Completed; non-admin see icon + name with no picker. History: **Completed** icon + name only — no picker for anyone), **Coordinator**, **PO date** (Dated face), **Quantity** (C42). View PO dialog shows the saved A4 print (**PURCHASE ORDER** heading + table). Its **Print** button uses the same rules as Create new PO Print: `window.print()`, full 210mm × 297mm sheet, print-only **C23**. Dialog chrome is hidden. Realtime refresh on `dashboard_purchase_orders`.
+
+3. **Display:** Fixed A4 shadcn **Card** (`210mm × 297mm`). Compact `11px` type. **R1 / R2 / R3** are the wide left cells (stretch right); they hug their text, stack flush (R2 under R1, `gap-0`), and do not scroll. After R3 supplier pick, the right 4×2 does not stretch — no empty band between tiles. **R1** Invoice To. **R2** Consignee. **R3** heading **Supplier (Bill form)** + dropdown of Inventory supplier names; after pick, stored supplier details (no extra labels). **R11** first line **Voucher No.** (normal) then bold `PO/{yy}-{yy+1}/{seq}` (example `PO/26-27/392`). **R12** first line **Dated** (normal) then bold create day `DD-Mmm-YY` (example `21-Aug-26`). **R22** first line **Mode/terms of Payment** (normal) then bold **30 days**. **R31** first line **Reference No. & date.** (normal) then the same bold voucher as R11. **R32** **Other References** (normal) plus type box (typed words bold, cell grows, no scroll). **R41** **Dispatched through** same. **R42** **Destination** same. **R21B** first line **Terms of Delivery** then a short shadcn Textarea. Sheet cells sit flush (`gap-0`). Below that, **C** table (C1–C8 / C11–C81 / C12–C82 / long **C13** under C12–C82). Top row: **Sl No.**, **Description of Goods**, **Due on**, **Quantity**, **Rate**, **per**, **Disc %**, **Amount**. Quantity line: readable number (no box) + unit on the right (normal text); Rate same open number as `450.00`; Amount = qty × rate (`1350.00`); per shows that unit as text. C12–C82 stay 8 tiles. **C82** is ` ₹ ` + the Amount-column total. New bottom row **C13**: **Amount Chargable (in words):** (reads C82; height matches R2; words blank until C82 has a number). Print-only **C23** sits in the C13 bottom-right (width C42–C82, height R22): top **for SCOTT INTERNATIONAL**, bottom **Authorised Signatory**. Hidden until Print. Never print the C-codes. Plus button on the card. Not Inventory POs.
+4. **Cell ids:** stored in `purchaseOrderLayout.js` / `data-po-cell`. Fill later by id. Sketch labeled the large bottom-right **R21**; code uses **R21B** so it does not clash with small **R21**. Second table ids are **C1–C8**, **C11 C21 C31 C41 C51 C61 C71 C81**, **C12–C82**, then **C13** under that row (amount in words; C82 is the amount source), then print-only **C23** (signature). Never print those strings.
+5. **Icon:** Lucide `FileSpreadsheet` in the shadcn sidebar; matching document SVG in `dashboardSidebarIcons.jsx`.
+6. **Exit:** switch to another sidebar tab.
+7. **R3 supplier:** `fetchInventorySuppliers()` reads `inventory_suppliers` (same columns as Inventory). Dropdown items are **name** only. On change, R3 prints name (bold) then address, contact, gstin, city/country, payment terms — values only.
+8. **R11 voucher:** `allocatePurchaseOrderVoucher()` in `purchaseOrderVoucherUtils.js`. Indian FY 1 Apr–31 Mar in `Asia/Kolkata`. Code `PO/26-27/392` means FY 2026-27 serial 392. First open of the sheet in a browser session reserves a number. Plus reserves the next (`seq+1`) and clears R3, R21B, R32, R41, R42, extra C11–C81 lines, and Description of Goods text. FY 26-27 starts at 392 if empty; a new FY starts at 1 (`PO/27-28/1` from 1 Apr 2027). Insert `dashboard_purchase_orders`. Unique `(fy_code, seq)` with retry. If the table is missing, localStorage keeps the sequence until the staging migration is applied.
+9. **R12 dated:** PO-create day, always **today** in `Asia/Kolkata` as `DD-Mmm-YY` (`formatPurchaseOrderDated(new Date())`). Not the voucher reserve `created_at`. Sheet left open past midnight IST flips to the new day (checked every minute). Generate copies that today into History `po_date`.
+10. **R31 reference:** Same voucher string as R11 (not a new number). Heading **Reference No. & date.** Value bold.
+11. **R22 payment:** Fixed copy **Mode/terms of Payment** / bold **30 days**.
+12. **R21B delivery terms:** Cell opposite Consignee, narrower than R2/R3. Heading **Terms of Delivery**. Compact Textarea (`rows={4}`, min-height 4.5rem) so the A4 sheet stays short. Plus clears it.
+13. **R32 / R41 / R42 type fields:** Heading normal. Type area under it. Typed text bold. Textarea grows with words (`overflow: hidden`, height = scrollHeight). No scrollbar. Plus clears them.
+14. **C table:** Attached under the R sheet, flush (`gap-0`). 8 columns (col 2 wide). Rows: header / C11–C81 (and optional extra lines) / C12–C82 / long C13 / print-only C23. C1–C8 headings: Sl No., Description of Goods, Due on, Quantity, Rate, per, Disc %, Amount. C12–C82 stay eight tiles; **C22** is bold **Total**. **C13** under them: heading **Amount Chargable (in words):**, then bold Indian words from C82 (`purchaseOrderAmountInWords`). C13 height matches Consignee (R2). If the sheet is tight, C11–C81 shrinks. **C82** shows the sum of every goods-line Amount as ` ₹ 1000.00` (2 decimals). Words stay blank until that total exists. Never print the C-codes.
+15. **C11–C81 sub-rows:** The Sl No. column (`C11`) prints **1.** on the first line, then **2.** **3.** for extra lines (`purchaseOrderSlNoText`), aligned to the top of the cell. Insert or delete in the middle renumbers in order. **C21** on every goods line is typeable (the whole cell, normal text, not bold). **C31** Due on: calendar icon only (no inner box). Selected date shows at the top as **14-Aug -26** on one line. Due on column is wider (`minmax(5.5rem,1.2fr)`) so that text does not wrap. Calendar allows today (IST) and future days only. **C41** Quantity: whole numbers only (no decimal). Readable 11px text with **no box** (outline/border off). No `___` line. Small unit Select sits on the right of that top row (PCS, Kg, Mtr, Nos, Roll, Set) as **normal** visible text. Unit is mandatory on Generate. Every extra line uses the same pair. **C51** Rate: same open number Input as Quantity. Numbers only, at most 2 decimals. Leave the field → face like **450.00**. Extra lines have their own rate. **C61** per: same unit as plain top text (no box, no quantity number). **C81** Amount: Quantity × Rate, 2 decimals (example 3 × 450.00 → **1350.00**). Normal top text, no box. Blank if qty or rate empty. Extra lines each compute their own. Disc % not used yet. **C42** (under Quantity, Total row): bold sum of Quantity numbers (whole numbers only). Empty if no qty. **C82** sums those Amounts as bold one-line ` ₹ 1350.00` (or more rows added together). C13 words follow C82. Card Plus and extra-row delete clear that line’s description, due date, qty, unit, and rate. Default one tall line. The goods band splits equally across current lines. Hover anywhere on the left outline → blue circle **+** follows the pointer. Click inserts a new 8-cell row after the line under the pointer (so you can add between rows). Near an extra-row join, **−** sits only at the left end of that join (not along the rest of the hover). New rows use the same cell border as the rest of the sheet. The first C11–C81 row cannot be deleted. Card Plus clears extra rows. Cap `PURCHASE_ORDER_C_MAX_EXTRA_LINES` (8). Extra cell ids like `C21:L2` live in `data-po-cell` only.
+16. **Failure:** empty dropdown → no supplier rows or RLS. Add a vendor in Inventory → Suppliers. Select realtime refreshes when that table changes. Voucher stuck / duplicate → apply `20260821064834_dashboard_purchase_order_vouchers.sql` on staging. Generate fails / History empty → apply `20260822104145_dashboard_purchase_order_history.sql` on staging and `NOTIFY pgrst, 'reload schema'`. Generate with empty Supplier / Description / Due on / Quantity / Quantity unit / Rate → **Mandatory details are Missing** and red cells; no History row.
+
 ### Support dashboard (Enquiry data)
 
-1. **Trigger:** user opens sidebar → **Support** (`dashboardTab === "enquiry"` → `EnquiryPanel`). Default sub-tab is **Complaints**.
+1. **Trigger:** user opens sidebar → **Support** (`dashboardTab === "enquiry"` → `EnquiryPanel`). Default sub-tab is **Enquiry**.
 2. **Sub-tabs:** **Enquiry** → **Complaints** → **Delay alert** → **Order status** → **Report**. Desks use `SupportTicketDesk`. Whole row tint follows priority. Delay form and production-status log are their own tabs (after Complaints, before Report). Report stays blank.
-3. **Fetch:** `enquiries` (newest first, limit 500) — RLS returns all rows for admin; assignee sees assigned rows; creator sees rows they logged; Gargi sees SLA-escalated rows (`escalated_to_id`).
-4. **Display (Enquiry):** `ticket_kind=enquiry` / Help with order → Customized → Enquiries. Codes `ENQ-#####`. Same columns as Complaints. Order ID optional.
-5. **Display (Complaints):** Help with order → **Regular Order** (`order_type=regular`, `help_topic=regular`) and Help with order → **Customized → Concerns** (`product_issue`). Codes `CS-#####`. Columns: Code, Customer, **Order ID**, **Concerns**, Source, Status, Priority, Assignee, Created. No Track / Access / Delay / Enquiries tickets.
-6. **Create:** **New enquiry** on Enquiry tab; **New complaint** on Complaints. Customer, phone, optional/required order ID, details. Ownership check when order ID present.
-7. **Assign (admin only):** detail dialog → pick team member. Same for both desks. Non-admin cannot assign.
-8. **Pick (assignee):** Mark verified / contacted / Close, notes, status. **Concerns** / enquiry details and **customer feedback** are read-only for admin and staff after receive. Each action writes `enquiry_activity_log`. Admin list refreshes live; admin detail **Activity** shows who did what.
-9. **SLA:** unpicked = still `new`/`assigned` and no `picked_at`. 1 hour → ops-only waiting banner. 2 hours → escalate to Gargi, red banner, customer not told. Client pass on Support tab load writes `enquiry_sla_escalations` once.
-10. **Realtime:** `enquiries` + `enquiry_sla_escalations` + `enquiry_activity_log` + `enquiry_outbound_messages` → silent refetch so admin sees staff work without refresh.
-11. **Close survey:** First Close queues Concierge copy into `enquiry_outbound_messages` (Feedback button). If staging still has `ON CONFLICT (enquiry_id)`, the app Close path blanks phone for one save so the trigger skips, restores the phone, then inserts the survey row. WhatsApp simulator with the same phone shows that text. No Meta Cloud API send from this SPA.
+3. **Fetch:** `enquiries` (newest first, limit 500) — RLS returns all rows for admin; assignee sees assigned rows; creator sees rows they logged; Gargi sees SLA-escalated rows (`escalated_to_id`); **tag holders see enquiries carrying their tag**. Panel also loads `enquiry_tags` + `enquiry_tag_members` (live via realtime) and decorates enquiry rows with `tag_name`.
+4. **Display (Enquiry):** `ticket_kind=enquiry` / Help with order → Customized → Enquiries (also when `ticket_kind` is missing). Codes `ENQ-#####`. Columns: Code, Customer, **Enquiry requirement**, Source, **Tag**, Status, Priority, Assigned to, Created (no Order ID). Table pages with Prev/Next (default 10). Complaints desk uses `support-complaints`. Row click opens a **full-page** detail. **Back** / Escape returns to the list. Detail has no Help path and no Ownership. **Mark verified** adds a green tick beside the customer name and disables that button. **Activity** button on the case opens a sheet (what changed, who, when). **Priority** and **Tag** sit immediately beside **Enquiry requirement** in a compact `w-56` column (not stretched to the far edge of the page). **Internal note** (team-only) sits beside customer reach-out, each `max-w-md`. Assign and Status stay in a `max-w-md` column.
+4a. **Tags (admin):** **Tags** button on the Enquiry desk → `EnquiryTagSettingsDialog`. Left: tag list + **Add tag** (unique name, `sort_order = last + 10`), Switch to show/hide in the form. Right: Checkbox per active user = holds the tag. Every tick writes `enquiry_tag_members` immediately. Admin can also change a tag on an existing enquiry in detail → **Save priority / tag**. Fetch/update keep `tag_id` even when `ticket_kind` is missing on staging (strip only the missing column). Non-admin re-tag is blocked by trigger.
+5. **Display (Complaints):** Help with order → **Regular Order** (`order_type=regular`, `help_topic=regular`) and Help with order → **Customized → Concerns** (`product_issue`). Codes `CS-#####`. Columns: Code, Customer, **Order ID**, **Concerns**, Source, Status, Priority, Assigned to, Created. No Track / Access / Delay / Enquiries tickets.
+6. **Create:** **New enquiry** on Enquiry tab; **New complaint** on Complaints. Enquiry form: customer, phone, email, **City** (Select from `INDIAN_CITIES`) with read-only **State** beside it (auto from `stateForCity`), source, priority, details, **Tag** (active tags, optional), notes — no Order ID, no Help path, no photos. Save writes `customer_city` + `customer_state`; detail shows **Location**. Complaint form keeps Order ID, Order type, Help path, photos; ownership check when order ID present. **Source** list: Facebook, WhatsApp, Insta Reel, Insta Post, Google, Distributor, Walk-in, Reference. Picking **Reference** shows a required **Reference name** input; saved as `Reference - <name>` in `enquiries.source` (no extra column). The WhatsApp simulator button was removed from Support (2026-10-05); `EnquiryWhatsAppSimulator.jsx` is no longer mounted.
+6a. **Bulk upload (Excel / CSV):** Enquiry desk → **Bulk upload** → `EnquiryBulkUploadDialog`. **Download Excel template** builds `enquiries-template.xlsx` in the browser (`buildEnquiryXlsxTemplate`, lazy `exceljs`): sheet `Enquiries` with headers `Customer name, Concerns, Source, Tag, Date, Phone, Email, City`, very-hidden sheet `Lists`, dropdown validation on Source (warn), Tag (stop), City (stop) rows 2–1000. Upload takes `.xlsx` or `.csv` → `parseEnquiryFile` → `parseEnquiryMatrix` maps headers by alias, normalises Source / Tag / City / Date, builds one enquiry form per row, flags notes, skips rows with no name+phone+email. Preview → **Import N** → `importEnquiryRows` calls `createEnquiry` per row sequentially (unique `ENQ-` code, activity "created"), progress shown, failures listed by row. Sheet Date → `created_at`. Imported rows prepend to the desk; tag holders see tagged rows via RLS as usual.
+7. **Assign (platform admin or Support admin):** full-page detail → pick team member. Same for both desks. A Support admin is a viewer granted the privilege on Admin → Edit user; they see every ticket and can assign/tag. They do **not** get the Admin tab. Grant/revoke writes `support_admin_audit`. After assign (and after every later update: status, details, reach-out, pick, close, feedback) `notify_enquiry_watchers` inserts inbox rows for the assignee and all admins / Support admins. Notifications tab → **Support** filter. Click **View Enquiry** → Support tab. Bulk import does not notify.
+7b. **Reach-out (admin / Support admin only):** **Save reach-out** with a required comment. Writes `last_reached_out_*`, activity `reached_out`, sets `picked_at`, and moves `new`/`assigned`/`opened` → `in_progress`. Beside it, **Internal note** saves `enquiries.notes` (team-only, customer never sees). Assigned staff do **not** see these controls.
+7a. **Opened (auto):** Assignee / tag holder / SLA fallback opens the detail of a `new` or `assigned` ticket → `markEnquiryOpened` sets `status = opened`, `opened_at`, logs "Opened enquiry". Admin opening does nothing. Not a pick; SLA still counts (`ENQUIRY_UNWORKED_STATUSES = new, assigned, opened`). Admin desk shows Opened badge + Opened count card so "seen but no action" is visible.
+7c. **Assigned staff detail:** Non-admin sees only phone, case text (plus Order ID on complaints), **Contact history** (list + add event → activity `contact`), and **Status**. No Mark verified / Mark contacted / Close pick / notes / tag / assign. Status change still sets `picked_at` on `in_progress` / `resolved` / `closed`. Per-status checklist before Update status is stubbed in `enquiryStatusChecklist.js` (empty until the next prompt).
+8. **Pick (admin / Support admin):** Mark verified (→ Assigned, also from Opened) / contacted (→ In progress) / Close, internal note, assign, status. **Concerns** / enquiry details and **customer feedback** are read-only after receive. Each action writes `enquiry_activity_log`. Admin list refreshes live; admin detail **Activity** shows who did what.
+9. **SLA:** unpicked = still `new`/`assigned`/`opened` and no `picked_at`. 1 hour → waiting item. 2 hours → escalate to Gargi, customer not told. Client pass on Support tab load writes `enquiry_sla_escalations` once. Desk **always** shows a **bell** next to Refresh (staging with no overdue tickets used to hide it). Badge = count; empty popover says none waiting. Alert list is a fixed-height `ScrollArea` (`h-72`) so long production lists scroll. Click a row to open the enquiry. No stacked banners.
+10. **Realtime:** `enquiries` + `enquiry_sla_escalations` + `enquiry_activity_log` + `enquiry_outbound_messages` → silent refetch so admin sees staff work without refresh. Separate channel `enquiry-tags-live` on `enquiry_tags` + `enquiry_tag_members` reloads tags.
+11. **Close survey:** First Close still queues Concierge copy into `enquiry_outbound_messages` (Feedback button). The enquiry detail page no longer shows the WhatsApp-simulator hint above the pick buttons. If staging still has `ON CONFLICT (enquiry_id)`, the app Close path blanks phone for one save so the trigger skips, restores the phone, then inserts the survey row. No Meta Cloud API send from this SPA.
 12. **Production delay alert:** Support sub-tab **Delay alert** (after Complaints). Order number + phone + new date required. Lookup fills name/phone/old date from Ready Stock or tracker. Insert `support_delay_alerts` plus two outbound rows (apology text + Help / Access). Simulator with that phone shows the copy. Live Meta WhatsApp is not sent from this SPA.
 13. **Production status texts:** Backend trigger `orders_queue_production_status_whatsapp` on `orders.status` change. Queues Concierge copy if a phone is found (enquiry Order ID match, contact book name, or Ready Stock customer JSON). Support sub-tab **Order status** lists recent sends/skips. No Track Order button in the simulator.
 14. **Not copied from Concierge:** live WhatsApp Cloud API.
@@ -141,8 +260,9 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 1. **Trigger:** Inventory tab mounts (`InventoryDataContext`).
 2. **Fetch:** `inventory_sku_availability` view (paged 1000/req, authenticated read via `20260716120000`), aggregated per `sku_code` + per-facility breakdown → `availabilityBySku`.
 3. **Display:** Inventory list shows **Reserved** (amber, tooltip "Held for open orders — not available to sell") and **Available** (= on_hand − reserved) next to On hand; low-stock status, stock bar, alerts, and overview KPIs compare against **available**.
-4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills.
-5. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
+4. **Realtime:** subscription on `inventory_facility_stock` (publication via `20260716130000`) refetches availability when the Stock API reserves/releases/fulfills. `refresh()` (including silent Adjust/SKU events) **awaits** that map so the list cannot keep the old qty.
+5. **Adjust:** IN/OUT/ADJUST write `adjust_sku_facility_stock` at the warehouse the user picked (OUT/ADJUST use `fromWh`). **Transfer** shows From + To warehouses and calls `transfer_sku_facility_stock` (deduct from, add to, one `TRANSFER` movement). Then silent refresh + availability reload. This is **not** the Ops Stock Ledger.
+6. **Failure:** query error → console warning, `availabilityBySku = null`, UI falls back to `stock_qty` (Reserved 0, Available = On hand); page never blanks.
 
 ### Inventory bulk Excel upload (stock + DOC, warehouse-scoped)
 
@@ -186,14 +306,52 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **Exit:** toast with updated / failed counts; list refreshes with new cost, sale price, reorder, DOC.
 6. **Failure:** missing SKU Code column → parse error; row with no metric columns → ignored; SKU not in DB → skipped with CSV reason.
 
-### Print calculator (DTF cost)
+### Internal Support Platform (Tools)
 
-1. **Trigger:** Printing orders tab → **Print calculator** button (next to All orders / Complete orders / Print Queue).
-2. **Usage:** Upload artwork images → set width/height in inches (auto-filled at 150 DPI from pixels) → per-artwork and total cost in ₹.
-3. **Formula:** `(Height + 1) × (Width + 1) × rate_per_sq_in` — rate stored in `print_calculator_settings`.
-4. **Background removal:** per artwork **Remove background** (lazy-loads `@imgly/background-removal` + ONNX model ~40MB on first use); crops to opaque PNG pixels; **W/H inches auto-set from result at 150 DPI**; **Download PNG** after removal.
-5. **Admin:** Save new **rate per square inch** (admin RLS only); all users see updated rate on next open.
-6. **Failure:** invalid rate ≤ 0 blocked on save; missing settings row defaults to rate `1`; background removal errors show alert (network/model download).
+1. **Trigger:** sidebar Tools → **Internal Support Platform** (`dashboardTab === "internal_support"`). LifeBuoy symbol.
+2. **Entry:** `InternalSupportPlatformPanel` (shadcn Tabs + Card). Tabs **Open Tickets** (default) and **Resolved**. **Raise an Issue** is a button on Open Tickets, not a tab. Not the Inventory **Support** tab (`enquiry`).
+3. **Auth:** same as other Tools. Admin always sees it. Viewer needs `internal_support` in allowed tabs (or all-tabs null). Submit needs a signed-in `profiles` row (`sessionUserId`). Name = `profileDisplayName(profile)`. Open Tickets and Resolved: admin reads all rows. Non-admin reads only `raised_by = auth.uid()`. Status update is admin only (`jwt_user_is_admin()`) and only while status is not Resolved.
+4. **Logic:** Open **Raise an Issue** Dialog from the Open Tickets button. Heading **Facing an issue? Select the option below that best describes your problem.** Then shadcn Buttons: Internet, Power Cut, Water Issue, Machinery, Food, Issue with Asset, Lift not working, Issue with Biometric, Floor Hygeine, Lost Personnal Belongings. Click toggles that option on/off. Many can stay selected. **Select your Floor** only appears if any picked issue needs a location (not Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings). Those four show **Comment** only. Mix (Food + Internet) shows Floor and requires it before Comment. Submit writes `internal_support_issues` (`status=Open`) then thank-you Alert in the Dialog. **Open Tickets** lists Open / In Progress / Closed. **Resolved** lists `status = Resolved` (admin and non-admin). Admin Status Select on Open Tickets can set Resolved; the row then leaves Open Tickets. Resolved tab Status is a Badge only. Both list tabs: From, To, Clear, Search, View / page. **Name** filter is admin only. Table: **Name**; **Status**; **Issue** = type + floor then **View Issue** on the same line (`Power Cut - 2nd Floor → View Issue`) → View Issue dialog; **Date** = `created_at`. Newest first.
+5. **Failure:** empty comment → FieldError. Floor-required mix with no floor → Floor shown, Comment hidden. Insert/list/status errors → destructive Alert. RLS: insert only as self; select own or admin; update admin and only if current status is not Resolved. Non-admin status pick is hidden. Zero issues → Floor and Comment hidden.
+6. **Exit:** close the Raise Dialog, switch sidebar tab, or Open Tickets / Resolved.
+
+### Contact Book add / edit contact
+
+1. **Trigger:** sidebar **Contact Book** → **+ Add contact** (or Edit on a card).
+2. **Entry:** `ContactBookPanel` shows New contact / Edit contact. The contact grid hides while the form is open.
+3. **Scroll:** Photo, fields, and Address sit in `.contact-book-form-scroll` (`overflow-y: auto`). Header and Save stay. The panel itself is `overflow: hidden` so the page cannot clip the form.
+4. **Save:** writes `contact_book_entries`. Photo goes to `contact-photos`. Cancel / ✕ returns to the list.
+5. **Failure:** empty name → error. RLS / missing table → error on the form.
+
+### Production Tracker tabs
+
+1. **Trigger:** user opens sidebar **Production tracker** (`dashboardTab === "production_tracker"`).
+2. **Tracker switch:** **Production Tracker** and **Sampling Tracker** use the same muted pill as **All orders** / **Complete orders** (no green / orange, not apart).
+3. **List tabs (common, below the switch):** Printing-style pill **All orders** | **Complete orders**. Each tracker keeps its own list tab. Production Complete = `is_complete` production job sheets. Sampling Complete = `is_complete` **or** status **Dispatched Successfully**. Lists never mix kinds.
+4. **Production Tracker:** existing `LinkedOrdersTabPanel` (job sheets, filters, Create Job sheet on All, status). Complete hides Create Job sheet. **Delivery required on** calendar is today or later (past days disabled).
+5. **Sampling Tracker:** same table. Only `sample_job_sheet` rows. All = open samples. Complete = closed samples. Picking **Dispatched Successfully** or admin **Mark as complete** (View Sample Order) moves the row to Complete, forces status **Dispatched Successfully**, and locks Status (badge only). **From / To / Clear** filter `order_date`. **Create Sample Jobsheet** sits far right on All, yellow (`variant="yellow"`). Hidden on Complete. IDs SA-####, no Total quantity, status Pattern Making. Pay block is only **Sampling required on** (optional, today or later), Mode of payment (Cash, UPI, Bank transfer, NEFT, Card, payment pending), Total amount, Payment proof. No advance / full paid / city / transport / approval fields. List words: View Sample Order, Sample Order, Order date, **Due In**. No count, Qty, or Handover. Sampling status pipeline.
+6. **Sample SLA:** if **Sampling required on** (`orders.due_date`) is filled, deadline is end of that local day. If blank, deadline is save time (`orders.created_at`) plus the admin SLA from **SLA settings** (default 2 days). Admin-only Settings button on Sampling Tracker writes `sample_job_sheet_settings` (days, extra hours, warn/urgent hours). Create Sample Jobsheet does not require the date; Production job sheet still requires **Delivery required on**. **Due In** column sits after Order date on Sampling **All orders** only. Sampling **Complete orders** has no Due In column. Same clock in View Sample Order while the job is still open. While open and before deadline: live `HH:MM Hrs Left` (Badge: plenty = secondary, under warn hours = default, under urgent hours = destructive). Open and past deadline (status not Dispatched Successfully): **SLA Breached** in red, timer removed (list Badge, view Alert). Closed / Dispatched Successfully: view hides Due In. Fallback start = `order_date` midnight if `created_at` missing and no due date. Uses the browser clock. No SLA on Production Tracker.
+7. **Mark as complete:** admin on View order. Sample job → Sampling Complete + Dispatched Successfully. Production job sheet → Production Complete. Printing jobs still go to Printing Complete. **The list tab does not switch** — stay on All orders (or whatever list was open). The completed row leaves All because `is_complete` is true.
+8. **Exit:** switch sidebar tab.
+
+### Printing orders — status edit and Sent to Dispatch auto-complete
+
+1. **Trigger:** Printing Orders → **All orders** Status column, or View order Status.
+2. **Who can edit:** Admin always. Viewer needs `can_edit_status` (default on). Status stays editable even if they opened the job from a tab they cannot otherwise edit. Complete orders list is badge-only.
+3. **UI:** `OrderListStatusCell` (Select). Current status is injected if it is missing from the option list so Radix Select does not break.
+4. **Sent to Dispatch → Complete:** status `sent_to_dispatch` stamps `orders.status_sent_to_dispatch_at`. Existing poll/cron RPC `promote_stale_new_orders_to_pending` sets `is_complete = true` 10 minutes later. Job then appears on **Complete orders**. Client poll is every 30s while signed in; pg_cron every 10 min.
+5. **Failure:** Viewer cannot set `is_complete` from the app (trigger). Auto-complete uses a transaction GUC so the RPC write is allowed. Console `Auto status promote failed` if the RPC errors.
+
+### Print cost calculator (DTF cost)
+
+1. **Trigger:** Printing orders tab → **Print cost calculator** (next to All orders / Complete orders / Print Queue).
+2. **Entry:** `PrintCalculatorModal`. Drop or click to upload **one or many** PNG/JPG/WebP prints. **Add more prints** appends another batch. The dialog body scrolls; the total bar stays put.
+3. **Quantity:** One number at the top. It multiplies **every** print and picks the slab: 1–10 → **0–10**, 11–200 → **10–200**, 201–1000 and above → **200–1000**. Toggle **Internal team** or **Customer**. The quote does not list the three rates or the slab rules. Admin opens **Pricing settings** to see and edit them.
+4. **Size:** Width and height in inches. Empty size is guessed at **150 DPI**. **Remove background** crops to opaque pixels and replaces inches from that PNG.
+5. **Formula:** billed area = `(width + 1) × (height + 1)` square inches. **Single pc** = billed square inches × slab rate. **Line cost** = single pc × the shared quantity. Paise rounded on the single pc, then on the line, then summed.
+6. **Footer:** print count, the shared quantity, billed square inches, list name, total ₹. **Copy quote** writes the same breakdown. Closing the modal drops the artworks and resets quantity to 1 (not saved on the order).
+7. **Admin:** **Pricing settings** edits all six rates (two lists × three slabs) and **Save pricing** writes `print_calculator_settings` (admin RLS). Totals keep the last saved rates until save succeeds.
+8. **Failure:** any rate ≤ 0 blocked on save; missing tier falls back to legacy `rate_per_sq_in`; quantity blank or below 1 makes every line ₹0; background removal errors show an alert (network / ~40MB model download). Clipboard denied → short footer note. If the print card is cut off, scroll the middle of the dialog (the total bar does not scroll away).
 
 ## Home tab
 
@@ -221,25 +379,47 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ## Sidebar tab activity markers
 
 1. **Trigger:** Realtime `postgres_changes` on a table mapped to a sidebar tab (e.g. `orders` → **Printing Orders** only, not Home).
-2. **Routing:** `orders` use `order_kind` — printing/sticker/sampling → Printing Orders; `job_sheet` → Production tracker; `regular_stock` → Ready Stock Order. Goals tables → Goals & Tasks only.
+2. **Routing:** `orders` use `order_kind` — printing/sticker/sampling → Printing Orders; `job_sheet` / `sample_job_sheet` → Production tracker; `regular_stock` → Ready Stock Order. Goals tables → Goals & Tasks only.
 3. **UI:** Small primary dot on the tab label (right side), same area as Chat unread count.
 4. **Clear:** User opens that tab → dot removed.
 5. **Skip:** No dot on the tab you are currently viewing (you already see live data there).
 6. **Chat:** Still uses numeric badge for unread messages, not the activity dot.
 
+## Daily ops briefing (Home Today)
+
+1. **Trigger:** signed-in user opens **Home**. `OpsBriefingPanel` loads `rpt_ops_my_open_jobs`, `rpt_ops_my_production`, `rpt_ops_my_pending_pay` (each row `created_by = auth.uid()`; admin pending pay also includes owned AR).
+2. **Make task:** button calls RPC `ops_create_followup_task`. Inserts `user_goal_tasks` (self-assigned, deadline today IST, P1) and `ops_followup_task_link`. If an open task already exists for that source, returns it. Completed links can be replaced.
+3. **Morning nag:** `pg_cron` `ops-daily-briefing` at 03:30 UTC (09:00 IST) runs `ops_insert_daily_briefings`. One `ops_briefing_notifications` row per active profile with a non-empty queue, unique per user × date. Does **not** auto-insert tasks.
+4. **Notifications:** kind `ops_briefing` under Tasks. Click **Open Today** → Home.
+5. **Ask AI:** Home **Ask AI** Sheet. Large Textarea for Wispr Flow. Edge `ops-ai-chat` (user JWT). Tool `create_followup_task` only. No Anthropic key → “Briefing works. Chat off until API key.” Claude Max is not used.
+6. **Failure:** missing views → empty lists. Duplicate Make task → same open task. AI cannot insert `orders` or invoices.
+7. **Exit:** Tasks show on Goals & Tasks. User still creates printing job sheets by hand.
+
 ## Notifications
 
-Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges five sources, sorted by `created_at`.
+Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges assignment, enquiry, inward, printing inventory, goal tasks, order status, and ops briefing, sorted by `created_at`.
+
+**Tab UI (`NotificationsPanel`):** shadcn chips All / Orders / Tasks / Inventory / Mentions + time Select (All time / Today / Last 7 days / Last 30 days). Counts follow the time range. Mentions = `inward` tags (no mention table). Unread tint uses the seen timestamp from before this visit (bell still clears the badge). **View Order / Task / Inventory / Inward** and more-menu **Open** call `handleOpenDashboardNotification`. Order IDs in the body are link buttons. Empty = shadcn `Empty`. Loading = `Skeleton`.
 
 | Kind | Trigger | Recipient | Open action |
 |------|---------|-----------|-------------|
 | `assignment` | Order saved with coordinator name | Matched profile | Open order |
 | `order_status` | `orders.status` updated | Coordinator + `created_by` (not actor) | Open order |
 | `goal_task` | `createGoalTask()` | Assignee (not self) | Goals & Tasks tab |
+| `ops_briefing` | Morning cron `ops_insert_daily_briefings` | User with a non-empty Today queue | Home Today |
 | `inward` | User tagged on inward entry | Tagged user | Inward entry |
 | `printing_inventory` | Stock below threshold | Subscribed users | Printing inventory |
 
 **Realtime:** `subscribeUserNotifications()` + dedicated toast channels in `App.jsx` for each table.
+
+## Repeat order templates
+
+1. **Trigger:** Printing Orders → Repeat order (admin or viewer who can create orders).
+2. **Fetch:** `order_templates` SELECT for any authenticated user. Admin-created rows now show for staff.
+3. **Use:** fills the create-order form. Does not change write rules.
+4. **Save / edit / delete:** insert `user_id = auth.uid()`. Update/delete only owner or admin. Other users see **Use** only.
+5. **Failure:** empty list used to mean “no templates” when RLS hid admin rows.
+6. **Exit:** close the picker; new order is still unsaved until the user submits.
 
 ## Printing order create — product SKU → colors
 
@@ -255,7 +435,7 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 2. **Profile photo:** Grid of 50 preset characters or **Upload photo** → **Save photo** → `profiles.avatar_path` (`preset:avatar-XX` or storage path).
 3. **Notification tone:** MP3 upload (max 2 MB) → `profiles.notification_tone_path`; **Preview** / **Use default** below avatar section in same dialog.
 4. **Admin create/edit user:** Avatar picker also on **Create user** and **Edit user access** modals.
-5. **Notifications tab:** Alert list only — no profile/tone cards.
+5. **Notifications tab:** Alert list with category/time filters — no profile/tone cards.
 
 ### Custom notification tone (MP3)
 
@@ -285,8 +465,8 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 1. **Trigger:** User opens **View order** → **Designs** / **Mockups** section.
 2. **Hydration:** `openViewOrder()` always fetches `ORDERS_FULL_SELECT` (includes `approved_design_url`, approved images, payment proof).
 3. **Live refresh:** List refetch uses lightweight columns; `mergeOrderDetailAssets()` keeps mockup URLs on the open order so thumbnails do not vanish during realtime sync or after approved-image upload patches.
-4. **Preview:** Click thumbnail → `openPreview()` → `ImagePreviewModal` portaled to `document.body` (`z-index: 2000`).
-5. **Exit preview:** Toolbar **Close** button.
+4. **Preview:** Click thumbnail or customer-asset **View** → `openPreview()` → `ImagePreviewModal` overlay **inside** the View order Dialog (not a body portal).
+5. **Exit preview:** **Close** or Esc. View order stays open. Closing View order also clears preview.
 
 ### View order — customer assets
 
@@ -301,40 +481,126 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 
 WhatsApp-style inbox: sidebar conversation list + thread view. Data layer: `src/teamChatService.js`. UI: `TeamChatPanel.jsx` + `src/components/chat/*`.
 
+### Inbox tabs (Chats / Groups / Channels)
+
+1. **Trigger:** User opens **Chat**. Default tab is **Chats**.
+2. **Entry:** Bottom of the left inbox is a shadcn `TabsList` with three equal names: **Chats**, **Groups**, **Channels**. A Badge shows unopened text-message count beside a tab when &gt; 0. List heading stays at the top of that tab.
+3. **Chats:** Search glass left of **New chat**. Same conversation rows as before (avatar, name, time, preview, unread). List is `kind=direct` only. Thread on this tab is DMs only.
+4. **Groups:** Search glass left of **New group**. Same row format. List is `kind=group` only (including **General**). New group lands here. Thread on this tab is groups only.
+4a. **Inbox search:** Click the glass. Type letters. Chats lists team names (starts-with first, then contains). Click a name → open that DM if it exists, else the compose screen. Groups lists group titles the same way. Click a title → open that group. Empty query shows everyone / every group you can see. Send from that thread pins it: the message goes to that person and the page stays on that person. Inbox reload cannot switch to the previous chat. Click another inbox row to leave.
+5. **Channels:** Same row format (`kind=channel`). **New Channel** shows only for `profiles.role = admin`. Everyone on the dashboard is a member. Admins post with the same composer as Chats/Groups. Non-admins see no composer; they may react (emoji + count), copy, and forward.
+6. **Switch tabs:** Only the name list and action swap. Inbox width and thread pane stay.
+7. **Edge:** Inactive `TabsContent` must not use always-on `flex` (it fights Radix `hidden` and leaves a blank hole at the top). Phone (`max-sm`) still hides the list until Back. From `sm` up, inbox and thread stay side by side so Groups never vanish on open.
+8. **Tab pick:** Opening **Groups** selects the current group, or the first group if the open thread is a DM. Same for Channels. Chats stay on a DM. If a conversation id is already chosen (search or first send) and that row is not in the list yet, Chats do not fall back to the first DM. A refresh does not jump Groups over to a DM.
+
 ### Open chat / General group
 
 1. **Trigger:** User opens **Chat** tab.
 2. **Services:** `fetchMyConversations()` — memberships + last message preview.
-3. **Default:** **General** group (legacy team wall messages migrated here).
+3. **Default:** First direct chat if one exists. **General** lives on the **Groups** tab only.
 4. **Exit:** Select conversation → load messages via `fetchConversationMessages()`.
 
 ### Direct message (any user → any user)
 
-1. **Trigger:** **New chat** → pick team member (compose screen opens — no DB conversation yet).
-2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox.
-3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats).
+1. **Trigger:** **New chat** or inbox search → pick team member (compose screen opens — no DB conversation yet).
+2. **First send:** RPC `get_or_create_direct_conversation(other_user_id)` then insert message — only then both users see the chat in inbox. The panel pins that conversation id before inbox reload. If the list has not caught up, it keeps a local stub so the thread does not jump to another DM.
+3. **Empty DMs:** Direct conversations with zero messages are hidden from both inboxes (no ghost chats). An open first-send thread is the exception until the message exists.
 4. **Send:** `sendChatMessage()` with `conversation_id`; marks read for sender.
-5. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
+5. **Bubble wrap:** Thread body uses `whitespace-pre-wrap` plus `overflow-wrap: anywhere`. Long text and URLs wrap **inside** the bubble on new lines (`break-all` / `word-break` on the link). Full string stays visible — no clip, no overlap onto other rows. Same on Groups. `http`/`https` is a clickable link (new tab). Clicking the link does not toggle select. The link Button overrides shadcn `whitespace-nowrap` so a long URL can wrap.
+6. **Pane size:** Chat tab is full-bleed (`FULL_BLEED_TABS`). The card fills the dashboard content area (`h-full`, overflow hidden). Inbox stays on screen from `sm` up; thread is a normal `overflow-y-auto` box (not Radix table scroll). Phone (`max-sm`): list or thread, not both. Long messages wrap inside the bubble. History stays visible; open thread scrolls to the newest.
+7. **History load:** `fetchConversationMessages` takes the newest 200 (`created_at` desc) then reverses to oldest-first.
+8. **RLS:** Only conversation members see messages (`jwt_user_in_conversation`).
+
+### Create channel (admin)
+
+1. **Trigger:** Admin on Channels tab → **New Channel** → name only.
+2. **Services:** RPC `create_channel_conversation(title)` — requires `jwt_user_is_admin()`. Inserts `kind=channel` and adds every `profiles` row as a member.
+3. **New users:** Trigger `team_chat_profile_join_channels` adds a new profile to all existing channels.
+4. **Post:** Insert policy `jwt_user_can_post_in_conversation` — channel posts require admin. Non-admin insert is rejected.
+5. **Viewer actions:** React / copy / forward only. No reply, pin, delete, or composer.
+6. **Admin actions:** Full composer (text, emoji, GIF, file, voice, paste) plus reply, react, pin, copy, forward, delete (any post).
+7. **Reactions:** Chips show each emoji and how many people used it.
+8. **Wrap:** Channel body uses the same multi-line wrap as Chats/Groups.
+9. **Exit:** Channel appears on the Channels tab for everyone after refresh/realtime.
 
 ### Create group
 
-1. **Trigger:** **New group** → name + member checkboxes.
-2. **Services:** RPC `create_group_conversation(title, member_ids[])` — creator is admin member.
-3. **Exit:** Group appears in inbox; all members can read/write.
+1. **Trigger:** Groups tab → **New group** → name + member checkboxes.
+2. **Services:** RPC `create_group_conversation(title, member_ids[])` — creator is **group admin**. Others start as member.
+3. **Exit:** Group appears on the **Groups** tab only; all members can read/write. Panel switches to Groups.
+
+### Group / Chat header details
+
+1. **Trigger:** Open a Chat or Group thread. Click anywhere on the **name line** (name stays normal text, not a button). Channels do not open this.
+2. **Chat:** Sheet shows the other person's photo and both people. No add/remove.
+3. **Group:** Sheet lists every member. Group admin can Change photo, **Add people**, **Make admin**, **Remove**.
+4. **Services:** same group admin RPCs as before. Photo goes to `team-chat-group-avatars/{conversation_id}/…`.
+5. **Guards:** Cannot remove yourself. Cannot remove the last admin. Members see the list only.
+
+### Shared media (Chat and Groups)
+
+1. **Trigger:** **Media** on the right of the name line.
+2. **Tabs:** **Photos/Videos** (images, GIFs, video files), **Documents** (PDF, Excel, voice notes, other files), **Links** (http/https in message text).
+3. **Services:** `fetchConversationSharedMedia` — non-deleted messages with an attachment, GIF, or `http` in the body.
+4. **Exit:** Open a file/link in a new tab. Empty tab says none yet. The same `http`/`https` strings are also clickable inside the message bubble.
+
+### Chat presence (Online / Away / Offline)
+
+1. **Trigger:** Signed-in user has the dashboard open. `usePublishDashboardPresence` in `App.jsx` heartbeats every 25s.
+2. **Online:** Browser tab is visible and focused. RPC `set_my_dashboard_presence('online')`. List avatar = green dot. Open DM subtitle = **Online**.
+3. **Leave dashboard tab:** Stay **Online** for 5 minutes (`last_seen_at` does not move). Then **Away** (yellow + Away). Switching Inventory/Chat inside the dashboard stays Online.
+4. **Offline:** No presence row (never opened the dashboard), or `last_seen_at` older than 2 hours. List = red dot. Open DM = **Offline**.
+5. **Same source:** List and thread both read `presenceFromRow` so they cannot disagree.
+6. **Realtime:** `hr_user_presence` postgres changes refresh the map. A 15s tick flips Online → Away at 5 minutes.
+
+### Delivery ticks (Chats and Groups only)
+
+1. **Trigger:** You send any message (text, photo, GIF, voice). Ticks sit on **your** bubble only. Channels have no ticks.
+2. **Seen:** Other member opened that thread (`last_read_at` ≥ that message `created_at`). Online / Away does **not** change ticks.
+3. **Chats:** Peer has not opened and is **Online** (dashboard active) → **2 grey**. Peer has not opened and is Away/Offline → **1 grey**. Peer opened → **2 blue**.
+4. **Groups:** Nobody opened → **1 grey**. At least one other member opened, but not all → **2 grey**. Every other member opened → **2 blue**.
+5. **Read wins:** After all others have seen it, ticks stay blue even if they later go offline.
+6. **Realtime:** Member `UPDATE` patches `member_reads` immediately. Open Chat/Group also polls reads every 4s. Staging table uses `REPLICA IDENTITY FULL` so RLS realtime can send peer `last_read_at`.
+7. **Open = seen:** While a Chat/Group/Channel thread is open, the viewer heartbeats `mark_conversation_read` every 4s so new text/photo/GIF/file/voice is marked seen without closing and reopening.
+8. **All types:** Ticks sit on every own Chat/Group send (text, photo, document, GIF, emoji, voice). Bubble is a `div` so nested download links do not drop the ticks.
+
+### Group viewers list
+
+1. **Trigger:** Sender selects **one** of their group messages. Info icon appears on the action bar.
+2. **Dialog:** **Seen** = members whose `last_read_at` covers that post. **Not seen** = the rest. Sender is not listed.
+3. **Edge:** Only the author sees Info. Multi-select hides it. DMs and channels have no viewers list.
+
+### Select message actions (Chats and Groups)
+
+1. **Trigger:** Click anywhere on that message’s full horizontal row (empty strip, avatar, name, or bubble). Your messages or others. Deleted rows stay unselectable. Links / download / react / order chips use `stopPropagation` so they do not toggle select.
+2. **Selected look:** That row (not the bubble) gets a full-width light sky-blue bar (`bg-sky-100`). One or many selected rows all show it. Bubble color stays the same.
+3. **One selected:** Header shows icon-only Reply, React, Pin, Copy, Forward, Clear. Group sender also gets Info (viewers). Delete only if that message is yours.
+4. **Several selected:** Header shows icon-only Copy, Forward, Clear. Delete only if every selected message is yours. Mix of own + others, or only others → no Delete.
+5. **Reply:** Composer quotes that message; send stores `reply_to_message_id`.
+6. **React:** Emoji picker; RPC `set_team_chat_message_reaction` (one emoji per user; same emoji again removes it).
+7. **Pin:** RPC `toggle_team_chat_message_pin` for conversation members.
+8. **Delete:** Icon hidden unless every selected row is yours (Chats/Groups). Channel admin still sees Delete for any selected posts. RPC `soft_delete_team_chat_messages` only sets `deleted_at` on own rows.
+9. **Forward:** Dialog pick another conversation; copies body/attachment/GIF with `forwarded_from_message_id`.
+10. **Copy:** Writes selected bodies to the clipboard (full text). Empty body uses GIF / Voice note / Photo / file name. Several messages join with a blank line. Browser must allow clipboard write.
+11. **Edge:** Deleted bubbles are not selectable. Switching chat or tab clears selection.
 
 ### Send GIF / attachment
 
-1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending via `VITE_GIPHY_API_KEY`). **Enter** sends message; **Shift+Enter** new line.
-2. **File:** Paperclip → JPEG/PNG/WebP/GIF/PDF up to 15 MB → `team-chat-files` bucket.
-3. **Constraint:** Message needs body, attachment, or GIF (empty text-only blocked).
+1. **GIF:** **GIF** button → **Quick GIFs** presets, or **Search** tab (Giphy search + trending). The public Giphy client key is bundled in `giphyGifApi.js` and `netlify.toml`, so Search works on local, staging, and production with the same key. **Enter** sends message; **Shift+Enter** new line.
+2. **File:** Paperclip → image, video, audio, PDF, Word, Excel, PowerPoint, CSV, zip, txt. No app size cap. Upload to `team-chat-files` (staging bucket limit 10 GB). Browser or project Storage settings can still fail a huge upload.
+2a. **Download:** Arrow icon beside the attachment or GIF (not beside typed `http` links). Fetches the file and opens the system save dialog. Same icon on Media photos/docs.
+3. **Voice note:** Mic in the composer action row (after paperclip) on Chats and Groups. Browser `getUserMedia` + `MediaRecorder`. Stop button appears only while recording (same slot). After stop, preview + Send uploads audio (webm/mp4/ogg) as an attachment. Cap 5 minutes. Mic deny or empty clip shows an error. Voice-only does not increment the text unread badge. The bubble is a full native player (play + seek). No `Voice note.webm` label. Download arrow sits under the player so it does not crush the control.
+4. **Composer layout:** Full-width box on top (1 line, grows to ~5, then scrolls). Under it: emoji, GIF, paperclip, mic, paste left; Send right. **Enter** still sends; **Shift+Enter** new line. After Send, the thread stays on screen (refresh does not swap in “Loading messages…”). Cursor returns to the box so the next line can be typed without a click. The bubble appears at once (optimistic). Inbox reload runs in the background so the tab does not wait ~1s.
+5. **Paste:** Paste icon reads the clipboard and inserts at the cursor. Deny clipboard → error; **Ctrl+V** still works in the box.
+6. **Constraint:** Message needs body, attachment, or GIF (empty text-only blocked).
 
 ### Realtime
 
-`TeamChatPanel` subscribes to `team_chat_messages` and `team_chat_conversations` postgres changes; refreshes inbox + active thread.
+`TeamChatPanel` subscribes to `team_chat_messages`, `team_chat_conversations`, `team_chat_message_reactions`, and **all** `team_chat_conversation_members` postgres changes (not only the current user); refreshes inbox + active thread so peer `last_read_at` updates ticks.
 
-**Unread:** Opening a thread calls `mark_conversation_read` — badge clears immediately. Unread rows highlighted (primary border + bold). Sidebar **Chat** tab shows total unread count.
+**Unread:** Opening a thread calls `mark_conversation_read` — row and inbox-tab badges clear for that conversation. Count is unopened text messages only. Sidebar **Chat** tab sums the same counts.
 
-**Sound:** New message for current user plays the same notification tone as tasks/orders (custom MP3 if set). No tone when user already has that conversation open on the Chat tab.
+**Sound + toast:** Every incoming Chat / Group / Channel message (not your own) plays `public/sounds/chat-message.mp3` and shows a bottom-right card: **name**, then the message (or Photo / GIF / Voice note). Card stays 45 seconds or until X. Sound plays even if another browser tab is focused, as long as Scott Dashboard is still open and the browser already primed audio after a click. Status mute does not block this chat sound.
 
 ### Admin views all user goals and tasks
 

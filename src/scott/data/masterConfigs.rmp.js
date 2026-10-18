@@ -1319,16 +1319,9 @@ export const rmpPriceTypesConfig = {
     },
     {
       key: "zone_id",
-      // Upstream is a free-text field, NOT a dropdown: `<Input value={zoneId} …
-      // placeholder="Scott zone id (numeric)">` with the hint "Scott dashboard zone
-      // identifier (not app zones)" (RmpPriceTypesPage.tsx:311-320). It is deliberately
-      // NOT the local Supabase `zones` master — different id space — so a zones-backed
-      // select would be wrong, not just missing. Typed `text` so `required` is satisfiable;
-      // as a `select` with no option source this field was unsavable.
-      label: "Zone ID (Scott)",
-      type: "text",
-      placeholder: "Scott zone id (numeric)",
-      hint: "Scott dashboard zone identifier (not app zones)",
+      // Options come only from Scott records, never the separate app/warehouse zones.
+      label: "Zone",
+      type: "scott-zone",
       // ScottOne blocks the save outright without a zone — `onSave` returns early and the
       // submit button stays disabled on `!zoneId.trim()` (RmpPriceTypesPage.tsx:159, 342).
       required: true
@@ -1340,9 +1333,13 @@ export const rmpPriceTypesConfig = {
     const r = row ?? {};
 
     let zone;
-    if (isPlainObject(r.zone)) {
+    const embeddedZone = r.rmp_price_type?.zone ?? r.zone;
+    if (isPlainObject(embeddedZone)) {
       // Note: no id guard here — an embedded zone object always produces a relation.
-      zone = { id: normalizeId(r.zone.id), name: String(r.zone.name ?? "") };
+      zone = { id: normalizeId(embeddedZone.id), name: String(embeddedZone.name ?? "") };
+    } else {
+      const zoneName = typeof embeddedZone === "string" ? embeddedZone : r.rmp_price_type?.zone_name ?? r.zone_name;
+      if (zoneName) zone = { id: normalizeId(r.rmp_price_type?.zone_id ?? r.zone_id), name: String(zoneName) };
     }
 
     // Show responses may wrap the entity: `{ rmp_price_type: {...} }`.

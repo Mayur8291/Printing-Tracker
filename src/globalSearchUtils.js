@@ -3,9 +3,11 @@ import {
   filterDispatchOrders,
   filterDispatchProcessedOrders,
   filterPrintingDepartmentOrders,
-  filterProductionTrackerOrders
+  isProductionTrackerOrder
 } from "./orderTabUtils";
 import { isJobSheetOrder } from "./jobSheetUtils";
+import { isSampleJobSheetOrder } from "./sampleJobSheetUtils";
+import { sampleJobSheetIsClosed } from "./sampleJobSheetStages";
 import { formatOcCreatedAt, ocTransportLabel } from "./outwardChallanUtils";
 import { splitOrderIds, STAGE_LABEL } from "./orderViewUtils";
 import { stageLabelForOrder } from "./stickerOrderUtils";
@@ -93,7 +95,7 @@ function orderSubtitle(order) {
 
 function pushOrderHit(suggestions, order, hit) {
   suggestions.push({
-    id: `order-${order.id}-${hit.tabId}-${hit.dispatchSubview ?? "x"}`,
+    id: `order-${order.id}-${hit.tabId}-${hit.dispatchSubview ?? "x"}-${hit.productionSubTab ?? "x"}-${hit.trackerListTab ?? "x"}`,
     kind: "order",
     tabId: hit.tabId,
     areaLabel: hit.areaLabel,
@@ -103,7 +105,9 @@ function pushOrderHit(suggestions, order, hit) {
     subtitle: orderSubtitle(order),
     meta: stageLabelForOrder(order, order.status),
     order,
-    dispatchSubview: hit.dispatchSubview ?? null
+    dispatchSubview: hit.dispatchSubview ?? null,
+    productionSubTab: hit.productionSubTab ?? null,
+    trackerListTab: hit.trackerListTab ?? null
   });
 }
 
@@ -112,7 +116,7 @@ function buildOrderHits(order, canAccessTab) {
   const orderKind = order.order_kind ?? "printing";
   const statusLabel = stageLabelForOrder(order, order.status);
 
-  if (canAccessTab("printing") && !isJobSheetOrder(order)) {
+  if (canAccessTab("printing") && !isJobSheetOrder(order) && !isSampleJobSheetOrder(order)) {
     hits.push({
       tabId: "printing",
       areaLabel: "Printing Orders",
@@ -139,12 +143,26 @@ function buildOrderHits(order, canAccessTab) {
     });
   }
 
-  if (canAccessTab("production_tracker") && filterProductionTrackerOrders([order]).length) {
+  if (canAccessTab("production_tracker") && isProductionTrackerOrder(order)) {
     hits.push({
       tabId: "production_tracker",
       areaLabel: "Production tracker",
-      contextLine: "Production job",
-      badgeTone: "production"
+      contextLine: order.is_complete ? "Complete orders" : "Production job",
+      badgeTone: "production",
+      productionSubTab: "production",
+      trackerListTab: order.is_complete ? "complete" : "active"
+    });
+  }
+
+  if (canAccessTab("production_tracker") && isSampleJobSheetOrder(order)) {
+    const sampleClosed = sampleJobSheetIsClosed(order);
+    hits.push({
+      tabId: "production_tracker",
+      areaLabel: "Sampling Tracker",
+      contextLine: sampleClosed ? "Complete orders" : "Sample order",
+      badgeTone: "production",
+      productionSubTab: "sampling",
+      trackerListTab: sampleClosed ? "complete" : "active"
     });
   }
 

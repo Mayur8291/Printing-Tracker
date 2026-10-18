@@ -12,12 +12,24 @@ import ProductRevenuePanel from "./ProductRevenuePanel";
 import OrderDetailPanel from "./OrderDetailPanel";
 import MonthlyArchivePanel from "./MonthlyArchivePanel";
 import LinkedOrdersTabPanel from "./LinkedOrdersTabPanel";
+import { SampleJobSheetDueInCell } from "./SampleJobSheetDueIn";
+import { SampleJobSheetSlaProvider } from "./SampleJobSheetSlaContext";
+import SampleJobSheetSlaSettingsControl from "./SampleJobSheetSlaSettingsDialog";
+import ProductionTrackerPanel, {
+  PRODUCTION_SUBTAB,
+  SAMPLING_SUBTAB,
+  TRACKER_LIST_ACTIVE,
+  TRACKER_LIST_COMPLETE
+} from "./ProductionTrackerPanel";
 import TeamChatPanel from "./TeamChatPanel";
+import { usePublishDashboardPresence } from "./dashboardPresence";
 import ContactBookPanel from "./ContactBookPanel";
+import InternalSupportPlatformPanel from "./InternalSupportPlatformPanel";
 import GoalTrackerPanel from "./GoalTrackerPanel";
 import AdminRolesGoalsPanel from "./AdminRolesGoalsPanel";
 import AdminPasswordResetRequestsPanel from "./AdminPasswordResetRequestsPanel";
 import HomeGoalTrackerPanel from "./components/goals/HomeGoalTrackerPanel";
+import OpsBriefingPanel from "./OpsBriefingPanel";
 import AssetManagementPanel from "./AssetManagementPanel";
 import HomeStatusPanel from "./components/home/HomeStatusPanel";
 import { Dialog, DialogContent } from "./components/ui/dialog";
@@ -39,9 +51,17 @@ import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Theme } from "@radix-ui/themes";
 import { cn } from "./lib/utils";
+import { uuid } from "./lib/uuid";
 import SharedLinksPanel from "./SharedLinksPanel";
 import ReadyStockOrdersPanel from "./ReadyStockOrdersPanel";
 import EnquiryPanel from "./EnquiryPanel";
+import MastersPanel from "./MastersPanel";
+import StockLedgerPanel from "./StockLedgerPanel";
+import ProcurementPanel from "./ProcurementPanel";
+import SalesOrdersPanel from "./SalesOrdersPanel";
+import BillingArPanel from "./BillingArPanel";
+import UniwareBridgePanel from "./UniwareBridgePanel";
+import PurchaseOrderPanel from "./PurchaseOrderPanel";
 import AdminIntegrationsPanel from "./AdminIntegrationsPanel";
 import PrintingDepartmentPanel from "./PrintingDepartmentPanel";
 import BillingTabPanel from "./BillingTabPanel";
@@ -54,7 +74,7 @@ import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPa
 import OrdersListFilters from "./components/orders/OrdersListFilters";
 import OrdersListSummary from "./components/orders/OrdersListSummary";
 import OrderIdBadges from "./components/orders/OrderIdBadges";
-import OrderStatusBadge from "./components/orders/OrderStatusBadge";
+import OrderListStatusCell from "./components/orders/OrderListStatusCell";
 import { orderListRowClassName } from "./components/orders/orderTableUtils";
 import { Label } from "./components/ui/label";
 import { Badge } from "./components/ui/badge";
@@ -93,12 +113,14 @@ import OrderViewActionCell from "./components/orders/OrderViewActionCell";
 import {
   createPendingPrintingOrder,
   createPendingProductionOrder,
+  createPendingSampleJobSheet,
   mergePendingOrders
 } from "./orderPendingUtils";
 import ViewerUserEditModal from "./ViewerUserEditModal";
 import { Calculator, Pencil, Trash2 } from "lucide-react";
 import PrintCalculatorModal from "./printCalculator/PrintCalculatorModal";
 import { filterViewerProfiles, formatProfileAccessLabel, profileAccessRole, viewerIsActive } from "./viewerUserListUtils";
+import { fetchSupportAdminIds, setSupportAdminMember } from "./supportAdminUtils";
 import AssignmentToastStack from "./AssignmentToastStack";
 import NotificationBellButton from "./NotificationBellButton";
 import NotificationsPanel from "./NotificationsPanel";
@@ -125,8 +147,7 @@ import {
   formatStickerSizeDisplay,
   isAllowedStickerAsset,
   isSamplingOrder,
-  isStickerOrder,
-  stageLabelForOrder
+  isStickerOrder
 } from "./stickerOrderUtils";
 import DistributorTabPanel from "./DistributorTabPanel";
 import InventoryTabPanel from "./InventoryTabPanel";
@@ -142,9 +163,20 @@ import {
   jobSheetSizesToBreakdown,
   parseJobSheetRate,
   parseJobSheetSizeQty,
+  isJobSheetDeliveryDateAllowed,
   serializeJobSheetRegularStockItems,
   sumJobSheetSizes
 } from "./jobSheetUtils";
+import {
+  SAMPLE_JOB_SHEET_ORDER_KIND,
+  fetchNextSampleJobSheetOrderId,
+  isSampleJobSheetOrder,
+  isSampleJobSheetOrderIdConflict
+} from "./sampleJobSheetUtils";
+import {
+  SAMPLE_JOB_SHEET_COMPLETE_STATUS,
+  sampleJobSheetIsClosed
+} from "./sampleJobSheetStages";
 import {
   calcJobSheetBalanceAmount,
   calcJobSheetPendingAmount,
@@ -171,6 +203,7 @@ import {
   filterOrdersInDateRange,
   filterPrintingTabOrders,
   filterProductionTrackerOrders,
+  filterSampleJobSheetOrders,
   parsePaymentProofUrls,
   paymentMethodLabel,
   paymentMethodRequiresProof,
@@ -181,6 +214,7 @@ import { invokeAdminEdgeFunction } from "./edgeFunctionUtils";
 import { profileAvatarPublicUrl, setProfilePresetAvatar, uploadProfileAvatar } from "./avatarUtils";
 import { profileNotificationTonePublicUrl } from "./notificationToneUtils";
 import {
+  playChatMessageTone,
   playNotificationTone,
   playOrderStatusChangeTone,
   playReadyDispatchOverdueTone,
@@ -193,11 +227,13 @@ import { PersonAvatar } from "./components/ui/person-avatar";
 import ProfileAvatarPicker from "./components/profile/ProfileAvatarPicker";
 import UserProfileSettingsDialog from "./components/profile/UserProfileSettingsDialog";
 import { activeSupabaseRef, supabase } from "./supabaseClient";
-import { fetchMyConversations } from "./teamChatService";
+import { ChatIncomingToastStack } from "./components/chat/ChatIncomingToastStack";
+import { conversationPreviewText, fetchMyConversations } from "./teamChatService";
 import {
-  shouldPlayChatMessageTone,
+  shouldNotifyIncomingChatMessage,
   sumConversationUnread
 } from "./teamChatNotificationUtils";
+import { messageAuthorDisplayName } from "./teamChatUtils";
 import {
   isMissingPostgrestTableError,
   isSchemaCacheError,
@@ -247,6 +283,7 @@ import {
   ORDERS_LIST_SELECT
 } from "./orderQueryFields";
 import { JOB_SHEET_PRODUCTION_STAGE_ICON } from "./jobSheetProductionStages";
+import { SAMPLE_JOB_SHEET_STAGE_ICON } from "./sampleJobSheetStages";
 
 const STAGE_ICON = {
   new: "🆕",
@@ -262,12 +299,14 @@ const STAGE_ICON = {
   sent_to_dispatch: "🚚",
   dispatch_fail: "⛔",
   dispatched: "📤",
-  ...JOB_SHEET_PRODUCTION_STAGE_ICON
+  ...JOB_SHEET_PRODUCTION_STAGE_ICON,
+  ...SAMPLE_JOB_SHEET_STAGE_ICON
 };
 
 /**
- * New → pending: 12h for all jobs; 10min when delivery date is same day or next day as order date
- * (see DB `promote_stale_new_orders_to_pending` + cron).
+ * New → pending: 12h for all jobs; 10min when delivery date is same day or next day as order date.
+ * Sent to Dispatch → Complete (`is_complete`) after 10 minutes.
+ * (see DB `promote_stale_new_orders_to_pending` + cron; client also polls every 30s).
  */
 const SLA_NEW_TO_PENDING_MS = 12 * 60 * 60 * 1000;
 
@@ -478,7 +517,9 @@ const DASHBOARD_TAB_STORAGE_KEY = "printing-tracker-dashboard-tab";
 /** Tabs whose panel owns its own padding + scrolling (shadcn-only, no legacy-ui wrapper). */
 const FULL_BLEED_TABS = new Set([
   "asset_management",
+  "internal_support",
   "inventory",
+  "chat",
   "scott_customers",
   "scott_reports",
   "scott_masters"
@@ -675,10 +716,15 @@ function App() {
   }
 
   const [session, setSession] = useState(null);
+  usePublishDashboardPresence(session?.user?.id);
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
   const isAdminUser = (profile?.role ?? "").trim().toLowerCase() === "admin";
+  const [supportAdminIds, setSupportAdminIds] = useState([]);
+  const [supportAdminDrafts, setSupportAdminDrafts] = useState({});
+  const supportAdminIdSet = useMemo(() => new Set(supportAdminIds), [supportAdminIds]);
+  const isSupportAdminUser = isAdminUser || supportAdminIdSet.has(session?.user?.id);
 
   const statusTonesEnabled = profile?.status_tones_enabled !== false;
   useEffect(() => {
@@ -721,6 +767,7 @@ function App() {
   /** "printing" = full create-order form; "job_sheet" = production job sheet (placeholder until dedicated fields). */
   const [createFormMode, setCreateFormMode] = useState("printing");
   const [assignmentToasts, setAssignmentToasts] = useState([]);
+  const [chatIncomingToasts, setChatIncomingToasts] = useState([]);
   const [chatUnreadTotal, setChatUnreadTotal] = useState(0);
   const [sidebarTabMarkers, setSidebarTabMarkers] = useState({});
   const chatMemberConvIdsRef = useRef(new Set());
@@ -786,6 +833,9 @@ function App() {
   const [pendingInwardEntryId, setPendingInwardEntryId] = useState(null);
   const [pendingPrintingSubview, setPendingPrintingSubview] = useState(null);
   const [dashboardTab, setDashboardTab] = useState(readStoredDashboardTab);
+  const [productionSubTab, setProductionSubTab] = useState(PRODUCTION_SUBTAB);
+  const [productionListTab, setProductionListTab] = useState(TRACKER_LIST_ACTIVE);
+  const [samplingListTab, setSamplingListTab] = useState(TRACKER_LIST_ACTIVE);
   const dashboardTabRef = useRef(readStoredDashboardTab());
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
@@ -1204,9 +1254,11 @@ function App() {
   useEffect(() => {
     if (!session?.user) {
       setTeamProfiles([]);
+      setSupportAdminIds([]);
       return;
     }
     fetchTeamProfiles();
+    void loadSupportAdmins();
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -1459,6 +1511,15 @@ function App() {
     setTeamProfiles(data ?? []);
   }
 
+  async function loadSupportAdmins() {
+    try {
+      setSupportAdminIds(await fetchSupportAdminIds());
+    } catch (e) {
+      console.warn("support admins:", e.message || e);
+      setSupportAdminIds([]);
+    }
+  }
+
   async function fetchViewersAndPermissions() {
     const role = (profile?.role ?? "").trim().toLowerCase();
     if (role === "admin") {
@@ -1561,9 +1622,10 @@ function App() {
     const isAdminRole = (profile?.role ?? "").trim().toLowerCase() === "admin";
     return subscribePostgresChanges({
       channelName: `dashboard-profiles-${session.user.id}`,
-      tables: ["profiles"],
+      tables: ["profiles", "support_admins"],
       onEvent: () => {
         void fetchTeamProfiles();
+        void loadSupportAdmins();
         if (isAdminRole) void fetchViewersAndPermissions();
       }
     });
@@ -2430,6 +2492,7 @@ function App() {
 
   async function openCreateProductionJobSheet(sourceOrder = null) {
     setCreateFormMode("job_sheet");
+    setProductionSubTab(PRODUCTION_SUBTAB);
     setOrderForm(emptyOrder);
     setOrderIdDraft("");
     setDesignFiles([]);
@@ -2459,6 +2522,35 @@ function App() {
     setShowCreateForm(true);
   }
 
+  async function openCreateSampleJobSheet() {
+    setCreateFormMode("sample_job_sheet");
+    setProductionSubTab(SAMPLING_SUBTAB);
+    setOrderForm(emptyOrder);
+    setOrderIdDraft("");
+    setDesignFiles([]);
+    setPaymentScreenshotFiles([]);
+    setCustomerAssetFiles([]);
+    setJobSheetAdvanceProofFiles([]);
+    setJobSheetPaymentProofFiles([]);
+    setJobSheetApprovalImageFile(null);
+
+    const today = todayLocalISODate();
+    let nextOrderId = "SA-0001";
+    try {
+      nextOrderId = await fetchNextSampleJobSheetOrderId(supabase);
+    } catch (e) {
+      console.error(e);
+    }
+
+    setJobSheetForm({
+      ...emptyJobSheetForm(),
+      order_id: nextOrderId,
+      order_date: today
+    });
+    void fetchInventoryProducts();
+    setShowCreateForm(true);
+  }
+
   async function handleCreateJobSheet(e) {
     e.preventDefault();
     if (orderSubmitLockRef.current) return;
@@ -2482,8 +2574,19 @@ function App() {
       alert("Please enter product name.");
       return;
     }
-    if (!jobSheetForm.delivery_required_on) {
+    if (createFormMode !== "sample_job_sheet" && !jobSheetForm.delivery_required_on) {
       alert("Please set delivery required on date.");
+      return;
+    }
+    if (
+      jobSheetForm.delivery_required_on &&
+      !isJobSheetDeliveryDateAllowed(jobSheetForm.delivery_required_on)
+    ) {
+      alert(
+        createFormMode === "sample_job_sheet"
+          ? "Sampling required on must be today or a future date."
+          : "Delivery required on must be today or a future date."
+      );
       return;
     }
     for (const row of jobSheetForm.extraSizes ?? []) {
@@ -2509,6 +2612,7 @@ function App() {
       }
     }
 
+    const isSampleJobSheet = createFormMode === "sample_job_sheet";
     const formSnapshot = { ...jobSheetForm };
     const fromPrintingForm = jobSheetFromPrintingFormRef.current;
     const sizeBreakdown = jobSheetSizesToBreakdown(
@@ -2531,20 +2635,33 @@ function App() {
 
     const colorText = String(formSnapshot.color ?? "").trim();
     const totalAmount = calcJobSheetTotalAmount(formSnapshot.rate_per_piece, qty);
-    const advanceAmount = parseJobSheetMoney(formSnapshot.advance_amount);
-    const transportCharges = parseJobSheetMoney(formSnapshot.transport_charges);
-    if (advanceAmount != null && totalAmount != null && advanceAmount > totalAmount) {
+    const advanceAmount = isSampleJobSheet
+      ? null
+      : parseJobSheetMoney(formSnapshot.advance_amount);
+    const transportCharges = isSampleJobSheet
+      ? null
+      : parseJobSheetMoney(formSnapshot.transport_charges);
+    if (
+      !isSampleJobSheet &&
+      advanceAmount != null &&
+      totalAmount != null &&
+      advanceAmount > totalAmount
+    ) {
       alert("Advance amount cannot exceed total amount.");
       return;
     }
     const totalAmountStr = totalAmount != null ? String(totalAmount) : "";
-    const balanceAmount = calcJobSheetBalanceAmount(totalAmountStr, formSnapshot.advance_amount);
-    const pendingAmount = calcJobSheetPendingAmount(
-      totalAmountStr,
-      formSnapshot.advance_amount,
-      formSnapshot.full_paid
-    );
-    const fullPaid = formSnapshot.full_paid === "yes";
+    const balanceAmount = isSampleJobSheet
+      ? null
+      : calcJobSheetBalanceAmount(totalAmountStr, formSnapshot.advance_amount);
+    const pendingAmount = isSampleJobSheet
+      ? null
+      : calcJobSheetPendingAmount(
+          totalAmountStr,
+          formSnapshot.advance_amount,
+          formSnapshot.full_paid
+        );
+    const fullPaid = !isSampleJobSheet && formSnapshot.full_paid === "yes";
     if (fullPaid && jobSheetPaymentProofFiles.length === 0) {
       alert("Please upload payment proof when marking the job as full paid.");
       return;
@@ -2559,9 +2676,9 @@ function App() {
     const payload = {
       order_date: formSnapshot.order_date || todayLocalISODate(),
       order_id: formSnapshot.order_id,
-      order_kind: "job_sheet",
-      is_production_order: true,
-      status: "quotation_approval",
+      order_kind: isSampleJobSheet ? SAMPLE_JOB_SHEET_ORDER_KIND : "job_sheet",
+      is_production_order: !isSampleJobSheet,
+      status: isSampleJobSheet ? "pattern_making" : "quotation_approval",
       customer_name: formSnapshot.customer_name.trim(),
       sales_incharge_name: formSnapshot.sales_incharge_name,
       coordinator_name: formSnapshot.sales_incharge_name,
@@ -2589,19 +2706,27 @@ function App() {
           ? serializeJobSheetRegularStockItems(formSnapshot.regularStockItems)
           : [],
       remarks: String(formSnapshot.comments ?? "").trim() || null,
-      due_date: formSnapshot.delivery_required_on,
+      due_date: String(formSnapshot.delivery_required_on ?? "").trim() || null,
       order_cost: totalAmount,
       job_sheet_payment_mode: String(formSnapshot.payment_mode ?? "").trim() || null,
       job_sheet_advance_amount: advanceAmount,
-      job_sheet_advance_payment_date: String(formSnapshot.advance_payment_date ?? "").trim() || null,
+      job_sheet_advance_payment_date: isSampleJobSheet
+        ? null
+        : String(formSnapshot.advance_payment_date ?? "").trim() || null,
       job_sheet_balance_amount: balanceAmount,
       job_sheet_pending_amount: pendingAmount,
       job_sheet_full_paid: fullPaid,
       job_sheet_payment_closure_at: paymentClosureAt,
-      job_sheet_delivery_city: String(formSnapshot.delivery_city ?? "").trim() || null,
+      job_sheet_delivery_city: isSampleJobSheet
+        ? null
+        : String(formSnapshot.delivery_city ?? "").trim() || null,
       job_sheet_transport_charges: transportCharges,
-      job_sheet_approval_date: String(formSnapshot.approval_date ?? "").trim() || null,
-      job_sheet_approved_by: String(formSnapshot.approved_by ?? "").trim() || null,
+      job_sheet_approval_date: isSampleJobSheet
+        ? null
+        : String(formSnapshot.approval_date ?? "").trim() || null,
+      job_sheet_approved_by: isSampleJobSheet
+        ? null
+        : String(formSnapshot.approved_by ?? "").trim() || null,
       approved_design_url: "[]",
       printing_mtrs: 0,
       created_by: session.user.id
@@ -2610,24 +2735,37 @@ function App() {
     orderSubmitLockRef.current = true;
     setSavingJobSheet(true);
 
-    const pendingRow = createPendingProductionOrder({
-      orderId: payload.order_id,
-      customerName: payload.customer_name,
-      productName: payload.product_name,
-      coordinatorName: payload.coordinator_name,
-      dueDate: payload.due_date,
-      qty: payload.qty,
-      handoverDate: formSnapshot.delivery_required_on
-    });
-    const { clientKey } = pendingRow;
+    const pendingRow = isSampleJobSheet
+      ? createPendingSampleJobSheet({
+          orderId: payload.order_id,
+          customerName: payload.customer_name,
+          productName: payload.product_name,
+          coordinatorName: payload.coordinator_name,
+          orderDate: payload.order_date,
+          dueDate: payload.due_date,
+          qty: payload.qty
+        })
+      : createPendingProductionOrder({
+          orderId: payload.order_id,
+          customerName: payload.customer_name,
+          productName: payload.product_name,
+          coordinatorName: payload.coordinator_name,
+          dueDate: payload.due_date,
+          qty: payload.qty,
+          handoverDate: formSnapshot.delivery_required_on
+        });
+    const clientKey = pendingRow?.clientKey;
 
-    setPendingOrders((prev) => [pendingRow, ...prev]);
+    if (pendingRow) {
+      setPendingOrders((prev) => [pendingRow, ...prev]);
+    }
     if (!fromPrintingForm) {
       resetCreateOrderFormFields();
       setShowCreateForm(false);
       setCreateFormMode("printing");
       setDashboardTab("production_tracker");
-      setOrdersTab("active");
+      setProductionSubTab(isSampleJobSheet ? SAMPLING_SUBTAB : PRODUCTION_SUBTAB);
+      if (!isSampleJobSheet) setOrdersTab("active");
     }
 
     try {
@@ -2650,7 +2788,7 @@ function App() {
         return serializePaymentProofUrls(proofUrls);
       }
 
-      if (advanceFilesSnapshot.length > 0) {
+      if (!isSampleJobSheet && advanceFilesSnapshot.length > 0) {
         payload.job_sheet_advance_proof_url = await uploadJobSheetProofFiles(
           "payment-screenshots",
           advanceFilesSnapshot
@@ -2664,7 +2802,7 @@ function App() {
         );
       }
 
-      if (approvalFileSnapshot) {
+      if (!isSampleJobSheet && approvalFileSnapshot) {
         const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${approvalFileSnapshot.name.replace(/\s+/g, "-")}`;
         const storagePath = `${session.user.id}/job-sheet-${orderIdToken}-approval-${safeName}`;
         const { error: approvalUploadError } = await supabase.storage
@@ -2679,19 +2817,32 @@ function App() {
         payload.job_sheet_approval_image_url = approvalUrlData?.publicUrl ?? null;
       }
 
-      const { data: insertedOrder, error } = await supabase
-        .from("orders")
-        .insert(payload)
-        .select("id")
-        .single();
+      let insertedOrder = null;
+      let insertError = null;
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const { data, error } = await supabase.from("orders").insert(payload).select("id").single();
+        if (!error) {
+          insertedOrder = data;
+          insertError = null;
+          break;
+        }
+        insertError = error;
+        if (isSampleJobSheet && isSampleJobSheetOrderIdConflict(error.message)) {
+          payload.order_id = await fetchNextSampleJobSheetOrderId(supabase);
+          continue;
+        }
+        break;
+      }
 
-      if (error) {
-        if (error.message?.includes("orders_order_kind_check")) {
+      if (insertError) {
+        if (insertError.message?.includes("orders_order_kind_check")) {
           alert(
-            "Job sheet order type is not enabled on the database. Apply migration 20260703200000_add_order_kind_job_sheet.sql."
+            isSampleJobSheet
+              ? "Sample job sheet order type is not enabled on the database. Apply migration 20260831060510_add_order_kind_sample_job_sheet.sql on staging."
+              : "Job sheet order type is not enabled on the database. Apply migration 20260703200000_add_order_kind_job_sheet.sql."
           );
         } else {
-          alert(error.message);
+          alert(insertError.message);
         }
         return;
       }
@@ -2721,7 +2872,7 @@ function App() {
     } catch (err) {
       alert(err instanceof Error ? err.message : String(err));
     } finally {
-      removePendingOrder(clientKey);
+      if (clientKey) removePendingOrder(clientKey);
       orderSubmitLockRef.current = false;
       setSavingJobSheet(false);
     }
@@ -2750,7 +2901,7 @@ function App() {
       const { data, error } = await supabase
         .from("order_templates")
         .select(
-          "id, name, owner_name, customer_name, coordinator_name, product_name, colors, size_breakdown, printing_mtrs, order_cost, printing_cost, remarks, is_production_order, expected_handover_to_printing, payment_method, delivery_method, image_paths, updated_at"
+          "id, user_id, name, owner_name, customer_name, coordinator_name, product_name, colors, size_breakdown, printing_mtrs, order_cost, printing_cost, remarks, is_production_order, expected_handover_to_printing, payment_method, delivery_method, image_paths, updated_at"
         )
         .order("updated_at", { ascending: false });
       if (error) throw new Error(error.message);
@@ -3352,6 +3503,22 @@ function App() {
     }
 
     if (profileAccessRole(viewer) !== "admin") {
+      const nextSupportAdmin =
+        supportAdminDrafts[viewerId] !== undefined
+          ? Boolean(supportAdminDrafts[viewerId])
+          : supportAdminIdSet.has(viewerId);
+      if (nextSupportAdmin !== supportAdminIdSet.has(viewerId)) {
+        try {
+          await setSupportAdminMember({
+            userId: viewerId,
+            member: nextSupportAdmin,
+            grantedBy: session?.user?.id
+          });
+        } catch (saErr) {
+          alert(saErr instanceof Error ? saErr.message : String(saErr));
+          return;
+        }
+      }
       const { error: permErr } = await supabase.from("profile_order_permissions").upsert(
         {
           user_id: viewerId,
@@ -3396,6 +3563,12 @@ function App() {
       delete next[viewerId];
       return next;
     });
+    setSupportAdminDrafts((prev) => {
+      const next = { ...prev };
+      delete next[viewerId];
+      return next;
+    });
+    await loadSupportAdmins();
     const refreshed = await fetchViewersAndPermissions();
     if (dashboardTab === ADMIN_DASHBOARD_TAB.id && refreshed?.viewerPermissions) {
       setPermissionDrafts((prev) => ({
@@ -3430,6 +3603,10 @@ function App() {
     setViewerActiveDrafts((prev) => ({
       ...prev,
       [id]: prev[id] !== undefined ? Boolean(prev[id]) : viewerIsActive(viewer)
+    }));
+    setSupportAdminDrafts((prev) => ({
+      ...prev,
+      [id]: prev[id] !== undefined ? Boolean(prev[id]) : supportAdminIdSet.has(id)
     }));
     setPermissionDrafts((prev) => ({
       ...prev,
@@ -3820,6 +3997,10 @@ function App() {
 
   function handleOpenDashboardNotification(item) {
     if (!item) return;
+    if (item.kind === "ops_briefing") {
+      selectDashboardTab("home");
+      return;
+    }
     if (item.kind === "goal_task") {
       selectDashboardTab("goals");
       return;
@@ -3836,10 +4017,15 @@ function App() {
       handleNotificationPrintingInventoryOpen();
       return;
     }
+    if (item.kind === "enquiry") {
+      selectDashboardTab("enquiry");
+      return;
+    }
     void handleNotificationAssignmentOpen(item);
   }
 
   function closeViewOrder() {
+    closePreview();
     setViewOrderTarget(null);
     setViewOrderFromTab(null);
     closeOrderHistory();
@@ -3853,28 +4039,33 @@ function App() {
   async function handleMarkComplete(order) {
     if (order.is_complete) return;
     const ok = window.confirm(
-      `Mark this job as complete? It will move to the Complete orders tab.\n${order.customer_name} · ${order.order_date} · Qty ${order.qty}`
+      `Mark this job as complete?\n${order.customer_name} · ${order.order_date} · Qty ${order.qty}`
     );
     if (!ok) return;
-    const { error } = await supabase
-      .from("orders")
-      .update({ is_complete: true })
-      .eq("id", order.id);
+    const completeSample = isSampleJobSheetOrder(order);
+    const payload = completeSample
+      ? { is_complete: true, status: SAMPLE_JOB_SHEET_COMPLETE_STATUS }
+      : { is_complete: true };
+    const { error } = await supabase.from("orders").update(payload).eq("id", order.id);
     if (error) {
       alert(error.message);
       return;
     }
     setOrders((prev) =>
-      prev.map((o) => (o.id === order.id ? { ...o, is_complete: true } : o))
+      prev.map((o) => (o.id === order.id ? { ...o, ...payload } : o))
     );
-    setOrdersTab("complete");
+    if (completeSample) {
+      setStatusUpdates((prev) => ({ ...prev, [order.id]: SAMPLE_JOB_SHEET_COMPLETE_STATUS }));
+    }
     if (viewOrderTarget?.id === order.id) closeViewOrder();
     fetchOrders();
   }
 
   function openPreview(urls, index) {
-    setPreviewImages(urls);
-    setPreviewIndex(index);
+    const list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+    if (!list.length) return;
+    setPreviewImages(list);
+    setPreviewIndex(Math.min(Math.max(Number(index) || 0, 0), list.length - 1));
   }
 
   function closePreview() {
@@ -4053,6 +4244,22 @@ function App() {
   const dismissAssignmentToast = useCallback((id) => {
     setAssignmentToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const dismissChatIncomingToast = useCallback((id) => {
+    setChatIncomingToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const pushChatIncomingToast = useCallback((row) => {
+    if (!row || typeof row !== "object") return;
+    const author = teamProfiles.find((p) => String(p.id) === String(row.author_id));
+    const name = messageAuthorDisplayName(row, author) || "Someone";
+    const body = conversationPreviewText(row) || "New message";
+    const id = `chat-${row.id ?? uuid()}`;
+    setChatIncomingToasts((prev) => {
+      const next = prev.filter((t) => t.id !== id);
+      return [...next, { id, name, body }].slice(-6);
+    });
+  }, [teamProfiles]);
 
   const refreshChatUnread = useCallback(async () => {
     const uid = session?.user?.id;
@@ -4254,8 +4461,9 @@ function App() {
             return;
           }
           if (!chatMemberConvIdsRef.current.has(row.conversation_id)) return;
-          if (statusTonesEnabled && shouldPlayChatMessageTone(row, uid)) {
-            playNotificationTone(TONE_DEFAULT_STATUS);
+          if (shouldNotifyIncomingChatMessage(row, uid)) {
+            playChatMessageTone();
+            pushChatIncomingToast(row);
           }
           void refreshChatUnread();
         }
@@ -4277,7 +4485,7 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, statusTonesEnabled, refreshChatUnread]);
+  }, [session?.user?.id, refreshChatUnread, pushChatIncomingToast]);
 
   useEffect(() => {
     if (!showCreateForm || profileLoading) return;
@@ -4325,13 +4533,33 @@ function App() {
   );
 
   const productionTrackerOrders = useMemo(
-    () => sortOrdersNewestFirst(filterProductionTrackerOrders(ordersInDateRangeAll)),
-    [ordersInDateRangeAll]
+    () =>
+      sortOrdersNewestFirst(
+        filterProductionTrackerOrders(ordersInDateRangeAll, productionListTab)
+      ),
+    [ordersInDateRangeAll, productionListTab]
   );
 
   const productionTrackerOrdersWithPending = useMemo(
-    () => mergePendingOrders(pendingOrders, productionTrackerOrders, "production_tracker"),
-    [pendingOrders, productionTrackerOrders]
+    () =>
+      productionListTab === TRACKER_LIST_COMPLETE
+        ? productionTrackerOrders
+        : mergePendingOrders(pendingOrders, productionTrackerOrders, "production_tracker"),
+    [pendingOrders, productionTrackerOrders, productionListTab]
+  );
+
+  const sampleJobSheetOrders = useMemo(
+    () =>
+      sortOrdersNewestFirst(filterSampleJobSheetOrders(ordersInDateRangeAll, samplingListTab)),
+    [ordersInDateRangeAll, samplingListTab]
+  );
+
+  const sampleJobSheetOrdersWithPending = useMemo(
+    () =>
+      samplingListTab === TRACKER_LIST_COMPLETE
+        ? sampleJobSheetOrders
+        : mergePendingOrders(pendingOrders, sampleJobSheetOrders, "sampling_tracker"),
+    [pendingOrders, sampleJobSheetOrders, samplingListTab]
   );
 
   const billingOrders = useMemo(
@@ -4429,12 +4657,12 @@ function App() {
   const filteredViewerProfiles = useMemo(
     () =>
       filterViewerProfiles(
-        viewerProfiles,
+        viewerProfiles.map((v) => ({ ...v, is_support_admin: supportAdminIdSet.has(v.id) })),
         viewerListSearch,
         viewerListStatusFilter,
         viewerListAccessFilter
       ),
-    [viewerProfiles, viewerListSearch, viewerListStatusFilter, viewerListAccessFilter]
+    [viewerProfiles, viewerListSearch, viewerListStatusFilter, viewerListAccessFilter, supportAdminIdSet]
   );
 
   const viewerListPaginationKey = `${viewerListSearch}|${viewerListStatusFilter}|${viewerListAccessFilter}`;
@@ -4575,6 +4803,24 @@ function App() {
     } else {
       selectDashboardTab(item.tabId);
     }
+    if (item.productionSubTab) {
+      setProductionSubTab(item.productionSubTab);
+    } else if (item.tabId === "production_tracker") {
+      setProductionSubTab(PRODUCTION_SUBTAB);
+    }
+    if (item.trackerListTab === TRACKER_LIST_COMPLETE) {
+      if (item.productionSubTab === SAMPLING_SUBTAB) {
+        setSamplingListTab(TRACKER_LIST_COMPLETE);
+      } else {
+        setProductionListTab(TRACKER_LIST_COMPLETE);
+      }
+    } else if (item.tabId === "production_tracker") {
+      if (item.productionSubTab === SAMPLING_SUBTAB) {
+        setSamplingListTab(TRACKER_LIST_ACTIVE);
+      } else {
+        setProductionListTab(TRACKER_LIST_ACTIVE);
+      }
+    }
     if (item.dispatchSubview) {
       setPendingDispatchSubview(item.dispatchSubview);
     }
@@ -4589,31 +4835,43 @@ function App() {
   }
 
   const canCurrentUserEdit = (field) => {
-    if (!viewOrderTabCanEdit && isViewer) return false;
     if (isAdmin) return true;
     if (!isViewer) return false;
-    return viewerMayEditOrderField(currentUserPermissions, field);
+    if (!viewerMayEditOrderField(currentUserPermissions, field)) return false;
+    if (field === "status") return true;
+    if (!viewOrderTabCanEdit) return false;
+    return true;
   };
 
   const canUseOrderControls = !profileLoading && !profileError && (isAdmin || isViewer);
 
   async function persistOrderStatus(order, newStatus) {
     if (!canCurrentUserEdit("status") || !newStatus) return;
+    if (isSampleJobSheetOrder(order) && sampleJobSheetIsClosed(order)) return;
     if (newStatus === order.status) return;
 
     const orderId = order.id;
     const previousStatus = order.status;
+    const previousComplete = order.is_complete;
+    const closingSample =
+      isSampleJobSheetOrder(order) && newStatus === SAMPLE_JOB_SHEET_COMPLETE_STATUS;
+    const payload =
+      closingSample && isAdmin
+        ? { status: newStatus, is_complete: true }
+        : { status: newStatus };
 
     setStatusUpdates((prev) => ({ ...prev, [orderId]: newStatus }));
     setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      prev.map((o) => (o.id === orderId ? { ...o, ...payload } : o))
     );
 
-    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
+    const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
     if (error) {
       setStatusUpdates((prev) => ({ ...prev, [orderId]: previousStatus }));
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: previousStatus } : o))
+        prev.map((o) =>
+          o.id === orderId ? { ...o, status: previousStatus, is_complete: previousComplete } : o
+        )
       );
       alert(error.message);
       return;
@@ -4639,7 +4897,18 @@ function App() {
     const nextReceivedAtLocal = receivedAtPrintingUpdates[orderId];
     const payload = {};
 
-    if (canCurrentUserEdit("status") && nextStatus) payload.status = nextStatus;
+    if (isSampleJobSheetOrder(orderRow) && sampleJobSheetIsClosed(orderRow)) {
+      /* Status locked after sample complete. */
+    } else if (canCurrentUserEdit("status") && nextStatus) {
+      payload.status = nextStatus;
+      if (
+        isSampleJobSheetOrder(orderRow) &&
+        nextStatus === SAMPLE_JOB_SHEET_COMPLETE_STATUS &&
+        isAdmin
+      ) {
+        payload.is_complete = true;
+      }
+    }
     if (canCurrentUserEdit("remarks") && typeof nextRemarks === "string") {
       payload.remarks = nextRemarks.trim() || null;
     }
@@ -5286,6 +5555,7 @@ function App() {
       radius="medium"
       hasBackground={false}
     >
+    <SampleJobSheetSlaProvider>
     <TooltipProvider delayDuration={200}>
     <div className="page app-layout flex h-svh min-h-0 flex-col overflow-hidden bg-background">
       <DashboardShell
@@ -5398,6 +5668,13 @@ function App() {
             ) : null}
 
             {session?.user ? (
+              <OpsBriefingPanel
+                userId={session.user.id}
+                onOpenGoalsTab={() => selectDashboardTab("goals")}
+              />
+            ) : null}
+
+            {session?.user ? (
               <HomeGoalTrackerPanel
                 userId={session.user.id}
                 onOpenGoalsTab={() => selectDashboardTab("goals")}
@@ -5454,7 +5731,7 @@ function App() {
                   onClick={() => setPrintCalculatorOpen(true)}
                 >
                   <Calculator className="size-4" aria-hidden />
-                  Print calculator
+                  Print cost calculator
                 </Button>
               </div>
 
@@ -5582,7 +5859,6 @@ function App() {
                           </TableHeader>
                           <TableBody>
                             {printingVisibleOrders.map((order) => {
-                              const statusLabel = stageLabelForOrder(order, order.status);
                               return (
                                 <TableRow
                                   key={order.clientKey ?? order.id}
@@ -5622,10 +5898,19 @@ function App() {
                                           : "—"}
                                   </TableCell>
                                   <TableCell>
-                                    <OrderStatusBadge
-                                      status={order.status}
-                                      label={statusLabel}
-                                      icon={renderStageIcon(order.status, statusLabel)}
+                                    <OrderListStatusCell
+                                      order={order}
+                                      canEdit={
+                                        ordersTab !== "complete" &&
+                                        canUseOrderControls &&
+                                        canCurrentUserEdit("status")
+                                      }
+                                      isAdmin={isAdmin}
+                                      statusUpdates={statusUpdates}
+                                      renderStageIcon={(status, label) =>
+                                        renderStageIcon(status, label)
+                                      }
+                                      onStatusChange={persistOrderStatus}
                                     />
                                   </TableCell>
                                   <TableCell>{order.coordinator_name || "—"}</TableCell>
@@ -5680,7 +5965,17 @@ function App() {
             />
           )}
 
-          {dashboardTab === "asset_management" && <AssetManagementPanel isAdmin={isAdmin} />}
+          {dashboardTab === "asset_management" && (
+            <AssetManagementPanel isAdmin={isAdmin} sessionUserId={session?.user?.id} />
+          )}
+
+          {dashboardTab === "internal_support" && (
+            <InternalSupportPlatformPanel
+              isAdmin={isAdmin}
+              sessionUserId={session?.user?.id}
+              raiserName={profileDisplayName(profile)}
+            />
+          )}
 
           {dashboardTab === "audit" && (
             <section className="panel table-panel dashboard-card">
@@ -5701,11 +5996,15 @@ function App() {
 
           {dashboardTab === "enquiry" && session?.user && (
             <EnquiryPanel
-              isAdmin={isAdmin}
+              isAdmin={isAdmin || isSupportAdminUser}
               canEdit={viewerCanEditCurrentTab}
               sessionUserId={session.user.id}
               teamProfiles={teamProfiles}
             />
+          )}
+
+          {dashboardTab === "purchase_order" && (
+            <PurchaseOrderPanel isAdmin={isAdmin} />
           )}
 
           {dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id && session?.user && (
@@ -5725,52 +6024,137 @@ function App() {
           )}
 
           {dashboardTab === "chat" && session?.user && (
-            <TeamChatPanel
-              sessionUserId={session.user.id}
-              currentUserProfile={profile}
-              teamProfiles={teamProfiles}
-              orders={orders}
-              onOpenOrder={openViewOrder}
-              onUnreadTotalChange={setChatUnreadTotal}
-            />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 md:p-4">
+              <TeamChatPanel
+                sessionUserId={session.user.id}
+                currentUserProfile={profile}
+                teamProfiles={teamProfiles}
+                orders={orders}
+                onOpenOrder={openViewOrder}
+                onUnreadTotalChange={setChatUnreadTotal}
+              />
+            </div>
           )}
 
           {dashboardTab === "production_tracker" && (
-            <LinkedOrdersTabPanel
-            tabTitle="Production Tracker"
-            paginationKey="production-tracker"
-            summaryLabel="Production jobs"
-            orders={productionTrackerOrdersWithPending}
-            loadingOrders={loadingOrders}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            onDateFromChange={setDateFrom}
-            onDateToChange={setDateTo}
-            onClearDates={() => {
-              setDateFrom("");
-              setDateTo("");
-            }}
-            extraColumn={{
-              header: "Handover to printing",
-              render: (order) => {
-                if (isJobSheetOrder(order)) {
-                  return order.due_date ? formatDeliveryDate(order.due_date) : "—";
-                }
-                return order.expected_handover_to_printing
-                  ? formatDeliveryDate(order.expected_handover_to_printing)
-                  : "—";
+            <ProductionTrackerPanel
+              subTab={productionSubTab}
+              onSubTabChange={setProductionSubTab}
+              listTab={
+                productionSubTab === SAMPLING_SUBTAB ? samplingListTab : productionListTab
               }
-            }}
-            emptyMessage="No production orders."
-            onViewOrder={openViewOrder}
-            renderStageIcon={renderStageIcon}
-            canCreateJobSheet={isAdmin || viewerCanCreateOrders}
-            onCreateJobSheet={openCreateProductionJobSheet}
-            canEditStatus={canUseOrderControls && canCurrentUserEdit("status")}
-            isAdmin={isAdmin}
-            statusUpdates={statusUpdates}
-            onStatusChange={persistOrderStatus}
-          />
+              onListTabChange={(next) => {
+                if (productionSubTab === SAMPLING_SUBTAB) setSamplingListTab(next);
+                else setProductionListTab(next);
+              }}
+              samplingContent={
+                <LinkedOrdersTabPanel
+                  tabTitle="Sampling Tracker"
+                  paginationKey={`sampling-tracker-${samplingListTab}`}
+                  summaryLabel={
+                    samplingListTab === TRACKER_LIST_COMPLETE
+                      ? "Complete sample orders"
+                      : "Sample orders"
+                  }
+                  orders={sampleJobSheetOrdersWithPending}
+                  loadingOrders={loadingOrders}
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateFromChange={setDateFrom}
+                  onDateToChange={setDateTo}
+                  onClearDates={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  showSummary={false}
+                  showQty={false}
+                  dateColumnLabel="Order date"
+                  getDateValue={(order) => formatDeliveryDate(order.order_date)}
+                  extraColumn={
+                    samplingListTab === TRACKER_LIST_COMPLETE
+                      ? undefined
+                      : {
+                          header: "Due In",
+                          render: (order) => <SampleJobSheetDueInCell order={order} />
+                        }
+                  }
+                  viewOrderLabel="View Sample Order"
+                  emptyMessage={
+                    samplingListTab === TRACKER_LIST_COMPLETE
+                      ? "No complete sample orders."
+                      : "No sample orders."
+                  }
+                  onViewOrder={openViewOrder}
+                  renderStageIcon={renderStageIcon}
+                  canCreateJobSheet={
+                    samplingListTab !== TRACKER_LIST_COMPLETE &&
+                    (isAdmin || viewerCanCreateOrders)
+                  }
+                  createJobSheetLabel="Create Sample Jobsheet"
+                  createJobSheetAlign="end"
+                  createJobSheetVariant="yellow"
+                  onCreateJobSheet={openCreateSampleJobSheet}
+                  toolbarActions={
+                    <SampleJobSheetSlaSettingsControl isAdmin={isAdmin} userId={session?.user?.id} />
+                  }
+                  canEditStatus={
+                    samplingListTab !== TRACKER_LIST_COMPLETE &&
+                    canUseOrderControls &&
+                    canCurrentUserEdit("status")
+                  }
+                  isAdmin={isAdmin}
+                  statusUpdates={statusUpdates}
+                  onStatusChange={persistOrderStatus}
+                />
+              }
+            >
+              <LinkedOrdersTabPanel
+                tabTitle="Production Tracker"
+                paginationKey={`production-tracker-${productionListTab}`}
+                summaryLabel={
+                  productionListTab === TRACKER_LIST_COMPLETE
+                    ? "Complete production jobs"
+                    : "Production jobs"
+                }
+                orders={productionTrackerOrdersWithPending}
+                loadingOrders={loadingOrders}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onDateFromChange={setDateFrom}
+                onDateToChange={setDateTo}
+                onClearDates={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                extraColumn={{
+                  header: "Handover to printing",
+                  render: (order) => {
+                    if (isJobSheetOrder(order)) {
+                      return order.due_date ? formatDeliveryDate(order.due_date) : "—";
+                    }
+                    return order.expected_handover_to_printing
+                      ? formatDeliveryDate(order.expected_handover_to_printing)
+                      : "—";
+                  }
+                }}
+                emptyMessage={
+                  productionListTab === TRACKER_LIST_COMPLETE
+                    ? "No complete production orders."
+                    : "No production orders."
+                }
+                onViewOrder={openViewOrder}
+                renderStageIcon={renderStageIcon}
+                canCreateJobSheet={
+                  productionListTab !== TRACKER_LIST_COMPLETE &&
+                  (isAdmin || viewerCanCreateOrders)
+                }
+                onCreateJobSheet={openCreateProductionJobSheet}
+                canEditStatus={canUseOrderControls && canCurrentUserEdit("status")}
+                isAdmin={isAdmin}
+                statusUpdates={statusUpdates}
+                onStatusChange={persistOrderStatus}
+              />
+            </ProductionTrackerPanel>
           )}
 
           {dashboardTab === "billing" && (
@@ -5822,6 +6206,19 @@ function App() {
           {dashboardTab === "inventory" && (
             <InventoryTabPanel session={session} />
           )}
+          {/* Platform Masters (Step 0, One Source of Truth) — admin-only; separate from
+              the Scott API Masters tab below. */}
+          {dashboardTab === "ops_masters" && isAdmin && <MastersPanel />}
+          {/* Stock Ledger (Step 1) — admin-only append-only movements over Step 0 masters. */}
+          {dashboardTab === "ops_stock" && isAdmin && <StockLedgerPanel />}
+          {/* Procurement (Step 2) — admin-only PO → GRN → QC → bill → payment. */}
+          {dashboardTab === "ops_procurement" && isAdmin && <ProcurementPanel />}
+          {/* Sales Orders (Step 3) — admin-only orders → reservations → dispatch, job work, SLA. */}
+          {dashboardTab === "ops_sales" && isAdmin && <SalesOrdersPanel />}
+          {/* Billing & AR (Step 4) — invoices from dispatch, credit notes, receipts, ageing. */}
+          {dashboardTab === "ops_ar" && isAdmin && <BillingArPanel />}
+          {/* Uniware Bridge (Step 5) — admin-only read-only ecom mirror + transfer docs. */}
+          {dashboardTab === "ops_uniware" && isAdmin && <UniwareBridgePanel />}
           {/* Scott tabs are admin-only (DASHBOARD_ADMIN_ONLY_TAB_IDS): the Scott proxy 403s
               non-admins, so guard the render too — sessionStorage can otherwise restore a
               Scott tab for a user who has since lost admin. */}
@@ -6200,6 +6597,7 @@ function App() {
                         >
                           <option value="all">All access</option>
                           <option value="admin">Admin only</option>
+                          <option value="support_admin">Support admin</option>
                           <option value="viewer">Viewer only</option>
                         </select>
                       </label>
@@ -6256,7 +6654,7 @@ function App() {
                                             : "user-access-pill user-access-pill--viewer"
                                         }
                                       >
-                                        {formatProfileAccessLabel(viewer)}
+                                        {formatProfileAccessLabel(viewer, supportAdminIdSet.has(viewer.id))}
                                       </span>
                                     </td>
                                     <td>
@@ -6423,6 +6821,14 @@ function App() {
                       onRemove={() => handleRemoveUser(editingViewer)}
                       removing={removingUserId === editingViewer.id}
                       isAdminAccount={profileAccessRole(editingViewer) === "admin"}
+                      isSupportAdmin={
+                        supportAdminDrafts[editingViewer.id] !== undefined
+                          ? Boolean(supportAdminDrafts[editingViewer.id])
+                          : supportAdminIdSet.has(editingViewer.id)
+                      }
+                      onSupportAdminChange={(v) =>
+                        setSupportAdminDrafts((prev) => ({ ...prev, [editingViewer.id]: Boolean(v) }))
+                      }
                       onClose={closeViewerEdit}
                     />
                   ) : null}
@@ -6691,20 +7097,24 @@ function App() {
                           >
                             Use
                           </button>
-                          <button
-                            type="button"
-                            className="repeat-order-template-btn"
-                            onClick={() => startEditTemplate(tpl)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="repeat-order-template-btn repeat-order-template-btn--danger"
-                            onClick={() => handleDeleteTemplate(tpl)}
-                          >
-                            Delete
-                          </button>
+                          {isAdmin || String(tpl.user_id ?? "") === String(session?.user?.id ?? "") ? (
+                            <>
+                              <button
+                                type="button"
+                                className="repeat-order-template-btn"
+                                onClick={() => startEditTemplate(tpl)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="repeat-order-template-btn repeat-order-template-btn--danger"
+                                onClick={() => handleDeleteTemplate(tpl)}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          ) : null}
                         </div>
                       </li>
                     );
@@ -7052,7 +7462,9 @@ function App() {
           if (!open) closeCreateOrderForm();
         }}
         title={
-          createFormMode === "job_sheet"
+          createFormMode === "sample_job_sheet"
+            ? "Create Sample Jobsheet"
+            : createFormMode === "job_sheet"
             ? "Create Job sheet"
             : createFormMode === "sticker"
               ? isAdmin
@@ -7067,7 +7479,7 @@ function App() {
                   : "Create New Order"
         }
       >
-              {createFormMode === "job_sheet" ? (
+              {createFormMode === "job_sheet" || createFormMode === "sample_job_sheet" ? (
                 <CreateJobSheetForm
                   form={jobSheetForm}
                   onChange={setJobSheetForm}
@@ -7084,6 +7496,14 @@ function App() {
                   onApprovalImageFileChange={setJobSheetApprovalImageFile}
                   inventoryProducts={inventoryProducts}
                   loadingInventoryProducts={loadingInventoryProducts}
+                  hideTotalQuantity={createFormMode === "sample_job_sheet"}
+                  hideCommerceExtras={createFormMode === "sample_job_sheet"}
+                  requireDeliveryDate={createFormMode !== "sample_job_sheet"}
+                  deliveryDateLabel={
+                    createFormMode === "sample_job_sheet"
+                      ? "Sampling required on"
+                      : "Delivery required on"
+                  }
                 />
               ) : createFormMode === "sticker" ? (
                 <CreateStickerOrderForm
@@ -7699,21 +8119,29 @@ function App() {
       {activeViewOrder && (
         <Dialog
           open
-          modal={previewImages.length === 0 && !orderHistoryTarget}
+          modal={!orderHistoryTarget}
           onOpenChange={(open) => {
-            if (!open) closeViewOrder();
+            if (!open) {
+              closePreview();
+              closeViewOrder();
+            }
           }}
         >
           <DialogContent
             className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] [&>button:last-child]:hidden"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => {
-              if (previewImages.length > 0) e.preventDefault();
+              if (previewImages.length > 0) {
+                e.preventDefault();
+                closePreview();
+              }
             }}
             onInteractOutside={(e) => {
               if (previewImages.length > 0) e.preventDefault();
             }}
           >
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="min-h-0 flex-1 overflow-y-auto">
             <OrderDetailPanel
               order={activeViewOrder}
               onClose={closeViewOrder}
@@ -7771,6 +8199,16 @@ function App() {
               onAddOwner={isAdmin ? addOwnerFromDropdown : undefined}
               onAddCoordinator={isAdmin ? addCoordinatorFromDropdown : undefined}
             />
+            </div>
+            <ImagePreviewModal
+              images={previewImages}
+              index={previewIndex}
+              onClose={closePreview}
+              onPrev={prevPreview}
+              onNext={nextPreview}
+              alt="Mockup preview"
+            />
+            </div>
           </DialogContent>
         </Dialog>
       )}
@@ -7823,21 +8261,15 @@ function App() {
           </div>
         </div>
       )}
-      <ImagePreviewModal
-        images={previewImages}
-        index={previewIndex}
-        onClose={closePreview}
-        onPrev={prevPreview}
-        onNext={nextPreview}
-        alt="Mockup preview"
-      />
       <AssignmentToastStack
         toasts={assignmentToasts}
         onDismiss={dismissAssignmentToast}
         onActivate={handleAssignmentToastActivate}
       />
+      <ChatIncomingToastStack toasts={chatIncomingToasts} onDismiss={dismissChatIncomingToast} />
     </div>
     </TooltipProvider>
+    </SampleJobSheetSlaProvider>
     </Theme>
   );
 }

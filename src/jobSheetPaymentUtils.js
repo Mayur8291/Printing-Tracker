@@ -10,6 +10,16 @@ export const JOB_SHEET_PAYMENT_MODES = [
   { value: "credit_partial", label: "Credit / partial" }
 ];
 
+/** Sample create: no cheque / PI advance / credit. Stored value for pending stays `pi_pending`. */
+export const SAMPLE_JOB_SHEET_PAYMENT_MODES = [
+  { value: "cash", label: "Cash" },
+  { value: "upi", label: "UPI" },
+  { value: "bank_transfer", label: "Bank transfer" },
+  { value: "neft_rtgs", label: "NEFT" },
+  { value: "card_pos", label: "Card" },
+  { value: "pi_pending", label: "payment pending" }
+];
+
 export function parseJobSheetMoney(raw) {
   const s = String(raw ?? "").trim().replace(",", ".");
   if (!s) return null;
@@ -19,7 +29,9 @@ export function parseJobSheetMoney(raw) {
 
 export function jobSheetPaymentModeLabel(value) {
   if (!value) return "—";
-  const row = JOB_SHEET_PAYMENT_MODES.find((o) => o.value === value);
+  const row =
+    SAMPLE_JOB_SHEET_PAYMENT_MODES.find((o) => o.value === value) ||
+    JOB_SHEET_PAYMENT_MODES.find((o) => o.value === value);
   return row?.label ?? value;
 }
 

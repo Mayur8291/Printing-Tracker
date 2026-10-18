@@ -1,0 +1,44 @@
+---
+description: Laws for the One Source of Truth platform build (masters, ledger, documents) and the Scott API freeze
+alwaysApply: true
+---
+
+# Single source of truth (Scott Ops Platform)
+
+Full detail: `docs/laws.md` and `docs/ONE_SOURCE_OF_TRUTH_ROADMAP.md`. Apply to every
+migration and module in this build. These rules do NOT license refactoring the Scott
+API section (see freeze below).
+
+## Nine laws (enforce in the database)
+
+1. One master per entity; transactions reference master IDs — never free-text party/SKU names.
+2. Stock is an append-only ledger with reason + reference document; on-hand is a sum, never edited.
+3. Money is a document (invoice, credit/debit note, receipt, bill) — never a cell.
+4. Every document has a DB-enforced state machine + an audit row (who/when/from/to).
+5. One owner per location; cross-boundary moves are explicit transfer documents.
+6. After cutover, sheets export from the platform, never into it.
+7. Tally is the statutory ledger; post vouchers, reconcile daily.
+8. Every report is a SQL view; one metric definition, in a metric dictionary, with an owner.
+9. Access is enforced by RLS, not the UI; verify with direct API calls.
+
+## Six-question gate (before building any module)
+
+Which master? Are quantities movements? Is money a document? What state machine?
+Which view reports it? Which role sees it? Can't answer all six → not ready.
+
+## Correctness (non-negotiable)
+
+- Stock/money mutations live in DB functions with `SELECT … FOR UPDATE` + tests; never in client code.
+- Documents immutable once numbered/posted; correct with reversing documents + reason.
+- Sequences gapless per entity × GSTIN × doc type × FY.
+- Never hard-delete; status `cancelled`. `entity_id` + `gstin_id` on every document.
+- Staging first (`scvojtvgnkmbupvyslmb`); production only on explicit release.
+- Table prefixes: `core_ cat_ crm_ inv_ po_ so_ jw_ bill_ ar_ ap_ uni_ dist_ cost_ prod_ hr_ rpt_`.
+
+## FROZEN — do not touch the Scott API section
+
+Never modify/rename/re-prefix: `src/scott/**`, sidebar tabs `scott_customers` /
+`scott_reports` / `scott_masters` (group "Scott API"), `scott-*` edge functions
+(incl. `scott-dashboard-masters`), `docs/SCOTT_API.md`, `docs/SCOTT_INTEGRATION_REFERENCE.md`,
+and the existing inventory-fetch integration tables (mirror source — read-only for new modules).
+New masters inherit existing SKU codes exactly; nothing the integration maps on is renamed.

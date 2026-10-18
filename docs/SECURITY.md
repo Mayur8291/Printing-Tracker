@@ -1,12 +1,26 @@
 # Security
 
+- **Repeat-order templates:** any authenticated user may SELECT (Use). Insert requires `user_id = auth.uid()`. Update/delete stay owner or `jwt_user_is_admin()`. Images stay in public bucket `order-template-images` with write under own prefix or admin.
+- **Daily ops briefing:** views filter `orders.created_by = auth.uid()`. AR pending pay only if `jwt_user_is_admin()` and `owner = auth.uid()`. `ops_create_followup_task` is security definer but checks queue ownership. `ops_insert_daily_briefings` is not granted to `authenticated`. Edge `ops-ai-chat` uses the caller JWT (anon key + user token); Anthropic key stays in Edge secrets, never `VITE_*`. Tool cannot insert orders or money documents. Claude Max is not a credential.
+- **Asset Management** Tools tab (`asset_management`) lists company IT assets in staging `hr_assets`. Authenticated select. Insert requires `created_by = auth.uid()`. Update for assign/check-in. No delete. No service role in the browser. Production has no table until an explicit release.
+- **Internal Support Platform** Tools tab (`internal_support`) is grantable like Shared Links. Admins always see it. Viewers with an explicit allowed-tab list need that id. Submit inserts `internal_support_issues` as `raised_by = auth.uid()`. History and Resolved SELECT is own row or `jwt_user_is_admin()`. Status UPDATE is admin only and blocked once `status = Resolved`. Non-admin UI shows own rows and a read-only status; no Name filter. No delete. No service role in the browser. Staging table only until a production release.
 - Enquiry **assign** is admin-only (RLS insert + update trigger). Non-admin cannot set `assignee_id`. Creator may update their own row (attach photos). Guard trigger still blocks assignee changes.
 - Enquiry activity log is scoped; admin sees all staff actions on the Support tab.
+- **Enquiry tags:** visibility is enforced in RLS via `enquiry_tag_visible(tag_id)` (security definer, checks `enquiry_tag_members` for `auth.uid()`), not in the UI. Only admin writes `enquiry_tags` / `enquiry_tag_members`. Non-admin cannot change `enquiries.tag_id` (guard trigger) — so a staff member cannot widen or move visibility. A user reads only their own membership rows. Verified on staging 2026-10-05 with a simulated viewer: 0 rows without tag, 1 with tag, status update allowed, re-tag raised.
+- **Support admin:** privilege lives in `support_admins`, not `profiles.role`. Only `jwt_user_is_admin()` can grant/revoke. Enquiry RLS uses `jwt_user_can_admin_enquiries()` so a Support admin sees and updates all tickets **without** becoming a platform admin. Grant/revoke is audited. Reach-out comments are stored on the row and in `enquiry_activity_log` (`actor_id = auth.uid()`).
+- **Support inbox:** `notify_enquiry_watchers` is security definer (reads admin + support_admin ids the client cannot list). Recipients only SELECT their own `enquiry_assignment_notifications` rows. The actor is never inserted as a recipient.
+- **Sample job sheets** (`order_kind = sample_job_sheet`) use the same create/update RLS as other `orders`. Sequential `SA-####` is unique among sample rows. Create is limited to admin or viewers who can create orders (same as Production job sheets).
+- **Purchase Order** sidebar tab (`purchase_order`) is grantable like Inventory. Admins always see it. Viewers with an explicit allowed-tab list need that id granted. R3 reads `inventory_suppliers` with the user JWT; same RLS as Inventory Suppliers. R11 vouchers insert into `dashboard_purchase_orders` as the signed-in user (`created_by = auth.uid()` or null). Authenticated select / insert / Generate update. **Status change** is admin-only on **All PO Orders** (Pending / PO sent / PO Approved / Completed). The client checks `profiles.role === admin` before update. **PO History** never shows a status picker. No service role in the browser.
 
 ## Enquiry Concierge desk
 
 - Order ownership is a **staff** flag (`ownership_verified`). The dashboard does not expose order data to customers.
 - Enquiry photos go to bucket `enquiry-attachments`; upload path must start with `auth.uid()`.
+- **Team chat incoming alerts** play a local `public/sounds/chat-message.mp3` (no third-party stream). The toast shows sender name and message preview already visible to conversation members. No OS notification permission. Background-tab audio uses the same primed `Audio` element after a user gesture.
+- **Team chat copy/paste** uses the browser clipboard on a click (`writeText` / `readText`). Only selected message text (or a file/GIF label) is written. Paste only inserts into the composer. No clipboard data is sent to a server.
+- **Team chat channels** are visible to every signed-in profile. Create and post are `jwt_user_is_admin()` only (RPC + insert RLS). Viewers may react, copy, and forward out — they cannot insert into a channel.
+- **Team chat group admin** is `team_chat_conversation_members.role = admin` (creator starts as admin), not dashboard admin. Add / remove / promote / photo go through security-definer RPCs. Group photos live in public bucket `team-chat-group-avatars` under `{conversation_id}/`. Only group admins can upload or delete. Members can read. Avatar column change is trigger-guarded.
+- **Team chat GIF Search** calls Giphy from the browser with a **public client key** bundled in `giphyGifApi.js` (same key on local, staging, and production). It is not a server secret. Restrict allowed domains in the Giphy dashboard.
 - SLA messages go to Gargi (or first admin). The **customer is never told** about a missed pick.
 - Close queues customer survey copy in `enquiry_outbound_messages` (Feedback button). The SPA does not hold WhatsApp Cloud API keys; live Meta send is not from this app.
 - **Production delay alerts:** admin and staff can send from Support. Insert requires `sent_by = auth.uid()`. Queued outbound rows use `enquiry_id` null. No Cloud API secrets in the browser.
@@ -52,6 +66,9 @@
 | `SCOTT_WEBHOOK_BASE_URL` | Edge: `dashboard-stock-api` | Outbound webhook target |
 | `SCOTT_WEBHOOK_SECRET` | Edge: `dashboard-stock-api` | Webhook HMAC |
 | `SUPABASE_SERVICE_ROLE_KEY` | Edge functions (platform) | DB access from functions |
+| `UNIWARE_BASE_URL` | Edge: `uniware-bridge` | Unicommerce API host (`https://scottinternational.unicommerce.com` on staging) |
+| `UNIWARE_USERNAME` / `UNIWARE_PASSWORD` | Edge: `uniware-bridge` | OAuth password grant. Never in the SPA or git. Staging set 2026-09-04. |
+| `UNIWARE_FACILITY` | Edge: `uniware-bridge` | Facility header (`scottinternational` on staging). Also `WH1` / `WH2`. |
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for env setup on Netlify (frontend) vs Supabase (backend).
 

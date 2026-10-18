@@ -13,6 +13,7 @@ import {
   SheetTitle
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { uuid } from "@/lib/uuid";
 import { createEnquiryWithPhotos, friendlyEnquiryDbError } from "./enquiryUtils";
 import {
   lookupOrderForEnquiry,
@@ -43,11 +44,11 @@ import {
 import { MessageCircle, Send } from "lucide-react";
 
 function bot(text, buttons) {
-  return { id: crypto.randomUUID(), direction: "out", text, buttons: buttons || null, imageUrl: "" };
+  return { id: uuid(), direction: "out", text, buttons: buttons || null, imageUrl: "" };
 }
 
 function customer(text, imageUrl) {
-  return { id: crypto.randomUUID(), direction: "in", text: text || "", buttons: null, imageUrl: imageUrl || "" };
+  return { id: uuid(), direction: "in", text: text || "", buttons: null, imageUrl: imageUrl || "" };
 }
 
 function afterHome(text) {

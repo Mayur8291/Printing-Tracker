@@ -25,12 +25,19 @@ export default function OrdersListFilters({
   onPageSizeChange,
   idPrefix = "orders",
   showPerPage = true,
-  extraActions = null
+  extraActions = null,
+  endActions = null
 }) {
   const searchTrimmed = String(searchQuery ?? "").trim();
 
   return (
-    <div className={cn("table-filters linked-tab-filters flex flex-wrap items-end gap-3", className)}>
+    <div
+      className={cn(
+        "table-filters linked-tab-filters flex flex-wrap items-end gap-3",
+        endActions ? "w-full" : null,
+        className
+      )}
+    >
       {showDates ? (
         <>
           <div className="grid gap-1.5">
@@ -82,6 +89,7 @@ export default function OrdersListFilters({
       {showPerPage && pageSize != null && onPageSizeChange ? (
         <OrdersPerPageControl idPrefix={`${idPrefix}-per-page`} pageSize={pageSize} onPageSizeChange={onPageSizeChange} />
       ) : null}
+      {endActions ? <div className="ml-auto">{endActions}</div> : null}
     </div>
   );
 }

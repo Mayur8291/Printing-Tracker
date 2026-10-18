@@ -1,5 +1,954 @@
 # Debugging
 
+## Print cost calculator will not scroll
+
+| | |
+|--|--|
+| **Symptom** | The print card is cut off. The mouse wheel does nothing. The total bar sits on top of the card. |
+| **Root cause** | The dialog is capped at 90% of the screen. The middle pane could not shrink, so it never became a scroll box. |
+| **Fix** | The middle pane is `min-h-0 flex-1 overflow-y-auto`. Header and total stay fixed. |
+| **Verify** | Add a print. The card’s line cost is visible, or the middle of the dialog scrolls until it is. The total stays at the bottom. |
+
+## Print cost does not match width × height × rate
+
+| | |
+|--|--|
+| **Symptom** | A 4×6 in print at ₹4 is not ₹96. Two prints with different copy counts can show different ₹ per sq in. |
+| **Root cause** | Billing adds 1 in to width and 1 in to height first: `(4+1)×(6+1)` square inches × the slab rate × the one **Quantity**. That quantity multiplies every print and picks the slab on the Internal team or Customer list. Unsaved **Pricing settings** do not change the total. |
+| **Fix** | Read the line: Artwork, Billed (+1 in), Area × rate × copies. Save pricing if the badge says **Not saved**. |
+| **Verify** | 4.00 × 6.00 in, 1 copy, ₹4.00 / sq in → 35.00 sq in → ₹140.00. |
+
+## Repeat order templates show for admin but not other users
+
+| | |
+|--|--|
+| **Symptom** | Admin sees saved templates. Viewer / other user opens Repeat order and gets “No templates yet.” |
+| **Root cause** | SELECT was owner-or-admin. Admin save writes `user_id` = admin, so staff RLS hid the rows. |
+| **Fix** | Authenticated SELECT on `order_templates`. Write stays owner/admin. Applied on staging and production (`order_templates_shared_read`). |
+| **Verify** | Sign in as a create-order viewer on live. Open Repeat order. Team templates appear. Use works. Edit/Delete only on own rows (or as admin). Hard refresh if old bundle. |
+
+## Home Today lists are empty / Make task says not in queue
+
+| | |
+|--|--|
+| **Symptom** | Today cards show 0. Or Make task errors “not in your follow-up queue”. |
+| **Root cause** | Views only include `orders.created_by = auth.uid()`. Sales-incharge name is ignored. Complete jobs and paid job sheets drop out. |
+| **Fix** | Confirm the job’s `created_by` is the signed-in user. `ops_daily_briefing` applied on staging and production. |
+| **Verify** | Create a printing job as yourself, leave it incomplete, refresh Home. |
+
+## Ask AI says briefing works, chat off
+
+| | |
+|--|--|
+| **Symptom** | Ask AI sheet: “Briefing works. Chat off until API key.” |
+| **Root cause** | Claude Max is not an API. Edge `ops-ai-chat` needs secret `ANTHROPIC_API_KEY` on staging. |
+| **Fix** | Set the secret on staging `scvojtvgnkmbupvyslmb` only. Do not put the key in Vite env. |
+| **Verify** | Ask AI → speak with Wispr → Send. Make task still works with no key. |
+
+## Enquiry tag does not save or disappears after Save details
+
+| | |
+|--|--|
+| **Symptom** | Pick a tag, Save priority / tag, dropdown snaps back to No tag. Desk Tag column stays blank. |
+| **Root cause** | Staging has `tag_id` but no `ticket_kind`. `update`/`select` failed on `ticket_kind`, then the fallback select omitted **all** late columns including `tag_id`. Returned row had no tag, so the form reset. |
+| **Fix** | `enquiryUtils` retry omits only the columns named in the error. Keep `tag_id` in select/patch. After save, panel copies `tag_name` onto the row. |
+| **Verify** | Open ENQ → Tag Pets → Save priority / tag. Tag stays Pets. Desk Tag column shows Pets. |
+
+## Enquiry notes still at the bottom / priority not beside details
+
+| | |
+|--|--|
+| **Symptom** | Notes, Priority, and Tag sit under Assign instead of next to reach-out / requirement. |
+| **Root cause** | Old admin form stacked notes + priority + tag in one `max-w-md` FieldGroup. |
+| **Fix** | Priority/Tag sit in a compact `w-56` column beside a `max-w-xl` facts column (not a full-width `1fr` grid). Internal note sits beside Save reach-out, each `max-w-md`. |
+| **Verify** | Open ENQ as admin. Small gap only between requirement text and Priority. Picked sits under requirement, not under the Save button. |
+
+## Enquiry detail has a huge blank gap beside requirement
+
+| | |
+|--|--|
+| **Symptom** | Priority/Tag hug the right edge of the card. Wide empty strip between requirement text and the selects. |
+| **Root cause** | `lg:grid-cols-[minmax(0,1fr)_16rem]` grew the left column across the full page. |
+| **Fix** | Flex wrap: left facts `max-w-xl grow-0`, Priority/Tag `w-56 shrink-0`. |
+| **Verify** | Priority starts just after the requirement column, not at the far right. |
+
+## Mark verified does not show a tick / Help path still on an ENQ
+
+| | |
+|--|--|
+| **Symptom** | Enquiry detail shows Help path / Ownership / Concerns. Mark verified does nothing visible. |
+| **Root cause** | Display used `ticket_kind === enquiry` only. Staging ENQ rows often lack `ticket_kind`, so they used the complaint layout. Verified was only an activity row, not a badge. |
+| **Fix** | Use `isEnquiryHelpPath`. Verified = activity `verified` → green tick + disabled button. Activity is a header button → sheet. |
+| **Verify** | Open ENQ → no Help path / Ownership. Label **Enquiry requirement**. Mark verified → tick by name, button says Verified and stays off. |
+
+## Enquiry still opens as a small overlay
+
+| | |
+|--|--|
+| **Symptom** | Click a Support row; a centered dialog appears instead of a full page. |
+| **Root cause** | Old bundle still mounts `EnquiryDetailDialog` as shadcn `Dialog`. |
+| **Fix** | Hard refresh after develop deploy. Detail now swaps the desk for a Card page with **Back**. |
+| **Verify** | Support → click row → list gone, Back top-left, full width. Back restores the table. |
+
+## Support SLA popover list does not scroll (production)
+
+| | |
+|--|--|
+| **Symptom** | Many SLA alerts; popover grows or clips; wheel / trackpad does not move the list. |
+| **Root cause** | `ScrollArea` viewport is `h-full`. Parent used `max-h-72` only, so the root grew to the full list height and never overflowed. |
+| **Fix** | `ScrollArea` `className="h-72"` (same as shadcn demo) and `type="always"` so the scrollbar shows. |
+| **Verify** | Support → bell with more than ~8 alerts → scrollbar → wheel to the last row. |
+
+## Support SLA bell missing on staging / local
+
+| | |
+|--|--|
+| **Symptom** | Support → Enquiry has Refresh / Tags / New enquiry but no mini bell. |
+| **Root cause** | Bell used to render only when `slaItems.length > 0`. Staging tickets are all picked (`unpicked = 0`), so the control disappeared. |
+| **Investigate** | Staging: `select count(*) filter (where picked_at is null and status in ('new','assigned','opened')) from enquiries`. Zero → old UI hid the bell. |
+| **Fix** | Bell always mounts. Empty popover: “No waiting or escalated tickets.” Badge only when alerts exist. |
+| **Verify** | Support → Enquiry: bell left of Refresh. Click it. Hard refresh after develop deploy. |
+
+## Assigned user still sees Mark verified / Mark contacted
+
+| | |
+|--|--|
+| **Symptom** | Staff open an assigned enquiry and still see Mark verified, Mark contacted, reach-out, notes, or assign. |
+| **Root cause** | That login is a platform admin or Support admin (`isAdmin` is true), or the browser is on a stale bundle. |
+| **Investigate** | Admin → Edit user: is Support admin on? `profiles.role`? Hard refresh. |
+| **Fix** | Turn Support admin off for that user if they should get the slim desk. Deploy includes `EnquiryDetailDialog` staff view (`!isAdmin`). |
+| **Verify** | Non-admin assignee sees phone, case text, contact history, status only. |
+
+## Enquiry with a tag is not visible to a staff user
+
+| | |
+|--|--|
+| **Symptom** | Admin tagged an enquiry Pets; a Pets user opens Support → Enquiry and the row is missing. |
+| **Root cause** | User is not ticked under that tag, or the tag was changed after the user loaded the page, or the user is looking at the Complaints sub-tab (default). |
+| **Investigate** | Admin → Enquiry desk → **Tags** → select the tag → is the user ticked? SQL: `select * from enquiry_tag_members where user_id = '<id>'`. Then `select enquiry_code, tag_id from enquiries where enquiry_code = 'ENQ-…'`. |
+| **Fix** | Tick the user. Realtime on `enquiry_tag_members` refetches tags, and the `enquiries` channel refetches rows — else hard refresh. |
+| **Verify** | Row appears on the user's Enquiry sub-tab with the Tag badge; they can add contact history and change status. |
+
+## Bulk upload: wrong dates / month and day swapped
+
+| | |
+|--|--|
+| **Symptom** | CSV date `03/04/2026` lands as 3 April but sheet meant 4 March (or vice versa). |
+| **Root cause** | `parseCsvDate` treats `a/b/yyyy` as **dd/mm/yyyy** (Indian). US-style **CSV** sheets break. Real Excel date cells in `.xlsx` are unaffected (read as UTC day). |
+| **Fix** | Upload the `.xlsx` instead, or export CSV as `yyyy-mm-dd` / `dd/mm/yyyy`. |
+
+## Bulk upload: dropdowns missing in the template
+
+| | |
+|--|--|
+| **Symptom** | Opened `enquiries-template.xlsx`, Source/Tag/City cells have no arrow. |
+| **Root cause** | Opened in an app that ignores data validation (some previewers, Google Sheets import sometimes drops it), or the row is beyond 1000, or no tags exist (Tag validation is skipped when the list is empty). |
+| **Fix** | Open in Excel / LibreOffice / Numbers. Admin → Tags → add tags, re-download. Rows >1000: split the file. |
+
+## Bulk upload: "Reference" source rejected by Excel
+
+| | |
+|--|--|
+| **Symptom** | Typing `Reference - Amit` in Source pops a warning. |
+| **Root cause** | Source validation is `warning` style on purpose so the name can be typed. |
+| **Fix** | Click **Yes** / continue. Import normalises it to `Reference - Amit`. |
+
+## Bulk upload: tag / city blank after import
+
+| | |
+|--|--|
+| **Symptom** | Preview note `Tag "X" not found` or `City "Y" not in list`. |
+| **Root cause** | Tag matched by name against `enquiry_tags` (any active state); City against `INDIAN_CITY_STATE` keys + aliases. Spelling differs. |
+| **Fix** | Admin → Tags → add the tag first, or fix spelling in the sheet. Unknown city is still saved as typed; only state stays empty. |
+
+## Bulk upload: "Row N" does not match the spreadsheet line
+
+| | |
+|--|--|
+| **Root cause** | `mastersUtils.parseCsv` drops fully blank lines, so Row counts data rows only. |
+| **Fix** | Remove blank lines from the sheet, or count non-blank rows after the header. |
+
+## Support notification never appears in the inbox
+
+| | |
+|--|--|
+| **Symptom** | Assign / reach-out happens; Notifications tab empty for assignee or admin. |
+| **Root cause** | RPC `notify_enquiry_watchers` not applied; or viewer is the actor (self is skipped); or filter is not **Support** / **All**; or hard-refresh needed for realtime subscribe. |
+| **Investigate** | `select * from enquiry_assignment_notifications order by created_at desc limit 10`. Console: `notify_enquiry_watchers missing`. |
+| **Fix** | Apply `20261005085620_enquiry_update_notifications.sql` (staging done). Open Notifications → Support. Assignee and *other* admins should see the row. |
+
+## Support admin still only sees their own enquiries
+
+| | |
+|--|--|
+| **Symptom** | User has Support admin switch on; Support tab still looks like a staff desk. |
+| **Root cause** | Migration `20261005074841` not applied, or they need a hard refresh so `support_admins` is loaded, or they were never granted (Save not clicked). |
+| **Investigate** | `select * from support_admins where user_id = '<id>'`. `select public.jwt_user_can_admin_enquiries();` as that user (won't work from MCP as postgres). |
+| **Fix** | Apply the migration on that project (staging done). Admin → Edit user → Support admin on → Save. User hard refresh. |
+
+## Reach-out button does nothing / comment not saved
+
+| | |
+|--|--|
+| **Symptom** | Save reach-out stays disabled or error after click. |
+| **Root cause** | Comment empty (required). Or project lacks `last_reached_out_*` columns. Or viewer is not assignee / tag holder / Support admin. |
+| **Fix** | Type a comment. Apply `20261005074841_support_admins_and_reach_out.sql`. |
+
+## Enquiry never turns "Opened" when staff view it
+
+| | |
+|--|--|
+| **Symptom** | Assignee opens the ticket; status stays New / Assigned; admin sees no Opened. |
+| **Root cause** | One of: viewer is admin (by design, no change); ticket already has `picked_at`; status not `new`/`assigned`; viewer is not assignee / tag holder / SLA fallback (RLS blocks update); project lacks `opened` in `enquiries_status_check` → console `enquiry opened mark: … violates check constraint`. |
+| **Investigate** | DevTools console for `enquiry opened mark:`. SQL: `select status, opened_at, picked_at, assignee_id, tag_id from enquiries where enquiry_code = 'ENQ-…'`. |
+| **Fix** | Apply `20261005063756_enquiry_opened_status.sql` on that project (staging done). Otherwise confirm the viewer is actually the assignee or holds the tag. |
+
+## "Opened" count card shows but status filter pill missing
+
+| | |
+|--|--|
+| **Symptom** | Admin sees Opened card, no Opened pill in the status filter. |
+| **Root cause** | Pills come from `ENQUIRY_STATUSES` in `enquiryUtils.js`; cards are a literal list in `SupportTicketDesk.jsx`. Someone edited one, not the other. |
+| **Fix** | Keep both lists in step (both include `opened` as of 2026-10-05). |
+
+## State box stays empty / city not saved on enquiry
+
+| | |
+|--|--|
+| **Symptom** | State input blank after picking city, or saved enquiry has no Location in detail. |
+| **Root cause** | City name not in `INDIAN_CITY_STATE` (state only derives from that map), or project lacks `customer_city` / `customer_state` columns so the legacy insert fallback drops them silently. |
+| **Investigate** | `select customer_city, customer_state from enquiries order by created_at desc limit 5`. If columns missing → migration `20261005063356_enquiry_customer_city_state.sql` not applied there. |
+| **Fix** | Add the city to `src/indianCities.js` map, or apply the migration (staging done; production only on release). |
+
+## Tag Select empty in New enquiry
+
+| | |
+|--|--|
+| **Symptom** | Only "No tag" in the Tag dropdown. Console warns `enquiry tags: Could not find the table`. |
+| **Root cause** | Migration `20261005062316_enquiry_tags.sql` not applied on this project, or every tag is switched off. |
+| **Fix** | Staging: already applied. Other project: `npx supabase db push` on that link (production only on explicit release). Or admin → **Tags** → switch the tag on. |
+
+## White screen only on another machine / phone on the LAN
+
+| | |
+|--|--|
+| **Symptom** | A tab (first seen: Support) is blank on a second device opening `http://192.168.x.x:5173`. Dev machine on `http://localhost:5173` is fine. Console: `TypeError: crypto.randomUUID is not a function`. |
+| **Root cause** | `crypto.randomUUID` is a secure-context API. Plain `http://` on a LAN IP is not secure, so the browser removes it. Any render-time call throws and React drops the whole tree. |
+| **Fix** | Import `uuid` from `src/lib/uuid.js` instead of calling `crypto.randomUUID()`. Never add a bare `crypto.randomUUID()` in `src/` (grep before commit). |
+| **Verify** | `rg 'crypto\.randomUUID\(\)' src` returns only `src/lib/uuid.js` and the frozen `src/scott/list/filterEngine.js` (already guarded). Open Support over the LAN IP — loads. |
+| **Related** | Other secure-context-only APIs that will bite the same way on LAN: `navigator.clipboard`, `navigator.mediaDevices` (voice notes), Service Workers. Guard them or test over `localhost` / HTTPS. |
+
+## Purchase Order Status still looks like a colored badge
+
+| | |
+|--|--|
+| **Symptom** | All PO Orders Status is a tinted pill, not icon + name in a white Select. |
+| **Root cause** | Old cell used a Badge around Lucide. Job-sheet Status uses `stage-icon` / PNG + label in the trigger and items. |
+| **Fix** | Hard refresh. Admin Select and read-only cells use `PurchaseOrderStatusMark`. Names unchanged. |
+| **Verify** | Pending shows the red clock PNG. List still Pending, PO sent, PO Approved, Completed. |
+
+## Localhost / `npm run dev` dies right after Vite ready
+
+| | |
+|--|--|
+| **Symptom** | `http://localhost:5173/` blank or connection refused. Terminal shows Vite ready, then `EADDRINUSE :::3001` and `[picklist-api] exited with code 1`. |
+| **Root cause** | `npm run dev` starts picklist API on **3001** and Vite on **5173**. An old `node server/index.js` (often parent PID 1 after a crashed session) still holds 3001. New picklist crashes. The wrapper used to kill Vite on that crash, so the app URL dies too. |
+| **Fix** | Kill the leftover: `lsof -nP -iTCP:3001 -sTCP:LISTEN` then `kill <pid>`. Run `npm run dev` again. Wrapper now keeps Vite if picklist is already up or if picklist fails. |
+| **Verify** | Terminal stays on Vite local URL. Open `http://localhost:5173/`. `http://localhost:3001/health` returns `picklist-api`. |
+
+## Printing Status dropdown missing or will not change
+
+| | |
+|--|--|
+| **Symptom** | Printing All orders Status is a badge only. Admin or status-permission user cannot pick a stage. View order Status is greyed or jumps back. |
+| **Root cause** | List used a badge, not `OrderListStatusCell`. View order hid status when the open-from tab was not editable, even with `can_edit_status`. Radix Select broke when the saved status was missing from options (dummy `__empty__` item). |
+| **Fix** | Printing list Status is a Select for admin / `can_edit_status`. Admin check is first. Status edit is allowed even from a view-only tab. Current status is added to options if missing. |
+| **Verify** | Printing Orders → All orders → change Status. View order → change Status. Complete orders Status stays a badge. |
+
+## Asset detail flashes the wrong asset or check-in dialog sticks
+
+| | |
+|--|--|
+| **Symptom** | Open one asset, see another name/tag first. Close/back glitches. Check-in/out overlay stays after Back. |
+| **Root cause** | Detail used `assets.find(...) \|\| assets[0]`. Dialog stayed mounted whenever any asset existed. Back did not clear `selectedTag`. |
+| **Fix** | Detail is the clicked tag only. Back clears tag + modal. Dialog renders only when the modal is open. |
+| **Verify** | Assets → open a row → Back. Open another. Check-out Cancel. No leftover overlay. |
+
+## Mark complete jumps to Complete orders
+
+| | |
+|--|--|
+| **Symptom** | Admin Mark as complete, then the Printing / tracker list switches to Complete orders. |
+| **Root cause** | `handleMarkComplete` and sample-complete status save called `setOrdersTab("complete")` / tracker Complete. |
+| **Fix** | Complete write stays; list tab does not change. Completed row leaves All because `is_complete` is true. |
+| **Verify** | On All orders, Mark as complete. Stay on All. Open Complete orders to find the job. |
+
+## Sent to Dispatch job never reaches Complete orders
+
+| | |
+|--|--|
+| **Symptom** | Status is Sent to Dispatch but the job stays on All orders forever. |
+| **Root cause** | Complete list is `is_complete`, not that status. No auto-complete existed. Viewer trigger blocks `is_complete`. |
+| **Fix** | `status_sent_to_dispatch_at` + RPC `promote_stale_new_orders_to_pending` sets `is_complete` after 10 minutes. Client poll 30s; cron 10 min. Staging migration `20260903125154`. |
+| **Verify** | Set Sent to Dispatch. Wait 10+ minutes (or call the RPC after backdating `status_sent_to_dispatch_at`). Job is on Complete orders. Console `Auto status promote failed` if RPC errors. |
+| **SQL** | `select id, order_id, status, is_complete, status_sent_to_dispatch_at from orders where status = 'sent_to_dispatch';` |
+
+## Asset Management Save does not show in Assets
+
+| | |
+|--|--|
+| **Symptom** | Add asset → Save asset. Assets table empty, or row gone after leaving the tab / refresh. |
+| **Root cause** | Rows used to live only in React state. The panel unmounts when you leave Asset Management. Nothing was written to the database. |
+| **Fix** | Staging table `hr_assets`. Save inserts. Assets list selects that table. Must be signed in (`created_by = auth.uid()`). Asset name required. Local app must use staging (`npm run check:env`). Production has no table yet. |
+| **Verify** | Save a named asset. Assets shows Tag / name. Leave tab, come back, row still there. Console `[hr-assets] insert failed` if RLS or schema missing. |
+
+## Inventory Transfer has no from/to, or qty does not move between warehouses
+
+- **Symptom:** Adjust → Transfer only shows one warehouse. After save, source still has the qty and destination did not gain it.
+- **Root cause:** The dialog reused a single warehouse field, so from and to were the same. Transfer skipped `adjust_sku_facility_stock` and only wrote a movement against total `stock_qty`.
+- **Fix (2026-09-02):** From warehouse + To warehouse. RPC `transfer_sku_facility_stock` deducts then adds in one transaction.
+- **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — from facility down, to facility up, sum unchanged.
+- **Blocked:** same warehouse, same facility_code, qty > available (on_hand − reserved), qty ≤ 0.
+
+## Inventory Adjust succeeds but list still shows old qty
+
+- **Symptom:** Adjust / IN / OUT toast says recorded; Inventory list, overview, and warehouse qty stay the same on staging.
+- **Root cause:** The list paints `inventory_sku_availability` (facility on-hand − reserved), not `inventory_skus.stock_qty`. After Adjust, silent refresh reloaded SKU rows only. The stale availability map overwrote the new number. A second bug: OUT/ADJUST wrote the SKU home warehouse when the user picked another bin.
+- **Fix (2026-09-02):** `refresh()` awaits `loadAvailability()`; Adjust uses the picked warehouse; subscribe to `inventory_facility_stock`.
+- **Check:** `select sku_code, facility_code, on_hand_qty from inventory_sku_availability where sku_code = '<SKU>';` — expect the new on-hand. Hard refresh after deploy.
+- **Do not confuse:** Inventory tab (`inventory_facility_stock`) vs Ops **Stock Ledger** (`inv_balance`). Adjust on Inventory does not change Stock Ledger.
+
+## Uniware Bridge: "Uniware secrets not set"
+
+- **Symptom:** Sync inventory / Sync orders / Post transfer API step fails naming `UNIWARE_BASE_URL` (or the yellow banner).
+- **Root cause:** Staging edge has no Uniware login secrets, or you are on production (prod has no Uniware secrets).
+- **Fix:** Confirm header env is staging. Staging secrets were set 2026-09-04 on `uniware-bridge` (`UNIWARE_BASE_URL` = `https://scottinternational.unicommerce.com`, facility `scottinternational`). Password stays in Edge only. Then **Sync inventory**. Ledger transfers still need a Platform Masters entity + a platform location + `UNIWARE-ECOM`.
+
+## Uniware Bridge: Sync inventory returns 0 / old payload error
+
+- **Symptom:** Sync fails with `Unrecognized field "inventoryType"` or `Either Item Sku or Updated Since required`.
+- **Root cause:** Live Uniware snapshot API does not take `inventoryType`. It needs `updatedSinceInMinutes` (max 1440) or `itemTypeSKUs`. Empty Facility header can also return `LOOKUP_INVENTORY` denied.
+- **Fix:** Staging `uniware-bridge` sends last-24h **and** platform SKU chunks, one Facility header per warehouse (`scottinternational`, `WH1`, `WH2`, Amazon FBA). Redeploy after code change.
+
+## Uniware Bridge: only ~1000 SKUs show / export needed
+
+- **Symptom:** User knows 1000+ SKUs. Table looks capped. Hard to inspect in the UI.
+- **Root cause:** PostgREST returns 1000 rows per request. Sync and the UI each took page one. Hide zeros also hides empty catalog rows.
+- **Fix:** Refresh after the 2026-09-05 deploy. Click **Sync inventory** until toast no longer says catalog still paging. Use **Export xls**. Turn Hide zeros off to see empty SKUs.
+- **Queries:** `select count(distinct sku_code) from uni_inventory_mirror;` and `select count(*) from uni_item_sku;`
+
+## Uniware Bridge: Sold / DRR does not match Uniware
+
+- **Symptom:** Team compares a SKU’s sold qty or DRR to Uniware and the numbers differ. Period change looks instant / stale.
+- **Root cause:** Old sync merged shipping-package SKU summaries with `saleOrderItems` (empty status, extra qty). DRR also counted non-sale statuses. Many orders in the window still had no lines. Period change did not show a spinner.
+- **Fix:** Lines are exact `saleOrderItems` only. Sold / DRR use dispatched–invoiced statuses for the selected Days/Months/Years window. Spinner sits next to the period control until that window finishes. Click **Sync orders** until the incomplete banner is gone.
+- **Queries:** `select status, count(*), sum(qty) from uni_sale_order_line group by 1;` and `select * from uni_drr_by_sku(current_date - 30, 30, null) order by sold_qty desc limit 20;`
+
+## Uniware Bridge: Export xls does not match the table
+
+- **Symptom:** Spreadsheet has extra rows, extra columns, or different order than Inventory mirror.
+- **Root cause:** Old export dumped every facility (including hidden zeros) on the first sheet and raw ISO times.
+- **Fix:** Export xls now uses `visibleMirror` only — same columns (including Sold + DRR) and sort as the screen.
+
+## Uniware Bridge: what does a tiny DRR like 0.03 mean
+
+- **Symptom:** DRR shows 0.03 or 0.00 and looks like a multiplier.
+- **Root cause:** DRR is **pcs/day** = Uniware sold qty in the window ÷ days. 1 piece in 30 days = 0.03 pcs/day. 0.00 = no sold lines in that window (or lines not synced yet).
+- **Fix:** Column header and cells now say `pcs/day`. Use Sort DRR High to low to find movers.
+
+## Uniware Bridge: Sync orders 404 on saleOrder/get
+
+- **Symptom:** Toast `0 lines from 0 orders` and `get errors: Uniware /services/rest/v1/oms/saleOrder/get failed (404): {}`.
+- **Root cause:** Uniware get path is `/oms/saleorder/get` (lowercase). Search is `/oms/saleOrder/search` (camelCase). Wrong casing → empty 404.
+- **Fix:** Staging function uses lowercase get. Click **Sync orders** again after the 2026-09-05 redeploy.
+
+## Uniware Bridge: DRR is 0 on every SKU
+
+- **Symptom:** Inventory mirror DRR column is 0 for all rows after Sync orders.
+- **Root cause:** DRR reads `uni_sale_order_line`. A year-long header sync left **0 lines** (`select count(*) from uni_sale_order_line`). Search ate the edge deadline; `saleOrder/get` never ran.
+- **Fix:** Click **Sync orders** after the 2026-09-05 line-backfill deploy. Toast should show lines > 0. Repeat until “still need lines” is gone. Default 30-day window has ~2,400 orders; ~300 fills per click.
+- **Queries:** `select count(*) from uni_sale_order_line;` and `select count(*) from uni_sale_order where order_date >= current_date - 30 and lines_checked_at is null;`
+
+## Uniware Bridge: DRR all 0 / catalog still short
+
+- **Symptom:** DRR column is 0, or Sync inventory still misses SKUs that exist only in Uniware.
+- **Root cause:** DRR needs `uni_sale_order_line`. First Sync orders only fills 80 order-gets per click. Catalog `itemType/search` can truncate on the 70s budget.
+- **Fix:** Set DRR to the window you want (Days / Months / Years). Click **Sync orders** until the toast no longer says orders still need lines. Click **Sync inventory** again if catalog was truncated. Qty still do not enter Inventory on-hand.
+- **Queries:** `select count(*) from uni_sale_order_line;` and `select * from uni_drr_by_sku('2026-08-06', 30) limit 20;`
+
+## Uniware Bridge: Sync orders fails (non-2xx / date out of range)
+
+- **Symptom:** Red banner `Edge Function returned a non-2xx status code`. Inventory sync works. `sale_orders` stays never.
+- **Root cause:** Uniware `created` / `displayOrderDateTime` is epoch milliseconds (e.g. `1788470970000`). Old mapper did `String(created).slice(0, 10)` → `"1788470970"`, which Postgres rejects as a `date`. Error was stored as `[object Object]`.
+- **Fix:** Staging `uniware-bridge` converts epoch or ISO to `YYYY-MM-DD`. Click **Sync orders** again after the 2026-09-04 redeploy.
+- **Logs:** `uni_sync_log.error_text` for `sale_orders`. Postgres: `date/time field value out of range`.
+
+## Uniware Bridge: only ecom / no B2B orders
+
+- **Symptom:** Ecom orders tab empty, or only Amazon. User expects B2B.
+- **Root cause:** `sale_orders` feed was never synced, or old sync used last 180 minutes / 200 rows. Uniware B2B is channel `CUSTOM` (433 of 900 orders in a recent 7-day sample).
+- **Fix:** Click **Sync orders** after the 2026-09-04 function deploy. Tabs: All / B2B / CUSTOM / Ecom. New dashboard B2B still lives on Sales Orders (`so_order`), not this mirror.
+- **Queries:** `select channel, count(*) from uni_sale_order group by 1 order by 2 desc;`
+
+## Uniware Bridge: all qty look 0 / no facility tabs
+
+- **Symptom:** Inventory mirror is one long list, almost every Qty is 0, no per-warehouse view.
+- **Root cause:** First sync only pulled SKUs Uniware updated in 24 hours on facility `scottinternational`. Uniware `inventory` is **available** (often 0 while blocked/putaway still sit in the warehouse). Table was unsorted zeros.
+- **Fix:** Click **Sync inventory** again after the 2026-09-04 function deploy. Use facility tabs. Hide zeros is on by default. On hand = available + blocked + putaway.
+- **Queries:** `select facility_code, count(*), count(*) filter (where qty > 0) from uni_inventory_mirror group by 1;`
+
+## Uniware Bridge tab empty / missing tables
+
+- **Symptom:** panel error naming `uni_settings` or `uni_inventory_mirror`.
+- **Root cause:** local/staging schema missing `20260902180000_step5_uniware_bridge.sql`.
+- **Fix:** confirm `npm run check:env` points at staging `scvojtvgnkmbupvyslmb`; migration already applied there. Production does not have this schema until an explicit release.
+
+## Billing: "This dispatch is already invoiced"
+
+- **Symptom:** Generate invoice fails naming the dispatch.
+- **Root cause:** by design — `bill_invoice.dispatch_id` is unique. One invoice per dispatch.
+- **Fix:** open the existing invoice (Billing & AR → Invoices). Corrections are a credit note, not a second invoice.
+
+## Billing: "Invoices, credit notes and receipts are immutable"
+
+- **Symptom:** UPDATE/DELETE on `bill_invoice`, `bill_credit_note`, `ar_receipt` or `ar_allocation` raises.
+- **Root cause:** by design (law 3/4). The only UPDATE allowed is the totals write inside `bill_generate_from_dispatch` (transaction-local flag).
+- **Fix:** issue a credit note or a counter receipt. Never disable the trigger.
+
+## Billing: "Credit / Allocation exceeds invoice outstanding"
+
+- **Symptom:** credit note or receipt allocation fails with the outstanding figure.
+- **Root cause:** `ar_invoice_outstanding_locked` (total − credits − allocations) under `FOR UPDATE`.
+- **Fix:** lower the amount. Check the Ageing tab for the live outstanding.
+
+## Billing: GSTIN / place of supply errors
+
+- **Symptom:** "GSTIN belongs to a different entity" or "Place of supply must be a 2-digit state code".
+- **Root cause:** invoice GSTIN must belong to the order's entity; POS is the 2-digit state code (blank in the UI = GSTIN state → intra-state CGST+SGST).
+- **Fix:** pick a GSTIN of the order's entity; enter a 2-digit POS for inter-state (IGST).
+
+## Billing & AR tab empty / missing tables
+
+- **Symptom:** panel error naming `bill_invoice` or the RPCs.
+- **Root cause:** local/staging schema missing `20260902170000_step4_billing_receivables.sql`.
+- **Fix:** confirm `npm run check:env` points at staging `scvojtvgnkmbupvyslmb`; migration already applied there. Production does not have this schema until an explicit release.
+
+## Support table values missing in Dark Mode
+
+| | |
+|--|--|
+| **Symptom** | Support → Enquiry / Complaints table cells look empty in Dark Mode. Light Mode is fine. |
+| **Root cause** | Rows use `bg-red-50` / `bg-sky-50` (pale). Dark Mode `.table-panel` text is light. Light on pale. |
+| **Fix** | Hard refresh. `PRIORITY_ROW_CLASS` and badges include `dark:` backgrounds and `text-foreground`. |
+| **Verify** | Dark Mode: Code, Customer, Order ID, Concerns, Source, Assignee, Created all readable. Priority tint still there. |
+
+## Sales order: "Order cannot be ready: N line(s) not fully reserved"
+
+- **Symptom:** Mark ready fails naming the number of short lines.
+- **Root cause:** by design (roadmap law) — `so_set_status` refuses `ready` unless every line has `qty_reserved + qty_dispatched ≥ qty`. Stock ran out at confirm time, so allocation was partial.
+- **Fix:** get stock into the order's fulfilment location (GRN, production, job-work receipt, transfer), then Allocate stock on the order; repeat Mark ready.
+
+## Sales order: "Dispatch X exceeds reserved Y for this line"
+
+- **Symptom:** posting a dispatch fails naming the line's reserved qty.
+- **Root cause:** by design — a dispatch can never exceed reserved qty (`so_post_dispatch` checks under lock; the dialog caps inputs too, but the DB is the authority).
+- **Fix:** allocate more stock first (order must be re-set to ready is *not* needed — allocation works on confirmed/in_production; ready orders keep their reservations), or dispatch the reserved quantity only.
+
+## Sales order / job work: "status changes only through …" / "append-only" errors
+
+- **Symptom:** direct updates to `so_order`, `so_dispatch`, `jw_job` raise "status changes only through so_confirm / so_set_status / so_post_dispatch / so_cancel" or "Dispatches are append-only".
+- **Root cause:** by design. Guard triggers allow status flips only inside the definer functions; dispatch documents freeze at creation.
+- **Fix:** use the RPCs. Dispatch corrections are `return_in` movements + a note, never edits.
+
+## Job work: worker location still shows input stock after receive
+
+- **Symptom:** Stock Ledger shows leftover input SKUs at the job-worker location after a job is received/closed.
+- **Root cause:** not a bug — receive only burns what was declared consumed. The leftover **is** the pending/loss figure the roadmap wants visible.
+- **Fix:** if pieces physically came back, post a `transfer` movement worker → source (ref the job). If they are lost, leave them (or consume with a note) so the loss stays on record.
+
+## SLA tab empty / no breaches shown
+
+- **Symptom:** SLA tab shows "Nothing here" although orders exist.
+- **Root cause:** no `sla_policy` rows for the order's channel (orders are unmeasured without a target), or all measured stages are within target while "breaches only" is on.
+- **Fix:** save stage targets for the channels in use; toggle "Show all" to see running stages. Hours count Mon–Sat 09:30–18:30 IST only (`ops_business_hours_between`).
+
+## Procurement: "status changes only through …" / "immutable" errors
+
+- **Symptom:** direct updates to `po_purchase_order`, `po_grn` or `ap_bill` raise "status changes only through po_approve / po_post_grn / ap_approve_bill" or "… is immutable".
+- **Root cause:** by design. Guard triggers allow status flips only inside the definer functions (transaction-local flag `ops.allow_status_change`). Approved/posted documents freeze.
+- **Fix:** use the RPCs (`po_approve`, `po_post_grn`, `po_record_qc`, `ap_approve_bill`, `ap_record_payment`) or, for money corrections, a debit note / counter payment. Never disable the triggers.
+
+## Procurement: GRN blocked with "Over-receipt: pending X plus tolerance…"
+
+- **Symptom:** posting a GRN fails naming pending, tolerance and the allowed maximum.
+- **Root cause:** received qty exceeds pending + tolerance% of ordered. Tolerance source: `crm_vendor_item.over_receipt_pct` for that vendor+SKU if set, else `po_settings.over_receipt_tolerance_pct`.
+- **Fix:** correct the quantity, or (deliberately) raise the tolerance in Procurement → Settings / the vendor-item override, then repost. The failed draft GRN is auto-deleted by the UI.
+
+## Procurement: bill approval fails with "Rate variance beyond tolerance"
+
+- **Symptom:** `ap_approve_bill` raises listing SKUs with PO rate vs bill rate.
+- **Root cause:** three-way match; variance beyond `po_settings.rate_variance_tolerance_pct`.
+- **Fix:** in the approve dialog give an override reason (recorded, `match_status='override'`), or fix the line rates while the bill is draft. "Billed qty exceeds received" has no override — fix the qty.
+
+## Procurement tab: "Procurement tables are not on this database yet"
+
+- **Symptom:** inline message naming migration `20260902120000_step2_procurement.sql`.
+- **Root cause / fix:** same pattern as Platform Masters — the env the app points at lacks the migration (staging has it since 2026-09-02; production only on an explicit release).
+
+## Internal Support Platform missing from Tools
+
+| | |
+|--|--|
+| **Symptom** | Tools has no Internal Support Platform, or click does nothing. |
+| **Root cause** | Tab id is `internal_support`. Viewer with an explicit allowed-tab list must be granted that id. Support (Enquiry) is a different tab (`enquiry`). |
+| **Fix** | Hard refresh. Admin: Tools list after Chat. Viewer: Admin Panel → grant **Internal Support Platform**. |
+| **Verify** | LifeBuoy icon. Tabs **Open Tickets** and **Resolved**. **Raise an Issue** is a button on Open Tickets. Enquiry Support still under Inventory. |
+
+## Internal Support History empty or Submit does not appear in History
+
+| | |
+|--|--|
+| **Symptom** | Open Tickets has no rows after Submit, or Status will not change. |
+| **Root cause** | Rows live in staging `internal_support_issues`. Insert needs `raised_by = auth.uid()`. Local app must use staging ref. Production has no table yet. |
+| **Fix** | Sign in. Open Tickets → **Raise an Issue**. Submit. Hard refresh. Check `npm run check:env` is staging. Console `[internal-support] insert failed` if RLS or schema missing. |
+| **Verify** | Admin: Open Tickets shows non-Resolved rows, Status Select, Name filter. Non-admin: only own rows, Status Badge, no Name filter. Columns Name | Status | Issue | Date. Issue line is `type - floor → View Issue`. Resolved tab shows Resolved rows for both roles. Date is raised day. |
+
+## Internal Support Resolved tab missing or Status still editable
+
+| | |
+|--|--|
+| **Symptom** | No **Resolved** tab, Resolved rows stay in Open Tickets, or Status can still change after Resolved. |
+| **Root cause** | Open Tickets must exclude `status = Resolved`. Resolved tab is read-only. Staging update RLS requires `status <> Resolved`. |
+| **Fix** | Hard refresh. Admin: set Status to Resolved on Open Tickets. Open **Resolved**. Confirm no Status dropdown. |
+| **Verify** | Both admin and viewer see the tab. Viewer sees only own Resolved rows. Name filter on Resolved is admin only. |
+
+## Internal Support History shows other people’s issues to a non-admin
+
+| | |
+|--|--|
+| **Symptom** | Viewer History lists someone else’s submit, or viewer can change Status, or viewer sees a Name dropdown. |
+| **Root cause** | Old RLS allowed authenticated select/update all. UI used to always render Select + Name filter. |
+| **Fix** | Hard refresh. Confirm `profiles.role`. Staging must have `select own or admin` and `update admin`. Local list filters `raised_by` when not admin. |
+| **Verify** | Sign in as viewer: only own History, Badge status, no Name filter. Sign in as admin: all rows, Status Select works. |
+
+## Internal Support Status dropdown has no symbol in the closed box
+
+| | |
+|--|--|
+| **Symptom** | Status list has icons, but the closed trigger is text only, or Lucide lines instead of colorful symbols. |
+| **Root cause** | `SelectValue` with no children only prints the item text. Lucide icons do not match Production Tracker `.stage-icon` emoji. |
+| **Fix** | Hard refresh. History Status must put `InternalSupportStatusMark` inside `SelectValue` and each `SelectItem`. |
+| **Verify** | Closed box = emoji + name + chevron. Open list = same emoji + name for all four statuses. |
+
+## Internal Support Platform issue buttons missing or not clickable
+
+| | |
+|--|--|
+| **Symptom** | Tools Internal Support Platform has no heading, no buttons, or click does nothing visible. |
+| **Root cause** | Panel must render `INTERNAL_SUPPORT_ISSUE_OPTIONS` as shadcn `Button`. Click toggles local `selectedIssues` array (outline vs default). Many can be on. No database. |
+| **Fix** | Hard refresh. Open Tickets → **Raise an Issue**. Click a few options; they stay filled. Click one again to clear it. Close Dialog clears picks. |
+| **Verify** | Ten labels: Internet, Power Cut, Water Issue, Machinery, Food, Issue with Asset, Lift not working, Issue with Biometric, Floor Hygeine, Lost Personnal Belongings. |
+
+## Internal Support Floor options missing
+
+| | |
+|--|--|
+| **Symptom** | No **Select your Floor** heading, or floor Buttons missing / more than one stay filled. |
+| **Root cause** | Floor list only renders when a picked issue needs a floor (`internalSupportNeedsFloor`). Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings hide Floor. Mix with Internet (etc.) shows Floor. One `selectedFloor` string. |
+| **Fix** | Hard refresh. Open Tickets → **Raise an Issue**. Pick Food: no Floor, Comment only. Pick Internet: Floor appears. Food + Internet: Floor appears. |
+| **Verify** | Ground Floor through 5th Floor only after a floor-required issue is on. |
+
+## Internal Support comment or Submit missing / Submit does nothing
+
+| | |
+|--|--|
+| **Symptom** | No Comment box, no Submit, Submit does nothing, or Submit “works” but no ticket in the database. |
+| **Root cause** | Comment and Submit show when there is at least one issue **and** (a floor is picked **or** every picked issue is Food / Issue with Asset / Issue with Biometric / Lost Personnal Belongings). Those four hide Floor. Empty comment shows FieldError. Floor-required issues with no floor hide Comment. Success clears the form, logs `[internal-support] submit`, and shows the thank-you Alert. No table yet. |
+| **Fix** | Hard refresh. Open Tickets → **Raise an Issue**. Floor-required issue: Floor appears, pick a floor, then Comment. Food / Asset / Biometric / Lost belongings: no Floor, Comment only. Mix with Internet: Floor shows again. |
+| **Verify** | Internet alone: Floor then Comment after a floor. Food alone: no Floor, Comment only. Food + Internet: Floor shows, Comment waits for a floor. After Submit: thank-you sentence. |
+
+## Sampling SLA settings will not save
+
+| **Symptom** | Admin clicks SLA settings, Save fails or Due In stays 2 days. |
+| **Root cause** | Staging table `sample_job_sheet_settings` missing, or user is not admin (`jwt_user_is_admin`). |
+| **Fix** | Apply `20260908121033_sample_job_sheet_sla_settings.sql` on staging. Sign in as admin. Hard refresh. |
+| **Queries** | `select * from sample_job_sheet_settings;` |
+
+## Sample form still shows advance / approval fields
+
+| **Symptom** | Create Sample Jobsheet still has Advance amount, Full paid, Delivery city, Approval date. |
+| **Root cause** | Old bundle. Sample now uses `hideCommerceExtras`. |
+| **Fix** | Hard refresh. Open **Sampling Tracker** → Create Sample Jobsheet. Production Create Job sheet still has the full block. |
+
+## Delivery required on still lets pick a past day
+
+| | |
+|--|--|
+| **Symptom** | Create Job sheet or Create Sample Jobsheet calendar still has yesterday and older days. |
+| **Root cause** | DatePicker must get `minDate` = today. Save also rejects `due_date` before today. |
+| **Fix** | Hard refresh. Open Create Job sheet → Delivery required on, or Create Sample Jobsheet → Sampling required on. |
+| **Verify** | Today and future days click. Past days grey / not selectable. Production still requires a date. Sample can leave it blank. |
+
+## Sample Due In missing, wrong time, or SLA Breached too early
+
+| | |
+|--|--|
+| **Symptom** | Sampling list has no **Due In** after Order date, View Sample Order has no Due In, countdown ignores **Delivery required on**, stays 48h when a date was filled, or **SLA Breached** shows while still inside the deadline. |
+| **Root cause** | If `due_date` is set, SLA is end of that local day. If blank, SLA is `created_at` + 48 hours. List column is Sampling `extraColumn` after Order date. Closed samples show — on the list and hide Due In in the view. Browser clock drives the tick. |
+| **Fix** | Hard refresh. Open **Sampling Tracker** → **All orders**. Check `due_date` and `created_at`. Create Sample Jobsheet can save without Sampling required on. Complete orders has no Due In column. |
+| **Verify** | Save with a delivery date → All orders Due In counts to end of that day. Save with no date → near `48:00 Hrs Left`. Sampling Complete has no Due In. After Dispatched Successfully, view hides Due In. Past the deadline still open → red **SLA Breached**, no timer. |
+
+## Sampling Complete still shows a Status dropdown or wrong status
+
+| | |
+|--|--|
+| **Symptom** | Complete sample still has a Status picker, or the badge is not Dispatched Successfully. Dispatched Successfully row stays on All orders. |
+| **Root cause** | Sampling Complete is `is_complete` **or** status `dispatched_successfully`. Closed samples always display Dispatched Successfully. Status Select is off on Complete and in View Sample Order when closed. |
+| **Fix** | Hard refresh. Open Sampling Tracker → Complete orders. Pick Dispatched Successfully on All, or Mark as complete in View Sample Order. |
+| **Verify** | Row leaves All, appears on Complete with locked Dispatched Successfully badge. Production Complete Status is unchanged. |
+
+## Marked complete job missing from Production or Sampling Complete
+
+| | |
+|--|--|
+| **Symptom** | Mark as complete, then the job is gone from All orders and not on Complete, or it shows under the other tracker. |
+| **Root cause** | All = not complete. Complete = `is_complete`. Production Complete only has production job sheets. Sampling Complete only has `sample_job_sheet`. Each tracker remembers its own All/Complete tab. |
+| **Fix** | Open the same tracker (Production vs Sampling). Click **Complete orders**. Clear From/To. |
+| **Verify** | Complete a production job → Production Tracker → Complete orders. Complete a sample job → Sampling Tracker → Complete orders. The other tracker list does not gain that row. |
+
+## Sampling Tracker status still shows printing or production stages
+
+| | |
+|--|--|
+| **Symptom** | Sampling Status dropdown still has New Orders / Quotation approval / Cutting, or save fails on a new sample stage. |
+| **Root cause** | Sampling uses `sampleJobSheetStages.js`. Staging needs the extra `orders.status` codes. Old sample rows were `quotation_approval` until backfill. |
+| **Fix** | Apply `20260831065000_sample_job_sheet_statuses.sql` on staging. Hard refresh. Open **Sampling Tracker**, not Production Tracker. |
+| **Verify** | Dropdown is Pattern Making \to Dispatched Successfully with icons. Production Tracker dropdown is unchanged. |
+
+## Sampling Tracker list missing after save
+
+| | |
+|--|--|
+| **Symptom** | Create Sample Jobsheet saves, but Sampling Tracker still looks empty, or user lands on Production Tracker. |
+| **Root cause** | List is `filterSampleJobSheetOrders` (`order_kind = sample_job_sheet`). **All orders** hides complete rows. Date From/To uses `order_date`. After save, App keeps the **Sampling Tracker** sub-tab on All. |
+| **Fix** | Open **Sampling Tracker**. Clear From/To. Hard refresh. Confirm the row is `sample_job_sheet` and not complete. |
+| **Verify** | Save a sample job sheet → stay on Sampling Tracker → row shows with **View Sample Order**, **Sample Order**, **Order date**. Production Tracker does not show that row. |
+
+## Production Tracker list missing after adding Sampling tab
+
+| | |
+|--|--|
+| **Symptom** | Opening Production tracker shows a blank Sampling view, or the job-sheet table looks restyled. |
+| **Root cause** | Default sub-tab is **Production Tracker**. Sampling has its own list. Production list is still `LinkedOrdersTabPanel` with Qty + Handover. |
+| **Fix** | Click **Production Tracker**. Hard refresh. |
+| **Verify** | Production Tracker = same table as before (count, Qty, Handover, View order, Production order, Delivery date). Sampling Tracker = sample list without count/Qty/Handover. |
+
+## Create Sample Jobsheet fails or ID is not SA-0001
+
+| | |
+|--|--|
+| **Symptom** | Save says order type is not enabled, or Order ID is not `SA-0001` / next number. |
+| **Root cause** | Staging needs `sample_job_sheet` on `orders.order_kind`. IDs come from existing `sample_job_sheet` rows only. |
+| **Fix** | Apply `20260831060510_add_order_kind_sample_job_sheet.sql` on staging. Next ID is max SA-#### + 1. |
+| **Verify** | First save → `SA-0001`. Next → `SA-0002`. Production Tracker list does not show that row. |
+
+## Purchase Order status change missing or available to staff
+
+| | |
+|--|--|
+| **Symptom** | Non-admin sees a status dropdown, or admin cannot change status on All PO Orders, or History has a status pick. |
+| **Root cause** | Status pick is admin-only on **All PO Orders**. PO History is always a Completed badge. Update checks `profiles.role === admin`. |
+| **Fix** | Sign in as admin to change Pending / PO sent / PO Approved / Completed. Staff only see the badge. History never has a picker. |
+| **Verify** | Admin → All PO Orders → dropdown works. Viewer → badge only. Both → History badge only. |
+
+## Purchase Order History filters miss rows or stay empty
+
+| | |
+|--|--|
+| **Symptom** | From/To, Search, or Coordinator hide a PO that should show. Or History looks empty after filters. |
+| **Root cause** | Date uses `po_date` (`DD-Mmm-YY`). Search is **exact** (trim + case-insensitive): seq after last `/`, full voucher, supplier, or coordinator. Partial `39` does not match `392`. Coordinator dropdown uses names on generated rows. |
+| **Fix** | Clear dates with **Clear**. Empty the search box. Set Coordinator to **All coordinators**. Type the full seq (`392`), full name, or full coordinator. Widen From/To. |
+| **Verify** | Generate a PO. History → type only the number after the last `/`. Row shows. Pick that coordinator. Same row. Set From/To around Dated. **Clear** brings all dates back. |
+
+## Purchase Order print includes the app chrome
+
+| | |
+|--|--|
+| **Symptom** | Print shows sidebar / Generate PO / Plus, or misses **PURCHASE ORDER**. |
+| **Root cause** | Only `[data-po-print-root]` (title + A4 card) should print. Buttons are `data-po-no-print`. |
+| **Fix** | `@media print` in `styles.css` hides chrome when the print root exists. |
+| **Verify** | Create tab: title on the sheet. Buttons under the card. Print preview = title + table only. |
+
+## Purchase Order Generate blocked for empty mandatory fields
+
+| | |
+|--|--|
+| **Symptom** | Generate PO shows only **Mandatory details are Missing**. Supplier / Description / Due on / Quantity / Rate cells turn red. |
+| **Root cause** | Those fields are required before a History row is written. |
+| **Fix** | Pick a supplier. Fill Description of Goods, Due on, Quantity, Quantity unit, and Rate on every goods line. Red clears as each field is filled. Generate again. |
+| **Verify** | Empty Generate → red alert + red cells. Fill all → Generate → PO History row. |
+
+## Purchase Order View PO Print differs from Create Print
+
+| | |
+|--|--|
+| **Symptom** | History → View PO → Print is clipped, tiny, or missing C23. |
+| **Root cause** | The sheet lives in a Dialog (`transform` + `overflow`). That traps `[data-po-print-root]` so Create Print CSS cannot fill A4. |
+| **Fix** | Print flattens `[data-po-view-dialog]`. Same A4 + C23 rules as Create new PO. |
+| **Verify** | Open a History row → View PO → Print. Preview matches Create Print: full sheet, C13, C23. |
+
+## Purchase Order C23 shows on screen or missing on print
+
+| | |
+|--|--|
+| **Symptom** | Print preview cuts the table, or no C23. Screen must stay without C23. |
+| **Root cause** | Packed `height: auto` print made the table small. A4 + margins can clip C13 if C23 is an extra row. |
+| **Fix** | Print fills 210mm × 297mm (`@page` margin 0). C13 keeps full height. C23 overlays C13 bottom-right. Hide C23 only in `@media screen`. |
+| **Verify** | Create → Print. Sheet fills the page like the screen. C13 words fully visible. C23 at bottom-right. Screen still has no C23. |
+
+## Purchase Order View PO is a summary, not the sheet
+
+| | |
+|--|--|
+| **Symptom** | View PO shows a field list, not **PURCHASE ORDER** plus the table. |
+| **Root cause** | View PO must mount `PurchaseOrderPrintSheet` from `sheet_snapshot`. |
+| **Fix** | Hard refresh. Open History → View PO. |
+| **Verify** | Dialog shows the A4 heading and the same R/C table as Create / Print. |
+
+## Purchase Order History empty after Generate PO
+
+| | |
+|--|--|
+| **Symptom** | Generate PO does nothing, or History stays empty. |
+| **Root cause** | History lists only rows with `generated_at`. That column (and UPDATE RLS) comes from `20260822104145_dashboard_purchase_order_history.sql`. |
+| **Fix** | Apply that migration on staging. Confirm Generate writes the current voucher, then History shows PO / PO Number / Supplier / Status / Coordinator / PO date / Quantity. |
+| **Verify** | Create a sheet → Generate PO → History row. PO Number = voucher. Supplier = bold R3 name. PO date = Dated. Quantity = C42. View PO opens the A4 **PURCHASE ORDER** heading and table. |
+
+## Purchase Order Create / History tabs missing
+
+| | |
+|--|--|
+| **Symptom** | No Create new PO / PO History, or the A4 sheet is gone after a tab click. |
+| **Root cause** | Those sub-tabs live in `PurchaseOrderPanel`, opposite the heading. Create unmounts History and vice versa. |
+| **Fix** | Default tab is `open` (Pending / PO sent / PO Approved). Create mounts the sheet on click. History shows Completed only after backend update. |
+| **Verify** | Open Purchase Order → All PO Orders. Create new PO → heading + table. Generate → PO sent on All PO Orders. History empty until status is Completed. |
+
+## Purchase Order C13 heading or height is wrong
+
+| | |
+|--|--|
+| **Symptom** | C13 still says Amount in words, or the row is a thin strip vs Consignee. |
+| **Root cause** | Old heading. C13 hugged text while C11–C81 took leftover height. |
+| **Fix** | Heading `Amount Chargable (in words):`. ResizeObserver copies R2 height onto C13. Goods rows `minmax(1.25rem, 1fr)`. |
+| **Verify** | C13 label matches. C13 box is as tall as R2 Consignee. Goods row still usable. |
+
+## Purchase Order C42 qty total missing or C82 wraps
+
+| | |
+|--|--|
+| **Symptom** | C42 empty, or C82 wraps / looks normal weight. |
+| **Root cause** | C42 is the Quantity sum. C82 had `font-weight: 400` and spaces that wrapped. |
+| **Fix** | `sumPurchaseOrderQuantities` on C42 (bold). C82 uses nowrap + bold + non-breaking spaces. |
+| **Verify** | Qty 3 + 2 → C42 **5**. C82 ** ₹ 1550.00** on one line, bold. |
+
+## Purchase Order C82 total is blank or missing ₹
+
+| | |
+|--|--|
+| **Symptom** | C82 empty after line Amounts, or not ` ₹ 1000.00`. |
+| **Root cause** | C82 is the sum of goods-line Amounts (qty × rate), not a typed field. |
+| **Fix** | `sumPurchaseOrderLineAmounts` + `formatPurchaseOrderC82Display`. C13 words read the same number. |
+| **Verify** | One row 3 × 450.00 → Amount 1350.00 and C82 ** ₹ 1350.00**. Add a second line 2 × 100.00 → C82 ** ₹ 1550.00**. Clear all rates → C82 empty. |
+
+## Purchase Order Amount is blank or wrong
+
+| | |
+|--|--|
+| **Symptom** | Amount stays empty after qty + rate, or has more than 2 decimals, or is a typed box. |
+| **Root cause** | C81 is computed, not typed. Need both Quantity and Rate numbers. |
+| **Fix** | `formatPurchaseOrderLineAmount` = qty × rate, `toFixed(2)`. Plain text at the top. Extra `C81:L*` rows use that line’s qty/rate. |
+| **Verify** | Qty `3`, Rate `450.00` → Amount **1350.00**. Clear qty → Amount empty. New + row has its own product. |
+
+## Purchase Order Rate will not take 450.00
+
+| | |
+|--|--|
+| **Symptom** | Rate empty, letters type in, more than 2 decimals, or a boxed field. |
+| **Root cause** | C51 was blank. Rate must match Quantity’s open Input and money face. |
+| **Fix** | `sanitizePurchaseOrderRate` (digits + 2 decimals). Blur `formatPurchaseOrderRate` → `450.00`. Same no-box CSS as C41. Extra `C51:L*` rows reuse it. |
+| **Verify** | Type `450a` → `450`. Type `450.999` → `450.99`. Leave field → **450.99**. New + rows have their own rate. Plus clears. |
+
+## Purchase Order Quantity or per is wrong
+
+| | |
+|--|--|
+| **Symptom** | Typed qty sits in a tiny black box / looks missing, or number+unit bunch in the corner. |
+| **Root cause** | Input height collapsed (`min-height: 0`) so the digit clipped; browser focus outline looked like a box; width was only a few `ch`. |
+| **Fix** | Open 1.25rem field, `outline: none`, number `flex-1`, unit on the right. No `___` row. |
+| **Verify** | Type `3` — you see **3**, no black box, no underscore lines. Type `3.5` → stays **35** (no decimal). Unit (Roll) at the right of the top row. |
+
+## Purchase Order Due on shows past days or a date box
+
+| | |
+|--|--|
+| **Symptom** | Due on is a full date field, or yesterday can be picked. |
+| **Root cause** | C31 was empty. A boxed DatePicker would look like a second cell. |
+| **Fix** | Icon-only shadcn Calendar in a Popover. `isPurchaseOrderDueOnAllowed` blocks IST days before today. Label `formatPurchaseOrderDueOn` sits at the top. |
+| **Verify** | Click the calendar icon. Yesterday is off. Pick today → **14-Aug -26** on one line at the top. New rows have their own icon. |
+
+## Purchase Order Description of Goods is not typeable
+
+| | |
+|--|--|
+| **Symptom** | Cannot type under Description of Goods. Extra lines also blank. |
+| **Root cause** | C21 was an empty tile. |
+| **Fix** | Each goods line has a normal-text Textarea that fills C21 / `C21:L*`. No inner box. Plus clears. Delete extra row drops that text. |
+| **Verify** | Click anywhere in the Description cell and type. No second box inside the cell. |
+
+## Purchase Order Sl No. stays blank or out of order
+
+| | |
+|--|--|
+| **Symptom** | C11 has no 1. or numbers stay 1. 1. after insert. |
+| **Root cause** | Serial comes from the current line index, not a stored number. |
+| **Fix** | `purchaseOrderSlNoText(lineIndex)` on C11 / `C11:L*`. Insert or delete rebuilds 1. 2. 3. |
+| **Verify** | One row → **1.** at the top of C11. Add below → **1.** **2.** Insert between → **1.** **2.** **3.** in order. |
+
+## Purchase Order C11–C81 cannot add a line
+
+| | |
+|--|--|
+| **Symptom** | No + / − on the left of the goods line. Cannot add or delete a sub-row. |
+| **Root cause** | C11–C81 was one fixed grid row. |
+| **Fix** | Hover anywhere on the left outline. **+** follows the pointer. Click adds a row after the line under the pointer. **−** only at the left end of an extra row’s join. Split lines match other cell borders. First row stays. |
+| **Verify** | **−** does not travel with the mouse. New row line looks like the other table lines. |
+
+## Purchase Order C12–C82 row missing
+
+| | |
+|--|--|
+| **Symptom** | C12–C82 row gone. Words sat where those eight tiles should be. |
+| **Root cause** | First pass merged C12–C82. User wanted that row kept, plus a new row under it. |
+| **Fix** | Restore C12–C82. New long **C13** under them for amount in words. Do not print C13. |
+| **Verify** | Eight tiles C12–C82. Under them one long words cell. No C-codes. |
+
+## Purchase Order R32 R41 R42 scroll or sit away from neighbors
+
+| | |
+|--|--|
+| **Symptom** | Other References / Dispatched through / Destination scroll, or holes between tiles. |
+| **Root cause** | Those cells used `overflow` + sheet `gap-1`. Textarea default `min-height` 60px also boxed them. |
+| **Fix** | Auto-grow textarea (`height = scrollHeight`, overflow hidden). Sheet `gap-0`, cells `rounded-none`. Typed text `font-bold`. |
+| **Verify** | Type a long line in R32. Cell grows. No scrollbar. No empty band between tiles. Heading stays normal. |
+
+## Purchase Order empty space after R3 supplier pick
+
+| | |
+|--|--|
+| **Symptom** | After choosing a supplier in R3, holes open between cells (voucher tiles and/or under R3). |
+| **Root cause** | R1+R2+R3 spanned the same 5 grid rows as R11–R42. R3 grew with address lines, so those rows stretched. |
+| **Fix** | Two columns: left stack hugs R1/R2/R3. Right 4×2 is its own short grid. R21B `flex-1` only fills leftover. |
+| **Verify** | Pick a supplier. R3 grows. R11–R42 stay tight. No empty band between tiles. |
+
+## Purchase Order empty space between R1 and R2
+
+| | |
+|--|--|
+| **Symptom** | Hole between Invoice To (R1) and Consignee (R2). |
+| **Root cause** | R1 hugged its text, but the top grid stayed as tall as the four voucher rows. R2 started under that whole grid. |
+| **Fix** | Stack R1, R2, R3 in one left column. Same `gap-1` as other tiles. |
+| **Verify** | R2 sits tight under R1. Right 4x2 and R21B stay. |
+
+## Purchase Order R2 shows a scrollbar
+
+| | |
+|--|--|
+| **Symptom** | Consignee block (R2) has a scroll bar. Text is clipped. |
+| **Root cause** | R2 was `overflow-auto` inside a fixed-height stack with R3. |
+| **Fix** | R1/R2/R3 are `h-auto overflow-visible` and sit at the top. |
+| **Verify** | Full Consignee text visible. No scroll bar. R2 sits tight under R1 (same gap as other cells). |
+
+## Purchase Order C table shows C1 C21 labels
+
+| | |
+|--|--|
+| **Symptom** | Second table prints C1, C21, etc. |
+| **Root cause** | Those names are only for the sketch. UI must stay blank. |
+| **Fix** | Ids live in `PURCHASE_ORDER_C_CELL_IDS` and `data-po-cell`. C1–C8 show goods headings only (`PURCHASE_ORDER_C_HEADINGS`). Never print C1/C21. |
+| **Verify** | Top C row: Sl No., Description of Goods, Due on, Quantity, Rate, per, Disc %, Amount. No C-codes. |
+
+## Purchase Order Terms of Delivery is a one-line box
+
+| | |
+|--|--|
+| **Symptom** | Down R21 type field looks like a single-line Input. |
+| **Root cause** | Percent height / `min-h-0` on the textarea collapsed it. Global `textarea { min-height: 44px }` on tablet also looks like one line. |
+| **Fix** | R21B sits beside Consignee. Compact Textarea `rows={4}` and `[data-po-cell="R21B"] textarea { min-height: 4.5rem }`. Hard refresh. |
+| **Verify** | Big type area, same block as Consignee + Supplier stacked on the left. |
+
+## Purchase Order Terms of Delivery is in the small R21 cell
+
+| | |
+|--|--|
+| **Symptom** | Looking at the tiny cell left of Mode/terms of Payment. No Terms of Delivery box. |
+| **Root cause** | Sketch reused **R21** for the large block opposite Consignee. Code id is **R21B**. Small R21 stays empty. |
+| **Fix** | Type in the large cell next to Consignee / Supplier. |
+| **Verify** | Down-right large cell. First line **Terms of Delivery**. Textarea fills that whole remaining box. Plus clears it. |
+
+## Purchase Order R12 dated is wrong day
+
+| | |
+|--|--|
+| **Symptom** | Dated is yesterday, blank, or not today. |
+| **Root cause** | R12 is today's IST date (`formatPurchaseOrderDated(new Date())`), not voucher `created_at`. Day flip is checked every minute. |
+| **Fix** | Hard refresh. Confirm PC/IST day. Leave the sheet open past midnight IST → date should change within a minute. |
+| **Verify** | Create tab Dated = today (`22-Aug-26` on 22 Aug 2026 IST). Generate → History **PO date** matches that today. |
+
+## Purchase Order R11 voucher does not increment
+
+| | |
+|--|--|
+| **Symptom** | Plus keeps the same `PO/26-27/392`, or number jumps then resets. |
+| **Root cause** | `dashboard_purchase_orders` missing on the linked project, or this browser is on the localStorage fallback while another user uses the table. |
+| **Fix** | Apply `supabase/migrations/20260821064834_dashboard_purchase_order_vouchers.sql` on **staging** (`scvojtvgnkmbupvyslmb`). Hard refresh. Do not apply to production unless asked. |
+| **Verify** | Open Purchase Order. R11 shows **Voucher No.** then `PO/26-27/392` (or next). Plus → 393, 394. After 1 Apr 2027 IST → `PO/27-28/1`. |
+
+## Purchase Order R11 year looks wrong
+
+| | |
+|--|--|
+| **Symptom** | Code shows `25-26` in April, or `27-28` in March 2027. |
+| **Root cause** | FY is 1 Apr–31 Mar in `Asia/Kolkata`, not the PC timezone and not Jan–Dec. |
+| **Fix** | Check `purchaseOrderFinancialYearCode`. 31 Mar 2027 = `26-27`. 1 Apr 2027 = `27-28`. |
+| **Verify** | R11 second line matches the Indian books year. |
+
+## Purchase Order R3 supplier dropdown is empty
+
+| | |
+|--|--|
+| **Symptom** | R3 heading shows. Dropdown has no names. |
+| **Root cause** | List is `inventory_suppliers` (same as Inventory → Suppliers). No rows, or RLS hides them. |
+| **Fix** | Inventory → Suppliers → add a vendor. Hard refresh Purchase Order. |
+| **Verify** | Dropdown shows the supplier **name**. Pick it. Address/contact/GSTIN appear under it. No extra labels. |
+
+## Purchase Order sheet shows cell names like R1
+
+| | |
+|--|--|
+| **Symptom** | Purchase Order grid prints R1, R11, etc. inside cells. |
+| **Root cause** | Labels were only for the layout sketch. UI must stay blank. |
+| **Fix** | Ids live in `purchaseOrderLayout.js` and `data-po-cell`. Do not put those strings in cell text. Large bottom-right is `R21B`. |
+| **Verify** | Sidebar → Purchase Order. Compact card, empty muted tiles, same shape as the sketch. No R-codes. Not full-page. |
+
+## Purchase Order tab missing for a viewer
+
+| | |
+|--|--|
+| **Symptom** | Admin sees **Purchase Order** in the sidebar. A viewer with a saved tab list does not. |
+| **Root cause** | New tab id `purchase_order` is grantable. Explicit `allowed_dashboard_tabs` arrays from before this tab do not include it. `null` still means all tabs. |
+| **Fix** | Admin Panel → that viewer → enable **Purchase Order** view (and edit if needed) → save. |
+| **Verify** | Sign in as that viewer. Sidebar Inventory section shows Purchase Order with the spreadsheet icon. |
+
 ## Vercel: npm install EBADPLATFORM for @rollup/rollup-win32-x64-msvc
 
 | | |
@@ -87,7 +1036,7 @@
 |--|--|
 | **Symptom** | Assign picker missing, or error “Only an admin can assign enquiries”. |
 | **Root cause** | Assign is admin-only. Simulator as non-admin creates **New** (unassigned) for admin. |
-| **Fix** | Sign in as admin to assign. Staff use Mark verified / Contacted / Close on tickets already assigned to them. Admin opens the row → **Activity** to see staff work. |
+| **Fix** | Sign in as admin to assign. Assigned staff use **Contact history** + **Status** only. Admin opens the row → **Activity** to see staff work. |
 
 ## Enquiry: WhatsApp simulator does not create a ticket
 
@@ -105,7 +1054,7 @@
 | **Symptom** | Support → Complaints error about schema cache / missing column (`order_id`, `picked_at`, `attachments`). Create enquiry fails. |
 | **Root cause** | Migration `20260818082754_enquiry_concierge_desk.sql` not on this Supabase project, or PostgREST schema cache stale. |
 | **Fix** | Apply that migration on **staging** (`scvojtvgnkmbupvyslmb`). Then `NOTIFY pgrst, 'reload schema';`. Hard refresh the app. |
-| **Verify** | New enquiry with Order ID + photo; detail shows Mark verified / Contacted / Close. |
+| **Verify** | New enquiry with Order ID + photo; admin detail shows Mark verified / Contacted / Close. Assigned staff see contact history + status only. |
 
 ## Enquiry: Close does not send automatic text
 
@@ -117,14 +1066,39 @@
 | **Verify** | Detail shows **Customer message sent**. Simulator shows Feedback button. |
 | **Note** | This dashboard does not send live Meta WhatsApp. Real phone SMS/WA stays in `Scott_concierge` unless an Edge Function is added later. |
 
+## SLA list gone from the Enquiry desk
+
 | | |
 |--|--|
-| **Symptom** | Assigned ticket older than 2 hours, no red SLA banner. |
+| **Symptom** | No red banners; thought SLA broke. |
+| **Root cause** | Banners moved to a **bell** next to Refresh (2026-10-05). Badge shows count. |
+| **Fix** | Click the bell. Empty bell = no unpicked tickets over 1h / 2h. |
+
+## Assigned ticket older than 2 hours, no SLA alert in the bell
+
+| | |
+|--|--|
+| **Symptom** | Bell missing or count 0 though tickets are old. |
 | **Root cause** | Ticket already has `picked_at`, or no profile named **Gargi** (fallback is first admin), or opener has no write RLS so persist is skipped. |
-| **Fix** | Confirm status is still New/Assigned and Pending badge shows. Add a user whose `full_name` is Gargi. Open Enquiry as admin so the client SLA pass can write `enquiry_sla_escalations`. |
-| **Note** | Missed-pick SLA still does not message the customer. Close **does** queue the Concierge feedback text for the ticket phone (simulator). Live WhatsApp Cloud API stays in `Scott_concierge`. |
+| **Fix** | Confirm status is still New/Assigned/Opened. Add a user whose `full_name` is Gargi. Open Enquiry as admin so the client SLA pass can write `enquiry_sla_escalations`. |
+| **Note** | Missed-pick SLA still does not message the customer. |
 
 Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES.md).
+
+## Stock Ledger: drift alert banner / wrong stock number
+
+- **Symptom:** red "Stock drift detected" banner on the Stock Ledger tab, or a balance that looks wrong.
+- **Root cause candidates:** (1) someone wrote `inv_balance` directly with service role bypassing the functions — never do this; (2) a partially failed manual SQL session.
+- **Investigation:** `select * from inv_drift_alert where resolved_at is null;` then rebuild the truth for that sku/location: `select sum(case when to_location_id = :loc then qty else -qty end) from inv_movement where sku_id = :sku and (to_location_id = :loc or from_location_id = :loc) and state = :state;`
+- **Fix:** post a corrective `adjustment` movement with a note (never edit `inv_balance`), then set `resolved_at` on the alert. `inv_recompute_drift()` can be run ad hoc as postgres.
+- **Note:** `inv_movement` UPDATE/DELETE always raises "append-only" — that is by design, not a bug.
+
+## Platform Masters: "Masters tables not on this database yet"
+
+- **Symptom:** Platform Masters tab shows the inline message naming migration `20260901180000_step0_masters_and_entities.sql`.
+- **Root cause:** the environment the app points at (check `VITE_SUPABASE_URL`) does not have the Step 0 migration — applied on staging 2026-09-01; production gets it only on an explicit release.
+- **Fix:** apply the migration to that environment (staging default), then Refresh.
+- **Also check:** duplicate-name save errors are the DB unique indexes working (`crm_party_norm_name_idx`, `cat_sku` unique code) — not a bug; merge or rename instead.
 
 ## Goals: ownership column missing / create goal fails
 
@@ -214,6 +1188,11 @@ Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES
 - **Root cause:** delivery needs both `SCOTT_WEBHOOK_BASE_URL` and `SCOTT_WEBHOOK_SECRET` edge-function secrets; until set, the trigger still enqueues rows in `dashboard_webhook_outbox` with status `pending` (delivery drained on the next API call once secrets exist). Also check `last_error` on the outbox row — non-2xx from their server keeps it pending with `attempts` incremented.
 - **Fix:** `npx supabase secrets set SCOTT_WEBHOOK_BASE_URL=... SCOTT_WEBHOOK_SECRET=...` (staging link), then any order/stock API call retries delivery. Verify with the admin header popover "Send test webhook".
 - **Queries:** `select event_type, status, attempts, last_error from dashboard_webhook_outbox order by created_at desc limit 20;`
+- **Staging (2026-09-03):** NF receiver URL is set on project `scvojtvgnkmbupvyslmb` (`…/functions/v1/scott-webhook`). HMAC secret matches the value they sent (Edge secret, not in git). Events already posted: `order.status_changed`, `stock.level_changed`, `stock.low_threshold`. Echo test `POST …/scott-webhook/webhooks/stock/level_changed` returned `200 {"received":true}` (`event_id` `evt_test_9d337f9b698c`). Replay of same `event_id` returned `idempotent:true`.
+- **Production (2026-09-03):** `dashboard-stock-api` is deployed. Inbound NF key is set. NF confirmed the same receiver for production. `SCOTT_WEBHOOK_*` is now set on `levwrmvqdntngeasrtnb` to that URL. Echo `evt_prod_1331ec06c6ad` returned `200 {"received":true}`. Live order/stock events on production POST there. If delivery fails, check `dashboard_webhook_outbox.last_error` on production.
+- **Production db push (2026-09-03):** `20260819113000` failed first because `orders.id` is bigint (uuid FK). File now uses `order_uuid text`. Enquiry policy `20260819120000` deadlocked under realtime; applied via SQL then `migration repair --status applied`.
+
+## Warehouse Edit: facility code changed but snapshot still uses old code
 
 ## Warehouse Edit: facility code changed but snapshot still uses old code
 
@@ -228,7 +1207,7 @@ Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES
 - **Root causes:**
   - Edge function `scott-order-generate-picklist` not deployed on the connected project → deploy hint in UI.
   - Migration `20260722120000_scott_order_picklist.sql` not applied → update fails on unknown columns.
-  - **Picklist PDF API not running** — `[vite] http proxy error: /api/picklist/pdf` / `ECONNREFUSED` → nothing listening on port 3001. **`npm run dev` now starts Vite + picklist API together.** If you use `npm run dev:vite` only, also run `npm run dev:picklist-api` in a second terminal.
+  - **Picklist PDF API not running** — `[vite] http proxy error: /api/picklist/pdf` / `ECONNREFUSED` → nothing listening on port 3001. **`npm run dev` starts Vite + picklist API together.** If 3001 is already a healthy picklist, it reuses that and still starts Vite. If you use `npm run dev:vite` only, also run `npm run dev:picklist-api` in a second terminal. `EADDRINUSE :::3001` used to kill Vite — see “Localhost / npm run dev dies” above.
   - Pop-up blocked → PDF blob tab never opens (allow pop-ups for the dashboard origin).
   - Order is COMPLETE/CANCELLED/FAILED → function returns 409 (by design).
 - **Fix:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase db push && npx supabase functions deploy scott-order-generate-picklist`. Hard refresh, sign in again, retry.
@@ -269,6 +1248,14 @@ Security findings (not runtime bugs): see [VULNERABILITIES.md](./VULNERABILITIES
 - **Fix:** Ready Stock Order detail → **Update status (syncs to app)** → choose status → **Apply status**. Requires edge function `scott-order-update-status` deployed on the connected project.
 - **Deploy:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase functions deploy scott-order-update-status`
 - **Statuses (exact strings for app):** `PENDING` → `PROCESSING` → `COMPLETE` | `FAILED` | `CANCELLED`. Webhook `order.status_changed` fires on each transition.
+
+## Ready Stock channel shows Unknown / utilization empty
+
+- **Symptom:** Ready Stock list Channel is Unknown, or **Channel utilization** button shows `0 ordered` / empty text after click. New partner order should have been NotFunny / Scott App.
+- **Root cause:** Order created before `20260904065942_ready_stock_order_channel.sql`, or create used the legacy env secret with no matching `dashboard_api_keys` row, or the channel is not linked to that API key and the body omitted `channel_code`. Utilization view missing on the connected project also returns empty (load still shows orders).
+- **Fix:** Apply the migration on staging. Admin → Integrations → Channels: link the partner API key. Redeploy `dashboard-stock-api` on the same project. New orders stamp the channel; old rows stay Unknown unless you update them by hand.
+- **Queries:** `select order_code, channel_code, channel_name from scott_orders order by created_at desc limit 20;` `select * from rpt_ready_stock_channel_utilization;` `select code, api_key_id, enabled from dashboard_channels;`
+- **Deploy:** `npx supabase link --project-ref scvojtvgnkmbupvyslmb && npx supabase db push && npx supabase functions deploy dashboard-stock-api`
 
 ## Ready Stock Order tab empty though app orders exist
 
@@ -352,6 +1339,28 @@ Open order with mockups, wait for live refresh or save status from another tab �
 - **Cause:** Image-upload patch merge replaced the open order row without preserving `approved_design_url`.
 - **Fix:** Re-merge detail assets after patch; include mockup URL in patch ref; hydrate full row after upload.
 
+## Netlify develop deploy blocked after Giphy key
+
+### Symptom
+Vercel (or another host) publishes. Netlify `develop` / staging does not. Log says **Exposed secrets detected**.
+
+### Root cause
+Secret scan found the public Giphy client key in `giphyGifApi.js`, `netlify.toml`, or `dist`.
+
+### Fix
+`netlify.toml` omits `VITE_GIPHY_API_KEY` and those paths. Push `develop`. Do not mark the Giphy key as a secret in the Netlify UI.
+
+## Contact Book: cannot scroll to finish a new contact
+
+### Symptom
+Add contact (or Edit). Photo and Name show. Address, Email, or Save sit off-screen. Wheel / trackpad does not move.
+
+### Root cause
+`.contact-book-panel` is `overflow: hidden`. The form was `flex-shrink: 0` (full height, no inner scroll). The dashboard shell clips the rest.
+
+### Fix
+Form body scrolls. Header and Save stay. Hard refresh. Open Add contact and scroll to Address.
+
 ## Netlify production deploy: "Exposed secrets detected" (build exit code 2)
 
 ### Symptom
@@ -371,12 +1380,36 @@ Netlify **secret scanning** (Secrets Controller / smart detection) blocks publis
    git rm -r --cached dist/
    ```
    Ensure `.gitignore` includes `.env` and `dist/`. Commit and push to `main`.
-2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GIPHY_API_KEY` as normal variables — **do not** enable **Contains secret values** (Supabase anon + Giphy client keys are public in the browser by design).
+2. **Netlify → Environment variables:** set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` as normal variables — **do not** enable **Contains secret values**. Giphy is bundled; do not mark `VITE_GIPHY_API_KEY` as a secret if it is also in the UI.
 3. **Redeploy:** Netlify → Deploys → **Trigger deploy** on `main` (or push a fix commit).
 4. **If still blocked** (smart detection false positive on Supabase JWT in build output): add site env `SECRETS_SCAN_SMART_DETECTION_ENABLED` = `false` (lowercase). Prefer fixing tracked files first.
+5. **Giphy key in Chat GIF Search:** that key is public on purpose. `netlify.toml` sets `SECRETS_SCAN_OMIT_KEYS=VITE_GIPHY_API_KEY` and omits `giphyGifApi.js` / `dist`. Do not mark it **Contains secret values**.
 
 ### Verify
 Deploy log reaches **Deploy site** / **Published** with no secret scan failure. Live app loads; Network tab Supabase requests use production host.
+
+## View order sheet missing after mockup preview work
+
+| | |
+|--|--|
+| **Symptom** | Click View order. No sheet, or it is not on screen. |
+| **Root cause** | `DialogContent` got `relative`. Tailwind merge dropped `fixed`, so the dialog left the viewport. |
+| **Fix** | Keep DialogContent `fixed`. Put `relative` on an inner wrap only. |
+| **Verify** | View order shows customer, status, mockups. Hard refresh. |
+
+## View order mockup / asset preview glitches on open and close
+
+### Symptom
+View order → click mockup, design, or customer **View** → overlay jumps, page flashes, Close hard to hit, or View order dims/undims.
+
+### Root cause
+Radix View order Dialog is modal. It sets the rest of `document.body` to `inert`. Image preview used to portal to `body`, so it sat *outside* the dialog. Code flipped `modal={false}` while preview was open so clicks could land. That drop/restore of the dialog overlay is the open/close glitch.
+
+### Fix
+Preview renders **inside** a `relative` wrap in View order (not on `DialogContent` itself — `relative` there strips `fixed` and hides the sheet). Esc/Close only hides the preview. Closing View order also clears preview.
+
+### Verify
+Open View order → mockup or asset View → preview covers the order sheet → Close → order sheet still there, no page flash.
 
 ## View order mockup preview appears behind dialog
 
@@ -475,7 +1508,8 @@ Vite bakes `VITE_*` into the bundle **at build time**. After `.env` was removed 
    | Key | Value |
    |-----|--------|
    | `VITE_SUPABASE_ANON_KEY` | Production anon/publishable key from [Supabase → Project Settings → API](https://supabase.com/dashboard/project/levwrmvqdntngeasrtnb/settings/api) |
-   | `VITE_GIPHY_API_KEY` | *(optional)* Giphy key for chat GIF search |
+
+   GIF Search does **not** need a Netlify UI key — it is bundled in `giphyGifApi.js` / `netlify.toml`.
 
    `VITE_SUPABASE_URL` is set in `netlify.toml` for production; you can mirror it in the UI if needed.
 
@@ -484,6 +1518,15 @@ Vite bakes `VITE_*` into the bundle **at build time**. After `.env` was removed 
 
 ### Verify
 Hard refresh production URL. Console has no Supabase env error. Network requests go to `levwrmvqdntngeasrtnb.supabase.co`.
+
+## Notifications tab filter looks empty
+
+| | |
+|--|--|
+| **Symptom** | Mentions (or another chip) shows 0. All still has rows. |
+| **Root cause** | Mentions is inward tags only. Time Select also hides older rows. No separate mention table. |
+| **Fix** | Switch to **All** or a wider time range. Confirm the user was tagged on an inward entry. |
+| **Verify** | Inward tag → Mentions count +1. Order status / assignment → Orders. Goal task → Tasks. Printing low stock → Inventory. |
 
 ## Notifications: goal task or order status missing
 
@@ -533,6 +1576,336 @@ Migration `20260706190000_fix_goal_tracker_rls_recursion.sql` adds `security def
 
 **Verify:** Staging query — `select title, user_id from user_annual_goals g join profiles p on p.id = g.user_id where p.full_name = 'Test 2';` then open Assign task, pick Test 2, confirm goal appears.
 
+## Chat: inbox heading floats with a hole above it
+
+### Symptom
+Groups/Channels (or Chats) show a big blank area at the top. Title or list sits in the middle. Tab names at the bottom.
+
+### Root cause
+`TabsContent` had `flex` always on. Radix hides inactive panes with `hidden`, but `flex` wins and those panes still take height. TabsList was last in the column.
+
+### Fix
+Tab names first (`border-b`). Active pane only: `data-[state=active]:flex`. Name list in a `ScrollArea` that fills the rest.
+
+## Chat: New Channel missing or viewer can post
+
+### Symptom
+Channels tab has no **New Channel**, or a non-admin can type in a channel.
+
+### Root cause
+**New Channel** and the composer are admin-only (`profiles.role = admin`). Post insert also requires `jwt_user_is_admin()` on `kind=channel`.
+
+### Fix
+Sign in as admin to create/post. Viewers should only see react / copy / forward. Apply staging migration `20260904124757_team_chat_channels.sql`.
+
+## Chat: Copy or Paste icon does nothing
+
+### Symptom
+Copy does not put text on the clipboard, or Paste does not fill the box.
+
+### Root cause
+`navigator.clipboard` needs a user click and site permission. Some browsers block `readText` until the user allows clipboard.
+
+### Fix
+Click Copy / Paste after a gesture. Allow clipboard for the site. **Ctrl+C** / **Ctrl+V** still work in the box.
+
+## Chat: long message runs off the thread in one line
+
+### Symptom
+A long body (or one huge word) stays on one line. The right side is cut off.
+
+### Root cause
+The bubble is a native `button` (`white-space: nowrap`). A long token also grows the Radix scroll viewport, so `break-words` never has a width to wrap against.
+
+### Fix
+Thread + bubble use `min-w-0` / `max-w-full`. Body uses `whitespace-pre-wrap` and `overflow-wrap: anywhere`.
+
+## Chat: composer buttons sit beside a tall empty box
+
+### Symptom
+Emoji / GIF / file / mic stack on the left. Message box is short and two lines tall.
+
+### Root cause
+Old composer used a left column + `rows={2}` + `min-h-[72px]`.
+
+### Fix
+Actions are under a full-width box. Box starts at one line and grows to about five.
+
+## Chat: mic does nothing or Stop never shows
+
+### Symptom
+Mic click fails, or Stop is visible before record, or Send stays dead after stop.
+
+### Root cause
+Browser blocked the mic, or Stop is only mounted while `MediaRecorder` is active. Send waits for a finished voice file (`pendingFile`).
+
+### Fix
+Allow microphone for the site. Click Mic — Stop replaces it. Click Stop — preview + Send. HTTP except localhost cannot use the mic.
+
+## Chat: tab badge missing or counts a GIF
+
+### Symptom
+Chats/Groups badge is empty after a text, or it counts a GIF/file with no words.
+
+### Root cause
+Badge uses `unread_count` of unopened **text** only (`body` trim length &gt; 0). Opening the thread sets `last_read_at`.
+
+### Fix
+Send a text. Keep the conversation closed on the other account. GIF-only does not increment the tab.
+
+## Chat: presence dot and Online text do not match
+
+### Symptom
+List shows green but the open DM says Offline, or everyone stays Offline.
+
+### Root cause
+Both views use `presenceFromRow`. Offline = no `hr_user_presence` row or `last_seen_at` older than 2 hours. Staging needs `20260904112200_hr_user_presence.sql`. Heartbeat only runs when signed in.
+
+### Fix
+Apply the staging migrations. Dashboard focused = Online. Other browser tab stays Online 5 minutes, then Away. Offline after 2 hours from last dashboard focus.
+
+## Chat: blue ticks before they open the chat
+
+### Symptom
+You send a Chat or Group message. Ticks go 2 blue (or 2 grey) even though the other person did not open that thread.
+
+### Root cause
+Ticks treated dashboard **Online** as delivered. Group with nobody seen also used Online for 2 grey.
+
+### Fix
+Ticks follow `last_read_at` plus DM Online. Chat: Online + not opened = 2 grey; Away/Offline + not opened = 1 grey; they open = 2 blue. Group: 0 seen = 1 grey; some seen = 2 grey; all seen = 2 blue. Hard refresh.
+
+## Chat: send waits a second and the tab feels stuck
+
+### Symptom
+After Send, the Chat tab pauses about 1 second before the message appears.
+
+### Root cause
+Send awaited a full inbox reload plus thread reload.
+
+### Fix
+The bubble is added at once. Inbox refresh runs in the background. Hard refresh. Type, Send, type again.
+
+## Chat: ticks stay 1 grey after they open the thread
+
+### Symptom
+You send text, photo, GIF, file, or voice. Other person opens the chat. Ticks stay 1 grey. Group Info stays Not seen.
+
+### Root cause
+Member `last_read_at` updates were not reaching the sender. Replica identity was DEFAULT, so Realtime RLS often dropped other people's member UPDATEs. Open thread only marked read once, not after later sends. A `<button>` bubble with file/GIF links could drop ticks after the media.
+
+### Fix
+Staging migration `20260905105000_team_chat_member_read_realtime.sql` (`REPLICA IDENTITY FULL`). Hard refresh. Keep both people on Chat. Sender polls reads every 4s. Viewer with the thread open heartbeats mark-read. Ticks must sit under photo/GIF/file too.
+
+## Chat: ticks stay 1 grey while peer is Online
+
+### Symptom
+You sent a DM or group post. Peer has the dashboard open. Ticks stay a single grey.
+
+### Root cause
+Old ticks used Online as “delivered”. Inbox must still load `member_reads`. Realtime used to filter members to only you, so peer read updates never arrived.
+
+### Fix
+Stay on Chat so conversations refetch. DM: peer **Online** + not opened → 2 grey; they **open that thread** → 2 blue. Group: one person seen → 2 grey; **all** other members seen → 2 blue. Channels never show ticks.
+
+## Chat: no sound or toast on a new message
+
+### Symptom
+Someone sends a Chat / Group / Channel message. No sound. No bottom-right box.
+
+### Root cause
+Alerts run in `App.jsx` only for conversations you belong to. Sound is `sounds/chat-message.mp3`. Browsers block audio until you click the dashboard once. If the dashboard tab is closed, nothing plays.
+
+### Fix
+Hard refresh. Click once in Scott Dashboard. Keep that tab open (other tabs OK). Confirm you are a member. Own messages never toast.
+
+## Chat: group details missing or Add people hidden
+
+### Symptom
+Click the name line and nothing opens, or you cannot add/remove people or change the photo. **Media** missing.
+
+### Root cause
+Details open from a click on the **name line** (Chat or Group), not a styled name button. Add / photo / remove / Make admin are `role = admin` on that group. **Media** only on Chat/Group when a conversation exists. Staging needs `20260905153000_team_chat_group_admin.sql`.
+
+### Fix
+Open Chat or Groups → click the name line (not Media). If you created the group, you are admin. **Media** is on the right. Apply the staging migration if RPCs are missing.
+
+## Chat: group Info missing or viewers empty
+
+### Symptom
+No Info icon, or Seen / Not seen lists nobody.
+
+### Root cause
+Info is only for the **sender**, **one** selected group message. Lists are other members only.
+
+### Fix
+Open a Groups thread. Click your own bubble once. Info → Viewers. Other people must be members of that group.
+
+## Chat: selected messages have no sky-blue bar
+
+### Symptom
+You click one or more bubbles and only a ring shows, or nothing marks the row.
+
+### Root cause
+Selection highlight is a light sky-blue bar on the **row**, not a new bubble color.
+
+### Fix
+Click anywhere on that message’s horizontal row in Chat or Groups (not only the bubble). The full strip turns sky-blue. The bubble itself stays dark/light as before.
+
+## Chat: message actions missing or delete does nothing
+
+### Symptom
+Click a message and no icons appear, or Delete does not remove someone else's message.
+
+### Root cause
+Toolbar only shows after a click-select. In Chats/Groups, Delete is hidden unless every selected message is yours. Mix of own + others hides Delete. RPC only sets `deleted_at` on rows you authored. Staging needs `20260904110500_team_chat_message_actions.sql`.
+
+### Fix
+Click the bubble (own or others). Clear the mix, then select only your posts if you need Delete. Apply the staging migration if the RPC is missing.
+
+## Chat: URL in the bubble is not a link
+
+### Symptom
+Someone pasted `https://…` and it looks like normal text.
+
+### Root cause
+Body used to render as plain spans. Only the Media sheet listed links.
+
+### Fix
+`ChatMessageBody` splits `http`/`https` and renders an `<a>`. Click the URL (not the rest of the bubble) to open a new tab.
+
+## Chat: long message shrinks or stretches the whole Chat tab
+
+### Symptom
+A long URL or one-word post makes the inbox skinny, the page grow, or the composer jump.
+
+### Root cause
+Chat was in the main page scroller (`min-h` card). Flex children grew with unbreakable text.
+
+### Fix
+Chat is a full-bleed tab. Card is `h-full overflow-hidden`. Thread and bubbles use `min-w-0` and wrap. Phone still swaps list vs thread.
+
+## Chat: long URL runs across the thread
+
+### Symptom
+A long `https://…` sits on one line, leaves the grey bubble, and covers other messages. Some of the URL looks cut.
+
+### Root cause
+The link is a shadcn Button (`inline-flex` + `whitespace-nowrap`). That blocks wrap. The extra characters paint outside the bubble.
+
+### Fix
+Link classes use `inline`, `whitespace-normal`, `break-all`, and `overflow-wrap: anywhere`. Hard refresh. The whole URL must stay inside the bubble on several lines.
+
+## Chat: send blinks the page and cursor leaves the box
+
+### Symptom
+Click Send (or Enter) in a Chat or Group. The thread (or whole page) vanishes for a second, then comes back. The caret is not in the text box; you must click the box to type again.
+
+### Root cause
+Every send called `loadMessages`, which set `loadingMessages` and replaced the thread with “Loading messages…”. The box used `disabled={sending}`, so the browser dropped focus. First DM also cleared compose before the conversation was in the list, so `showThread` went false.
+
+### Fix
+Refresh the open thread without the loading placeholder. After Send, focus the composer. Hard refresh. Type, Send, type again with no extra click.
+
+## Chat: older messages missing, only last bubble + white hole
+
+### Symptom
+Group thread shows a tall empty area and only the newest line (e.g. “hi”). Media and composer still work. Database still has earlier rows.
+
+### Root cause
+Radix ScrollArea inner node is `display: table`. Pane-lock classes (`overflow-hidden`, `min-w-0` on that node) collapsed older bubbles. `scrollIntoView` jumped to the last row.
+
+### Fix
+Thread scroll is a `div` with `overflow-y-auto`. Do not clip bubbles. Scroll that div with `scrollTop`. Confirm with `select * from team_chat_messages where conversation_id = …`.
+
+## Chat: voice note is a tiny pill and will not play
+
+### Symptom
+Own voice note looks like a white oval with a black dot and three dots. No timeline. Play is broken.
+
+### Root cause
+The download icon sat in the same row as `<audio>`. Flex `min-w-0` crushed the native control.
+
+### Fix
+Player is stacked: full `audio` first, then download only. No `Voice note.webm` label. Hard refresh. Click play on the bar.
+
+## Chat: Voice note.webm shows under the player
+
+### Symptom
+Voice bubble has a full player, then the text `Voice note.webm`.
+
+### Root cause
+The restore put `attachment_name` under the `<audio>` next to the download arrow.
+
+### Fix
+That label is gone. Player + download only. Hard refresh.
+
+## Chat: file over 15 MB will not send
+
+### Symptom
+Paperclip or Send says the file must be 15 MB or smaller, or Storage rejects a large Excel.
+
+### Root cause
+Old client check `CHAT_MAX_ATTACHMENT_BYTES`. Type list used to be images + PDF only.
+
+### Fix
+Hard refresh. There is no 15 MB app check. Staging bucket cap is 10 GB. If upload still fails, check the Supabase project global file size and the network. Download is the arrow beside the file, not the typed URL.
+
+## Chat: inbox search missing or finds nobody
+
+### Symptom
+No magnifying glass left of **New chat** / **New group**, or typing letters shows an empty list.
+
+### Root cause
+Search is `ChatInboxSearch` in the inbox header only. Chats match `profileChatLabel` / email. Groups match conversation title. You never see your own name.
+
+### Fix
+Open Chat → Chats. Glass is left of **New chat**. Type part of a name. Groups tab uses the same glass for group titles.
+
+## Chat: search person then Send opens someone else
+
+### Symptom
+Chat → search a name → type → Send. The thread jumps to another person (often the first chat in the list).
+
+### Root cause
+Send posted to the searched person. After Send, compose mode closed and the inbox reload could put the previous DM on screen (first row, or a remount that auto-picks it). The header then showed that previous person even though the new message was already in the searched person's thread.
+
+### Fix
+Hard refresh. After Send, Chat pins that thread and keeps that person's name. Inbox reload cannot steal it. Click another row if you want to leave.
+
+## Chat: Groups list vanished after a layout edit
+
+### Symptom
+Groups tab is blank, or opening a group hides every group row. Staging still has `kind=group` rows.
+
+### Root cause
+The pane-lock pass put `overflow-hidden` on the inbox and hid the list below `md`. Groups tab also kept a DM as the active thread, so the right pane looked empty.
+
+### Fix
+Inbox stays visible from `sm` up. Groups tab keeps a group selected. Do not treat this as deleted data — check `team_chat_conversations` `kind=group` if the list is still empty after refresh.
+
+## Chat: group missing from Chats list
+
+### Symptom
+**General** or a new group is not on **Chats**.
+
+### Root cause
+Chats is `kind=direct` only. Groups is `kind=group` only.
+
+### Fix
+Open the **Groups** tab. Create groups with **New group** there. DMs stay on **Chats**.
+
+## Chat: Groups or Channels looks empty
+
+### Symptom
+**Channels** says no channels yet. **Groups** only lists `kind=group`. Directs are on **Chats**.
+
+### Root cause
+Inbox is split by kind. Channels have no data yet.
+
+### Fix
+Open **Chats** for DMs. Create a group from **Groups** → **New group**.
+
 ## Chat: empty inbox or conversation_id errors
 
 ### Symptom
@@ -553,9 +1926,9 @@ After migration, all users should be in **General** group; **New chat** opens a 
 **Quick GIFs** tab always works (preset CDN URLs).
 
 **Search tab empty — check:**
-1. `VITE_GIPHY_API_KEY` set in `.env` (get key from [Giphy Developers](https://developers.giphy.com/dashboard/)).
-2. Restart dev server after `.env` change (`npm run dev`).
-3. Beta keys limited to 100 requests/hour — 429 means rate limit; wait or upgrade key.
+1. Chat GIF Search uses the bundled Giphy client key in `src/giphyGifApi.js` (same on staging and production). Restart `npm run dev` after a pull.
+2. Beta keys limited to 100 requests/hour — 429 means rate limit; wait or upgrade key.
+3. If Netlify UI has a *different* `VITE_GIPHY_API_KEY`, the app still uses the bundled key. Giphy dashboard must allow `printingtracker.netlify.app` and the staging host.
 
 **Verify key:**
 ```bash

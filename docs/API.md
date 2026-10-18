@@ -55,9 +55,12 @@ Common tables (non-exhaustive — see [DATABASE.md](./DATABASE.md)):
 | `profiles` | GET, PATCH (own) | User profile |
 | `orders` | GET, POST, PATCH | RLS by role/permissions |
 | `profile_order_permissions` | GET, UPSERT | Admin |
-| `team_chat_messages` | GET, INSERT | Members only |
+| `team_chat_messages` | GET, INSERT | Members only. Soft-delete/pin via RPC. |
+| `team_chat_message_reactions` | GET, INSERT, PATCH, DELETE | Own reaction; member of the conversation |
 | `user_goal_tasks` | GET, INSERT, PATCH | Goals module |
 | Inventory tables | GET, POST, PATCH | See inventory migrations |
+| `hr_assets` | GET, POST, PATCH | Asset Management register. Insert `created_by = auth.uid()`. Staging only until release. |
+| `hr_user_presence` | GET | Team can read. Write via RPC only. |
 
 Full schema: Supabase Dashboard → Table Editor, or `supabase/schema.sql`.
 
@@ -66,9 +69,18 @@ Full schema: Supabase Dashboard → Table Editor, or `supabase/schema.sql`.
 | RPC | Purpose |
 |-----|---------|
 | `get_or_create_direct_conversation` | Chat DM |
-| `create_group_conversation` | Chat group |
+| `create_group_conversation` | Chat group (creator is group admin) |
+| `add_group_conversation_members` | Group admin adds people |
+| `remove_group_conversation_member` | Group admin removes one person |
+| `set_group_conversation_member_role` | Group admin promotes to admin |
+| `set_group_conversation_avatar` | Group admin sets photo path |
+| `create_channel_conversation` | Admin-only org channel (adds every profile) |
 | `mark_conversation_read` | Chat unread |
 | `list_team_chat_directory` | Mention picker |
+| `soft_delete_team_chat_messages` | Soft-delete own selected messages |
+| `toggle_team_chat_message_pin` | Pin / unpin one message |
+| `set_team_chat_message_reaction` | Toggle or replace own emoji |
+| `set_my_dashboard_presence` | Heartbeat Online/Away for chat dots |
 | `get_goals_for_task_assignment` | Goal dropdown for assigner |
 | `purge_expired_team_chat_attachments` | Scheduled cleanup |
 
@@ -96,6 +108,10 @@ const { data, error } = await supabase.rpc('mark_conversation_read', {
 | `admin-test-scott-webhook` | Admin JWT | Send signed test `stock.level_changed` to Scott backend (`base_url` in body; needs `SCOTT_WEBHOOK_SECRET`) |
 | `dashboard-stock-api` | Bearer `DASHBOARD_API_KEY` | Scott International M2M API — stock (snapshot, reserve, fulfill, adjust) + order lifecycle (create/edit/cancel/get/status) |
 | `tenor-gif-search` | Optional | Legacy GIF proxy |
+| `uniware-bridge` | Admin JWT | Step 5 Uniware: `status`, `sync_inventory`, `sync_orders`, `adjust`. Secrets: `UNIWARE_BASE_URL`, `UNIWARE_USERNAME`, `UNIWARE_PASSWORD`, `UNIWARE_FACILITY`. Staging only until a production release. |
+| `ops-ai-chat` | User JWT | Daily briefing chat. Body `{ ping: true }` or `{ message, history }`. Tool `create_followup_task` only. Secret `ANTHROPIC_API_KEY` (optional). No key → `{ chatEnabled: false }`. Staging. |
+
+RPC `ops_create_followup_task(p_source_kind, p_source_id, p_title, p_description)` — authenticated; returns `user_goal_tasks` row.
 
 Full contracts: [DASHBOARD_STOCK_API.md](./DASHBOARD_STOCK_API.md) · [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md) · **All-in-one handoff:** [SCOTT_INTEGRATION_REFERENCE.md](./SCOTT_INTEGRATION_REFERENCE.md) (APIs + webhooks + realtime) · OpenAPI: [openapi/dashboard-stock-api.yaml](./openapi/dashboard-stock-api.yaml) · Mobile integration guide (keys, code samples): [MOBILE_API_INTEGRATION.md](./MOBILE_API_INTEGRATION.md)
 

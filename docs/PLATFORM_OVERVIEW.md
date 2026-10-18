@@ -63,7 +63,7 @@ There is **no separate Express/FastAPI/Spring server** in this repo today.
 
 | Integration | Purpose |
 |-------------|---------|
-| **Giphy API** | Chat GIF search (`VITE_GIPHY_API_KEY`) |
+| **Giphy API** | Chat GIF search. Public client key bundled in `giphyGifApi.js` (same on staging and production). |
 | **GitHub** | Release automation (merge develop → main) |
 | **Supabase MCP** | Dev/agent database access (staging vs prod) |
 
@@ -175,7 +175,7 @@ See [DATABASE.md](./DATABASE.md) for migration-level detail.
 
 **Build command:** `npm ci && npm run build`  
 **Publish directory:** `dist/`  
-**Required Netlify env:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, optional `VITE_GIPHY_API_KEY`
+**Required Netlify env:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`. Giphy key is bundled (not required in Netlify UI).
 
 Full guide: [ENVIRONMENTS.md](./ENVIRONMENTS.md), [RELEASE_AUTOMATION.md](./RELEASE_AUTOMATION.md), [DEBUGGING.md](./DEBUGGING.md).
 
