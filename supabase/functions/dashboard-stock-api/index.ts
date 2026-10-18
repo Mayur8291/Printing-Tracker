@@ -3,6 +3,7 @@
 // Secrets: DASHBOARD_API_KEY, SCOTT_WEBHOOK_BASE_URL, SCOTT_WEBHOOK_SECRET (optional for webhooks)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { routeAtomicMutation } from "./atomicMutations.ts";
 import {
   adminClient,
   corsHeaders,
@@ -286,6 +287,8 @@ serve(async (req) => {
   const path = routePath(req);
 
   try {
+    const atomic = await routeAtomicMutation(req, client, path);
+    if (atomic) return atomic;
     // Stock routes
     if (req.method === "GET" && path === "/api/v1/stock/snapshot") {
       return await handleSnapshot(req, client);

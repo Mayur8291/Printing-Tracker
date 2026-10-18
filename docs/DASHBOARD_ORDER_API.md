@@ -198,3 +198,15 @@ supabase functions deploy dashboard-stock-api   # includes order routes
 ```
 
 Verified on staging 2026-07-20: create → 450 avail, edit 50→30 → 470, PROCESSING → COMPLETE (deducted 30, `dispatched_quantity` 30), cancel idempotent, INSUFFICIENT_STOCK / ORDER_NOT_EDITABLE / 404 paths all correct.
+# Atomic operational extension (local implementation, September 2026)
+
+The existing routes now use one transactional engine when deployed with migration
+`20260912064513_atomic_dashboard_mutations_v1.sql`. Supply `Idempotency-Key` to bind
+an exact request to its durable response; conflicting reuse returns 409. For PATCH,
+include `expected_updated_at` from an exact GET observation to reject stale edits.
+GET order also returns `shipping_address` and `due_on`.
+
+Read `GET /api/v1/capabilities` before adopting this extension. Read
+`GET /api/v1/mutations/:request_id` to reconcile a lost response without repeating
+the write. Both require the existing API authentication. No new credentials or
+data migration are introduced. Deployment/live verification remains separate.

@@ -224,6 +224,8 @@ export async function handleGetOrder(orderId: string, client: SupabaseAdmin) {
     channel_code: order.channel_code ?? "UNKNOWN",
     channel_name: order.channel_name ?? "Unknown",
     channel_type: order.channel_type ?? "OTHER",
+    shipping_address: order.shipping_address,
+    due_on: order.due_on,
     items: items.map((i) => ({
       sku_code: i.sku_code,
       quantity: Number(i.quantity),

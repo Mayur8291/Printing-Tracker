@@ -2,15 +2,15 @@
 // Reserve/release/fulfill mutate inventory_facility_stock and the reservation
 // tables; webhooks are enqueued in dashboard_webhook_outbox and drained here.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 export const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, idempotency-key",
   "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS"
 };
 
-export type SupabaseAdmin = ReturnType<typeof createClient>;
+export type SupabaseAdmin = SupabaseClient;
 
 export function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
