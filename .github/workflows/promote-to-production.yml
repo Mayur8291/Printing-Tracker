@@ -100,6 +100,7 @@ jobs:
           supabase functions deploy admin-delete-user
           supabase functions deploy admin-reset-password
           supabase functions deploy admin-promote-production
+          supabase functions deploy scott-dashboard-masters
 
       - name: Deploy production site to Netlify
         run: |

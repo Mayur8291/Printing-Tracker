@@ -41,9 +41,26 @@ Set on the Supabase project (Edge Functions → Secrets, or `npx supabase secret
 | `SCOTT_API_BASE_URL_ALLOWLIST` | no | Defaults to the two hosts above. |
 | `SCOTT_API_BASE_URL` | no | Fallback when the client sends a non-allowlisted base URL. |
 
-The function is registered in `supabase/config.toml` with `verify_jwt = true`. It is **not** in
-`.github/workflows/promote-to-production.yml`, so a production release needs a manual deploy —
-the same known gap as `dashboard-stock-api` and `tenor-gif-search`.
+The function is registered in `supabase/config.toml` with `verify_jwt = true` and is deployed by
+`.github/workflows/promote-to-production.yml`. A frontend Git deployment does not set Supabase
+secrets. Configure the required pair separately on **each** Supabase project; selecting the
+production Scott API inside the local app still uses the **staging Supabase project's** secrets.
+
+Run the **Check Scott API configuration** GitHub Actions workflow to check both projects using
+the repo's existing Supabase access token. It reports only whether the required names exist;
+it never reads or logs secret values. With a local CLI login, the same check is:
+
+```bash
+node scripts/check-scott-secrets.mjs scvojtvgnkmbupvyslmb
+node scripts/check-scott-secrets.mjs levwrmvqdntngeasrtnb
+```
+
+### List lifecycle regression checks
+
+Run `npm run dev` and open `/tests/scott-list-lifecycle.html`. The tests mount the actual list
+hook in React StrictMode with controlled requests, covering cancelled loads, visible errors,
+retry, mode changes, completed dataset caching, and entity changes. Unfinished requests must
+never mark the dataset as cached: StrictMode cleans up and replays effects in development.
 
 ### Verifying a deploy
 

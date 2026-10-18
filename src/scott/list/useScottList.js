@@ -496,7 +496,6 @@ export function useScottList({
       return undefined;
     }
 
-    loadedTokenRef.current = reloadToken; // claim before awaiting
     const seq = (requestSeqRef.current += 1);
     let cancelled = false;
     const isCurrent = () => !cancelled && requestSeqRef.current === seq;
@@ -520,6 +519,11 @@ export function useScottList({
           }
         });
         if (!isCurrent()) return;
+        // Cache only a completed, current load. React StrictMode replays effects in
+        // development, and changing modes can cancel a drain in production too.
+        // Claiming the cache before awaiting would make the replacement effect skip
+        // its request while the cancelled response is ignored, leaving loading stuck.
+        loadedTokenRef.current = reloadToken;
         setAllRows(Array.isArray(rows) ? rows : []);
         if (silent) setError("");
       } catch (err) {
