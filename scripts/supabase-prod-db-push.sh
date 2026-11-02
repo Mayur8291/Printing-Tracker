@@ -75,7 +75,12 @@ fi
 
 if grep -q "Rerun the command with --include-all flag" "$log" 2>/dev/null; then
   echo "Out-of-order local migrations detected — retrying with --include-all..."
-  if supabase db push --include-all; then
+  : > "$log"
+  set +e
+  supabase db push --include-all 2>&1 | tee "$log"
+  status=${PIPESTATUS[0]}
+  set -e
+  if [ "$status" -eq 0 ]; then
     echo "Database migrations applied (include-all)."
     exit 0
   fi

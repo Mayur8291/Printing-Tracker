@@ -1485,6 +1485,15 @@ Two browsers logged in → change status on one → other updates within ~1–2s
 ### Logs / checks
 Browser console: Supabase Realtime channel `orders-live` subscribed. Supabase Dashboard → Database → Publications → `supabase_realtime` includes `orders`.
 
+## Promote to production fails because a policy already exists
+
+| | |
+|--|--|
+| **Symptom** | Promote is red after it starts applying migrations. The log says `policy "order templates read authenticated" for table "order_templates" already exists`. |
+| **Root cause** | Production already had that policy. Migration `20261013064231_order_templates_shared_read.sql` created it again. Postgres stops the whole migration, so later files (cancel, on hold, creator alert) never run. |
+| **Fix** | The migration drops that policy first if it is already there, then creates it. Run **Promote to production** again after this file is on `develop`. |
+| **Verify** | The promote job prints `Database migrations applied (include-all).` |
+
 ## Promote to production fails in 30s on database push
 
 | | |

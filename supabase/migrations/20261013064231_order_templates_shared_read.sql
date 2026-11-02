@@ -2,6 +2,7 @@
 -- (Use). Insert stays own user_id. Update/delete stay owner or admin.
 
 drop policy if exists "order templates read own" on public.order_templates;
+drop policy if exists "order templates read authenticated" on public.order_templates;
 create policy "order templates read authenticated"
 on public.order_templates
 for select

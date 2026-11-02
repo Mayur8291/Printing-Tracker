@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — Production promote can recreate the order-template read policy
+
+- **Bug fix:** Promote applied migrations, then stopped because policy `order templates read authenticated` was already on production. That migration now drops the policy first.
+- **Files:** `supabase/migrations/20261013064231_order_templates_shared_read.sql`, `scripts/supabase-prod-db-push.sh`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-02 — Production promote retries out-of-order migrations
 
 - **Bug fix:** Promote to production stopped after marking orphan production migration history reverted. The next `db push` asked for `--include-all`, and the script dropped that log, so the retry never ran.
