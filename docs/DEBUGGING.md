@@ -1491,7 +1491,7 @@ Browser console: Supabase Realtime channel `orders-live` subscribed. Supabase Da
 |--|--|
 | **Symptom** | Promote applies migrations, then stops with `check constraint "orders_on_hold_reason_check" of relation "orders" is violated by some row`. |
 | **Root cause** | Production already had jobs with status `on_hold` and an empty reason. The new check rejects those rows. |
-| **Fix** | Migration `20261102082515_printing_on_hold_reason.sql` writes `Reason was not recorded.` on those old rows, then adds the check. New holds still require a typed reason. |
+| **Fix** | Migration `20261102082515_printing_on_hold_reason.sql` turns off `trg_enforce_order_update_scope`, writes `Reason was not recorded.` on those old rows, turns the trigger back on, then adds the check. New holds still require a typed reason. |
 | **Verify** | Promote prints `Database migrations applied`. Old on-hold jobs show that sentence on the On hold tab. |
 
 ## Promote to production fails because a policy already exists

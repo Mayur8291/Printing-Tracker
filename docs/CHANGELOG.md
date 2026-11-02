@@ -2,7 +2,7 @@
 
 ## 2026-11-02 — On-hold check allows old production rows
 
-- **Bug fix:** Promote stopped because production already had on-hold jobs with no reason. Those rows are filled with `Reason was not recorded.` before the check is added.
+- **Bug fix:** Promote stopped because production already had on-hold jobs with no reason. Those rows are filled with `Reason was not recorded.` while the order-update trigger is off, then the check is added.
 - **Files:** `supabase/migrations/20261102082515_printing_on_hold_reason.sql`.
 - **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
 
