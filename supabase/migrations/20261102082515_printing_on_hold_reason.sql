@@ -5,6 +5,12 @@ alter table public.orders
   add column if not exists on_hold_at timestamptz,
   add column if not exists on_hold_by uuid references auth.users(id) on delete set null;
 
+-- Production already has on-hold jobs from before a reason was required.
+update public.orders
+set on_hold_reason = 'Reason was not recorded.'
+where status = 'on_hold'
+  and (on_hold_reason is null or length(trim(on_hold_reason)) = 0);
+
 alter table public.orders drop constraint if exists orders_on_hold_reason_check;
 alter table public.orders add constraint orders_on_hold_reason_check
 check (

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — On-hold check allows old production rows
+
+- **Bug fix:** Promote stopped because production already had on-hold jobs with no reason. Those rows are filled with `Reason was not recorded.` before the check is added.
+- **Files:** `supabase/migrations/20261102082515_printing_on_hold_reason.sql`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-02 — Production promote can recreate the order-template read policy
 
 - **Bug fix:** Promote applied migrations, then stopped because policy `order templates read authenticated` was already on production. That migration now drops the policy first.
