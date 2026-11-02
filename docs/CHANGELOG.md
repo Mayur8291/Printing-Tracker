@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — Production promote retries out-of-order migrations
+
+- **Bug fix:** Promote to production stopped after marking orphan production migration history reverted. The next `db push` asked for `--include-all`, and the script dropped that log, so the retry never ran.
+- **Files:** `scripts/supabase-prod-db-push.sh`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-02 — On-hold alert for the creator, utilization date filter
 
 - **Alert:** Putting a job on hold notifies `orders.created_by` (not the person who clicked it). Bell and toast say **Order on hold** and the reason.

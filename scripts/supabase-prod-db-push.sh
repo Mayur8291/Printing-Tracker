@@ -61,7 +61,12 @@ if grep -q "migration repair --status reverted" "$log" 2>/dev/null; then
     echo "Repairing orphan remote migration entries: $versions"
     # shellcheck disable=SC2086
     supabase migration repair --status reverted $versions
-    if supabase db push; then
+    : > "$log"
+    set +e
+    supabase db push 2>&1 | tee "$log"
+    status=${PIPESTATUS[0]}
+    set -e
+    if [ "$status" -eq 0 ]; then
       echo "Database migrations applied after repair."
       exit 0
     fi

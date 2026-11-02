@@ -1485,6 +1485,15 @@ Two browsers logged in → change status on one → other updates within ~1–2s
 ### Logs / checks
 Browser console: Supabase Realtime channel `orders-live` subscribed. Supabase Dashboard → Database → Publications → `supabase_realtime` includes `orders`.
 
+## Promote to production fails in 30s on database push
+
+| | |
+|--|--|
+| **Symptom** | GitHub Action **Promote to production** is red. The `promote` job exits 1. The log says remote migration versions are missing locally, then `Found local migration files to be inserted before the last migration`. |
+| **Root cause** | Production history has versions that are not files in the repo (`20261013064654`, `20261013064720`, `20261020102349`, `20261020134334`). After those history rows are marked reverted, `db push` still refuses `20260912064513_atomic_dashboard_mutations_v1.sql` because it is older than the newest production version. The script ran that second push but did not keep its log, so the `--include-all` retry never started. The Node.js 20 warning is not the failure. |
+| **Fix** | `scripts/supabase-prod-db-push.sh` keeps the log from the push after repair, then retries with `supabase db push --include-all`. Run **Promote to production** again after that script is on `develop`. Repair only changes the history table. It does not undo SQL already applied. |
+| **Verify** | The promote job gets past **Apply database migrations (production)** and prints `Database migrations applied (include-all).` |
+
 ## Supabase `db push`: remote migration versions not found locally
 
 ### Symptom
