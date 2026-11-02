@@ -832,7 +832,7 @@ function App() {
   const [pendingDispatchSubview, setPendingDispatchSubview] = useState(null);
   const [pendingOutwardOcId, setPendingOutwardOcId] = useState(null);
   const [pendingInwardEntryId, setPendingInwardEntryId] = useState(null);
-  const [pendingPrintingSubview, setPendingPrintingSubview] = useState(null);
+  const [printingDeptSubview, setPrintingDeptSubview] = useState("queue");
   const [dashboardTab, setDashboardTab] = useState(readStoredDashboardTab);
   const [productionSubTab, setProductionSubTab] = useState(PRODUCTION_SUBTAB);
   const [productionListTab, setProductionListTab] = useState(TRACKER_LIST_ACTIVE);
@@ -3995,7 +3995,7 @@ function App() {
   function handleNotificationPrintingInventoryOpen() {
     selectDashboardTab("printing");
     setOrdersTab("print_queue");
-    setPendingPrintingSubview("inventory");
+    setPrintingDeptSubview("inventory");
   }
 
   function handleOpenDashboardNotification(item) {
@@ -5769,26 +5769,71 @@ function App() {
           {dashboardTab === "printing" && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <Tabs value={ordersTab} onValueChange={setOrdersTab} aria-label="Printing orders views">
+                <Tabs
+                  value={ordersTab}
+                  onValueChange={(value) => {
+                    setOrdersTab(value);
+                    if (value === "print_queue") setPrintingDeptSubview("queue");
+                  }}
+                  aria-label="Printing orders views"
+                >
                   <TabsList>
                     <TabsTrigger value="active">All orders</TabsTrigger>
                     <TabsTrigger value="complete">Complete orders</TabsTrigger>
                     <TabsTrigger value="cancelled">Cancelled orders</TabsTrigger>
                     {canAccessPrintQueue ? (
-                      <TabsTrigger value="print_queue">{PRINTING_QUEUE_SUBTAB.label}</TabsTrigger>
+                      <TabsTrigger value="print_queue" onClick={() => setPrintingDeptSubview("queue")}>
+                        {PRINTING_QUEUE_SUBTAB.label}
+                      </TabsTrigger>
                     ) : null}
                   </TabsList>
                 </Tabs>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => setPrintCalculatorOpen(true)}
-                >
-                  <Calculator className="size-4" aria-hidden />
-                  Print cost calculator
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => setPrintCalculatorOpen(true)}
+                  >
+                    <Calculator className="size-4" aria-hidden />
+                    Print cost calculator
+                  </Button>
+                  {canAccessPrintQueue ? (
+                    <>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={
+                          ordersTab === "print_queue" && printingDeptSubview === "inventory"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => {
+                          setPrintingDeptSubview("inventory");
+                          setOrdersTab("print_queue");
+                        }}
+                      >
+                        Inventory
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={
+                          ordersTab === "print_queue" && printingDeptSubview === "utilization"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => {
+                          setPrintingDeptSubview("utilization");
+                          setOrdersTab("print_queue");
+                        }}
+                      >
+                        Printing Utilization
+                      </Button>
+                    </>
+                  ) : null}
+                </div>
               </div>
 
               {ordersTab === "print_queue" ? (
@@ -5801,8 +5846,8 @@ function App() {
                   canEdit={canEditPrintQueue}
                   isAdmin={isAdmin}
                   teamProfiles={teamProfiles}
-                  initialSubview={pendingPrintingSubview}
-                  onNavigateConsumed={() => setPendingPrintingSubview(null)}
+                  subview={printingDeptSubview}
+                  onSubviewChange={setPrintingDeptSubview}
                   embedded
                 />
               ) : (

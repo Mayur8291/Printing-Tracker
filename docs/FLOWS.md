@@ -354,7 +354,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 ### Print cost calculator (DTF cost)
 
-1. **Trigger:** Printing orders tab → **Print cost calculator** (next to All orders / Complete orders / Print Queue).
+1. **Trigger:** Printing orders tab → **Print cost calculator**, with **Inventory** and **Printing Utilization** on the same row (people who can open Print Queue). Inventory opens the printing-department stock view. Printing Utilization opens the utilization sheet. **Print Queue** still opens the queue list. The old Queue / Inventory / Printing Utilization pill under the queue is hidden while those buttons are on the row.
 2. **Entry:** `PrintCalculatorModal`. Drop or click to upload **one or many** PNG/JPG/WebP prints. **Add more prints** appends another batch. The dialog body scrolls; the total bar stays put.
 3. **Quantity:** One number at the top. It multiplies **every** print and picks the slab: 1–10 → **0–10**, 11–200 → **10–200**, 201–1000 and above → **200–1000**. Toggle **Internal team** or **Customer**. The quote does not list the three rates or the slab rules. Admin opens **Pricing settings** to see and edit them.
 4. **Size:** Width and height in inches. Empty size is guessed at **150 DPI**. **Remove background** crops to opaque pixels and replaces inches from that PNG.

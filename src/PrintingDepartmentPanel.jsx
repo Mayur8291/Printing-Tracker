@@ -124,11 +124,17 @@ export default function PrintingDepartmentPanel({
 
   onNavigateConsumed,
 
-  embedded = false
+  embedded = false,
+
+  subview = null,
+
+  onSubviewChange
 
 }) {
 
   const [subTab, setSubTab] = useState("queue");
+
+  const activeSubview = subview || subTab;
 
 
 
@@ -136,11 +142,13 @@ export default function PrintingDepartmentPanel({
 
     if (!initialSubview) return;
 
-    setSubTab(initialSubview);
+    if (onSubviewChange) onSubviewChange(initialSubview);
+
+    else setSubTab(initialSubview);
 
     onNavigateConsumed?.();
 
-  }, [initialSubview, onNavigateConsumed]);
+  }, [initialSubview, onNavigateConsumed, onSubviewChange]);
 
 
 
@@ -186,7 +194,13 @@ export default function PrintingDepartmentPanel({
 
 
 
-      <Tabs value={subTab} onValueChange={setSubTab} aria-label="Print Queue views">
+      <Tabs
+        value={activeSubview}
+        onValueChange={subview ? onSubviewChange : setSubTab}
+        aria-label="Print Queue views"
+      >
+
+        {subview ? null : (
 
         <TabsList>
 
@@ -197,6 +211,8 @@ export default function PrintingDepartmentPanel({
           <TabsTrigger value="utilization">Printing Utilization</TabsTrigger>
 
         </TabsList>
+
+        )}
 
 
 

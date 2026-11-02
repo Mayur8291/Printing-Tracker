@@ -312,6 +312,16 @@ sequenceDiagram
   end
 ```
 
+## Printing department shortcuts
+
+```mermaid
+flowchart LR
+  Calc[Print cost calculator] --> Modal[Quote dialog]
+  Inv[Inventory] --> Stock[Printing stock view]
+  Use[Printing Utilization] --> Sheet[Utilization sheet]
+  Queue[Print Queue tab] --> List[Queue list]
+```
+
 ## Cancel a printing order
 
 ```mermaid

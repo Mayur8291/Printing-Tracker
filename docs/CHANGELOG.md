@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — Inventory and Printing Utilization sit beside the calculator
+
+- **UI:** On Printing orders, **Inventory** and **Printing Utilization** are buttons on the same row as **Print cost calculator**. They open those Print Queue views. **Print Queue** still opens the queue.
+- **Files:** `App.jsx`, `PrintingDepartmentPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-11-02 — System history label and cancel printing order
 
 - **Bug fix:** Automatic status history (New → Pending, Sent to Dispatch → complete) is stored as **Updated by system**. A person who changes status still shows their name.
