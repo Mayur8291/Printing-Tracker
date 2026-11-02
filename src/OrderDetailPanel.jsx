@@ -175,6 +175,7 @@ export default function OrderDetailPanel({
   openOrderHistory,
   handleMarkComplete,
   handleDeleteOrder,
+  onCancelOrder,
   openPreview,
   renderStageIcon,
   OrderColorsCell,
@@ -1122,7 +1123,7 @@ export default function OrderDetailPanel({
                 statusDisplayLabel
               )}
             />
-            {canUseOrderControls && canCurrentUserEdit("status") && !sampleClosed && (
+            {canUseOrderControls && canCurrentUserEdit("status") && !sampleClosed && order.status !== "cancelled" && (
               <DetailSelect
                 value={statusUpdates[order.id] ?? order.status}
                 onValueChange={(next) => {
@@ -1132,6 +1133,11 @@ export default function OrderDetailPanel({
               />
             )}
           </div>
+          {order.status === "cancelled" && order.cancellation_reason ? (
+            <p className="text-sm text-muted-foreground">
+              Cancellation reason: {order.cancellation_reason}
+            </p>
+          ) : null}
           <div className="grid gap-2">
             <Label htmlFor={`order-remarks-${order.id}`} className="text-xs font-medium text-muted-foreground">
               Remarks
@@ -1175,6 +1181,16 @@ export default function OrderDetailPanel({
                 disabled={Boolean(profileError)}
               >
                 Save changes
+              </Button>
+            )}
+            {typeof onCancelOrder === "function" && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={onCancelOrder}
+                disabled={Boolean(profileError)}
+              >
+                Cancel order
               </Button>
             )}
             {isAdmin && !order.is_complete && !(sampleJobSheet && sampleClosed) && (

@@ -306,9 +306,22 @@ sequenceDiagram
   A->>D: status plus stamp time
   loop Every 30s or cron 10 min
     A->>R: promote_stale_new_orders_to_pending
-    R->>D: is_complete if stamp plus 10 min
+    Note over R: sets app.activity_by_system
+    R->>D: pending or is_complete
+    D-->>A: history actor System
   end
-  D-->>A: Realtime or silent fetch
+```
+
+## Cancel a printing order
+
+```mermaid
+flowchart TD
+  Btn[Cancel order] --> Reason[Reason textarea]
+  Reason --> Empty{Reason filled?}
+  Empty -->|no| Reason
+  Empty -->|yes| Save[status cancelled plus reason]
+  Save --> Tab[Cancelled orders tab]
+  Save --> Hist[History By person plus reason]
 ```
 
 ## Inventory facility transfer

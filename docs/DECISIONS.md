@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-02 — Automatic history is System; cancel needs a reason
+
+**Context:** The stale-order job runs inside a signed-in session, so history showed a random teammate. Printing also had no cancel path that kept the job out of All and Complete.
+
+**Decision:** `promote_stale_new_orders_to_pending` sets `app.activity_by_system`. The activity trigger stores **System** for those writes. Manual status changes still store the person. Cancel is status `cancelled` plus a required reason, listed on **Cancelled orders**. It is not a choice in the normal status dropdown.
+
+**Tradeoffs:** History rows written before this change keep the old name. Production does not get the columns until a production release.
+
 ## 2026-10-14 — Print slab rates are ₹ per square inch
 
 **Context:** The six qty rates were first stored as ₹ per square meter. The shop prices per square inch.

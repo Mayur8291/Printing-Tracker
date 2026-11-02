@@ -341,6 +341,16 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 3. **UI:** `OrderListStatusCell` (Select). Current status is injected if it is missing from the option list so Radix Select does not break.
 4. **Sent to Dispatch → Complete:** status `sent_to_dispatch` stamps `orders.status_sent_to_dispatch_at`. Existing poll/cron RPC `promote_stale_new_orders_to_pending` sets `is_complete = true` 10 minutes later. Job then appears on **Complete orders**. Client poll is every 30s while signed in; pg_cron every 10 min.
 5. **Failure:** Viewer cannot set `is_complete` from the app (trigger). Auto-complete uses a transaction GUC so the RPC write is allowed. Console `Auto status promote failed` if the RPC errors.
+6. **Automatic history:** that same RPC sets `app.activity_by_system`. `log_order_activity` then stores actor **System**. The history line reads **Updated by system**. A manual status change still stores the signed-in name. Older rows written before this fix keep the name they already have.
+
+### Printing orders — cancel
+
+1. **Trigger:** Printing **All orders** row, or View order footer → **Cancel order**. Same people who can edit status (admin, or viewer with `can_edit_status`). Hidden on job sheets, sample job sheets, complete jobs, and jobs already cancelled.
+2. **Reason:** Dialog textarea. Empty reason is blocked in the dialog and by `orders_cancellation_reason_check`.
+3. **Save:** `status = cancelled`, `cancellation_reason`, `cancelled_at`, `cancelled_by`. Status is not in the normal status dropdown, so cancel cannot skip the reason.
+4. **Lists:** **Cancelled orders** shows `status = cancelled`. **All orders** and **Complete orders** hide those rows. The list switches to Cancelled orders after a successful cancel.
+5. **History:** message `Order cancelled. Reason: …` and **By {name}** of the person who cancelled.
+6. **Failure:** DB error stays in an alert and the dialog stays open. Production does not have these columns until a production release.
 
 ### Print cost calculator (DTF cost)
 

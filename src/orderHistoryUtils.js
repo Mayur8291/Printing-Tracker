@@ -51,6 +51,12 @@ export function getOrderHistoryButtonLabel(order) {
   return isJobSheetOrder(order) ? "Job sheet history" : "Order history";
 }
 
+export function historyActorLine(entry) {
+  const label = String(entry?.actor_label ?? "").trim();
+  if (!label || label.toLowerCase() === "system") return "Updated by system";
+  return `By ${label}`;
+}
+
 export function getOrderHistoryEventLabel(eventType, order) {
   if (eventType === "order_created" && isJobSheetOrder(order)) {
     return "Job sheet created";

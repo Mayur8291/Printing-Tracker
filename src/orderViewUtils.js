@@ -32,7 +32,8 @@ export const STAGE_LABEL = {
   ready: "Ready to Dispatch",
   sent_to_dispatch: "Sent to Dispatch",
   dispatch_fail: "Dispatch Fail",
-  dispatched: "Dispatched"
+  dispatched: "Dispatched",
+  cancelled: "Cancelled"
 };
 
 export const STAGE_OPTION_ICON = {
@@ -48,7 +49,8 @@ export const STAGE_OPTION_ICON = {
   ready: "✅",
   sent_to_dispatch: "🚚",
   dispatch_fail: "⛔",
-  dispatched: "📤"
+  dispatched: "📤",
+  cancelled: "🚫"
 };
 
 export const ORDER_SIZE_COLUMNS = [

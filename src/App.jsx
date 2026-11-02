@@ -110,6 +110,7 @@ import { DashboardSidebarIcon } from "./dashboardSidebarIcons";
 import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
 import OrderFieldPermissionFields from "./OrderFieldPermissionFields";
 import OrderViewActionCell from "./components/orders/OrderViewActionCell";
+import CancelOrderDialog from "./components/orders/CancelOrderDialog";
 import {
   createPendingPrintingOrder,
   createPendingProductionOrder,
@@ -532,7 +533,7 @@ function readStoredOrdersTab() {
     const dash = sessionStorage.getItem(DASHBOARD_TAB_STORAGE_KEY);
     if (dash === "printing_department") return "print_queue";
     const sub = sessionStorage.getItem(PRINTING_ORDERS_TAB_STORAGE_KEY);
-    if (sub === "active" || sub === "complete" || sub === "print_queue") return sub;
+    if (sub === "active" || sub === "complete" || sub === "cancelled" || sub === "print_queue") return sub;
   } catch {
     /* ignore */
   }
@@ -897,6 +898,8 @@ function App() {
   const [orderHistoryLoading, setOrderHistoryLoading] = useState(false);
   const [orderHistoryError, setOrderHistoryError] = useState("");
   const [viewOrderTarget, setViewOrderTarget] = useState(null);
+  const [cancelOrderTarget, setCancelOrderTarget] = useState(null);
+  const [cancelOrderSaving, setCancelOrderSaving] = useState(false);
   const [viewOrderFromTab, setViewOrderFromTab] = useState(null);
   /** Map order id -> last known status (for new→pending tone). */
   const prevOrderStatusesRef = useRef(null);
@@ -4134,9 +4137,12 @@ function App() {
 
   const filteredOrders = useMemo(() => {
     if (ordersTab === "print_queue") return [];
-    const tabbed = ordersInDateRange.filter((o) =>
-      ordersTab === "complete" ? o.is_complete : !o.is_complete
-    );
+    const tabbed = ordersInDateRange.filter((o) => {
+      const cancelled = o.status === "cancelled";
+      if (ordersTab === "cancelled") return cancelled;
+      if (ordersTab === "complete") return o.is_complete && !cancelled;
+      return !o.is_complete && !cancelled;
+    });
     return filterPrintingTabOrders(tabbed);
   }, [ordersInDateRange, ordersTab]);
 
@@ -4575,9 +4581,11 @@ function App() {
   const ordersProcessedSummary = useMemo(() => {
     const count = sortedFilteredOrders.length;
     const totalQty = sortedFilteredOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
-    const summaryLabel = ordersTab === "complete" ? "Jobs processed" : "Pending";
+    const summaryLabel =
+      ordersTab === "complete" ? "Jobs processed" : ordersTab === "cancelled" ? "Cancelled" : "Pending";
     const filterBits = [];
     if (ordersTab === "complete") filterBits.push("Complete orders");
+    else if (ordersTab === "cancelled") filterBits.push("Cancelled orders");
     else filterBits.push("Pending");
     if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
     else if (dateFrom) filterBits.push(`From ${dateFrom}`);
@@ -4588,6 +4596,7 @@ function App() {
     if (ordersSearchTrimmed) filterBits.push(`Search: “${ordersSearchTrimmed}”`);
     const hasFilters =
       ordersTab === "complete" ||
+      ordersTab === "cancelled" ||
       Boolean(dateFrom || dateTo) ||
       orderSortCoordinator.startsWith("coord:") ||
       Boolean(ordersSearchTrimmed);
@@ -4876,6 +4885,52 @@ function App() {
       alert(error.message);
       return;
     }
+    fetchOrders();
+  }
+
+  function canCancelPrintingOrder(order) {
+    if (!order || order._isPending) return false;
+    if (!canCurrentUserEdit("status")) return false;
+    if (isJobSheetOrder(order) || isSampleJobSheetOrder(order)) return false;
+    if (order.is_complete || order.status === "cancelled") return false;
+    return true;
+  }
+
+  async function confirmCancelOrder(reason) {
+    const order = cancelOrderTarget;
+    if (!order || cancelOrderSaving) return;
+    const text = String(reason ?? "").trim();
+    if (!text) return;
+    setCancelOrderSaving(true);
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        status: "cancelled",
+        cancellation_reason: text,
+        cancelled_at: new Date().toISOString(),
+        cancelled_by: session?.user?.id ?? null
+      })
+      .eq("id", order.id);
+    setCancelOrderSaving(false);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    setCancelOrderTarget(null);
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === order.id
+          ? {
+              ...o,
+              status: "cancelled",
+              cancellation_reason: text,
+              cancelled_at: new Date().toISOString(),
+              cancelled_by: session?.user?.id ?? null
+            }
+          : o
+      )
+    );
+    setOrdersTab("cancelled");
     fetchOrders();
   }
 
@@ -5718,6 +5773,7 @@ function App() {
                   <TabsList>
                     <TabsTrigger value="active">All orders</TabsTrigger>
                     <TabsTrigger value="complete">Complete orders</TabsTrigger>
+                    <TabsTrigger value="cancelled">Cancelled orders</TabsTrigger>
                     {canAccessPrintQueue ? (
                       <TabsTrigger value="print_queue">{PRINTING_QUEUE_SUBTAB.label}</TabsTrigger>
                     ) : null}
@@ -5865,7 +5921,19 @@ function App() {
                                   className={cn(orderListRowClassName(order), order._isPending && "opacity-70")}
                                 >
                                   <TableCell>
-                                    <OrderViewActionCell order={order} onViewOrder={openViewOrder} />
+                                    <div className="flex flex-col items-start gap-1">
+                                      <OrderViewActionCell order={order} onViewOrder={openViewOrder} />
+                                      {ordersTab === "active" && canCancelPrintingOrder(order) ? (
+                                        <Button
+                                          type="button"
+                                          variant="link"
+                                          className="h-auto px-0 text-destructive"
+                                          onClick={() => setCancelOrderTarget(order)}
+                                        >
+                                          Cancel order
+                                        </Button>
+                                      ) : null}
+                                    </div>
                                   </TableCell>
                                   <TableCell>
                                     <div className="flex flex-wrap items-center gap-1.5">
@@ -5902,6 +5970,7 @@ function App() {
                                       order={order}
                                       canEdit={
                                         ordersTab !== "complete" &&
+                                        ordersTab !== "cancelled" &&
                                         canUseOrderControls &&
                                         canCurrentUserEdit("status")
                                       }
@@ -5930,7 +5999,9 @@ function App() {
                                     ? "No orders match your search."
                                     : ordersTab === "complete"
                                       ? "No completed orders in the selected date range."
-                                      : "No orders found for selected date range."}
+                                      : ordersTab === "cancelled"
+                                        ? "No cancelled orders in the selected date range."
+                                        : "No orders found for selected date range."}
                                 </TableCell>
                               </TableRow>
                             )}
@@ -8193,6 +8264,9 @@ function App() {
               openOrderHistory={openOrderHistory}
               handleMarkComplete={handleMarkComplete}
               handleDeleteOrder={handleDeleteOrder}
+              onCancelOrder={
+                canCancelPrintingOrder(activeViewOrder) ? () => setCancelOrderTarget(activeViewOrder) : null
+              }
               openPreview={openPreview}
               renderStageIcon={renderStageIcon}
               OrderColorsCell={OrderColorsCell}
@@ -8222,6 +8296,15 @@ function App() {
           onRefresh={refreshOrderHistory}
         />
       ) : null}
+      <CancelOrderDialog
+        order={cancelOrderTarget}
+        open={Boolean(cancelOrderTarget)}
+        saving={cancelOrderSaving}
+        onClose={() => {
+          if (!cancelOrderSaving) setCancelOrderTarget(null);
+        }}
+        onConfirm={confirmCancelOrder}
+      />
       {session?.user ? (
         <UserProfileSettingsDialog
           open={profileSettingsOpen}

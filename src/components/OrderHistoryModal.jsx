@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { formatReceivedAtDisplay } from "../orderViewUtils";
-import { getOrderHistoryEventLabel, getOrderHistoryTitle } from "../orderHistoryUtils";
+import { getOrderHistoryEventLabel, getOrderHistoryTitle, historyActorLine } from "../orderHistoryUtils";
 
 /**
  * Order activity timeline. Portaled to document.body so it stacks above Radix View order Dialog (z-50).
@@ -67,7 +67,7 @@ export default function OrderHistoryModal({
                   </time>
                 </div>
                 <p className="order-history-message">{entry.message}</p>
-                <p className="order-history-actor">By {entry.actor_label || "System"}</p>
+                <p className="order-history-actor">{historyActorLine(entry)}</p>
               </li>
             ))}
           </ul>

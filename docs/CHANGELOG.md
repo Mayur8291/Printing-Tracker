@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-02 — System history label and cancel printing order
+
+- **Bug fix:** Automatic status history (New → Pending, Sent to Dispatch → complete) is stored as **Updated by system**. A person who changes status still shows their name.
+- **Feature:** Printing orders have **Cancel order**. A reason is required. Cancelled jobs sit on **Cancelled orders**, not All or Complete. History says `Order cancelled. Reason: …`.
+- **Files:** `App.jsx`, `OrderDetailPanel.jsx`, `OrderHistoryModal.jsx`, `orderHistoryUtils.js`, `orderQueryFields.js`, `orderViewUtils.js`, `CancelOrderDialog.jsx`, migrations `20261102081635_printing_cancel_order_and_system_history.sql`, `20261102081843_cancel_history_includes_reason.sql`.
+- **Migration:** Applied on staging `scvojtvgnkmbupvyslmb` only. Production still has no `cancelled` status or cancel columns.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-10-14 — Print calculator shows single pc amount
 
 - **UI:** Each print shows **Single pc** (billed square inches × ₹ per sq in) above **Line cost** (single pc × quantity).

@@ -1059,6 +1059,23 @@ Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **
 
 **Rollback:** drop trigger/function `track_status_sent_to_dispatch_at`, drop column, restore previous `promote_stale_new_orders_to_pending` body. Re-deploy prior `enforce_order_update_scope` if the GUC inject must be removed.
 
+### Printing cancel and system history
+
+| Column / object | Purpose |
+|-----------------|--------|
+| `orders.cancellation_reason` | Required when `status = cancelled`. |
+| `orders.cancelled_at` | When it was cancelled. |
+| `orders.cancelled_by` | User who cancelled. Null on automatic history. |
+| `orders.status` value `cancelled` | In `orders_status_check`. `status_label` returns Cancelled. |
+| GUC `app.activity_by_system` | Set inside `promote_stale_new_orders_to_pending`. `log_order_activity` then stores actor label System. Cancelled status messages include the reason. |
+
+| Migration | Change |
+|-----------|--------|
+| `20261102081635_printing_cancel_order_and_system_history.sql` | Columns, status check, system actor, RPC GUC. Applied on staging. |
+| `20261102081843_cancel_history_includes_reason.sql` | History message includes the cancellation reason (CRLF function body). Applied on staging. |
+
+**Rollback:** drop the three columns and the reason check, remove `cancelled` from `orders_status_check`, restore prior `status_label`, `log_order_activity`, and `promote_stale_new_orders_to_pending`. Do not drop columns while rows are `cancelled`.
+
 | Migration | Change |
 |-----------|--------|
 | `20260703200000_add_order_kind_job_sheet.sql` | Add `job_sheet` to check constraint; backfill existing job sheet rows |
@@ -1121,7 +1138,7 @@ Append-only timeline for printing orders and production job sheets (same `orders
 | `message` | text | Human-readable summary |
 | `meta` | jsonb | Structured before/after or snapshot |
 | `actor_id` | uuid | Auth user (nullable) |
-| `actor_label` | text | Display name at time of event |
+| `actor_label` | text | Display name at time of event. `System` when the write set `app.activity_by_system`. |
 | `created_at` | timestamptz | Event time |
 
 **Trigger:** `trg_log_order_activity` on `orders` INSERT/UPDATE calls `log_order_activity()`.

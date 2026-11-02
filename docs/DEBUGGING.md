@@ -1,5 +1,23 @@
 # Debugging
 
+## Order history shows a person on an automatic status change
+
+| | |
+|--|--|
+| **Symptom** | History says **By Mounesh** (or another signed-in person) on **New Orders → Pending** even though nobody picked that status. |
+| **Root cause** | `promote_stale_new_orders_to_pending` runs from the open browser. The history trigger used `auth.uid()`, so it stored that person’s name. |
+| **Fix** | The RPC sets `app.activity_by_system`. The trigger then stores **System**. The modal says **Updated by system**. A real status change still says **By {name}**. |
+| **Verify** | Wait for an automatic New → Pending (or Sent to Dispatch → complete). Refresh history. The line says **Updated by system**. Change a status yourself. That line says your name. Old rows are not rewritten. |
+
+## Cancel order button missing or save fails
+
+| | |
+|--|--|
+| **Symptom** | No **Cancel order** on a printing row, or save says column `cancellation_reason` does not exist. |
+| **Root cause** | The button is only on open printing orders for someone who can edit status. Job sheets, samples, complete jobs, and already cancelled jobs hide it. The columns exist on staging only until a production release. |
+| **Fix** | Use Printing **All orders** on staging. Type a reason. Production needs an explicit production release before this select works there. |
+| **Verify** | Cancel with a reason. The job leaves All orders and appears on **Cancelled orders** with the reason. History says **Order cancelled. Reason:** and **By** your name. |
+
 ## Print cost calculator will not scroll
 
 | | |
