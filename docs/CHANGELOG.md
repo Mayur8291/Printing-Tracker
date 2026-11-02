@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — Vercel picks up the full Complete orders count
+
+- **Bug fix:** Netlify already showed every completed job. Vercel could keep the old page, so **Jobs processed** stayed on the first 1000 orders. The page now revalidates, and the build Node matches Netlify (20.x).
+- **Files:** `vercel.json`, `public/sw.js`, `package.json`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, ENVIRONMENTS.md.
+
 ## 2026-11-02 — Complete orders counts every completed job
 
 - **Bug fix:** **Jobs processed** only counted completed jobs inside the newest 1000 orders. Older completed jobs were missing. The list now loads every page.
