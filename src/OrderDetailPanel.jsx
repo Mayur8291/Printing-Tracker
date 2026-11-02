@@ -1138,6 +1138,11 @@ export default function OrderDetailPanel({
               Cancellation reason: {order.cancellation_reason}
             </p>
           ) : null}
+          {order.status === "on_hold" && order.on_hold_reason ? (
+            <p className="text-sm text-muted-foreground">
+              On hold reason: {order.on_hold_reason}
+            </p>
+          ) : null}
           <div className="grid gap-2">
             <Label htmlFor={`order-remarks-${order.id}`} className="text-xs font-medium text-muted-foreground">
               Remarks

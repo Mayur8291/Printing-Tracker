@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-02 — On hold needs a reason and its own tab
+
+- **Feature:** Choosing status **On hold** opens a reason box. Empty reason cannot save. Those jobs leave All orders, Complete orders, and the print queue. **On hold** tab lists them with the reason. History says `Put on hold. Reason: …`.
+- **Files:** `App.jsx`, `OrderDetailPanel.jsx`, `HoldOrderDialog.jsx`, `orderQueryFields.js`, `orderTabUtils.js`, migration `20261102082515_printing_on_hold_reason.sql`.
+- **Migration:** Applied on staging `scvojtvgnkmbupvyslmb` only.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-11-02 — Inventory and Printing Utilization sit beside the calculator
 
 - **UI:** On Printing orders, **Inventory** and **Printing Utilization** are buttons on the same row as **Print cost calculator**. They open those Print Queue views. **Print Queue** still opens the queue.

@@ -111,6 +111,7 @@ import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
 import OrderFieldPermissionFields from "./OrderFieldPermissionFields";
 import OrderViewActionCell from "./components/orders/OrderViewActionCell";
 import CancelOrderDialog from "./components/orders/CancelOrderDialog";
+import HoldOrderDialog from "./components/orders/HoldOrderDialog";
 import {
   createPendingPrintingOrder,
   createPendingProductionOrder,
@@ -533,7 +534,7 @@ function readStoredOrdersTab() {
     const dash = sessionStorage.getItem(DASHBOARD_TAB_STORAGE_KEY);
     if (dash === "printing_department") return "print_queue";
     const sub = sessionStorage.getItem(PRINTING_ORDERS_TAB_STORAGE_KEY);
-    if (sub === "active" || sub === "complete" || sub === "cancelled" || sub === "print_queue") return sub;
+    if (sub === "active" || sub === "complete" || sub === "cancelled" || sub === "on_hold" || sub === "print_queue") return sub;
   } catch {
     /* ignore */
   }
@@ -900,6 +901,8 @@ function App() {
   const [viewOrderTarget, setViewOrderTarget] = useState(null);
   const [cancelOrderTarget, setCancelOrderTarget] = useState(null);
   const [cancelOrderSaving, setCancelOrderSaving] = useState(false);
+  const [holdOrderTarget, setHoldOrderTarget] = useState(null);
+  const [holdOrderSaving, setHoldOrderSaving] = useState(false);
   const [viewOrderFromTab, setViewOrderFromTab] = useState(null);
   /** Map order id -> last known status (for new→pending tone). */
   const prevOrderStatusesRef = useRef(null);
@@ -4139,9 +4142,11 @@ function App() {
     if (ordersTab === "print_queue") return [];
     const tabbed = ordersInDateRange.filter((o) => {
       const cancelled = o.status === "cancelled";
+      const onHold = o.status === "on_hold";
       if (ordersTab === "cancelled") return cancelled;
-      if (ordersTab === "complete") return o.is_complete && !cancelled;
-      return !o.is_complete && !cancelled;
+      if (ordersTab === "on_hold") return onHold;
+      if (ordersTab === "complete") return o.is_complete && !cancelled && !onHold;
+      return !o.is_complete && !cancelled && !onHold;
     });
     return filterPrintingTabOrders(tabbed);
   }, [ordersInDateRange, ordersTab]);
@@ -4582,10 +4587,17 @@ function App() {
     const count = sortedFilteredOrders.length;
     const totalQty = sortedFilteredOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
     const summaryLabel =
-      ordersTab === "complete" ? "Jobs processed" : ordersTab === "cancelled" ? "Cancelled" : "Pending";
+      ordersTab === "complete"
+        ? "Jobs processed"
+        : ordersTab === "cancelled"
+          ? "Cancelled"
+          : ordersTab === "on_hold"
+            ? "On hold"
+            : "Pending";
     const filterBits = [];
     if (ordersTab === "complete") filterBits.push("Complete orders");
     else if (ordersTab === "cancelled") filterBits.push("Cancelled orders");
+    else if (ordersTab === "on_hold") filterBits.push("On hold orders");
     else filterBits.push("Pending");
     if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
     else if (dateFrom) filterBits.push(`From ${dateFrom}`);
@@ -4597,6 +4609,7 @@ function App() {
     const hasFilters =
       ordersTab === "complete" ||
       ordersTab === "cancelled" ||
+      ordersTab === "on_hold" ||
       Boolean(dateFrom || dateTo) ||
       orderSortCoordinator.startsWith("coord:") ||
       Boolean(ordersSearchTrimmed);
@@ -4858,16 +4871,28 @@ function App() {
     if (!canCurrentUserEdit("status") || !newStatus) return;
     if (isSampleJobSheetOrder(order) && sampleJobSheetIsClosed(order)) return;
     if (newStatus === order.status) return;
+    if (newStatus === "on_hold") {
+      setHoldOrderTarget(order);
+      return;
+    }
 
     const orderId = order.id;
     const previousStatus = order.status;
     const previousComplete = order.is_complete;
+    const previousHoldReason = order.on_hold_reason ?? null;
+    const previousHoldAt = order.on_hold_at ?? null;
+    const previousHoldBy = order.on_hold_by ?? null;
     const closingSample =
       isSampleJobSheetOrder(order) && newStatus === SAMPLE_JOB_SHEET_COMPLETE_STATUS;
     const payload =
       closingSample && isAdmin
         ? { status: newStatus, is_complete: true }
         : { status: newStatus };
+    if (previousStatus === "on_hold") {
+      payload.on_hold_reason = null;
+      payload.on_hold_at = null;
+      payload.on_hold_by = null;
+    }
 
     setStatusUpdates((prev) => ({ ...prev, [orderId]: newStatus }));
     setOrders((prev) =>
@@ -4879,7 +4904,16 @@ function App() {
       setStatusUpdates((prev) => ({ ...prev, [orderId]: previousStatus }));
       setOrders((prev) =>
         prev.map((o) =>
-          o.id === orderId ? { ...o, status: previousStatus, is_complete: previousComplete } : o
+          o.id === orderId
+            ? {
+                ...o,
+                status: previousStatus,
+                is_complete: previousComplete,
+                on_hold_reason: previousHoldReason,
+                on_hold_at: previousHoldAt,
+                on_hold_by: previousHoldBy
+              }
+            : o
         )
       );
       alert(error.message);
@@ -4931,6 +4965,46 @@ function App() {
       )
     );
     setOrdersTab("cancelled");
+    fetchOrders();
+  }
+
+  async function confirmHoldOrder(reason) {
+    const order = holdOrderTarget;
+    if (!order || holdOrderSaving) return;
+    const text = String(reason ?? "").trim();
+    if (!text) return;
+    const heldAt = new Date().toISOString();
+    setHoldOrderSaving(true);
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        status: "on_hold",
+        on_hold_reason: text,
+        on_hold_at: heldAt,
+        on_hold_by: session?.user?.id ?? null
+      })
+      .eq("id", order.id);
+    setHoldOrderSaving(false);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    setHoldOrderTarget(null);
+    setStatusUpdates((prev) => ({ ...prev, [order.id]: "on_hold" }));
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === order.id
+          ? {
+              ...o,
+              status: "on_hold",
+              on_hold_reason: text,
+              on_hold_at: heldAt,
+              on_hold_by: session?.user?.id ?? null
+            }
+          : o
+      )
+    );
+    setOrdersTab("on_hold");
     fetchOrders();
   }
 
@@ -5781,6 +5855,7 @@ function App() {
                     <TabsTrigger value="active">All orders</TabsTrigger>
                     <TabsTrigger value="complete">Complete orders</TabsTrigger>
                     <TabsTrigger value="cancelled">Cancelled orders</TabsTrigger>
+                    <TabsTrigger value="on_hold">On hold</TabsTrigger>
                     {canAccessPrintQueue ? (
                       <TabsTrigger value="print_queue" onClick={() => setPrintingDeptSubview("queue")}>
                         {PRINTING_QUEUE_SUBTAB.label}
@@ -5953,6 +6028,7 @@ function App() {
                               <TableHead>Customer</TableHead>
                               <TableHead>Product name</TableHead>
                               <TableHead>Status</TableHead>
+                              {ordersTab === "on_hold" ? <TableHead>On hold reason</TableHead> : null}
                               <TableHead>Coordinator</TableHead>
                               <TableHead>Delivery date</TableHead>
                               <TableHead className="text-right">Qty</TableHead>
@@ -6027,6 +6103,11 @@ function App() {
                                       onStatusChange={persistOrderStatus}
                                     />
                                   </TableCell>
+                                  {ordersTab === "on_hold" ? (
+                                    <TableCell className="max-w-[18rem] whitespace-normal text-sm">
+                                      {order.on_hold_reason?.trim() || "—"}
+                                    </TableCell>
+                                  ) : null}
                                   <TableCell>{order.coordinator_name || "—"}</TableCell>
                                   <TableCell>{formatDeliveryDate(order.due_date)}</TableCell>
                                   <TableCell className="text-right tabular-nums">
@@ -6039,14 +6120,16 @@ function App() {
                             })}
                             {printingTotalOrders === 0 && (
                               <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                                <TableCell colSpan={ordersTab === "on_hold" ? 9 : 8} className="h-24 text-center text-muted-foreground">
                                   {ordersSearchTrimmed
                                     ? "No orders match your search."
                                     : ordersTab === "complete"
                                       ? "No completed orders in the selected date range."
                                       : ordersTab === "cancelled"
                                         ? "No cancelled orders in the selected date range."
-                                        : "No orders found for selected date range."}
+                                        : ordersTab === "on_hold"
+                                          ? "No orders on hold in the selected date range."
+                                          : "No orders found for selected date range."}
                                 </TableCell>
                               </TableRow>
                             )}
@@ -8349,6 +8432,15 @@ function App() {
           if (!cancelOrderSaving) setCancelOrderTarget(null);
         }}
         onConfirm={confirmCancelOrder}
+      />
+      <HoldOrderDialog
+        order={holdOrderTarget}
+        open={Boolean(holdOrderTarget)}
+        saving={holdOrderSaving}
+        onClose={() => {
+          if (!holdOrderSaving) setHoldOrderTarget(null);
+        }}
+        onConfirm={confirmHoldOrder}
       />
       {session?.user ? (
         <UserProfileSettingsDialog

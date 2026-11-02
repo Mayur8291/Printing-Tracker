@@ -352,6 +352,15 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **History:** message `Order cancelled. Reason: …` and **By {name}** of the person who cancelled.
 6. **Failure:** DB error stays in an alert and the dialog stays open. Production does not have these columns until a production release.
 
+### Printing orders — on hold
+
+1. **Trigger:** Status select on a printing order (list or View order) → **On hold**.
+2. **Reason:** Dialog textarea. Empty reason does not save. The database check `orders_on_hold_reason_check` requires a non-empty `on_hold_reason` while status is `on_hold`.
+3. **Save:** `status = on_hold`, `on_hold_reason`, `on_hold_at`, `on_hold_by`. The list switches to **On hold**.
+4. **Lists:** **On hold** shows those jobs and an **On hold reason** column. **All orders**, **Complete orders**, and the print queue hide them. Moving the status off hold clears the reason columns. History keeps `Put on hold. Reason: …` and **By** the person who held it.
+5. **Who sees it:** Anyone who can open Printing orders. Changing status still needs status edit permission.
+6. **Failure:** DB error stays in an alert and the dialog stays open. The status select stays on the previous status if the dialog is closed. Production does not have these columns until a production release.
+
 ### Print cost calculator (DTF cost)
 
 1. **Trigger:** Printing orders tab → **Print cost calculator**, with **Inventory** and **Printing Utilization** on the same row (people who can open Print Queue). Inventory opens the printing-department stock view. Printing Utilization opens the utilization sheet. **Print Queue** still opens the queue list. The old Queue / Inventory / Printing Utilization pill under the queue is hidden while those buttons are on the row.

@@ -1076,6 +1076,21 @@ Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **
 
 **Rollback:** drop the three columns and the reason check, remove `cancelled` from `orders_status_check`, restore prior `status_label`, `log_order_activity`, and `promote_stale_new_orders_to_pending`. Do not drop columns while rows are `cancelled`.
 
+### Printing on hold reason
+
+| Column / object | Purpose |
+|-----------------|--------|
+| `orders.on_hold_reason` | Required when `status = on_hold`. |
+| `orders.on_hold_at` | When it was put on hold. |
+| `orders.on_hold_by` | User who put it on hold. |
+| Check `orders_on_hold_reason_check` | Status `on_hold` must have a non-empty reason. |
+
+| Migration | Change |
+|-----------|--------|
+| `20261102082515_printing_on_hold_reason.sql` | Columns, check, history message `Put on hold. Reason: …`. Applied on staging. |
+
+**Rollback:** move any `on_hold` rows to another status, drop the check and columns, restore the prior `log_order_activity` body.
+
 | Migration | Change |
 |-----------|--------|
 | `20260703200000_add_order_kind_job_sheet.sql` | Add `job_sheet` to check constraint; backfill existing job sheet rows |

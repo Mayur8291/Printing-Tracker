@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-02 — On hold requires a reason and a shared tab
+
+**Context:** On hold was a status with no reason, mixed into All orders. People could not see why a job stopped.
+
+**Decision:** Setting status to `on_hold` requires `on_hold_reason`. Those rows leave All orders, Complete orders, and the print queue. The **On hold** tab shows the reason to anyone who can open Printing orders.
+
+**Tradeoffs:** Taking a job off hold clears the reason columns. The history row still has the reason. Production does not get the columns until a production release.
+
 ## 2026-11-02 — Automatic history is System; cancel needs a reason
 
 **Context:** The stale-order job runs inside a signed-in session, so history showed a random teammate. Printing also had no cancel path that kept the job out of All and Complete.

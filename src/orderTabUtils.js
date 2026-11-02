@@ -176,8 +176,7 @@ const PRINTING_DEPARTMENT_STATUSES = new Set([
   "fusing",
   "ironing",
   "packing",
-  "pending",
-  "on_hold"
+  "pending"
 ]);
 
 export function filterPrintingDepartmentOrders(orders) {

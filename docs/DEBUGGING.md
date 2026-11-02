@@ -1,5 +1,14 @@
 # Debugging
 
+## On hold saves with no reason / On hold tab is empty
+
+| | |
+|--|--|
+| **Symptom** | Status becomes On hold with no reason, or a held job stays on All orders. |
+| **Root cause** | On hold used to be a normal status with no reason column and no list of its own. |
+| **Fix** | Choosing **On hold** opens a reason box. The job then shows on the **On hold** tab with **On hold reason**. Staging migration `20261102082515_printing_on_hold_reason.sql`. |
+| **Verify** | Set a printing order to On hold, type a reason, save. It leaves All orders. **On hold** shows the job and the reason. History says **Put on hold. Reason:** and **By** your name. Close the box without a reason and the status stays unchanged. |
+
 ## Order history shows a person on an automatic status change
 
 | | |

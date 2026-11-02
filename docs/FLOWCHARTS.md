@@ -322,6 +322,18 @@ flowchart LR
   Queue[Print Queue tab] --> List[Queue list]
 ```
 
+## Put a printing order on hold
+
+```mermaid
+flowchart TD
+  Status[Status select On hold] --> Reason[Reason textarea]
+  Reason --> Empty{Reason filled?}
+  Empty -->|no| Reason
+  Empty -->|yes| Save[status on_hold plus reason]
+  Save --> Tab[On hold tab shows reason]
+  Save --> Hist[History By person plus reason]
+```
+
 ## Cancel a printing order
 
 ```mermaid
