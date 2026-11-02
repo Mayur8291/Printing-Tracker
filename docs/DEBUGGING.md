@@ -1,5 +1,14 @@
 # Debugging
 
+## Complete orders count looks short (Jobs processed)
+
+| | |
+|--|--|
+| **Symptom** | **Complete orders** says **Jobs processed 974** while more jobs are actually complete. |
+| **Root cause** | The list loaded one Supabase page. PostgREST stops at 1000 rows. On production (2 Nov 2026) there were 1085 orders. The newest 1000 held 974 completed printing-tab jobs. 85 older completed printing jobs never arrived, so the count stopped at 974. The real completed printing-tab count that day was 1059. |
+| **Fix** | `fetchOrders` pages 1000 rows at a time until a short page. **Jobs processed** then counts every completed printing-tab job still in memory (after search, coordinator, and date filters). |
+| **Verify** | Complete orders with no search and no From/To. The number matches completed printing, sticker, sampling, and regular-stock jobs that are not cancelled, not on hold, and not job sheets. Older completed jobs appear in the list. |
+
 ## Creator does not see the on-hold alert
 
 | | |

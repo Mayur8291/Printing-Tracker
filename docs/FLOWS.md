@@ -334,6 +334,13 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 7. **Mark as complete:** admin on View order. Sample job → Sampling Complete + Dispatched Successfully. Production job sheet → Production Complete. Printing jobs still go to Printing Complete. **The list tab does not switch** — stay on All orders (or whatever list was open). The completed row leaves All because `is_complete` is true.
 8. **Exit:** switch sidebar tab.
 
+### Printing orders — list load and Jobs processed
+
+1. **Trigger:** Sign-in loads orders. The same load runs again on refresh and realtime.
+2. **Fetch:** `orders` is read in pages of 1000 (`created_at` desc, then `id`), until a short page. One request stops at 1000 and drops older rows.
+3. **Complete orders count:** **Jobs processed** is how many loaded rows are `is_complete`, not cancelled, not on hold, and not a job sheet or sample job sheet. Search, coordinator, and From/To (`order_date`) shrink that number. It is not the page size and not total qty.
+4. **Sent to Dispatch:** those jobs count as processed after the 10-minute auto-complete sets `is_complete`.
+
 ### Printing orders — status edit and Sent to Dispatch auto-complete
 
 1. **Trigger:** Printing Orders → **All orders** Status column, or View order Status.

@@ -277,6 +277,18 @@ flowchart TD
   CloseBtn --> Open
 ```
 
+## Printing orders list and Jobs processed
+
+```mermaid
+flowchart TD
+  Load[Sign in or refresh] --> Page[Read orders page of 1000]
+  Page --> More{Short page?}
+  More -->|no| Page
+  More -->|yes| Filter[Complete and not cancelled and not on hold]
+  Filter --> Drop[Drop job sheets and sample job sheets]
+  Drop --> Count[Jobs processed equals that list length]
+```
+
 ## Printing status, mark complete stay, Sent to Dispatch auto-complete
 
 ```mermaid

@@ -957,21 +957,31 @@ function App() {
     const silent = opts?.silent === true;
     if (!silent) setLoadingOrders(true);
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(ORDERS_LIST_SELECT)
-        .order("created_at", { ascending: false });
+      // PostgREST returns at most 1000 rows per request. One select hid older
+      // completed jobs, so Complete orders showed a short count (974 of 1059).
+      const pageSize = 1000;
+      const rows = [];
+      for (let from = 0; from < pageSize * 50; from += pageSize) {
+        const { data, error } = await supabase
+          .from("orders")
+          .select(ORDERS_LIST_SELECT)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, from + pageSize - 1);
 
-      if (error) {
-        console.error(error.message);
-        const hint = /column .* does not exist/i.test(error.message)
-          ? `${error.message} — run pending Supabase migrations (see supabase/migrations/).`
-          : error.message;
-        setOrdersLoadError(hint);
-        return false;
+        if (error) {
+          console.error(error.message);
+          const hint = /column .* does not exist/i.test(error.message)
+            ? `${error.message} — run pending Supabase migrations (see supabase/migrations/).`
+            : error.message;
+          setOrdersLoadError(hint);
+          return false;
+        }
+        const chunk = data ?? [];
+        rows.push(...chunk);
+        if (chunk.length < pageSize) break;
       }
       setOrdersLoadError(null);
-      const rows = data ?? [];
       setOrders((prev) => {
         const next = mergeOrdersPreservingDesignImages(prev, rows, recentImagePatchRef.current);
         setViewOrderTarget((viewPrev) => {

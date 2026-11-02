@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — Complete orders counts every completed job
+
+- **Bug fix:** **Jobs processed** only counted completed jobs inside the newest 1000 orders. Older completed jobs were missing. The list now loads every page.
+- **Files:** `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-11-02 — On-hold check allows old production rows
 
 - **Bug fix:** Promote stopped because production already had on-hold jobs with no reason. Those rows are filled with `Reason was not recorded.` while the order-update trigger is off, then the check is added.
