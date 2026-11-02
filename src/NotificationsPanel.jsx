@@ -110,6 +110,8 @@ function NotificationBody({ item, onOpen }) {
   if (item?.kind === "order_status") {
     const from = formatOrderStatusCode(item.previous_status);
     const to = formatOrderStatusCode(item.new_status);
+    const reason = String(item.note ?? "").trim();
+    const onHold = item.new_status === "on_hold";
     return (
       <>
         {item.order_display_id ? (
@@ -118,12 +120,14 @@ function NotificationBody({ item, onOpen }) {
             <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={open}>
               {item.order_display_id}
             </Button>
-            {" · "}
+            {onHold ? " is on hold" : " · "}
           </>
+        ) : onHold ? (
+          "Order is on hold"
         ) : (
           "Order · "
         )}
-        {from} → {to}
+        {onHold ? (reason ? ` · Reason: ${reason}` : "") : `${from} → ${to}`}
       </>
     );
   }

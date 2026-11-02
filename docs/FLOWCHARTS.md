@@ -318,7 +318,9 @@ sequenceDiagram
 flowchart LR
   Calc[Print cost calculator] --> Modal[Quote dialog]
   Inv[Inventory] --> Stock[Printing stock view]
-  Use[Printing Utilization] --> Sheet[Utilization sheet]
+  Use[Printing Utilization] --> Dates[From and To]
+  Dates --> Sheet[Filtered log]
+  Sheet --> Xlsx[Export filtered rows]
   Queue[Print Queue tab] --> List[Queue list]
 ```
 
@@ -332,6 +334,7 @@ flowchart TD
   Empty -->|yes| Save[status on_hold plus reason]
   Save --> Tab[On hold tab shows reason]
   Save --> Hist[History By person plus reason]
+  Save --> Alert[Bell and toast to job creator with reason]
 ```
 
 ## Cancel a printing order

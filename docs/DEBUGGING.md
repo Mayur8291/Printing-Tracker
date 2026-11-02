@@ -1,5 +1,14 @@
 # Debugging
 
+## Creator does not see the on-hold alert
+
+| | |
+|--|--|
+| **Symptom** | A job is on hold, but the person who created it gets no bell or toast, or the toast has no reason. |
+| **Root cause** | Older status alerts had no reason column. The creator is skipped when they are the one who put the job on hold, or when `created_by` is empty. |
+| **Fix** | `order_status_notifications.note` stores the reason. The trigger alerts `created_by` on On hold unless that same person made the change. Staging migration `20261102082914_on_hold_creator_alert_and_util_dates.sql`. |
+| **Verify** | User A creates the job. User B puts it on hold with a reason. User A gets **Order on hold** and the reason. User B does not get that alert. |
+
 ## On hold saves with no reason / On hold tab is empty
 
 | | |

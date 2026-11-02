@@ -3,6 +3,28 @@ import { supabase } from "./supabaseClient";
 export const PRINTING_UTILIZATION_SELECT =
   "id, printing_metres, pcs_fused, created_at, created_by";
 
+export function printingUtilizationLocalDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+export function filterPrintingUtilizationByDate(entries, dateFrom, dateTo) {
+  const from = String(dateFrom ?? "").trim();
+  const to = String(dateTo ?? "").trim();
+  if (!from && !to) return entries ?? [];
+  return (entries ?? []).filter((row) => {
+    const day = printingUtilizationLocalDate(row.created_at);
+    if (!day) return false;
+    if (from && day < from) return false;
+    if (to && day > to) return false;
+    return true;
+  });
+}
+
 export function formatPrintingUtilizationDate(iso) {
   if (!iso) return "—";
   const d = new Date(iso);

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-02 — On-hold alert for the creator, utilization date filter
+
+- **Alert:** Putting a job on hold notifies `orders.created_by` (not the person who clicked it). Bell and toast say **Order on hold** and the reason.
+- **Printing Utilization:** **From** / **To** filter the log and the totals. Admin **Export** downloads that filtered set.
+- **Files:** `notificationsUtils.js`, `NotificationsPanel.jsx`, `AssignmentToastStack.jsx`, `App.jsx`, `PrintingUtilizationPanel.jsx`, `printingUtilizationUtils.js`, `printingUtilizationExport.js`, migration `20261102082914_on_hold_creator_alert_and_util_dates.sql`.
+- **Migration:** Applied on staging only. Adds `order_status_notifications.note`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, DECISIONS.md, OVERVIEW.md, ARCHITECTURE.md.
+
 ## 2026-11-02 — On hold needs a reason and its own tab
 
 - **Feature:** Choosing status **On hold** opens a reason box. Empty reason cannot save. Those jobs leave All orders, Complete orders, and the print queue. **On hold** tab lists them with the reason. History says `Put on hold. Reason: …`.

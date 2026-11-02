@@ -16,7 +16,7 @@ function downloadBlob(buffer, filename) {
   URL.revokeObjectURL(url);
 }
 
-export async function exportPrintingUtilizationExcel(entries) {
+export async function exportPrintingUtilizationExcel(entries, { dateFrom = "", dateTo = "" } = {}) {
   if (!entries?.length) {
     throw new Error("No utilization entries to export.");
   }
@@ -48,7 +48,9 @@ export async function exportPrintingUtilizationExcel(entries) {
   sheet.getColumn(3).numFmt = "#,##0";
   sheet.getColumn(3).alignment = { horizontal: "right" };
 
-  const stamp = new Date().toISOString().slice(0, 10);
+  const from = String(dateFrom ?? "").trim();
+  const to = String(dateTo ?? "").trim();
+  const stamp = from || to ? `${from || "start"}_to_${to || "end"}` : new Date().toISOString().slice(0, 10);
   const buffer = await workbook.xlsx.writeBuffer();
   downloadBlob(buffer, `printing-utilization_${stamp}.xlsx`);
 

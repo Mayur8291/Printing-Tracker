@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-02 — On-hold alert goes to the job creator
+
+**Context:** The person who created the job did not see why it was put on hold. Utilization export always dumped every row.
+
+**Decision:** `notify_order_status_change` writes `order_status_notifications.note` with the on-hold reason for `orders.created_by`, unless that person made the change. Printing Utilization **From** / **To** filter the log, and admin Export downloads those rows.
+
+**Tradeoffs:** The creator is not alerted about their own hold. Jobs with no `created_by` have no creator alert. Export stays admin-only.
+
 ## 2026-11-02 — On hold requires a reason and a shared tab
 
 **Context:** On hold was a status with no reason, mixed into All orders. People could not see why a job stopped.

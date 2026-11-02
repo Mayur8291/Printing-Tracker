@@ -6,7 +6,9 @@ function toastTitle(toast) {
   if (toast.kind === "inward") return "Tagged on inward entry";
   if (toast.kind === "printing_inventory") return "Printing inventory low stock";
   if (toast.kind === "goal_task") return "Task assigned to you";
-  if (toast.kind === "order_status") return "Order status updated";
+  if (toast.kind === "order_status") {
+    return toast.newStatus === "on_hold" ? "Order on hold" : "Order status updated";
+  }
   return "New order assigned to you";
 }
 
@@ -31,6 +33,10 @@ function toastBody(toast) {
   }
   if (toast.kind === "order_status") {
     const ref = toast.orderDisplayId ? `Order ${toast.orderDisplayId}` : "Order";
+    const reason = String(toast.holdReason ?? "").trim();
+    if (toast.newStatus === "on_hold") {
+      return reason ? `${ref} is on hold. Reason: ${reason}` : `${ref} is on hold`;
+    }
     return `${ref} · ${toast.previousStatusLabel ?? "—"} → ${toast.newStatusLabel ?? "—"}`;
   }
   if (toast.orderDisplayId) {

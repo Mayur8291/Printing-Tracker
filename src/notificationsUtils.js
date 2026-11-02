@@ -202,7 +202,8 @@ export function normalizeOrderStatusNotification(row) {
     order_display_id: row.order_display_id,
     previous_status: row.previous_status,
     new_status: row.new_status,
-    changed_by_user_id: row.changed_by_user_id
+    changed_by_user_id: row.changed_by_user_id,
+    note: row.note ?? ""
   };
 }
 
@@ -236,7 +237,9 @@ export function notificationTitle(item) {
   if (item?.kind === "printing_inventory") return "Printing inventory low stock";
   if (item?.kind === "ops_briefing") return "Daily follow-up briefing";
   if (item?.kind === "goal_task") return "Task assigned to you";
-  if (item?.kind === "order_status") return "Order status updated";
+  if (item?.kind === "order_status") {
+    return item.new_status === "on_hold" ? "Order on hold" : "Order status updated";
+  }
   return "Order assigned to you";
 }
 
@@ -277,6 +280,10 @@ export function notificationBodyText(item) {
   }
   if (item?.kind === "order_status") {
     const orderRef = item.order_display_id ? `Order ${item.order_display_id}` : "Order";
+    const reason = String(item.note ?? "").trim();
+    if (item.new_status === "on_hold") {
+      return reason ? `${orderRef} is on hold. Reason: ${reason}` : `${orderRef} is on hold`;
+    }
     const from = orderStatusLabel(item.previous_status);
     const to = orderStatusLabel(item.new_status);
     return `${orderRef} · ${from} → ${to}`;
@@ -339,7 +346,7 @@ export async function fetchUserNotifications(userId, limit = 80) {
       .limit(perTable),
     supabase
       .from("order_status_notifications")
-      .select("id, order_id, order_display_id, previous_status, new_status, changed_by_user_id, created_at")
+      .select("id, order_id, order_display_id, previous_status, new_status, changed_by_user_id, note, created_at")
       .eq("recipient_user_id", userId)
       .order("created_at", { ascending: false })
       .limit(perTable),

@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Label } from "@/components/ui/label";
 import CreatePrintingUtilizationModal from "./CreatePrintingUtilizationModal";
 import { exportPrintingUtilizationExcel } from "./printingUtilizationExport";
 import { OrdersPagination, OrdersPerPageControl, usePagination } from "./orderPagination";
 import {
   fetchPrintingUtilizationEntries,
+  filterPrintingUtilizationByDate,
   formatPrintingMetres,
   formatPrintingUtilizationDate,
   formatPcsFused
@@ -24,6 +27,8 @@ export default function PrintingUtilizationPanel({
   const [modalOpen, setModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportMessage, setExportMessage] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const load = useCallback(async (opts) => {
     const silent = opts?.silent === true;
@@ -53,6 +58,12 @@ export default function PrintingUtilizationPanel({
     });
   }, [load]);
 
+  const filteredEntries = useMemo(
+    () => filterPrintingUtilizationByDate(entries, dateFrom, dateTo),
+    [entries, dateFrom, dateTo]
+  );
+  const hasDateFilter = Boolean(dateFrom || dateTo);
+
   const {
     visible: visibleEntries,
     total,
@@ -61,18 +72,22 @@ export default function PrintingUtilizationPanel({
     pageSize,
     setPageSize,
     totalPages
-  } = usePagination(entries, "printing-utilization", `${entries.length}`);
+  } = usePagination(filteredEntries, "printing-utilization", `${dateFrom}|${dateTo}|${filteredEntries.length}`);
 
-  const totalMetres = entries.reduce((sum, row) => sum + (Number(row.printing_metres) || 0), 0);
-  const totalPcs = entries.reduce((sum, row) => sum + (Number(row.pcs_fused) || 0), 0);
+  const totalMetres = filteredEntries.reduce((sum, row) => sum + (Number(row.printing_metres) || 0), 0);
+  const totalPcs = filteredEntries.reduce((sum, row) => sum + (Number(row.pcs_fused) || 0), 0);
 
   async function handleExport() {
-    if (!isAdmin || !entries.length) return;
+    if (!isAdmin || !filteredEntries.length) return;
     setExporting(true);
     setExportMessage("");
     try {
-      const result = await exportPrintingUtilizationExcel(entries);
-      setExportMessage(`Exported ${result.rowCount} entries.`);
+      const result = await exportPrintingUtilizationExcel(filteredEntries, { dateFrom, dateTo });
+      setExportMessage(
+        hasDateFilter
+          ? `Exported ${result.rowCount} entries in the selected dates.`
+          : `Exported ${result.rowCount} entries.`
+      );
     } catch (err) {
       setExportMessage(err instanceof Error ? err.message : String(err));
     } finally {
@@ -95,7 +110,7 @@ export default function PrintingUtilizationPanel({
                   type="button"
                   variant="outline"
                   onClick={() => void handleExport()}
-                  disabled={exporting || !entries.length}
+                  disabled={exporting || !filteredEntries.length}
                 >
                   <Download className="size-3.5" /> {exporting ? "Exporting…" : "Export"}
                 </Button>
@@ -124,7 +139,7 @@ export default function PrintingUtilizationPanel({
             <div className="kpi-grid printing-util-kpi-grid">
               <div className="kpi">
                 <p className="kpi-label">Entries</p>
-                <p className="kpi-value">{entries.length}</p>
+                <p className="kpi-value">{filteredEntries.length}</p>
               </div>
               <div className="kpi">
                 <p className="kpi-label">Total metres</p>
@@ -141,7 +156,39 @@ export default function PrintingUtilizationPanel({
                 <h3 className="card-title">Utilization log</h3>
                 <p className="card-subtitle">Date, metres printed, and pcs fused per entry</p>
               </div>
-              <div className="printing-dept-toolbar">
+              <div className="printing-dept-toolbar flex flex-wrap items-end gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="printing-util-from">From</Label>
+                  <DatePicker
+                    id="printing-util-from"
+                    value={dateFrom}
+                    onChange={setDateFrom}
+                    placeholder="From date"
+                    className="min-w-[10.5rem]"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="printing-util-to">To</Label>
+                  <DatePicker
+                    id="printing-util-to"
+                    value={dateTo}
+                    onChange={setDateTo}
+                    placeholder="To date"
+                    className="min-w-[10.5rem]"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  disabled={!hasDateFilter}
+                >
+                  Clear
+                </Button>
                 <OrdersPerPageControl
                   idPrefix="printing-util-per-page"
                   pageSize={pageSize}
@@ -167,7 +214,11 @@ export default function PrintingUtilizationPanel({
                     ))}
                     {!total ? (
                       <tr>
-                        <td colSpan={3}>No utilization entries yet.</td>
+                        <td colSpan={3}>
+                          {hasDateFilter
+                            ? "No utilization entries in this date range."
+                            : "No utilization entries yet."}
+                        </td>
                       </tr>
                     ) : null}
                   </tbody>

@@ -359,7 +359,15 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 3. **Save:** `status = on_hold`, `on_hold_reason`, `on_hold_at`, `on_hold_by`. The list switches to **On hold**.
 4. **Lists:** **On hold** shows those jobs and an **On hold reason** column. **All orders**, **Complete orders**, and the print queue hide them. Moving the status off hold clears the reason columns. History keeps `Put on hold. Reason: …` and **By** the person who held it.
 5. **Who sees it:** Anyone who can open Printing orders. Changing status still needs status edit permission.
-6. **Failure:** DB error stays in an alert and the dialog stays open. The status select stays on the previous status if the dialog is closed. Production does not have these columns until a production release.
+6. **Creator alert:** Trigger `notify_order_status_change` writes `order_status_notifications` for `orders.created_by` (not the person who clicked Put on hold). The row `note` is the reason. Bell, toast, and the notification list say **Order on hold** and **Reason:**. A tone plays when status tones are on. If the creator is also the coordinator, they still get that one alert. No `created_by` means no creator alert.
+7. **Failure:** DB error stays in an alert and the dialog stays open. The status select stays on the previous status if the dialog is closed. Production does not have these columns until a production release.
+
+### Printing Utilization date filter
+
+1. **Trigger:** Printing orders → **Printing Utilization**.
+2. **Filter:** **From** and **To** compare the entry's local calendar date (`created_at`). Blank From means no start. Blank To means no end. **Clear** removes both. Totals and the table use the filtered rows.
+3. **Export:** Admin **Export** writes only the filtered rows to Excel. The file name includes the dates when a filter is set.
+4. **Failure:** A range with no rows shows "No utilization entries in this date range." Export stays disabled.
 
 ### Print cost calculator (DTF cost)
 
@@ -474,9 +482,9 @@ Unified bell + **Notifications** sidebar tab. `fetchUserNotifications()` merges 
 ### Order status notification
 
 1. **Trigger:** Order status changed (list inline edit, View order, or API update).
-2. **Database:** Trigger `notify_order_status_change()` inserts rows for coordinator (name match) and order creator.
+2. **Database:** Trigger `notify_order_status_change()` inserts rows for coordinator (name match) and order creator. On hold also stores the reason in `note` and still alerts the creator when they are the coordinator.
 3. **Realtime:** `orders` table on `supabase_realtime` — all clients refetch on `postgres_changes` (channel `orders-live`).
-4. **Display:** Toast shows `previous → new` with human-readable labels via `formatOrderStatusCode()`.
+4. **Display:** Toast shows `previous → new` with human-readable labels via `formatOrderStatusCode()`. On hold toast title is **Order on hold** and the body includes the reason.
 5. **Exit:** Click notification → open that order.
 
 ### View order — mockups & designs

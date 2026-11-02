@@ -665,9 +665,12 @@ Security-definer RPC for **Assign task → Link to goal**. Returns annual goals 
 | `order_display_id` | text | Human-readable order ref |
 | `previous_status` / `new_status` | text | Status transition |
 | `changed_by_user_id` | uuid | User who changed status (excluded from recipients) |
+| `note` | text | On hold stores the reason. Null for other status changes. |
 | `created_at` | timestamptz | When notification was created |
 
-**Trigger:** `orders_status_notify` on `orders.status` UPDATE — notifies coordinator (name match on `profiles.full_name`) and `created_by`, excluding the actor.
+**Trigger:** `orders_status_notify` on `orders.status` UPDATE — notifies coordinator (name match on `profiles.full_name`) and `created_by`, excluding the actor. On hold always notifies `created_by` (even if that person is the coordinator) and copies `on_hold_reason` into `note`. Migration `20261102082914_on_hold_creator_alert_and_util_dates.sql` on staging.
+
+**Rollback:** drop `note`. Restore the previous `notify_order_status_change` body from `20260707130000_add_goal_task_and_order_status_notifications.sql`.
 
 ## Team chat
 

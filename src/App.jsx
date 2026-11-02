@@ -4247,7 +4247,9 @@ function App() {
         orderId: row?.order_id,
         orderDisplayId: row?.order_display_id ?? "",
         previousStatusLabel: formatOrderStatusCode(row?.previous_status),
-        newStatusLabel: formatOrderStatusCode(row?.new_status)
+        newStatus: row?.new_status ?? "",
+        newStatusLabel: formatOrderStatusCode(row?.new_status),
+        holdReason: row?.note ?? ""
       }
     ]);
   }, []);
