@@ -6,7 +6,7 @@
 |--|--|
 | **Symptom** | Netlify **Jobs processed** matches every completed job. The Vercel URL still shows the old short count (974). The Vercel **Runtime Settings** screen shows Node.js **26.x** with a warning. |
 | **Root cause** | The count is computed in the browser from the order list. Node.js version, Fluid Compute, and function region do not change it. Netlify sends `Cache-Control: max-age=0` on the page, so it loaded the paged list. Vercel can keep the previous page, and that page still stops after the first 1000 orders. |
-| **Fix** | `vercel.json` revalidates the page on every open. The service worker drops old caches and loads a fresh document. Node is pinned to **20.x**, the same as Netlify. In Vercel → Settings → Functions, set **Node.js Version** to **20.x** if the warning remains. Then hard-refresh the Vercel site once. |
+| **Fix** | `vercel.json` revalidates the page on every open. The service worker drops old caches and loads a fresh document. Vercel must build with Node **26.x** (`package.json` `engines`). Node 20 is discontinued on Vercel and the deploy fails. Netlify stays on Node 20. Hard-refresh the Vercel site once the new deploy is green. |
 | **Verify** | Complete orders, no search, no From/To. Vercel and Netlify show the same **Jobs processed** number. |
 
 ## Complete orders count looks short (Jobs processed)

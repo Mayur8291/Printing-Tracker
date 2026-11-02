@@ -1,8 +1,14 @@
 # Changelog
 
+## 2026-11-02 — Vercel build uses Node 26
+
+- **Bug fix:** The Vercel preview failed because Node `20.x` is discontinued there. `engines.node` is now `26.x`, which is what that project requires. Netlify still builds with Node 20.
+- **Files:** `package.json`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, ENVIRONMENTS.md.
+
 ## 2026-11-02 — Vercel picks up the full Complete orders count
 
-- **Bug fix:** Netlify already showed every completed job. Vercel could keep the old page, so **Jobs processed** stayed on the first 1000 orders. The page now revalidates, and the build Node matches Netlify (20.x).
+- **Bug fix:** Netlify already showed every completed job. Vercel could keep the old page, so **Jobs processed** stayed on the first 1000 orders. The page now revalidates. Vercel builds with Node 26 (`engines`). Netlify stays on Node 20.
 - **Files:** `vercel.json`, `public/sw.js`, `package.json`.
 - **Documentation updated:** CHANGELOG.md, DEBUGGING.md, ENVIRONMENTS.md.
 

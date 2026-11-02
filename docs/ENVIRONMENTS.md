@@ -222,4 +222,4 @@ npx supabase functions deploy admin-create-user
 
 GitHub `develop` is the source for the staging Vercel project. Production Branch should be **`develop`**. A new push to `develop` starts a build. If Git already matches remote (`Everything up-to-date`), Vercel will not rebuild until there is a new commit — use **Deployments → Redeploy**, or push a new `develop` commit.
 
-Build with **Node 20** (`package.json` `engines`). In the Vercel project, set **Node.js Version** to **20.x**. The function CPU, region, and Node warning do not change the Complete orders count. `vercel.json` tells the browser to revalidate the page so a new deploy replaces a cached list.
+Vercel rejects Node 20. `package.json` `engines.node` is **26.x**, and the Vercel project Node.js Version should be **26.x**. Netlify stays on Node 20 via `netlify.toml`. The function CPU and region do not change the Complete orders count. `vercel.json` tells the browser to revalidate the page so a new deploy replaces a cached list.
