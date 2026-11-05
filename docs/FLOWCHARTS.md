@@ -277,6 +277,18 @@ flowchart TD
   CloseBtn --> Open
 ```
 
+## Quantity change in order history
+
+```mermaid
+flowchart TD
+  Save[Admin saves a new qty] --> Diff{Total up or down?}
+  Diff -->|up| Up[Quantity increased by N]
+  Diff -->|down| Down[Quantity decreased by N]
+  Up --> Sizes[Append each size that moved]
+  Down --> Sizes
+  Sizes --> Hist[Order history line]
+```
+
 ## Printing orders list and Jobs processed
 
 ```mermaid

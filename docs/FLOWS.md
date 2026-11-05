@@ -353,6 +353,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 4. **Sent to Dispatch → Complete:** status `sent_to_dispatch` stamps `orders.status_sent_to_dispatch_at`. Existing poll/cron RPC `promote_stale_new_orders_to_pending` sets `is_complete = true` 10 minutes later. Job then appears on **Complete orders**. Client poll is every 30s while signed in; pg_cron every 10 min.
 5. **Failure:** Viewer cannot set `is_complete` from the app (trigger). Auto-complete uses a transaction GUC so the RPC write is allowed. Console `Auto status promote failed` if the RPC errors.
 6. **Automatic history:** that same RPC sets `app.activity_by_system`. `log_order_activity` then stores actor **System**. The history line reads **Updated by system**. A manual status change still stores the signed-in name. Older rows written before this fix keep the name they already have.
+7. **Quantity history:** an admin qty save writes **Quantity increased by N** or **Quantity decreased by N**, then the old total and the new total. If sizes moved in the same save, the same line adds **Sizes:** with each size, old qty, new qty, and the change, for example `M 30 → 32 (+2)`. A size-only save uses that same size line. Older history rows stay as `Quantity updated: 62 → 64`.
 
 ### Printing orders — cancel
 

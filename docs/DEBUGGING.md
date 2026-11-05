@@ -1,5 +1,14 @@
 # Debugging
 
+## Quantity history does not name the sizes
+
+| | |
+|--|--|
+| **Symptom** | Order history says **Quantity updated: 62 → 64** and does not say the increase or which size changed. |
+| **Root cause** | `log_order_activity` stored only the old total and the new total. Size changes were a separate line, **Size breakdown updated**, with no sizes. |
+| **Fix** | Staging migration `20261105133000_qty_history_names_sizes.sql`. A new qty save says **Quantity increased by 2: 62 → 64. Sizes: M 30 → 32 (+2)**. Older rows are not rewritten. |
+| **Verify** | Admin changes one size so the total goes up. Open Order history. The new quantity line names the increase and that size. |
+
 ## Ops Platform group is missing
 
 | | |

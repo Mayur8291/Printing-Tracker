@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-05 — Quantity history names the sizes
+
+- **Change:** When an admin changes qty, Order history says how much it increased or decreased and which sizes moved (`M 30 → 32 (+2)`). Older history lines stay as they were.
+- **Files:** `supabase/migrations/20261105133000_qty_history_names_sizes.sql`.
+- **Migration:** Applied on staging `scvojtvgnkmbupvyslmb` only.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-05 — Remove the Ops Platform sidebar
 
 - **Change:** The Ops Platform group and its six screens are gone: Platform Masters, Stock Ledger, Procurement, Sales Orders, Billing & AR, Uniware Bridge. Workspace Billing, Inventory, Purchase Order, and the Scott API tabs stay. Step 0–5 tables were not dropped.

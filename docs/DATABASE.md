@@ -1165,6 +1165,8 @@ Append-only timeline for printing orders and production job sheets (same `orders
 
 **Job sheet event types (added 20260703190000):** `job_sheet_created`, `sales_incharge_updated`, `product_name_updated`, `colors_updated`, `size_type_updated`, `gender_updated`, `product_type_updated`, `rate_per_piece_updated`, `size_breakdown_updated`, `brand_updated`, `fabric_type_updated`, `gsm_updated`, `branding_updated`, `atta_updated`, `expected_handover_updated`, `job_sheet_payment_updated`, `job_sheet_advance_proof_uploaded`, `job_sheet_payment_proof_uploaded`, `job_sheet_delivery_updated`, `job_sheet_approval_updated`, `job_sheet_regular_stock_updated`.
 
+**Quantity message:** `qty_updated` says increased or decreased by the difference, then old total → new total. When `size_breakdown` changed on that same save, the message appends each size that moved (`M 30 → 32 (+2)`). `order_size_adjustment_text` builds that size line. Rows written before `20261105133000` keep the short `Quantity updated` text.
+
 **UI labels:** `src/orderHistoryUtils.js` maps `event_type` → display label; modal title is **Job sheet history** when `is_production_order`.
 
 ### Migrations (activity log)
@@ -1173,3 +1175,4 @@ Append-only timeline for printing orders and production job sheets (same `orders
 |-----------|--------|
 | `20260520180000_add_order_activity_log.sql` | Table + initial trigger |
 | `20260703190000_job_sheet_activity_log.sql` | Job sheet field logging in trigger |
+| `20261105133000_qty_history_names_sizes.sql` | Qty history names the increase and the sizes. Applied on staging. |
