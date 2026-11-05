@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-05 — Cancel an on-hold printing order
+
+- **Feature:** **On hold** rows have **Cancel order**. A reason is required. The job leaves On hold and opens on **Cancelled orders**.
+- **Files:** `src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
 ## 2026-11-02 — Vercel build uses Node 26
 
 - **Bug fix:** The Vercel preview failed because Node `20.x` is discontinued there. `engines.node` is now `26.x`, which is what that project requires. Netlify still builds with Node 20.

@@ -352,10 +352,10 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 ### Printing orders — cancel
 
-1. **Trigger:** Printing **All orders** row, or View order footer → **Cancel order**. Same people who can edit status (admin, or viewer with `can_edit_status`). Hidden on job sheets, sample job sheets, complete jobs, and jobs already cancelled.
+1. **Trigger:** Printing **All orders** row, **On hold** row, or View order footer → **Cancel order**. Same people who can edit status (admin, or viewer with `can_edit_status`). Hidden on job sheets, sample job sheets, complete jobs, and jobs already cancelled. A job on hold can be cancelled from the **On hold** tab.
 2. **Reason:** Dialog textarea. Empty reason is blocked in the dialog and by `orders_cancellation_reason_check`.
-3. **Save:** `status = cancelled`, `cancellation_reason`, `cancelled_at`, `cancelled_by`. Status is not in the normal status dropdown, so cancel cannot skip the reason.
-4. **Lists:** **Cancelled orders** shows `status = cancelled`. **All orders** and **Complete orders** hide those rows. The list switches to Cancelled orders after a successful cancel.
+3. **Save:** `status = cancelled`, `cancellation_reason`, `cancelled_at`, `cancelled_by`. Hold columns are cleared so the job leaves **On hold**. Status is not in the normal status dropdown, so cancel cannot skip the reason.
+4. **Lists:** **Cancelled orders** shows `status = cancelled`. **All orders**, **On hold**, and **Complete orders** hide those rows. The list switches to Cancelled orders after a successful cancel.
 5. **History:** message `Order cancelled. Reason: …` and **By {name}** of the person who cancelled.
 6. **Failure:** DB error stays in an alert and the dialog stays open. Production does not have these columns until a production release.
 

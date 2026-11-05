@@ -4948,13 +4948,17 @@ function App() {
     const text = String(reason ?? "").trim();
     if (!text) return;
     setCancelOrderSaving(true);
+    const cancelledAt = new Date().toISOString();
     const { error } = await supabase
       .from("orders")
       .update({
         status: "cancelled",
         cancellation_reason: text,
-        cancelled_at: new Date().toISOString(),
-        cancelled_by: session?.user?.id ?? null
+        cancelled_at: cancelledAt,
+        cancelled_by: session?.user?.id ?? null,
+        on_hold_reason: null,
+        on_hold_at: null,
+        on_hold_by: null
       })
       .eq("id", order.id);
     setCancelOrderSaving(false);
@@ -4963,6 +4967,7 @@ function App() {
       return;
     }
     setCancelOrderTarget(null);
+    setStatusUpdates((prev) => ({ ...prev, [order.id]: "cancelled" }));
     setOrders((prev) =>
       prev.map((o) =>
         o.id === order.id
@@ -4970,8 +4975,11 @@ function App() {
               ...o,
               status: "cancelled",
               cancellation_reason: text,
-              cancelled_at: new Date().toISOString(),
-              cancelled_by: session?.user?.id ?? null
+              cancelled_at: cancelledAt,
+              cancelled_by: session?.user?.id ?? null,
+              on_hold_reason: null,
+              on_hold_at: null,
+              on_hold_by: null
             }
           : o
       )
@@ -6056,7 +6064,8 @@ function App() {
                                   <TableCell>
                                     <div className="flex flex-col items-start gap-1">
                                       <OrderViewActionCell order={order} onViewOrder={openViewOrder} />
-                                      {ordersTab === "active" && canCancelPrintingOrder(order) ? (
+                                      {(ordersTab === "active" || ordersTab === "on_hold") &&
+                                      canCancelPrintingOrder(order) ? (
                                         <Button
                                           type="button"
                                           variant="link"

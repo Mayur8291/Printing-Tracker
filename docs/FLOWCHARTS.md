@@ -353,12 +353,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  Btn[Cancel order] --> Reason[Reason textarea]
+  All[All orders row] --> Btn[Cancel order]
+  Hold[On hold row] --> Btn
+  View[View order footer] --> Btn
+  Btn --> Reason[Reason textarea]
   Reason --> Empty{Reason filled?}
   Empty -->|no| Reason
   Empty -->|yes| Save[status cancelled plus reason]
-  Save --> Tab[Cancelled orders tab]
-  Save --> Hist[History By person plus reason]
+  Save --> Clear[Clear on hold columns]
+  Clear --> Tab[Cancelled orders tab]
+  Clear --> Hist[History By person plus reason]
 ```
 
 ## Inventory facility transfer

@@ -27,6 +27,15 @@
 | **Fix** | `order_status_notifications.note` stores the reason. The trigger alerts `created_by` on On hold unless that same person made the change. Staging migration `20261102082914_on_hold_creator_alert_and_util_dates.sql`. |
 | **Verify** | User A creates the job. User B puts it on hold with a reason. User A gets **Order on hold** and the reason. User B does not get that alert. |
 
+## On hold tab has no Cancel order
+
+| | |
+|--|--|
+| **Symptom** | A printing job on the **On hold** tab cannot be cancelled. **All orders** has **Cancel order**. |
+| **Root cause** | The row button was only rendered on **All orders**. Cancel itself already allows a held job. |
+| **Fix** | **On hold** shows the same **Cancel order** button. A reason is required. Save sets `cancelled`, clears the hold columns, and opens **Cancelled orders**. |
+| **Verify** | Put a printing order on hold. On **On hold**, click **Cancel order**, type a reason, confirm. The job leaves **On hold** and appears on **Cancelled orders** with that reason. |
+
 ## On hold saves with no reason / On hold tab is empty
 
 | | |
