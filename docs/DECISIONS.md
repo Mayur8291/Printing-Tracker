@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-05 — Ops Platform sidebar removed
+
+**Context:** The sidebar group Ops Platform (Platform Masters, Stock Ledger, Procurement, Sales Orders, Billing & AR, Uniware Bridge) was not part of daily printing work.
+
+**Decision:** Remove the group and those six screens. Do not drop the Step 0–5 tables. Leave Workspace Billing, Inventory, Purchase Order, and the Scott API tabs in place.
+
+**Tradeoffs:** The old screens cannot be opened. The data remains in the database.
+
 ## 2026-11-02 — On-hold alert goes to the job creator
 
 **Context:** The person who created the job did not see why it was put on hold. Utilization export always dumped every row.

@@ -286,7 +286,7 @@ Foundation masters for the Scott Ops Platform roadmap ([ONE_SOURCE_OF_TRUTH_ROAD
 
 **Rollback:** drop the 19 tables + `core_next_sequence`, `audit_row_change`, `set_updated_at`. No existing table was altered.
 
-**UI:** admin-only **Platform Masters** tab (`MastersPanel.jsx`) — Parties / SKUs / Entities & GSTINs / Locations, with CSV import + dedupe report for Parties and SKUs (see FLOWS.md → Platform Masters).
+**UI:** The Platform Masters screen was removed from the sidebar. The tables remain. CSV import lived on that screen (see FLOWS.md → Platform Masters).
 
 ## Enquiries
 

@@ -1,5 +1,14 @@
 # Debugging
 
+## Ops Platform group is missing
+
+| | |
+|--|--|
+| **Symptom** | Sidebar has no **Ops Platform**, Platform Masters, Stock Ledger, Procurement, Sales Orders, Billing & AR, or Uniware Bridge. |
+| **Root cause** | Those screens were removed from the sidebar and are no longer mounted. |
+| **Fix** | Use Workspace **Billing**, **Inventory**, and **Purchase Order**. The Scott API group is unchanged. The Step 0–5 tables were not dropped. |
+| **Verify** | Reload the dashboard. The Ops Platform heading is gone. Home still opens. |
+
 ## Vercel still shows the short Complete orders count
 
 | | |

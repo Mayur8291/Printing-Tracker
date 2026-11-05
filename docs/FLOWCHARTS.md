@@ -563,6 +563,10 @@ flowchart TD
 
 ## Platform Masters CSV import (dedupe report)
 
+The Platform Masters screen is no longer in the sidebar. This diagram is the old import path.
+
+
+
 ```mermaid
 flowchart TD
   Admin[Admin opens Platform Masters] --> Tab{Parties or SKUs tab}

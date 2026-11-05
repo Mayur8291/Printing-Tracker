@@ -11,6 +11,10 @@
 7. **Edge:** two saves at once may clash on tag; insert retries a new tag. Empty name blocked. Unassigned + Checked out blocked by DB check.
 8. **Exit:** Assets table shows the new Tag / name / status. Refresh or leave tab and return still shows it.
 
+## Ops Platform sidebar (removed)
+
+The **Ops Platform** group is gone: Platform Masters, Stock Ledger, Procurement, Sales Orders, Billing & AR, Uniware Bridge. Those screens are not in the sidebar and are not mounted. Workspace **Billing**, **Inventory**, **Purchase Order**, and the Scott API tabs stay. The Step 0–5 tables stay. The sections below describe the screens that were removed.
+
 ## Uniware Bridge (Step 5, One Source of Truth)
 
 Admin-only tab **Uniware Bridge** (`ops_uniware`, Ops Platform). Distinct from Inventory and Stock Ledger. Boundary: [UNIWARE_BOUNDARY.md](./UNIWARE_BOUNDARY.md).

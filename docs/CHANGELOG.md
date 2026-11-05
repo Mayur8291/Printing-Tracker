@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-05 — Remove the Ops Platform sidebar
+
+- **Change:** The Ops Platform group and its six screens are gone: Platform Masters, Stock Ledger, Procurement, Sales Orders, Billing & AR, Uniware Bridge. Workspace Billing, Inventory, Purchase Order, and the Scott API tabs stay. Step 0–5 tables were not dropped.
+- **Files:** `dashboardSidebarConfig.js`, `App.jsx`, deleted `MastersPanel.jsx`, `StockLedgerPanel.jsx`, `ProcurementPanel.jsx`, `SalesOrdersPanel.jsx`, `BillingArPanel.jsx`, `UniwareBridgePanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, OVERVIEW.md, FLOWS.md, FLOWCHARTS.md, DECISIONS.md, DEBUGGING.md.
+
 ## 2026-11-05 — Cancel an on-hold printing order
 
 - **Feature:** **On hold** rows have **Cancel order**. A reason is required. The job leaves On hold and opens on **Cancelled orders**.

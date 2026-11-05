@@ -15,6 +15,8 @@
 
 There is **no application server** in-repo between the browser and Supabase (except Edge Functions for admin).
 
+The Ops Platform sidebar screens are not mounted. Workspace Billing, Inventory, Purchase Order, and the Scott API tabs stay. Step 0–5 tables stay in Postgres.
+
 ## Dependency direction
 
 ```text
