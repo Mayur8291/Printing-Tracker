@@ -26,6 +26,7 @@ def failure_reason(error):
         'Imported tables unexpectedly exposed',
         'Destination schema/access drift: review before refresh',
         'Unexpected destination table inventory',
+        'Media transfer failed; previous publication preserved',
     }
     return str(error) if str(error) in safe else type(error).__name__
 
@@ -58,11 +59,11 @@ def main():
                 status.execute('UPDATE sa_sync.jobs SET backup_prefix=%s,heartbeat_at=now() WHERE id=%s',(result['prefix'],job_id))
                 return result
             report=run(environment,progress=progress,backup=backup,discard_revision=job[1],job_id=job_id)
-            summary={k:report[k] for k in ['changes','tables','rows','users','auth_enrollment','public_schema_unchanged','staff_auth_unchanged']}
+            summary={k:report[k] for k in ['changes','tables','rows','users','auth_enrollment','public_schema_unchanged','staff_auth_unchanged','media']}
             with status.transaction():
-                status.execute("UPDATE sa_sync.jobs SET status='succeeded',stage='verified',finished_at=now(),heartbeat_at=now(),summary=%s,message=NULL WHERE id=%s",(Jsonb(summary),job_id))
+                status.execute("UPDATE sa_sync.jobs SET status='succeeded',stage=%s,finished_at=now(),heartbeat_at=now(),summary=%s,message=NULL WHERE id=%s",('verified' if summary['media']['complete'] else 'verified_with_warnings',Jsonb(summary),job_id))
                 status.execute('UPDATE sa_sync.environment_state SET active_job=NULL,updated_at=now() WHERE active_job=%s',(job_id,))
-            print('Refresh verified and committed.',flush=True)
+            print('Refresh published with media exceptions.' if not summary['media']['complete'] else 'Refresh verified and committed.',flush=True)
         except Exception as error:
             # A network failure after COMMIT is resolved from the transaction's own journal.
             with connect(environment) as conn:
@@ -70,6 +71,7 @@ def main():
                 with conn.transaction():
                     conn.execute("UPDATE sa_sync.jobs SET status=%s,stage=%s,finished_at=now(),message=%s WHERE id=%s",
                         ('succeeded' if committed else 'failed','verified' if committed else 'failed',None if committed else 'Refresh stopped before verified publication ('+failure_reason(error)+'). The previous data remains available.',job_id))
+                    if committed:conn.execute('UPDATE sa_sync.jobs SET summary=%s WHERE id=%s',(Jsonb({k:committed[0].get(k) for k in ['changes','tables','rows','users','auth_enrollment','public_schema_unchanged','staff_auth_unchanged','media']}),job_id))
                     conn.execute('UPDATE sa_sync.environment_state SET active_job=NULL,updated_at=now() WHERE active_job=%s',(job_id,))
             if not committed: raise RuntimeError('Refresh failed: '+failure_reason(error)+'. Consult the admin job status.') from None
         finally: stopped.set();thread.join(timeout=2)

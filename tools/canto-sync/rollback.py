@@ -4,6 +4,7 @@ import argparse,datetime,gzip,json,os,sys,uuid
 from pathlib import Path
 from snapshot import ROOT,require,fingerprint
 from database import connect
+import media_sync
 from delta_sync import check_catalog,plan_delta,publish_delta,preflight_capacity
 from sync import save,log
 os.umask(0o077)
@@ -33,7 +34,8 @@ def rollback(environment,backup_dir):
         if changes:preflight_capacity(environment,totals['delta_bytes'])
         admin_file=backup_dir/'admin-state.json'
         admin_restore=json.loads(admin_file.read_text()) if admin_file.exists() else None
-        result=publish_delta(conn,environment,manifest,keys,changes,directory,before,audit,admin_restore=admin_restore)
+        prepared_media=media_sync.prepare_restore(conn,backup_dir,environment)
+        result=publish_delta(conn,environment,manifest,keys,changes,directory,before,audit,admin_restore=admin_restore,prepared_media=prepared_media)
         save(directory/'rollback-report.json',{**audit,**result,'status':'success','changes':totals})
         log('ROLLBACK VERIFIED '+environment+' '+str(directory/'rollback-report.json'))
 

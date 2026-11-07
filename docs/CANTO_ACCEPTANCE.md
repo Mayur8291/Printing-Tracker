@@ -61,7 +61,7 @@ Publication compares preservation checks within a consistent transaction snapsho
 - Initial browser acceptance used the local admin against the deployed staging API. After the dashboard-session correction, the canonical live URL `https://scottdashboard.vercel.app` passed actual browser acceptance using a temporary staging administrator: one dashboard login, real Masters rows, refresh history, reload, zero wrong-project requests and zero browser exceptions. Generated preview URLs remain protected by Vercel sign-in.
 - The pre-existing Scott configuration CI check reports missing production `SCOTT_AUTH_EMAIL` / `SCOTT_AUTH_PASSWORD`. It is not reported as passing.
 - Expo is a starter, not the completed mobile app. Native bundles were exported; a physical device/simulator run has not been performed.
-- Existing imported media still uses its legacy URLs. Newly uploaded images use Supabase Storage; transferring old files is a separate task.
+- Imported media migration is implemented below. Newly uploaded Masters images continue using their existing Supabase bucket.
 
 The authorized production release used `tools/canto-sync/.venv/bin/python tools/canto-sync/deploy_admin.py production`. That command installed only the reviewed Canto migrations, exposed the guarded RPC schema, deployed the controller and selected the `main` worker. Do not substitute an unrelated blanket migration push. The database refresh remains one-way and requires explicit confirmation before replacing Supabase edits; cutover disables old-system refresh.
 
@@ -74,3 +74,13 @@ Masters previously remembered its own environment and could show Production whil
 Regression: `apps/admin/tests/canto-dashboard-session.mjs` uses a real staging dashboard login with conflicting saved Production targets, verifies authenticated master reads and refresh history, checks reload behavior, and asserts no production requests or browser exceptions. It separately verifies production client resolution without moving staging credentials or writing production data. The UI build gate also passed.
 
 Hosted verification of runtime commit `b39150c`: `CANTO_TEST_URL=https://scottdashboard.vercel.app node apps/admin/tests/canto-hosted-session.mjs` passed after Vercel deployed the `develop` push. This verifies the correction on the canonical live site supplied in the user screenshot. No database migrations, production database writes, master changes or refresh jobs were needed for this correction.
+
+## Media refresh implementation
+
+The refresh now inventories source file references, copies available files into private, immutable Supabase Storage objects, verifies every file with a SHA-256 read-back, and publishes media mappings in the same transaction as the snapshot and Auth updates. Each environment reads only its matching source. Missing files stay explicitly reported; external service links are preserved rather than downloaded as HTML.
+
+Staging backfill `20261107070904_819a56` published successfully: 10,379 source URLs checked, 1,403 available files verified (900,916,209 source bytes), 8,976 missing source files and 21 external references. Two connection resets in the first attempt blocked publication; the retry completed with zero transfer errors and reused verified objects. This is a successful refresh with reported exceptions, not a claim that missing files were recovered.
+
+Real staging checks passed: migrated images decode with all DigitalOcean requests blocked; public/anonymous access is denied; normal administrator edits preserve permanent image references; forced publication rollback preserves the previous mapping; recovery validates an authentic retained object checksum. The exception list renders in the dashboard. UI build, nine source-schema tests, six media tests and encrypted-backup tamper tests passed.
+
+Production deployment and cloud refresh acceptance are in progress; no production media completion is claimed by this entry.

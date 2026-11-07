@@ -5,7 +5,7 @@ from database import connect
 from management import api,query,token,PROJECTS
 from snapshot import require
 ROOT=Path(__file__).resolve().parents[2]
-MIGRATIONS=['20261107045242_canto_admin_masters','20261107050603_canto_refresh_jobs','20261107060300_canto_staff_login_guard']
+MIGRATIONS=['20261107045242_canto_admin_masters','20261107050603_canto_refresh_jobs','20261107060300_canto_staff_login_guard','20261107064651_canto_media_sync','20261107065236_canto_media_reporting']
 
 def preflight(environment):
     rows=query(environment,"SELECT c.relname,a.attname,format_type(a.atttypid,NULL) AS type FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='sa_snapshot_20261019' AND c.relkind='r' AND a.attnum>0 AND NOT a.attisdropped")
@@ -33,6 +33,12 @@ def deploy(environment,check_only=False):
                     conn.execute(body)
                     conn.execute('INSERT INTO supabase_migrations.schema_migrations(version,name,statements) VALUES(%s,%s,%s)',(version,name,[body]))
             conn.execute('UPDATE sa_sync.environment_state SET environment=%s WHERE singleton',(environment,))
+    storage=api(environment,'/config/storage')
+    previous_limit=storage.get('fileSizeLimit',52428800)
+    if previous_limit<1073741824:
+        # Preserve every existing bucket's effective limit when raising the global ceiling.
+        with connect(environment) as c:c.execute("UPDATE storage.buckets SET file_size_limit=%s WHERE id<>'canto-media' AND file_size_limit IS NULL",(previous_limit,))
+        api(environment,'/config/storage',{'fileSizeLimit':1073741824},method='PATCH')
     settings=api(environment,'/postgrest');schemas=[s.strip() for s in settings['db_schema'].split(',')]
     if 'canto_api' not in schemas:api(environment,'/postgrest',{'db_schema':','.join(schemas+['canto_api'])},method='PATCH')
     api(environment,'/secrets',[{'name':'CANTO_GITHUB_TOKEN','value':github},{'name':'CANTO_WORKFLOW_REF','value':'main' if environment=='production' else 'develop'}])

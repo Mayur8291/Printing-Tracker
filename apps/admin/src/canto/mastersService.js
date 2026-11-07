@@ -10,7 +10,7 @@ export function createSupabaseMastersService(config) {
   function normalize(row) {
     if (!row) return null;
     // Resolve legacy upload paths against the dashboard's selected environment.
-    const sourceHost = environment === "production" ? "http://165.22.210.53" : "http://64.227.186.227";
+    const sourceHost = environment === "production" ? "https://leaderboard.sagarfab.com" : "http://64.227.186.227";
     const resolved = Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === "string" && value.startsWith("/uploads/") ? sourceHost + value : value]));
     return { ...config.normalize(resolved), updated_at: row.updated_at, _source: row };
   }

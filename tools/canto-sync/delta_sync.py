@@ -8,6 +8,7 @@ from snapshot import ROOT,extract,require,file_hash
 from database import connect,ident,cols,content,verify,verify_sequences,sequence_state,public_structure,staff_auth,SCHEMA
 from management import api,PROJECTS
 from auth_sync import enroll
+import media_sync
 from sync import capture,check_capture,save,log,set_sequences,preserve_reservations,foreign_keys,record_run
 os.umask(0o077)
 
@@ -86,6 +87,7 @@ def plan_delta(conn,manifest,keys,directory,source_dir):
         save(backup/'admin-state.json',{'media':conn.execute("SELECT coalesce(jsonb_agg(to_jsonb(m)),'[]') FROM sa_admin.media m").fetchone()[0],
             'extras':conn.execute("SELECT coalesce(jsonb_agg(to_jsonb(e)),'[]') FROM sa_admin.record_extras e").fetchone()[0],
             'state':conn.execute('SELECT to_jsonb(s) FROM sa_sync.environment_state s WHERE singleton').fetchone()[0]})
+    media_sync.backup_state(conn,backup)
     save(backup/'manifest.json',before)
     return changes,totals,before
 
@@ -124,7 +126,7 @@ def apply_changes(conn,manifest,keys,changes,directory):
         conn.execute(sql.SQL(';').join(sql.SQL('ALTER TABLE {} ALTER CONSTRAINT {} NOT DEFERRABLE INITIALLY IMMEDIATE').format(ident(SCHEMA,t),sql.Identifier(n)) for t,n,_ in fks))
     set_sequences(conn,SCHEMA,manifest,None)
 
-def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,inject_failure=False,admin_revision=None,admin_restore=None,progress=None):
+def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,inject_failure=False,admin_revision=None,admin_restore=None,progress=None,prepared_media=None):
     check_catalog(conn,environment)
     with conn.transaction():
         # Compare our own effects against one MVCC snapshot. Independent staff sign-ins
@@ -157,12 +159,14 @@ def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,in
             conn.execute('DELETE FROM sa_admin.record_extras')
             conn.execute('DELETE FROM sa_admin.media')
             conn.execute('UPDATE sa_sync.environment_state SET synced_revision=edit_revision,updated_at=now() WHERE singleton AND edit_revision=%s',(admin_revision,))
+        if prepared_media is not None:media_sync.publish(conn,prepared_media)
         require(public_structure(conn)==pub,'Public schema changed during refresh')
         require(staff_auth(conn)==staff,'Existing staff Auth records changed during refresh')
         if inject_failure:raise RuntimeError('Injected failure before publication commit')
         result={'auth_enrollment':auth_result,'public_schema_unchanged':True,'public_schema_sha256':pub,'staff_auth_unchanged':True,
             'existing_staff_auth_count':len(staff),'rollback_directory':str(run_dir/'before'),
             'unchanged':not changes,'table_content':manifest['tables']}
+        if prepared_media is not None:result['media']=prepared_media['summary']
         record_run(conn,audit,result)
     return result
 
@@ -201,8 +205,12 @@ def run(environment,reuse=None,inject_failure=False,progress=None,backup=None,di
             if backup:
                 if progress:progress('backing_up',{'changes':totals})
                 report['backup']=backup(conn,directory,report)
-            if progress:progress('applying',{'changes':totals})
-            result=publish_delta(conn,environment,manifest,keys,changes,directory,before,report,inject_failure,admin_revision,progress=progress)
+            if progress:progress('copying_media',{})
+            prepared_media=media_sync.prepare(conn,environment,source_dir,manifest,progress)
+            save(directory/'media-manifest.json',prepared_media)
+            report['media']=prepared_media['summary']
+            if progress:progress('applying',{'changes':totals,'media':report['media']})
+            result=publish_delta(conn,environment,manifest,keys,changes,directory,before,report,inject_failure,admin_revision,progress=progress,prepared_media=prepared_media)
             report.update(result,status='success',finished_at=datetime.datetime.now(datetime.timezone.utc).isoformat())
             save(path,report);log('SUCCESS '+environment+'; '+str(path))
             if progress:progress('verified',{'changes':totals,'auth_enrollment':result['auth_enrollment']})

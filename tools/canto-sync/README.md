@@ -108,4 +108,59 @@ Recovery: run `encrypted_backup.py ENVIRONMENT JOB_UUID NEW_PRIVATE_DIRECTORY`, 
 
 The existing snapshot and identity migration must already be installed. From the repository root, use `tools/canto-sync/.venv/bin/python tools/canto-sync/deploy_admin.py staging` to apply and record only the Canto administration and staff-login guard migrations, expose the guarded RPC schema, and deploy the controller. `deploy_admin.py production --check` is a read-only compatibility check. A production release requires the repository's explicit release authorization; after the reviewed code reaches `main`, the same deployment command with `production` configures that controller to dispatch the `main` worker. Do not run a blanket database push to reconcile unrelated historical migrations.
 
-Private App Asset companion fields preserve the form's name and add-on selection, which the legacy snapshot table does not contain. These values, like companion media links, are included in recovery archives and replaced on an explicitly confirmed refresh. Legacy imported image files themselves remain on their original server until a separate file migration. Supabase uploads are already independent.
+Private App Asset companion fields preserve the form's name and add-on selection, which the legacy snapshot table does not contain. These values, like companion media links, are included in recovery archives and replaced on an explicitly confirmed refresh. Legacy file references are resolved through the persistent media index described below; new dashboard uploads remain independent and participate in the existing edit/refresh confirmation flow.
+
+## Media refresh
+
+The refresh now inventories all reviewed Rails uploader fields, nested JSON file references,
+and URLs in other snapshot text fields. `media-contracts.json` lists the uploader mounts.
+Source paths are reconstructed from the inspected CarrierWave storage layout. Only the
+matching reviewed origin is fetched: staging uses its own IP, production uses the verified
+HTTPS application domain. Redirects and arbitrary hosts are not followed. No production
+fallback is permitted for missing staging files.
+
+`sa_media.objects` records verified immutable SHA-256 objects in the private `canto-media`
+bucket; `sa_media.references` maps original resource/record/field/JSON-pointer references
+without changing snapshot values. Missing source files and external links are recorded
+explicitly. External YouTube/Drive links are retained as external references, not downloaded
+as if their HTML pages were media. The existing snapshot parity checks still cover every row.
+
+The worker fetches source bytes on each refresh, so a replacement at the same filename is
+noticed. New objects use a standard upload up to 6 MiB and resumable TUS above it. Uploaded
+objects are read back and SHA-256 verified; previously cached objects are verified again.
+Completed objects persist across interrupted runs. TUS retries recover an acknowledged
+server offset after a lost network response. A process restart can reuse completed objects;
+an unfinished individual upload may restart. Eight streams and a 1 GiB per-file limit bound
+resources. Larger files stop publication with a diagnostic and require a reviewed capacity
+change. Existing buckets retain their previous effective limits when the project's global
+ceiling is raised for the new bucket.
+
+Media objects are prepared before the database transaction. References, snapshot rows,
+Auth state, and the commit journal publish together. HTTP 404/410 files remain explicit
+missing-file exceptions, as requested by the owner; other transfer failures prevent
+publication. A run with missing/external references is labelled **Published — media needs
+attention**, never a complete media migration. The Data Refresh page lists exceptions and
+can download the entire report. The source file collection has a capture interval; without
+a source filesystem snapshot it cannot claim all files existed at one atomic instant with
+the database dump. The worker makes no DigitalOcean code/configuration changes.
+
+The API returns permanent media object references to the dashboard client, which obtains
+one-hour signed links using its existing session. The bucket is private and guarded by the
+live-session administrator policy. Anonymous and imported customer roles cannot read it.
+Future customer-facing Expo services must add record-level media access alongside their
+business-data authorization; do not make this bucket public to bypass that work.
+
+Recovery archives include the media references and object metadata. All immutable file
+versions remain in Storage; no automatic deletion/garbage collection is performed. Rollback
+verifies the referenced objects before its publication transaction and restores the matching
+media mappings with the database. A backup predating media metadata is rejected rather than
+silently restoring mismatched media. Only prune objects after proving that neither a current
+reference nor any retained rollback generation needs them. Back up the Storage corpus before
+removing the project; the encrypted database archive contains mappings, not a second copy of
+all media bytes.
+
+Tests: `tests/test_media.py` covers COPY decoding, environment/path safety, nested references,
+same-path replacements, missing files, retries/deduplication and resumable lost-response
+handling. `test_media_database.py` checks real staging mapping rollback, recovery checksums
+and role denial. `apps/admin/tests/canto-media.mjs` verifies actual rendering and reporting
+with all DigitalOcean media requests blocked. These do not alter the old application.

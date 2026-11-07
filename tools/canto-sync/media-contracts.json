@@ -1,0 +1,103 @@
+{
+  "add_ons": {
+    "fields": [
+      "image"
+    ],
+    "model": "add_on"
+  },
+  "asset_infos": {
+    "fields": [
+      "asset"
+    ],
+    "model": "asset_info"
+  },
+  "authorized_brands": {
+    "fields": [
+      "logo"
+    ],
+    "model": "authorized_brand"
+  },
+  "base_product_types": {
+    "fields": [
+      "image"
+    ],
+    "model": "base_product_type"
+  },
+  "base_products": {
+    "fields": [
+      "image"
+    ],
+    "model": "base_product"
+  },
+  "brandings": {
+    "fields": [
+      "image",
+      "mockup_image",
+      "attachment"
+    ],
+    "model": "branding"
+  },
+  "bulk_uploads": {
+    "fields": [
+      "file"
+    ],
+    "model": "bulk_upload"
+  },
+  "catalogues": {
+    "fields": [
+      "url"
+    ],
+    "model": "catalogue"
+  },
+  "fabrics": {
+    "fields": [
+      "image"
+    ],
+    "model": "fabric"
+  },
+  "product_images": {
+    "fields": [
+      "image"
+    ],
+    "model": "product_image"
+  },
+  "promotional_banners": {
+    "fields": [
+      "image"
+    ],
+    "model": "promotional_banner"
+  },
+  "promotions": {
+    "fields": [
+      "thumbnail"
+    ],
+    "model": "promotion"
+  },
+  "rmp_categories": {
+    "fields": [
+      "image"
+    ],
+    "model": "rmp_category"
+  },
+  "rmp_classes": {
+    "fields": [
+      "image_1",
+      "image_2",
+      "image_3",
+      "image_4",
+      "image_5",
+      "image_1_thumb",
+      "image_2_thumb",
+      "image_3_thumb",
+      "image_4_thumb",
+      "image_5_thumb"
+    ],
+    "model": "rmp_class"
+  },
+  "users": {
+    "fields": [
+      "profile_image"
+    ],
+    "model": "user"
+  }
+}

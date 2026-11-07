@@ -1,3 +1,4 @@
+import { resolveMedia } from "./media";
 import { supabase } from "../supabaseClient";
 import { getRuntimeEnv } from "../runtimeEnv";
 import { getResolvedScottApiTarget } from "../scott/scottRuntime";
@@ -30,6 +31,6 @@ export async function cantoRpc(name, args, environment = getCantoTarget().enviro
   if (!session) throw new Error("Your dashboard session has expired. Please sign in again.");
   const { data, error } = await client.schema("canto_api").rpc(name, args);
   if (error) throw new Error(error.message || "The operation failed.");
-  return data;
+  return resolveMedia(data, client);
 }
 export function defaultRefreshEnvironment() { return dashboardEnvironment; }
