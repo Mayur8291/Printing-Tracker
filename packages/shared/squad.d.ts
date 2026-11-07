@@ -3,6 +3,8 @@ export type EntityId = string;
 export type Version = `${number}:${number}`;
 export type Persona = 0|1|2|3|4|7|8|9|10|11|12;
 export interface Command { expectedVersion: Version; idempotencyKey: string }
+export interface CreateCommand { expectedVersion?: null; idempotencyKey: string }
+export interface SavedEntity { id: EntityId; version: Version }
 export interface PageRequest { cursor?: string|null; limit?: number }
 export interface Page<T> { data: T[]; next_cursor: string|null }
 export interface Person {
@@ -42,6 +44,23 @@ export interface Dashboard {
   orders: number; pending: number; completed: number; cancelled: number;
   quantity: number; dispatched: number; as_of: string; total_amount?: string;
 }
+export interface Task extends SavedEntity {
+  note:string; state:0|1|2; deadline:string; creator_id:EntityId; order_id:EntityId|null;
+  assignee_ids:EntityId[]; updated_at:string;
+}
+export interface TaskInput { id?:EntityId; note:string; deadline:string; orderId?:EntityId|null; assigneeIds:EntityId[] }
+export interface Responsibility extends SavedEntity { subject_id:EntityId;kind:0|1|2;note:string;completed:boolean }
+export interface ResponsibilityInput { id?:EntityId;subject_id:EntityId;kind:0|1|2;note:string;expected_version?:Version }
+export interface Milestone extends SavedEntity {
+  subject_id:EntityId;name:string;start:string;end:string;target_amount:string;
+  placed_amount:string;completed_amount:string;order_count:number;achieved:boolean;current:boolean;
+}
+export interface MilestoneInput { id?:EntityId;subjectId:EntityId;start:string;end:string;amount:string;name:string }
+export interface MilestoneProgress {
+  id:EntityId;subject_id:EntityId;target_amount:string;placed_amount:string;completed_amount:string;
+  order_count:number;year_to_date_placed:string;year_to_date_completed:string;
+  period_start_utc:string;period_end_exclusive_utc:string;as_of:string;
+}
 export interface ProfileFields {
   name?: string; phone?: string|null; company_name?: string|null;
   first_name?: string|null; last_name?: string|null;
@@ -71,4 +90,16 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
   order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;items:Page<OrderItem>}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
+  tasks(filters?: {state?:0|1|2;orderId?:EntityId},page?:PageRequest):Promise<Page<Task>>;
+  task(id:EntityId):Promise<Task>;
+  taskAssignees(page?:PageRequest):Promise<Page<{id:EntityId;name:string;role:number}>>;
+  saveTask(task:TaskInput,command:Command|CreateCommand):Promise<SavedEntity>;
+  transitionTask(id:EntityId,state:0|1|2,command:Command):Promise<SavedEntity & {state:0|1|2}>;
+  responsibilities(filters?:{subjectId?:EntityId;kind?:0|1|2;completed?:boolean},page?:PageRequest):Promise<Page<Responsibility>>;
+  saveResponsibilities(items:ResponsibilityInput[],idempotencyKey:string):Promise<{items:Array<SavedEntity & {subject_id:EntityId}>}>;
+  transitionResponsibility(id:EntityId,state:'pending'|'completed'|'archived',reason:string|null,command:Command):Promise<SavedEntity & {state:string}>;
+  milestones(subjectId?:EntityId,page?:PageRequest):Promise<Page<Milestone>>;
+  milestoneProgress(id:EntityId):Promise<MilestoneProgress>;
+  saveMilestone(target:MilestoneInput,command:Command|CreateCommand):Promise<SavedEntity>;
+  archiveMilestone(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {archived:true}>;
 }>;

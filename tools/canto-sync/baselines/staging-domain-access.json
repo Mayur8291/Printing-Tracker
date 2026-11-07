@@ -2,6 +2,24 @@
   [
     [
       "sa_domain",
+      "archived_entities",
+      "squad_archive_read",
+      "{sa_executor}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "archived_entities",
+      "squad_archive_write",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
       "audit",
       "executor_audit",
       "{sa_executor}",
@@ -74,6 +92,33 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_milestones",
+      "squad_milestone_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_milestones",
+      "squad_milestone_read",
+      "{sa_executor}",
+      "SELECT",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (user_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_milestones",
+      "squad_milestone_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_orders",
       "squad_executor_orders_read",
       "{sa_executor}",
@@ -98,6 +143,105 @@
       "SELECT",
       "(item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items))",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_responsibilities",
+      "squad_goal_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) AND (created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_responsibilities",
+      "squad_goal_select",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT sa_domain.has_capability('goals'::text) AS has_capability) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR (user_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_responsibilities",
+      "squad_goal_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT sa_domain.has_capability('goals'::text) AS has_capability) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR (user_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
+      "(( SELECT sa_domain.has_capability('goals'::text) AS has_capability) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR (user_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_task_users",
+      "squad_guard_task_users",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_task_users",
+      "squad_task_members_delete",
+      "{sa_executor}",
+      "DELETE",
+      "(task_id IN ( SELECT sa_domain.managed_task_ids() AS managed_task_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_task_users",
+      "squad_task_members_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(task_id IN ( SELECT sa_domain.managed_task_ids() AS managed_task_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_task_users",
+      "squad_task_members_select",
+      "{sa_executor}",
+      "SELECT",
+      "(task_id IN ( SELECT sa_tasks.id\n   FROM sa_snapshot_20261019.sa_tasks))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_tasks",
+      "squad_guard_tasks",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_tasks",
+      "squad_task_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(( SELECT sa_domain.has_capability('notes'::text) AS has_capability) AND (created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_tasks",
+      "squad_task_select",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT sa_domain.has_capability('notes'::text) AS has_capability) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR (created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) OR (id IN ( SELECT sa_domain.assigned_task_ids() AS assigned_task_ids))))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_tasks",
+      "squad_task_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT sa_domain.has_capability('notes'::text) AS has_capability) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR (created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) OR (id IN ( SELECT sa_domain.assigned_task_ids() AS assigned_task_ids))))",
+      "(( SELECT sa_domain.has_capability('notes'::text) AS has_capability) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR (created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) OR (id IN ( SELECT sa_domain.assigned_task_ids() AS assigned_task_ids))))"
     ],
     [
       "sa_snapshot_20261019",
@@ -162,6 +306,31 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_milestones",
+      "end_date",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_milestones",
+      "milestone_amount",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_milestones",
+      "name",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_milestones",
+      "start_date",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_milestones",
+      "updated_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
       "sa_orders",
       "assigned_to_id",
       "{sa_guard=r/postgres}"
@@ -195,6 +364,66 @@
       "sa_orders",
       "order_item_type",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_responsibilities",
+      "is_completed",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_responsibilities",
+      "note",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_responsibilities",
+      "responsibility_type",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_responsibilities",
+      "updated_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "created_by_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "deadline",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "note",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "order_id",
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "status",
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "updated_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_tasks",
+      "updated_by_id",
+      "{sa_executor=w/postgres}"
     ],
     [
       "sa_users",
@@ -319,6 +548,54 @@
     ],
     [
       "canto_api",
+      "v1_milestone_archive",
+      "p_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "1f702d6f2c904798dc37aac341b5325a"
+    ],
+    [
+      "canto_api",
+      "v1_milestone_progress",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "921f2ee62c00d1f5dc4d995e0c2e3733"
+    ],
+    [
+      "canto_api",
+      "v1_milestone_save",
+      "p_id bigint, p_subject_id bigint, p_start date, p_end date, p_amount numeric, p_name text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "29bd7529297baca8f7fc7e2a3c5e9e69"
+    ],
+    [
+      "canto_api",
+      "v1_milestones_list",
+      "p_subject_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "a7dd10736900799fe3f6a709f4de6a2c"
+    ],
+    [
+      "canto_api",
       "v1_order_get",
       "p_id bigint, p_item_cursor text, p_item_limit integer",
       "postgres",
@@ -378,6 +655,102 @@
       "c725fcf6cf0e7fdcdfca035be9632d3e"
     ],
     [
+      "canto_api",
+      "v1_responsibilities_list",
+      "p_subject_id bigint, p_kind integer, p_completed boolean, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "00c072d7f557a6e9cf5a16c90e607665"
+    ],
+    [
+      "canto_api",
+      "v1_responsibility_save",
+      "p_items jsonb, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "c0125a839b090c3dd9227468c195ae18"
+    ],
+    [
+      "canto_api",
+      "v1_responsibility_transition",
+      "p_id bigint, p_state text, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "34f46c94ebfb7dc334f1e00306cf4d1b"
+    ],
+    [
+      "canto_api",
+      "v1_task_assignees",
+      "p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "12e0a8228dfab3ebdb24f05a345fe80c"
+    ],
+    [
+      "canto_api",
+      "v1_task_get",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "a969cedb01570e190449a6455f4a319a"
+    ],
+    [
+      "canto_api",
+      "v1_task_save",
+      "p_id bigint, p_note text, p_deadline timestamp with time zone, p_order_id bigint, p_assignee_ids bigint[], p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "4476357f2dbb2cf23bcd3f01b9b001cb"
+    ],
+    [
+      "canto_api",
+      "v1_task_transition",
+      "p_id bigint, p_state integer, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "f8344d4d4c9d81f6f76c81cd12e1ad62"
+    ],
+    [
+      "canto_api",
+      "v1_tasks_list",
+      "p_state integer, p_order_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "df038b67bc122c42ae89f67935eed4c5"
+    ],
+    [
       "sa_domain",
       "actor",
       "",
@@ -388,6 +761,30 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "8f8e2995b8fe1415208743ec815b25b1"
+    ],
+    [
+      "sa_domain",
+      "archive_entity",
+      "p_kind text, p_id bigint, p_reason text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "18dba038c583d6ccc6dc68ba57b5dc90"
+    ],
+    [
+      "sa_domain",
+      "assigned_task_ids",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "78149a05a84e135847cef3eba866d39d"
     ],
     [
       "sa_domain",
@@ -511,6 +908,18 @@
     ],
     [
       "sa_domain",
+      "day_start",
+      "p_day date",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "2a2952919469ea54cd4dedae76754129"
+    ],
+    [
+      "sa_domain",
       "dealer_customer_ids",
       "",
       "sa_guard",
@@ -565,7 +974,43 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "27087a13034be4625be43e9baac7b396"
+      "aa63095c5f173d214c6b9fa50169448e"
+    ],
+    [
+      "sa_domain",
+      "has_capability",
+      "p_capability text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
+      "82c2e3ed7e625171fc7ce0f942b9f145"
+    ],
+    [
+      "sa_domain",
+      "local_date",
+      "p_stored timestamp without time zone",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "7765eeea583b273be9bb973824c73140"
+    ],
+    [
+      "sa_domain",
+      "managed_task_ids",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "7157e98fa25c97ee87d532d0b3648bc3"
     ],
     [
       "sa_domain",
@@ -589,7 +1034,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "b1c67732b082d6c8baedcda2445f5637"
+      "4e326726c86509bae1b057ae57704d64"
     ],
     [
       "sa_domain",
@@ -641,6 +1086,18 @@
     ],
     [
       "sa_domain",
+      "require_capability",
+      "p_capability text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "19862293fd32258c0307ef3e62052149"
+    ],
+    [
+      "sa_domain",
       "require_roles",
       "p_roles integer[]",
       "postgres",
@@ -665,15 +1122,40 @@
     ],
     [
       "sa_domain",
+      "task_assignees",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "6d9df96266b3cd5bca0f807ed7712481"
+    ],
+    [
+      "sa_domain",
+      "task_page",
+      "p_id bigint, p_state integer, p_order_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "27e01cfaacfc7a72afeea3e8ed1466d3"
+    ],
+    [
+      "sa_domain",
       "v1_dashboard",
       "p_filters jsonb",
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog"
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "669058820bfbcd3c5b778e0c70b40cbf"
+      "4ed0b6d411fbb833caf142b17baaca79"
     ],
     [
       "sa_domain",
@@ -682,10 +1164,63 @@
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog"
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_app=X/sa_executor}",
-      "b692772cdf69c8abaa5bfa0fb4fdda77"
+      "589859c27f7f67f0a4741d00f8e586f9"
+    ],
+    [
+      "sa_domain",
+      "v1_milestone_archive",
+      "p_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "3665f0880a488906a706eab4036980f0"
+    ],
+    [
+      "sa_domain",
+      "v1_milestone_progress",
+      "p_id bigint",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "a96ccff54db13236505ad9290e9124b6"
+    ],
+    [
+      "sa_domain",
+      "v1_milestone_save",
+      "p_id bigint, p_subject_id bigint, p_start date, p_end date, p_amount numeric, p_name text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "125b317a26150de2d8ac6118c72d701c"
+    ],
+    [
+      "sa_domain",
+      "v1_milestones_list",
+      "p_subject_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "1b25d8cb2f57861c37836bd0a8407acd"
     ],
     [
       "sa_domain",
@@ -694,10 +1229,11 @@
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog"
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "44882378e89f275b30bcf4cd713bd0e0"
+      "118a5f9f97871efbaf6b60b73a68dcd7"
     ],
     [
       "sa_domain",
@@ -706,10 +1242,11 @@
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog"
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "4d94635c507e9a2f28f869ef2c43100e"
+      "d1ad1c56379ed19c3798d96516964067"
     ],
     [
       "sa_domain",
@@ -718,10 +1255,11 @@
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog"
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "6a3d919d27fcf02ff17765b31d33ead7"
+      "b3e365e0ef38e001fee8ccc1a70daae9"
     ],
     [
       "sa_domain",
@@ -730,10 +1268,11 @@
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog"
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "fcbfd3932a6962b505383d132af559f8"
+      "34aa5a0e6f710ce9fc4f445323c6754d"
     ],
     [
       "sa_domain",
@@ -742,10 +1281,115 @@
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog"
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "635c50808108e1b4174aada262df4c28"
+      "b1eedfb7a901c0709868f3cd662b6fb8"
+    ],
+    [
+      "sa_domain",
+      "v1_responsibilities_list",
+      "p_subject_id bigint, p_kind integer, p_completed boolean, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "12780995a92841c081d6a9ebc997b81d"
+    ],
+    [
+      "sa_domain",
+      "v1_responsibility_save",
+      "p_items jsonb, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "6eb80a3c49939ae8cf4e0d1c3212d355"
+    ],
+    [
+      "sa_domain",
+      "v1_responsibility_transition",
+      "p_id bigint, p_state text, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "5dba43446ac134c849c1b7e7445243b1"
+    ],
+    [
+      "sa_domain",
+      "v1_task_assignees",
+      "p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "fe5ee7c3b908fbb6ab5a79243ee39067"
+    ],
+    [
+      "sa_domain",
+      "v1_task_get",
+      "p_id bigint",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "d6a026f08c8532ed58592fad75809fc5"
+    ],
+    [
+      "sa_domain",
+      "v1_task_save",
+      "p_id bigint, p_note text, p_deadline timestamp with time zone, p_order_id bigint, p_assignee_ids bigint[], p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "3be3b77458e7fea8615b8dafa43f60b7"
+    ],
+    [
+      "sa_domain",
+      "v1_task_transition",
+      "p_id bigint, p_state integer, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "b928355d0d16db9a51f78e256fa5a4fe"
+    ],
+    [
+      "sa_domain",
+      "v1_tasks_list",
+      "p_state integer, p_order_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "ee0a78a36c1ce10bd43858fe6661b271"
     ],
     [
       "sa_domain",

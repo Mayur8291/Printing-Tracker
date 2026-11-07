@@ -55,6 +55,7 @@ class ScopedReads(unittest.TestCase):
         session(self.c,103);order=rpc(self.c,'v1_order_get',(1001,))
         self.assertIn('total_amount',order);self.assertNotIn('factory_manager_id',order)
         item=order['items']['data'][0];self.assertNotIn('worker_unit_cost',item);self.assertEqual(item['quantities'][0]['quantity'],10)
+        self.assertTrue(order['created_at'].endswith('Z'))
     def test_production_order_fields_redacted(self):
         session(self.c,102);order=rpc(self.c,'v1_order_get',(1001,))
         self.assertNotIn('total_amount',order);self.assertEqual(order['items']['data'][0]['worker_unit_cost'],'40')

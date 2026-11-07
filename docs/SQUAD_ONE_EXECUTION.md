@@ -46,6 +46,14 @@ This slice is not yet the complete ORDER.01/METRIC.01 workflow: later iterations
 
 In progress. Preserve actual source task states (pending/completed/deleted); no separate in-progress task state exists in the approved Rails enum. Archive responsibilities/targets without destroying history. Milestone overlap checks use complete half-open interval overlap, including containment, and serialize by coordinator.
 
+Deployed eight task/responsibility contracts and four target contracts on staging. The suite now passes 83 local tests. Hosted rollback-only command tests verify admin assignment → assignee completion for tasks and goals, coordinator-scoped target progress, and containing-period rejection; test rows and temporary sessions are rolled back and all advanced sequence values restored while holding the refresh/write lock.
+
+Responsibilities include Team role 12 with live feature gating. Removed task assignees lose access immediately; recipient change IDs are retained in the transactional event. Archives retain business rows and are bound to the source generation. Target totals are derived from current scoped orders, excluding canceled/archived orders; per-target periods use inclusive Kolkata calendar dates with an exclusive following-day boundary. Year-to-date totals use the actual business year rather than adding overlapping cached totals.
+
+Review fixes added two regression cases: Admin edits preserve the original task creator's membership rule, and timestamp responses/command execution use explicit UTC. This is an API timestamp contract; final historical report comparison must still confirm legacy server/storage timezone behavior, since Rails specifies Kolkata and `default_timezone=:local`.
+
+The shared JavaScript SDK and declarations now cover all 19 deployed RPC names; mobile TypeScript checking passes. Notification delivery, calendar/report parity against approved historical examples and a broader mixed-write load test remain later acceptance gates. These are not represented as complete by the local business-operation tests.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

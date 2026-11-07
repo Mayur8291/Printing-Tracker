@@ -7745,6 +7745,11 @@
       "CREATE UNIQUE INDEX sa_milestones_pkey ON sa_snapshot_20261019.sa_milestones USING btree (id)"
     ],
     [
+      "sa_milestones",
+      "squad_milestone_user_page",
+      "CREATE INDEX squad_milestone_user_page ON sa_snapshot_20261019.sa_milestones USING btree (user_id, id DESC)"
+    ],
+    [
       "sa_notifications",
       "sa_index_notifications_on_job_sheet_dispatched_date_id",
       "CREATE INDEX sa_index_notifications_on_job_sheet_dispatched_date_id ON sa_snapshot_20261019.sa_notifications USING btree (job_sheet_dispatched_date_id)"
@@ -7828,6 +7833,11 @@
       "sa_orders",
       "squad_orders_factory_page",
       "CREATE INDEX squad_orders_factory_page ON sa_snapshot_20261019.sa_orders USING btree (assigned_to_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_sc_created",
+      "CREATE INDEX squad_orders_sc_created ON sa_snapshot_20261019.sa_orders USING btree (customer_sc_id, created_at) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],
     [
       "sa_orders",
@@ -8038,6 +8048,11 @@
       "sa_responsibilities",
       "sa_responsibilities_pkey",
       "CREATE UNIQUE INDEX sa_responsibilities_pkey ON sa_snapshot_20261019.sa_responsibilities USING btree (id)"
+    ],
+    [
+      "sa_responsibilities",
+      "squad_goals_user_page",
+      "CREATE INDEX squad_goals_user_page ON sa_snapshot_20261019.sa_responsibilities USING btree (user_id, id DESC)"
     ],
     [
       "sa_rmp_brands",
@@ -8315,6 +8330,11 @@
       "CREATE UNIQUE INDEX sa_task_users_pkey ON sa_snapshot_20261019.sa_task_users USING btree (id)"
     ],
     [
+      "sa_task_users",
+      "squad_task_members_user_task",
+      "CREATE INDEX squad_task_members_user_task ON sa_snapshot_20261019.sa_task_users USING btree (user_id, task_id)"
+    ],
+    [
       "sa_tasks",
       "sa_index_tasks_on_created_by_id",
       "CREATE INDEX sa_index_tasks_on_created_by_id ON sa_snapshot_20261019.sa_tasks USING btree (created_by_id)"
@@ -8333,6 +8353,16 @@
       "sa_tasks",
       "sa_tasks_pkey",
       "CREATE UNIQUE INDEX sa_tasks_pkey ON sa_snapshot_20261019.sa_tasks USING btree (id)"
+    ],
+    [
+      "sa_tasks",
+      "squad_tasks_creator_page",
+      "CREATE INDEX squad_tasks_creator_page ON sa_snapshot_20261019.sa_tasks USING btree (created_by_id, id DESC)"
+    ],
+    [
+      "sa_tasks",
+      "squad_tasks_order_page",
+      "CREATE INDEX squad_tasks_order_page ON sa_snapshot_20261019.sa_tasks USING btree (order_id, id DESC)"
     ],
     [
       "sa_user_dealers",
@@ -8699,7 +8729,7 @@
       "sa_milestones",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_notifications",
@@ -8789,7 +8819,7 @@
       "sa_responsibilities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_rmp_brands",
@@ -8915,13 +8945,13 @@
       "sa_task_users",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=ard/postgres}"
     ],
     [
       "sa_tasks",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_user_dealers",
