@@ -7265,6 +7265,11 @@
       "CREATE INDEX sa_index_back_order_links_on_order_id ON sa_snapshot_20261019.sa_back_order_links USING btree (order_id)"
     ],
     [
+      "sa_back_order_links",
+      "squad_backlinks_original",
+      "CREATE INDEX squad_backlinks_original ON sa_snapshot_20261019.sa_back_order_links USING btree (order_id, back_order_id)"
+    ],
+    [
       "sa_base_product_asset_infos",
       "sa_base_product_asset_infos_pkey",
       "CREATE UNIQUE INDEX sa_base_product_asset_infos_pkey ON sa_snapshot_20261019.sa_base_product_asset_infos USING btree (id)"
@@ -8050,6 +8055,11 @@
       "CREATE UNIQUE INDEX sa_quantities_pkey ON sa_snapshot_20261019.sa_quantities USING btree (id)"
     ],
     [
+      "sa_quantities",
+      "squad_quantity_item_size",
+      "CREATE INDEX squad_quantity_item_size ON sa_snapshot_20261019.sa_quantities USING btree (item_id, size_id)"
+    ],
+    [
       "sa_ratings",
       "sa_index_ratings_on_from_id",
       "CREATE INDEX sa_index_ratings_on_from_id ON sa_snapshot_20261019.sa_ratings USING btree (from_id)"
@@ -8320,6 +8330,16 @@
       "CREATE UNIQUE INDEX sa_stock_useds_pkey ON sa_snapshot_20261019.sa_stock_useds USING btree (id)"
     ],
     [
+      "sa_stock_useds",
+      "squad_stock_consumption",
+      "CREATE INDEX squad_stock_consumption ON sa_snapshot_20261019.sa_stock_useds USING btree (stock_id)"
+    ],
+    [
+      "sa_stock_useds",
+      "squad_stock_used_dispatch",
+      "CREATE INDEX squad_stock_used_dispatch ON sa_snapshot_20261019.sa_stock_useds USING btree (dispatched_quantity_id, stock_id)"
+    ],
+    [
       "sa_stocks",
       "sa_index_stocks_on_item_id",
       "CREATE INDEX sa_index_stocks_on_item_id ON sa_snapshot_20261019.sa_stocks USING btree (item_id)"
@@ -8368,6 +8388,21 @@
       "sa_stocks",
       "sa_stocks_pkey",
       "CREATE UNIQUE INDEX sa_stocks_pkey ON sa_snapshot_20261019.sa_stocks USING btree (id)"
+    ],
+    [
+      "sa_stocks",
+      "squad_stock_dealer_size",
+      "CREATE INDEX squad_stock_dealer_size ON sa_snapshot_20261019.sa_stocks USING btree (user_id, size_id, id)"
+    ],
+    [
+      "sa_stocks",
+      "squad_stock_dealer_variant",
+      "CREATE INDEX squad_stock_dealer_variant ON sa_snapshot_20261019.sa_stocks USING btree (user_id, stock_type, size_id, id)"
+    ],
+    [
+      "sa_stocks",
+      "squad_stock_origin",
+      "CREATE INDEX squad_stock_origin ON sa_snapshot_20261019.sa_stocks USING btree (user_id, item_id, size_id, id)"
     ],
     [
       "sa_sync_airtables",
@@ -8585,7 +8620,7 @@
       "sa_back_order_links",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_base_product_asset_infos",
@@ -8987,13 +9022,13 @@
       "sa_stock_useds",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_stocks",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_sync_airtables",

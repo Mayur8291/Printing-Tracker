@@ -1,0 +1,17 @@
+{
+  "environment": "staging",
+  "observed_date": "2026-11-07",
+  "business_writes": 0,
+  "stock_rows": 43497,
+  "consumption_rows": 43,
+  "back_order_links": 2,
+  "duplicate_receipt_origin_groups": 195,
+  "duplicate_rmp_origin_groups": 191,
+  "duplicate_custom_origin_groups": 4,
+  "duplicate_groups_exceeding_order_size_quantity": 195,
+  "duplicate_groups_caused_only_by_distinct_sku_ids": 0,
+  "receipt_consumption_counter_discrepancies": 0,
+  "over_consumed_stock_rows": 1,
+  "negative_receipt_rows": 0,
+  "implementation_rule": "Expose reconciliation status and deny allocation from affected inventory; do not silently rewrite source history."
+}

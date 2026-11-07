@@ -126,6 +126,24 @@ export interface WorkAllocationInput extends WorkQuantityInput {tailor_id:Entity
 export interface WorkInspectionInput {item_tailor_quantity_id:EntityId;quantity:number}
 export interface WorkProgress {required:number;cut:number;assigned:number;sewn:number;dispatched:number;order_completed:boolean}
 export interface WorkRecorded extends WorkItemSaved {history_id:EntityId;progress:WorkProgress}
+export interface StockReceipt {received:number;dealer_id?:EntityId;state?:'ready'|'awaiting_completion'}
+export interface StockAllocation {id:EntityId;receipt_id:EntityId;quantity:number}
+export interface DispatchRecorded extends WorkRecorded {stock_receipt:StockReceipt;stock_allocations:StockAllocation[]}
+export interface DealerAvailability {stock_status:'ready'|'partial'|'waiting_stock'|'needs_reconciliation'|'complete';available_to_dispatch:number|null;remaining_quantity:number}
+export interface DealerStockFilters {kind?:'custom'|'rmp';product_id?:EntityId;rmp_class_id?:EntityId;rmp_brand_id?:EntityId;size_id?:EntityId}
+export interface DealerStockBalance {
+ id:EntityId;key:string;kind:'rmp'|'custom';size_id:EntityId;product_id:EntityId|null;
+ rmp_class_id:EntityId|null;rmp_brand_id:EntityId|null;rmp_category_id:EntityId|null;
+ status:'ready'|'needs_reconciliation';available:number|null;
+ /** Only dealers receive physical ledger totals. Customers receive the configured display percentage. */
+ received?:number;consumed?:number;receipt_count?:number;
+}
+export interface BackorderPreview {
+ preview_id:string;version:Version;expires_at:string;eligible_order_ids:EntityId[];
+ excluded:Array<{order_id:EntityId;reason:'closed'|'already_linked'|'assigned_to_production'|'pending_change'}>;
+ requirements:Array<{key:string;kind:'custom'|'rmp';size_id:EntityId;product_id:EntityId|null;class_id:EntityId|null;brand_id:EntityId|null;category_id:EntityId|null;required:number;available:number|null;shortage:number|null;received:number;consumed:number;needs_reconciliation:boolean}>;
+ lines:QuoteLineInput[];status:'ready'|'no_shortage'|'needs_reconciliation';stock_reservation:'none';quote:Quote|null;
+}
 export interface WorkHistoryRow {id:EntityId;history_id:EntityId;quantity_id:EntityId;remaining_before:number;quantity:number;occurred_at:string}
 export interface WorkSize {id:EntityId;size_id:EntityId|null;size_name:string|null;quantity:number;cut:number;assigned:number;inspected:number;picked:number;dispatched:number;remaining:number}
 export interface WorkDetail extends SavedEntity {order_id:EntityId;product_id:EntityId|null;sample:boolean|null;planned_quantity:number;quantities:Page<WorkSize>;history:Page<WorkHistoryRow>}
@@ -133,7 +151,7 @@ export interface WorkQueueItem extends SavedEntity {order_id:EntityId;product_id
 export interface JobsheetRow {id:EntityId;item_id:EntityId;quantity_id:EntityId;item_tailor_id:EntityId;tailor_id:EntityId;assignment_id:EntityId;assigned:number;inspected:number;picked:number;occurred_at:string}
 export interface TailorWorkRow {id:EntityId;item_id:EntityId;tailor_id:EntityId;item_tailor_quantity_id:EntityId;quantity_id:EntityId;assigned?:number;remaining_before?:number;inspected:number;picked:number;occurred_at:string|null}
 export interface WorkDetailPages {quantityCursor?:string;historyCursor?:string;limit?:number}
-export type QuoteLineInput = {kind:'custom';configuration:Configuration;quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]}
+export type QuoteLineInput = ({kind:'custom';quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]} & ({configuration:Configuration;preset_id?:never}|{preset_id:EntityId;configuration?:never}))
   | {kind:'rmp';skus:Array<{sku_id:EntityId;quantity:number}>;brandings?:BrandingInput[]};
 export interface QuoteRequest {customer_id?:EntityId;address_id:EntityId;lines:QuoteLineInput[]}
 export interface QuoteVariant {calculated_unit_price?:string;unit_price:string;quantity:number;sample_rate_applied?:boolean;sku_id?:EntityId;size_id?:EntityId;class_id?:EntityId;brand_id?:EntityId;category_id?:EntityId;price?:Price;display_unit_price?:string}
@@ -166,6 +184,9 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
   order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
+  dealerStock(filters?:DealerStockFilters,context?:{dealerId?:EntityId;customerId?:EntityId},page?:PageRequest):Promise<Page<DealerStockBalance> & {context:{dealer_id:EntityId;customer_id:EntityId;physical:boolean;visibility_percentage:number}}>;
+  previewBackorder(orderIds:EntityId[],addressId:EntityId):Promise<BackorderPreview>;
+  placeBackorder(previewId:string,dueAt:string,command:Command):Promise<OrderPlacement & {preview_id:string;linked_order_versions:Record<EntityId,Version>;stock_reservation:'none'}>;
   catalogue(kind?:'types'|'categories'|'products',filters?:CatalogueFilters,page?:PageRequest):Promise<Page<CatalogueOption>>;
   baseProduct(id:EntityId):Promise<CatalogueOption>;
   catalogueOptions(kind?:'brands'|'categories'|'sizes'|'price_type',customerId?:EntityId|null,page?:PageRequest):Promise<Page<CatalogueOption> & {context:CommercialContext}>;
@@ -193,17 +214,17 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   assignCutter(id:EntityId,cutterId:EntityId|null,reason:string,command:Command):Promise<WorkItemSaved & {cutter_id:EntityId|null}>;
   saveCriteria(id:EntityId,checks:Array<{id:EntityId;checked:boolean}>,command:Command):Promise<WorkItemSaved & {criteria_complete:boolean}>;
   saveWorkerCost(id:EntityId,unitCost:string,reason:string,command:Command):Promise<WorkItemSaved & {unit_cost:string;total_cost:string}>;
-  saveWorkerStage(id:EntityId,stage:WorkerStage,reason:string,command:Command):Promise<WorkItemSaved & {stage:WorkerStage;order_completed:boolean}>;
+  saveWorkerStage(id:EntityId,stage:WorkerStage,reason:string,command:Command):Promise<WorkItemSaved & {stage:WorkerStage;order_completed:boolean;stock_receipt:StockReceipt}>;
   saveWorkerDue(id:EntityId,dueAt:string,reason:string,command:Command):Promise<SavedEntity & {due_at:string;original_due_at:string;baseline_basis:'assignment'|'first_observed_change';delta_days:number}>;
   factoryQueue(filters?:{factoryId?:EntityId;phase?:ProductionPhase},page?:PageRequest):Promise<Page<FactoryQueueItem>>;
   recordCutting(id:EntityId,quantities:WorkQuantityInput[],occurredAt:string|null,command:Command):Promise<WorkRecorded>;
   inspectJobsheet(id:EntityId,quantities:WorkInspectionInput[],occurredAt:string|null,command:Command):Promise<WorkRecorded>;
-  recordDispatch(id:EntityId,quantities:WorkQuantityInput[],occurredAt:string|null,command:Command):Promise<WorkRecorded>;
+  recordDispatch(id:EntityId,quantities:WorkQuantityInput[],occurredAt:string|null,command:Command):Promise<DispatchRecorded>;
   assignJobsheet(id:EntityId,allocations:WorkAllocationInput[],dueAt:string,completionBy:string,command:Command):Promise<WorkRecorded>;
   cuttingDetail(id:EntityId,pages?:WorkDetailPages):Promise<WorkDetail>;
-  dispatchDetail(id:EntityId,pages?:WorkDetailPages):Promise<WorkDetail>;
+  dispatchDetail(id:EntityId,pages?:WorkDetailPages):Promise<WorkDetail & Partial<DealerAvailability>>;
   cuttingQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem>>;
-  dispatchQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem>>;
+  dispatchQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem & Partial<DealerAvailability>>>;
   jobsheets(filters?:{itemId?:EntityId;tailorId?:EntityId},page?:PageRequest):Promise<Page<JobsheetRow>>;
   tailorWork(filters?:{itemId?:EntityId;tailorId?:EntityId;history?:boolean},page?:PageRequest):Promise<Page<TailorWorkRow>>;
   productionProgress(orderId:EntityId):Promise<ProductionProgress>;

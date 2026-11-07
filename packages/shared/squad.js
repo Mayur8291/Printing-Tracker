@@ -35,6 +35,14 @@ export function createSquadClient(supabase) {
       p_id: id, p_item_cursor: items.cursor ?? null, p_item_limit: items.limit ?? 50
     }),
     dashboard: (filters = {}) => call("v1_dashboard", { p_filters: filters }),
+    dealerStock: (filters = {}, context = {}, page = {}) => call("v1_dealer_stock", {
+      p_dealer_id:context.dealerId??null,p_customer_id:context.customerId??null,
+      p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    previewBackorder: (orderIds,addressId) => call("v1_backorder_preview", {p_order_ids:orderIds,p_address_id:addressId}),
+    placeBackorder: (previewId,dueAt,command) => call("v1_backorder_place", {
+      p_preview_id:previewId,p_due_at:dueAt,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
     catalogue: (kind = "products", filters = {}, page = {}) => call("v1_catalog_tree", {
       p_kind:kind,p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),

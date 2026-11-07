@@ -1,0 +1,97 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T16:40:11.860561+00:00",
+  "scope": "five largest eligible dealer ledgers, warm first-page DB reads; transaction-only sessions; no business writes",
+  "results": [
+    {
+      "receipt_rows": 13170,
+      "returned_rows": 30,
+      "samples_ms": [
+        100.011,
+        99.595,
+        100.881,
+        100.36,
+        99.6,
+        99.97,
+        99.466,
+        100.56,
+        99.451,
+        100.523
+      ],
+      "database_p95_ms": 100.881,
+      "target_ms": 200
+    },
+    {
+      "receipt_rows": 9063,
+      "returned_rows": 30,
+      "samples_ms": [
+        67.154,
+        67.764,
+        67.119,
+        68.104,
+        67.954,
+        67.066,
+        67.976,
+        66.849,
+        67.692,
+        67.759
+      ],
+      "database_p95_ms": 68.104,
+      "target_ms": 200
+    },
+    {
+      "receipt_rows": 6237,
+      "returned_rows": 30,
+      "samples_ms": [
+        54.373,
+        53.154,
+        53.377,
+        53.378,
+        54.281,
+        59.105,
+        58.871,
+        54.058,
+        53.369,
+        53.016
+      ],
+      "database_p95_ms": 59.105,
+      "target_ms": 200
+    },
+    {
+      "receipt_rows": 4010,
+      "returned_rows": 30,
+      "samples_ms": [
+        36.726,
+        43.689,
+        35.673,
+        36.528,
+        36.709,
+        38.554,
+        58.177,
+        50.578,
+        53.624,
+        54.841
+      ],
+      "database_p95_ms": 58.177,
+      "target_ms": 200
+    },
+    {
+      "receipt_rows": 2059,
+      "returned_rows": 30,
+      "samples_ms": [
+        24.535,
+        19.06,
+        18.88,
+        18.733,
+        19.096,
+        19.115,
+        18.62,
+        19.233,
+        19.613,
+        19.03
+      ],
+      "database_p95_ms": 24.535,
+      "target_ms": 200
+    }
+  ]
+}

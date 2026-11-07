@@ -33,6 +33,8 @@ Local SQL tests do not substitute for hosted GoTrue/Data API tests, provider con
 Hosted verification tools (staging only):
 
 - `test_sdk.mjs`: actual GoTrue login and shared JS client read/denial checks.
+- `test_hosted_dealer_stock.py`: rolled-back purchase → factory receipt → historical reorder/back-order → dealer delivery journey.
+- `benchmark_stock.py`: first-page reads for the five largest eligible staging dealer ledgers.
 - `test_hosted_factory_execution.py`: rolled-back order-to-factory-dispatch journey with real staging roles and per-contract DB timings.
 - `test_hosted_production.py`: rolled-back factory-to-job-worker reassignment and worker-stage journey.
 - `benchmark_hosted.py`: ten-persona order list, dashboard and detail latency checks; `--production-only` checks factory queues.
