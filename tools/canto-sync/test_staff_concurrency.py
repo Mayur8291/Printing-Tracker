@@ -15,6 +15,22 @@ def login():
         assert json.load(response)['user']['id']==fixture['id']
 
 with connect('staging') as conn:
+    assert conn.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0]
+    with conn.transaction():
+        conn.execute('LOCK TABLE sa_snapshot_20261019.sa_users IN ACCESS EXCLUSIVE MODE')
+        login() # A separate GoTrue connection must not wait on this lock for staff login.
+    collision=conn.execute("SELECT m.canonical_email FROM sa_identity.sa_auth_identities m WHERE NOT EXISTS(SELECT FROM auth.users u WHERE lower(u.email)=m.canonical_email) AND m.canonical_email LIKE '%@%' LIMIT 1").fetchone()[0]
+    for statement,params in [
+        ("UPDATE auth.users SET email=%s WHERE id=%s",(collision,fixture['id'])),
+        ("UPDATE auth.users SET role='sa_app' WHERE id=%s",(fixture['id'],)),
+        ("INSERT INTO auth.users(id,aud,role,email) VALUES(gen_random_uuid(),'authenticated','authenticated',%s)",(collision,)),
+    ]:
+        try:
+            with conn.transaction():
+                conn.execute(statement,params);conn.execute('SET CONSTRAINTS ALL IMMEDIATE')
+                raise AssertionError('Canto identity collision or role change was accepted')
+        except psycopg.Error as error:
+            assert error.sqlstate=='P0001' and 'Canto identity' in str(error)
     with conn.transaction():
         conn.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
         before=staff_auth(conn)
@@ -27,4 +43,4 @@ with connect('staging') as conn:
         assert staff_auth(conn)!=before,'Our own staff mutation was not detected'
         raise psycopg.Rollback()
     assert staff_auth(conn)==before,'The regression fixture did not roll back'
-print(json.dumps({'concurrent_staff_login_allowed':True,'own_staff_mutation_detected':True,'fixture_mutation_rolled_back':True}))
+print(json.dumps({'concurrent_staff_login_allowed':True,'own_staff_mutation_detected':True,'fixture_mutation_rolled_back':True,'staff_login_during_table_lock':True,'identity_collision_guards_preserved':True}))

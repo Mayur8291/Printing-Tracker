@@ -5,7 +5,7 @@ from database import connect
 from management import api,query,token,PROJECTS
 from snapshot import require
 ROOT=Path(__file__).resolve().parents[2]
-MIGRATIONS=['20261107045242_canto_admin_masters','20261107050603_canto_refresh_jobs']
+MIGRATIONS=['20261107045242_canto_admin_masters','20261107050603_canto_refresh_jobs','20261107060300_canto_staff_login_guard']
 
 def preflight(environment):
     rows=query(environment,"SELECT c.relname,a.attname,format_type(a.atttypid,NULL) AS type FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='sa_snapshot_20261019' AND c.relkind='r' AND a.attnum>0 AND NOT a.attisdropped")

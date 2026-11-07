@@ -29,6 +29,11 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
       - name: Resolve production deploy mode
         id: deploy
         run: |
