@@ -7465,6 +7465,11 @@
       "CREATE INDEX sa_index_customer_requests_on_user_id ON sa_snapshot_20261019.sa_customer_requests USING btree (user_id)"
     ],
     [
+      "sa_customer_requests",
+      "squad_pending_coordinator_request",
+      "CREATE INDEX squad_pending_coordinator_request ON sa_snapshot_20261019.sa_customer_requests USING btree (user_id, id) WHERE (status = 0)"
+    ],
+    [
       "sa_dispatched_quantities",
       "sa_dispatched_quantities_pkey",
       "CREATE UNIQUE INDEX sa_dispatched_quantities_pkey ON sa_snapshot_20261019.sa_dispatched_quantities USING btree (id)"
@@ -8638,7 +8643,7 @@
       "sa_assigned_brands",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=ard/postgres}"
     ],
     [
       "sa_authorized_brands",
@@ -8740,7 +8745,7 @@
       "sa_customer_requests",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres}"
     ],
     [
       "sa_dispatched_quantities",
@@ -9100,7 +9105,7 @@
       "sa_zones",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
     ]
   ],
   []

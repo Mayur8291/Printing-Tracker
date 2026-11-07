@@ -1,0 +1,195 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T17:35:08.696534+00:00",
+  "scope": "warm rollback-only database journey and maximum bounded attribution batch; no provider requests; not concurrent load measurement",
+  "queries": [
+    {
+      "rpc": "v1_customer_review",
+      "scenario": null,
+      "database_p95_ms": 37.633,
+      "samples_ms": [
+        32.588,
+        33.142,
+        31.576,
+        33.382,
+        37.633,
+        28.845,
+        28.291,
+        29.296,
+        29.605,
+        29.871
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_customer_commercial_rules_save",
+      "scenario": null,
+      "database_p95_ms": 16.848,
+      "samples_ms": [
+        13.391,
+        13.14,
+        15.614,
+        12.918,
+        14.906,
+        13.019,
+        13.629,
+        13.593,
+        13.55,
+        16.848
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_customer_links_save",
+      "scenario": null,
+      "database_p95_ms": 31.283,
+      "samples_ms": [
+        29.134,
+        31.283,
+        28.906,
+        29.585,
+        30.734,
+        27.73,
+        28.105,
+        26.886,
+        27.383,
+        27.914
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_people_list",
+      "scenario": null,
+      "database_p95_ms": 9.019,
+      "samples_ms": [
+        7.722,
+        8.145,
+        7.876,
+        7.89,
+        9.019,
+        7.349,
+        7.31,
+        7.353,
+        7.217,
+        7.656
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_dealer_rules_save",
+      "scenario": null,
+      "database_p95_ms": 18.428,
+      "samples_ms": [
+        18.428,
+        12.416,
+        10.744,
+        9.651,
+        9.537,
+        9.579,
+        9.311,
+        9.778,
+        9.224,
+        10.637
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_relationship_options",
+      "scenario": null,
+      "database_p95_ms": 11.627,
+      "samples_ms": [
+        2.247,
+        2.254,
+        2.415,
+        2.338,
+        11.627,
+        6.446,
+        7.257,
+        7.54,
+        7.033,
+        6.55
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_coordinator_change_request",
+      "scenario": null,
+      "database_p95_ms": 7.881,
+      "samples_ms": [
+        7.349,
+        6.62,
+        7.881,
+        6.535,
+        6.578,
+        5.988,
+        6.025,
+        6.118,
+        6.204,
+        6.13
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_coordinator_requests",
+      "scenario": null,
+      "database_p95_ms": 3.836,
+      "samples_ms": [
+        3.728,
+        3.699,
+        3.677,
+        3.615,
+        3.836,
+        3.295,
+        3.666,
+        3.285,
+        3.507,
+        3.426
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_coordinator_change_decide",
+      "scenario": null,
+      "database_p95_ms": 18.784,
+      "samples_ms": [
+        17.779,
+        17.551,
+        18.784,
+        17.802,
+        18.734,
+        16.157,
+        18.044,
+        15.981,
+        15.71,
+        18.777
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_customers_reassign",
+      "scenario": "100 customers, 1000 pending orders",
+      "database_p95_ms": 224.428,
+      "samples_ms": [
+        167.373,
+        189.3,
+        178.687,
+        191.996,
+        198.478,
+        202.027,
+        224.428,
+        199.172,
+        207.017,
+        213.093
+      ],
+      "target_ms": 500
+    }
+  ],
+  "checks": [
+    "SC approval/onboarding, commercial terms and direct relationship",
+    "Dealer own automatic approval setting",
+    "Direct customer request, scoped list, Admin approval and pending-order attribution",
+    "Bounded 100-customer/1000-pending-order reassignment in one transaction"
+  ],
+  "all_rows_rolled_back": true,
+  "sequences_restored": true
+}

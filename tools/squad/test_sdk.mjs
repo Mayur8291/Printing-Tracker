@@ -16,6 +16,14 @@ if(error)throw new Error(`Controlled test login failed: ${error.code || error.st
 try {
   const sdk=createSquadClient(client),me=await sdk.me();
   assert.equal(me.role,3);
+  const person=await sdk.person(me.id);
+  assert.equal(person.id,me.id);
+  assert.ok(Array.isArray(person.addresses));
+  const requests=await sdk.coordinatorRequests({}, {limit:2});
+  assert.ok(requests.data.every(r=>r.customer_id===me.id));
+  const cities=await sdk.relationshipOptions('cities',{}, {limit:2});
+  assert.ok(cities.data.length<=2 && cities.data.every(c=>Object.keys(c).every(k=>['id','name','parent_id'].includes(k))));
+  await assert.rejects(sdk.reviewCustomer(me.id,{approved:true},'Forbidden self approval',{expectedVersion:me.version,idempotencyKey:crypto.randomUUID()}),e=>e instanceof SquadError && e.kind==='forbidden');
   const page=await sdk.orders({}, {limit:1});
   assert.ok(page.data.length<=1);
   assert.ok(page.data.every(o=>o.customer_id===me.id));

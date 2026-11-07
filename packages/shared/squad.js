@@ -25,7 +25,8 @@ export function createSquadClient(supabase) {
     }),
     people: (filters = {}, page = {}) => call("v1_people_list", {
       p_role: filters.role ?? null, p_search: filters.search ?? "",
-      p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30
+      p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30,
+      p_filters:Object.fromEntries(Object.entries(filters).filter(([key])=>key!=="role"&&key!=="search"))
     }),
     person: (id) => call("v1_person_get", { p_id: id }),
     savePerson: (id,role,fields,command) => call("v1_person_save", {p_id:id,p_role:role,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
@@ -37,6 +38,15 @@ export function createSquadClient(supabase) {
     saveFactory: (id,name,command) => call("v1_factory_save", {p_id:id,p_name:name,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
     saveAddress: (id,userId,fields,command) => call("v1_address_save", {p_id:id,p_user_id:userId,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
     archiveAddress: (id,userId,command) => call("v1_address_archive", {p_id:id,p_user_id:userId,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    reviewCustomer: (id,fields,reason,command) => call("v1_customer_review", {p_id:id,p_fields:fields,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    saveCustomerLinks: (id,links,reason,command) => call("v1_customer_links_save", {p_id:id,p_coordinator_id:links.coordinatorId,p_dealer_ids:links.dealerIds,p_direct:links.direct,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    saveDealerRules: (id,fields,reason,command) => call("v1_dealer_rules_save", {p_id:id,p_fields:fields,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    saveCommercialRules: (id,fields,reason,command) => call("v1_customer_commercial_rules_save", {p_id:id,p_fields:fields,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    reassignCustomers: (customers,coordinatorId,reason,idempotencyKey) => call("v1_customers_reassign", {p_customers:customers,p_coordinator_id:coordinatorId,p_reason:reason,p_idempotency_key:idempotencyKey}),
+    requestCoordinator: (coordinatorId,reason,idempotencyKey) => call("v1_coordinator_change_request", {p_coordinator_id:coordinatorId,p_reason:reason,p_idempotency_key:idempotencyKey}),
+    coordinatorRequests: (filters = {},page = {}) => call("v1_coordinator_requests", {p_state:filters.state??"pending",p_customer_id:filters.customerId??null,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    decideCoordinatorRequest: (id,decision,reason,customerVersion,command) => call("v1_coordinator_change_decide", {p_id:id,p_decision:decision,p_reason:reason,p_customer_expected_version:customerVersion,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    relationshipOptions: (kind,context = {},page = {}) => call("v1_relationship_options", {p_kind:kind,p_customer_id:context.customerId??null,p_search:context.search??"",p_cursor:page.cursor??null,p_limit:page.limit??30}),
     orders: (filters = {}, page = {}) => call("v1_orders_list", {
       p_filters: filters, p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30
     }),

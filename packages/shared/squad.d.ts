@@ -32,6 +32,15 @@ export interface PersonDetail extends Person {
   direct_deal?:boolean;auto_approve_customers?:boolean;stock_visibility_percentage?:number;registered_by?:number;dealer_ids?:EntityId[];
   archive_dependencies?:string[];account_request?:null|{id:string;state:'queued'|'processing'|'ready'|'failed'|'discarded';error_code:string|null};
 }
+export interface PeopleFilters {
+  role?:number;search?:string;approved?:Array<boolean|null>;onboarded?:boolean;disabled?:boolean;direct?:boolean;
+  coordinator_id?:EntityId;dealer_id?:EntityId;zone_id?:EntityId;price_type_id?:EntityId;registered_by?:Array<0|1|2|3>;
+  factory_id?:EntityId;manager_id?:EntityId;parent_tailor_id?:EntityId;
+}
+export interface Reassignment {people:Array<SavedEntity & {previous_coordinator_id:EntityId|null;coordinator_id:EntityId}>;updated_pending_orders:number;completed_history_preserved:true}
+export interface CoordinatorRequest extends SavedEntity {customer_id:EntityId;requested_coordinator_id:EntityId;state:'pending'|'approved'|'rejected'}
+export interface CoordinatorRequestDetail extends CoordinatorRequest {customer_version:Version;created_at:string;reason:string|null;decision_reason:string|null}
+export interface CommercialRules {price_type_id?:EntityId|null;stock_visibility_percentage?:number;brand_ids?:EntityId[]}
 export interface OrderFilters {
   state?: 'pending'|'completed'|'cancelled'|'overdue'|'critical';
   type?: 0|1|2; prime?: boolean; criteria?: 0|1; assigned?: boolean;
@@ -206,7 +215,7 @@ export class SquadError extends Error {
 export function createSquadClient(supabase: RpcTransport): Readonly<{
   me(): Promise<Me>;
   saveProfile(fields: ProfileFields,command: Command): Promise<Me>;
-  people(filters?: {role?: number;search?: string},page?: PageRequest): Promise<Page<Person>>;
+  people(filters?:PeopleFilters,page?:PageRequest):Promise<Page<Person>>;
   person(id: EntityId): Promise<PersonDetail>;
   savePerson(id:EntityId|null,role:Persona,fields:PersonFields,command:Command|CreateCommand):Promise<PersonSaved>;
   saveFactoryTeam(id:EntityId|null,role:7|8|9,fields:PersonFields,command:Command|CreateCommand):Promise<PersonSaved>;
@@ -217,6 +226,15 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   saveFactory(id:EntityId|null,name:string,command:Command|CreateCommand):Promise<SavedEntity & {name:string}>;
   saveAddress(id:EntityId|null,userId:EntityId,fields:AddressFields,command:Command|CreateCommand):Promise<AddressSaved>;
   archiveAddress(id:EntityId,userId:EntityId,command:Command):Promise<AddressSaved>;
+  reviewCustomer(id:EntityId,fields:{approved?:boolean;onboarded?:boolean},reason:string,command:Command):Promise<SavedEntity & {approved:boolean|null;onboarded:boolean;account_reconciliation:'queued';commercial_rules:AddressSaved['commercial_rules']}>;
+  saveCustomerLinks(id:EntityId,links:{coordinatorId:EntityId;dealerIds:EntityId[];direct:boolean},reason:string,command:Command):Promise<SavedEntity & {coordinator_id:EntityId;dealer_ids:EntityId[];direct:boolean;rerouted_pending_orders:number;integration:'queued'|'unchanged';commercial_rules:Omit<AddressSaved['commercial_rules'],'dealer_link_mode'> & {dealer_link_mode:'explicit'}}>;
+  saveDealerRules(id:EntityId,fields:{auto_approve_customers?:boolean;zone_id?:EntityId|null},reason:string,command:Command):Promise<SavedEntity & {rules:{auto_approve_customers?:boolean;zone_id?:EntityId|null};applies_to:'future_onboarding'}>;
+  saveCommercialRules(id:EntityId,fields:CommercialRules,reason:string,command:Command):Promise<SavedEntity & {rules:CommercialRules;pricing_applies_to:'future_quotes'}>;
+  reassignCustomers(customers:Array<SavedEntity>,coordinatorId:EntityId,reason:string,idempotencyKey:string):Promise<Reassignment>;
+  requestCoordinator(coordinatorId:EntityId,reason:string,idempotencyKey:string):Promise<CoordinatorRequest>;
+  coordinatorRequests(filters?:{state?:'pending'|'approved'|'rejected'|'all';customerId?:EntityId},page?:PageRequest):Promise<Page<CoordinatorRequestDetail>>;
+  decideCoordinatorRequest(id:EntityId,decision:'approved'|'rejected',reason:string,customerVersion:Version,command:Command):Promise<SavedEntity & {state:'approved'|'rejected';assignment:Reassignment|null}>;
+  relationshipOptions(kind:'coordinators'|'dealers'|'cities'|'zones'|'price_types'|'brands',context?:{customerId?:EntityId;search?:string},page?:PageRequest):Promise<Page<{id:EntityId;name:string;parent_id:EntityId|null}>>;
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
   order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;dispatch_destination:DispatchDestination;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
