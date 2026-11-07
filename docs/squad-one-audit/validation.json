@@ -1,0 +1,13 @@
+{
+  "workflow_rows": 115,
+  "modules": 28,
+  "stored_personas": 13,
+  "managed_subject_workflows": 8,
+  "future_acceptance_scenarios": 65,
+  "inventory_unclassified": 0,
+  "local_links": "passed",
+  "credential_pattern_scan": "passed",
+  "matrix_filter_checks": "passed",
+  "visual_browser_review": "not performed; browser URL policy rejected file protocol",
+  "runtime_business_tests": "not run; services are planned"
+}

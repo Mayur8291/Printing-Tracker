@@ -1,0 +1,14 @@
+source,job,master,target
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/application_job.rb#L1,application_job,OPS,framework base; no handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/clear_old_catalogues_job.rb#L1,clear_old_catalogues_job,DOC,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/create_or_update_order_report_job.rb#L1,create_or_update_order_report_job,METRIC,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/fetch_order_report_job.rb#L1,fetch_order_report_job,METRIC,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/process_bulk_rmp_prices_job.rb#L1,process_bulk_rmp_prices_job,INTEGRATE,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/send_catalogue_pdf_job.rb#L1,send_catalogue_pdf_job,DOC,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/send_notification_job.rb#L1,send_notification_job,NOTIFY,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/sync_airtable_job.rb#L1,sync_airtable_job,INTEGRATE,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/update_all_uc_orders_status_job.rb#L1,update_all_uc_orders_status_job,INTEGRATE,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/update_rmp_class_min_stats_job.rb#L1,update_rmp_class_min_stats_job,METRIC,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/update_uc_order_status_job.rb#L1,update_uc_order_status_job,INTEGRATE,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/update_user_stock_job.rb#L1,update_user_stock_job,STOCK,shared durable worker handler
+https://github.com/arslan9380/scott-international-backend/blob/14277820c78e018e62be3da1a14cd8d716cdbf02/app/jobs/weekly_tailor_report_job.rb#L1,weekly_tailor_report_job,DOC,shared durable worker handler

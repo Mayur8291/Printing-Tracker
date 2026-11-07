@@ -1,0 +1,23 @@
+{
+  "source-files.csv": 1458,
+  "flutter-views.csv": 317,
+  "flutter-services.csv": 146,
+  "controller-methods.csv": 444,
+  "legacy-routes.csv": 468,
+  "branch-differences.csv": 333,
+  "snapshot-tables.csv": 86,
+  "legacy-tables.csv": 71,
+  "master_capabilities": 28,
+  "workflows": 115,
+  "shared_workflows": 68,
+  "proposed_rpc_contract_names": 115,
+  "notification_types": 115,
+  "background_job_files": 13,
+  "side_effect_call_sites": 111,
+  "migration_files": 296,
+  "alternate_branch_methods": 123,
+  "unique_route_signatures": 461,
+  "implemented_unique_routes": 374,
+  "unimplemented_route_declarations": 87,
+  "unclassified": 0
+}

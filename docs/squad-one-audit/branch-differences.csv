@@ -1,0 +1,334 @@
+repository,compared_commit,change_relative_to_baseline,path,disposition,capability
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/app/calculator.dart,superseded main snapshot; approved Flutter develop baseline governs,PRICE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/app/custom_cache_manager.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/app/excecute_time_utils.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/app/extensions.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/app/global_constants.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/app/image_util.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/app/internet_connection_helper.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/app/locator.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/app/regex.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/app/static_info.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/app/theme/base_theme.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/app/utils.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/app/validator.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/main.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/add_ons_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/auhtorized_brands_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/base_products_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/catalogue_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/catalogues_listing_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/customer_price_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/customer_sc_requests_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/email_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/main_categories_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/order_item_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/order_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/parent_base_product_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/product_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/promotion_banners_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/promotion_categories_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/promotion_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/readymade_categories_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/readymade_products_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/responsibilities_listing_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/responsibility_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/rmp_skus_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/models/size_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/temp_order_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/models/user_response_model.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/services/assistant_worker_service.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/auth_service.dart,superseded main snapshot; approved Flutter develop baseline governs,AUTH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/catalogue_service.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/common_ui_service.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/customer_service.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/cutting_master_service.dart,superseded main snapshot; approved Flutter develop baseline governs,CUT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/dispatch_service.dart,superseded main snapshot; approved Flutter develop baseline governs,DISPATCH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/factory_service.dart,superseded main snapshot; approved Flutter develop baseline governs,PLAN
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/inspector_service.dart,superseded main snapshot; approved Flutter develop baseline governs,SEW
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/leaderboard_service.dart,superseded main snapshot; approved Flutter develop baseline governs,METRIC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/notifications_config.dart,superseded main snapshot; approved Flutter develop baseline governs,NOTIFY
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/order_service.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/product_service.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/services/promotion_banners_service.dart,superseded main snapshot; approved Flutter develop baseline governs,PROMO
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/promotion_service.dart,superseded main snapshot; approved Flutter develop baseline governs,PROMO
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/readymade_product_service.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/services/responsibilities_service.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/shared_preference.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/services/tailor_service.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/Factories/factories_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/add_branding/add_branding_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/add_customer/add_customer_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/add_customer/add_customer_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/add_tailor/add_tailor_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/admin_customers/tabs/customers/approved_customers_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/admin_customers/tabs/customers/approved_customers_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/admin_customers/tabs/dealers/dealers_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/admin_customers/tabs/dealers/dealers_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/admin_dashboard/admin_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/admin_personas/admin_personas_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/admin_personas/admin_personas_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assign_authorized_brands/assign_authorized_brands_view.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assign_authorized_brands/assign_authorized_brands_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/assign_note/assign_note_view.dart,superseded main snapshot; approved Flutter develop baseline governs,TASK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/assign_note/assign_note_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,TASK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assistant_worker/add_assistant_worker/add_assistant_worker_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assistant_worker/add_assistant_worker/add_assistant_worker_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assistant_worker/assistant_worker_dashboard/assistant_worker_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assistant_worker/assistant_worker_dashboard/assistant_worker_dashboard_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assistant_worker/assistant_workers/assistant_workers_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/assistant_worker/assistant_workers/assistant_workers_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/base_product/base_product_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/base_product/base_product_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/catalogues/catalogues_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/change_customers_sc/change_customers_sc_view.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/change_customers_sc/change_customers_sc_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/coordinator_orders/coordinator_orders_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/coordinator_orders/coordinator_orders_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/coordinator_orders/tabs/completed_orders/completed_orders_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/coordinator_orders/tabs/completed_orders/completed_orders_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/coordinator_orders/tabs/pending_orders/pending_orders_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/coordinator_orders/tabs/pending_orders/pending_orders_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_catalogue/catalogue_details/catalogue_details_view.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_catalogue/catalogue_details/catalogue_details_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_catalogue/catalogue_profit/catalogue_profit_view.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_catalogue/catalogue_profit/catalogue_profit_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_note/create_note_view.dart,superseded main snapshot; approved Flutter develop baseline governs,TASK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_order/create_order_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_order/create_order_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product/create_product_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product/create_product_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product/widgets/add_ons_tab_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product/widgets/branding_tab_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/create_product/widgets/custom_mockup.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product/widgets/initial_tab_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product/widgets/reference_images_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product/widgets/tabs_save_section.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product_preview/create_product_preview_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/create_product_preview/create_product_preview_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CONFIG
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/create_responsibility/create_responsibility_view.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/create_responsibility/create_responsibility_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/create_responsibility/widget/create_responsibility_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/create_responsibility/widget/role_item_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_dashboard/customer_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_dashboard/customer_dashboard_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_details/customer_details_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_details/customer_details_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/customer_onboarding/customers_onboarding_view.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/customer_onboarding/customers_onboarding_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_preview/customer_preview_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/customer_sc_request/customers_sc_request_view.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/customer_sc_request/customers_sc_request_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_signup/signup_view.dart,superseded main snapshot; approved Flutter develop baseline governs,AUTH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_signup/signup_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,AUTH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customer_verification/customers_verification_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,LINK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customers/customers_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customers/customers_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customers/tabs/approved_customers/approved_customers_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customers/tabs/approved_customers/approved_customers_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/customers/tabs/pending_customers/pending_customers_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/cutting_dashboard/cutting_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/cutting_item_detail/cutting_item_detail_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CUT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/cutting_item_detail/cutting_item_detail_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CUT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dealer_dashboard/dealers_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dealer_orders/dealer_orders_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dealer_orders/dealer_orders_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dealers/tabs/approved_dealers/approved_dealers_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dealers_customers/dealer_customer_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/delivery_challan/delivery_challan_view.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/delivery_challan/delivery_challan_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/delivery_challan/widgets/delivery_challan_item.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/delivery_challan/widgets/download_button.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/delivery_challan/widgets/key_value_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,DOC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dispatch_dashboard/dispatch_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dispatch_jobsheet/dispatch_jobsheet_view.dart,superseded main snapshot; approved Flutter develop baseline governs,DISPATCH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dispatch_order_detail/dispatch_order_details_view.dart,superseded main snapshot; approved Flutter develop baseline governs,DISPATCH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dispatch_order_detail/dispatch_order_details_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,DISPATCH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/dispatch_orders/pages/dispatch_pending_order_view.dart,superseded main snapshot; approved Flutter develop baseline governs,DISPATCH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/drawer/drawer_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/factory_dashboard/factory_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/filtered_orders/filtered_orders_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/filtered_orders/filtered_orders_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/inspector_dashboard/inspector_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/inspector_item_detail/inspector_item_detail_view.dart,superseded main snapshot; approved Flutter develop baseline governs,SEW
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/inspector_item_detail/inspector_item_detail_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,SEW
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/jobsheet/jobsheet_view.dart,superseded main snapshot; approved Flutter develop baseline governs,SEW
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/jobworker/add_jobworker/add_jobworker_view.dart,superseded main snapshot; approved Flutter develop baseline governs,JOB
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/jobworker/jobworker_dashboard/jobworker_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/jobworker/jobworkers/jobworkers_view.dart,superseded main snapshot; approved Flutter develop baseline governs,JOB
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/jobworker/jobworkers/jobworkers_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,JOB
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/leaderboard_view/leaderboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,METRIC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/leaderboard_view/leaderboard_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,METRIC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/milestone_details/milestone_details_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,TARGET
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/milestone_details/tabs/ongoing_milestones.dart,superseded main snapshot; approved Flutter develop baseline governs,TARGET
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/notes/notes_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,TASK
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/otp/otp_view.dart,superseded main snapshot; approved Flutter develop baseline governs,AUTH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/otp/otp_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,AUTH
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/parent_base_product/parent_base_product_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/parent_base_product/parent_base_product_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/payment/payment_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/payment/thankyou_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/pc_dashboard/pc_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/pdf_view/pdf_view.dart,superseded main snapshot; approved Flutter develop baseline governs,MEDIA
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/products_category/product_categories_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/products_category/product_categories_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/products_category/tabs/custom_product.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/products_category/tabs/readymade_product_tab.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/promotional_assets/promotional_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PROMO
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/promotional_assets/promotional_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PROMO
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/responsibilities/responsibilities_view.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/responsibilities/responsibilities_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/responsibilities/widget/create_responsibility_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/responsibilities/widget/role_item_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp/rmp_brand_products/rmp_brand_product_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp/rmp_brand_products/rmp_brand_products_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp/rmp_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp/rmp_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp_detail/rmp_detail_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp_detail/rmp_detail_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp_search/rmp_search_view.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp_search/rmp_search_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/rmp_search/widgets/search_result_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,CAT
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/roles_goals/roles_goals_view.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/roles_goals/widget/role_item_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,GOAL
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/sc_dashboard/sc_dashboard_view.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/sc_details_view_u/tabs/pending_orders/pending_orders_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,METRIC
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/sc_order_detail/sc_order_details_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/sc_order_detail/sc_order_details_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/search_order/search_order_view.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/search_order/search_order_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,ORDER
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/select_factory/select_factory_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/select_sc/select_sc_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/select_sc/select_sc_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/select_tailors/select_tailors_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/select_user/select_user_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/select_user/select_user_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/select_user_role/select_user_role_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/select_user_role/select_user_role_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/views/select_user_role/widget/select_user_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/splash/splash_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/tailor_details/tailor_details_view.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/views/tailor_details/tailor_details_viewmodel.dart,superseded main snapshot; approved Flutter develop baseline governs,PEOPLE
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/add_branding_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/added_branding_side_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/added_style_item.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/assign_deal_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/branding_image_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/button_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/catalogue_item_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/completed_history_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/completed_orders_count_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/connectivity_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/custom_appbar.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/custom_product_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/customer_approve_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/customer_detail_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/customer_order_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/customer_request_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/customer_selected_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/customer_selection_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/customer_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/cutting_item_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/delete_account_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/delete_account_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/delete_user_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/dispatch_header_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/dispatch_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/divider_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/fabric_detail_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/factory_order_detail_header.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/factory_order_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/image_viewer.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/images_slider_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/input_field.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/inspector_counter_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/jobsheet_assigned_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/jobsheet_counter_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/jobsheet_progress_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/jobsheet_status_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/jobworker_order_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/jobworker_orders_counter.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/jobworker_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/leaderboard_item.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/login_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/logout_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/milestone_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/no_internet_status_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/notes_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/onboard_customer_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/order_due_date.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/order_quantity_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/order_selection_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/order_type_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/order_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/outline_large_button.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/pending_criteria_order_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/pending_orders_count_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/persona_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/place_bulk_order_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/price_card_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/price_selelector_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/product_detail_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/product_preview_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/promotional_banners_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/rect_image.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/rect_image_dynamic.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/refreshable_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/rmp_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/round_image.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/sc_detail_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/sc_order_detail_header.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/sc_order_details_criteria.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/sc_order_details_item.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/sc_order_fabric.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/sc_order_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/sc_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/searchbar.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/selectable_text_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/selected_product.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/selected_rmp_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/share_product_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/stock_percentage_input.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/tab_item_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/tabs_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/tailor_header_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/user_header.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/user_selection_widget.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,lib/ui/widgets/verify_customer_button.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/view_dealers_dialog.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,D,lib/ui/widgets/weekly_report_button.dart,superseded main snapshot; approved Flutter develop baseline governs,APP
+flutter,eef6bffd82e25f730cf325b59990f9b4f8026dd6,M,pubspec.yaml,superseded main snapshot; approved Flutter develop baseline governs,APP
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/controllers/api/v1/catalogue_controller.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,DOC
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/controllers/api/v1/customers_controller.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,LINK
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/controllers/api/v1/promotional_banners_controller.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,PROMO
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/controllers/api/v1/ready_made_products_controller.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,CAT
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/controllers/webhooks/orders_controller.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/controllers/webhooks/stock_controller.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/jobs/process_bulk_rmp_prices_job.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/models/order.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,ORDER
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/models/rmp_class.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,CAT
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/models/rmp_sku.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,CAT;INTEGRATE;MASTER;STOCK
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/auto_approval_user_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,LINK
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/cancel_order_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,ORDER
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/create_back_orders_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,BACK
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/adjust_stock_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/api_client.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/cancel_order_params_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/cancel_order_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/create_order_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/fetch_inventory_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/fulfill_stock_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/order_info_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/release_stock_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/reserve_stock_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/dashboard/sync_customer_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/delete_order_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,ORDER
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/split_orders_by_brand_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,ORDER
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/update_order_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,ORDER
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/update_rmp_class_min_infos_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,APP
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/update_rmp_class_min_mrp_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,METRIC
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/update_rmp_class_min_price_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,METRIC
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,app/services/update_uc_order_status_service.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,A,app/services/wms_router.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,INTEGRATE
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,config/initializers/feature_flags.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,APP
+rails,058ffb160c323ca329aea2228af8b92477275a3c,M,config/routes.rb,reviewed alternate WMS/dashboard branch; preserve adapter capability; deployed parity unproven,OPS

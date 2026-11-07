@@ -1,0 +1,147 @@
+path,line,method,capability,disposition
+lib/services/airtable_service.dart,15,syncAirtable,INTEGRATE,shared module; see curated workflow contracts
+lib/services/airtable_service.dart,32,getSyncedStatuses,INTEGRATE,shared module; see curated workflow contracts
+lib/services/assistant_worker_service.dart,16,addAssistantWorker,PEOPLE,shared module; see curated workflow contracts
+lib/services/assistant_worker_service.dart,103,deleteAssistantWorker,PEOPLE,shared module; see curated workflow contracts
+lib/services/assistant_worker_service.dart,127,getAssistantWorkers,PEOPLE,shared module; see curated workflow contracts
+lib/services/auth_service.dart,16,loginUser,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,45,updatePassword,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,70,logout,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,95,forgotPassword,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,121,resetPassword,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,152,validateOtp,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,177,getUpdatedUser,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,200,registerUser,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,248,validateEmail,AUTH,shared module; see curated workflow contracts
+lib/services/auth_service.dart,278,enableDisableUser,AUTH,shared module; see curated workflow contracts
+lib/services/catalogue_service.dart,13,createCatalogue,DOC,shared module; see curated workflow contracts
+lib/services/catalogue_service.dart,104,getCreatedCatalogues,DOC,shared module; see curated workflow contracts
+lib/services/common_ui_service.dart,9,showSnackBar,APP,client/model/serialization support; no independent endpoint
+lib/services/common_ui_service.dart,39,showActionSheet,APP,client/model/serialization support; no independent endpoint
+lib/services/common_ui_service.dart,76,showCreateOrderSnackBar,APP,client/model/serialization support; no independent endpoint
+lib/services/common_ui_service.dart,156,showBulkOrderSnackBar,APP,client/model/serialization support; no independent endpoint
+lib/services/config_service.dart,16,getLatestVersion,APP,client/model/serialization support; no independent endpoint
+lib/services/customer_service.dart,20,addCustomer,PEOPLE,shared module; see curated workflow contracts
+lib/services/customer_service.dart,109,deleteCustomer,PEOPLE,shared module; see curated workflow contracts
+lib/services/customer_service.dart,133,getCustomers,PEOPLE,shared module; see curated workflow contracts
+lib/services/customer_service.dart,204,manageCustomer,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,246,updateCustomerSc,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,275,onboardCustomer,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,302,toggleDealerAutoApprove,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,332,setCustomerStockPercentage,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,362,updateScOfAllCustomers,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,394,createChangeScRequest,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,421,getCustomersRequest,LINK,shared module; see curated workflow contracts
+lib/services/customer_service.dart,473,updateScChangeRequest,LINK,shared module; see curated workflow contracts
+lib/services/cutting_master_service.dart,19,addCuttingMaster,PEOPLE,shared module; see curated workflow contracts
+lib/services/cutting_master_service.dart,67,getAllCuttingMasters,PEOPLE,shared module; see curated workflow contracts
+lib/services/cutting_master_service.dart,101,getJobSheets,CUT,shared module; see curated workflow contracts
+lib/services/cutting_master_service.dart,137,getJobSheetDetail,CUT,shared module; see curated workflow contracts
+lib/services/cutting_master_service.dart,159,updateCuttingMaster,CUT,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,22,addDispatchInCharge,PEOPLE,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,69,getDispatchInCharges,PEOPLE,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,104,getDispatchOrders,DISPATCH,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,141,getDealerOrders,DISPATCH,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,182,markItemDispatched,DISPATCH,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,222,getOrderDetail,DISPATCH,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,249,setDispatchLocation,DISPATCH,shared module; see curated workflow contracts
+lib/services/dispatch_service.dart,276,getDeliveryChallan,DOC,shared module; see curated workflow contracts
+lib/services/factory_service.dart,22,addFactory,PEOPLE,shared module; see curated workflow contracts
+lib/services/factory_service.dart,90,getAllFactories,PEOPLE,shared module; see curated workflow contracts
+lib/services/factory_service.dart,123,getFactoryTailors,PEOPLE,shared module; see curated workflow contracts
+lib/services/factory_service.dart,145,getJobSheetDetails,SEW,shared module; see curated workflow contracts
+lib/services/factory_service.dart,172,assignJobSheet,SEW,shared module; see curated workflow contracts
+lib/services/factory_service.dart,239,assignCuttingMaster,PLAN,shared module; see curated workflow contracts
+lib/services/factory_service.dart,276,getJobSheetByTailor,SEW,shared module; see curated workflow contracts
+lib/services/inspector_service.dart,19,addInspector,PEOPLE,shared module; see curated workflow contracts
+lib/services/inspector_service.dart,69,getInspectors,PEOPLE,shared module; see curated workflow contracts
+lib/services/inspector_service.dart,104,getJobSheets,SEW,shared module; see curated workflow contracts
+lib/services/inspector_service.dart,142,getJobSheetDetail,SEW,shared module; see curated workflow contracts
+lib/services/inspector_service.dart,164,markCompleted,SEW,shared module; see curated workflow contracts
+lib/services/job_worker_service.dart,15,addJobWorker,JOB,shared module; see curated workflow contracts
+lib/services/job_worker_service.dart,99,deleteJobWorker,JOB,shared module; see curated workflow contracts
+lib/services/job_worker_service.dart,119,getJobWorkers,JOB,shared module; see curated workflow contracts
+lib/services/job_worker_service.dart,164,manageJobWorkerKey,JOB,shared module; see curated workflow contracts
+lib/services/job_worker_service.dart,199,updatejobWorkerKeySc,JOB,shared module; see curated workflow contracts
+lib/services/job_worker_service.dart,222,onboardjobWorkerKey,JOB,shared module; see curated workflow contracts
+lib/services/leaderboard_service.dart,12,getLeaderboardData,METRIC,shared module; see curated workflow contracts
+lib/services/milestone_service.dart,16,addMilestones,TARGET,shared module; see curated workflow contracts
+lib/services/milestone_service.dart,59,updateMilestone,TARGET,shared module; see curated workflow contracts
+lib/services/milestone_service.dart,91,getMilestones,TARGET,shared module; see curated workflow contracts
+lib/services/milestone_service.dart,113,deleteMilestone,TARGET,shared module; see curated workflow contracts
+lib/services/notes_service.dart,16,createTask,TASK,shared module; see curated workflow contracts
+lib/services/notes_service.dart,48,editTask,TASK,shared module; see curated workflow contracts
+lib/services/notes_service.dart,99,getAllNotes,TASK,shared module; see curated workflow contracts
+lib/services/notes_service.dart,122,updateTaskStatus,TASK,shared module; see curated workflow contracts
+lib/services/notes_service.dart,143,getUsers,TASK,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,20,initNotification,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,63,_showNotification,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,98,_generateNotificationId,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,103,getToken,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,114,handleBackgroundMessage,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,118,onAppOpenedFromBackgroundViaTap,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,130,onAppOpenedFromTerminatedViaTap,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,142,firebaseNotification,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,154,requestNotificationPermission,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,161,redirectBasedOnNotification,NOTIFY,shared module; see curated workflow contracts
+lib/services/notifications_config.dart,238,decodeNotificationPayload,NOTIFY,shared module; see curated workflow contracts
+lib/services/order_service.dart,27,createOrder,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,363,getOrders,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,458,assignOrder,PLAN,shared module; see curated workflow contracts
+lib/services/order_service.dart,483,cancelOrder,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,503,dealerCancelOrder,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,523,getOrderProducts,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,547,markItemCriteria,PLAN,shared module; see curated workflow contracts
+lib/services/order_service.dart,573,getOrderDetails,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,596,forceCompleteOrder,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,619,tagOrderPrime,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,643,updateOrderDueDate,ORDER,shared module; see curated workflow contracts
+lib/services/order_service.dart,672,updateOrderDueDateByWorker,JOB,shared module; see curated workflow contracts
+lib/services/order_service.dart,705,assignJobWorker,JOB,shared module; see curated workflow contracts
+lib/services/order_service.dart,730,assignJobWorkerPrice,JOB,shared module; see curated workflow contracts
+lib/services/order_service.dart,752,updateJobWorkerItemStatus,JOB,shared module; see curated workflow contracts
+lib/services/order_service.dart,780,placeBulkOrder,BACK,shared module; see curated workflow contracts
+lib/services/pc_service.dart,15,addPC,PEOPLE,shared module; see curated workflow contracts
+lib/services/pc_service.dart,63,getAllPC,PEOPLE,shared module; see curated workflow contracts
+lib/services/pc_service.dart,96,deleteUser,PEOPLE,shared module; see curated workflow contracts
+lib/services/product_service.dart,25,getBaseProducts,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,50,getParentBaseProducts,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,71,getProductSizes,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,94,getFabricDetails,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,118,getAddOns,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,141,getColors,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,166,addNewColor,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,196,addProduct,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,314,getCustomProducts,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,338,updatePresetName,CONFIG,shared module; see curated workflow contracts
+lib/services/product_service.dart,359,getProductSvgString,CONFIG,shared module; see curated workflow contracts
+lib/services/profit_service.dart,13,getProfitCategorization,PRICE,shared module; see curated workflow contracts
+lib/services/promotion_banners_service.dart,17,getPromotionBanners,PROMO,shared module; see curated workflow contracts
+lib/services/promotion_service.dart,15,getPromotionalAssets,PROMO,shared module; see curated workflow contracts
+lib/services/promotion_service.dart,35,getPromotionCategories,PROMO,shared module; see curated workflow contracts
+lib/services/rating_service.dart,13,giveRating,RATE,shared module; see curated workflow contracts
+lib/services/readymade_product_service.dart,21,getCategories,CAT,shared module; see curated workflow contracts
+lib/services/readymade_product_service.dart,44,getPriceType,CAT,shared module; see curated workflow contracts
+lib/services/readymade_product_service.dart,68,getRmp,CAT,shared module; see curated workflow contracts
+lib/services/readymade_product_service.dart,102,getSkus,CAT,shared module; see curated workflow contracts
+lib/services/readymade_product_service.dart,140,searchRmp,CAT,shared module; see curated workflow contracts
+lib/services/readymade_product_service.dart,163,getMainCategories,CAT,shared module; see curated workflow contracts
+lib/services/readymade_product_service.dart,187,getAuhtorizedBrands,CAT,shared module; see curated workflow contracts
+lib/services/responsibilities_service.dart,16,addResponsibilities,GOAL,shared module; see curated workflow contracts
+lib/services/responsibilities_service.dart,62,deleteResponsibility,GOAL,shared module; see curated workflow contracts
+lib/services/responsibilities_service.dart,82,getAllResponsibilities,GOAL,shared module; see curated workflow contracts
+lib/services/responsibilities_service.dart,133,updateResponsibility,GOAL,shared module; see curated workflow contracts
+lib/services/sc_service.dart,17,addSC,PEOPLE,shared module; see curated workflow contracts
+lib/services/sc_service.dart,66,getAllSC,PEOPLE,shared module; see curated workflow contracts
+lib/services/sc_service.dart,97,deleteUser,PEOPLE,shared module; see curated workflow contracts
+lib/services/shared_preference.dart,21,init,APP,client/model/serialization support; no independent endpoint
+lib/services/shared_preference.dart,25,saveCoins,APP,client/model/serialization support; no independent endpoint
+lib/services/shared_preference.dart,29,clearCoins,APP,client/model/serialization support; no independent endpoint
+lib/services/shared_preference.dart,33,saveBoolValue,APP,client/model/serialization support; no independent endpoint
+lib/services/shared_preference.dart,37,getBoolValue,APP,client/model/serialization support; no independent endpoint
+lib/services/shared_preference.dart,43,getUser,APP,client/model/serialization support; no independent endpoint
+lib/services/shared_preference.dart,55,saveUser,APP,client/model/serialization support; no independent endpoint
+lib/services/shared_preference.dart,64,clearUser,APP,client/model/serialization support; no independent endpoint
+lib/services/tailor_service.dart,17,addTailor,PEOPLE,shared module; see curated workflow contracts
+lib/services/tailor_service.dart,86,getAllTailors,PEOPLE,shared module; see curated workflow contracts
+lib/services/tailor_service.dart,112,getWeeklyReport,DOC,shared module; see curated workflow contracts

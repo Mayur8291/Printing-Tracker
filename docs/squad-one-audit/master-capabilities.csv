@@ -1,0 +1,29 @@
+id,master_functionality,workflow_count,persona_count,personas_including_conditional,canonical_tables,workflow_ids
+AUTH,"Identity, sessions and access",6,11,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dispatch Incharge; Inspector; Cutting Master; Dealer; Job Worker; Assistant Worker / Team,users reset_password_histories,AUTH.01;AUTH.02;AUTH.03;AUTH.04;AUTH.05;AUTH.06
+PEOPLE,People and workforce directory,6,9,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dispatch Incharge; Inspector; Dealer; Job Worker,users factories addresses,PEOPLE.01;PEOPLE.02;PEOPLE.03;PEOPLE.04;PEOPLE.05;PEOPLE.06
+LINK,Customer relationships and onboarding,6,4,Admin; Sales Coordinator; Customer; Dealer,users addresses user_dealers customer_requests assigned_brands zones cities,LINK.01;LINK.02;LINK.03;LINK.04;LINK.05;LINK.06
+CAT,Product discovery,4,7,Admin; Sales Coordinator; Production Coordinator; Customer; Dealer; Job Worker; Assistant Worker / Team,base_products base_product_types rmp_categories rmp_brands rmp_classes rmp_skus rmp_prices rmp_price_types rmp_min_infos,CAT.01;CAT.02;CAT.03;CAT.04
+CONFIG,Custom product configuration,5,6,Admin; Sales Coordinator; Customer; Dealer; Job Worker; Assistant Worker / Team,products product_parts product_part_add_ons brandings product_images parts add_ons fabrics colors sizes,CONFIG.01;CONFIG.02;CONFIG.03;CONFIG.04;CONFIG.05
+PRICE,"Quotes, margins and price visibility",4,6,Admin; Sales Coordinator; Customer; Dealer; Job Worker; Assistant Worker / Team,profit_margins rmp_prices rmp_sku_prices items orders,PRICE.01;PRICE.02;PRICE.03;PRICE.04
+ORDER,Order lifecycle,8,7,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dealer; Job Worker,orders items quantities extra_quantities back_order_links,ORDER.01;ORDER.02;ORDER.03;ORDER.04;ORDER.05;ORDER.06;ORDER.07;ORDER.08
+PLAN,Factory allocation and criteria,4,2,Production Coordinator; Factory Manager,orders items item_criteria criteria users,PLAN.01;PLAN.02;PLAN.03;PLAN.04
+CUT,Cutting execution,3,3,Production Coordinator; Factory Manager; Cutting Master,mark_cuttings mark_cutting_quantities quantities items orders,CUT.01;CUT.02;CUT.03
+SEW,"Job sheets, tailoring and inspection",4,5,Admin; Production Coordinator; Factory Manager; Dispatch Incharge; Inspector,item_tailors item_tailor_quantities job_sheet_assign_dates job_sheet_assign_quantities job_sheet_assign_tailors job_sheet_mark_tailors job_sheet_tailor_mark_dates mark_tailor_quantities,SEW.01;SEW.02;SEW.03;SEW.04
+DISPATCH,Dispatch and delivery,4,6,Admin; Sales Coordinator; Production Coordinator; Factory Manager; Dispatch Incharge; Dealer,dispatched_quantities job_sheet_dispatched_dates orders items quantities,DISPATCH.01;DISPATCH.02;DISPATCH.03;DISPATCH.04
+JOB,External job work,5,3,Admin; Production Coordinator; Job Worker,orders items users,JOB.01;JOB.02;JOB.03;JOB.04;JOB.05
+STOCK,Dealer stock and availability,4,4,Admin; Sales Coordinator; Customer; Dealer,stocks stock_infos stock_useds rmp_skus,STOCK.01;STOCK.02;STOCK.03;STOCK.04
+BACK,Dealer back orders,2,1,Dealer,back_order_links orders items stocks,BACK.01;BACK.02
+TASK,Notes and tasks,3,6,Admin; Sales Coordinator; Production Coordinator; Factory Manager; Job Worker; Assistant Worker / Team,tasks task_users,TASK.01;TASK.02;TASK.03
+GOAL,"Responsibilities, roles and goals",3,5,Admin; Sales Coordinator; Production Coordinator; Job Worker; Assistant Worker / Team,responsibilities users,GOAL.01;GOAL.02;GOAL.03
+TARGET,Sales milestones,3,2,Admin; Sales Coordinator,milestones orders users,TARGET.01;TARGET.02;TARGET.03
+RATE,Ratings and feedback,3,7,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dealer; Job Worker,ratings users orders items,RATE.01;RATE.02;RATE.03
+METRIC,"Dashboards, reports and leaderboards",5,10,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dispatch Incharge; Inspector; Cutting Master; Dealer; Job Worker,orders items users ratings milestones quantities,METRIC.01;METRIC.02;METRIC.03;METRIC.04;METRIC.05
+DOC,Catalogues and operational documents,5,9,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dispatch Incharge; Dealer; Job Worker; Assistant Worker / Team,catalogues orders users quantities,DOC.01;DOC.02;DOC.03;DOC.04;DOC.05
+PROMO,Promotional content,2,7,Admin; Sales Coordinator; Production Coordinator; Customer; Dealer; Job Worker; Assistant Worker / Team,promotions promotional_banners asset_infos base_product_asset_infos,PROMO.01;PROMO.02
+MEDIA,Files and media access,4,11,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dispatch Incharge; Inspector; Cutting Master; Dealer; Job Worker; Assistant Worker / Team,product_images brandings promotions catalogues,MEDIA.01;MEDIA.02;MEDIA.03;MEDIA.04
+NOTIFY,Notifications and devices,3,11,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dispatch Incharge; Inspector; Cutting Master; Dealer; Job Worker; Assistant Worker / Team,notifications user_devices users,NOTIFY.01;NOTIFY.02;NOTIFY.03
+MASTER,Master data administration,3,1,Admin,base_products add_ons parts colors fabrics rmp_skus rmp_prices settings,MASTER.01;MASTER.02;MASTER.03
+INTEGRATE,Warehouse and data integrations,6,1,Admin,orders rmp_skus sync_airtables bulk_uploads settings,INTEGRATE.01;INTEGRATE.02;INTEGRATE.03;INTEGRATE.04;INTEGRATE.05;INTEGRATE.06
+REFRESH,One-way refresh and cutover,3,0,,users orders settings,REFRESH.01;REFRESH.02;REFRESH.03
+APP,App bootstrap and shared client behavior,4,11,Admin; Sales Coordinator; Production Coordinator; Customer; Factory Manager; Dispatch Incharge; Inspector; Cutting Master; Dealer; Job Worker; Assistant Worker / Team,app_configs users,APP.01;APP.02;APP.03;APP.04
+OPS,Durable work and audit,3,1,Admin,notifications bulk_uploads catalogues,OPS.01;OPS.02;OPS.03

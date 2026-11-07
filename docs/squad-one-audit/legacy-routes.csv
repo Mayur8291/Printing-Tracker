@@ -1,0 +1,469 @@
+verb,path,controller,action,implemented,source,handler,capability,disposition
+GET,/catalogue,catalogue,index,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+POST,/catalogue,catalogue,create,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/catalogue/new,catalogue,new,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/catalogue/:id/edit,catalogue,edit,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/catalogue/:id,catalogue,show,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+PATCH,/catalogue/:id,catalogue,update,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+PUT,/catalogue/:id,catalogue,update,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+DELETE,/catalogue/:id,catalogue,destroy,False,config/routes.rb:9,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/catalogue/pdf,catalogue,pdf,False,config/routes.rb:11,app/controllers/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+POST,/api/v1/auth/authenticate,api/v1/auth,authenticate,True,config/routes.rb:18,app/controllers/api/v1/auth_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/auth/forgot_password,api/v1/auth,forgot_password,True,config/routes.rb:19,app/controllers/api/v1/auth_controller.rb:19,APP,retain behavior via shared module
+POST,/api/v1/auth/reset_password,api/v1/auth,reset_password,True,config/routes.rb:20,app/controllers/api/v1/auth_controller.rb:57,APP,retain behavior via shared module
+POST,/api/v1/auth/force_reset_password,api/v1/auth,force_reset_password,True,config/routes.rb:21,app/controllers/api/v1/auth_controller.rb:180,APP,retain behavior via shared module
+POST,/api/v1/auth/update_password,api/v1/auth,update_password,True,config/routes.rb:22,app/controllers/api/v1/auth_controller.rb:88,APP,retain behavior via shared module
+POST,/api/v1/auth/resend_confirmation_token,api/v1/auth,resend_confirmation_token,True,config/routes.rb:23,app/controllers/api/v1/auth_controller.rb:107,APP,retain behavior via shared module
+POST,/api/v1/auth/confirm_by_token,api/v1/auth,confirm_by_token,True,config/routes.rb:24,app/controllers/api/v1/auth_controller.rb:122,APP,retain behavior via shared module
+POST,/api/v1/auth/check_confirm_token_validity,api/v1/auth,check_confirm_token_validity,True,config/routes.rb:25,app/controllers/api/v1/auth_controller.rb:143,APP,retain behavior via shared module
+POST,/api/v1/auth/check_reset_password_token_validity,api/v1/auth,check_reset_password_token_validity,True,config/routes.rb:26,app/controllers/api/v1/auth_controller.rb:158,APP,retain behavior via shared module
+POST,/api/v1/auth/disable_account,api/v1/auth,disable_account,True,config/routes.rb:27,app/controllers/api/v1/auth_controller.rb:217,APP,retain behavior via shared module
+POST,/api/v1/auth/profile,api/v1/auth,profile,True,config/routes.rb:28,app/controllers/api/v1/auth_controller.rb:230,APP,retain behavior via shared module
+POST,/api/v1/auth/logout,api/v1/auth,logout,True,config/routes.rb:29,app/controllers/api/v1/auth_controller.rb:239,APP,retain behavior via shared module
+POST,/api/v1/auth/validate_email,api/v1/auth,validate_email,True,config/routes.rb:30,app/controllers/api/v1/auth_controller.rb:247,APP,retain behavior via shared module
+GET,/api/v1/customers,api/v1/customers,index,True,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb:5,APP,retain behavior via shared module
+POST,/api/v1/customers,api/v1/customers,create,True,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb:55,APP,retain behavior via shared module
+GET,/api/v1/customers/new,api/v1/customers,new,False,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb,LINK,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/customers/:id/edit,api/v1/customers,edit,False,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb,LINK,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/customers/:id,api/v1/customers,show,True,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb:46,APP,retain behavior via shared module
+PATCH,/api/v1/customers/:id,api/v1/customers,update,True,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb:158,APP,retain behavior via shared module
+PUT,/api/v1/customers/:id,api/v1/customers,update,True,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb:158,APP,retain behavior via shared module
+DELETE,/api/v1/customers/:id,api/v1/customers,destroy,True,config/routes.rb:33,app/controllers/api/v1/customers_controller.rb:287,APP,retain behavior via shared module
+POST,/api/v1/customers/:id/update_address,api/v1/customers,update_address,True,config/routes.rb:35,app/controllers/api/v1/customers_controller.rb:224,APP,retain behavior via shared module
+POST,/api/v1/customers/:id/verification,api/v1/customers,verification,True,config/routes.rb:36,app/controllers/api/v1/customers_controller.rb:335,APP,retain behavior via shared module
+POST,/api/v1/customers/:id/assign,api/v1/customers,assign,True,config/routes.rb:37,app/controllers/api/v1/customers_controller.rb:411,APP,retain behavior via shared module
+DELETE,/api/v1/customers/:id/destroy_address,api/v1/customers,destroy_address,True,config/routes.rb:38,app/controllers/api/v1/customers_controller.rb:279,APP,retain behavior via shared module
+POST,/api/v1/customers/:id/auto_approve_customers,api/v1/customers,auto_approve_customers,True,config/routes.rb:39,app/controllers/api/v1/customers_controller.rb:237,APP,retain behavior via shared module
+POST,/api/v1/customers/:id/set_stock_percentage,api/v1/customers,set_stock_percentage,True,config/routes.rb:40,app/controllers/api/v1/customers_controller.rb:248,APP,retain behavior via shared module
+POST,/api/v1/customers/register,api/v1/customers,register,True,config/routes.rb:43,app/controllers/api/v1/customers_controller.rb:295,APP,retain behavior via shared module
+POST,/api/v1/customers/stock_infos,api/v1/customers,stock_infos,True,config/routes.rb:44,app/controllers/api/v1/customers_controller.rb:432,APP,retain behavior via shared module
+POST,/api/v1/customers/my_orders,api/v1/customers,my_orders,True,config/routes.rb:45,app/controllers/api/v1/customers_controller.rb:451,APP,retain behavior via shared module
+POST,/api/v1/customers/assign_sc,api/v1/customers,assign_sc,True,config/routes.rb:46,app/controllers/api/v1/customers_controller.rb:259,APP,retain behavior via shared module
+GET,/api/v1/sales_coordinators,api/v1/sales_coordinators,index,True,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/sales_coordinators,api/v1/sales_coordinators,create,True,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb:32,APP,retain behavior via shared module
+GET,/api/v1/sales_coordinators/new,api/v1/sales_coordinators,new,False,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/sales_coordinators/:id/edit,api/v1/sales_coordinators,edit,False,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/sales_coordinators/:id,api/v1/sales_coordinators,show,True,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb:25,APP,retain behavior via shared module
+PATCH,/api/v1/sales_coordinators/:id,api/v1/sales_coordinators,update,True,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb:55,APP,retain behavior via shared module
+PUT,/api/v1/sales_coordinators/:id,api/v1/sales_coordinators,update,True,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb:55,APP,retain behavior via shared module
+DELETE,/api/v1/sales_coordinators/:id,api/v1/sales_coordinators,destroy,True,config/routes.rb:49,app/controllers/api/v1/sales_coordinators_controller.rb:69,APP,retain behavior via shared module
+GET,/api/v1/sales_coordinators/milestones,api/v1/sales_coordinators,milestones,True,config/routes.rb:51,app/controllers/api/v1/sales_coordinators_controller.rb:77,APP,retain behavior via shared module
+GET,/api/v1/production_coordinators,api/v1/production_coordinators,index,True,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/production_coordinators,api/v1/production_coordinators,create,True,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb:32,APP,retain behavior via shared module
+GET,/api/v1/production_coordinators/new,api/v1/production_coordinators,new,False,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/production_coordinators/:id/edit,api/v1/production_coordinators,edit,False,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/production_coordinators/:id,api/v1/production_coordinators,show,True,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb:25,APP,retain behavior via shared module
+PATCH,/api/v1/production_coordinators/:id,api/v1/production_coordinators,update,True,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb:55,APP,retain behavior via shared module
+PUT,/api/v1/production_coordinators/:id,api/v1/production_coordinators,update,True,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb:55,APP,retain behavior via shared module
+DELETE,/api/v1/production_coordinators/:id,api/v1/production_coordinators,destroy,True,config/routes.rb:54,app/controllers/api/v1/production_coordinators_controller.rb:69,APP,retain behavior via shared module
+GET,/api/v1/factory_managers,api/v1/factory_managers,index,True,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb:5,APP,retain behavior via shared module
+POST,/api/v1/factory_managers,api/v1/factory_managers,create,True,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb:37,APP,retain behavior via shared module
+GET,/api/v1/factory_managers/new,api/v1/factory_managers,new,False,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/factory_managers/:id/edit,api/v1/factory_managers,edit,False,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/factory_managers/:id,api/v1/factory_managers,show,True,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb:28,APP,retain behavior via shared module
+PATCH,/api/v1/factory_managers/:id,api/v1/factory_managers,update,True,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb:78,APP,retain behavior via shared module
+PUT,/api/v1/factory_managers/:id,api/v1/factory_managers,update,True,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb:78,APP,retain behavior via shared module
+DELETE,/api/v1/factory_managers/:id,api/v1/factory_managers,destroy,True,config/routes.rb:55,app/controllers/api/v1/factory_managers_controller.rb:141,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/:id/update_address,api/v1/factory_managers,update_address,True,config/routes.rb:57,app/controllers/api/v1/factory_managers_controller.rb:120,APP,retain behavior via shared module
+DELETE,/api/v1/factory_managers/:id/destroy_address,api/v1/factory_managers,destroy_address,True,config/routes.rb:58,app/controllers/api/v1/factory_managers_controller.rb:133,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/all_tailors,api/v1/factory_managers,all_tailors,True,config/routes.rb:61,app/controllers/api/v1/factory_managers_controller.rb:333,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/tailor_items,api/v1/factory_managers,tailor_items,True,config/routes.rb:62,app/controllers/api/v1/factory_managers_controller.rb:352,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/orders,api/v1/factory_managers,orders,True,config/routes.rb:65,app/controllers/api/v1/factory_managers_controller.rb:149,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/item_detail,api/v1/factory_managers,item_detail,True,config/routes.rb:66,app/controllers/api/v1/factory_managers_controller.rb:166,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/assign_job_sheet,api/v1/factory_managers,assign_job_sheet,True,config/routes.rb:67,app/controllers/api/v1/factory_managers_controller.rb:229,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/tailors,api/v1/factory_managers,tailors,True,config/routes.rb:68,app/controllers/api/v1/factory_managers_controller.rb:324,APP,retain behavior via shared module
+POST,/api/v1/factory_managers/assign_cutting_master,api/v1/factory_managers,assign_cutting_master,True,config/routes.rb:69,app/controllers/api/v1/factory_managers_controller.rb:405,APP,retain behavior via shared module
+GET,/api/v1/tailors,api/v1/tailors,index,True,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb:4,APP,retain behavior via shared module
+POST,/api/v1/tailors,api/v1/tailors,create,True,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb:47,APP,retain behavior via shared module
+GET,/api/v1/tailors/new,api/v1/tailors,new,False,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/tailors/:id/edit,api/v1/tailors,edit,False,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/tailors/:id,api/v1/tailors,show,True,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb:38,APP,retain behavior via shared module
+PATCH,/api/v1/tailors/:id,api/v1/tailors,update,True,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb:85,APP,retain behavior via shared module
+PUT,/api/v1/tailors/:id,api/v1/tailors,update,True,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb:85,APP,retain behavior via shared module
+DELETE,/api/v1/tailors/:id,api/v1/tailors,destroy,True,config/routes.rb:72,app/controllers/api/v1/tailors_controller.rb:147,APP,retain behavior via shared module
+POST,/api/v1/tailors/:id/update_sub_tailor,api/v1/tailors,update_sub_tailor,True,config/routes.rb:74,app/controllers/api/v1/tailors_controller.rb:127,APP,retain behavior via shared module
+DELETE,/api/v1/tailors/:id/destroy_sub_tailor,api/v1/tailors,destroy_sub_tailor,True,config/routes.rb:75,app/controllers/api/v1/tailors_controller.rb:139,APP,retain behavior via shared module
+GET,/api/v1/tailors/:id/get_weekly_report,api/v1/tailors,get_weekly_report,True,config/routes.rb:76,app/controllers/api/v1/tailors_controller.rb:155,APP,retain behavior via shared module
+GET,/api/v1/dispatch_incharges,api/v1/dispatch_incharges,index,True,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/dispatch_incharges,api/v1/dispatch_incharges,create,True,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb:34,APP,retain behavior via shared module
+GET,/api/v1/dispatch_incharges/new,api/v1/dispatch_incharges,new,False,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb,DISPATCH,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/dispatch_incharges/:id/edit,api/v1/dispatch_incharges,edit,False,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb,DISPATCH,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/dispatch_incharges/:id,api/v1/dispatch_incharges,show,True,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb:27,APP,retain behavior via shared module
+PATCH,/api/v1/dispatch_incharges/:id,api/v1/dispatch_incharges,update,True,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb:58,APP,retain behavior via shared module
+PUT,/api/v1/dispatch_incharges/:id,api/v1/dispatch_incharges,update,True,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb:58,APP,retain behavior via shared module
+DELETE,/api/v1/dispatch_incharges/:id,api/v1/dispatch_incharges,destroy,True,config/routes.rb:79,app/controllers/api/v1/dispatch_incharges_controller.rb:72,APP,retain behavior via shared module
+POST,/api/v1/dispatch_incharges/orders,api/v1/dispatch_incharges,orders,True,config/routes.rb:81,app/controllers/api/v1/dispatch_incharges_controller.rb:80,APP,retain behavior via shared module
+POST,/api/v1/dispatch_incharges/order_detail,api/v1/dispatch_incharges,order_detail,True,config/routes.rb:82,app/controllers/api/v1/dispatch_incharges_controller.rb:139,APP,retain behavior via shared module
+POST,/api/v1/dispatch_incharges/mark_dispatch_quantity,api/v1/dispatch_incharges,mark_dispatch_quantity,True,config/routes.rb:83,app/controllers/api/v1/dispatch_incharges_controller.rb:230,APP,retain behavior via shared module
+GET,/api/v1/dispatch_incharges/delivery_challan,api/v1/dispatch_incharges,delivery_challan,True,config/routes.rb:84,app/controllers/api/v1/dispatch_incharges_controller.rb:129,APP,retain behavior via shared module
+GET,/api/v1/inspectors,api/v1/inspectors,index,True,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/inspectors,api/v1/inspectors,create,True,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb:34,APP,retain behavior via shared module
+GET,/api/v1/inspectors/new,api/v1/inspectors,new,False,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb,SEW,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/inspectors/:id/edit,api/v1/inspectors,edit,False,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb,SEW,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/inspectors/:id,api/v1/inspectors,show,True,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb:27,APP,retain behavior via shared module
+PATCH,/api/v1/inspectors/:id,api/v1/inspectors,update,True,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb:58,APP,retain behavior via shared module
+PUT,/api/v1/inspectors/:id,api/v1/inspectors,update,True,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb:58,APP,retain behavior via shared module
+DELETE,/api/v1/inspectors/:id,api/v1/inspectors,destroy,True,config/routes.rb:87,app/controllers/api/v1/inspectors_controller.rb:72,APP,retain behavior via shared module
+POST,/api/v1/inspectors/items,api/v1/inspectors,items,True,config/routes.rb:89,app/controllers/api/v1/inspectors_controller.rb:80,APP,retain behavior via shared module
+POST,/api/v1/inspectors/item_detail,api/v1/inspectors,item_detail,True,config/routes.rb:90,app/controllers/api/v1/inspectors_controller.rb:103,APP,retain behavior via shared module
+POST,/api/v1/inspectors/job_sheet_tailor_mark_done,api/v1/inspectors,job_sheet_tailor_mark_done,True,config/routes.rb:91,app/controllers/api/v1/inspectors_controller.rb:156,APP,retain behavior via shared module
+GET,/api/v1/cutting_masters,api/v1/cutting_masters,index,True,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/cutting_masters,api/v1/cutting_masters,create,True,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb:34,APP,retain behavior via shared module
+GET,/api/v1/cutting_masters/new,api/v1/cutting_masters,new,False,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb,CUT,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/cutting_masters/:id/edit,api/v1/cutting_masters,edit,False,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb,CUT,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/cutting_masters/:id,api/v1/cutting_masters,show,True,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb:27,APP,retain behavior via shared module
+PATCH,/api/v1/cutting_masters/:id,api/v1/cutting_masters,update,True,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb:58,APP,retain behavior via shared module
+PUT,/api/v1/cutting_masters/:id,api/v1/cutting_masters,update,True,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb:58,APP,retain behavior via shared module
+DELETE,/api/v1/cutting_masters/:id,api/v1/cutting_masters,destroy,True,config/routes.rb:94,app/controllers/api/v1/cutting_masters_controller.rb:72,APP,retain behavior via shared module
+POST,/api/v1/cutting_masters/items,api/v1/cutting_masters,items,True,config/routes.rb:96,app/controllers/api/v1/cutting_masters_controller.rb:80,APP,retain behavior via shared module
+POST,/api/v1/cutting_masters/item_detail,api/v1/cutting_masters,item_detail,True,config/routes.rb:97,app/controllers/api/v1/cutting_masters_controller.rb:97,APP,retain behavior via shared module
+POST,/api/v1/cutting_masters/mark_cutting,api/v1/cutting_masters,mark_cutting,True,config/routes.rb:98,app/controllers/api/v1/cutting_masters_controller.rb:156,APP,retain behavior via shared module
+POST,/api/v1/products,api/v1/products,create,True,config/routes.rb:101,app/controllers/api/v1/products_controller.rb:162,APP,retain behavior via shared module
+POST,/api/v1/products/base_products,api/v1/products,base_products,True,config/routes.rb:103,app/controllers/api/v1/products_controller.rb:2,APP,retain behavior via shared module
+POST,/api/v1/products/fabrics,api/v1/products,fabrics,True,config/routes.rb:104,app/controllers/api/v1/products_controller.rb:36,APP,retain behavior via shared module
+POST,/api/v1/products/add_ons,api/v1/products,add_ons,True,config/routes.rb:105,app/controllers/api/v1/products_controller.rb:70,APP,retain behavior via shared module
+POST,/api/v1/products/add_on_detail,api/v1/products,add_on_detail,True,config/routes.rb:106,app/controllers/api/v1/products_controller.rb:121,APP,retain behavior via shared module
+POST,/api/v1/products/find,api/v1/products,find,True,config/routes.rb:107,app/controllers/api/v1/products_controller.rb:177,APP,retain behavior via shared module
+POST,/api/v1/products/custom_products,api/v1/products,custom_products,True,config/routes.rb:108,app/controllers/api/v1/products_controller.rb:190,APP,retain behavior via shared module
+POST,/api/v1/products/colors,api/v1/products,colors,True,config/routes.rb:109,app/controllers/api/v1/products_controller.rb:143,APP,retain behavior via shared module
+POST,/api/v1/products/add_color,api/v1/products,add_color,True,config/routes.rb:110,app/controllers/api/v1/products_controller.rb:210,APP,retain behavior via shared module
+POST,/api/v1/products/update_product,api/v1/products,update_product,True,config/routes.rb:111,app/controllers/api/v1/products_controller.rb:261,APP,retain behavior via shared module
+POST,/api/v1/products/base_product_types,api/v1/products,base_product_types,True,config/routes.rb:112,app/controllers/api/v1/products_controller.rb:28,APP,retain behavior via shared module
+GET,/api/v1/orders,api/v1/orders,index,True,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb:19,APP,retain behavior via shared module
+POST,/api/v1/orders,api/v1/orders,create,True,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb:231,APP,retain behavior via shared module
+GET,/api/v1/orders/new,api/v1/orders,new,False,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb,ORDER,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/orders/:id/edit,api/v1/orders,edit,False,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb,ORDER,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/orders/:id,api/v1/orders,show,True,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb:131,APP,retain behavior via shared module
+PATCH,/api/v1/orders/:id,api/v1/orders,update,True,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb:264,APP,retain behavior via shared module
+PUT,/api/v1/orders/:id,api/v1/orders,update,True,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb:264,APP,retain behavior via shared module
+DELETE,/api/v1/orders/:id,api/v1/orders,destroy,True,config/routes.rb:115,app/controllers/api/v1/orders_controller.rb:281,APP,retain behavior via shared module
+POST,/api/v1/orders/sizes,api/v1/orders,sizes,True,config/routes.rb:117,app/controllers/api/v1/orders_controller.rb:2,APP,retain behavior via shared module
+POST,/api/v1/orders/criteria,api/v1/orders,criteria,True,config/routes.rb:118,app/controllers/api/v1/orders_controller.rb:10,APP,retain behavior via shared module
+POST,/api/v1/orders/assign,api/v1/orders,assign,True,config/routes.rb:119,app/controllers/api/v1/orders_controller.rb:310,APP,retain behavior via shared module
+POST,/api/v1/orders/items,api/v1/orders,items,True,config/routes.rb:120,app/controllers/api/v1/orders_controller.rb:477,APP,retain behavior via shared module
+POST,/api/v1/orders/tag_prime,api/v1/orders,tag_prime,True,config/routes.rb:121,app/controllers/api/v1/orders_controller.rb:351,APP,retain behavior via shared module
+POST,/api/v1/orders/dispatch_to,api/v1/orders,dispatch_to,True,config/routes.rb:122,app/controllers/api/v1/orders_controller.rb:363,APP,retain behavior via shared module
+POST,/api/v1/orders/update_due_on,api/v1/orders,update_due_on,True,config/routes.rb:123,app/controllers/api/v1/orders_controller.rb:546,APP,retain behavior via shared module
+POST,/api/v1/orders/assign_to_worker,api/v1/orders,assign_to_worker,True,config/routes.rb:124,app/controllers/api/v1/orders_controller.rb:332,APP,retain behavior via shared module
+POST,/api/v1/orders/change_due_date,api/v1/orders,change_due_date,True,config/routes.rb:125,app/controllers/api/v1/orders_controller.rb:563,APP,retain behavior via shared module
+POST,/api/v1/orders/update_order_worker_status,api/v1/orders,update_order_worker_status,False,config/routes.rb:126,app/controllers/api/v1/orders_controller.rb,ORDER,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/orders/order_stats,api/v1/orders,order_stats,True,config/routes.rb:127,app/controllers/api/v1/orders_controller.rb:587,APP,retain behavior via shared module
+POST,/api/v1/orders/bulk_back_orders,api/v1/orders,bulk_back_orders,True,config/routes.rb:128,app/controllers/api/v1/orders_controller.rb:375,APP,retain behavior via shared module
+POST,/api/v1/orders/:id/update_order_status,api/v1/orders,update_order_status,True,config/routes.rb:131,app/controllers/api/v1/orders_controller.rb:614,APP,retain behavior via shared module
+POST,/api/v1/orders/:id/cancel,api/v1/orders,cancel,True,config/routes.rb:132,app/controllers/api/v1/orders_controller.rb:296,APP,retain behavior via shared module
+GET,/api/v1/profit_margins,api/v1/profit_margins,index,True,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/profit_margins,api/v1/profit_margins,create,False,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb,PRICE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/profit_margins/new,api/v1/profit_margins,new,False,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb,PRICE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/profit_margins/:id/edit,api/v1/profit_margins,edit,False,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb,PRICE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/profit_margins/:id,api/v1/profit_margins,show,False,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb,PRICE,declared route only; no handler in pinned source; do not invent API
+PATCH,/api/v1/profit_margins/:id,api/v1/profit_margins,update,False,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb,PRICE,declared route only; no handler in pinned source; do not invent API
+PUT,/api/v1/profit_margins/:id,api/v1/profit_margins,update,False,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb,PRICE,declared route only; no handler in pinned source; do not invent API
+DELETE,/api/v1/profit_margins/:id,api/v1/profit_margins,destroy,False,config/routes.rb:135,app/controllers/api/v1/profit_margins_controller.rb,PRICE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/items,api/v1/items,index,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+POST,/api/v1/items,api/v1/items,create,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/items/new,api/v1/items,new,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/items/:id/edit,api/v1/items,edit,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/items/:id,api/v1/items,show,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+PATCH,/api/v1/items/:id,api/v1/items,update,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+PUT,/api/v1/items/:id,api/v1/items,update,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+DELETE,/api/v1/items/:id,api/v1/items,destroy,False,config/routes.rb:136,app/controllers/api/v1/items_controller.rb,PLAN,declared route only; no handler in pinned source; do not invent API
+PUT,/api/v1/items/item_criteria,api/v1/items,item_criteria,True,config/routes.rb:138,app/controllers/api/v1/items_controller.rb:3,APP,retain behavior via shared module
+PUT,/api/v1/items/set_worker_price,api/v1/items,set_worker_price,True,config/routes.rb:139,app/controllers/api/v1/items_controller.rb:30,APP,retain behavior via shared module
+PUT,/api/v1/items/set_worker_status,api/v1/items,set_worker_status,True,config/routes.rb:140,app/controllers/api/v1/items_controller.rb:44,APP,retain behavior via shared module
+POST,/api/v1/leader_boards/tailors,api/v1/leader_boards,tailors,True,config/routes.rb:145,app/controllers/api/v1/leader_boards_controller.rb:3,APP,retain behavior via shared module
+GET,/api/v1/sync_airtables,api/v1/sync_airtables,index,True,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb:2,APP,retain behavior via shared module
+POST,/api/v1/sync_airtables,api/v1/sync_airtables,create,True,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb:16,APP,retain behavior via shared module
+GET,/api/v1/sync_airtables/new,api/v1/sync_airtables,new,False,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/sync_airtables/:id/edit,api/v1/sync_airtables,edit,False,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/sync_airtables/:id,api/v1/sync_airtables,show,False,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+PATCH,/api/v1/sync_airtables/:id,api/v1/sync_airtables,update,False,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+PUT,/api/v1/sync_airtables/:id,api/v1/sync_airtables,update,False,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+DELETE,/api/v1/sync_airtables/:id,api/v1/sync_airtables,destroy,False,config/routes.rb:148,app/controllers/api/v1/sync_airtables_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/ready_made_products,api/v1/ready_made_products,index,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+POST,/api/v1/ready_made_products,api/v1/ready_made_products,create,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/ready_made_products/new,api/v1/ready_made_products,new,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/ready_made_products/:id/edit,api/v1/ready_made_products,edit,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/ready_made_products/:id,api/v1/ready_made_products,show,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+PATCH,/api/v1/ready_made_products/:id,api/v1/ready_made_products,update,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+PUT,/api/v1/ready_made_products/:id,api/v1/ready_made_products,update,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+DELETE,/api/v1/ready_made_products/:id,api/v1/ready_made_products,destroy,False,config/routes.rb:149,app/controllers/api/v1/ready_made_products_controller.rb,CAT,declared route only; no handler in pinned source; do not invent API
+POST,/api/v1/ready_made_products/categories,api/v1/ready_made_products,categories,True,config/routes.rb:151,app/controllers/api/v1/ready_made_products_controller.rb:83,APP,retain behavior via shared module
+POST,/api/v1/ready_made_products/classes,api/v1/ready_made_products,classes,True,config/routes.rb:152,app/controllers/api/v1/ready_made_products_controller.rb:136,APP,retain behavior via shared module
+POST,/api/v1/ready_made_products/skus,api/v1/ready_made_products,skus,True,config/routes.rb:153,app/controllers/api/v1/ready_made_products_controller.rb:225,APP,retain behavior via shared module
+POST,/api/v1/ready_made_products/price_types,api/v1/ready_made_products,price_types,True,config/routes.rb:154,app/controllers/api/v1/ready_made_products_controller.rb:309,APP,retain behavior via shared module
+POST,/api/v1/ready_made_products/search,api/v1/ready_made_products,search,True,config/routes.rb:155,app/controllers/api/v1/ready_made_products_controller.rb:3,APP,retain behavior via shared module
+GET,/api/v1/ready_made_products/main_categories,api/v1/ready_made_products,main_categories,True,config/routes.rb:156,app/controllers/api/v1/ready_made_products_controller.rb:118,APP,retain behavior via shared module
+POST,/api/v1/ready_made_products/get_inventory,api/v1/ready_made_products,get_inventory,True,config/routes.rb:157,app/controllers/api/v1/ready_made_products_controller.rb:268,APP,retain behavior via shared module
+GET,/api/v1/ready_made_products/authorized_brands,api/v1/ready_made_products,authorized_brands,True,config/routes.rb:158,app/controllers/api/v1/ready_made_products_controller.rb:127,APP,retain behavior via shared module
+GET,/api/v1/milestones,api/v1/milestones,index,True,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb:2,APP,retain behavior via shared module
+POST,/api/v1/milestones,api/v1/milestones,create,True,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb:28,APP,retain behavior via shared module
+GET,/api/v1/milestones/new,api/v1/milestones,new,False,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb,TARGET,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/milestones/:id/edit,api/v1/milestones,edit,False,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb,TARGET,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/milestones/:id,api/v1/milestones,show,False,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb,TARGET,declared route only; no handler in pinned source; do not invent API
+PATCH,/api/v1/milestones/:id,api/v1/milestones,update,True,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb:101,APP,retain behavior via shared module
+PUT,/api/v1/milestones/:id,api/v1/milestones,update,True,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb:101,APP,retain behavior via shared module
+DELETE,/api/v1/milestones/:id,api/v1/milestones,destroy,True,config/routes.rb:161,app/controllers/api/v1/milestones_controller.rb:143,APP,retain behavior via shared module
+POST,/api/v1/milestones/current,api/v1/milestones,current,True,config/routes.rb:163,app/controllers/api/v1/milestones_controller.rb:87,APP,retain behavior via shared module
+GET,/api/v1/catalogue,api/v1/catalogue,index,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+POST,/api/v1/catalogue,api/v1/catalogue,create,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/catalogue/new,api/v1/catalogue,new,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/catalogue/:id/edit,api/v1/catalogue,edit,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/catalogue/:id,api/v1/catalogue,show,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+PATCH,/api/v1/catalogue/:id,api/v1/catalogue,update,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+PUT,/api/v1/catalogue/:id,api/v1/catalogue,update,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+DELETE,/api/v1/catalogue/:id,api/v1/catalogue,destroy,False,config/routes.rb:166,app/controllers/api/v1/catalogue_controller.rb,DOC,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/catalogue/list,api/v1/catalogue,list,True,config/routes.rb:168,app/controllers/api/v1/catalogue_controller.rb:7,APP,retain behavior via shared module
+GET,/api/v1/catalogue/pdf,api/v1/catalogue,pdf,True,config/routes.rb:169,app/controllers/api/v1/catalogue_controller.rb:26,APP,retain behavior via shared module
+GET,/api/v1/tasks,api/v1/tasks,index,True,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb:25,APP,retain behavior via shared module
+POST,/api/v1/tasks,api/v1/tasks,create,True,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb:67,APP,retain behavior via shared module
+GET,/api/v1/tasks/new,api/v1/tasks,new,False,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb,TASK,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/tasks/:id/edit,api/v1/tasks,edit,False,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb,TASK,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/tasks/:id,api/v1/tasks,show,True,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb:58,APP,retain behavior via shared module
+PATCH,/api/v1/tasks/:id,api/v1/tasks,update,True,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb:105,APP,retain behavior via shared module
+PUT,/api/v1/tasks/:id,api/v1/tasks,update,True,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb:105,APP,retain behavior via shared module
+DELETE,/api/v1/tasks/:id,api/v1/tasks,destroy,True,config/routes.rb:172,app/controllers/api/v1/tasks_controller.rb:286,APP,retain behavior via shared module
+GET,/api/v1/tasks/users,api/v1/tasks,users,True,config/routes.rb:174,app/controllers/api/v1/tasks_controller.rb:3,APP,retain behavior via shared module
+GET,/api/v1/ratings,api/v1/ratings,index,True,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/ratings,api/v1/ratings,create,True,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb:28,APP,retain behavior via shared module
+GET,/api/v1/ratings/new,api/v1/ratings,new,False,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb,RATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/ratings/:id/edit,api/v1/ratings,edit,False,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb,RATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/ratings/:id,api/v1/ratings,show,True,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb:21,APP,retain behavior via shared module
+PATCH,/api/v1/ratings/:id,api/v1/ratings,update,True,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb:100,APP,retain behavior via shared module
+PUT,/api/v1/ratings/:id,api/v1/ratings,update,True,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb:100,APP,retain behavior via shared module
+DELETE,/api/v1/ratings/:id,api/v1/ratings,destroy,True,config/routes.rb:177,app/controllers/api/v1/ratings_controller.rb:141,APP,retain behavior via shared module
+GET,/api/v1/zones,api/v1/zones,index,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+POST,/api/v1/zones,api/v1/zones,create,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/zones/new,api/v1/zones,new,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/zones/:id/edit,api/v1/zones,edit,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/zones/:id,api/v1/zones,show,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+PATCH,/api/v1/zones/:id,api/v1/zones,update,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+PUT,/api/v1/zones/:id,api/v1/zones,update,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+DELETE,/api/v1/zones/:id,api/v1/zones,destroy,False,config/routes.rb:178,app/controllers/api/v1/zones_controller.rb,INTEGRATE,declared route only; no handler in pinned source; do not invent API
+POST,/api/v1/zones/import,api/v1/zones,import,True,config/routes.rb:180,app/controllers/api/v1/zones_controller.rb:2,APP,retain behavior via shared module
+POST,/api/v1/admins/update_profile,api/v1/admins,update_profile,True,config/routes.rb:185,app/controllers/api/v1/admins_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/admins/users,api/v1/admins,users,True,config/routes.rb:186,app/controllers/api/v1/admins_controller.rb:29,APP,retain behavior via shared module
+POST,/api/v1/admins/delete_account,api/v1/admins,delete_account,True,config/routes.rb:187,app/controllers/api/v1/admins_controller.rb:56,APP,retain behavior via shared module
+POST,/api/v1/admins/disable_account,api/v1/admins,disable_account,True,config/routes.rb:188,app/controllers/api/v1/admins_controller.rb:69,APP,retain behavior via shared module
+GET,/api/v1/promotions,api/v1/promotions,index,True,config/routes.rb:191,app/controllers/api/v1/promotions_controller.rb:2,APP,retain behavior via shared module
+GET,/api/v1/promotions/categories,api/v1/promotions,categories,True,config/routes.rb:193,app/controllers/api/v1/promotions_controller.rb:19,APP,retain behavior via shared module
+GET,/api/v1/app_configs/version,api/v1/app_configs,version,True,config/routes.rb:198,app/controllers/api/v1/app_configs_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/app_configs/update_version,api/v1/app_configs,update_version,True,config/routes.rb:199,app/controllers/api/v1/app_configs_controller.rb:7,APP,retain behavior via shared module
+GET,/api/v1/job_workers,api/v1/job_workers,index,True,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/job_workers,api/v1/job_workers,create,True,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb:25,APP,retain behavior via shared module
+GET,/api/v1/job_workers/new,api/v1/job_workers,new,False,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb,JOB,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/job_workers/:id/edit,api/v1/job_workers,edit,False,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb,JOB,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/job_workers/:id,api/v1/job_workers,show,True,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb:18,APP,retain behavior via shared module
+PATCH,/api/v1/job_workers/:id,api/v1/job_workers,update,True,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb:54,APP,retain behavior via shared module
+PUT,/api/v1/job_workers/:id,api/v1/job_workers,update,True,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb:54,APP,retain behavior via shared module
+DELETE,/api/v1/job_workers/:id,api/v1/job_workers,destroy,True,config/routes.rb:202,app/controllers/api/v1/job_workers_controller.rb:77,APP,retain behavior via shared module
+GET,/api/v1/assistant_workers,api/v1/assistant_workers,index,True,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/assistant_workers,api/v1/assistant_workers,create,True,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb:25,APP,retain behavior via shared module
+GET,/api/v1/assistant_workers/new,api/v1/assistant_workers,new,False,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/assistant_workers/:id/edit,api/v1/assistant_workers,edit,False,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb,PEOPLE,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/assistant_workers/:id,api/v1/assistant_workers,show,True,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb:18,APP,retain behavior via shared module
+PATCH,/api/v1/assistant_workers/:id,api/v1/assistant_workers,update,True,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb:59,APP,retain behavior via shared module
+PUT,/api/v1/assistant_workers/:id,api/v1/assistant_workers,update,True,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb:59,APP,retain behavior via shared module
+DELETE,/api/v1/assistant_workers/:id,api/v1/assistant_workers,destroy,True,config/routes.rb:203,app/controllers/api/v1/assistant_workers_controller.rb:82,APP,retain behavior via shared module
+GET,/api/v1/responsibilities,api/v1/responsibilities,index,True,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/responsibilities,api/v1/responsibilities,create,True,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb:31,APP,retain behavior via shared module
+GET,/api/v1/responsibilities/new,api/v1/responsibilities,new,False,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb,GOAL,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/responsibilities/:id/edit,api/v1/responsibilities,edit,False,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb,GOAL,declared route only; no handler in pinned source; do not invent API
+GET,/api/v1/responsibilities/:id,api/v1/responsibilities,show,True,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb:24,APP,retain behavior via shared module
+PATCH,/api/v1/responsibilities/:id,api/v1/responsibilities,update,True,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb:83,APP,retain behavior via shared module
+PUT,/api/v1/responsibilities/:id,api/v1/responsibilities,update,True,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb:83,APP,retain behavior via shared module
+DELETE,/api/v1/responsibilities/:id,api/v1/responsibilities,destroy,True,config/routes.rb:204,app/controllers/api/v1/responsibilities_controller.rb:97,APP,retain behavior via shared module
+GET,/api/v1/size_types,api/v1/size_types,index,True,config/routes.rb:205,app/controllers/api/v1/size_types_controller.rb:3,APP,retain behavior via shared module
+GET,/api/v1/promotional_banners,api/v1/promotional_banners,index,True,config/routes.rb:206,app/controllers/api/v1/promotional_banners_controller.rb:3,APP,retain behavior via shared module
+GET,/api/v1/customer_requests,api/v1/customer_requests,index,True,config/routes.rb:207,app/controllers/api/v1/customer_requests_controller.rb:3,APP,retain behavior via shared module
+POST,/api/v1/customer_requests,api/v1/customer_requests,create,True,config/routes.rb:207,app/controllers/api/v1/customer_requests_controller.rb:21,APP,retain behavior via shared module
+PATCH,/api/v1/customer_requests/:id,api/v1/customer_requests,update,True,config/routes.rb:207,app/controllers/api/v1/customer_requests_controller.rb:43,APP,retain behavior via shared module
+PUT,/api/v1/customer_requests/:id,api/v1/customer_requests,update,True,config/routes.rb:207,app/controllers/api/v1/customer_requests_controller.rb:43,APP,retain behavior via shared module
+GET,/api/v1/notifications,api/v1/notifications,index,True,config/routes.rb:208,app/controllers/api/v1/notifications_controller.rb:2,APP,retain behavior via shared module
+PATCH,/api/dashboard/v1/settings/airtable_sync,api/dashboard/v1/settings,airtable_sync,True,config/routes.rb:212,app/controllers/api/dashboard/v1/settings_controller.rb:3,INTEGRATE,retain behavior via shared module
+GET,/api/dashboard/v1/promotions,api/dashboard/v1/promotions,index,True,config/routes.rb:213,app/controllers/api/dashboard/v1/promotions_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/promotions/:id,api/dashboard/v1/promotions,show,True,config/routes.rb:213,app/controllers/api/dashboard/v1/promotions_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/promotions,api/dashboard/v1/promotions,create,True,config/routes.rb:213,app/controllers/api/dashboard/v1/promotions_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/promotions/:id,api/dashboard/v1/promotions,update,True,config/routes.rb:213,app/controllers/api/dashboard/v1/promotions_controller.rb:38,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/promotions/:id,api/dashboard/v1/promotions,update,True,config/routes.rb:213,app/controllers/api/dashboard/v1/promotions_controller.rb:38,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/promotions/:id,api/dashboard/v1/promotions,destroy,True,config/routes.rb:213,app/controllers/api/dashboard/v1/promotions_controller.rb:51,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/promotions/bulk_delete,api/dashboard/v1/promotions,bulk_delete,True,config/routes.rb:215,app/controllers/api/dashboard/v1/promotions_controller.rb:59,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/promotional_banners,api/dashboard/v1/promotional_banners,index,True,config/routes.rb:218,app/controllers/api/dashboard/v1/promotional_banners_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/promotional_banners/:id,api/dashboard/v1/promotional_banners,show,True,config/routes.rb:218,app/controllers/api/dashboard/v1/promotional_banners_controller.rb:21,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/promotional_banners,api/dashboard/v1/promotional_banners,create,True,config/routes.rb:218,app/controllers/api/dashboard/v1/promotional_banners_controller.rb:28,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/promotional_banners/:id,api/dashboard/v1/promotional_banners,update,True,config/routes.rb:218,app/controllers/api/dashboard/v1/promotional_banners_controller.rb:41,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/promotional_banners/:id,api/dashboard/v1/promotional_banners,update,True,config/routes.rb:218,app/controllers/api/dashboard/v1/promotional_banners_controller.rb:41,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/promotional_banners/:id,api/dashboard/v1/promotional_banners,destroy,True,config/routes.rb:218,app/controllers/api/dashboard/v1/promotional_banners_controller.rb:54,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/promotional_banners/bulk_delete,api/dashboard/v1/promotional_banners,bulk_delete,True,config/routes.rb:220,app/controllers/api/dashboard/v1/promotional_banners_controller.rb:62,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/asset_infos,api/dashboard/v1/asset_infos,index,True,config/routes.rb:223,app/controllers/api/dashboard/v1/asset_infos_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/asset_infos/:id,api/dashboard/v1/asset_infos,show,True,config/routes.rb:223,app/controllers/api/dashboard/v1/asset_infos_controller.rb:18,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/asset_infos,api/dashboard/v1/asset_infos,create,True,config/routes.rb:223,app/controllers/api/dashboard/v1/asset_infos_controller.rb:25,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/asset_infos/:id,api/dashboard/v1/asset_infos,update,True,config/routes.rb:223,app/controllers/api/dashboard/v1/asset_infos_controller.rb:39,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/asset_infos/:id,api/dashboard/v1/asset_infos,update,True,config/routes.rb:223,app/controllers/api/dashboard/v1/asset_infos_controller.rb:39,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/asset_infos/:id,api/dashboard/v1/asset_infos,destroy,True,config/routes.rb:223,app/controllers/api/dashboard/v1/asset_infos_controller.rb:52,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/asset_infos/bulk_delete,api/dashboard/v1/asset_infos,bulk_delete,True,config/routes.rb:225,app/controllers/api/dashboard/v1/asset_infos_controller.rb:60,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/colors,api/dashboard/v1/colors,index,True,config/routes.rb:228,app/controllers/api/dashboard/v1/colors_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/colors/:id,api/dashboard/v1/colors,show,True,config/routes.rb:228,app/controllers/api/dashboard/v1/colors_controller.rb:18,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/colors,api/dashboard/v1/colors,create,True,config/routes.rb:228,app/controllers/api/dashboard/v1/colors_controller.rb:25,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/colors/:id,api/dashboard/v1/colors,update,True,config/routes.rb:228,app/controllers/api/dashboard/v1/colors_controller.rb:43,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/colors/:id,api/dashboard/v1/colors,update,True,config/routes.rb:228,app/controllers/api/dashboard/v1/colors_controller.rb:43,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/colors/:id,api/dashboard/v1/colors,destroy,True,config/routes.rb:228,app/controllers/api/dashboard/v1/colors_controller.rb:56,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/colors/bulk_delete,api/dashboard/v1/colors,bulk_delete,True,config/routes.rb:230,app/controllers/api/dashboard/v1/colors_controller.rb:64,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/authorized_brands,api/dashboard/v1/authorized_brands,index,True,config/routes.rb:233,app/controllers/api/dashboard/v1/authorized_brands_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/authorized_brands/:id,api/dashboard/v1/authorized_brands,show,True,config/routes.rb:233,app/controllers/api/dashboard/v1/authorized_brands_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/authorized_brands,api/dashboard/v1/authorized_brands,create,True,config/routes.rb:233,app/controllers/api/dashboard/v1/authorized_brands_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/authorized_brands/:id,api/dashboard/v1/authorized_brands,update,True,config/routes.rb:233,app/controllers/api/dashboard/v1/authorized_brands_controller.rb:38,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/authorized_brands/:id,api/dashboard/v1/authorized_brands,update,True,config/routes.rb:233,app/controllers/api/dashboard/v1/authorized_brands_controller.rb:38,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/authorized_brands/:id,api/dashboard/v1/authorized_brands,destroy,True,config/routes.rb:233,app/controllers/api/dashboard/v1/authorized_brands_controller.rb:51,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/authorized_brands/bulk_delete,api/dashboard/v1/authorized_brands,bulk_delete,True,config/routes.rb:235,app/controllers/api/dashboard/v1/authorized_brands_controller.rb:59,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/profit_margins,api/dashboard/v1/profit_margins,index,True,config/routes.rb:238,app/controllers/api/dashboard/v1/profit_margins_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/profit_margins/:id,api/dashboard/v1/profit_margins,show,True,config/routes.rb:238,app/controllers/api/dashboard/v1/profit_margins_controller.rb:18,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/profit_margins,api/dashboard/v1/profit_margins,create,True,config/routes.rb:238,app/controllers/api/dashboard/v1/profit_margins_controller.rb:25,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/profit_margins/:id,api/dashboard/v1/profit_margins,update,True,config/routes.rb:238,app/controllers/api/dashboard/v1/profit_margins_controller.rb:43,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/profit_margins/:id,api/dashboard/v1/profit_margins,update,True,config/routes.rb:238,app/controllers/api/dashboard/v1/profit_margins_controller.rb:43,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/profit_margins/:id,api/dashboard/v1/profit_margins,destroy,True,config/routes.rb:238,app/controllers/api/dashboard/v1/profit_margins_controller.rb:56,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/profit_margins/bulk_delete,api/dashboard/v1/profit_margins,bulk_delete,True,config/routes.rb:240,app/controllers/api/dashboard/v1/profit_margins_controller.rb:64,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/size_types,api/dashboard/v1/size_types,index,True,config/routes.rb:243,app/controllers/api/dashboard/v1/size_types_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/size_types/:id,api/dashboard/v1/size_types,show,True,config/routes.rb:243,app/controllers/api/dashboard/v1/size_types_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/size_types,api/dashboard/v1/size_types,create,True,config/routes.rb:243,app/controllers/api/dashboard/v1/size_types_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/size_types/:id,api/dashboard/v1/size_types,update,True,config/routes.rb:243,app/controllers/api/dashboard/v1/size_types_controller.rb:38,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/size_types/:id,api/dashboard/v1/size_types,update,True,config/routes.rb:243,app/controllers/api/dashboard/v1/size_types_controller.rb:38,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/size_types/:id,api/dashboard/v1/size_types,destroy,True,config/routes.rb:243,app/controllers/api/dashboard/v1/size_types_controller.rb:51,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/size_types/bulk_delete,api/dashboard/v1/size_types,bulk_delete,True,config/routes.rb:245,app/controllers/api/dashboard/v1/size_types_controller.rb:59,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/sc_sizes,api/dashboard/v1/sc_sizes,index,True,config/routes.rb:248,app/controllers/api/dashboard/v1/sc_sizes_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/sc_sizes/:id,api/dashboard/v1/sc_sizes,show,True,config/routes.rb:248,app/controllers/api/dashboard/v1/sc_sizes_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/sc_sizes,api/dashboard/v1/sc_sizes,create,True,config/routes.rb:248,app/controllers/api/dashboard/v1/sc_sizes_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/sc_sizes/:id,api/dashboard/v1/sc_sizes,update,True,config/routes.rb:248,app/controllers/api/dashboard/v1/sc_sizes_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/sc_sizes/:id,api/dashboard/v1/sc_sizes,update,True,config/routes.rb:248,app/controllers/api/dashboard/v1/sc_sizes_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/sc_sizes/:id,api/dashboard/v1/sc_sizes,destroy,True,config/routes.rb:248,app/controllers/api/dashboard/v1/sc_sizes_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/sc_sizes/bulk_delete,api/dashboard/v1/sc_sizes,bulk_delete,True,config/routes.rb:250,app/controllers/api/dashboard/v1/sc_sizes_controller.rb:58,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_product_types,api/dashboard/v1/base_product_types,index,True,config/routes.rb:253,app/controllers/api/dashboard/v1/base_product_types_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_product_types/:id,api/dashboard/v1/base_product_types,show,True,config/routes.rb:253,app/controllers/api/dashboard/v1/base_product_types_controller.rb:18,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/base_product_types,api/dashboard/v1/base_product_types,create,True,config/routes.rb:253,app/controllers/api/dashboard/v1/base_product_types_controller.rb:25,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_product_types/:id,api/dashboard/v1/base_product_types,update,True,config/routes.rb:253,app/controllers/api/dashboard/v1/base_product_types_controller.rb:39,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/base_product_types/:id,api/dashboard/v1/base_product_types,update,True,config/routes.rb:253,app/controllers/api/dashboard/v1/base_product_types_controller.rb:39,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_product_types/:id,api/dashboard/v1/base_product_types,destroy,True,config/routes.rb:253,app/controllers/api/dashboard/v1/base_product_types_controller.rb:52,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_product_types/bulk_delete,api/dashboard/v1/base_product_types,bulk_delete,True,config/routes.rb:255,app/controllers/api/dashboard/v1/base_product_types_controller.rb:60,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_product_asset_infos,api/dashboard/v1/base_product_asset_infos,index,True,config/routes.rb:258,app/controllers/api/dashboard/v1/base_product_asset_infos_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_product_asset_infos/:id,api/dashboard/v1/base_product_asset_infos,show,True,config/routes.rb:258,app/controllers/api/dashboard/v1/base_product_asset_infos_controller.rb:20,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/base_product_asset_infos,api/dashboard/v1/base_product_asset_infos,create,True,config/routes.rb:258,app/controllers/api/dashboard/v1/base_product_asset_infos_controller.rb:27,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_product_asset_infos/:id,api/dashboard/v1/base_product_asset_infos,update,True,config/routes.rb:258,app/controllers/api/dashboard/v1/base_product_asset_infos_controller.rb:40,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/base_product_asset_infos/:id,api/dashboard/v1/base_product_asset_infos,update,True,config/routes.rb:258,app/controllers/api/dashboard/v1/base_product_asset_infos_controller.rb:40,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_product_asset_infos/:id,api/dashboard/v1/base_product_asset_infos,destroy,True,config/routes.rb:258,app/controllers/api/dashboard/v1/base_product_asset_infos_controller.rb:53,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_product_asset_infos/bulk_delete,api/dashboard/v1/base_product_asset_infos,bulk_delete,True,config/routes.rb:260,app/controllers/api/dashboard/v1/base_product_asset_infos_controller.rb:61,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_products,api/dashboard/v1/base_products,index,True,config/routes.rb:263,app/controllers/api/dashboard/v1/base_products_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,show,True,config/routes.rb:263,app/controllers/api/dashboard/v1/base_products_controller.rb:21,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/base_products,api/dashboard/v1/base_products,create,True,config/routes.rb:263,app/controllers/api/dashboard/v1/base_products_controller.rb:28,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,update,True,config/routes.rb:263,app/controllers/api/dashboard/v1/base_products_controller.rb:48,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,update,True,config/routes.rb:263,app/controllers/api/dashboard/v1/base_products_controller.rb:48,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,destroy,True,config/routes.rb:263,app/controllers/api/dashboard/v1/base_products_controller.rb:67,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_products/bulk_delete,api/dashboard/v1/base_products,bulk_delete,True,config/routes.rb:265,app/controllers/api/dashboard/v1/base_products_controller.rb:75,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/fabrics,api/dashboard/v1/fabrics,index,True,config/routes.rb:268,app/controllers/api/dashboard/v1/fabrics_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/fabrics/:id,api/dashboard/v1/fabrics,show,True,config/routes.rb:268,app/controllers/api/dashboard/v1/fabrics_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/fabrics,api/dashboard/v1/fabrics,create,True,config/routes.rb:268,app/controllers/api/dashboard/v1/fabrics_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/fabrics/:id,api/dashboard/v1/fabrics,update,True,config/routes.rb:268,app/controllers/api/dashboard/v1/fabrics_controller.rb:43,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/fabrics/:id,api/dashboard/v1/fabrics,update,True,config/routes.rb:268,app/controllers/api/dashboard/v1/fabrics_controller.rb:43,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/fabrics/:id,api/dashboard/v1/fabrics,destroy,True,config/routes.rb:268,app/controllers/api/dashboard/v1/fabrics_controller.rb:61,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/fabrics/bulk_delete,api/dashboard/v1/fabrics,bulk_delete,True,config/routes.rb:270,app/controllers/api/dashboard/v1/fabrics_controller.rb:69,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_categories,api/dashboard/v1/rmp_categories,index,True,config/routes.rb:273,app/controllers/api/dashboard/v1/rmp_categories_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_categories/:id,api/dashboard/v1/rmp_categories,show,True,config/routes.rb:273,app/controllers/api/dashboard/v1/rmp_categories_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_categories,api/dashboard/v1/rmp_categories,create,True,config/routes.rb:273,app/controllers/api/dashboard/v1/rmp_categories_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_categories/:id,api/dashboard/v1/rmp_categories,update,True,config/routes.rb:273,app/controllers/api/dashboard/v1/rmp_categories_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_categories/:id,api/dashboard/v1/rmp_categories,update,True,config/routes.rb:273,app/controllers/api/dashboard/v1/rmp_categories_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_categories/:id,api/dashboard/v1/rmp_categories,destroy,True,config/routes.rb:273,app/controllers/api/dashboard/v1/rmp_categories_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_categories/bulk_delete,api/dashboard/v1/rmp_categories,bulk_delete,True,config/routes.rb:275,app/controllers/api/dashboard/v1/rmp_categories_controller.rb:58,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_sizes,api/dashboard/v1/rmp_sizes,index,True,config/routes.rb:278,app/controllers/api/dashboard/v1/rmp_sizes_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_sizes/:id,api/dashboard/v1/rmp_sizes,show,True,config/routes.rb:278,app/controllers/api/dashboard/v1/rmp_sizes_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_sizes,api/dashboard/v1/rmp_sizes,create,True,config/routes.rb:278,app/controllers/api/dashboard/v1/rmp_sizes_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_sizes/:id,api/dashboard/v1/rmp_sizes,update,True,config/routes.rb:278,app/controllers/api/dashboard/v1/rmp_sizes_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_sizes/:id,api/dashboard/v1/rmp_sizes,update,True,config/routes.rb:278,app/controllers/api/dashboard/v1/rmp_sizes_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_sizes/:id,api/dashboard/v1/rmp_sizes,destroy,True,config/routes.rb:278,app/controllers/api/dashboard/v1/rmp_sizes_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_sizes/bulk_delete,api/dashboard/v1/rmp_sizes,bulk_delete,True,config/routes.rb:280,app/controllers/api/dashboard/v1/rmp_sizes_controller.rb:58,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_colors,api/dashboard/v1/rmp_colors,index,True,config/routes.rb:283,app/controllers/api/dashboard/v1/rmp_colors_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_colors/:id,api/dashboard/v1/rmp_colors,show,True,config/routes.rb:283,app/controllers/api/dashboard/v1/rmp_colors_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_colors,api/dashboard/v1/rmp_colors,create,True,config/routes.rb:283,app/controllers/api/dashboard/v1/rmp_colors_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_colors/:id,api/dashboard/v1/rmp_colors,update,True,config/routes.rb:283,app/controllers/api/dashboard/v1/rmp_colors_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_colors/:id,api/dashboard/v1/rmp_colors,update,True,config/routes.rb:283,app/controllers/api/dashboard/v1/rmp_colors_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_colors/:id,api/dashboard/v1/rmp_colors,destroy,True,config/routes.rb:283,app/controllers/api/dashboard/v1/rmp_colors_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_colors/bulk_delete,api/dashboard/v1/rmp_colors,bulk_delete,True,config/routes.rb:285,app/controllers/api/dashboard/v1/rmp_colors_controller.rb:58,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_classes,api/dashboard/v1/rmp_classes,index,True,config/routes.rb:288,app/controllers/api/dashboard/v1/rmp_classes_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_classes/:id,api/dashboard/v1/rmp_classes,show,True,config/routes.rb:288,app/controllers/api/dashboard/v1/rmp_classes_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_classes,api/dashboard/v1/rmp_classes,create,True,config/routes.rb:288,app/controllers/api/dashboard/v1/rmp_classes_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_classes/:id,api/dashboard/v1/rmp_classes,update,True,config/routes.rb:288,app/controllers/api/dashboard/v1/rmp_classes_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_classes/:id,api/dashboard/v1/rmp_classes,update,True,config/routes.rb:288,app/controllers/api/dashboard/v1/rmp_classes_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_classes/:id,api/dashboard/v1/rmp_classes,destroy,True,config/routes.rb:288,app/controllers/api/dashboard/v1/rmp_classes_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_classes/bulk_delete,api/dashboard/v1/rmp_classes,bulk_delete,True,config/routes.rb:290,app/controllers/api/dashboard/v1/rmp_classes_controller.rb:58,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_skus,api/dashboard/v1/rmp_skus,index,True,config/routes.rb:293,app/controllers/api/dashboard/v1/rmp_skus_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_skus/:id,api/dashboard/v1/rmp_skus,show,True,config/routes.rb:293,app/controllers/api/dashboard/v1/rmp_skus_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_skus,api/dashboard/v1/rmp_skus,create,True,config/routes.rb:293,app/controllers/api/dashboard/v1/rmp_skus_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_skus/:id,api/dashboard/v1/rmp_skus,update,True,config/routes.rb:293,app/controllers/api/dashboard/v1/rmp_skus_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_skus/:id,api/dashboard/v1/rmp_skus,update,True,config/routes.rb:293,app/controllers/api/dashboard/v1/rmp_skus_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_skus/:id,api/dashboard/v1/rmp_skus,destroy,True,config/routes.rb:293,app/controllers/api/dashboard/v1/rmp_skus_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_skus/bulk_delete,api/dashboard/v1/rmp_skus,bulk_delete,True,config/routes.rb:295,app/controllers/api/dashboard/v1/rmp_skus_controller.rb:58,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_prices,api/dashboard/v1/rmp_prices,index,True,config/routes.rb:298,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_prices/:id,api/dashboard/v1/rmp_prices,show,True,config/routes.rb:298,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_prices,api/dashboard/v1/rmp_prices,create,True,config/routes.rb:298,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_prices/:id,api/dashboard/v1/rmp_prices,update,True,config/routes.rb:298,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:54,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_prices/:id,api/dashboard/v1/rmp_prices,update,True,config/routes.rb:298,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:54,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_prices/:id,api/dashboard/v1/rmp_prices,destroy,True,config/routes.rb:298,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:79,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_prices/bulk_delete,api/dashboard/v1/rmp_prices,bulk_delete,True,config/routes.rb:300,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:90,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_prices/bulk_upload,api/dashboard/v1/rmp_prices,bulk_upload,True,config/routes.rb:301,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:109,INTEGRATE,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_prices/bulk_upload_status,api/dashboard/v1/rmp_prices,bulk_upload_status,True,config/routes.rb:302,app/controllers/api/dashboard/v1/rmp_prices_controller.rb:137,INTEGRATE,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_price_types,api/dashboard/v1/rmp_price_types,index,True,config/routes.rb:305,app/controllers/api/dashboard/v1/rmp_price_types_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_price_types/:id,api/dashboard/v1/rmp_price_types,show,True,config/routes.rb:305,app/controllers/api/dashboard/v1/rmp_price_types_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_price_types,api/dashboard/v1/rmp_price_types,create,True,config/routes.rb:305,app/controllers/api/dashboard/v1/rmp_price_types_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_price_types/:id,api/dashboard/v1/rmp_price_types,update,True,config/routes.rb:305,app/controllers/api/dashboard/v1/rmp_price_types_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_price_types/:id,api/dashboard/v1/rmp_price_types,update,True,config/routes.rb:305,app/controllers/api/dashboard/v1/rmp_price_types_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_price_types/:id,api/dashboard/v1/rmp_price_types,destroy,True,config/routes.rb:305,app/controllers/api/dashboard/v1/rmp_price_types_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_price_types/bulk_delete,api/dashboard/v1/rmp_price_types,bulk_delete,True,config/routes.rb:307,app/controllers/api/dashboard/v1/rmp_price_types_controller.rb:58,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/order_reports,api/dashboard/v1/order_reports,index,True,config/routes.rb:310,app/controllers/api/dashboard/v1/order_reports_controller.rb:2,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/order_reports/:id,api/dashboard/v1/order_reports,show,True,config/routes.rb:310,app/controllers/api/dashboard/v1/order_reports_controller.rb:19,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_order_reports,api/dashboard/v1/rmp_order_reports,index,True,config/routes.rb:311,app/controllers/api/dashboard/v1/rmp_order_reports_controller.rb:2,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_order_reports/:id,api/dashboard/v1/rmp_order_reports,show,True,config/routes.rb:311,app/controllers/api/dashboard/v1/rmp_order_reports_controller.rb:19,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/customers,api/dashboard/v1/customers,index,True,config/routes.rb:312,app/controllers/api/dashboard/v1/customers_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/customers/:id,api/dashboard/v1/customers,show,True,config/routes.rb:312,app/controllers/api/dashboard/v1/customers_controller.rb:18,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/customers/performance,api/dashboard/v1/customers,performance,True,config/routes.rb:314,app/controllers/api/dashboard/v1/customers_controller.rb:25,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/customers/unique_customers,api/dashboard/v1/customers,unique_customers,True,config/routes.rb:315,app/controllers/api/dashboard/v1/customers_controller.rb:54,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/tailor_reports,api/dashboard/v1/tailor_reports,index,True,config/routes.rb:318,app/controllers/api/dashboard/v1/tailor_reports_controller.rb:2,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/tailor_reports/:id,api/dashboard/v1/tailor_reports,show,True,config/routes.rb:318,app/controllers/api/dashboard/v1/tailor_reports_controller.rb:24,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/orders,api/dashboard/v1/orders,index,True,config/routes.rb:319,app/controllers/api/dashboard/v1/orders_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/orders/brand_orders,api/dashboard/v1/orders,brand_orders,True,config/routes.rb:321,app/controllers/api/dashboard/v1/orders_controller.rb:23,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/orders/class_orders,api/dashboard/v1/orders,class_orders,True,config/routes.rb:322,app/controllers/api/dashboard/v1/orders_controller.rb:36,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/orders/sc_orders,api/dashboard/v1/orders,sc_orders,True,config/routes.rb:323,app/controllers/api/dashboard/v1/orders_controller.rb:49,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/orders/rmp_orders,api/dashboard/v1/orders,rmp_orders,False,config/routes.rb:324,app/controllers/api/dashboard/v1/orders_controller.rb,METRIC,declared route only; no handler in pinned source; do not invent API
+GET,/api/dashboard/v1/parts,api/dashboard/v1/parts,index,True,config/routes.rb:327,app/controllers/api/dashboard/v1/parts_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/parts/:id,api/dashboard/v1/parts,show,True,config/routes.rb:327,app/controllers/api/dashboard/v1/parts_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/parts,api/dashboard/v1/parts,create,True,config/routes.rb:327,app/controllers/api/dashboard/v1/parts_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/parts/:id,api/dashboard/v1/parts,update,True,config/routes.rb:327,app/controllers/api/dashboard/v1/parts_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/parts/:id,api/dashboard/v1/parts,update,True,config/routes.rb:327,app/controllers/api/dashboard/v1/parts_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/parts/:id,api/dashboard/v1/parts,destroy,True,config/routes.rb:327,app/controllers/api/dashboard/v1/parts_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/parts/bulk_delete,api/dashboard/v1/parts,bulk_delete,True,config/routes.rb:329,app/controllers/api/dashboard/v1/parts_controller.rb:58,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/parts/:id/update_colors,api/dashboard/v1/parts,update_colors,True,config/routes.rb:332,app/controllers/api/dashboard/v1/parts_controller.rb:71,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/parts/:id/update_add_ons,api/dashboard/v1/parts,update_add_ons,True,config/routes.rb:333,app/controllers/api/dashboard/v1/parts_controller.rb:92,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/add_ons,api/dashboard/v1/add_ons,index,True,config/routes.rb:336,app/controllers/api/dashboard/v1/add_ons_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/add_ons/:id,api/dashboard/v1/add_ons,show,True,config/routes.rb:336,app/controllers/api/dashboard/v1/add_ons_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/add_ons,api/dashboard/v1/add_ons,create,True,config/routes.rb:336,app/controllers/api/dashboard/v1/add_ons_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/add_ons/:id,api/dashboard/v1/add_ons,update,True,config/routes.rb:336,app/controllers/api/dashboard/v1/add_ons_controller.rb:38,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/add_ons/:id,api/dashboard/v1/add_ons,update,True,config/routes.rb:336,app/controllers/api/dashboard/v1/add_ons_controller.rb:38,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/add_ons/:id,api/dashboard/v1/add_ons,destroy,True,config/routes.rb:336,app/controllers/api/dashboard/v1/add_ons_controller.rb:51,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/add_ons/bulk_delete,api/dashboard/v1/add_ons,bulk_delete,True,config/routes.rb:338,app/controllers/api/dashboard/v1/add_ons_controller.rb:59,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/add_ons/:id/update_colors,api/dashboard/v1/add_ons,update_colors,True,config/routes.rb:341,app/controllers/api/dashboard/v1/add_ons_controller.rb:72,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/add_ons/:id/update_base_products,api/dashboard/v1/add_ons,update_base_products,True,config/routes.rb:342,app/controllers/api/dashboard/v1/add_ons_controller.rb:93,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_products,api/dashboard/v1/base_products,index,True,config/routes.rb:345,app/controllers/api/dashboard/v1/base_products_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,show,True,config/routes.rb:345,app/controllers/api/dashboard/v1/base_products_controller.rb:21,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/base_products,api/dashboard/v1/base_products,create,True,config/routes.rb:345,app/controllers/api/dashboard/v1/base_products_controller.rb:28,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,update,True,config/routes.rb:345,app/controllers/api/dashboard/v1/base_products_controller.rb:48,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,update,True,config/routes.rb:345,app/controllers/api/dashboard/v1/base_products_controller.rb:48,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_products/:id,api/dashboard/v1/base_products,destroy,True,config/routes.rb:345,app/controllers/api/dashboard/v1/base_products_controller.rb:67,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/base_products/bulk_delete,api/dashboard/v1/base_products,bulk_delete,True,config/routes.rb:347,app/controllers/api/dashboard/v1/base_products_controller.rb:75,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_products/:id/update_size_types,api/dashboard/v1/base_products,update_size_types,True,config/routes.rb:350,app/controllers/api/dashboard/v1/base_products_controller.rb:88,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_products/:id/update_categories,api/dashboard/v1/base_products,update_categories,True,config/routes.rb:351,app/controllers/api/dashboard/v1/base_products_controller.rb:107,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_products/:id/update_fabrics,api/dashboard/v1/base_products,update_fabrics,True,config/routes.rb:352,app/controllers/api/dashboard/v1/base_products_controller.rb:126,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/base_products/:id/update_parts,api/dashboard/v1/base_products,update_parts,True,config/routes.rb:353,app/controllers/api/dashboard/v1/base_products_controller.rb:145,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_brands,api/dashboard/v1/rmp_brands,index,True,config/routes.rb:356,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:4,MASTER,retain behavior via shared module
+GET,/api/dashboard/v1/rmp_brands/:id,api/dashboard/v1/rmp_brands,show,True,config/routes.rb:356,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:17,MASTER,retain behavior via shared module
+POST,/api/dashboard/v1/rmp_brands,api/dashboard/v1/rmp_brands,create,True,config/routes.rb:356,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:24,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_brands/:id,api/dashboard/v1/rmp_brands,update,True,config/routes.rb:356,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:37,MASTER,retain behavior via shared module
+PUT,/api/dashboard/v1/rmp_brands/:id,api/dashboard/v1/rmp_brands,update,True,config/routes.rb:356,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:37,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_brands/:id,api/dashboard/v1/rmp_brands,destroy,True,config/routes.rb:356,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:50,MASTER,retain behavior via shared module
+DELETE,/api/dashboard/v1/rmp_brands/bulk_delete,api/dashboard/v1/rmp_brands,bulk_delete,True,config/routes.rb:358,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:58,MASTER,retain behavior via shared module
+PATCH,/api/dashboard/v1/rmp_brands/:id/update_categories,api/dashboard/v1/rmp_brands,update_categories,True,config/routes.rb:361,app/controllers/api/dashboard/v1/rmp_brands_controller.rb:71,MASTER,retain behavior via shared module
