@@ -212,6 +212,18 @@ export class SquadError extends Error {
   code: string; kind: 'session'|'forbidden'|'conflict'|'validation'|'not_found'|'unavailable'|'unexpected';
   constructor(error: {message?: string;code?: string});
 }
+export interface ReportPeriodRequest {from?:string;before?:string}
+export interface ReportPeriod {from:string;before:string;start_utc:string;end_exclusive_utc:string;timezone:'Asia/Kolkata'}
+export interface TailorRank {id:EntityId;name:string;role:5|6;parent_tailor_id:EntityId|null;position:number;rank:number;assigned:number;completed:number|null;amount?:string|null;needs_reconciliation:boolean}
+export interface WorkMetrics {
+  cohort:{orders:number;completed:number;cancelled:number;pending:number;completed_on_time:number;completed_with_dates:number;on_time_percent:string|null};
+  backlog:{pending_orders:number;overdue_orders:number;critical_orders:number;worker_original_due_overdue:number;worker_original_due_unknown:number;worker_original_due_basis:string};
+  factory_balances:{items:number;needs_reconciliation:boolean;invalid_items:number;remaining_cut:number|null;remaining_assignment:number|null;remaining_inspection:number|null;remaining_dispatch:number|null};
+  work_in_period:{cut:number;assigned:number;inspected:number;dispatched:number};
+  worker_stages:{not_started:number;in_progress:number;completed:number;unknown:number};
+  feedback:{count:number;average:string|null;invalid_source_count:number;scope:'visible_received_feedback'};
+  period:ReportPeriod;as_of:string;basis:Record<string,string>;
+}
 export type FeedbackEntity='Order'|'Item';
 export interface RatingFields {score:string;positive_comments?:string|null;negative_comments?:string|null}
 export interface Rating extends SavedEntity {score:string|null;from_id:EntityId;to_id:EntityId;from_name:string|null;to_name:string|null;from_role:string|null;to_role:string|null;entity_kind:FeedbackEntity;entity_id:EntityId;positive_comments:string|null;negative_comments:string|null;archived:boolean;moderation_reason?:string|null;created_at:string;updated_at:string}
@@ -269,6 +281,8 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   placeBackorder(previewId:string,dueAt:string,command:Command):Promise<OrderPlacement & {preview_id:string;linked_order_versions:Record<EntityId,Version>;stock_reservation:'none'}>;
   saveDispatchDestination(id:EntityId,destination:DispatchMode,reason:string,command:Command):Promise<SavedEntity & {destination:DispatchDestination}>;
   deliveries(filters?:{from?:string;before?:string;order_id?:EntityId;customer_id?:EntityId},page?:PageRequest):Promise<Page<Delivery>>;
+  workMetrics(period?:ReportPeriodRequest,scope?:{subjectId?:EntityId;factoryId?:EntityId}):Promise<WorkMetrics>;
+  tailorLeaderboard(factoryId?:EntityId|null,period?:ReportPeriodRequest,page?:PageRequest):Promise<Page<TailorRank> & {summary:{subjects:number;completed:number;needs_reconciliation:boolean};period:ReportPeriod;as_of:string;basis:Record<string,string>}>;
   tailorEarnings(tailorId:EntityId,period?:{weekStart?:string;includeTeam?:boolean},page?:PageRequest):Promise<TailorEarnings>;
   catalogue(kind?:'types'|'categories'|'products',filters?:CatalogueFilters,page?:PageRequest):Promise<Page<CatalogueOption>>;
   baseProduct(id:EntityId):Promise<CatalogueOption>;

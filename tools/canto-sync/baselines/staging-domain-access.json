@@ -273,6 +273,15 @@
     [
       "sa_domain",
       "worker_due_baselines",
+      "squad_metric_baselines",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "worker_due_baselines",
       "squad_worker_baselines",
       "{sa_executor}",
       "ALL",
@@ -759,6 +768,15 @@
     [
       "sa_snapshot_20261019",
       "sa_dispatched_quantities",
+      "squad_metric_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_dispatched_quantities",
       "squad_work_insert",
       "{sa_executor}",
       "INSERT",
@@ -1020,6 +1038,15 @@
     [
       "sa_snapshot_20261019",
       "sa_job_sheet_assign_dates",
+      "squad_metric_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_dates",
       "squad_work_insert",
       "{sa_executor}",
       "INSERT",
@@ -1039,6 +1066,15 @@
       "sa_snapshot_20261019",
       "sa_job_sheet_assign_quantities",
       "squad_guard_earnings",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_quantities",
+      "squad_metric_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -1101,6 +1137,15 @@
     [
       "sa_snapshot_20261019",
       "sa_job_sheet_dispatched_dates",
+      "squad_metric_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_dispatched_dates",
       "squad_work_insert",
       "{sa_executor}",
       "INSERT",
@@ -1120,6 +1165,15 @@
       "sa_snapshot_20261019",
       "sa_job_sheet_mark_tailors",
       "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_mark_tailors",
+      "squad_metric_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -1155,6 +1209,15 @@
     [
       "sa_snapshot_20261019",
       "sa_job_sheet_tailor_mark_dates",
+      "squad_metric_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_tailor_mark_dates",
       "squad_work_insert",
       "{sa_executor}",
       "INSERT",
@@ -1168,6 +1231,15 @@
       "{sa_executor}",
       "SELECT",
       "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_cutting_quantities",
+      "squad_metric_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1200,6 +1272,15 @@
     [
       "sa_snapshot_20261019",
       "sa_mark_cuttings",
+      "squad_metric_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_cuttings",
       "squad_work_insert",
       "{sa_executor}",
       "INSERT",
@@ -1213,6 +1294,15 @@
       "{sa_executor}",
       "SELECT",
       "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_tailor_quantities",
+      "squad_metric_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1453,6 +1543,15 @@
       "sa_snapshot_20261019",
       "sa_quantities",
       "squad_guard_quantities",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_quantities",
+      "squad_metric_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -2300,7 +2399,7 @@
     [
       "sa_items",
       "job_sheet_due_on",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_items",
@@ -2519,6 +2618,16 @@
     ],
     [
       "sa_orders",
+      "created_at",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
+      "created_on",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
       "criteria_status",
       "{sa_executor=w/postgres}"
     ],
@@ -2555,7 +2664,7 @@
     [
       "sa_orders",
       "delivered_on",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2655,7 +2764,7 @@
     [
       "sa_orders",
       "worker_status",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_product_part_add_ons",
@@ -2745,12 +2854,12 @@
     [
       "sa_quantities",
       "assigned_to_tailor_quantity",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_quantities",
       "completed_by_tailor_quantity",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_quantities",
@@ -2760,12 +2869,12 @@
     [
       "sa_quantities",
       "cutting_done",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_quantities",
       "dispatched_quantity",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_quantities",
@@ -2791,6 +2900,11 @@
       "sa_quantities",
       "updated_at",
       "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "created_at",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_ratings",
@@ -4202,6 +4316,18 @@
     ],
     [
       "canto_api",
+      "v1_tailor_leaderboard",
+      "p_factory_id bigint, p_from date, p_before date, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "bf80a0b1ebbf726844e06e5ec5db365f"
+    ],
+    [
+      "canto_api",
       "v1_tailor_save",
       "p_id bigint, p_fields jsonb, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -4283,6 +4409,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "df038b67bc122c42ae89f67935eed4c5"
+    ],
+    [
+      "canto_api",
+      "v1_work_metrics",
+      "p_from date, p_before date, p_subject_id bigint, p_factory_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "8a0498675f055ad81ec524b44b219461"
     ],
     [
       "canto_api",
@@ -5175,6 +5313,18 @@
     ],
     [
       "sa_domain",
+      "metrics_item_ids",
+      "p_subject_id bigint, p_factory_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "41eca0407c38e8983c2678486564f123"
+    ],
+    [
+      "sa_domain",
       "next_cursor",
       "p_id bigint, p_context jsonb",
       "postgres",
@@ -5598,6 +5748,30 @@
     ],
     [
       "sa_domain",
+      "report_context",
+      "p_resource text, p_filters jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "218e36f0e27f49a7f208209e53b39c3f"
+    ],
+    [
+      "sa_domain",
+      "report_period",
+      "p_from date, p_before date",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
+      "e52caea06394c3a747d9f9d24546cfb2"
+    ],
+    [
+      "sa_domain",
       "request_uid",
       "",
       "postgres",
@@ -5810,7 +5984,19 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "941f4399e8e7b6a59f03503ee71bc2a6"
+      "c2cc74d5c242871d8cc5928f9fa8d017"
+    ],
+    [
+      "sa_domain",
+      "tailor_work_rows",
+      "p_subject_ids bigint[], p_start timestamp with time zone, p_end timestamp with time zone, p_item_ids bigint[]",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "e929e75ed615bb188c65a7cbca5e612c"
     ],
     [
       "sa_domain",
@@ -6882,6 +7068,18 @@
     ],
     [
       "sa_domain",
+      "v1_tailor_leaderboard",
+      "p_factory_id bigint, p_from date, p_before date, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "e38f58bd242b276faa550e270dd3df17"
+    ],
+    [
+      "sa_domain",
       "v1_tailor_save",
       "p_id bigint, p_fields jsonb, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -6969,6 +7167,18 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "ee0a78a36c1ce10bd43858fe6661b271"
+    ],
+    [
+      "sa_domain",
+      "v1_work_metrics",
+      "p_from date, p_before date, p_subject_id bigint, p_factory_id bigint",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "322a2abe239d382e79c30b59c9de1d7f"
     ],
     [
       "sa_domain",
@@ -7081,6 +7291,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "6b2086e639914434b1a1f2fca7111e2e"
+    ],
+    [
+      "sa_domain",
+      "work_metric_data",
+      "p_subject_id bigint, p_factory_id bigint, p_start timestamp with time zone, p_end timestamp with time zone",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "494b773512cb708a27c8c20a61702d89"
     ],
     [
       "sa_domain",

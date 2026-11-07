@@ -8781,7 +8781,7 @@
       "sa_dispatched_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_extra_quantities",
@@ -8835,13 +8835,13 @@
       "sa_job_sheet_assign_dates",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_job_sheet_assign_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_job_sheet_assign_tailors",
@@ -8853,37 +8853,37 @@
       "sa_job_sheet_dispatched_dates",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_job_sheet_mark_tailors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_job_sheet_tailor_mark_dates",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_mark_cutting_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_mark_cuttings",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_mark_tailor_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_milestones",

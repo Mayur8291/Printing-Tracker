@@ -1,0 +1,261 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T18:09:07.398522+00:00",
+  "scope": "warm database reports, January\u2013November source-shaped data, seven role sessions; excludes network/concurrent load",
+  "queries": [
+    {
+      "rpc": "work_metrics",
+      "role": 0,
+      "database_p95_ms": 408.824,
+      "samples_ms": [
+        408.824,
+        402.315,
+        362.793,
+        359.37,
+        369.752,
+        355.55,
+        354.993,
+        354.813,
+        355.463,
+        358.848
+      ],
+      "target_ms": 200,
+      "cohort_orders": 74,
+      "returned_records": 0,
+      "ranked_subjects": null
+    },
+    {
+      "rpc": "tailor_leaderboard",
+      "role": 0,
+      "database_p95_ms": 337.294,
+      "samples_ms": [
+        234.853,
+        227.25,
+        230.747,
+        227.563,
+        335.607,
+        337.294,
+        326.2,
+        326.768,
+        326.756,
+        328.169
+      ],
+      "target_ms": 200,
+      "cohort_orders": null,
+      "returned_records": 30,
+      "ranked_subjects": 54
+    },
+    {
+      "rpc": "work_metrics",
+      "role": 2,
+      "database_p95_ms": 32.054,
+      "samples_ms": [
+        30.886,
+        30.891,
+        32.054,
+        31.96,
+        31.962,
+        31.818,
+        31.915,
+        30.617,
+        30.862,
+        31.367
+      ],
+      "target_ms": 200,
+      "cohort_orders": 74,
+      "returned_records": 0,
+      "ranked_subjects": null
+    },
+    {
+      "rpc": "tailor_leaderboard",
+      "role": 2,
+      "database_p95_ms": 26.608,
+      "samples_ms": [
+        25.315,
+        25.141,
+        25.137,
+        24.76,
+        25.177,
+        25.523,
+        25.419,
+        25.276,
+        26.608,
+        26.505
+      ],
+      "target_ms": 200,
+      "cohort_orders": null,
+      "returned_records": 30,
+      "ranked_subjects": 54
+    },
+    {
+      "rpc": "work_metrics",
+      "role": 4,
+      "database_p95_ms": 7.538,
+      "samples_ms": [
+        7.442,
+        7.204,
+        7.18,
+        7.411,
+        7.538,
+        7.48,
+        7.357,
+        7.278,
+        7.162,
+        7.145
+      ],
+      "target_ms": 200,
+      "cohort_orders": 4,
+      "returned_records": 0,
+      "ranked_subjects": null
+    },
+    {
+      "rpc": "tailor_leaderboard",
+      "role": 4,
+      "database_p95_ms": 17.232,
+      "samples_ms": [
+        16.851,
+        16.004,
+        16.321,
+        17.232,
+        16.699,
+        16.117,
+        16.479,
+        16.564,
+        16.158,
+        16.5
+      ],
+      "target_ms": 200,
+      "cohort_orders": null,
+      "returned_records": 30,
+      "ranked_subjects": 30
+    },
+    {
+      "rpc": "work_metrics",
+      "role": 7,
+      "database_p95_ms": 9.623,
+      "samples_ms": [
+        9.556,
+        9.606,
+        9.53,
+        9.524,
+        9.562,
+        9.495,
+        9.552,
+        9.606,
+        9.535,
+        9.623
+      ],
+      "target_ms": 200,
+      "cohort_orders": 4,
+      "returned_records": 0,
+      "ranked_subjects": null
+    },
+    {
+      "rpc": "tailor_leaderboard",
+      "role": 7,
+      "database_p95_ms": 27.484,
+      "samples_ms": [
+        27.269,
+        27.484,
+        27.039,
+        26.592,
+        26.708,
+        26.835,
+        26.912,
+        26.955,
+        27.107,
+        26.717
+      ],
+      "target_ms": 200,
+      "cohort_orders": null,
+      "returned_records": 30,
+      "ranked_subjects": 30
+    },
+    {
+      "rpc": "work_metrics",
+      "role": 8,
+      "database_p95_ms": 10.928,
+      "samples_ms": [
+        9.923,
+        10.928,
+        9.498,
+        9.511,
+        9.395,
+        9.497,
+        9.705,
+        10.788,
+        10.716,
+        10.738
+      ],
+      "target_ms": 200,
+      "cohort_orders": 4,
+      "returned_records": 0,
+      "ranked_subjects": null
+    },
+    {
+      "rpc": "tailor_leaderboard",
+      "role": 8,
+      "database_p95_ms": 27.488,
+      "samples_ms": [
+        27.159,
+        27.416,
+        27.379,
+        27.488,
+        27.305,
+        27.129,
+        26.718,
+        27.199,
+        27.166,
+        27.381
+      ],
+      "target_ms": 200,
+      "cohort_orders": null,
+      "returned_records": 30,
+      "ranked_subjects": 30
+    },
+    {
+      "rpc": "work_metrics",
+      "role": 9,
+      "database_p95_ms": 8.558,
+      "samples_ms": [
+        8.277,
+        8.44,
+        8.334,
+        8.491,
+        8.558,
+        8.321,
+        8.265,
+        8.315,
+        8.191,
+        8.283
+      ],
+      "target_ms": 200,
+      "cohort_orders": 3,
+      "returned_records": 0,
+      "ranked_subjects": null
+    },
+    {
+      "rpc": "work_metrics",
+      "role": 11,
+      "database_p95_ms": 39.158,
+      "samples_ms": [
+        20.512,
+        20.266,
+        20.362,
+        19.294,
+        22.512,
+        19.125,
+        19.138,
+        39.158,
+        20.308,
+        22.499
+      ],
+      "target_ms": 200,
+      "cohort_orders": 0,
+      "returned_records": 0,
+      "ranked_subjects": null
+    }
+  ],
+  "business_writes": 0,
+  "all_temporary_sessions_rolled_back": true
+}
