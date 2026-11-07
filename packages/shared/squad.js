@@ -70,6 +70,14 @@ export function createSquadClient(supabase) {
       p_quote_id:quoteId,p_line:line,p_unit_price:unitPrice,p_reason:reason,
       p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
+    saveBranding: (design,command) => call("v1_branding_save", {
+      p_id:design.id??null,p_product_id:design.productId??null,p_spec:design.spec,
+      p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey
+    }),
+    placeOrder: (quoteId,details,command) => call("v1_order_place", {
+      p_quote_id:quoteId,p_details:details,p_expected_version:command.expectedVersion,
+      p_idempotency_key:command.idempotencyKey
+    }),
     tasks: (filters = {}, page = {}) => call("v1_tasks_list", {
       p_state: filters.state ?? null, p_order_id: filters.orderId ?? null,
       p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30

@@ -87,6 +87,16 @@ Hosted rollback-only checks passed for private colour → configure → reuse �
 
 Next: transactional order acceptance, quote/preset revalidation, dealer-brand splitting and lifecycle operations. The remaining stock/media/provider/notification gates still prevent calling the backend complete.
 
+## Iteration 6 — transactional order acceptance and scoped artwork
+
+Staging now has 35 of the original 115 RPC names, plus `v1_color_save`. `v1_order_place` revalidates the saved quote, customer/address eligibility, current commercial rules, exact visible preset configuration and selected artwork revisions. Quote acceptance is single-use even across different idempotency keys; exact retries return the original set of orders. Customer and design locks serialize acceptance against related commands. New design metadata has independent ownership, and order artwork copies reuse authorized media references in the same environment. File upload/delivery orchestration remains a later gate.
+
+Pure ready-made orders split by eligible linked dealer/authorized brand and return every child. Custom/mixed routing remains one order. Server totals include branding; largest-remainder cent allocation reconciles child totals and partial payments without overpaying small children. Only SC can record payment. Ready-made size IDs are translated by trusted size name into the separate legacy size table. Sample quantities retain the bulk plan in extra quantities. Accepted pricing and delivery are retained as immutable operational receipts.
+
+209 local tests pass, including 34 new order/design cases and simultaneous different-key acceptance of the same quote. The hosted configure → override → partial-payment order → exact retry → detail journey passes; all test records/sessions roll back and all advanced sequences are restored under the refresh/write lock. [Measured order acceptance](squad-one-audit/implementation-evidence/staging-order-acceptance-performance.json) records ten warm DB samples below the 500 ms command target. This representative single-line test is not maximum-size or concurrent-load acceptance. Mobile declarations/checks pass. Security advisors report no new domain finding beyond the previously reviewed `filtered_orders` warning.
+
+Order integration is truthfully returned as `queued`; this iteration does not claim successful warehouse reservation, notifications or provider delivery. Order editing/cancellation, production execution, detailed item/history projections, private-colour historical reorder compatibility, and full journey/load review remain open.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

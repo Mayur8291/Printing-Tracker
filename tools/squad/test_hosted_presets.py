@@ -1,5 +1,5 @@
-"""Staging create/reuse/rename/colour/quote override, rolled back with sequences restored."""
-import json,sys,uuid
+"""Staging configure/quote/order journey, rolled back with sequences restored."""
+import datetime,json,sys,uuid
 from pathlib import Path
 import psycopg
 from psycopg import sql
@@ -10,7 +10,7 @@ from database import connect
 
 def run():
  checks=[]
- tables=['products','product_parts','product_part_add_ons','colors','fabric_colors']
+ tables=['products','product_parts','product_part_add_ons','colors','fabric_colors','orders','items','quantities','extra_quantities','brandings','item_criteria','criteria','sizes']
  sequences=['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in tables]+['sa_domain.audit_id_seq','sa_domain.quotes_ledger_id_seq']
  with connect('staging') as c:
   assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0],'Refresh/write is active'
@@ -47,6 +47,26 @@ def run():
     assert overridden['version']!=q['version']
     assert c.execute('SELECT canto_api.v1_quote_override(%s,%s,%s,%s,%s,%s)',args).fetchone()[0]==overridden
     checks.append('server quote override, totals and exact retry')
+    details={'due_at':'2026-12-01T12:30:00+05:30','line_settings':{'1':{'product_id':p['id']}},'payment':{'status':'partial','paid_amount':'10.01'}}
+    args=(uuid.UUID(q['quote_id']),overridden['version'],Jsonb(details),uuid.uuid4())
+    samples=[]
+    for _ in range(11):
+     with c.transaction():
+      plan=c.execute('EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON) SELECT canto_api.v1_order_place(%s,%s,%s,%s)',args).fetchone()[0][0]
+      samples.append(plan['Execution Time']);raise psycopg.Rollback()
+    evidence={'environment':'staging','measured_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+     'scenario':'SC custom preset, quote override, partial payment, single-line order acceptance',
+     'samples_ms':samples[1:],'p95_ms':max(samples[1:]),'target_ms':500,
+     'scope':'warm database execution; rollback-only, not a concurrent load or maximum-size request guarantee'}
+    (ROOT/'docs/squad-one-audit/implementation-evidence/staging-order-acceptance-performance.json').write_text(json.dumps(evidence,indent=2)+'\n')
+    assert evidence['p95_ms']<evidence['target_ms'],evidence
+    checks.append('representative order acceptance DB p95 below 500ms')
+    placed=c.execute('SELECT canto_api.v1_order_place(%s,%s,%s,%s)',args).fetchone()[0]
+    assert len(placed['orders'])==1 and len(placed['orders'][0]['items'])==1
+    assert placed==c.execute('SELECT canto_api.v1_order_place(%s,%s,%s,%s)',args).fetchone()[0]
+    assert placed['total_amount']==overridden['total'];checks.append('order acceptance, partial payment and exact retry')
+    order=c.execute('SELECT canto_api.v1_order_get(%s)',(int(placed['orders'][0]['id']),)).fetchone()[0]
+    assert order['id']==placed['orders'][0]['id'];checks.append('created order visible through scoped detail')
     raise psycopg.Rollback()
   finally:
    c.execute('SET ROLE postgres')

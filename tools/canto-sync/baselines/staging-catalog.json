@@ -7440,6 +7440,11 @@
       "CREATE UNIQUE INDEX sa_criteria_pkey ON sa_snapshot_20261019.sa_criteria USING btree (id)"
     ],
     [
+      "sa_criteria",
+      "squad_criteria_name",
+      "CREATE INDEX squad_criteria_name ON sa_snapshot_20261019.sa_criteria USING btree (name, id)"
+    ],
+    [
       "sa_customer_requests",
       "sa_customer_requests_pkey",
       "CREATE UNIQUE INDEX sa_customer_requests_pkey ON sa_snapshot_20261019.sa_customer_requests USING btree (id)"
@@ -8240,6 +8245,11 @@
       "CREATE UNIQUE INDEX sa_sizes_pkey ON sa_snapshot_20261019.sa_sizes USING btree (id)"
     ],
     [
+      "sa_sizes",
+      "squad_sizes_name",
+      "CREATE INDEX squad_sizes_name ON sa_snapshot_20261019.sa_sizes USING btree (name, id)"
+    ],
+    [
       "sa_stock_infos",
       "sa_index_stock_infos_on_product_id",
       "CREATE INDEX sa_index_stock_infos_on_product_id ON sa_snapshot_20261019.sa_stock_infos USING btree (product_id)"
@@ -8603,7 +8613,7 @@
       "sa_brandings",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_bulk_uploads",
@@ -8639,7 +8649,7 @@
       "sa_criteria",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_customer_requests",
@@ -8657,7 +8667,7 @@
       "sa_extra_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_fabric_colors",
@@ -8681,7 +8691,7 @@
       "sa_item_criteria",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_item_tailor_quantities",
@@ -8699,7 +8709,7 @@
       "sa_items",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_job_sheet_assign_dates",
@@ -8771,7 +8781,7 @@
       "sa_orders",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_part_colors",
@@ -8831,7 +8841,7 @@
       "sa_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_ratings",
@@ -8945,7 +8955,7 @@
       "sa_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_stock_infos",

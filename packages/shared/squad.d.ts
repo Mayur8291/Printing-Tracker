@@ -98,7 +98,17 @@ export interface Configuration {
 }
 export interface SizeQuantity {size_id:EntityId;quantity:number}
 export interface NormalizedQuantities {quantities:SizeQuantity[];total_quantity:number;sample:SizeQuantity|null;sample_order:boolean}
-export interface BrandingInput {type:'print'|'embroidery';side:string;width:string;height:string;unit:'inch'}
+export interface BrandingInput {type:'print'|'embroidery';side:string;width:string;height:string;unit:'inch';design_id?:EntityId;design_version?:Version}
+export interface BrandingSaveInput {id?:EntityId;productId?:EntityId|null;spec:Omit<BrandingInput,'design_id'|'design_version'> & {comment?:string;print_area?:string}}
+export interface OrderPlacementDetails {
+  due_at:string;comment?:string;
+  line_settings?:Record<string,{product_id?:EntityId;comment?:string;size_type_id?:EntityId}>;
+  payment?:{status:'paid'|'unpaid'|'partial';paid_amount?:string};
+}
+export interface OrderPlacement {
+  quote_id:string;total_amount:string;paid_amount:string;
+  orders:Array<SavedEntity & {items:Array<{line:number;item_id:EntityId}>;total_amount:string;paid_amount:string;rounding_adjustment:string;integration_status:'queued'}>;
+}
 export type QuoteLineInput = {kind:'custom';configuration:Configuration;quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]}
   | {kind:'rmp';skus:Array<{sku_id:EntityId;quantity:number}>;brandings?:BrandingInput[]};
 export interface QuoteRequest {customer_id?:EntityId;address_id:EntityId;lines:QuoteLineInput[]}
@@ -147,6 +157,8 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   renamePreset(id:EntityId,name:string,command:Command):Promise<SavedEntity>;
   saveColor(targetKind:'fabric'|'part'|'addon',targetId:EntityId,name:string,hex:string,idempotencyKey:string):Promise<SavedEntity & {name:string;hex:string;reused:boolean}>;
   overrideQuote(quoteId:string,line:number,unitPrice:string,reason:string,command:Command):Promise<Quote>;
+  saveBranding(design:BrandingSaveInput,command:Command|CreateCommand):Promise<SavedEntity & {product_id:EntityId|null}>;
+  placeOrder(quoteId:string,details:OrderPlacementDetails,command:Command):Promise<OrderPlacement>;
   tasks(filters?: {state?:0|1|2;orderId?:EntityId},page?:PageRequest):Promise<Page<Task>>;
   task(id:EntityId):Promise<Task>;
   taskAssignees(page?:PageRequest):Promise<Page<{id:EntityId;name:string;role:number}>>;
