@@ -83,7 +83,7 @@ def record_run(conn,audit,result):
         committed_at timestamptz NOT NULL DEFAULT now(), report jsonb NOT NULL)""")
     protect_schema(conn,'sa_sync')
     from psycopg.types.json import Jsonb
-    conn.execute('INSERT INTO sa_sync.refresh_runs(run_id,environment,report) VALUES (%s,%s,%s)',
+    conn.execute('INSERT INTO sa_sync.refresh_runs(run_id,environment,report,committed_at) VALUES (%s,%s,%s,clock_timestamp())',
         (audit['run_id'],audit['environment'],Jsonb({**audit,**result,'status':'committed'})))
 
 if __name__ == '__main__':
