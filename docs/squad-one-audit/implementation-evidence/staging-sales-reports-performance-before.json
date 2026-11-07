@@ -1,0 +1,249 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T18:30:32.118031+00:00",
+  "scope": "warm database report first pages, January\u2013November source-shaped data; excludes network/concurrent load",
+  "queries": [
+    {
+      "report": "coordinator_metrics",
+      "role": 0,
+      "database_p95_ms": 81.014,
+      "samples_ms": [
+        81.014,
+        77.988,
+        75.124,
+        75.193,
+        73.542,
+        70.076,
+        70.583,
+        70.623,
+        71.401,
+        72.076
+      ],
+      "target_ms": 200,
+      "returned_records": 0,
+      "payload_bytes": 3223
+    },
+    {
+      "report": "customers",
+      "role": 0,
+      "database_p95_ms": 2003.102,
+      "samples_ms": [
+        1884.759,
+        1849.696,
+        1889.087,
+        1896.806,
+        1935.228,
+        1940.099,
+        1933.738,
+        1946.44,
+        2003.102,
+        2003.056
+      ],
+      "target_ms": 200,
+      "returned_records": 30,
+      "payload_bytes": 24798
+    },
+    {
+      "report": "unique_customers",
+      "role": 0,
+      "database_p95_ms": 757.363,
+      "samples_ms": [
+        736.048,
+        736.547,
+        726.183,
+        703.141,
+        728.763,
+        756.786,
+        757.363,
+        757.161,
+        669.272,
+        674.471
+      ],
+      "target_ms": 200,
+      "returned_records": 0,
+      "payload_bytes": 760
+    },
+    {
+      "report": "brands",
+      "role": 0,
+      "database_p95_ms": 790.015,
+      "samples_ms": [
+        724.917,
+        790.015,
+        722.916,
+        727.371,
+        721.073,
+        725.312,
+        757.605,
+        728.15,
+        721.18,
+        727.092
+      ],
+      "target_ms": 200,
+      "returned_records": 30,
+      "payload_bytes": 17889
+    },
+    {
+      "report": "classes",
+      "role": 0,
+      "database_p95_ms": 817.188,
+      "samples_ms": [
+        817.188,
+        725.751,
+        773.315,
+        725.272,
+        714.819,
+        719.053,
+        721.019,
+        722.125,
+        722.773,
+        727.717
+      ],
+      "target_ms": 200,
+      "returned_records": 30,
+      "payload_bytes": 17258
+    },
+    {
+      "report": "coordinators",
+      "role": 0,
+      "database_p95_ms": 846.416,
+      "samples_ms": [
+        775.465,
+        818.287,
+        814.146,
+        839.213,
+        822.725,
+        846.416,
+        814.603,
+        814.99,
+        836.632,
+        822.101
+      ],
+      "target_ms": 200,
+      "returned_records": 21,
+      "payload_bytes": 12889
+    },
+    {
+      "report": "customer_directory",
+      "role": 0,
+      "database_p95_ms": 8.154,
+      "samples_ms": [
+        8.154,
+        7.889,
+        7.935,
+        7.785,
+        8.04,
+        4.555,
+        4.474,
+        4.465,
+        4.936,
+        4.791
+      ],
+      "target_ms": 200,
+      "returned_records": 30,
+      "payload_bytes": 20383
+    },
+    {
+      "report": "order_items",
+      "role": 0,
+      "database_p95_ms": 717.052,
+      "samples_ms": [
+        641.57,
+        645.484,
+        642.075,
+        640.371,
+        661.86,
+        640.106,
+        643.339,
+        669.07,
+        717.052,
+        662.333
+      ],
+      "target_ms": 200,
+      "returned_records": 30,
+      "payload_bytes": 52064
+    },
+    {
+      "report": "custom_items",
+      "role": 0,
+      "database_p95_ms": 831.247,
+      "samples_ms": [
+        678.792,
+        831.247,
+        765.424,
+        714.73,
+        772.518,
+        718.999,
+        693.266,
+        694.551,
+        698.394,
+        699.556
+      ],
+      "target_ms": 200,
+      "returned_records": 30,
+      "payload_bytes": 75779
+    },
+    {
+      "report": "rmp_items",
+      "role": 0,
+      "database_p95_ms": 706.309,
+      "samples_ms": [
+        664.978,
+        665.926,
+        661.125,
+        672.6,
+        706.309,
+        672.54,
+        657.949,
+        651.52,
+        649.827,
+        651.577
+      ],
+      "target_ms": 200,
+      "returned_records": 30,
+      "payload_bytes": 52062
+    },
+    {
+      "report": "coordinator_metrics",
+      "role": 1,
+      "database_p95_ms": 81.76,
+      "samples_ms": [
+        71.753,
+        71.273,
+        71.602,
+        71.705,
+        71.801,
+        71.131,
+        70.918,
+        71.23,
+        71.339,
+        81.76
+      ],
+      "target_ms": 200,
+      "returned_records": 0,
+      "payload_bytes": 3223
+    },
+    {
+      "report": "coordinator_metrics",
+      "role": 2,
+      "database_p95_ms": 11.77,
+      "samples_ms": [
+        11.77,
+        11.575,
+        11.591,
+        11.529,
+        11.461,
+        11.574,
+        11.557,
+        11.577,
+        11.598,
+        11.64
+      ],
+      "target_ms": 200,
+      "returned_records": 0,
+      "payload_bytes": 860
+    }
+  ],
+  "business_writes": 0,
+  "all_temporary_sessions_rolled_back": true
+}

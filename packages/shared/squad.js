@@ -75,6 +75,8 @@ export function createSquadClient(supabase) {
       p_id:id,p_destination:destination,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
     deliveries: (filters = {},page = {}) => call("v1_deliveries_list", {p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    salesReport: (kind,period = {},filters = {},page = {}) => call("v1_sales_report", {p_kind:kind,p_from:period.from??null,p_before:period.before??null,p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    salesCoordinatorMetrics: (subjectId = null,period = {}) => call("v1_sales_coordinator_metrics", {p_subject_id:subjectId,p_from:period.from??null,p_before:period.before??null}),
     workMetrics: (period = {},scope = {}) => call("v1_work_metrics", {p_from:period.from??null,p_before:period.before??null,p_subject_id:scope.subjectId??null,p_factory_id:scope.factoryId??null}),
     tailorLeaderboard: (factoryId = null,period = {},page = {}) => call("v1_tailor_leaderboard", {p_factory_id:factoryId,p_from:period.from??null,p_before:period.before??null,p_cursor:page.cursor??null,p_limit:page.limit??30}),
     tailorEarnings: (tailorId,period = {},page = {}) => call("v1_tailor_earnings", {

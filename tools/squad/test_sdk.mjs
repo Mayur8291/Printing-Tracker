@@ -56,6 +56,8 @@ try {
     const variants=await sdk.readyMadeVariants(readyMade.data[0].id,null,{}, {limit:2});
     assert.ok(variants.data.every(v=>v.availability.one_day===null));
   }
+  await assert.rejects(sdk.salesReport('customers'),e=>e instanceof SquadError && e.kind==='forbidden');
+  await assert.rejects(sdk.salesCoordinatorMetrics(),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.workMetrics(),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.tailorLeaderboard(),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.people(),e=>e instanceof SquadError && e.kind==='forbidden');

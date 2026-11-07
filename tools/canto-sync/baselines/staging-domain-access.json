@@ -182,6 +182,15 @@
     ],
     [
       "sa_domain",
+      "order_receipts",
+      "squad_report_receipt_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "order_requests",
       "squad_guard_order_requests",
       "{sa_guard}",
@@ -355,6 +364,15 @@
       "sa_snapshot_20261019",
       "sa_add_ons",
       "squad_guard_earnings",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_add_ons",
+      "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -544,6 +562,15 @@
       "sa_snapshot_20261019",
       "sa_base_products",
       "squad_guard_earnings",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_products",
+      "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -835,6 +862,15 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_fabrics",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1442,6 +1478,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_product_part_add_ons",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_product_parts",
       "squad_guard_stock_configuration",
       "{sa_guard}",
@@ -1465,6 +1510,15 @@
       "{sa_executor}",
       "SELECT",
       "(product_id IN ( SELECT sa_products.id\n   FROM sa_snapshot_20261019.sa_products))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_parts",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1505,11 +1559,29 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_products",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_profit_margins",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_profit_margins",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1613,6 +1685,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_ratings",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_responsibilities",
       "squad_goal_insert",
       "{sa_executor}",
@@ -1667,6 +1748,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_rmp_categories",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_rmp_classes",
       "squad_catalog_read",
       "{sa_executor}",
@@ -1676,11 +1766,38 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_rmp_classes",
+      "squad_sales_class_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_classes",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_rmp_colors",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_colors",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1739,6 +1856,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_rmp_sizes",
+      "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_rmp_sku_prices",
       "squad_catalog_read",
       "{sa_executor}",
@@ -1759,6 +1885,15 @@
       "sa_snapshot_20261019",
       "sa_rmp_skus",
       "squad_guard_stock_sku",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_skus",
+      "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -1804,6 +1939,15 @@
       "sa_snapshot_20261019",
       "sa_sizes",
       "squad_guard_stock_sku",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_sizes",
+      "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -2338,8 +2482,28 @@
     ],
     [
       "sa_items",
+      "airtable_order_report_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
       "assigned_to_tailor_quantity",
       "{sa_guard=r/postgres,sa_executor=w/postgres}"
+    ],
+    [
+      "sa_items",
+      "branding_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "cgst_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "comment",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_items",
@@ -2383,6 +2547,11 @@
     ],
     [
       "sa_items",
+      "igst_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
       "item_type",
       "{sa_guard=r/postgres}"
     ],
@@ -2413,7 +2582,27 @@
     ],
     [
       "sa_items",
+      "per_piece_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
       "product_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "rmp_brand_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "rmp_category_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "rmp_class_id",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -2433,6 +2622,11 @@
     ],
     [
       "sa_items",
+      "sgst_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
       "status_change_time",
       "{sa_executor=w/postgres}"
     ],
@@ -2443,18 +2637,28 @@
     ],
     [
       "sa_items",
+      "total_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
       "total_quantity",
       "{sa_guard=r/postgres}"
     ],
     [
       "sa_items",
       "uc_order_status",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_items",
       "updated_at",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "weight_per_piece",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_items",
@@ -2603,6 +2807,16 @@
     ],
     [
       "sa_orders",
+      "branding_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
+      "cgst_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
       "comment",
       "{sa_executor=w/postgres}"
     ],
@@ -2623,13 +2837,18 @@
     ],
     [
       "sa_orders",
+      "created_by_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
       "created_on",
       "{sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
       "criteria_status",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2703,6 +2922,11 @@
     ],
     [
       "sa_orders",
+      "igst_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
       "is_deleted",
       "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
@@ -2743,13 +2967,33 @@
     ],
     [
       "sa_orders",
+      "sgst_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
       "status",
       "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
+      "sub_total_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
       "tailor_job_status",
       "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_orders",
+      "total_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_orders",
+      "total_quantity",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2967,6 +3211,16 @@
       "{sa_executor=w/postgres}"
     ],
     [
+      "sa_rmp_classes",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
       "sa_rmp_sizes",
       "id",
       "{sa_guard=r/postgres}"
@@ -3158,6 +3412,11 @@
     ],
     [
       "sa_users",
+      "airtable_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_users",
       "approved",
       "{sa_guard=r/postgres,sa_executor=arw/postgres}"
     ],
@@ -3174,7 +3433,7 @@
     [
       "sa_users",
       "created_at",
-      "{sa_executor=a/postgres}"
+      "{sa_executor=a/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -3249,7 +3508,7 @@
     [
       "sa_users",
       "gst_no",
-      "{sa_executor=arw/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -3269,7 +3528,7 @@
     [
       "sa_users",
       "onboarded",
-      "{sa_executor=arw/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -3284,7 +3543,7 @@
     [
       "sa_users",
       "phone",
-      "{sa_executor=arw/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -4268,6 +4527,30 @@
     ],
     [
       "canto_api",
+      "v1_sales_coordinator_metrics",
+      "p_subject_id bigint, p_from date, p_before date",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "48271c8bc581b2bb4d62aa282fb0bb00"
+    ],
+    [
+      "canto_api",
+      "v1_sales_report",
+      "p_kind text, p_from date, p_before date, p_filters jsonb, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "6ed92f3aded8469810ed6946944a4c0d"
+    ],
+    [
+      "canto_api",
       "v1_settings_read",
       "p_group text, p_cursor text, p_limit integer",
       "postgres",
@@ -5236,7 +5519,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
       "ad887c43f7a025fa4921a41d858430d9"
     ],
     [
@@ -5760,6 +6043,18 @@
     ],
     [
       "sa_domain",
+      "report_money",
+      "p_value numeric",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
+      "774670ba2ac747b9267903431d756b15"
+    ],
+    [
+      "sa_domain",
       "report_period",
       "p_from date, p_before date",
       "postgres",
@@ -5817,6 +6112,90 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "99ff565e12e12131a71c4dc99787d435"
+    ],
+    [
+      "sa_domain",
+      "sales_aggregate",
+      "p_kind text, p_period jsonb, p_filters jsonb, p_after bigint, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "0be9eb52e21ee331a0649a8ad207713f"
+    ],
+    [
+      "sa_domain",
+      "sales_coordinator_data",
+      "p_subject_id bigint, p_period jsonb",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "4d4a509d49c2b3a62ff99151875f2fd4"
+    ],
+    [
+      "sa_domain",
+      "sales_customer_directory",
+      "p_filters jsonb, p_after bigint, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "84bbcf8a67c54c5d6f3decbe02609cfe"
+    ],
+    [
+      "sa_domain",
+      "sales_filters",
+      "p_filters jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
+      "9279e13f277e3e4c4b930853b1db05ff"
+    ],
+    [
+      "sa_domain",
+      "sales_item_details",
+      "p_kind text, p_period jsonb, p_filters jsonb, p_after bigint, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "3067dc816d108465a35f2b05c0acce1e"
+    ],
+    [
+      "sa_domain",
+      "sales_previous_period",
+      "p_period jsonb, p_comparison text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
+      "ad2ffad3558ee3e804ee7058b2243330"
+    ],
+    [
+      "sa_domain",
+      "sales_rows",
+      "p_start timestamp with time zone, p_end timestamp with time zone, p_filters jsonb",
+      "sa_guard",
+      false,
+      null,
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "c6a9b7f07df4e88b5b2e7fe37f3279d5"
     ],
     [
       "sa_domain",
@@ -7017,6 +7396,30 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "8299a9254086591c9b9f3c8d942c3807"
+    ],
+    [
+      "sa_domain",
+      "v1_sales_coordinator_metrics",
+      "p_subject_id bigint, p_from date, p_before date",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_app=X/sa_executor}",
+      "f879afaa273d6b5cb43f42daa498ec79"
+    ],
+    [
+      "sa_domain",
+      "v1_sales_report",
+      "p_kind text, p_from date, p_before date, p_filters jsonb, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_app=X/sa_executor}",
+      "ffcab4d9fe37f47d18c0f62e7f00a677"
     ],
     [
       "sa_domain",

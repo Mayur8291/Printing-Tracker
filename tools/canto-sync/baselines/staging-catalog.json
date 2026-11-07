@@ -7905,6 +7905,16 @@
       "CREATE INDEX squad_orders_worker_page ON sa_snapshot_20261019.sa_orders USING btree (assigned_worker_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],
     [
+      "sa_orders",
+      "squad_sales_created_at_fallback",
+      "CREATE INDEX squad_sales_created_at_fallback ON sa_snapshot_20261019.sa_orders USING btree (created_at, id) WHERE ((created_on IS NULL) AND (is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_sales_created_on",
+      "CREATE INDEX squad_sales_created_on ON sa_snapshot_20261019.sa_orders USING btree (created_on, id) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
       "sa_part_colors",
       "sa_index_part_colors_on_color_id",
       "CREATE INDEX sa_index_part_colors_on_color_id ON sa_snapshot_20261019.sa_part_colors USING btree (color_id)"
@@ -8643,7 +8653,7 @@
       "sa_add_ons",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_addresses",
@@ -8721,7 +8731,7 @@
       "sa_base_products",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_base_size_types",
@@ -8799,7 +8809,7 @@
       "sa_fabrics",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_factories",
@@ -8925,25 +8935,25 @@
       "sa_product_part_add_ons",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_product_parts",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_products",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_profit_margins",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_promotional_banners",
@@ -8967,7 +8977,7 @@
       "sa_ratings",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_reset_password_histories",
@@ -8991,7 +9001,7 @@
       "sa_rmp_categories",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_category_brands",
@@ -9003,13 +9013,13 @@
       "sa_rmp_classes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_min_infos",
@@ -9033,7 +9043,7 @@
       "sa_rmp_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_sku_prices",
@@ -9045,7 +9055,7 @@
       "sa_rmp_skus",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_sc_sizes",
@@ -9075,7 +9085,7 @@
       "sa_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_stock_infos",

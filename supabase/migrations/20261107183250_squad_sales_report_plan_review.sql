@@ -1,0 +1,40 @@
+BEGIN;
+CREATE OR REPLACE FUNCTION sa_domain.sales_aggregate(p_kind text,p_period jsonb,p_filters jsonb,p_after bigint,p_limit int) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog SET plan_cache_mode=force_custom_plan AS $f$
+DECLARE r jsonb;previous_ jsonb:=sa_domain.sales_previous_period(p_period,coalesce(p_filters->>'comparison','previous_period'));
+BEGIN
+ PERFORM sa_domain.require_roles(ARRAY[0]);
+ IF p_kind NOT IN('customers','brands','classes','coordinators','unique_customers') THEN RAISE EXCEPTION 'Unknown aggregate report' USING ERRCODE='22023';END IF;
+ IF p_kind='unique_customers' THEN
+  SELECT jsonb_build_object('data','[]'::jsonb,'has_more',false,'summary',jsonb_build_object('total_unique_customers',count(DISTINCT customer_id),'custom_order_customers',count(DISTINCT customer_id) FILTER(WHERE order_kind=1),'rmp_order_customers',count(DISTINCT customer_id) FILTER(WHERE order_kind=0),'mixed_order_customers',count(DISTINCT customer_id) FILTER(WHERE order_kind=2))) INTO r
+  FROM sa_domain.sales_rows((p_period->>'start_utc')::timestamptz,(p_period->>'end_exclusive_utc')::timestamptz,p_filters) WHERE provider_status IS DISTINCT FROM 'CANCELLED';RETURN r;
+ END IF;
+ WITH current_rows AS NOT MATERIALIZED(SELECT * FROM sa_domain.sales_rows((p_period->>'start_utc')::timestamptz,(p_period->>'end_exclusive_utc')::timestamptz,p_filters)),
+
+ chosen AS NOT MATERIALIZED(SELECT *,CASE p_kind WHEN 'customers' THEN customer_id WHEN 'brands' THEN brand_id WHEN 'classes' THEN class_id WHEN 'coordinators' THEN coordinator_id END key_,
+ CASE p_kind WHEN 'customers' THEN customer_name WHEN 'brands' THEN brand_name WHEN 'classes' THEN class_name WHEN 'coordinators' THEN coordinator_name END label_
+ FROM current_rows WHERE p_kind IN('customers','unique_customers') OR(order_kind=0 AND item_kind=1)),
+ grouped AS MATERIALIZED(SELECT key_ id,min(label_) name,count(DISTINCT order_id) orders,sum(quantity) quantity,sum(subtotal) subtotal,sum(branding) branding,sum(tax) tax,sum(quantity) FILTER(WHERE closed) closed_quantity,sum(subtotal) FILTER(WHERE closed) closed_subtotal,
+ sum(quantity) FILTER(WHERE customer_role=10) dealer_quantity,sum(subtotal) FILTER(WHERE customer_role=10) dealer_subtotal,sum(quantity) FILTER(WHERE customer_role=10 AND closed) dealer_closed_quantity,
+ sum(quantity) FILTER(WHERE customer_role<>10) customer_quantity,sum(subtotal) FILTER(WHERE customer_role<>10) customer_subtotal,sum(quantity) FILTER(WHERE customer_role<>10 AND closed) customer_closed_quantity,
+ max(ordered_at) last_order_at,bool_or(quantity IS NULL OR quantity<0 OR subtotal IS NULL OR subtotal<0 OR subtotal::text IN('NaN','Infinity','-Infinity') OR branding<0 OR branding::text IN('NaN','Infinity','-Infinity') OR tax IS NULL OR tax<0 OR tax::text IN('NaN','Infinity','-Infinity')) invalid
+ FROM chosen WHERE key_ IS NOT NULL GROUP BY key_),
+ selected_groups AS MATERIALIZED(SELECT * FROM grouped WHERE id<p_after ORDER BY id DESC LIMIT p_limit+1),
+ previous_rows AS NOT MATERIALIZED(SELECT * FROM sa_domain.sales_rows((previous_->>'start_utc')::timestamptz,(previous_->>'end_exclusive_utc')::timestamptz,p_filters) WHERE p_kind='customers' AND customer_id IN(SELECT id FROM selected_groups)),
+ previous_totals AS(SELECT customer_id id,sum(quantity) quantity,sum(subtotal) subtotal,bool_or(quantity IS NULL OR quantity<0 OR subtotal IS NULL OR subtotal<0 OR subtotal::text IN('NaN','Infinity','-Infinity')) invalid FROM previous_rows GROUP BY customer_id),
+ scan AS MATERIALIZED(SELECT g.*,p.quantity previous_quantity,p.subtotal previous_subtotal,coalesce(p.invalid,false) previous_invalid FROM selected_groups g LEFT JOIN previous_totals p ON p.id=g.id ORDER BY g.id DESC),page AS(SELECT * FROM scan ORDER BY id DESC LIMIT p_limit)
+ SELECT jsonb_build_object('data',coalesce(jsonb_agg(jsonb_build_object('id',p.id::text,'name',p.name,'orders',p.orders,'quantity',CASE WHEN p.invalid THEN NULL ELSE p.quantity END,'subtotal',CASE WHEN p.invalid THEN NULL ELSE p.subtotal::text END,'tax',CASE WHEN p.invalid THEN NULL ELSE p.tax::text END,'branding',CASE WHEN p.invalid THEN NULL ELSE p.branding::text END,'gross',CASE WHEN p.invalid THEN NULL ELSE(p.subtotal+p.branding+p.tax)::text END,
+ 'closed_quantity',CASE WHEN NOT p.invalid THEN coalesce(p.closed_quantity,0) END,'closed_subtotal',CASE WHEN NOT p.invalid THEN coalesce(p.closed_subtotal,0)::text END,'fill_rate',CASE WHEN NOT p.invalid THEN round(100.0*coalesce(p.closed_quantity,0)/nullif(p.quantity,0),2)::text END,
+ 'dealer_quantity',CASE WHEN NOT p.invalid THEN coalesce(p.dealer_quantity,0) END,'dealer_subtotal',CASE WHEN NOT p.invalid THEN coalesce(p.dealer_subtotal,0)::text END,'dealer_closed_quantity',CASE WHEN NOT p.invalid THEN coalesce(p.dealer_closed_quantity,0) END,'dealer_fill_rate',CASE WHEN NOT p.invalid THEN round(100.0*coalesce(p.dealer_closed_quantity,0)/nullif(p.dealer_quantity,0),2)::text END,
+ 'customer_quantity',CASE WHEN NOT p.invalid THEN coalesce(p.customer_quantity,0) END,'customer_subtotal',CASE WHEN NOT p.invalid THEN coalesce(p.customer_subtotal,0)::text END,'customer_closed_quantity',CASE WHEN NOT p.invalid THEN coalesce(p.customer_closed_quantity,0) END,'customer_fill_rate',CASE WHEN NOT p.invalid THEN round(100.0*coalesce(p.customer_closed_quantity,0)/nullif(p.customer_quantity,0),2)::text END,
+ 'last_order_at',p.last_order_at AT TIME ZONE 'UTC','needs_reconciliation',coalesce(p.invalid,false))||CASE WHEN p_kind='customers' THEN jsonb_build_object('previous_needs_reconciliation',p.previous_invalid,'previous_quantity',CASE WHEN NOT p.previous_invalid THEN coalesce(p.previous_quantity,0) END,'previous_subtotal',CASE WHEN NOT p.previous_invalid THEN coalesce(p.previous_subtotal,0)::text END,
+ 'quantity_difference',CASE WHEN NOT p.invalid AND NOT p.previous_invalid THEN p.quantity-coalesce(p.previous_quantity,0) END,'subtotal_difference',CASE WHEN NOT p.invalid AND NOT p.previous_invalid THEN (p.subtotal-coalesce(p.previous_subtotal,0))::text END,'quantity_growth_percent',CASE WHEN NOT p.invalid AND NOT p.previous_invalid THEN round(100.0*(p.quantity-p.previous_quantity)/nullif(p.previous_quantity,0),2)::text END,
+ 'subtotal_growth_percent',CASE WHEN NOT p.invalid AND NOT p.previous_invalid THEN round(100.0*(p.subtotal-p.previous_subtotal)/nullif(p.previous_subtotal,0),2)::text END,'growth_basis',CASE WHEN coalesce(p.previous_quantity,0)=0 OR coalesce(p.previous_subtotal,0)=0 THEN 'zero_base_percentage_undefined' ELSE 'uncapped_change' END) ELSE '{}'::jsonb END ORDER BY p.id DESC),'[]'),
+ 'last_id',min(p.id)::text,'has_more',(SELECT count(*) FROM scan)>p_limit,
+ 'summary',CASE WHEN p_kind='unique_customers' THEN(SELECT jsonb_build_object('total_unique_customers',count(DISTINCT customer_id),'custom_order_customers',count(DISTINCT customer_id) FILTER(WHERE order_kind=1),'rmp_order_customers',count(DISTINCT customer_id) FILTER(WHERE order_kind=0),'mixed_order_customers',count(DISTINCT customer_id) FILTER(WHERE order_kind=2)) FROM current_rows WHERE provider_status IS DISTINCT FROM 'CANCELLED')
+ ELSE(SELECT jsonb_build_object('groups',count(*),'quantity',CASE WHEN NOT coalesce(bool_or(invalid),false) THEN coalesce(sum(quantity),0) END,'subtotal',CASE WHEN bool_or(invalid) THEN NULL ELSE coalesce(sum(subtotal),0)::text END,'branding',CASE WHEN bool_or(invalid) THEN NULL ELSE coalesce(sum(branding),0)::text END,'tax',CASE WHEN bool_or(invalid) THEN NULL ELSE coalesce(sum(tax),0)::text END,'closed_quantity',CASE WHEN NOT coalesce(bool_or(invalid),false) THEN coalesce(sum(closed_quantity),0) END,'closed_subtotal',CASE WHEN NOT coalesce(bool_or(invalid),false) THEN coalesce(sum(closed_subtotal),0)::text END,'needs_reconciliation',coalesce(bool_or(invalid),false)) FROM grouped) END,
+ 'previous_period',CASE WHEN p_kind='customers' THEN previous_ END) INTO r FROM page p;RETURN r;
+END $f$;
+ALTER FUNCTION sa_domain.sales_item_details(text,jsonb,jsonb,bigint,integer) SET plan_cache_mode=force_custom_plan;
+NOTIFY pgrst,'reload schema';
+COMMIT;
