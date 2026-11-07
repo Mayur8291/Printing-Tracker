@@ -2,7 +2,7 @@
 
 **Scott Dashboard** is the operations hub for Scott's printing and production workflow. It started as a printing order tracker and has grown into a full dashboard: orders, billing, dispatch, inward/outward logistics, team chat, contacts, shared links, analytics, and admin controls — all in one place.
 
-Built with **React + Vite** on the frontend and **Supabase** (PostgreSQL, Auth, Storage, Realtime, Edge Functions) on the backend. Hosted on **Netlify** with separate **staging** and **production** environments.
+Built with **React + Vite** on the frontend and **Supabase** (PostgreSQL, Auth, Storage, Realtime, Edge Functions) on the backend. The live application is hosted on **Vercel**. Legacy Netlify configuration remains in this repository; see [Canto acceptance and release status](docs/CANTO_ACCEPTANCE.md) for the verified deployment state.
 
 ## Canto workspace
 
