@@ -140,7 +140,9 @@ Auth state, and the commit journal publish together. HTTP 404/410 files remain e
 missing-file exceptions, as requested by the owner; other transfer failures prevent
 publication. A run with missing/external references is labelled **Published — media needs
 attention**, never a complete media migration. The Data Refresh page lists exceptions and
-can download the entire report. The source file collection has a capture interval; without
+can download the entire report. Failed jobs retain up to 25 affected record/field identifiers
+and safe error types in their job summary after cloud worker cleanup; raw errors and URLs
+are not exposed in that summary. The source file collection has a capture interval; without
 a source filesystem snapshot it cannot claim all files existed at one atomic instant with
 the database dump. The worker makes no DigitalOcean code/configuration changes.
 

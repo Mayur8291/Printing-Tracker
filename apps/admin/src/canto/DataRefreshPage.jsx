@@ -79,7 +79,7 @@ export default function DataRefreshPage() {
         {data?.state.cutover && <p role="status">This environment has switched to Canto. Old-system refresh is disabled.</p>}
         {dirty && <p className="text-sm text-amber-700">This copy has changes made in Supabase. Refreshing replaces them with the old system’s data. An encrypted recovery backup is saved first.</p>}
         {active && <p role="status" className="text-sm font-medium">{stages[active.stage] || active.stage}… You can leave this page; the refresh continues.</p>}
-        {active?.summary?.media && <p className="text-sm">Media: {active.summary.media.checked?.toLocaleString()} / {active.summary.media.files?.toLocaleString()} files checked · {active.summary.media.copied?.toLocaleString()} copied · {active.summary.media.missing?.toLocaleString()} missing at source</p>}
+        {active?.summary?.media && <p className="text-sm">Media: {active.summary.media.checked?.toLocaleString()} / {active.summary.media.files?.toLocaleString()} files checked · {active.summary.media.copied?.toLocaleString()} copied · {active.summary.media.missing?.toLocaleString()} missing at source · {active.summary.media.failed?.toLocaleString()} failed</p>}
         {active?.status === "queued" && Date.now() - Date.parse(active.created_at) > 120000 && <Button variant="outline" disabled={busy} onClick={retryWorker}>Retry starting worker</Button>}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <Button disabled={!data || busy || !!active || data?.state.cutover} onClick={() => setConfirm(true)}>{busy ? "Starting…" : "Refresh from old system"}</Button>
@@ -96,7 +96,8 @@ export default function DataRefreshPage() {
       {!data?.jobs.length ? <p className="text-sm text-muted-foreground">No dashboard refreshes yet.</p> : <ul className="divide-y">{data.jobs.map(job => <li key={job.id} className="space-y-2 py-4 text-sm">
         <div className="flex flex-wrap justify-between gap-2"><span className="font-medium">{job.status === "succeeded" ? (job.summary?.media && !job.summary.media.complete ? "Published — media needs attention" : "Success — verified") : stages[job.stage] || job.status}</span><time>{when(job.created_at)}</time></div>
         {job.summary?.changes && <p className="text-muted-foreground">{job.status !== "succeeded" ? "Planned: " : ""}{job.summary.changes.inserted.toLocaleString()} added · {job.summary.changes.updated.toLocaleString()} updated · {job.summary.changes.deleted.toLocaleString()} removed</p>}
-        {job.summary?.media && <p className="text-muted-foreground">Media: {job.summary.media.copied?.toLocaleString()} copied · {job.summary.media.unchanged?.toLocaleString()} unchanged · {job.summary.media.missing?.toLocaleString()} missing · {job.summary.media.external?.toLocaleString()} external</p>}
+        {job.summary?.media && <p className="text-muted-foreground">Media: {job.summary.media.copied?.toLocaleString()} copied · {job.summary.media.unchanged?.toLocaleString()} unchanged · {job.summary.media.missing?.toLocaleString()} missing · {job.summary.media.external?.toLocaleString()} external · {job.summary.media.failed?.toLocaleString()} failed</p>}
+        {!!job.summary?.media?.failure_samples?.length && <ul className="text-destructive">{job.summary.media.failure_samples.map((item, index) => <li key={index}>{item.resource} #{item.record_id} · {item.field} · {item.http_status ? `HTTP ${item.http_status}` : item.error_type}</li>)}</ul>}
         {job.message && <p>{job.message}</p>}
         {job.github_run_id && <a className="underline" href={`https://github.com/Mayur8291/Printing-Tracker/actions/runs/${job.github_run_id}`} target="_blank" rel="noreferrer">View run</a>}
       </li>)}</ul>}

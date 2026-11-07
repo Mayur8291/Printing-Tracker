@@ -1,6 +1,7 @@
 // Real staging session, read-only media/browser acceptance. Run after media backfill.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 import puppeteer from 'puppeteer';
 const state = JSON.parse(fs.readFileSync('tools/canto-sync/private/browser-state.json'));
 const browser = await puppeteer.launch({headless:true,executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
@@ -47,6 +48,18 @@ try {
  await page.evaluate(()=>[...document.querySelectorAll('button')].find(b=>b.innerText==='View exceptions (first 100)').click());
  await page.waitForFunction(()=>document.body.innerText.includes('Missing on old server'));
  await page.screenshot({path:'/tmp/canto-media-staging-report.png',fullPage:true});
+ const downloadDir=path.resolve('tools/canto-sync/private/media-report-download');
+ fs.mkdirSync(downloadDir,{recursive:true,mode:0o700});
+ const reportPath=path.join(downloadDir,'canto-staging-media-exceptions.json');
+ fs.rmSync(reportPath,{force:true});
+ const cdp=await page.createCDPSession();
+ await cdp.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloadDir});
+ await page.evaluate(()=>[...document.querySelectorAll('button')].find(b=>b.innerText==='Download all exceptions').click());
+ for(let i=0;i<300&&!fs.existsSync(reportPath);i++)await new Promise(r=>setTimeout(r,100));
+ const report=JSON.parse(fs.readFileSync(reportPath));
+ assert.equal(report.environment,'staging');
+ assert(report.exceptions.length>=results.summary.missing+results.summary.external);
+ results.results.push('full paginated exception report downloads with the correct environment');
  assert.equal(legacy.length,0);assert.deepEqual(errors,[]);
  console.log(JSON.stringify({...results,legacyRequests:0,browserErrors:0},null,2));
 }finally{await browser.close();}

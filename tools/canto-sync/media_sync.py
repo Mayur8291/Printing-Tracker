@@ -204,6 +204,7 @@ def prepare(conn,environment,directory,manifest,progress=None):
                     cache_rows.append((result['sha256'],result['object_path'],result['bytes'],result['content_type']))
             except Exception as e:
                 errors+=1;results[url]={'status':'failed','error_type':type(e).__name__,'diagnostic':str(e)}
+                if isinstance(e,urllib.error.HTTPError):results[url]['http_status']=e.code
             counts['checked']+=1
             if counts['checked']%50==0 or counts['checked']==len(urls):
                 if cache_rows:
@@ -215,6 +216,11 @@ def prepare(conn,environment,directory,manifest,progress=None):
     for ref in refs:ref.update(results.get(ref['source_url'],{}))
     counts['finished_at']=datetime.datetime.now(datetime.timezone.utc).isoformat()
     counts['failed']=errors;counts['complete']=not(errors or counts['missing'] or counts['external'])
+    if errors:
+        # Keep actionable identifiers after an ephemeral cloud worker is cleaned up.
+        # Raw errors and source URLs remain private; only safe metadata reaches the UI.
+        counts['failure_samples']=[{k:r[k] for k in ['resource','record_id','field','error_type','http_status'] if k in r} for r in refs if r['status']=='failed'][:25]
+        if progress:progress('copying_media',{'media':counts})
     Path(directory,'media-manifest.json').write_text(json.dumps({'environment':environment,'summary':counts,'references':refs}))
     require(errors==0,'Media transfer failed; previous publication preserved')
     return {'environment':environment,'summary':counts,'references':refs}

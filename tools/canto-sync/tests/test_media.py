@@ -58,7 +58,10 @@ class TransferTests(unittest.TestCase):
    with mock.patch.object(media,'open_source',return_value=None):missing=media.prepare(conn,'staging',p,m)
    self.assertEqual(missing['summary']['missing'],1);self.assertFalse(missing['summary']['complete'])
    with mock.patch.object(media,'open_source',side_effect=OSError('offline')):
-    with self.assertRaisesRegex(RuntimeError,'previous publication preserved'):media.prepare(conn,'staging',p,m)
+    progress=[]
+    with self.assertRaisesRegex(RuntimeError,'previous publication preserved'):media.prepare(conn,'staging',p,m,lambda stage,detail:progress.append(detail))
+    self.assertEqual(progress[-1]['media']['failure_samples'],[{'resource':'catalogues','record_id':1,'field':'url','error_type':'OSError'}])
+    self.assertNotIn('offline',json.dumps(progress))
    (p/'catalogues.copy').write_bytes(b'')
    empty=media.prepare(conn,'staging',p,m);self.assertEqual(empty['references'],[]);self.assertEqual(len(Store.blobs),2)
 
