@@ -9,6 +9,7 @@ from database import connect,ident,cols,content,verify,verify_sequences,sequence
 from management import api,PROJECTS
 from auth_sync import enroll
 import media_sync
+import domain_sync
 from sync import capture,check_capture,save,log,set_sequences,preserve_reservations,foreign_keys,record_run
 os.umask(0o077)
 
@@ -26,6 +27,7 @@ def check_catalog(conn,environment):
     expected=json.loads((ROOT/'baselines'/(environment+'-catalog.json')).read_text())
     current=json.loads(json.dumps(catalog(conn)))
     require(current==expected,'Destination schema/access drift: review before refresh')
+    domain_sync.check_access_catalog(conn,environment)
 
 def primary_keys(model):
     result={}
@@ -132,6 +134,7 @@ def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,in
         # Compare our own effects against one MVCC snapshot. Independent staff sign-ins
         # may update last_sign_in_at while this transaction verifies the imported data.
         conn.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+        domain_sync.before_publication(conn,admin_revision,admin_restore is not None)
         pub=public_structure(conn);staff=staff_auth(conn)
         # Auth signs in by locking its user before the deferred guard reads the snapshot.
         # Follow that ordering to avoid a login/refresh deadlock; staff rows are excluded.
@@ -160,6 +163,7 @@ def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,in
             conn.execute('DELETE FROM sa_admin.media')
             conn.execute('UPDATE sa_sync.environment_state SET synced_revision=edit_revision,updated_at=now() WHERE singleton AND edit_revision=%s',(admin_revision,))
         if prepared_media is not None:media_sync.publish(conn,prepared_media)
+        domain_result=domain_sync.after_publication(conn)
         require(public_structure(conn)==pub,'Public schema changed during refresh')
         require(staff_auth(conn)==staff,'Existing staff Auth records changed during refresh')
         if inject_failure:raise RuntimeError('Injected failure before publication commit')
@@ -167,6 +171,7 @@ def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,in
             'existing_staff_auth_count':len(staff),'rollback_directory':str(run_dir/'before'),
             'unchanged':not changes,'table_content':manifest['tables']}
         if prepared_media is not None:result['media']=prepared_media['summary']
+        if domain_result is not None:result['domain']=domain_result
         record_run(conn,audit,result)
     return result
 

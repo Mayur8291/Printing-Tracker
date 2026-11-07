@@ -2,6 +2,8 @@
 
 Audit date: 7 November 2026. Status: **plan and source audit; business services are not implemented or deployed by this change.** Scott, Canto and Squad One refer to the legacy application/rebuild in this document. Printing Tracker is the separate existing admin/warehouse application.
 
+Execution is now tracked separately in [SQUAD_ONE_EXECUTION.md](SQUAD_ONE_EXECUTION.md), including verified slices and evidence-based updates to this original plan. In particular, the latest requirement is Supabase-only job execution, and hosted Auth access requires one narrow read-only privilege bridge. The source-audit counts below remain the approved scope, not an implementation completion claim.
+
 Build one backend organized around **28 shared capability modules and 115 workflow rows**, with role and relationship rules applied inside those modules. **68 workflow rows serve two or more personas.** Use typed database RPCs for transactional business operations, three new Edge Function deployments for work that needs external services or privileged credentials, and the existing refresh/warehouse services. Keep the current business schema; do not create another full copy or redesign every table.
 
 The detailed deliverable is the [functionality matrix](squad-one-audit/FUNCTIONALITY_MATRIX.md), also available as an [offline searchable table](squad-one-audit/matrix.html) and [CSV](squad-one-audit/functionality-matrix.csv). Every workflow includes its actors, conditional actors, reuse count, proposed contract, input/output fields, rules and source references. [Personas](squad-one-audit/personas.csv) and [master capabilities](squad-one-audit/master-capabilities.csv) provide the two opposite views of the same registry.

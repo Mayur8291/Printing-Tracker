@@ -5,5 +5,8 @@
   "type": "module",
   "main": "index.js",
   "types": "index.d.ts",
-  "exports": { ".": { "types": "./index.d.ts", "default": "./index.js" } }
+  "exports": {
+    ".": { "types": "./index.d.ts", "default": "./index.js" },
+    "./squad": { "types": "./squad.d.ts", "default": "./squad.js" }
+  }
 }

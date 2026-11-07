@@ -1,0 +1,44 @@
+"""Refresh integration for the optional Squad One domain runtime.
+
+Called inside the same publication transaction as business/Auth/media changes.
+No business commands or outbound effects are replayed by source publication.
+"""
+from snapshot import require
+import json
+from pathlib import Path
+
+def access_catalog(conn):
+    queries=[
+      "SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname IN('sa_snapshot_20261019','sa_domain','sa_identity','sa_sync') ORDER BY 1,2,3",
+      "SELECT c.relname,a.attname,a.attacl::text FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='sa_snapshot_20261019' AND a.attacl IS NOT NULL ORDER BY 1,2",
+      "SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_domain' OR (n.nspname='canto_api' AND p.proname LIKE 'v1_%') ORDER BY 1,2,3",
+      "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor') ORDER BY 1"
+    ]
+    return json.loads(json.dumps([conn.execute(q).fetchall() for q in queries]))
+
+def check_access_catalog(conn,environment):
+    if not conn.execute("SELECT to_regclass('sa_domain.runtime_state')").fetchone()[0]:return
+    baseline=Path(__file__).parent/'baselines'/(environment+'-domain-access.json')
+    require(baseline.exists(),'Domain access baseline is missing; review deployment before refresh')
+    require(json.loads(baseline.read_text())==access_catalog(conn),'Domain access drift: review before refresh')
+
+def before_publication(conn, expected_revision=None, restoring=False):
+    require(conn.execute('SELECT pg_try_advisory_xact_lock(20261107,1)').fetchone()[0],
+            'Business writes are active; retry refresh publication')
+    if not conn.execute("SELECT to_regclass('sa_sync.environment_state')").fetchone()[0]: return
+    edit,synced,cutover=conn.execute('SELECT edit_revision,synced_revision,cutover FROM sa_sync.environment_state WHERE singleton FOR UPDATE').fetchone()
+    require(not cutover,'Old-source publication is disabled after cutover')
+    if expected_revision is not None:
+        require(edit==expected_revision,'Local writes changed after refresh approval')
+    elif not restoring:
+        require(edit==synced,'Local edits require explicit replacement approval')
+
+def after_publication(conn):
+    if not conn.execute("SELECT to_regclass('sa_domain.runtime_state')").fetchone()[0]: return None
+    generation=conn.execute('UPDATE sa_domain.runtime_state SET generation=generation+1 WHERE singleton RETURNING generation').fetchone()[0]
+    # Mirror test commands belonged to the discarded generation. Their side effects
+    # must not execute after their underlying data has been replaced.
+    discarded=conn.execute("""UPDATE sa_domain.outbox SET status='dead',last_error_code='SOURCE_REFRESH_DISCARDED',
+      lease_until=NULL,lease_token=NULL,completed_at=now()
+      WHERE generation<%s AND status IN('pending','leased') RETURNING id""",(generation,)).fetchall()
+    return {'generation':generation,'discarded_mirror_events':len(discarded)}

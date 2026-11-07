@@ -1,0 +1,40 @@
+"""Synthetic actors and relationships. No production data or usable passwords."""
+import uuid,json
+from psycopg.types.json import Jsonb
+from psycopg import sql
+
+def uid(n): return uuid.uuid5(uuid.NAMESPACE_URL, f'https://squad.invalid/test/user/{n}')
+def sid(n): return uuid.uuid5(uuid.NAMESPACE_URL, f'https://squad.invalid/test/session/{n}')
+def claims(n, role='sa_app'):
+    return {'sub':str(uid(n)), 'session_id':str(sid(n)), 'role':role}
+
+def seed(c):
+    if c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_users WHERE id=100').fetchone(): return
+    with c.transaction():
+        c.execute("INSERT INTO sa_snapshot_20261019.sa_factories(id,name,created_at,updated_at) VALUES (1,'Test factory',now(),now()),(2,'Other factory',now(),now())")
+        for group in [100,200]:
+            for role in range(13):
+                n=group+role
+                email=f'persona-{n}@squad.invalid'
+                c.execute("""INSERT INTO sa_snapshot_20261019.sa_users(id,email,name,role,created_at,updated_at,factory_id,created_by_id,approved,onboarded)
+                  VALUES(%s,%s,%s,%s,now(),now(),%s,%s,true,true)""",
+                  (n,email,f'Persona {n}',role,1 if group==100 else 2, group+1 if role in [3,10] else None))
+                c.execute('INSERT INTO sa_sync.legacy_identity_keys VALUES(%s)',(n,))
+                c.execute("""INSERT INTO sa_identity.sa_auth_identities(auth_user_id,legacy_user_id,canonical_email,import_disposition,enrollment_state,source_was_confirmed,confirmation_basis)
+                  VALUES(%s,%s,%s,'candidate','ready',true,'source_confirmed')""",(uid(n),n,email))
+                c.execute("INSERT INTO auth.users(id,role,email) VALUES(%s,'sa_app',%s)",(uid(n),email))
+                c.execute('INSERT INTO auth.sessions(id,user_id) VALUES(%s,%s)',(sid(n),uid(n)))
+            c.execute('INSERT INTO sa_snapshot_20261019.sa_user_dealers(user_id,dealer_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(group+3,group+10))
+        c.execute("INSERT INTO auth.users(id,role,email) VALUES(%s,'authenticated','staff@squad.invalid')",(uid(999),))
+        c.execute('INSERT INTO auth.sessions(id,user_id) VALUES(%s,%s)',(sid(999),uid(999)))
+        c.execute("INSERT INTO public.profiles VALUES(%s,'admin')",(uid(999),))
+        c.execute("SELECT setval('sa_snapshot_20261019.sa_users_id_seq',1000)")
+
+def session(c,n,role='sa_app'):
+    c.execute('SELECT set_config(\'request.jwt.claims\',%s,true)',(json.dumps(claims(n,role)),))
+    c.execute(sql.SQL('SET LOCAL ROLE {}').format(sql.Identifier(role)))
+
+def rpc(c,name,args=()):
+    assert name.startswith('v1_') and name.replace('_','').isalnum()
+    params=sql.SQL(',').join(sql.Placeholder() for _ in args)
+    return c.execute(sql.SQL('SELECT canto_api.{}({})').format(sql.Identifier(name),params),args).fetchone()[0]

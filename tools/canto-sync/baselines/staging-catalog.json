@@ -8882,7 +8882,7 @@
       "sa_user_dealers",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_user_devices",

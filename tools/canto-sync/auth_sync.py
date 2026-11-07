@@ -20,6 +20,16 @@ def install(environment):
         require(staff_auth(c)==staff,'Staff records changed')
 
 def enroll(c, only_id=None):
+    previous=c.execute("SELECT current_setting('squad.source_enrollment',true)").fetchone()[0]
+    c.execute("SELECT set_config('squad.source_enrollment','on',true)")
+    try:
+        return _enroll(c,only_id)
+    finally:
+        # Preserve the original failure if the publication transaction was aborted.
+        if c.info.transaction_status.name!='INERROR':
+            c.execute("SELECT set_config('squad.source_enrollment',%s,true)",(previous or '',))
+
+def _enroll(c, only_id=None):
     # Serialize credential changes with GoTrue login/session creation before revoking sessions.
     c.execute('SELECT a.id FROM auth.users a JOIN sa_identity.sa_auth_identities m ON m.auth_user_id=a.id WHERE (%s::bigint IS NULL OR m.legacy_user_id=%s) ORDER BY a.id FOR UPDATE OF a',(only_id,only_id)).fetchall()
     c.execute('LOCK TABLE sa_identity.sa_auth_identities IN SHARE ROW EXCLUSIVE MODE')
