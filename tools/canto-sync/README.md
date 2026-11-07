@@ -114,7 +114,8 @@ Private App Asset companion fields preserve the form's name and add-on selection
 
 The refresh now inventories all reviewed Rails uploader fields, nested JSON file references,
 and URLs in other snapshot text fields. `media-contracts.json` lists the uploader mounts.
-Source paths are reconstructed from the inspected CarrierWave storage layout. Only the
+Source paths are reconstructed from the inspected CarrierWave storage layout. Saved
+`/pdfs/` links, including relative links embedded in text, are also inventoried. Only the
 matching reviewed origin is fetched: staging uses its own IP, production uses the verified
 HTTPS application domain. Redirects and arbitrary hosts are not followed. No production
 fallback is permitted for missing staging files.
@@ -160,6 +161,13 @@ silently restoring mismatched media. Only prune objects after proving that neith
 reference nor any retained rollback generation needs them. Back up the Storage corpus before
 removing the project; the encrypted database archive contains mappings, not a second copy of
 all media bytes.
+
+The legacy app also generates timestamped delivery-challan and tailor-report PDFs under
+`public/pdfs` and returns/emails their URLs without saving a database reference. A database
+refresh cannot enumerate those orphan files. No such `/pdfs/` references appeared in either
+verified pre-refresh database backup. This implementation migrates database-referenced files;
+it does not claim to archive every unreferenced file on the old server. The rebuild will need
+the corresponding report-generation services.
 
 Tests: `tests/test_media.py` covers COPY decoding, environment/path safety, nested references,
 same-path replacements, missing files, retries/deduplication and resumable lost-response

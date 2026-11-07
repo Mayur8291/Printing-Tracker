@@ -38,12 +38,13 @@ def source_url(environment,resource,record_id,field,value,mounted=False):
         if environment=='production':aliases.add('165.22.210.53')
         if parsed.scheme not in ('http','https') or parsed.netloc not in aliases:return None
         path=urllib.parse.unquote(parsed.path)
-    elif value.startswith('/uploads/'):path=urllib.parse.unquote(value.split('?',1)[0])
+    elif value.startswith(('/uploads/','uploads/','/pdfs/','pdfs/')):path='/'+urllib.parse.unquote(value.split('?',1)[0]).lstrip('/')
     elif mounted:
         require('/' not in value and '\\' not in value,'Unsafe media filename')
         path='/uploads/'+CONTRACTS[resource]['model']+'/'+field+'/'+str(record_id)+'/'+value
     else:return None
-    require(path.startswith('/uploads/') and not any(p in ('.','..') for p in path.split('/')) and '\\' not in path and not any(ord(c)<32 for c in path),'Unsafe media path')
+    if not path.startswith(('/uploads/','/pdfs/')):return None
+    require(not any(p in ('.','..') for p in path.split('/')) and '\\' not in path and not any(ord(c)<32 for c in path),'Unsafe media path')
     return base+urllib.parse.quote(path,safe='/')
 
 def inventory(directory,manifest):
@@ -59,7 +60,7 @@ def inventory(directory,manifest):
                     raw=values[index]
                     # Scan URL references in other text/JSON fields too, rather than
                     # depending solely on currently known uploader names.
-                    if field not in known+EXTRA.get(resource,[]) and b'/uploads/' not in raw and b'http://' not in raw and b'https://' not in raw:continue
+                    if field not in known+EXTRA.get(resource,[]) and b'uploads/' not in raw and b'pdfs/' not in raw and b'http://' not in raw and b'https://' not in raw:continue
                     value=decode_copy(raw)
                     if not value:continue
                     obj=value
@@ -71,7 +72,7 @@ def inventory(directory,manifest):
                             candidates=[(pointer,leaf)]
                         else:
                             # Preserve locations of URLs nested inside JSON, HTML or comments.
-                            matches=list(re.finditer(r"(?:https?://|/uploads/)[^\s<>\"'`]+",leaf))
+                            matches=list(re.finditer(r"(?<![\w/])(?:https?://|/?uploads/|/?pdfs/)[^\s<>\"'`]+",leaf))
                             candidates=[(pointer if match.span()==(0,len(leaf)) else pointer+'#text:'+str(match.start())+':'+str(match.end()),match.group()) for match in matches]
                         for location,reference in candidates:
                             url=source_url(manifest['environment'],resource,record_id,field,reference,field in known)

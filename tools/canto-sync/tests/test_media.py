@@ -14,6 +14,15 @@ class MediaTests(unittest.TestCase):
  def test_unsafe_paths(self):
   for value in ['../x','/uploads/../x','/uploads/%2e%2e/x','/uploads/x\\evil','a\n.png']:
    with self.assertRaises(RuntimeError):source_url('staging','users',1,'profile_image',value,True)
+ def test_generated_pdf_links_and_ordinary_application_links(self):
+  for value in ['/pdfs/report.pdf','pdfs/report.pdf','http://64.227.186.227/pdfs/report.pdf']:
+   self.assertEqual(source_url('staging','products',4,'images',value),'http://64.227.186.227/pdfs/report.pdf')
+  self.assertIsNone(source_url('staging','products',4,'images','http://64.227.186.227/orders/4'))
+  with tempfile.TemporaryDirectory() as folder:
+   p=Path(folder);(p/'products.copy').write_bytes(b'4\tReport: pdfs/report.pdf\n')
+   refs=inventory(p,{'environment':'staging','tables':{'products':{'columns':['id','description']}}})
+   self.assertEqual(refs[0]['source_url'],'http://64.227.186.227/pdfs/report.pdf')
+   self.assertEqual(refs[0]['pointer'],'#text:8:23')
  def test_inventory_nested_json_and_all_uploader_fields(self):
   with tempfile.TemporaryDirectory() as folder:
    p=Path(folder);(p/'products.copy').write_bytes(b'4\t["http://64.227.186.227/uploads/a.png",{"url":"https://youtu.be/example"}]\n')
