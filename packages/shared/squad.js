@@ -59,6 +59,9 @@ export function createSquadClient(supabase) {
     order: (id, items = {}) => call("v1_order_get", {
       p_id: id, p_item_cursor: items.cursor ?? null, p_item_limit: items.limit ?? 50
     }),
+    ratings: (kind,id,filters = {},page = {}) => call("v1_ratings_list", {p_entity_kind:kind,p_entity_id:id,p_from_id:filters.fromId??null,p_to_id:filters.toId??null,p_include_archived:filters.includeArchived??false,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    saveRating: (id,kind,entityId,toId,fields,command) => call("v1_rating_save", {p_id:id,p_entity_kind:kind,p_entity_id:entityId,p_to_id:toId,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    archiveRating: (id,reason,command) => call("v1_rating_archive", {p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     dashboard: (filters = {}) => call("v1_dashboard", { p_filters: filters }),
     dealerStock: (filters = {}, context = {}, page = {}) => call("v1_dealer_stock", {
       p_dealer_id:context.dealerId??null,p_customer_id:context.customerId??null,

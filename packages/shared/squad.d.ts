@@ -212,6 +212,10 @@ export class SquadError extends Error {
   code: string; kind: 'session'|'forbidden'|'conflict'|'validation'|'not_found'|'unavailable'|'unexpected';
   constructor(error: {message?: string;code?: string});
 }
+export type FeedbackEntity='Order'|'Item';
+export interface RatingFields {score:string;positive_comments?:string|null;negative_comments?:string|null}
+export interface Rating extends SavedEntity {score:string|null;from_id:EntityId;to_id:EntityId;from_name:string|null;to_name:string|null;from_role:string|null;to_role:string|null;entity_kind:FeedbackEntity;entity_id:EntityId;positive_comments:string|null;negative_comments:string|null;archived:boolean;moderation_reason?:string|null;created_at:string;updated_at:string}
+export interface RatingSummary {count:number;valid_count:number;average:string|null;invalid_source_count:number;scope:'visible_feedback_on_entity'}
 export type AppPlatform='android'|'ios'|'web';
 export interface AppBootstrap {api_version:1;client:'squad';platform:AppPlatform;minimum_version:string|null;recommended_version:string|null;update_url:string|null;update_required:boolean;update_available:boolean;version_check:'unknown_client_version'|'no_minimum_configured'|'checked'}
 export interface AppRelease {platform:AppPlatform;minimum_version:string|null;recommended_version:string|null;update_url:string|null;version:Version}
@@ -256,6 +260,9 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   relationshipOptions(kind:'coordinators'|'dealers'|'cities'|'zones'|'price_types'|'brands',context?:{customerId?:EntityId;search?:string},page?:PageRequest):Promise<Page<{id:EntityId;name:string;parent_id:EntityId|null}>>;
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
   order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;dispatch_destination:DispatchDestination;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
+  ratings(kind:FeedbackEntity,id:EntityId,filters?:{fromId?:EntityId;toId?:EntityId;includeArchived?:boolean},page?:PageRequest):Promise<Page<Rating> & {summary:RatingSummary}>;
+  saveRating(id:EntityId|null,kind:FeedbackEntity,entityId:EntityId,toId:EntityId|null,fields:RatingFields,command:Command|CreateCommand):Promise<Rating & {summary:RatingSummary}>;
+  archiveRating(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {archived:true;summary:RatingSummary}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
   dealerStock(filters?:DealerStockFilters,context?:{dealerId?:EntityId;customerId?:EntityId},page?:PageRequest):Promise<Page<DealerStockBalance> & {context:{dealer_id:EntityId;customer_id:EntityId;physical:boolean;visibility_percentage:number}}>;
   previewBackorder(orderIds:EntityId[],addressId:EntityId):Promise<BackorderPreview>;

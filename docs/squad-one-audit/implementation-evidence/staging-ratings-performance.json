@@ -1,0 +1,159 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T17:59:49.619527+00:00",
+  "scope": "warm DB feedback journey with real identities and disposable completed-work rows; all rollback, no external delivery; not full E2E/load",
+  "queries": [
+    {
+      "rpc": "v1_rating_save",
+      "scenario": "Customer to current SC",
+      "database_p95_ms": 24.612,
+      "samples_ms": [
+        22.715,
+        22.409,
+        22.209,
+        23.314,
+        24.392,
+        24.612,
+        20.743,
+        22.501,
+        23.16,
+        20.494
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_rating_save",
+      "scenario": "SC to assigned PC",
+      "database_p95_ms": 20.478,
+      "samples_ms": [
+        17.879,
+        17.855,
+        18.394,
+        18.041,
+        19.629,
+        20.478,
+        18.07,
+        17.813,
+        17.822,
+        17.581
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_rating_save",
+      "scenario": "PC to assigned FM",
+      "database_p95_ms": 27.128,
+      "samples_ms": [
+        19.651,
+        20.419,
+        27.128,
+        18.05,
+        17.736,
+        17.611,
+        17.862,
+        17.917,
+        19.443,
+        17.71
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_rating_save",
+      "scenario": "FM to assigned cutter",
+      "database_p95_ms": 26.585,
+      "samples_ms": [
+        25.034,
+        24.856,
+        25.325,
+        25.224,
+        25.101,
+        24.973,
+        25.43,
+        24.906,
+        26.001,
+        26.585
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_ratings_list",
+      "scenario": "Customer private feedback scope",
+      "database_p95_ms": 6.23,
+      "samples_ms": [
+        6.113,
+        6.07,
+        5.968,
+        5.979,
+        5.967,
+        6.23,
+        5.887,
+        5.921,
+        5.835,
+        5.922
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_rating_save",
+      "scenario": "Customer own feedback edit",
+      "database_p95_ms": 28.882,
+      "samples_ms": [
+        28.656,
+        26.42,
+        28.882,
+        28.775,
+        26.837,
+        27.228,
+        27.625,
+        25.484,
+        26.029,
+        26.172
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_ratings_list",
+      "scenario": "Admin paginated feedback",
+      "database_p95_ms": 9.359,
+      "samples_ms": [
+        9.056,
+        8.785,
+        8.638,
+        9.072,
+        9.214,
+        9.234,
+        9.055,
+        9.119,
+        9.359,
+        8.541
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_rating_archive",
+      "scenario": "Admin moderation",
+      "database_p95_ms": 10.703,
+      "samples_ms": [
+        10.447,
+        10.703,
+        10.368,
+        10.44,
+        9.974,
+        9.705,
+        9.554,
+        10.287,
+        9.263,
+        10.658
+      ],
+      "target_ms": 500
+    }
+  ],
+  "checks": [
+    "Real mapped C \u2192 SC \u2192 PC \u2192 FM \u2192 assigned CM feedback relationships",
+    "Customer cannot see internal staff feedback",
+    "Own edit, recomputed average and Admin moderation preserve history",
+    "All outbox events rolled back without provider delivery"
+  ],
+  "all_rows_rolled_back": true,
+  "sequences_restored": true
+}

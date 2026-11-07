@@ -213,6 +213,18 @@ Warm staging database p95: bootstrap **0.344 ms**, content/categories/banners **
 
 Next: ratings and reports, then order-edit/detail completion, Auth/media/provider/jobs and the complete matrix/refresh/cutover acceptance.
 
+## Iteration 15 — relationship-bound feedback and moderation
+
+Staging implements 90 of the original 115 RPC names, plus three selectors. Feedback derives the author from the live actor and resolves recipients from actual work relationships: non-dealer-linked Customer → current SC; SC → assigning PC for completed custom-only work; PC → assigned FM; FM → the assigned cutter on the manager's own completed work. Both order and item contracts preserve parent scope. FM/cutter feedback is the approved plan's extension of a commented-out jobsheet affordance, not a claim that it was active in Flutter. No arbitrary staff or tailor recipient is accepted. Pending/cancelled orders, disabled recipients, foreign work and invented author/role fields are rejected.
+
+Only Admin or an actual feedback party may read a rating on an accessible entity. Customer views do not expose staff-to-staff comments; display names do not include contacts or account data. Pagination is scoped, filtered and generation-bound. Scores are decimal strings from one to five; comments preserve the existing text representation. Imported invalid scores remain visible to authorized reviewers but are explicitly excluded from averages and counted as source anomalies. Averages are derived over visible feedback on the entity, not copied from stale user aggregate fields.
+
+Creation is serialized per actor/recipient/entity, with exact command retries. Own edits require the original relationship and exact version; reassignment cannot silently redirect old feedback. Audits retain the actual old score and comments, correcting the source notification comparison defect. Admin moderation retains the source row and adds a generation-bound tombstone; it excludes the record from live averages and cannot be bypassed by recreating or editing the same feedback. Outbox delivery remains the later worker gate; no real notification is sent in this iteration.
+
+671 local tests pass, including 50 rating tests and racing creates, same-key retries, and edit-versus-moderation version conflicts. A missing private guard column grant was caught and corrected before deployment. The staging journey uses real mapped C/SC/PC/FM actors and disposable completed-work rows, then rolls back every row/session and restores sequences. Its initial fixture omitted the staging-required address ID; the fixture was corrected and rerun successfully. This is explicit feedback integration coverage, not a substitute for the later full order-to-feedback persona journey. Actual GoTrue/shared SDK checks and mobile typing pass. Security advisors show no new domain finding; public structure is unchanged.
+
+Warm staging database p95: feedback creates **20.478–27.128 ms**, own edit **28.882 ms**, scoped lists **6.230–9.359 ms**, moderation **10.703 ms**. Evidence is in `staging-ratings-performance.json`. No production changes were made. Next: shared work, leaderboard, sales and coordinator reporting, followed by the remaining lifecycle/orchestration and full acceptance gates.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

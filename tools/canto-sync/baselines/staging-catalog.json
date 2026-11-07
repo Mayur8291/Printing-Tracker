@@ -8115,6 +8115,21 @@
       "CREATE UNIQUE INDEX sa_ratings_pkey ON sa_snapshot_20261019.sa_ratings USING btree (id)"
     ],
     [
+      "sa_ratings",
+      "squad_rating_entity",
+      "CREATE INDEX squad_rating_entity ON sa_snapshot_20261019.sa_ratings USING btree (rating_on_type, rating_on_id, id DESC)"
+    ],
+    [
+      "sa_ratings",
+      "squad_rating_parties",
+      "CREATE INDEX squad_rating_parties ON sa_snapshot_20261019.sa_ratings USING btree (from_id, to_id, rating_on_type, rating_on_id)"
+    ],
+    [
+      "sa_ratings",
+      "squad_rating_recipient",
+      "CREATE INDEX squad_rating_recipient ON sa_snapshot_20261019.sa_ratings USING btree (to_id, id DESC)"
+    ],
+    [
       "sa_reset_password_histories",
       "sa_index_reset_password_histories_on_changed_by_id",
       "CREATE INDEX sa_index_reset_password_histories_on_changed_by_id ON sa_snapshot_20261019.sa_reset_password_histories USING btree (changed_by_id)"
@@ -8952,7 +8967,7 @@
       "sa_ratings",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres}"
     ],
     [
       "sa_reset_password_histories",

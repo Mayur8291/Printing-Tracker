@@ -236,6 +236,24 @@
     ],
     [
       "sa_domain",
+      "rating_moderation",
+      "squad_rating_moderation_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (actor_id = ( SELECT auth.uid() AS uid)))"
+    ],
+    [
+      "sa_domain",
+      "rating_moderation",
+      "squad_rating_moderation_read",
+      "{sa_executor,sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "runtime_state",
       "executor_runtime",
       "{sa_executor}",
@@ -1460,6 +1478,42 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_ratings",
+      "squad_guard_ratings",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_ratings",
+      "squad_rating_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((from_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = ANY (ARRAY[1, 2, 3, 4])) AND sa_domain.rating_entity_visible((rating_on_type)::text, rating_on_id))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_ratings",
+      "squad_rating_read",
+      "{sa_executor}",
+      "SELECT",
+      "(((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR (from_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) OR (to_id = ( SELECT (sa_domain.actor()).user_id AS user_id))) AND sa_domain.rating_entity_visible((rating_on_type)::text, rating_on_id))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_ratings",
+      "squad_rating_update",
+      "{sa_executor}",
+      "UPDATE",
+      "((from_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) AND sa_domain.rating_entity_visible((rating_on_type)::text, rating_on_id))",
+      "((from_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) AND sa_domain.rating_entity_visible((rating_on_type)::text, rating_on_id))"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_responsibilities",
       "squad_goal_insert",
       "{sa_executor}",
@@ -2431,7 +2485,7 @@
     [
       "sa_orders",
       "assigned_by_id",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2737,6 +2791,46 @@
       "sa_quantities",
       "updated_at",
       "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "from_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "from_role",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "rating",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "rating_on_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "rating_on_type",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "to_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_ratings",
+      "to_role",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_responsibilities",
@@ -3940,6 +4034,42 @@
     ],
     [
       "canto_api",
+      "v1_rating_archive",
+      "p_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "5676b90fd5fe07f4e2a7d1c160d39d65"
+    ],
+    [
+      "canto_api",
+      "v1_rating_save",
+      "p_id bigint, p_entity_kind text, p_entity_id bigint, p_to_id bigint, p_fields jsonb, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "172bc62fc9031904d5f0199294a8bed9"
+    ],
+    [
+      "canto_api",
+      "v1_ratings_list",
+      "p_entity_kind text, p_entity_id bigint, p_from_id bigint, p_to_id bigint, p_include_archived boolean, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "fdccbe6b9d460605f53df0bced7d0afe"
+    ],
+    [
+      "canto_api",
       "v1_relationship_options",
       "p_kind text, p_customer_id bigint, p_search text, p_cursor text, p_limit integer",
       "postgres",
@@ -4985,6 +5115,18 @@
     ],
     [
       "sa_domain",
+      "legacy_role_name",
+      "p_role integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "b196b810df78eac9be638310d206c41c"
+    ],
+    [
+      "sa_domain",
       "local_date",
       "p_stored timestamp without time zone",
       "postgres",
@@ -5306,6 +5448,66 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "1a93638f0d3b8963f9fe4aeaab736519"
+    ],
+    [
+      "sa_domain",
+      "rating_duplicate",
+      "p_kind text, p_id bigint, p_to_id bigint, p_except bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "97cd55aea75d8008816f5e3a58457eb5"
+    ],
+    [
+      "sa_domain",
+      "rating_entity_visible",
+      "p_kind text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "5989db2ebadac6bad21c8d5114583988"
+    ],
+    [
+      "sa_domain",
+      "rating_party_names",
+      "p_from_id bigint, p_to_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "dd4b4054cb7dbea025306966b03b96b9"
+    ],
+    [
+      "sa_domain",
+      "rating_projection",
+      "p_rating jsonb, p_archived boolean, p_version text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "5a55bb823cc2a89281ebce902d0fe771"
+    ],
+    [
+      "sa_domain",
+      "rating_target",
+      "p_kind text, p_id bigint, p_to_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "7b98b9dec14b7295cac2845059fa9c2e"
     ],
     [
       "sa_domain",
@@ -6506,6 +6708,42 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "5e2f5f0e375f7e3f89ca3fc81ee666af"
+    ],
+    [
+      "sa_domain",
+      "v1_rating_archive",
+      "p_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "a6228824e7619c7ed73d645e28b82fe7"
+    ],
+    [
+      "sa_domain",
+      "v1_rating_save",
+      "p_id bigint, p_entity_kind text, p_entity_id bigint, p_to_id bigint, p_fields jsonb, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "158d87d99bbd1f853be4de814d0ac8cc"
+    ],
+    [
+      "sa_domain",
+      "v1_ratings_list",
+      "p_entity_kind text, p_entity_id bigint, p_from_id bigint, p_to_id bigint, p_include_archived boolean, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "cd132465a05e6d69ee411853dd69f2c4"
     ],
     [
       "sa_domain",

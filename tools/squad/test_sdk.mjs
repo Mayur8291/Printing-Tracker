@@ -36,6 +36,10 @@ try {
   assert.ok(page.data.length<=1);
   assert.ok(page.data.every(o=>o.customer_id===me.id));
   assert.ok(page.data.every(o=>!('factory_manager_id' in o)));
+  if(page.data.length) {
+    const feedback=await sdk.ratings('Order',page.data[0].id,{}, {limit:2});
+    assert.ok(feedback.data.every(r=>r.from_id===me.id||r.to_id===me.id));
+  }
   const dashboard=await sdk.dashboard();
   assert.ok(dashboard.orders>=page.data.length);
   const catalogue=await sdk.catalogue('products',{}, {limit:2});
