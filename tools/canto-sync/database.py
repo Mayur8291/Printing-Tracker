@@ -48,6 +48,13 @@ def _connect(environment, readonly=False):
 def ident(schema,table):return sql.Identifier(schema,table)
 def cols(names):return sql.SQL(',').join(map(sql.Identifier,names))
 
+def analyze_snapshot(conn):
+    """Refresh planner statistics after imported data changes; no business DML."""
+    tables=[row[0] for row in conn.execute('SELECT tablename FROM pg_tables WHERE schemaname=%s ORDER BY tablename',(SCHEMA,))]
+    for table in tables:
+        conn.execute(sql.SQL('ANALYZE {}').format(ident(SCHEMA,table)))
+    return len(tables)
+
 def protect_schema(conn,schema):
     commands=[]
     for clause in ['SCHEMA','ALL TABLES IN SCHEMA','ALL SEQUENCES IN SCHEMA']:

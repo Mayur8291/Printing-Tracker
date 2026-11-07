@@ -109,6 +109,18 @@ Review caught a performance regression at 512 ms p95 against the 500 ms command 
 
 Next: production allocation/checklists and job-worker controls, followed by cutting, sewing and dispatch histories. Order editing/provider reconciliation, richer detail/media contracts and the remaining matrix modules are still outstanding.
 
+## Iteration 8 — allocation, factory relationships and production queues
+
+Staging now implements 49 of the original 115 RPC names, plus `v1_color_save`. Added factory/job-worker assignment, cutter assignment, checklist updates, worker cost/stage/due controls, factory queues and production progress. Reassignments reject existing work or agreed costs; they clear obsolete cutter authority. Worker due changes preserve the assignment baseline rather than accumulating differences. Completion through job-worker stages does not fabricate factory quantity history.
+
+The hosted role journey revealed an important legacy relationship: factory staff normally inherit their factory through `factory_manager_id`, not their own `factory_id`. Fixed live actor/scope resolution and realistic fixtures, including revoked manager links, stale direct factory fields and sub-tailor parent validation. Source inspection found two historical dual factory/worker assignments and zero active dual assignments; new commands enforce a single production owner.
+
+274 local integration tests pass. Hosted rollback-only checks pass through SC order placement → PC factory assignment → FM cutter/checklist → CM progress → PC worker assignment/cost → JW due change and all stages. Test records/sessions roll back and advanced sequences are restored. Refresh transformation tests and existing admin/refresh isolation checks also pass. Mobile typing passes. No new domain security-advisor findings beyond the previously reviewed inlinable order helper.
+
+Queue performance initially failed at PC 520.10 ms p95 and FM 166.05 ms. The reviewed bounded private projection removes repeated permission scans and excludes commercial fields. The same measured queue now records **13.25 ms PC / 5.19 ms FM p95**. Imported tables had no recorded ANALYZE statistics; analyzed all 86 snapshot tables (18.82 seconds, no business DML) and added statistics maintenance to future refresh publication. Rechecked ten-role orders measured 10.81–51.17 ms and dashboards 30.99–41.10 ms p95, with result counts recorded. These remain warm DB measurements, not end-to-end or concurrency capacity guarantees.
+
+Provider consumers, cutting/sewing/dispatch history, detailed media contracts, the full refresh rehearsal and remaining workflow matrix gates are still open. Next: quantity execution and append-only production histories.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

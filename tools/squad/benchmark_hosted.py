@@ -10,7 +10,7 @@ sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 from database import connect
 import psycopg
 
-def run():
+def run(production_only=False):
     results=[]
     with connect('staging') as c:
         with c.transaction():
@@ -22,17 +22,21 @@ def run():
               ORDER BY u.role,u.id""").fetchall()
             rows=c.execute('SELECT count(*) FROM sa_snapshot_20261019.sa_orders').fetchone()[0]
             for role,actor in actors:
+                if production_only and role not in (2,4):continue
                 session=uuid.uuid4()
                 c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(session,actor))
                 c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(actor),'session_id':str(session)}),))
                 c.execute('SET LOCAL ROLE sa_app')
-                for name,query in [('orders',"SELECT canto_api.v1_orders_list('{}',NULL,30)"),('dashboard',"SELECT canto_api.v1_dashboard('{}')")]:
+                queries=[('factory_queue',"SELECT canto_api.v1_factory_queue(NULL,NULL,NULL,30)")] if production_only else [('orders',"SELECT canto_api.v1_orders_list('{}',NULL,30)"),('dashboard',"SELECT canto_api.v1_dashboard('{}')")]
+                for name,query in queries:
                     samples=[]
                     for n in range(13):
                         plan=c.execute('EXPLAIN(ANALYZE,BUFFERS,FORMAT JSON) '+query).fetchone()[0][0]
                         if n>=3:samples.append(plan['Execution Time'])
                     p95=sorted(samples)[math.ceil(len(samples)*.95)-1]
-                    results.append({'role':role,'query':name,'samples':len(samples),'database_p95_ms':round(p95,2)})
+                    payload=c.execute(query).fetchone()[0]
+                    results.append({'role':role,'query':name,'samples':len(samples),'database_p95_ms':round(p95,2),
+                      'returned_records':len(payload['data']) if 'data' in payload else payload['orders']})
                     print(json.dumps(results[-1]),flush=True)
                 c.execute('SET LOCAL ROLE postgres')
             raise psycopg.Rollback()
@@ -40,7 +44,7 @@ def run():
       'order_rows':rows,'method':'EXPLAIN ANALYZE, warm DB execution, transaction-only sessions; excludes network',
       'business_writes':0,'all_temporary_sessions_rolled_back':True,'results':results}
     evidence=ROOT/'docs/squad-one-audit/implementation-evidence';evidence.mkdir(exist_ok=True)
-    (evidence/'staging-read-performance.json').write_text(json.dumps(report,indent=2)+'\n')
+    (evidence/('staging-production-performance.json' if production_only else 'staging-read-performance.json')).write_text(json.dumps(report,indent=2)+'\n')
     assert all(x['database_p95_ms']<200 for x in results),'Read performance target failed'
 
-if __name__=='__main__':run()
+if __name__=='__main__':run(production_only='--production-only' in sys.argv)

@@ -109,6 +109,18 @@ export interface OrderPlacement {
   quote_id:string;total_amount:string;paid_amount:string;
   orders:Array<SavedEntity & {items:Array<{line:number;item_id:EntityId}>;total_amount:string;paid_amount:string;rounding_adjustment:string;integration_status:'queued'}>;
 }
+export interface WorkItemSaved extends SavedEntity {order_version:Version}
+export type WorkerStage=0|1|2|3|4|5;
+export type ProductionPhase='unassigned'|'criteria'|'cutting'|'sewing'|'dispatch'|'completed';
+export interface FactoryQueueItem extends SavedEntity {
+  order_id:EntityId;product_id:EntityId|null;manager_id:EntityId|null;cutter_id:EntityId|null;due_at:string|null;
+  prime:boolean;sample:boolean;planned_quantity:number;work_quantity:number;cut:number;assigned:number;sewn:number;dispatched:number;held:boolean;
+}
+export interface ProductionProgress extends SavedEntity {
+  status:0|1;provider_status:string;as_of:string;item_count:number;custom_count:number;rmp_count:number;
+  cut:number;assigned:number;sewn:number;dispatched:number;cut_complete:boolean;sewn_complete:boolean;assigned_complete:boolean;
+  dispatch_complete:boolean;all_dispatch_complete:boolean;worker_complete:boolean;criteria_complete:boolean;
+}
 export type QuoteLineInput = {kind:'custom';configuration:Configuration;quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]}
   | {kind:'rmp';skus:Array<{sku_id:EntityId;quantity:number}>;brandings?:BrandingInput[]};
 export interface QuoteRequest {customer_id?:EntityId;address_id:EntityId;lines:QuoteLineInput[]}
@@ -164,6 +176,15 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   recordOrderPayment(id:EntityId,status:'paid'|'unpaid'|'partial',paidAmount:string,reference:string,command:Command):Promise<SavedEntity & {payment_status:0|1|2;paid_amount:string}>;
   cancelOrder(id:EntityId,kind:'cancel'|'delete',reason:string,command:Command):Promise<SavedEntity & {state:'queued'|'cancelled'|'deleted';request_id:string|null}>;
   forceCompleteOrder(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {status:1;force_completed:true}>;
+  assignFactory(id:EntityId,managerId:EntityId|null,reason:string,command:Command):Promise<SavedEntity & {manager_id:EntityId|null;factory_id:EntityId|null}>;
+  assignWorker(id:EntityId,workerId:EntityId,dueAt:string,reason:string,command:Command):Promise<SavedEntity & {worker_id:EntityId;due_at:string}>;
+  assignCutter(id:EntityId,cutterId:EntityId|null,reason:string,command:Command):Promise<WorkItemSaved & {cutter_id:EntityId|null}>;
+  saveCriteria(id:EntityId,checks:Array<{id:EntityId;checked:boolean}>,command:Command):Promise<WorkItemSaved & {criteria_complete:boolean}>;
+  saveWorkerCost(id:EntityId,unitCost:string,reason:string,command:Command):Promise<WorkItemSaved & {unit_cost:string;total_cost:string}>;
+  saveWorkerStage(id:EntityId,stage:WorkerStage,reason:string,command:Command):Promise<WorkItemSaved & {stage:WorkerStage;order_completed:boolean}>;
+  saveWorkerDue(id:EntityId,dueAt:string,reason:string,command:Command):Promise<SavedEntity & {due_at:string;original_due_at:string;baseline_basis:'assignment'|'first_observed_change';delta_days:number}>;
+  factoryQueue(filters?:{factoryId?:EntityId;phase?:ProductionPhase},page?:PageRequest):Promise<Page<FactoryQueueItem>>;
+  productionProgress(orderId:EntityId):Promise<ProductionProgress>;
   tasks(filters?: {state?:0|1|2;orderId?:EntityId},page?:PageRequest):Promise<Page<Task>>;
   task(id:EntityId):Promise<Task>;
   taskAssignees(page?:PageRequest):Promise<Page<{id:EntityId;name:string;role:number}>>;

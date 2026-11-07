@@ -5,7 +5,7 @@ from pathlib import Path
 from psycopg import sql
 from pglast import ast
 from snapshot import ROOT,extract,require,file_hash
-from database import connect,ident,cols,content,verify,verify_sequences,sequence_state,public_structure,staff_auth,SCHEMA
+from database import connect,ident,cols,content,verify,verify_sequences,sequence_state,public_structure,staff_auth,analyze_snapshot,SCHEMA
 from management import api,PROJECTS
 from auth_sync import enroll
 import media_sync
@@ -172,6 +172,7 @@ def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,in
             'unchanged':not changes,'table_content':manifest['tables']}
         if prepared_media is not None:result['media']=prepared_media['summary']
         if domain_result is not None:result['domain']=domain_result
+        result['planner_statistics_tables']=analyze_snapshot(conn)
         record_run(conn,audit,result)
     return result
 

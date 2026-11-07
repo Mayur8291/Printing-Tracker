@@ -25,6 +25,8 @@ def seed(c):
                 c.execute("INSERT INTO auth.users(id,role,email) VALUES(%s,'sa_app',%s)",(uid(n),email))
                 c.execute('INSERT INTO auth.sessions(id,user_id) VALUES(%s,%s)',(sid(n),uid(n)))
             c.execute('INSERT INTO sa_snapshot_20261019.sa_user_dealers(user_id,dealer_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(group+3,group+10))
+            c.execute('UPDATE sa_snapshot_20261019.sa_users SET factory_id=NULL,factory_manager_id=%s WHERE id=ANY(%s)',(group+4,[group+r for r in [5,7,8,9]]))
+            c.execute('UPDATE sa_snapshot_20261019.sa_users SET factory_id=NULL,parent_tailor_id=%s WHERE id=%s',(group+5,group+6))
         c.execute("INSERT INTO auth.users(id,role,email) VALUES(%s,'authenticated','staff@squad.invalid')",(uid(999),))
         c.execute('INSERT INTO auth.sessions(id,user_id) VALUES(%s,%s)',(sid(999),uid(999)))
         c.execute("INSERT INTO public.profiles VALUES(%s,'admin')",(uid(999),))

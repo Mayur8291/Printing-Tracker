@@ -1,0 +1,22 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T15:30:15.311441+00:00",
+  "order_rows": 46231,
+  "method": "EXPLAIN ANALYZE, warm DB execution, transaction-only sessions; excludes network",
+  "business_writes": 0,
+  "all_temporary_sessions_rolled_back": true,
+  "results": [
+    {
+      "role": 2,
+      "query": "factory_queue",
+      "samples": 10,
+      "database_p95_ms": 13.25
+    },
+    {
+      "role": 4,
+      "query": "factory_queue",
+      "samples": 10,
+      "database_p95_ms": 5.19
+    }
+  ]
+}

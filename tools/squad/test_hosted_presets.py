@@ -9,7 +9,7 @@ sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 from database import connect
 from hosted_lifecycle import exercise
 
-def run():
+def run(production=False):
  checks=[]
  tables=['products','product_parts','product_part_add_ons','colors','fabric_colors','orders','items','quantities','extra_quantities','brandings','item_criteria','criteria','sizes']
  sequences=['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in tables]+['sa_domain.audit_id_seq','sa_domain.quotes_ledger_id_seq']
@@ -23,7 +23,8 @@ def run():
     actor=c.execute("""SELECT sc.id,m.auth_user_id,u.id,a.id FROM sa_snapshot_20261019.sa_users sc JOIN sa_identity.sa_auth_identities m ON m.legacy_user_id=sc.id
      JOIN sa_snapshot_20261019.sa_users u ON u.created_by_id=sc.id AND u.role=3 AND u.deleted_at IS NULL AND u.disabled IS NOT TRUE AND u.approved IS NOT FALSE
      JOIN sa_snapshot_20261019.sa_addresses a ON a.user_id=u.id AND a.deleted_at IS NULL AND length(btrim(a.state))>0
-     WHERE sc.role=1 AND m.enrollment_state='ready' AND sc.deleted_at IS NULL AND sc.disabled IS NOT TRUE ORDER BY sc.id,u.id,a.id LIMIT 1""").fetchone()
+     WHERE sc.role=1 AND m.enrollment_state='ready' AND sc.deleted_at IS NULL AND sc.disabled IS NOT TRUE
+     AND (%s=false OR u.is_direct_deal IS TRUE) ORDER BY sc.id,u.id,a.id LIMIT 1""",(production,)).fetchone()
     assert actor,'Eligible coordinator/customer/address required'
     config=c.execute("""SELECT b.id,f.id,col.id,cat.id FROM sa_snapshot_20261019.sa_base_products b
      JOIN sa_snapshot_20261019.sa_base_product_fabrics bf ON bf.base_product_id=b.id AND bf.is_deleted IS NOT TRUE
@@ -70,7 +71,10 @@ def run():
     assert placed['total_amount']==overridden['total'];checks.append('order acceptance, partial payment and exact retry')
     order=c.execute('SELECT canto_api.v1_order_get(%s)',(int(placed['orders'][0]['id']),)).fetchone()[0]
     assert order['id']==placed['orders'][0]['id'];checks.append('created order visible through scoped detail')
-    exercise(c,placed['orders'][0],checks)
+    if production:
+     from hosted_production import exercise as production_journey
+     production_journey(c,placed['orders'][0],checks)
+    else:exercise(c,placed['orders'][0],checks)
     raise psycopg.Rollback()
   finally:
    c.execute('SET ROLE postgres')

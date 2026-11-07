@@ -7846,6 +7846,11 @@
     ],
     [
       "sa_orders",
+      "squad_orders_production_scope",
+      "CREATE INDEX squad_orders_production_scope ON sa_snapshot_20261019.sa_orders USING btree (id DESC) WHERE ((order_item_type = ANY (ARRAY[1, 2])) AND (customer_dealer_id IS NULL))"
+    ],
+    [
+      "sa_orders",
       "squad_orders_sc_created",
       "CREATE INDEX squad_orders_sc_created ON sa_snapshot_20261019.sa_orders USING btree (customer_sc_id, created_at) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],

@@ -93,6 +93,31 @@ export function createSquadClient(supabase) {
     forceCompleteOrder: (id,reason,command) => call("v1_order_force_complete", {
       p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
+    assignFactory: (id,managerId,reason,command) => call("v1_order_assign_factory", {
+      p_id:id,p_manager_id:managerId,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    assignWorker: (id,workerId,dueAt,reason,command) => call("v1_order_assign_worker", {
+      p_id:id,p_worker_id:workerId,p_due_at:dueAt,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    assignCutter: (id,cutterId,reason,command) => call("v1_item_assign_cutter", {
+      p_id:id,p_cutter_id:cutterId,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    saveCriteria: (id,checks,command) => call("v1_item_criteria_save", {
+      p_id:id,p_checks:checks,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    saveWorkerCost: (id,unitCost,reason,command) => call("v1_worker_cost_save", {
+      p_id:id,p_unit_cost:unitCost,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    saveWorkerStage: (id,stage,reason,command) => call("v1_worker_stage_save", {
+      p_id:id,p_stage:stage,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    saveWorkerDue: (id,dueAt,reason,command) => call("v1_worker_due_save", {
+      p_id:id,p_due_at:dueAt,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    factoryQueue: (filters = {},page = {}) => call("v1_factory_queue", {
+      p_factory_id:filters.factoryId??null,p_phase:filters.phase??null,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    productionProgress: (orderId) => call("v1_production_progress", {p_order_id:orderId}),
     tasks: (filters = {}, page = {}) => call("v1_tasks_list", {
       p_state: filters.state ?? null, p_order_id: filters.orderId ?? null,
       p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30

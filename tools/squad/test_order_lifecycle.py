@@ -90,6 +90,7 @@ class Lifecycle(unittest.TestCase):
   self.c.execute('RESET ROLE');session(self.c,100);self.c.execute('SET LOCAL ROLE sa_executor')
   r=self.c.execute('SELECT sa_domain.recompute_order_progress(1006)').fetchone()[0];self.assertFalse(r['completed'])
  def test_mixed_requires_both_custom_dispatch_and_provider_completion(self):
+  self.raw('UPDATE sa_snapshot_20261019.sa_orders SET assigned_worker_id=NULL WHERE id=1003')
   self.raw('UPDATE sa_snapshot_20261019.sa_items SET item_type=0,dispatched_status=1,dispatched_quantity=10 WHERE id=1003')
   self.raw('INSERT INTO sa_snapshot_20261019.sa_items(order_id,item_type,created_at,updated_at) VALUES(1003,1,now(),now())')
   self.c.execute('RESET ROLE');session(self.c,102);self.c.execute('SET LOCAL ROLE sa_executor')
