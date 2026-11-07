@@ -28,6 +28,24 @@ Shared mobile/web transport and profile types are in `@canto/shared/squad`. Sour
 
 Iteration 2 next: scoped people/order/catalogue reads, reusable cursor contracts, source-specific projections and measured query plans. Foundation coverage is not completion of the remaining 113 proposed RPCs or the full AUTH workflow suite.
 
+## Iteration 2 — shared scoped directory and order reads
+
+Deployed `v1_people_list`, `v1_person_get`, `v1_orders_list`, `v1_order_get` and `v1_dashboard` on staging. Cursor context binds actor, role, factory, filters and source generation. Scope is applied before pagination; order details page their item collection; size quantities are aggregated in a batch. Commercial/factory/worker-cost projections are tested per role. One order-filter implementation feeds lists and summary counts. Customer-name search cannot broaden order scope.
+
+52 local integration tests pass. A real Supabase login through the shared JavaScript client verifies identity, scoped orders, summary totals, directory denial and mirror-write denial. The hosted benchmark uses temporary, rolled-back sessions to test database role policies; it does not substitute for password-login tests for every persona.
+
+- [Staging measured DB execution](squad-one-audit/implementation-evidence/staging-read-performance.json): ten roles; list p95 17.14–75.83 ms, dashboard p95 34.45–57.85 ms, ten warm measured samples per query/role. Below the original 200 ms read target.
+- [Synthetic scale check](squad-one-audit/implementation-evidence/synthetic-read-performance.json): 100,012 orders; seven roles; list p95 1.81–21.00 ms, dashboard p95 19.73–21.38 ms. Local PostgreSQL, not a hosted capacity guarantee.
+- Security advisors: one new `function_search_path_mutable` warning is reviewed for `filtered_orders`. It is SECURITY INVOKER, private, uses a SQL-standard body parsed/bound at creation, and has no dynamic object lookup. Keeping it inlinable lets cursor/limit and aggregates reach indexed tables. Tests inspect the actual plan for inlining. All definers retain fixed search paths. See [PostgreSQL CREATE FUNCTION](https://www.postgresql.org/docs/17/sql-createfunction.html).
+
+Source correction: Rails type IDs are ready-made 0/custom 1/mixed 2. PC access includes custom and mixed orders with no dealer-fulfillment owner; including mixed custom work is a deliberate completion of the production scope, while pure ready-made/dealer fulfillment remains excluded. This should be included in the later PC journey review.
+
+This slice is not yet the complete ORDER.01/METRIC.01 workflow: later iterations still add production-specific queues, graph/report projections and domain mutations. Catalogue discovery is also still pending. Seven of the 115 proposed RPC names now have deployed implementations; count alone is not the acceptance gate.
+
+## Iteration 3 — tasks, responsibilities and targets
+
+In progress. Preserve actual source task states (pending/completed/deleted); no separate in-progress task state exists in the approved Rails enum. Archive responsibilities/targets without destroying history. Milestone overlap checks use complete half-open interval overlap, including containment, and serialize by coordinator.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

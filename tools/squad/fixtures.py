@@ -38,3 +38,21 @@ def rpc(c,name,args=()):
     assert name.startswith('v1_') and name.replace('_','').isalnum()
     params=sql.SQL(',').join(sql.Placeholder() for _ in args)
     return c.execute(sql.SQL('SELECT canto_api.{}({})').format(sql.Identifier(name),params),args).fetchone()[0]
+
+def seed_orders(c):
+    seed(c)
+    if c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_orders WHERE id=1001').fetchone():return
+    with c.transaction():
+        c.execute("INSERT INTO sa_snapshot_20261019.sa_sizes(id,name,created_at,updated_at) VALUES(1,'M',now(),now())")
+        for group in [100,200]:
+            c.execute("INSERT INTO sa_snapshot_20261019.sa_addresses(id,user_id,address,created_at,updated_at) VALUES(%s,%s,'Synthetic address',now(),now())",(group,group+3))
+            for offset in range(1,7):
+                n=group*10+offset
+                c.execute("""INSERT INTO sa_snapshot_20261019.sa_orders(id,customer_id,address_id,assigned_to_id,assigned_worker_id,customer_sc_id,
+                  customer_dealer_id,order_item_type,status,uc_status,created_at,updated_at,created_on,due_on,total_quantity,total_amount)
+                  VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,now(),now(),now(),now()+interval '10 days',10,1000)""",
+                  (n,group+3,group,group+4,group+11,group+1,group+10 if offset==4 else None,
+                   {1:1,2:0,3:2,4:1,5:1,6:1}[offset],1 if offset==5 else 0,'CANCELLED' if offset==6 else ''))
+                c.execute("""INSERT INTO sa_snapshot_20261019.sa_items(id,order_id,cutting_master_id,total_quantity,per_piece_amount,total_amount,
+                  worker_per_piece_amount,worker_total_amount,created_at,updated_at) VALUES(%s,%s,%s,10,100,1000,40,400,now(),now())""",(n,n,group+9))
+                c.execute("INSERT INTO sa_snapshot_20261019.sa_quantities(item_id,size_id,quantity,created_at,updated_at) VALUES(%s,1,10,now(),now())",(n,))

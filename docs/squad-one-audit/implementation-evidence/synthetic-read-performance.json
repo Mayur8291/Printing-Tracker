@@ -1,0 +1,104 @@
+{
+  "synthetic_orders": 100012,
+  "results": [
+    {
+      "actor_role": 0,
+      "query": "orders",
+      "samples": 12,
+      "p50_ms": 1.42,
+      "p95_ms": 1.81
+    },
+    {
+      "actor_role": 0,
+      "query": "dashboard",
+      "samples": 12,
+      "p50_ms": 19.12,
+      "p95_ms": 19.91
+    },
+    {
+      "actor_role": 1,
+      "query": "orders",
+      "samples": 12,
+      "p50_ms": 2.52,
+      "p95_ms": 2.59
+    },
+    {
+      "actor_role": 1,
+      "query": "dashboard",
+      "samples": 12,
+      "p50_ms": 19.39,
+      "p95_ms": 19.73
+    },
+    {
+      "actor_role": 2,
+      "query": "orders",
+      "samples": 12,
+      "p50_ms": 1.67,
+      "p95_ms": 1.8
+    },
+    {
+      "actor_role": 2,
+      "query": "dashboard",
+      "samples": 12,
+      "p50_ms": 20.36,
+      "p95_ms": 21.38
+    },
+    {
+      "actor_role": 3,
+      "query": "orders",
+      "samples": 12,
+      "p50_ms": 2.37,
+      "p95_ms": 2.46
+    },
+    {
+      "actor_role": 3,
+      "query": "dashboard",
+      "samples": 12,
+      "p50_ms": 19.18,
+      "p95_ms": 20.35
+    },
+    {
+      "actor_role": 4,
+      "query": "orders",
+      "samples": 12,
+      "p50_ms": 2.38,
+      "p95_ms": 2.45
+    },
+    {
+      "actor_role": 4,
+      "query": "dashboard",
+      "samples": 12,
+      "p50_ms": 19.93,
+      "p95_ms": 20.34
+    },
+    {
+      "actor_role": 10,
+      "query": "orders",
+      "samples": 12,
+      "p50_ms": 20.46,
+      "p95_ms": 21.0
+    },
+    {
+      "actor_role": 10,
+      "query": "dashboard",
+      "samples": 12,
+      "p50_ms": 19.69,
+      "p95_ms": 20.22
+    },
+    {
+      "actor_role": 11,
+      "query": "orders",
+      "samples": 12,
+      "p50_ms": 2.37,
+      "p95_ms": 2.39
+    },
+    {
+      "actor_role": 11,
+      "query": "dashboard",
+      "samples": 12,
+      "p50_ms": 19.48,
+      "p95_ms": 20.0
+    }
+  ],
+  "method": "Local PostgreSQL 17; synthetic structure/data; 3 warmups and 12 measured EXPLAIN ANALYZE executions; excludes network. All generated business rows rolled back."
+}

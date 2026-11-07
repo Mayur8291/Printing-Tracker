@@ -57,6 +57,15 @@
     [
       "sa_snapshot_20261019",
       "sa_items",
+      "squad_executor_items_read",
+      "{sa_executor}",
+      "SELECT",
+      "((order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) <> 9) OR (cutting_master_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_items",
       "squad_guard_items",
       "{sa_guard}",
       "SELECT",
@@ -66,10 +75,28 @@
     [
       "sa_snapshot_20261019",
       "sa_orders",
+      "squad_executor_orders_read",
+      "{sa_executor}",
+      "SELECT",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (customer_sc_id = ( SELECT (sa_domain.actor()).user_id AS user_id))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 2) AND (order_item_type = ANY (ARRAY[1, 2])) AND (customer_dealer_id IS NULL)) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = ANY (ARRAY[3, 10])) AND (customer_id = ( SELECT (sa_domain.actor()).user_id AS user_id))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 10) AND (customer_dealer_id = ( SELECT (sa_domain.actor()).user_id AS user_id))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 11) AND (assigned_worker_id = ( SELECT (sa_domain.actor()).user_id AS user_id))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = ANY (ARRAY[4, 7, 8])) AND (assigned_to_id IN ( SELECT sa_domain.factory_manager_ids() AS factory_manager_ids))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 9) AND (id IN ( SELECT sa_domain.cutter_order_ids() AS cutter_order_ids))))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_orders",
       "squad_guard_orders",
       "{sa_guard}",
       "SELECT",
       "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_quantities",
+      "squad_executor_quantities_read",
+      "{sa_executor}",
+      "SELECT",
+      "(item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items))",
       null
     ],
     [
@@ -87,7 +114,7 @@
       "squad_executor_people_read",
       "{sa_executor}",
       "SELECT",
-      "sa_domain.can_person(id)",
+      "((id = ( SELECT (sa_domain.actor()).user_id AS user_id)) OR (( SELECT (sa_domain.actor()).role_id AS role_id) = 0) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (role = ANY (ARRAY[3, 10])) AND (created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 10) AND (id IN ( SELECT sa_domain.dealer_customer_ids() AS dealer_customer_ids))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 2) AND (role = ANY (ARRAY[1, 2, 4, 5, 6, 7, 8, 9, 11]))) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = ANY (ARRAY[4, 7, 8, 9])) AND (factory_id = ( SELECT (sa_domain.actor()).factory_id AS factory_id)) AND (role = ANY (ARRAY[4, 5, 6, 7, 8, 9]))))",
       null
     ],
     [
@@ -182,17 +209,17 @@
     [
       "sa_users",
       "customer_company_name",
-      "{sa_executor=rw/postgres}"
+      "{sa_executor=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
       "customer_first_name",
-      "{sa_executor=rw/postgres}"
+      "{sa_executor=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
       "customer_last_name",
-      "{sa_executor=rw/postgres}"
+      "{sa_executor=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -232,7 +259,7 @@
     [
       "sa_users",
       "name",
-      "{sa_executor=rw/postgres}"
+      "{sa_executor=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -268,6 +295,18 @@
   [
     [
       "canto_api",
+      "v1_dashboard",
+      "p_filters jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "b0bfd4457b515a1e15814013a3d8dcb8"
+    ],
+    [
+      "canto_api",
       "v1_me",
       "",
       "postgres",
@@ -277,6 +316,54 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "f48d3f737ceadf73213f134602c33d8b"
+    ],
+    [
+      "canto_api",
+      "v1_order_get",
+      "p_id bigint, p_item_cursor text, p_item_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "05ef6aa2617dd3e893a04b1a382a05d8"
+    ],
+    [
+      "canto_api",
+      "v1_orders_list",
+      "p_filters jsonb, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "9c7cfa0c450d05162e76c9f5e1d8c83c"
+    ],
+    [
+      "canto_api",
+      "v1_people_list",
+      "p_role integer, p_search text, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "68f61bb28e32d8aad35f9e6c6f40fed1"
+    ],
+    [
+      "canto_api",
+      "v1_person_get",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "6de5316dcb711e7e3105ff9353709582"
     ],
     [
       "canto_api",
@@ -372,7 +459,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "e1d06722fcd5983716e9d04434c7a199"
+      "b9e5db8f1379db44212ca633f5a568a7"
     ],
     [
       "sa_domain",
@@ -400,6 +487,54 @@
     ],
     [
       "sa_domain",
+      "cursor_id",
+      "p_cursor text, p_context jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "1b98472024651e624215b6fa7d4f6a83"
+    ],
+    [
+      "sa_domain",
+      "cutter_order_ids",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "36719613aed12f1548ff9dad5cc0b8bd"
+    ],
+    [
+      "sa_domain",
+      "dealer_customer_ids",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "2bb576e81240e9aac110e1dd9e7520a7"
+    ],
+    [
+      "sa_domain",
+      "factory_manager_ids",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "2669dab02f403c5f7f6bfc4e62506152"
+    ],
+    [
+      "sa_domain",
       "feature",
       "p_features jsonb, p_key text",
       "postgres",
@@ -409,6 +544,16 @@
       ],
       "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
       "c7dcc495a6d3e166cc386c007d6491f0"
+    ],
+    [
+      "sa_domain",
+      "filtered_orders",
+      "p_filters jsonb",
+      "postgres",
+      false,
+      null,
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "9dcd597c76247c4d4913cb2f7e32587f"
     ],
     [
       "sa_domain",
@@ -424,6 +569,42 @@
     ],
     [
       "sa_domain",
+      "next_cursor",
+      "p_id bigint, p_context jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "0b43cb4abaad0ce20d3b231a3edaee24"
+    ],
+    [
+      "sa_domain",
+      "order_projection",
+      "o jsonb, a sa_domain.actor, p_version text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "b1c67732b082d6c8baedcda2445f5637"
+    ],
+    [
+      "sa_domain",
+      "page_context",
+      "p_resource text, p_filters jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "1f3c35ebedc422ef559e1a1f29d8ceea"
+    ],
+    [
+      "sa_domain",
       "page_limit",
       "p_limit integer",
       "postgres",
@@ -433,6 +614,18 @@
       ],
       "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
       "9cb15d63b501809a703f300ab18641fc"
+    ],
+    [
+      "sa_domain",
+      "person_projection",
+      "p jsonb, a sa_domain.actor, p_version text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "0653ed0b1c58dbbff50f1559a2717245"
     ],
     [
       "sa_domain",
@@ -460,6 +653,30 @@
     ],
     [
       "sa_domain",
+      "search_customer_ids",
+      "p_term text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "75194fe50c9a5ae2ded7d17014fb1901"
+    ],
+    [
+      "sa_domain",
+      "v1_dashboard",
+      "p_filters jsonb",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "669058820bfbcd3c5b778e0c70b40cbf"
+    ],
+    [
+      "sa_domain",
       "v1_me",
       "",
       "sa_executor",
@@ -472,6 +689,54 @@
     ],
     [
       "sa_domain",
+      "v1_order_get",
+      "p_id bigint, p_item_cursor text, p_item_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "44882378e89f275b30bcf4cd713bd0e0"
+    ],
+    [
+      "sa_domain",
+      "v1_orders_list",
+      "p_filters jsonb, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "4d94635c507e9a2f28f869ef2c43100e"
+    ],
+    [
+      "sa_domain",
+      "v1_people_list",
+      "p_role integer, p_search text, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "6a3d919d27fcf02ff17765b31d33ead7"
+    ],
+    [
+      "sa_domain",
+      "v1_person_get",
+      "p_id bigint",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "fcbfd3932a6962b505383d132af559f8"
+    ],
+    [
+      "sa_domain",
       "v1_profile_save",
       "p_fields jsonb, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -481,6 +746,18 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "635c50808108e1b4174aada262df4c28"
+    ],
+    [
+      "sa_domain",
+      "validate_order_filters",
+      "p_filters jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "aa00e01a86838159357206c0f9837dd0"
     ],
     [
       "sa_domain",

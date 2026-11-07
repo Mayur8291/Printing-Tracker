@@ -5,7 +5,7 @@ export class SquadError extends Error {
     this.name = "SquadError";
     this.code = error.code || "TRANSPORT_ERROR";
     this.kind = ({"28000":"session", "42501":"forbidden", "40001":"conflict",
-      "22023":"validation", "55000":"unavailable"})[this.code] || "unexpected";
+      "22023":"validation", "22P02":"validation", "22007":"validation", "P0002":"not_found", "55000":"unavailable"})[this.code] || "unexpected";
   }
 }
 
@@ -22,6 +22,18 @@ export function createSquadClient(supabase) {
     saveProfile: (fields, command) => call("v1_profile_save", {
       p_fields: fields, p_expected_version: command.expectedVersion,
       p_idempotency_key: command.idempotencyKey
-    })
+    }),
+    people: (filters = {}, page = {}) => call("v1_people_list", {
+      p_role: filters.role ?? null, p_search: filters.search ?? "",
+      p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30
+    }),
+    person: (id) => call("v1_person_get", { p_id: id }),
+    orders: (filters = {}, page = {}) => call("v1_orders_list", {
+      p_filters: filters, p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30
+    }),
+    order: (id, items = {}) => call("v1_order_get", {
+      p_id: id, p_item_cursor: items.cursor ?? null, p_item_limit: items.limit ?? 50
+    }),
+    dashboard: (filters = {}) => call("v1_dashboard", { p_filters: filters })
   });
 }

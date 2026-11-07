@@ -7595,6 +7595,16 @@
       "CREATE UNIQUE INDEX sa_items_pkey ON sa_snapshot_20261019.sa_items USING btree (id)"
     ],
     [
+      "sa_items",
+      "squad_items_cutter_order",
+      "CREATE INDEX squad_items_cutter_order ON sa_snapshot_20261019.sa_items USING btree (cutting_master_id, order_id)"
+    ],
+    [
+      "sa_items",
+      "squad_items_order_page",
+      "CREATE INDEX squad_items_order_page ON sa_snapshot_20261019.sa_items USING btree (order_id, id DESC)"
+    ],
+    [
       "sa_job_sheet_assign_dates",
       "sa_index_job_sheet_assign_dates_on_item_id",
       "CREATE INDEX sa_index_job_sheet_assign_dates_on_item_id ON sa_snapshot_20261019.sa_job_sheet_assign_dates USING btree (item_id)"
@@ -7803,6 +7813,31 @@
       "sa_orders",
       "sa_orders_pkey",
       "CREATE UNIQUE INDEX sa_orders_pkey ON sa_snapshot_20261019.sa_orders USING btree (id)"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_customer_page",
+      "CREATE INDEX squad_orders_customer_page ON sa_snapshot_20261019.sa_orders USING btree (customer_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_dealer_page",
+      "CREATE INDEX squad_orders_dealer_page ON sa_snapshot_20261019.sa_orders USING btree (customer_dealer_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_factory_page",
+      "CREATE INDEX squad_orders_factory_page ON sa_snapshot_20261019.sa_orders USING btree (assigned_to_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_sc_page",
+      "CREATE INDEX squad_orders_sc_page ON sa_snapshot_20261019.sa_orders USING btree (customer_sc_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_worker_page",
+      "CREATE INDEX squad_orders_worker_page ON sa_snapshot_20261019.sa_orders USING btree (assigned_worker_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],
     [
       "sa_part_colors",
@@ -8380,6 +8415,16 @@
       "CREATE UNIQUE INDEX sa_users_pkey ON sa_snapshot_20261019.sa_users USING btree (id)"
     ],
     [
+      "sa_users",
+      "squad_people_created_role_id",
+      "CREATE INDEX squad_people_created_role_id ON sa_snapshot_20261019.sa_users USING btree (created_by_id, role, id DESC) WHERE (deleted_at IS NULL)"
+    ],
+    [
+      "sa_users",
+      "squad_people_factory_role_id",
+      "CREATE INDEX squad_people_factory_role_id ON sa_snapshot_20261019.sa_users USING btree (factory_id, role, id DESC) WHERE (deleted_at IS NULL)"
+    ],
+    [
       "sa_zones",
       "sa_zones_pkey",
       "CREATE UNIQUE INDEX sa_zones_pkey ON sa_snapshot_20261019.sa_zones USING btree (id)"
@@ -8594,7 +8639,7 @@
       "sa_items",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_job_sheet_assign_dates",
@@ -8666,7 +8711,7 @@
       "sa_orders",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_part_colors",
@@ -8726,7 +8771,7 @@
       "sa_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_ratings",

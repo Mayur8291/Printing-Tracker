@@ -1,0 +1,130 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T13:39:02.523724+00:00",
+  "order_rows": 46231,
+  "method": "EXPLAIN ANALYZE, warm DB execution, transaction-only sessions; excludes network",
+  "business_writes": 0,
+  "all_temporary_sessions_rolled_back": true,
+  "results": [
+    {
+      "role": 0,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 17.14
+    },
+    {
+      "role": 0,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 34.45
+    },
+    {
+      "role": 1,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 34.99
+    },
+    {
+      "role": 1,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 53.22
+    },
+    {
+      "role": 2,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 38.27
+    },
+    {
+      "role": 2,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 55.55
+    },
+    {
+      "role": 3,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 48.79
+    },
+    {
+      "role": 3,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 52.57
+    },
+    {
+      "role": 4,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 60.58
+    },
+    {
+      "role": 4,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 54.76
+    },
+    {
+      "role": 7,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 65.96
+    },
+    {
+      "role": 7,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 56.47
+    },
+    {
+      "role": 8,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 66.39
+    },
+    {
+      "role": 8,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 53.68
+    },
+    {
+      "role": 9,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 75.83
+    },
+    {
+      "role": 9,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 57.85
+    },
+    {
+      "role": 10,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 39.14
+    },
+    {
+      "role": 10,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 57.33
+    },
+    {
+      "role": 11,
+      "query": "orders",
+      "samples": 10,
+      "database_p95_ms": 66.36
+    },
+    {
+      "role": 11,
+      "query": "dashboard",
+      "samples": 10,
+      "database_p95_ms": 52.3
+    }
+  ]
+}
