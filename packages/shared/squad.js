@@ -5,7 +5,7 @@ export class SquadError extends Error {
     this.name = "SquadError";
     this.code = error.code || "TRANSPORT_ERROR";
     this.kind = ({"28000":"session", "42501":"forbidden", "40001":"conflict",
-      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "P0002":"not_found", "55000":"unavailable"})[this.code] || "unexpected";
+      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable"})[this.code] || "unexpected";
   }
 }
 
@@ -28,6 +28,15 @@ export function createSquadClient(supabase) {
       p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30
     }),
     person: (id) => call("v1_person_get", { p_id: id }),
+    savePerson: (id,role,fields,command) => call("v1_person_save", {p_id:id,p_role:role,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    saveFactoryTeam: (id,role,fields,command) => call("v1_factory_team_save", {p_id:id,p_role:role,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    saveTailor: (id,fields,command) => call("v1_tailor_save", {p_id:id,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    saveSubtailor: (id,fields,command) => call("v1_subtailor_save", {p_id:id,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    archivePerson: (id,reason,command) => call("v1_person_archive", {p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    factories: (search = "",page = {}) => call("v1_factories_list", {p_search:search,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    saveFactory: (id,name,command) => call("v1_factory_save", {p_id:id,p_name:name,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    saveAddress: (id,userId,fields,command) => call("v1_address_save", {p_id:id,p_user_id:userId,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    archiveAddress: (id,userId,command) => call("v1_address_archive", {p_id:id,p_user_id:userId,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     orders: (filters = {}, page = {}) => call("v1_orders_list", {
       p_filters: filters, p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30
     }),

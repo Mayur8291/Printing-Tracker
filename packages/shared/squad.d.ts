@@ -12,7 +12,25 @@ export interface Person {
   first_name: string|null; last_name: string|null; approved: boolean|null;
   onboarded: boolean; disabled: boolean; version: Version;
   /** Present only in an authorized contact projection. */
-  email?: string; phone?: string|null; factory_id?: EntityId|null;
+  email?: string|null; phone?: string|null; factory_id?: EntityId|null;
+}
+export interface FeatureGrant {key:'1'|'2'|'3';checked:boolean|'true'|'false';children?:Array<{key:'3.1'|'3.2'|'3.3'|'3.4';checked:boolean|'true'|'false'}>}
+export interface PersonFields extends ProfileFields {
+  email?:string;gst_no?:string|null;designation?:string|null;features?:FeatureGrant[];
+  factory_id?:EntityId;manager_id?:EntityId;parent_tailor_id?:EntityId;
+}
+export interface PersonSaved extends SavedEntity {role:number;account:'queued'|'existing'|'managed_subject';account_request_id:string|null}
+export interface AddressFields {address?:string;state?:string;city?:string;zip_code?:string;is_primary?:boolean}
+export interface Address extends SavedEntity {address:string|null;state:string|null;city:string|null;zip_code:string|null;is_primary:boolean;used_on_orders:boolean}
+export interface AddressSaved extends SavedEntity {
+  person_version:Version;addresses:Address[];
+  commercial_rules:{zone_id:EntityId|null;price_type_id:EntityId|null;candidate_dealer_ids:EntityId[];dealer_link_mode:'additive_legacy';basis:'registered_dealer'|'primary_city'};
+}
+export interface PersonDetail extends Person {
+  designation:string|null;manager_id?:EntityId|null;parent_tailor_id?:EntityId|null;features?:FeatureGrant[];
+  addresses?:Address[];gst_no?:string|null;coordinator_id?:EntityId|null;zone_id?:EntityId|null;price_type_id?:EntityId|null;
+  direct_deal?:boolean;auto_approve_customers?:boolean;stock_visibility_percentage?:number;registered_by?:number;dealer_ids?:EntityId[];
+  archive_dependencies?:string[];account_request?:null|{id:string;state:'queued'|'processing'|'ready'|'failed'|'discarded';error_code:string|null};
 }
 export interface OrderFilters {
   state?: 'pending'|'completed'|'cancelled'|'overdue'|'critical';
@@ -189,7 +207,16 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   me(): Promise<Me>;
   saveProfile(fields: ProfileFields,command: Command): Promise<Me>;
   people(filters?: {role?: number;search?: string},page?: PageRequest): Promise<Page<Person>>;
-  person(id: EntityId): Promise<Person>;
+  person(id: EntityId): Promise<PersonDetail>;
+  savePerson(id:EntityId|null,role:Persona,fields:PersonFields,command:Command|CreateCommand):Promise<PersonSaved>;
+  saveFactoryTeam(id:EntityId|null,role:7|8|9,fields:PersonFields,command:Command|CreateCommand):Promise<PersonSaved>;
+  saveTailor(id:EntityId|null,fields:Omit<PersonFields,'email'>,command:Command|CreateCommand):Promise<PersonSaved>;
+  saveSubtailor(id:EntityId|null,fields:Omit<PersonFields,'email'>,command:Command|CreateCommand):Promise<PersonSaved>;
+  archivePerson(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {state:'archived';dependencies:string[]}>;
+  factories(search?:string,page?:PageRequest):Promise<Page<SavedEntity & {name:string}>>;
+  saveFactory(id:EntityId|null,name:string,command:Command|CreateCommand):Promise<SavedEntity & {name:string}>;
+  saveAddress(id:EntityId|null,userId:EntityId,fields:AddressFields,command:Command|CreateCommand):Promise<AddressSaved>;
+  archiveAddress(id:EntityId,userId:EntityId,command:Command):Promise<AddressSaved>;
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
   order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;dispatch_destination:DispatchDestination;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;

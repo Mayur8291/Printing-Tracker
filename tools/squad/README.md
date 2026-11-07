@@ -32,6 +32,7 @@ Local SQL tests do not substitute for hosted GoTrue/Data API tests, provider con
 
 Hosted verification tools (staging only):
 
+- `test_hosted_people.py`: rolled-back scoped people/workforce/address journey, enrollment intents and DB timing checks.
 - `test_sdk.mjs`: actual GoTrue login and shared JS client read/denial checks.
 - `test_hosted_dealer_stock.py`: rolled-back purchase → factory receipt → historical reorder/back-order → dealer delivery journey.
 - `benchmark_stock.py`: first-page reads for the five largest eligible staging dealer ledgers.

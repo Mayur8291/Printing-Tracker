@@ -7205,6 +7205,11 @@
       "CREATE INDEX sa_index_addresses_on_user_id ON sa_snapshot_20261019.sa_addresses USING btree (user_id)"
     ],
     [
+      "sa_addresses",
+      "squad_address_owner",
+      "CREATE INDEX squad_address_owner ON sa_snapshot_20261019.sa_addresses USING btree (user_id, id) WHERE (deleted_at IS NULL)"
+    ],
+    [
       "sa_app_configs",
       "sa_app_configs_pkey",
       "CREATE UNIQUE INDEX sa_app_configs_pkey ON sa_snapshot_20261019.sa_app_configs USING btree (id)"
@@ -8551,6 +8556,11 @@
     ],
     [
       "sa_users",
+      "squad_people_canonical_email",
+      "CREATE INDEX squad_people_canonical_email ON sa_snapshot_20261019.sa_users USING btree (lower(btrim((email)::text)))"
+    ],
+    [
+      "sa_users",
       "squad_people_created_role_id",
       "CREATE INDEX squad_people_created_role_id ON sa_snapshot_20261019.sa_users USING btree (created_by_id, role, id DESC) WHERE (deleted_at IS NULL)"
     ],
@@ -8558,6 +8568,16 @@
       "sa_users",
       "squad_people_factory_role_id",
       "CREATE INDEX squad_people_factory_role_id ON sa_snapshot_20261019.sa_users USING btree (factory_id, role, id DESC) WHERE (deleted_at IS NULL)"
+    ],
+    [
+      "sa_users",
+      "squad_people_manager",
+      "CREATE INDEX squad_people_manager ON sa_snapshot_20261019.sa_users USING btree (factory_manager_id, role, id) WHERE (deleted_at IS NULL)"
+    ],
+    [
+      "sa_users",
+      "squad_people_parent_tailor",
+      "CREATE INDEX squad_people_parent_tailor ON sa_snapshot_20261019.sa_users USING btree (parent_tailor_id, id) WHERE (deleted_at IS NULL)"
     ],
     [
       "sa_zones",
@@ -8594,7 +8614,7 @@
       "sa_addresses",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arw/postgres}"
     ],
     [
       "sa_app_configs",
@@ -8750,7 +8770,7 @@
       "sa_factories",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_item_criteria",
@@ -9062,7 +9082,7 @@
       "sa_user_dealers",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=ard/postgres}"
     ],
     [
       "sa_user_devices",

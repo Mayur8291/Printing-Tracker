@@ -47,4 +47,8 @@ def after_publication(conn):
           spec=spec||'{"failure_code":"SOURCE_REFRESH_DISCARDED"}'::jsonb
           WHERE generation<%s AND state IN('queued','running') RETURNING id""",(generation,)).fetchall()
         if requests:result['discarded_order_requests']=len(requests)
+    if conn.execute("SELECT to_regclass('sa_domain.account_requests')").fetchone()[0]:
+        requests=conn.execute("""UPDATE sa_domain.account_requests SET state='discarded',updated_at=now(),error_code='SOURCE_REFRESH_DISCARDED'
+          WHERE generation<%s AND state IN('queued','processing','failed') RETURNING id""",(generation,)).fetchall()
+        if requests:result['discarded_account_requests']=len(requests)
     return result

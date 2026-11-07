@@ -1,0 +1,273 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T17:11:51.286194+00:00",
+  "scope": "warm rollback-only database journey; no Auth users or provider messages; not load/capacity measurement",
+  "queries": [
+    {
+      "rpc": "v1_person_save",
+      "database_p95_ms": 7.678,
+      "samples_ms": [
+        7.678,
+        7.28,
+        7.355,
+        7.309,
+        7.603,
+        6.74,
+        7.18,
+        6.854,
+        6.652,
+        6.911
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_get",
+      "database_p95_ms": 799.353,
+      "samples_ms": [
+        12.435,
+        11.158,
+        11.488,
+        11.649,
+        799.353,
+        31.141,
+        31.144,
+        32.051,
+        31.0,
+        31.521
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_address_save",
+      "database_p95_ms": 34.833,
+      "samples_ms": [
+        34.833,
+        28.47,
+        33.341,
+        29.267,
+        28.253,
+        24.97,
+        27.945,
+        26.283,
+        26.01,
+        26.123
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_save",
+      "database_p95_ms": 13.906,
+      "samples_ms": [
+        10.34,
+        13.374,
+        10.435,
+        13.906,
+        10.291,
+        12.385,
+        9.685,
+        13.324,
+        9.806,
+        9.953
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_get",
+      "database_p95_ms": 38.162,
+      "samples_ms": [
+        33.139,
+        38.162,
+        37.919,
+        35.995,
+        33.686,
+        34.662,
+        35.199,
+        34.527,
+        34.864,
+        33.578
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_factory_save",
+      "database_p95_ms": 4.917,
+      "samples_ms": [
+        4.416,
+        4.614,
+        4.647,
+        4.917,
+        4.6,
+        4.738,
+        4.519,
+        4.266,
+        4.558,
+        4.603
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_save",
+      "database_p95_ms": 9.308,
+      "samples_ms": [
+        9.308,
+        7.368,
+        7.297,
+        7.428,
+        7.155,
+        8.75,
+        7.112,
+        7.163,
+        8.683,
+        7.14
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_tailor_save",
+      "database_p95_ms": 14.306,
+      "samples_ms": [
+        6.909,
+        7.9,
+        14.306,
+        8.206,
+        7.137,
+        7.28,
+        6.786,
+        6.664,
+        6.766,
+        14.117
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_subtailor_save",
+      "database_p95_ms": 17.194,
+      "samples_ms": [
+        17.194,
+        11.129,
+        11.785,
+        12.222,
+        11.411,
+        12.363,
+        10.674,
+        10.78,
+        10.86,
+        15.08
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_factory_team_save",
+      "database_p95_ms": 10.92,
+      "samples_ms": [
+        9.53,
+        9.281,
+        9.517,
+        9.271,
+        9.673,
+        9.556,
+        9.309,
+        9.242,
+        10.92,
+        9.401
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_get",
+      "database_p95_ms": 32.226,
+      "samples_ms": [
+        32.082,
+        31.653,
+        31.542,
+        31.33,
+        32.226,
+        31.524,
+        31.531,
+        31.782,
+        31.587,
+        31.807
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_person_archive",
+      "database_p95_ms": 48.03,
+      "samples_ms": [
+        42.421,
+        42.968,
+        44.153,
+        42.586,
+        42.225,
+        41.969,
+        41.598,
+        41.873,
+        41.881,
+        48.03
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_archive",
+      "database_p95_ms": 43.631,
+      "samples_ms": [
+        43.631,
+        42.018,
+        42.148,
+        41.764,
+        41.912,
+        42.169,
+        42.249,
+        41.97,
+        41.86,
+        43.115
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_save",
+      "database_p95_ms": 14.71,
+      "samples_ms": [
+        6.48,
+        5.512,
+        14.71,
+        5.548,
+        5.664,
+        6.841,
+        7.019,
+        5.563,
+        5.409,
+        5.465
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_person_get",
+      "database_p95_ms": 120.331,
+      "samples_ms": [
+        116.846,
+        109.481,
+        109.156,
+        110.852,
+        109.469,
+        114.688,
+        120.331,
+        109.416,
+        112.556,
+        110.579
+      ],
+      "target_ms": 200
+    }
+  ],
+  "checks": [
+    "SC pending customer, one enrollment intent and exact retry",
+    "Scoped address and future commercial-rule evaluation",
+    "Dealer auto-approval/onboarding with exact owner link",
+    "PC factory and manager enrollment intent",
+    "FM tailor/sub-tailor inheritance, no synthetic Auth, scoped cutter intent",
+    "Subject archive after child removal retains source history",
+    "Admin-only Team capability grant"
+  ],
+  "all_rows_rolled_back": true,
+  "sequences_restored": true
+}
