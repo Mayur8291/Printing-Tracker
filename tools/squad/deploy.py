@@ -33,6 +33,7 @@ def deploy(check=True):
             applied=[]
             for path in sorted((ROOT/'supabase/migrations').glob('*_squad_*.sql')):
                 version,name=path.stem.split('_',1);body=path.read_text()
+                require(bool(list(statements(body))),'Empty migration: '+path.name)
                 old=c.execute('SELECT statements FROM supabase_migrations.schema_migrations WHERE version=%s',(version,)).fetchone()
                 if old:
                     require(old[0]==[body],'Previously applied migration changed: '+path.name);continue

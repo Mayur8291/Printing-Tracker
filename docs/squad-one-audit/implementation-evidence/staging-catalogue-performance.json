@@ -1,0 +1,105 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T14:25:31.500282+00:00",
+  "method": "EXPLAIN ANALYZE; 2 warmups, 10 samples; DB execution excludes network",
+  "business_writes": 0,
+  "all_temporary_sessions_rolled_back": true,
+  "results": [
+    {
+      "role": 0,
+      "query": "custom_catalogue",
+      "samples": 10,
+      "database_p95_ms": 23.83
+    },
+    {
+      "role": 0,
+      "query": "rmp_search",
+      "samples": 10,
+      "database_p95_ms": 56.11
+    },
+    {
+      "role": 0,
+      "query": "fabrics",
+      "samples": 10,
+      "database_p95_ms": 49.72
+    },
+    {
+      "role": 0,
+      "query": "variants",
+      "samples": 10,
+      "database_p95_ms": 49.52
+    },
+    {
+      "role": 1,
+      "query": "custom_catalogue",
+      "samples": 10,
+      "database_p95_ms": 18.1
+    },
+    {
+      "role": 1,
+      "query": "rmp_search",
+      "samples": 10,
+      "database_p95_ms": 52.42
+    },
+    {
+      "role": 1,
+      "query": "fabrics",
+      "samples": 10,
+      "database_p95_ms": 24.8
+    },
+    {
+      "role": 1,
+      "query": "variants",
+      "samples": 10,
+      "database_p95_ms": 51.15
+    },
+    {
+      "role": 3,
+      "query": "custom_catalogue",
+      "samples": 10,
+      "database_p95_ms": 19.36
+    },
+    {
+      "role": 3,
+      "query": "rmp_search",
+      "samples": 10,
+      "database_p95_ms": 53.04
+    },
+    {
+      "role": 3,
+      "query": "fabrics",
+      "samples": 10,
+      "database_p95_ms": 22.76
+    },
+    {
+      "role": 3,
+      "query": "variants",
+      "samples": 10,
+      "database_p95_ms": 50.06
+    },
+    {
+      "role": 10,
+      "query": "custom_catalogue",
+      "samples": 10,
+      "database_p95_ms": 18.3
+    },
+    {
+      "role": 10,
+      "query": "rmp_search",
+      "samples": 10,
+      "database_p95_ms": 50.17
+    },
+    {
+      "role": 10,
+      "query": "fabrics",
+      "samples": 10,
+      "database_p95_ms": 23.83
+    },
+    {
+      "role": 10,
+      "query": "variants",
+      "samples": 10,
+      "database_p95_ms": 42.52
+    }
+  ]
+}

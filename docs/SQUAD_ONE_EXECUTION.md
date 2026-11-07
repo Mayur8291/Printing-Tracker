@@ -44,7 +44,7 @@ This slice is not yet the complete ORDER.01/METRIC.01 workflow: later iterations
 
 ## Iteration 3 — tasks, responsibilities and targets
 
-In progress. Preserve actual source task states (pending/completed/deleted); no separate in-progress task state exists in the approved Rails enum. Archive responsibilities/targets without destroying history. Milestone overlap checks use complete half-open interval overlap, including containment, and serialize by coordinator.
+Implemented slice; broader journey gates remain. Preserve actual source task states (pending/completed/deleted); no separate in-progress task state exists in the approved Rails enum. Archive responsibilities/targets without destroying history. Milestone overlap checks use complete half-open interval overlap, including containment, and serialize by coordinator.
 
 Deployed eight task/responsibility contracts and four target contracts on staging. The suite now passes 83 local tests. Hosted rollback-only command tests verify admin assignment → assignee completion for tasks and goals, coordinator-scoped target progress, and containing-period rejection; test rows and temporary sessions are rolled back and all advanced sequence values restored while holding the refresh/write lock.
 
@@ -53,6 +53,25 @@ Responsibilities include Team role 12 with live feature gating. Removed task ass
 Review fixes added two regression cases: Admin edits preserve the original task creator's membership rule, and timestamp responses/command execution use explicit UTC. This is an API timestamp contract; final historical report comparison must still confirm legacy server/storage timezone behavior, since Rails specifies Kolkata and `default_timezone=:local`.
 
 The shared JavaScript SDK and declarations now cover all 19 deployed RPC names; mobile TypeScript checking passes. Notification delivery, calendar/report parity against approved historical examples and a broader mixed-write load test remain later acceptance gates. These are not represented as complete by the local business-operation tests.
+
+## Iteration 4 — catalogue contracts and authoritative pricing
+
+Ten more RPC contracts deployed on staging (29 proposed names now implemented). Catalogue reads apply live capability flags, dealer brand assignments, per-user private colours, active compatibility links and scoped customer pricing. The approved legacy rule allowing dealers with no brand assignments to browse all brands is preserved; order fulfillment will separately enforce routing. Catalogue product/class/variant pages preserve sort positions with stable composite cursors. Large compatibility collections are separate paginated selectors.
+
+Custom and ready-made quotes share one NUMERIC calculation engine. Fixtures cover the quantity 5/6 sample threshold, quantity-band boundaries, METER/KG and adult/kids consumption, add-on costs, overhead/profit, print/embroidery, per-unit tax rounding and the exact 999 legacy threshold. Ready-made prices use the SKU-price join table, live zone/direct/assigned price context and Regular fallback. Explicit SKU tax rates (including zero) are preserved. Branding enters the taxable base. Samples retain their separate sample/size-plan structure. Prices and tax policy are versioned compatibility behavior, not a claim of current tax compliance.
+
+Quote previews persist only private, expiring operational quote records; they do not change the source-mirror edit revision. Customer/address scope and canonical configuration are checked on the server. Catalogue markups affect document display prices only. Order placement must still revalidate the saved quote against current masters and ownership; preview creation is not order acceptance.
+
+142 local database integration tests pass. Hosted shared-SDK tests confirm actual Supabase login, catalogue pagination, configuration reads and cost redaction. Hosted custom/RMP/mixed quote checks roll back all temporary sessions and quote-cache rows. Mobile TypeScript checking passes. Security advisor re-scan found no additional domain findings beyond the reviewed `filtered_orders` warning from iteration 2.
+
+Performance review initially failed: catalogue p95 was 245–409 ms. The follow-up migration batches media metadata and eligible SKU prices once per page, and computes projection capability once per request. The same warm staging benchmark now passes:
+
+- [Catalogue evidence](squad-one-audit/implementation-evidence/staging-catalogue-performance.json): four personas, lists/configuration/variants, p95 18.10–56.11 ms (200 ms target).
+- [Pricing evidence](squad-one-audit/implementation-evidence/staging-pricing-performance.json): RMP 56.77 ms, custom 77.12 ms, mixed 87.02 ms p95 (400 ms target).
+
+These are bounded representative DB calls, not a concurrent load/capacity guarantee. Warehouse availability remains explicitly `not_loaded`, never fabricated zero. Resource-authorized media delivery, SVG/preview asset contracts, preset persistence, quote override, order acceptance/revalidation, full historical sample-order comparison and maximum-size mixed-load tests remain pending. The catalogue workflow rows are not marked wholly accepted just because their RPC names exist.
+
+Next: iteration 5 implements canonical presets and artwork ownership, then quote override and the transactional order lifecycle.
 
 ## Remaining gates
 

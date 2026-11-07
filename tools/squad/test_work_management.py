@@ -47,7 +47,7 @@ class WorkManagement(unittest.TestCase):
     def test_task_timestamp_has_explicit_timezone(self):
         self.c.execute("SET LOCAL timezone='Australia/Sydney'");self.actor(101);task=self.task()
         value=rpc(self.c,'v1_task_get',(int(task['id']),))
-        actual=datetime.datetime.fromisoformat(value['deadline'])
+        actual=datetime.datetime.strptime(value['deadline'],'%Y-%m-%dT%H:%M:%S.%f%z') if '.' in value['deadline'] else datetime.datetime.fromisoformat(value['deadline'])
         self.assertEqual(actual.utcoffset(),datetime.timedelta(0))
         self.assertEqual(actual,self.deadline)
     def test_ineligible_customer_cannot_receive_staff_task(self):

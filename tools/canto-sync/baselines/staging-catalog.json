@@ -7350,6 +7350,11 @@
       "CREATE INDEX sa_index_base_products_on_asset_info_id ON sa_snapshot_20261019.sa_base_products USING btree (asset_info_id)"
     ],
     [
+      "sa_base_products",
+      "squad_base_catalog",
+      "CREATE INDEX squad_base_catalog ON sa_snapshot_20261019.sa_base_products USING btree (base_product_type_id, id DESC) WHERE (is_deleted IS NOT TRUE)"
+    ],
+    [
       "sa_base_size_types",
       "sa_base_size_types_pkey",
       "CREATE UNIQUE INDEX sa_base_size_types_pkey ON sa_snapshot_20261019.sa_base_size_types USING btree (id)"
@@ -8155,6 +8160,11 @@
       "CREATE UNIQUE INDEX sa_rmp_sku_prices_pkey ON sa_snapshot_20261019.sa_rmp_sku_prices USING btree (id)"
     ],
     [
+      "sa_rmp_sku_prices",
+      "squad_sku_price_links",
+      "CREATE INDEX squad_sku_price_links ON sa_snapshot_20261019.sa_rmp_sku_prices USING btree (rmp_sku_id, rmp_price_id) WHERE (is_deleted IS NOT TRUE)"
+    ],
+    [
       "sa_rmp_skus",
       "sa_index_rmp_skus_on_rmp_brand_id",
       "CREATE INDEX sa_index_rmp_skus_on_rmp_brand_id ON sa_snapshot_20261019.sa_rmp_skus USING btree (rmp_brand_id)"
@@ -8178,6 +8188,11 @@
       "sa_rmp_skus",
       "sa_rmp_skus_pkey",
       "CREATE UNIQUE INDEX sa_rmp_skus_pkey ON sa_snapshot_20261019.sa_rmp_skus USING btree (id)"
+    ],
+    [
+      "sa_rmp_skus",
+      "squad_rmp_sku_catalog",
+      "CREATE INDEX squad_rmp_sku_catalog ON sa_snapshot_20261019.sa_rmp_skus USING btree (rmp_class_id, rmp_brand_id, rmp_category_id, id DESC) WHERE (is_deleted IS NOT TRUE)"
     ],
     [
       "sa_sc_sizes",
@@ -8465,31 +8480,31 @@
       "sa_add_on_base_products",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_add_on_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_add_on_parts",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_add_ons",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_addresses",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_app_configs",
@@ -8507,19 +8522,19 @@
       "sa_asset_infos",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_assigned_brands",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_authorized_brands",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_back_order_links",
@@ -8531,43 +8546,43 @@
       "sa_base_product_asset_infos",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_base_product_categories",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_base_product_fabrics",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_base_product_parts",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_base_product_types",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_base_products",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_base_size_types",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_brandings",
@@ -8591,19 +8606,19 @@
       "sa_categories",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_cities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_criteria",
@@ -8633,13 +8648,13 @@
       "sa_fabric_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_fabrics",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_factories",
@@ -8747,13 +8762,13 @@
       "sa_part_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_parts",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_product_images",
@@ -8783,7 +8798,7 @@
       "sa_profit_margins",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_promotional_banners",
@@ -8825,13 +8840,13 @@
       "sa_rmp_brands",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_categories",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_category_brands",
@@ -8843,49 +8858,49 @@
       "sa_rmp_classes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_min_infos",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_price_types",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_prices",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_sku_prices",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_skus",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_sc_sizes",
@@ -8909,13 +8924,13 @@
       "sa_size_types",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_stock_infos",

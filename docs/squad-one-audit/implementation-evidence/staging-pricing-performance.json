@@ -1,0 +1,24 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T14:26:06.052116+00:00",
+  "method": "EXPLAIN ANALYZE; 2 warmups, 10 samples; DB execution excludes network",
+  "business_writes": 0,
+  "all_temporary_sessions_and_quotes_rolled_back": true,
+  "results": [
+    {
+      "query": "rmp_quote",
+      "samples": 10,
+      "database_p95_ms": 56.77
+    },
+    {
+      "query": "custom_quote",
+      "samples": 10,
+      "database_p95_ms": 77.12
+    },
+    {
+      "query": "mixed_quote",
+      "samples": 10,
+      "database_p95_ms": 87.02
+    }
+  ]
+}

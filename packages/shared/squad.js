@@ -35,6 +35,27 @@ export function createSquadClient(supabase) {
       p_id: id, p_item_cursor: items.cursor ?? null, p_item_limit: items.limit ?? 50
     }),
     dashboard: (filters = {}) => call("v1_dashboard", { p_filters: filters }),
+    catalogue: (kind = "products", filters = {}, page = {}) => call("v1_catalog_tree", {
+      p_kind:kind,p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    baseProduct: (id) => call("v1_base_product_get", {p_id:id}),
+    catalogueOptions: (kind = "brands", customerId = null, page = {}) => call("v1_catalog_options", {
+      p_kind:kind,p_customer_id:customerId,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    readyMade: (filters = {}, customerId = null, page = {}) => call("v1_rmp_search", {
+      p_filters:filters,p_customer_id:customerId,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    readyMadeDetail: (id,customerId = null) => call("v1_rmp_detail", {p_id:id,p_customer_id:customerId}),
+    readyMadeVariants: (classId,customerId = null,filters = {},page = {}) => call("v1_rmp_variants", {
+      p_class_id:classId,p_customer_id:customerId,p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    configuratorOptions: (baseId,kind,selection = {},page = {}) => call("v1_configurator_options", {
+      p_base_id:baseId,p_kind:kind,p_parent_id:selection.parentId??null,p_part_id:selection.partId??null,
+      p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    validateQuantities: (quantities,sample = null) => call("v1_item_quantity_validate", {p_quantities:quantities,p_sample:sample}),
+    quote: (request) => call("v1_quote", {p_request:request}),
+    catalogueQuote: (request,markup = {kind:"percentage",value:"0"}) => call("v1_catalogue_quote", {p_request:request,p_markup:markup}),
     tasks: (filters = {}, page = {}) => call("v1_tasks_list", {
       p_state: filters.state ?? null, p_order_id: filters.orderId ?? null,
       p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30

@@ -22,10 +22,24 @@ try {
   assert.ok(page.data.every(o=>!('factory_manager_id' in o)));
   const dashboard=await sdk.dashboard();
   assert.ok(dashboard.orders>=page.data.length);
+  const catalogue=await sdk.catalogue('products',{}, {limit:2});
+  assert.ok(catalogue.data.length<=2 && catalogue.data.every(p=>!('costs' in p)));
+  if(catalogue.data.length) {
+    const product=await sdk.baseProduct(catalogue.data[0].id);
+    assert.equal(product.id,catalogue.data[0].id);
+    const fabrics=await sdk.configuratorOptions(product.id,'fabrics',{}, {limit:2});
+    assert.ok(fabrics.data.every(f=>!('price' in f)));
+  }
+  const readyMade=await sdk.readyMade({},null,{limit:2});
+  assert.ok(readyMade.data.length<=2);
+  if(readyMade.data.length) {
+    const variants=await sdk.readyMadeVariants(readyMade.data[0].id,null,{}, {limit:2});
+    assert.ok(variants.data.every(v=>v.availability.one_day===null));
+  }
   await assert.rejects(sdk.people(),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.saveProfile({name:me.name||'Test'}, {expectedVersion:me.version,idempotencyKey:crypto.randomUUID()}),
     e=>e instanceof SquadError && e.kind==='unavailable');
-  console.log(JSON.stringify({environment:'staging',sharedClient:true,identity:true,scopedOrders:true,dashboard:true,forbiddenDirectory:true,mirrorWriteDenied:true,businessWrites:0}));
+  console.log(JSON.stringify({environment:'staging',sharedClient:true,identity:true,scopedOrders:true,dashboard:true,catalogue:true,readyMade:true,costRedaction:true,forbiddenDirectory:true,mirrorWriteDenied:true,businessWrites:0}));
 } finally {
   await client.auth.signOut({scope:'local'});
 }
