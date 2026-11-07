@@ -1,11 +1,11 @@
 # Canto foundation acceptance — 7 November 2026
 
-Runtime code verified at `57cdd41c90c109395842460869ba08c0a66856d8`, pushed to `develop`.
+Runtime code verified at `57cdd41c90c109395842460869ba08c0a66856d8`. Release commit `b6411c1a79b8da21d4414179537230641fb824de` was pushed to both `develop` and `main` after production authorization.
 
 ## Delivered
 
 - npm workspaces: existing dashboard in `apps/admin`, Expo starter in `apps/mobile`, shared constants in `packages/shared`, refresh tooling in `tools/canto-sync`.
-- All 22 existing Masters screens retain their forms and support an independent Old system / Supabase target and staging / production selection. The new Supabase administration API is deployed to staging; production deployment is pending.
+- All 22 existing Masters screens retain their forms and support an independent Old system / Supabase target and staging / production selection. The new Supabase administration API is deployed to both staging and production.
 - Data Refresh authorizes an administrator, starts a background GitHub job, shows progress and persistent history, verifies an encrypted recovery backup, and atomically publishes matching DigitalOcean data and Canto Auth state.
 
 ## Verification evidence
@@ -40,16 +40,29 @@ The final run verified **86 tables, 1,382,126 rows and 7,469 source users**. All
 
 Publication compares preservation checks within a consistent transaction snapshot, so independent staff sign-in timestamps are not mistaken for migration writes. See [PostgreSQL repeatable-read semantics](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-REPEATABLE-READ).
 
+## Authorized production release
+
+[Production cloud refresh](https://github.com/Mayur8291/Printing-Tracker/actions/runs/42346748707) succeeded from `main` at release commit `b6411c1`. Dashboard job `bf5037bf-1a56-4a90-8c5c-009866ece7cd` reached `succeeded / verified` on 7 November 2026 at 06:27 UTC.
+
+- Verified **86 tables, 1,534,365 rows and 7,992 source users** after applying 90 inserts, 51 updates and zero deletions.
+- Enrolled one new Auth account. All **7,353 eligible users** passed source password-hash, role and stable-identity parity. The 637 inactive accounts and two pre-existing ambiguous email identities remain excluded from eligible sign-in.
+- The public schema and staff Auth preservation checks passed within the refresh transaction. An actual staff password sign-in succeeded while the refresh was running. The separate whole-release comparison retained all 41 original staff IDs; 40 complete row hashes were unchanged, while one row had an `updated_at` of 06:24:50 UTC. That broader comparison does not establish which fields changed or attribute the change, and is not reported as a byte-identical whole-release result.
+- All 24 master/option resources passed authenticated production REST reads. Anonymous refresh access and requests naming the wrong environment were rejected. The final controller status and master read also passed after publication.
+- The production rollback backup downloaded and decrypted locally, and all 86 table fingerprints matched its manifest (1,534,275 pre-refresh rows). This recovery test did not write recovered data back to production.
+- The security-advisor comparison added no error-level findings. Six informational findings identify private tables with RLS enabled and no policies (intentional default denial). Three warnings identify authenticated execution of `SECURITY DEFINER` admin RPCs. Each RPC has a fixed `pg_catalog` search path, calls the live-session admin guard, and denies `anon` and `sa_app` execution; these expected warnings were reviewed rather than suppressed.
+- The temporary production administrator, its allowlist entry, profile, sessions and local credential file were removed. All 41 original staff accounts remain; the public schema still matches the pre-release fingerprint. Production has no active job and edit/synced revisions are both zero. Staging remains clean with both revisions at 167.
+- The owner’s manual **legacy production user/password sign-in** test remains outstanding. Source hash parity and the production staff test do not substitute for that user acceptance test.
+
 ## Release status and limits
 
 - No DigitalOcean code or configuration changes were needed for this work. The existing restricted export key is reused.
-- Production received read-only compatibility checks: all 24 master/option contracts and the expected existing Auth guard matched. The three new administration/guard migrations and refresh Edge Function have **not** been deployed there; `main` was not pushed.
-- The user confirmed Vercel is the live host. The latest Vercel build passed. GitHub calls its deployment environment `Production` but marks `production_environment=false`; that metadata alone does not establish the live branch mapping. Vercel dashboard access is still needed: the currently signed-in Not Funny account receives 404 for `mayur8291s-projects/scott_dashboard`. Repository Netlify instructions are not authoritative for the live host.
+- Production passed all 24 master/option compatibility checks. The reviewed migrations `20261107045242`, `20261107050603`, and `20261107060300` and the `canto-refresh` Edge Function are deployed. Production dispatches its worker from `main`; staging uses `develop`.
+- The user confirmed Vercel is the live host and requested Git-based deployment. Both release builds succeeded: the `develop` push produced deployment `7617546377`, labeled `Production`; the `main` push produced deployment `7617587700`, labeled `Preview`. Both contain the same release commit. GitHub marks both `production_environment=false`, so these labels are not proof of the canonical live alias. Both generated deployment URLs redirect to Vercel sign-in; the available browser account cannot access this Vercel project. Repository Netlify instructions are not authoritative for the live host.
 - Browser acceptance used the local admin against the deployed staging API. Hosted preview acceptance remains pending the correct Vercel project access.
 - The pre-existing Scott configuration CI check reports missing production `SCOTT_AUTH_EMAIL` / `SCOTT_AUTH_PASSWORD`. It is not reported as passing.
 - Expo is a starter, not the completed mobile app. Native bundles were exported; a physical device/simulator run has not been performed.
 - Existing imported media still uses its legacy URLs. Newly uploaded images use Supabase Storage; transferring old files is a separate task.
 
-After release authorization, verify the Vercel project/production branch, promote the reviewed `develop` code, and run `tools/canto-sync/.venv/bin/python tools/canto-sync/deploy_admin.py production`. That command installs only the reviewed Canto migrations, exposes the guarded RPC schema, deploys the controller and selects the `main` worker. Do not substitute an unrelated blanket migration push. The database refresh remains one-way and requires explicit confirmation before replacing Supabase edits; cutover disables old-system refresh.
+The authorized production release used `tools/canto-sync/.venv/bin/python tools/canto-sync/deploy_admin.py production`. That command installed only the reviewed Canto migrations, exposed the guarded RPC schema, deployed the controller and selected the `main` worker. Do not substitute an unrelated blanket migration push. The database refresh remains one-way and requires explicit confirmation before replacing Supabase edits; cutover disables old-system refresh.
 
 Secrets, test credentials, row exports and backups are excluded from this report and Git. The temporary test administrator and saved test browser session have been removed.
