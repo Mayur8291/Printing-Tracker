@@ -1697,7 +1697,7 @@ function App() {
   }, [session?.user?.id]);
 
   useEffect(() => {
-    if (!session?.user?.id || profileLoading) return;
+    if (!session?.user?.id || profileLoading || profile?.id !== session.user.id) return;
     const role = (profile?.role ?? "").trim().toLowerCase();
     const isAdminRole = role === "admin";
     const perms = viewerPermissions[session.user.id] ?? {};
@@ -1706,7 +1706,7 @@ function App() {
   }, [session?.user?.id, profile?.role, profileLoading, viewerPermissions, dashboardTab]);
 
   useEffect(() => {
-    if (!session?.user?.id || profileLoading) return;
+    if (!session?.user?.id || profileLoading || profile?.id !== session.user.id) return;
     const role = (profile?.role ?? "").trim().toLowerCase();
     const isAdminRole = role === "admin";
     const perms = viewerPermissions[session.user.id] ?? {};

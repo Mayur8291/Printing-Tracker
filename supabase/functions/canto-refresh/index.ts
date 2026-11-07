@@ -31,10 +31,10 @@ Deno.serve(async req => {
       const job = status.jobs.find((j: { id: string }) => j.id === status.state.active_job);
       if (job && Deno.env.get("CANTO_GITHUB_TOKEN")) {
         try {
-          const runs = await github(`actions/workflows/${workflow}/runs?event=workflow_dispatch&per_page=100`);
+          const runs = await github(job.github_run_id ? `actions/runs/${job.github_run_id}` : `actions/workflows/${workflow}/runs?event=workflow_dispatch&per_page=100`);
           if (runs.ok) {
-            const list = (await runs.json()).workflow_runs;
-            const run = list.find((r: { display_title: string }) => r.display_title === `Canto ${environment} ${job.id}`);
+            const payload = await runs.json();
+            const run = job.github_run_id ? payload : payload.workflow_runs.find((r: { display_title: string }) => r.display_title === `Canto ${environment} ${job.id}`);
             if (run?.status === "completed") {
               await rpc("refresh_reconcile", { job_id: job.id, outcome: "workflow_completed", workflow_run_id: String(run.id) }, authorization, true);
               status = await rpc("refresh_status", {}, authorization);

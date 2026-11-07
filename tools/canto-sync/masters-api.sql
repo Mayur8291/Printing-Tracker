@@ -83,7 +83,7 @@ BEGIN
   SELECT c.spec INTO spec FROM sa_admin.master_contracts c WHERE resource=p_resource;
   FOR target,ids IN SELECT * FROM jsonb_each(p_relations) LOOP
     rel:=spec->'relations'->target;
-    IF rel IS NULL OR jsonb_typeof(ids)<>'array' OR jsonb_array_length(ids)>1000 THEN RAISE EXCEPTION 'Invalid relation %',target USING ERRCODE='22023'; END IF;
+    IF rel IS NULL OR jsonb_typeof(ids) IS DISTINCT FROM 'array' OR jsonb_array_length(ids)>1000 THEN RAISE EXCEPTION 'Invalid relation %',target USING ERRCODE='22023'; END IF;
     EXECUTE format('UPDATE sa_snapshot_20261019.%I SET is_deleted=true,updated_at=now() WHERE %I=$1','sa_'||(rel->>0),rel->>1) USING p_id;
     FOR item IN SELECT DISTINCT jsonb_array_elements_text(ids) LOOP
       IF item !~ '^[0-9]+$' THEN RAISE EXCEPTION 'Invalid relation ID' USING ERRCODE='22023'; END IF;
@@ -132,7 +132,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
 DECLARE spec jsonb; field text; value jsonb; payload jsonb; before_ jsonb; after_ jsonb;
   row_ jsonb; record_id bigint; cols text; vals text; assignments text; field_type text;
   exists_ boolean; target text; enum_values jsonb; enum_index int; page_ int; size_ int;
-  total_ bigint; result jsonb; where_ text; search_ text; search_expr text; ids jsonb; item text;
+  total_ bigint; result jsonb; where_ text; search_ text; search_expr text; related_search text; ids jsonb; item text;
 BEGIN
   IF NOT sa_admin.is_admin() THEN RAISE EXCEPTION 'Administrator access required' USING ERRCODE='42501'; END IF;
   SELECT c.spec INTO spec FROM sa_admin.master_contracts c WHERE resource=p_resource;
@@ -146,6 +146,14 @@ BEGIN
     IF spec->'columns' ? 'is_deleted' AND NOT coalesce((p_data->>'includeInactive')::boolean,false) THEN where_:=where_||' AND NOT coalesce(t.is_deleted,false)'; END IF;
     search_:=left(coalesce(p_data->>'search',''),200);
     SELECT string_agg(format('coalesce(t.%I::text,'''')',f),' || '' '' || ') INTO search_expr FROM jsonb_array_elements_text(spec->'search') f;
+    IF search_<>'' THEN
+      FOR field,target IN SELECT * FROM jsonb_each_text(coalesce(spec->'references','{}')) LOOP
+        SELECT string_agg(format('coalesce(r.%I::text,'''')',f),' || '' '' || ') INTO related_search
+          FROM sa_admin.master_contracts c CROSS JOIN LATERAL jsonb_array_elements_text(c.spec->'search') f WHERE c.resource=target;
+        IF related_search IS NOT NULL THEN search_expr:=concat_ws(' || '' '' || ',search_expr,format('coalesce((SELECT %s FROM sa_snapshot_20261019.%I r WHERE r.id=t.%I),'''')',related_search,'sa_'||target,field)); END IF;
+      END LOOP;
+      IF p_resource='asset_infos' THEN search_expr:='coalesce((SELECT e.values->>''name'' FROM sa_admin.record_extras e WHERE e.resource=''asset_infos'' AND e.record_id=t.id),'''')'; END IF;
+    END IF;
     IF search_<>'' AND search_expr IS NOT NULL THEN where_:=where_||format(' AND (%s) ILIKE %L',search_expr,'%'||replace(replace(replace(search_,E'\\',E'\\\\'),'%','\%'),'_','\_')||'%'); END IF;
     FOR field,value IN SELECT * FROM jsonb_each(coalesce(p_data->'filters','{}')) LOOP
       IF NOT (spec->'references' ? field) THEN RAISE EXCEPTION 'Unsupported filter' USING ERRCODE='22023'; END IF;
@@ -165,7 +173,7 @@ BEGIN
   -- A publication owns the same lock; edits cannot race the capture/comparison/apply cycle.
   IF p_action='bulk_delete' THEN
     ids:=p_data->'ids';
-    IF jsonb_typeof(ids)<>'array' OR jsonb_array_length(ids)>1000 THEN RAISE EXCEPTION 'Choose up to 1000 records' USING ERRCODE='22023'; END IF;
+    IF jsonb_typeof(ids) IS DISTINCT FROM 'array' OR jsonb_array_length(ids)>1000 THEN RAISE EXCEPTION 'Choose up to 1000 records' USING ERRCODE='22023'; END IF;
     FOR item IN SELECT jsonb_array_elements_text(ids) LOOP
       PERFORM sa_admin.master_request(p_resource,'delete',jsonb_build_object('id',item));
     END LOOP;

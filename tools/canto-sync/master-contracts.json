@@ -375,7 +375,8 @@
       "add_on_of",
       "add_on_sn",
       "select_type",
-      "group_name"
+      "group_name",
+      "has_color"
     ],
     "unique": {
       "add_on": true

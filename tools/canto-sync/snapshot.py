@@ -6,7 +6,8 @@ from pglast.stream import RawStream
 import legacy_remap as legacy
 
 legacy.ast, legacy.parse_sql, legacy.parser, legacy.RawStream = ast, parse_sql, parser, RawStream
-RESTORE = os.environ.get('PG_RESTORE') or shutil.which('pg_restore') or '/opt/homebrew/opt/postgresql@17/bin/pg_restore'
+_LOCAL_RESTORE = '/opt/homebrew/opt/postgresql@17/bin/pg_restore'
+RESTORE = os.environ.get('PG_RESTORE') or (_LOCAL_RESTORE if Path(_LOCAL_RESTORE).is_file() else shutil.which('pg_restore') or 'pg_restore')
 ROOT = Path(__file__).resolve().parent
 
 def require(value, message):

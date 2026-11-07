@@ -1,3 +1,4 @@
+import { urlToScottFile } from "../scott/scottClient";
 import { cantoRpc, getCantoClient, getCantoTarget } from "./target";
 
 const relationName = (resource, action) => action === "update_categories" ? (resource === "rmp_brands" ? "rmp_categories" : "categories") : action.replace(/^update_/, "");
@@ -73,10 +74,24 @@ export function createSupabaseMastersService(config) {
       for (const key of Object.keys(payload)) if (/^color_ids\[/.test(key)) delete payload[key];
       if (form.color_ids !== undefined) relations.colors = form.color_ids.map(String);
     }
+    async function imageValue(value, previous, wire) {
+      if (payload[wire]?.__base64File) return;
+      if ((value === "" || value === null) && previous) { payload[wire] = null; return; }
+      if (typeof value !== "string" || !value || value === previous) return;
+      const imageUrl = new URL(value);
+      if (!["https:", "http:"].includes(imageUrl.protocol)) throw new Error("Choose an image file or a readable image URL.");
+      const project = environment === "production" ? "levwrmvqdntngeasrtnb" : "scvojtvgnkmbupvyslmb";
+      if (imageUrl.origin === `https://${project}.supabase.co` && imageUrl.pathname.startsWith("/storage/v1/object/public/canto-masters/")) payload[wire] = value;
+      else {
+        try { payload[wire] = await urlToScottFile(value, `${wire}.png`); }
+        catch { throw new Error("This image URL cannot be read. Download the image and choose it as a file."); }
+      }
+    }
     for (const field of config.fields || []) {
-      if (field.type === "image" && form[field.key] === "" && current?.[field.key] && !form[field.fileKey]) payload[field.wire || field.key] = null;
+      if (field.type === "image" && Object.hasOwn(form, field.key)) await imageValue(form[field.key], current?.[field.key], field.wire || field.key);
       if (field.type === "image-slots" && form[field.key]) for (const [slot, value] of Object.entries(form[field.key])) if (value === null) payload[slot] = null;
     }
+    for (const slot of config.imageSlots || []) if (Object.hasOwn(form, slot)) await imageValue(form[slot], current?.[slot], slot);
     const { values, uploaded } = await uploadFiles(payload);
     try {
       return normalize(await request(action, { id: id == null ? undefined : String(id), values, relations, expectedUpdatedAt: current?.updated_at }));
