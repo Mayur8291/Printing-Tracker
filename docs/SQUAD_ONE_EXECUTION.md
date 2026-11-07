@@ -73,6 +73,20 @@ These are bounded representative DB calls, not a concurrent load/capacity guaran
 
 Next: iteration 5 implements canonical presets and artwork ownership, then quote override and the transactional order lifecycle.
 
+## Iteration 5 — canonical presets, private colours and quote overrides
+
+Staging now has 33 of the original 115 proposed RPC names, plus `v1_color_save`. The extra contract implements the already-audited legacy `products#add_color` action under CONFIG.01; it is not a new feature or Edge deployment. Preset create/reuse/list/rename, private colour creation, SVG preview layer metadata and SC price overrides use the same role, revision, idempotency and refresh fences.
+
+175 local integration tests pass, including simultaneous different-key requests for one owner/configuration producing exactly one preset. Canonical matching excludes names/comments/artwork and retains source colour-link distinctions. Deduplication is owner-scoped: it never shares another user's reference art or comments. Existing presets are found even without the operational fingerprint cache. Source `custom_products` contains an always-truthy Ruby role branch; the new explicit scope is owner or accessible order (Admin oversight), rather than reproducing that defect. SC renames additionally require visibility; customers cannot rename even their own preset.
+
+Private colours use six-digit hex values and eligible fabric/part/add-on links, stay private in selectors, and reuse a matching accessible target colour. Preview metadata includes offsets and size ratios with media descriptors, not arbitrary source URLs. New artwork upload/attachment and authorized file delivery remain in the media orchestration gate.
+
+SC quote overrides retain canonical prices, require a reason and exact version, recompute tax/order totals, and reject changed masters, expired quotes, foreign quotes or old source generations. Repeating the same command returns the original result and creates one audit event. Pricing requests now have an aggregate 500-selection work budget. Sample sizing and full historical financial acceptance still remain part of the later order journey review.
+
+Hosted rollback-only checks passed for private colour → configure → reuse → rename → quote → override → exact retry. All temporary records/sessions were rolled back and all advanced sequences restored under the refresh/write lock. Staging fingerprints were updated through the checked deployment tool; Printing Tracker public structure remains unchanged. Shared mobile/web SDK declarations cover the added contracts and mobile typechecking passes.
+
+Next: transactional order acceptance, quote/preset revalidation, dealer-brand splitting and lifecycle operations. The remaining stock/media/provider/notification gates still prevent calling the backend complete.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

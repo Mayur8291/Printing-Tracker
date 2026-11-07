@@ -56,6 +56,20 @@ export function createSquadClient(supabase) {
     validateQuantities: (quantities,sample = null) => call("v1_item_quantity_validate", {p_quantities:quantities,p_sample:sample}),
     quote: (request) => call("v1_quote", {p_request:request}),
     catalogueQuote: (request,markup = {kind:"percentage",value:"0"}) => call("v1_catalogue_quote", {p_request:request,p_markup:markup}),
+    configureProduct: (configuration,name,comment,idempotencyKey) => call("v1_product_configure", {
+      p_configuration:configuration,p_name:name,p_comment:comment,p_idempotency_key:idempotencyKey
+    }),
+    presets: (filters = {},page = {}) => call("v1_presets_list", {p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    renamePreset: (id,name,command) => call("v1_preset_rename", {
+      p_id:id,p_name:name,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    saveColor: (targetKind,targetId,name,hex,idempotencyKey) => call("v1_color_save", {
+      p_target_kind:targetKind,p_target_id:targetId,p_name:name,p_hex:hex,p_idempotency_key:idempotencyKey
+    }),
+    overrideQuote: (quoteId,line,unitPrice,reason,command) => call("v1_quote_override", {
+      p_quote_id:quoteId,p_line:line,p_unit_price:unitPrice,p_reason:reason,
+      p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
     tasks: (filters = {}, page = {}) => call("v1_tasks_list", {
       p_state: filters.state ?? null, p_order_id: filters.orderId ?? null,
       p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30

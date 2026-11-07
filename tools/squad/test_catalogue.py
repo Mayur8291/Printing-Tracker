@@ -44,6 +44,7 @@ def seed_catalogue(c):
    INSERT INTO sa_snapshot_20261019.sa_rmp_prices(id,name,price,mrp,rmp_sku_id,rmp_price_type_id,created_at,updated_at)
     VALUES(1,'A regular',100,150,2,1,now(),now()),(2,'A south',80,150,2,2,now(),now()),(3,'B regular',200,250,2,1,now(),now()),(4,'Special',70,150,2,3,now(),now());
    INSERT INTO sa_snapshot_20261019.sa_rmp_sku_prices(rmp_sku_id,rmp_price_id,created_at,updated_at) VALUES(1,1,now(),now()),(1,2,now(),now()),(2,3,now(),now()),(1,4,now(),now());
+   SELECT setval('sa_snapshot_20261019.sa_colors_id_seq',3);
    UPDATE sa_snapshot_20261019.sa_rmp_skus SET cgst=2.5,sgst=2.5,igst=5;
    UPDATE sa_snapshot_20261019.sa_users SET zone_id=1 WHERE id=103;
    UPDATE sa_snapshot_20261019.sa_users SET rmp_price_type_id=3 WHERE id=203;

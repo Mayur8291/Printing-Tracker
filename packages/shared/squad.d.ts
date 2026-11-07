@@ -78,6 +78,7 @@ export interface CatalogueOption {
   /** Cost properties only appear for an authorized cost-breakdown capability. */
   costs?:Record<string,string|null>;price?:string;gsm?:string;of?:string;sn?:string;
   type?:number;uom?:string;order_criteria?:string;hex?:string;has_color?:boolean;
+  asset?:MediaReference;offset_x?:string|null;offset_y?:string|null;mirror_offset_x?:string|null;height_ratio?:string|null;part_id?:EntityId|null;addon_id?:EntityId|null;
   selection_type?:0|1;group?:string;layer_sort?:number;main_category?:string;authorized_brand_id?:EntityId;
 }
 export interface CommercialContext { customer_id:EntityId|null;price_type_id:EntityId|null;basis:'regular'|'zone'|'assigned';stock_visibility_percentage:number;generation:number }
@@ -89,7 +90,8 @@ export interface ReadyMadeVariant {
   id:EntityId;name:string;size_id:EntityId;size_name:string;size_position:number|null;brand_id:EntityId;category_id:EntityId;price:Price|null;
   availability:{status:'not_loaded';one_day:null;three_day:null;as_of:null};
 }
-export type ConfiguratorKind='categories'|'fabrics'|'fabric_colors'|'parts'|'part_colors'|'addons'|'addon_colors'|'size_types';
+export type ConfiguratorKind='categories'|'fabrics'|'fabric_colors'|'parts'|'part_colors'|'addons'|'addon_colors'|'size_types'|'assets';
+export interface Preset extends SavedEntity {name:string;style_number:string;base_product_id:EntityId;fabric_id:EntityId;category_id:EntityId;branding_enabled:boolean;comment?:string;configuration?:Configuration}
 export interface Configuration {
   base_product_id:EntityId;fabric_id:EntityId;fabric_color_id:EntityId;category_id:EntityId;
   parts?:Array<{part_id:EntityId;color_id:EntityId;addons?:Array<{addon_id:EntityId;color_id?:EntityId|null}>}>;
@@ -100,14 +102,14 @@ export interface BrandingInput {type:'print'|'embroidery';side:string;width:stri
 export type QuoteLineInput = {kind:'custom';configuration:Configuration;quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]}
   | {kind:'rmp';skus:Array<{sku_id:EntityId;quantity:number}>;brandings?:BrandingInput[]};
 export interface QuoteRequest {customer_id?:EntityId;address_id:EntityId;lines:QuoteLineInput[]}
-export interface QuoteVariant {unit_price:string;quantity:number;sample_rate_applied?:boolean;sku_id?:EntityId;size_id?:EntityId;class_id?:EntityId;brand_id?:EntityId;category_id?:EntityId;price?:Price;display_unit_price?:string}
+export interface QuoteVariant {calculated_unit_price?:string;unit_price:string;quantity:number;sample_rate_applied?:boolean;sku_id?:EntityId;size_id?:EntityId;class_id?:EntityId;brand_id?:EntityId;category_id?:EntityId;price?:Price;display_unit_price?:string}
 export interface QuoteLine {
   line:number;kind:'custom'|'rmp';configuration:Configuration|null;quantities:NormalizedQuantities|null;
   variants:QuoteVariant[];branding:{unit_price:string;placements:Array<BrandingInput & {unit_price:string}>};
   quantity:number;subtotal:string;branding_total:string;cgst:string;sgst:string;igst:string;total:string;
   costs?:Record<string,string>;consumption?:string;
 }
-export interface QuoteCalculation {currency:'INR';pricing_version:string;tax_included:boolean;context:CommercialContext;address_id:EntityId|null;lines:QuoteLine[];quantity:number;subtotal:string;branding_total:string;cgst:string;sgst:string;igst:string;total:string}
+export interface QuoteCalculation {tax_state:string|null;currency:'INR';pricing_version:string;tax_included:boolean;context:CommercialContext;address_id:EntityId|null;lines:QuoteLine[];quantity:number;subtotal:string;branding_total:string;cgst:string;sgst:string;igst:string;total:string}
 export interface Quote extends QuoteCalculation {quote_id:string;version:Version;expires_at:string;fingerprint:string}
 export interface Markup {kind:'percentage'|'fixed';value:string}
 
@@ -140,6 +142,11 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   validateQuantities(quantities:SizeQuantity[],sample?:SizeQuantity|null):Promise<NormalizedQuantities>;
   quote(request:QuoteRequest):Promise<Quote>;
   catalogueQuote(request:Omit<QuoteRequest,'address_id'>,markup?:Markup):Promise<QuoteCalculation & {markup:Markup;purpose:'catalogue_display_only'}>;
+  configureProduct(configuration:Configuration,name:string,comment:string,idempotencyKey:string):Promise<SavedEntity & {style_number:string;fingerprint:string;reused:boolean}>;
+  presets(filters?:{id?:EntityId;base_product_id?:EntityId;style_number?:string;search?:string},page?:PageRequest):Promise<Page<Preset>>;
+  renamePreset(id:EntityId,name:string,command:Command):Promise<SavedEntity>;
+  saveColor(targetKind:'fabric'|'part'|'addon',targetId:EntityId,name:string,hex:string,idempotencyKey:string):Promise<SavedEntity & {name:string;hex:string;reused:boolean}>;
+  overrideQuote(quoteId:string,line:number,unitPrice:string,reason:string,command:Command):Promise<Quote>;
   tasks(filters?: {state?:0|1|2;orderId?:EntityId},page?:PageRequest):Promise<Page<Task>>;
   task(id:EntityId):Promise<Task>;
   taskAssignees(page?:PageRequest):Promise<Page<{id:EntityId;name:string;role:number}>>;

@@ -59,6 +59,14 @@ class Pricing(unittest.TestCase):
  def test_unrelated_addon_rejected(self):
   line=custom();line['configuration']['parts'][0]['addons'][0]={'addon_id':'2'}
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.quote([line])
+ def test_mixed_single_multiple_group_rejected(self):
+  self.raw('UPDATE sa_snapshot_20261019.sa_add_ons SET select_type=1 WHERE id=2')
+  self.raw('INSERT INTO sa_snapshot_20261019.sa_add_on_base_products(add_on_id,base_product_id,created_at,updated_at) VALUES(2,1,now(),now())')
+  line=custom();line['configuration']['parts'][0]['addons'].append({'addon_id':'2'})
+  with self.assertRaises(psycopg.errors.InvalidParameterValue):self.quote([line])
+ def test_request_complexity_bounded_before_calculation(self):
+  line=custom();line['configuration']['parts']*=11
+  with self.assertRaisesRegex(psycopg.errors.InvalidParameterValue,'selection budget'):self.quote([line]*50)
  def test_duplicate_part_rejected(self):
   line=custom();line['configuration']['parts']*=2
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.quote([line])

@@ -7905,6 +7905,11 @@
       "CREATE UNIQUE INDEX sa_product_part_add_ons_pkey ON sa_snapshot_20261019.sa_product_part_add_ons USING btree (id)"
     ],
     [
+      "sa_product_part_add_ons",
+      "squad_product_addons_part",
+      "CREATE INDEX squad_product_addons_part ON sa_snapshot_20261019.sa_product_part_add_ons USING btree (product_part_id, add_on_id, id)"
+    ],
+    [
       "sa_product_parts",
       "sa_index_product_parts_on_part_color_id",
       "CREATE INDEX sa_index_product_parts_on_part_color_id ON sa_snapshot_20261019.sa_product_parts USING btree (part_color_id)"
@@ -7923,6 +7928,11 @@
       "sa_product_parts",
       "sa_product_parts_pkey",
       "CREATE UNIQUE INDEX sa_product_parts_pkey ON sa_snapshot_20261019.sa_product_parts USING btree (id)"
+    ],
+    [
+      "sa_product_parts",
+      "squad_product_parts_product",
+      "CREATE INDEX squad_product_parts_product ON sa_snapshot_20261019.sa_product_parts USING btree (product_id, part_id, id)"
     ],
     [
       "sa_products",
@@ -7963,6 +7973,11 @@
       "sa_products",
       "sa_products_pkey",
       "CREATE UNIQUE INDEX sa_products_pkey ON sa_snapshot_20261019.sa_products USING btree (id)"
+    ],
+    [
+      "sa_products",
+      "squad_products_owner_configuration",
+      "CREATE INDEX squad_products_owner_configuration ON sa_snapshot_20261019.sa_products USING btree (created_by_id, base_product_id, fabric_id, fabric_color_id, category_id, id)"
     ],
     [
       "sa_profit_margins",
@@ -8486,7 +8501,7 @@
       "sa_add_on_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_add_on_parts",
@@ -8618,7 +8633,7 @@
       "sa_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_criteria",
@@ -8648,7 +8663,7 @@
       "sa_fabric_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_fabrics",
@@ -8762,7 +8777,7 @@
       "sa_part_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_parts",
@@ -8780,19 +8795,19 @@
       "sa_product_part_add_ons",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_product_parts",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_products",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_profit_margins",
