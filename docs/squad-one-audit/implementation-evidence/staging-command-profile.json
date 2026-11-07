@@ -1,296 +1,368 @@
 [
   {
     "function": "actor",
-    "calls": 2714,
-    "total_ms": 2868.95,
-    "self_ms": 2868.95
+    "calls": 7978,
+    "total_ms": 6274.51,
+    "self_ms": 6274.51
   },
   {
     "function": "create_order_line",
     "calls": 12,
-    "total_ms": 4524.16,
-    "self_ms": 2627.33
-  },
-  {
-    "function": "v1_order_get",
-    "calls": 1,
-    "total_ms": 1389.56,
-    "self_ms": 1361.18
-  },
-  {
-    "function": "attach_order_criteria",
-    "calls": 12,
-    "total_ms": 1310.84,
-    "self_ms": 783.69
-  },
-  {
-    "function": "lock_item",
-    "calls": 8,
-    "total_ms": 871.68,
-    "self_ms": 561.34
-  },
-  {
-    "function": "v1_worker_stage_save",
-    "calls": 5,
-    "total_ms": 1424.26,
-    "self_ms": 459.58
+    "total_ms": 2232.39,
+    "self_ms": 1046.19
   },
   {
     "function": "v1_item_criteria_save",
     "calls": 1,
-    "total_ms": 351.82,
-    "self_ms": 163.06
+    "total_ms": 909.73,
+    "self_ms": 872.35
+  },
+  {
+    "function": "scope_item_ids",
+    "calls": 1153,
+    "total_ms": 2532.1,
+    "self_ms": 755.66
+  },
+  {
+    "function": "scope_order_ids",
+    "calls": 371,
+    "total_ms": 1322.16,
+    "self_ms": 753.75
+  },
+  {
+    "function": "work_scope_ids",
+    "calls": 540,
+    "total_ms": 1347.27,
+    "self_ms": 269.64
+  },
+  {
+    "function": "attach_order_criteria",
+    "calls": 12,
+    "total_ms": 472.38,
+    "self_ms": 229.4
+  },
+  {
+    "function": "lock_order",
+    "calls": 101,
+    "total_ms": 981.74,
+    "self_ms": 127.92
+  },
+  {
+    "function": "recompute_order_progress",
+    "calls": 49,
+    "total_ms": 1526.02,
+    "self_ms": 108.84
   },
   {
     "function": "v1_order_place",
     "calls": 13,
-    "total_ms": 5320.92,
-    "self_ms": 128.75
+    "total_ms": 2634.78,
+    "self_ms": 80.48
   },
   {
-    "function": "clear_cutter_assignments",
-    "calls": 2,
-    "total_ms": 170.69,
-    "self_ms": 123.91
+    "function": "assert_work_balances",
+    "calls": 48,
+    "total_ms": 763.68,
+    "self_ms": 61.6
   },
   {
-    "function": "v1_item_assign_cutter",
-    "calls": 1,
-    "total_ms": 273.58,
-    "self_ms": 100.98
+    "function": "work_queue",
+    "calls": 24,
+    "total_ms": 420.2,
+    "self_ms": 59.66
   },
   {
-    "function": "v1_worker_cost_save",
-    "calls": 1,
-    "total_ms": 245.3,
-    "self_ms": 96.23
+    "function": "v1_jobsheet_assign",
+    "calls": 12,
+    "total_ms": 1009.13,
+    "self_ms": 52.94
+  },
+  {
+    "function": "v1_dispatch_record",
+    "calls": 13,
+    "total_ms": 1802.0,
+    "self_ms": 52.15
+  },
+  {
+    "function": "v1_jobsheet_inspect",
+    "calls": 12,
+    "total_ms": 2088.51,
+    "self_ms": 52.0
+  },
+  {
+    "function": "finish_command",
+    "calls": 68,
+    "total_ms": 89.06,
+    "self_ms": 37.85
+  },
+  {
+    "function": "work_detail",
+    "calls": 24,
+    "total_ms": 452.09,
+    "self_ms": 37.06
   },
   {
     "function": "v1_product_configure",
     "calls": 2,
-    "total_ms": 111.69,
-    "self_ms": 66.01
+    "total_ms": 58.57,
+    "self_ms": 31.83
   },
   {
-    "function": "v1_worker_due_save",
-    "calls": 1,
-    "total_ms": 102.6,
-    "self_ms": 53.04
+    "function": "order_progress_totals",
+    "calls": 51,
+    "total_ms": 114.75,
+    "self_ms": 30.68
   },
   {
-    "function": "assert_reassignable",
-    "calls": 2,
-    "total_ms": 74.97,
-    "self_ms": 48.2
+    "function": "recompute_item_progress",
+    "calls": 48,
+    "total_ms": 2069.69,
+    "self_ms": 30.28
   },
   {
-    "function": "finish_command",
-    "calls": 28,
-    "total_ms": 75.07,
-    "self_ms": 45.5
-  },
-  {
-    "function": "v1_order_assign_worker",
-    "calls": 1,
-    "total_ms": 264.13,
-    "self_ms": 30.1
-  },
-  {
-    "function": "lock_order",
-    "calls": 24,
-    "total_ms": 218.3,
-    "self_ms": 28.45
+    "function": "v1_tailor_work",
+    "calls": 12,
+    "total_ms": 108.31,
+    "self_ms": 29.62
   },
   {
     "function": "custom_price",
     "calls": 26,
-    "total_ms": 130.66,
-    "self_ms": 24.68
+    "total_ms": 72.07,
+    "self_ms": 26.54
   },
   {
-    "function": "v1_quote",
+    "function": "assert_factory_work",
+    "calls": 48,
+    "total_ms": 438.51,
+    "self_ms": 24.97
+  },
+  {
+    "function": "begin_command",
+    "calls": 71,
+    "total_ms": 82.01,
+    "self_ms": 24.58
+  },
+  {
+    "function": "v1_order_get",
     "calls": 1,
-    "total_ms": 68.09,
-    "self_ms": 20.63
+    "total_ms": 266.78,
+    "self_ms": 21.04
   },
   {
     "function": "commercial_context",
     "calls": 65,
-    "total_ms": 154.54,
-    "self_ms": 19.68
+    "total_ms": 79.68,
+    "self_ms": 20.22
   },
   {
-    "function": "v1_color_save",
-    "calls": 1,
-    "total_ms": 66.32,
-    "self_ms": 19.07
+    "function": "v1_cutting_record",
+    "calls": 12,
+    "total_ms": 1284.95,
+    "self_ms": 19.37
   },
   {
-    "function": "begin_command",
-    "calls": 30,
-    "total_ms": 51.34,
-    "self_ms": 18.54
+    "function": "bump_version",
+    "calls": 116,
+    "total_ms": 17.57,
+    "self_ms": 17.57
   },
   {
     "function": "normalize_configuration",
     "calls": 16,
-    "total_ms": 136.95,
-    "self_ms": 17.43
+    "total_ms": 71.97,
+    "self_ms": 16.34
   },
   {
-    "function": "recompute_order_progress",
-    "calls": 6,
-    "total_ms": 182.9,
-    "self_ms": 12.34
+    "function": "work_person",
+    "calls": 14,
+    "total_ms": 16.12,
+    "self_ms": 16.12
   },
   {
-    "function": "v1_order_assign_factory",
+    "function": "lock_item",
+    "calls": 50,
+    "total_ms": 829.07,
+    "self_ms": 15.25
+  },
+  {
+    "function": "v1_color_save",
     "calls": 1,
-    "total_ms": 75.98,
-    "self_ms": 11.53
+    "total_ms": 39.59,
+    "self_ms": 14.49
+  },
+  {
+    "function": "v1_jobsheets_list",
+    "calls": 12,
+    "total_ms": 80.71,
+    "self_ms": 14.07
   },
   {
     "function": "calculate_quote",
     "calls": 14,
-    "total_ms": 324.47,
-    "self_ms": 9.87
-  },
-  {
-    "function": "order_progress_totals",
-    "calls": 9,
-    "total_ms": 21.11,
-    "self_ms": 9.19
+    "total_ms": 180.55,
+    "self_ms": 8.24
   },
   {
     "function": "order_plan",
     "calls": 12,
-    "total_ms": 51.39,
-    "self_ms": 8.39
+    "total_ms": 29.54,
+    "self_ms": 8.09
   },
   {
-    "function": "bump_version",
-    "calls": 34,
-    "total_ms": 7.92,
-    "self_ms": 7.92
-  },
-  {
-    "function": "work_person",
-    "calls": 3,
-    "total_ms": 5.28,
-    "self_ms": 5.28
+    "function": "v1_quote",
+    "calls": 1,
+    "total_ms": 48.89,
+    "self_ms": 6.91
   },
   {
     "function": "normalize_quantities",
     "calls": 14,
-    "total_ms": 20.07,
-    "self_ms": 4.76
+    "total_ms": 11.29,
+    "self_ms": 4.3
+  },
+  {
+    "function": "check_fields",
+    "calls": 159,
+    "total_ms": 4.18,
+    "self_ms": 4.18
+  },
+  {
+    "function": "work_rows",
+    "calls": 49,
+    "total_ms": 6.26,
+    "self_ms": 4.04
   },
   {
     "function": "order_customer_context",
     "calls": 12,
-    "total_ms": 43.0,
-    "self_ms": 3.85
+    "total_ms": 21.45,
+    "self_ms": 3.66
+  },
+  {
+    "function": "v1_order_assign_factory",
+    "calls": 1,
+    "total_ms": 23.56,
+    "self_ms": 3.61
   },
   {
     "function": "override_quote_prices",
     "calls": 13,
-    "total_ms": 33.81,
-    "self_ms": 3.25
-  },
-  {
-    "function": "branding_price",
-    "calls": 14,
-    "total_ms": 17.35,
-    "self_ms": 3.19
-  },
-  {
-    "function": "check_fields",
-    "calls": 110,
-    "total_ms": 3.12,
-    "self_ms": 3.12
-  },
-  {
-    "function": "v1_preset_rename",
-    "calls": 1,
-    "total_ms": 13.75,
-    "self_ms": 2.6
+    "total_ms": 17.97,
+    "self_ms": 3.06
   },
   {
     "function": "quote_address",
     "calls": 39,
-    "total_ms": 89.9,
-    "self_ms": 1.99
+    "total_ms": 44.63,
+    "self_ms": 2.94
   },
   {
-    "function": "v1_quote_override",
-    "calls": 2,
-    "total_ms": 39.93,
-    "self_ms": 1.99
+    "function": "branding_price",
+    "calls": 14,
+    "total_ms": 9.06,
+    "self_ms": 2.89
   },
   {
     "function": "delivery_context",
     "calls": 12,
-    "total_ms": 29.19,
-    "self_ms": 1.9
+    "total_ms": 15.46,
+    "self_ms": 2.39
   },
   {
     "function": "input_id",
-    "calls": 120,
-    "total_ms": 1.52,
-    "self_ms": 1.52
+    "calls": 181,
+    "total_ms": 2.25,
+    "self_ms": 2.25
   },
   {
-    "function": "v1_production_progress",
+    "function": "require_roles",
+    "calls": 154,
+    "total_ms": 157.06,
+    "self_ms": 1.88
+  },
+  {
+    "function": "v1_quote_override",
+    "calls": 2,
+    "total_ms": 22.39,
+    "self_ms": 1.88
+  },
+  {
+    "function": "v1_item_assign_cutter",
     "calls": 1,
-    "total_ms": 16.55,
-    "self_ms": 1.3
-  },
-  {
-    "function": "catalog_actor",
-    "calls": 69,
-    "total_ms": 83.04,
-    "self_ms": 1.08
+    "total_ms": 25.1,
+    "self_ms": 1.84
   },
   {
     "function": "unit_tax",
     "calls": 27,
-    "total_ms": 0.89,
-    "self_ms": 0.89
+    "total_ms": 1.56,
+    "self_ms": 1.56
+  },
+  {
+    "function": "v1_preset_rename",
+    "calls": 1,
+    "total_ms": 6.61,
+    "self_ms": 1.48
+  },
+  {
+    "function": "v1_production_progress",
+    "calls": 1,
+    "total_ms": 14.7,
+    "self_ms": 1.23
+  },
+  {
+    "function": "catalog_actor",
+    "calls": 69,
+    "total_ms": 41.53,
+    "self_ms": 0.92
+  },
+  {
+    "function": "cursor_id",
+    "calls": 97,
+    "total_ms": 0.78,
+    "self_ms": 0.78
   },
   {
     "function": "input_number",
     "calls": 41,
-    "total_ms": 0.82,
-    "self_ms": 0.82
-  },
-  {
-    "function": "require_roles",
-    "calls": 41,
-    "total_ms": 56.55,
-    "self_ms": 0.77
-  },
-  {
-    "function": "command_reason",
-    "calls": 10,
-    "total_ms": 0.25,
-    "self_ms": 0.25
-  },
-  {
-    "function": "due_timestamp",
-    "calls": 2,
-    "total_ms": 0.2,
-    "self_ms": 0.2
-  },
-  {
-    "function": "cursor_id",
-    "calls": 1,
-    "total_ms": 0.09,
-    "self_ms": 0.09
+    "total_ms": 0.75,
+    "self_ms": 0.75
   },
   {
     "function": "page_limit",
+    "calls": 73,
+    "total_ms": 0.6,
+    "self_ms": 0.6
+  },
+  {
+    "function": "assert_reassignable",
     "calls": 1,
-    "total_ms": 0.06,
-    "self_ms": 0.06
+    "total_ms": 7.46,
+    "self_ms": 0.58
+  },
+  {
+    "function": "due_timestamp",
+    "calls": 24,
+    "total_ms": 0.52,
+    "self_ms": 0.52
+  },
+  {
+    "function": "clear_cutter_assignments",
+    "calls": 1,
+    "total_ms": 0.51,
+    "self_ms": 0.51
+  },
+  {
+    "function": "work_timestamp",
+    "calls": 36,
+    "total_ms": 0.44,
+    "self_ms": 0.44
+  },
+  {
+    "function": "command_reason",
+    "calls": 2,
+    "total_ms": 0.1,
+    "self_ms": 0.1
   }
 ]

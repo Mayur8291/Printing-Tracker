@@ -28,6 +28,9 @@ def run(production_only=False):
                 c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(actor),'session_id':str(session)}),))
                 c.execute('SET LOCAL ROLE sa_app')
                 queries=[('factory_queue',"SELECT canto_api.v1_factory_queue(NULL,NULL,NULL,30)")] if production_only else [('orders',"SELECT canto_api.v1_orders_list('{}',NULL,30)"),('dashboard',"SELECT canto_api.v1_dashboard('{}')")]
+                if not production_only:
+                    visible=c.execute("SELECT canto_api.v1_orders_list('{}',NULL,1)").fetchone()[0]['data']
+                    if visible:queries.append(('order_detail','SELECT canto_api.v1_order_get('+str(int(visible[0]['id']))+')'))
                 for name,query in queries:
                     samples=[]
                     for n in range(13):
@@ -36,7 +39,7 @@ def run(production_only=False):
                     p95=sorted(samples)[math.ceil(len(samples)*.95)-1]
                     payload=c.execute(query).fetchone()[0]
                     results.append({'role':role,'query':name,'samples':len(samples),'database_p95_ms':round(p95,2),
-                      'returned_records':len(payload['data']) if 'data' in payload else payload['orders']})
+                      'returned_records':len(payload['data']) if 'data' in payload else len(payload['items']['data']) if 'items' in payload else payload['orders']})
                     print(json.dumps(results[-1]),flush=True)
                 c.execute('SET LOCAL ROLE postgres')
             raise psycopg.Rollback()

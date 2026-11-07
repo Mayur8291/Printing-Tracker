@@ -121,6 +121,20 @@ Queue performance initially failed at PC 520.10 ms p95 and FM 166.05 ms. The rev
 
 Provider consumers, cutting/sewing/dispatch history, detailed media contracts, the full refresh rehearsal and remaining workflow matrix gates are still open. Next: quantity execution and append-only production histories.
 
+## Iteration 9 — factory execution and conserved histories
+
+Staging now implements 59 of the original 115 RPC names, plus `v1_color_save`. Added cutting records/queue/detail, job-sheet allocation and inspection, tailor work/history, and factory dispatch records/queue/detail. Commands lock the order before the item and its quantities, require exact versions, retain immutable work history and return exact idempotent retries. Size-level capacity is conserved: ordered ≥ cut ≥ assigned ≥ inspected/picked ≥ dispatched. Imported history/counter discrepancies require explicit reconciliation; they are not silently repaired while recording new work. FIFO inspection attribution updates derived completion balances without rewriting original allocations. Sample execution uses actual sample quantities and preserves the bulk plan.
+
+Source review clarified that inspector completion and picked-up quantity are the same stored legacy measure, not two independent counters. Both API labels refer to that measure. Assignment coverage is separately exposed from completed tailoring. The original plan's wording about independently validating picked and completed counts is superseded by this verified source behavior.
+
+318 local integration tests pass, including racing cut commands, atomic rejection of a bad second size, wrong-factory/revoked-manager denial, duplicate retries, negative/over-capacity values, capped inputs, FIFO history, pagination and full/sample completion. The real staging journey passes SC placement → PC assignment → FM cutter/checklist → CM cutting → FM tailor allocation → Inspector pickup → DI dispatch. Every business row/session is rolled back and every advanced sequence restored. Shared SDK typing passes.
+
+Performance review required two targeted corrections. The original history-policy graph repeatedly expanded parent RLS sets and cutting measured 1,971.322 ms p95. Private read-only helpers now compute permitted record sets once per statement. An insert-returning regression was caught locally and corrected by scoping new items through their parent order. Explicit role-specific query branches then removed broad generic-plan scans. Final representative staging DB p95: cutting **107.676 ms**, allocation **86.125 ms**, inspection **175.303 ms**, dispatch **159.282 ms**; six list/detail projections **7.297–22.415 ms**. Evidence and the initial profile are retained under `implementation-evidence`. These are warm bounded DB calls, not concurrent capacity or maximum-batch guarantees.
+
+Final regression checks: hosted order lists, dashboards and order details pass across ten personas; the largest measured p95 is 110.75 ms for Admin order detail. Actual GoTrue login and shared SDK checks pass. The security advisor has no new domain finding beyond the reviewed `filtered_orders` helper.
+
+This slice does not yet complete every SEW/DISPATCH workflow: dealer stock consumption, destinations/delivery lists, payroll, documents and external consumers remain separate implementation gates. No production changes were made. Next: dealer stock/back orders and the remaining delivery contracts.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

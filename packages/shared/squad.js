@@ -117,6 +117,36 @@ export function createSquadClient(supabase) {
     factoryQueue: (filters = {},page = {}) => call("v1_factory_queue", {
       p_factory_id:filters.factoryId??null,p_phase:filters.phase??null,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
+    recordCutting: (id,quantities,occurredAt,command) => call("v1_cutting_record", {
+      p_id:id,p_quantities:quantities,p_occurred_at:occurredAt??null,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    inspectJobsheet: (id,quantities,occurredAt,command) => call("v1_jobsheet_inspect", {
+      p_id:id,p_quantities:quantities,p_occurred_at:occurredAt??null,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    recordDispatch: (id,quantities,occurredAt,command) => call("v1_dispatch_record", {
+      p_id:id,p_quantities:quantities,p_occurred_at:occurredAt??null,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    assignJobsheet: (id,allocations,dueAt,completionBy,command) => call("v1_jobsheet_assign", {
+      p_id:id,p_allocations:allocations,p_due_at:dueAt,p_completion_by:completionBy,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    cuttingDetail: (id,pages = {}) => call("v1_cutting_detail", {
+      p_id:id,p_quantity_cursor:pages.quantityCursor??null,p_history_cursor:pages.historyCursor??null,p_limit:pages.limit??30
+    }),
+    cuttingQueue: (filters = {},page = {}) => call("v1_cutting_queue", {
+      p_completed:filters.completed??false,p_order_id:filters.orderId??null,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    dispatchDetail: (id,pages = {}) => call("v1_dispatch_detail", {
+      p_id:id,p_quantity_cursor:pages.quantityCursor??null,p_history_cursor:pages.historyCursor??null,p_limit:pages.limit??30
+    }),
+    dispatchQueue: (filters = {},page = {}) => call("v1_dispatch_queue", {
+      p_completed:filters.completed??false,p_order_id:filters.orderId??null,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    jobsheets: (filters = {},page = {}) => call("v1_jobsheets_list", {
+      p_item_id:filters.itemId??null,p_tailor_id:filters.tailorId??null,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    tailorWork: (filters = {},page = {}) => call("v1_tailor_work", {
+      p_item_id:filters.itemId??null,p_tailor_id:filters.tailorId??null,p_history:filters.history??false,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
     productionProgress: (orderId) => call("v1_production_progress", {p_order_id:orderId}),
     tasks: (filters = {}, page = {}) => call("v1_tasks_list", {
       p_state: filters.state ?? null, p_order_id: filters.orderId ?? null,

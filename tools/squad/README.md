@@ -29,3 +29,12 @@ API contract conventions:
 - A successful refresh increments the generation atomically and discards undelivered events from replaced mirror writes. It does not replay imported business side effects.
 
 Local SQL tests do not substitute for hosted GoTrue/Data API tests, provider contract tests, or measured staging performance. Report each separately.
+
+Hosted verification tools (staging only):
+
+- `test_sdk.mjs`: actual GoTrue login and shared JS client read/denial checks.
+- `test_hosted_factory_execution.py`: rolled-back order-to-factory-dispatch journey with real staging roles and per-contract DB timings.
+- `test_hosted_production.py`: rolled-back factory-to-job-worker reassignment and worker-stage journey.
+- `benchmark_hosted.py`: ten-persona order list, dashboard and detail latency checks; `--production-only` checks factory queues.
+
+Mutation journeys hold the refresh/write lock, roll back business rows and temporary sessions, and restore all advanced sequences. They send no provider email, push or warehouse request. Work history rows are append-only; mutable completion counters are derived balances. Imported balance/history discrepancies return a reconciliation error rather than inventing missing work.

@@ -118,9 +118,21 @@ export interface FactoryQueueItem extends SavedEntity {
 }
 export interface ProductionProgress extends SavedEntity {
   status:0|1;provider_status:string;as_of:string;item_count:number;custom_count:number;rmp_count:number;
-  cut:number;assigned:number;sewn:number;dispatched:number;cut_complete:boolean;sewn_complete:boolean;assigned_complete:boolean;
+  cut:number;assigned:number;sewn:number;dispatched:number;cut_complete:boolean;sewn_complete:boolean;assigned_complete:boolean;job_complete:boolean;
   dispatch_complete:boolean;all_dispatch_complete:boolean;worker_complete:boolean;criteria_complete:boolean;
 }
+export interface WorkQuantityInput {quantity_id:EntityId;quantity:number}
+export interface WorkAllocationInput extends WorkQuantityInput {tailor_id:EntityId}
+export interface WorkInspectionInput {item_tailor_quantity_id:EntityId;quantity:number}
+export interface WorkProgress {required:number;cut:number;assigned:number;sewn:number;dispatched:number;order_completed:boolean}
+export interface WorkRecorded extends WorkItemSaved {history_id:EntityId;progress:WorkProgress}
+export interface WorkHistoryRow {id:EntityId;history_id:EntityId;quantity_id:EntityId;remaining_before:number;quantity:number;occurred_at:string}
+export interface WorkSize {id:EntityId;size_id:EntityId|null;size_name:string|null;quantity:number;cut:number;assigned:number;inspected:number;picked:number;dispatched:number;remaining:number}
+export interface WorkDetail extends SavedEntity {order_id:EntityId;product_id:EntityId|null;sample:boolean|null;planned_quantity:number;quantities:Page<WorkSize>;history:Page<WorkHistoryRow>}
+export interface WorkQueueItem extends SavedEntity {order_id:EntityId;product_id:EntityId|null;cutter_id:EntityId|null;sample:boolean|null;cut:number;assigned:number;inspected:number;dispatched:number;due_at:string|null;prime:boolean;held:boolean}
+export interface JobsheetRow {id:EntityId;item_id:EntityId;quantity_id:EntityId;item_tailor_id:EntityId;tailor_id:EntityId;assignment_id:EntityId;assigned:number;inspected:number;picked:number;occurred_at:string}
+export interface TailorWorkRow {id:EntityId;item_id:EntityId;tailor_id:EntityId;item_tailor_quantity_id:EntityId;quantity_id:EntityId;assigned?:number;remaining_before?:number;inspected:number;picked:number;occurred_at:string|null}
+export interface WorkDetailPages {quantityCursor?:string;historyCursor?:string;limit?:number}
 export type QuoteLineInput = {kind:'custom';configuration:Configuration;quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]}
   | {kind:'rmp';skus:Array<{sku_id:EntityId;quantity:number}>;brandings?:BrandingInput[]};
 export interface QuoteRequest {customer_id?:EntityId;address_id:EntityId;lines:QuoteLineInput[]}
@@ -184,6 +196,16 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   saveWorkerStage(id:EntityId,stage:WorkerStage,reason:string,command:Command):Promise<WorkItemSaved & {stage:WorkerStage;order_completed:boolean}>;
   saveWorkerDue(id:EntityId,dueAt:string,reason:string,command:Command):Promise<SavedEntity & {due_at:string;original_due_at:string;baseline_basis:'assignment'|'first_observed_change';delta_days:number}>;
   factoryQueue(filters?:{factoryId?:EntityId;phase?:ProductionPhase},page?:PageRequest):Promise<Page<FactoryQueueItem>>;
+  recordCutting(id:EntityId,quantities:WorkQuantityInput[],occurredAt:string|null,command:Command):Promise<WorkRecorded>;
+  inspectJobsheet(id:EntityId,quantities:WorkInspectionInput[],occurredAt:string|null,command:Command):Promise<WorkRecorded>;
+  recordDispatch(id:EntityId,quantities:WorkQuantityInput[],occurredAt:string|null,command:Command):Promise<WorkRecorded>;
+  assignJobsheet(id:EntityId,allocations:WorkAllocationInput[],dueAt:string,completionBy:string,command:Command):Promise<WorkRecorded>;
+  cuttingDetail(id:EntityId,pages?:WorkDetailPages):Promise<WorkDetail>;
+  dispatchDetail(id:EntityId,pages?:WorkDetailPages):Promise<WorkDetail>;
+  cuttingQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem>>;
+  dispatchQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem>>;
+  jobsheets(filters?:{itemId?:EntityId;tailorId?:EntityId},page?:PageRequest):Promise<Page<JobsheetRow>>;
+  tailorWork(filters?:{itemId?:EntityId;tailorId?:EntityId;history?:boolean},page?:PageRequest):Promise<Page<TailorWorkRow>>;
   productionProgress(orderId:EntityId):Promise<ProductionProgress>;
   tasks(filters?: {state?:0|1|2;orderId?:EntityId},page?:PageRequest):Promise<Page<Task>>;
   task(id:EntityId):Promise<Task>;

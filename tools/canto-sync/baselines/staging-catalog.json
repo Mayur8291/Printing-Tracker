@@ -7555,6 +7555,11 @@
       "CREATE UNIQUE INDEX sa_item_tailor_quantities_pkey ON sa_snapshot_20261019.sa_item_tailor_quantities USING btree (id)"
     ],
     [
+      "sa_item_tailor_quantities",
+      "squad_tailor_item_quantity",
+      "CREATE INDEX squad_tailor_item_quantity ON sa_snapshot_20261019.sa_item_tailor_quantities USING btree (item_tailor_id, quantity_id)"
+    ],
+    [
       "sa_item_tailors",
       "sa_index_item_tailors_on_item_id",
       "CREATE INDEX sa_index_item_tailors_on_item_id ON sa_snapshot_20261019.sa_item_tailors USING btree (item_id)"
@@ -7568,6 +7573,11 @@
       "sa_item_tailors",
       "sa_item_tailors_pkey",
       "CREATE UNIQUE INDEX sa_item_tailors_pkey ON sa_snapshot_20261019.sa_item_tailors USING btree (id)"
+    ],
+    [
+      "sa_item_tailors",
+      "squad_item_tailor",
+      "CREATE INDEX squad_item_tailor ON sa_snapshot_20261019.sa_item_tailors USING btree (item_id, tailor_id)"
     ],
     [
       "sa_items",
@@ -7653,6 +7663,11 @@
       "sa_job_sheet_assign_quantities",
       "sa_job_sheet_assign_quantities_pkey",
       "CREATE UNIQUE INDEX sa_job_sheet_assign_quantities_pkey ON sa_snapshot_20261019.sa_job_sheet_assign_quantities USING btree (id)"
+    ],
+    [
+      "sa_job_sheet_assign_quantities",
+      "squad_assign_fifo",
+      "CREATE INDEX squad_assign_fifo ON sa_snapshot_20261019.sa_job_sheet_assign_quantities USING btree (item_tailor_id, quantity_id, job_sheet_assign_date_id, id)"
     ],
     [
       "sa_job_sheet_assign_tailors",
@@ -8666,7 +8681,7 @@
       "sa_dispatched_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_extra_quantities",
@@ -8702,13 +8717,13 @@
       "sa_item_tailor_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_item_tailors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_items",
@@ -8720,55 +8735,55 @@
       "sa_job_sheet_assign_dates",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_job_sheet_assign_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_job_sheet_assign_tailors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_job_sheet_dispatched_dates",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_job_sheet_mark_tailors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_job_sheet_tailor_mark_dates",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_mark_cutting_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_mark_cuttings",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_mark_tailor_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_milestones",

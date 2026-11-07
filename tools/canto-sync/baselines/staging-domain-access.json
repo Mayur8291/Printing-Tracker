@@ -407,6 +407,24 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_dispatched_quantities",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((job_sheet_dispatched_date_id IN ( SELECT sa_domain.work_scope_ids('dispatch'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_dispatched_quantities",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "((job_sheet_dispatched_date_id IN ( SELECT sa_domain.work_scope_ids('dispatch'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_extra_quantities",
       "squad_extras_insert",
       "{sa_executor}",
@@ -488,11 +506,83 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_item_tailor_quantities",
+      "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailor_quantities",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailor_quantities",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "((item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailor_quantities",
+      "squad_work_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids))",
+      "(item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailors",
+      "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailors",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailors",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailors",
+      "squad_work_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_items",
       "squad_executor_items_read",
       "{sa_executor}",
       "SELECT",
-      "((order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) <> 9) OR (cutting_master_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
+      "((order_id IN ( SELECT sa_domain.scope_order_ids() AS scope_order_ids)) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) <> 9) OR (cutting_master_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
       null
     ],
     [
@@ -519,8 +609,224 @@
       "squad_items_update",
       "{sa_executor}",
       "UPDATE",
-      "(order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders))",
-      "(order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders))"
+      "((order_id IN ( SELECT sa_domain.scope_order_ids() AS scope_order_ids)) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) <> 9) OR (cutting_master_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
+      "((order_id IN ( SELECT sa_domain.scope_order_ids() AS scope_order_ids)) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) <> 9) OR (cutting_master_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_dates",
+      "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_dates",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_dates",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_quantities",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_quantities",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_quantities",
+      "squad_work_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_tailors",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((job_sheet_assign_date_id IN ( SELECT sa_domain.work_scope_ids('assignment'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_tailors",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "((job_sheet_assign_date_id IN ( SELECT sa_domain.work_scope_ids('assignment'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_dispatched_dates",
+      "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_dispatched_dates",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_dispatched_dates",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_mark_tailors",
+      "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_mark_tailors",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((job_sheet_tailor_mark_date_id IN ( SELECT sa_domain.work_scope_ids('inspection'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_mark_tailors",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "((job_sheet_tailor_mark_date_id IN ( SELECT sa_domain.work_scope_ids('inspection'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_tailor_mark_dates",
+      "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_tailor_mark_dates",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_tailor_mark_dates",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_cutting_quantities",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((mark_cutting_id IN ( SELECT sa_domain.work_scope_ids('cut'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_cutting_quantities",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "((mark_cutting_id IN ( SELECT sa_domain.work_scope_ids('cut'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_cuttings",
+      "squad_guard_work_parent",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_cuttings",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_cuttings",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_tailor_quantities",
+      "squad_work_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((job_sheet_mark_tailor_id IN ( SELECT sa_domain.work_scope_ids('mark_tailor'::text) AS work_scope_ids)) AND (item_tailor_quantity_id IN ( SELECT sa_domain.work_scope_ids('tailor_quantity'::text) AS work_scope_ids)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_tailor_quantities",
+      "squad_work_read",
+      "{sa_executor}",
+      "SELECT",
+      "((job_sheet_mark_tailor_id IN ( SELECT sa_domain.work_scope_ids('mark_tailor'::text) AS work_scope_ids)) AND (item_tailor_quantity_id IN ( SELECT sa_domain.work_scope_ids('tailor_quantity'::text) AS work_scope_ids)))",
+      null
     ],
     [
       "sa_snapshot_20261019",
@@ -690,7 +996,7 @@
       "squad_executor_quantities_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items))",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
       null
     ],
     [
@@ -710,6 +1016,15 @@
       "INSERT",
       null,
       "(item_id IN ( SELECT i.id\n   FROM (sa_snapshot_20261019.sa_items i\n     JOIN sa_snapshot_20261019.sa_orders o ON ((o.id = i.order_id)))\n  WHERE (o.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_quantities",
+      "squad_quantities_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
     ],
     [
       "sa_snapshot_20261019",
@@ -1077,24 +1392,89 @@
       "{sa_executor=w/postgres}"
     ],
     [
+      "sa_item_tailor_quantities",
+      "assigned_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailor_quantities",
+      "completed_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailor_quantities",
+      "completed_quantity_status",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailor_quantities",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_item_tailor_quantities",
+      "item_tailor_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_item_tailor_quantities",
+      "updated_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailors",
+      "assigned_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailors",
+      "completed_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailors",
+      "completed_quantity_status",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailors",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_item_tailors",
+      "item_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_item_tailors",
+      "quantity_completed_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_item_tailors",
+      "updated_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
       "sa_items",
       "assigned_to_tailor_quantity",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
       "completed_by_tailor_quantity",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
       "completed_by_tailor_quantity_status",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
       "cutting_done",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
@@ -1104,17 +1484,17 @@
     [
       "sa_items",
       "cutting_status",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
       "dispatched_quantity",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
       "dispatched_status",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
@@ -1125,6 +1505,21 @@
       "sa_items",
       "item_type",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "job_sheet_assigned",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_items",
+      "job_sheet_completion_by",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_items",
+      "job_sheet_due_on",
+      "{sa_executor=w/postgres}"
     ],
     [
       "sa_items",
@@ -1143,6 +1538,16 @@
     ],
     [
       "sa_items",
+      "sample_cutting_done",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_items",
+      "sample_cutting_status",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_items",
       "sample_order",
       "{sa_guard=r/postgres}"
     ],
@@ -1154,7 +1559,7 @@
     [
       "sa_items",
       "tailor_job_status",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_items",
@@ -1180,6 +1585,71 @@
       "sa_items",
       "worker_total_amount",
       "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_job_sheet_assign_dates",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_job_sheet_assign_dates",
+      "item_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_job_sheet_assign_quantities",
+      "completed_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_job_sheet_assign_quantities",
+      "completed_quantity_status",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_job_sheet_assign_quantities",
+      "updated_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_job_sheet_dispatched_dates",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_job_sheet_dispatched_dates",
+      "item_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_job_sheet_mark_tailors",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_job_sheet_mark_tailors",
+      "job_sheet_tailor_mark_date_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_job_sheet_tailor_mark_dates",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_job_sheet_tailor_mark_dates",
+      "item_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_mark_cuttings",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_mark_cuttings",
+      "item_id",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_milestones",
@@ -1338,6 +1808,11 @@
     ],
     [
       "sa_orders",
+      "last_dispatched_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_orders",
       "order_item_type",
       "{sa_guard=r/postgres}"
     ],
@@ -1398,6 +1873,36 @@
     ],
     [
       "sa_quantities",
+      "assigned_to_tailor_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_quantities",
+      "completed_by_tailor_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_quantities",
+      "completed_by_tailor_quantity_status",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_quantities",
+      "cutting_done",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_quantities",
+      "dispatched_quantity",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_quantities",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_quantities",
       "item_id",
       "{sa_guard=r/postgres}"
     ],
@@ -1405,6 +1910,11 @@
       "sa_quantities",
       "quantity",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_quantities",
+      "updated_at",
+      "{sa_executor=w/postgres}"
     ],
     [
       "sa_responsibilities",
@@ -1679,6 +2189,42 @@
     ],
     [
       "canto_api",
+      "v1_cutting_detail",
+      "p_id bigint, p_quantity_cursor text, p_history_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "8fec457678b0db02ad860b75ba966539"
+    ],
+    [
+      "canto_api",
+      "v1_cutting_queue",
+      "p_completed boolean, p_order_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "b9c280d47182c171cc72f91e6e26bb19"
+    ],
+    [
+      "canto_api",
+      "v1_cutting_record",
+      "p_id bigint, p_quantities jsonb, p_occurred_at text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "e870a4ec17936884503bfe9be8b1d341"
+    ],
+    [
+      "canto_api",
       "v1_dashboard",
       "p_filters jsonb",
       "postgres",
@@ -1688,6 +2234,42 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "b0bfd4457b515a1e15814013a3d8dcb8"
+    ],
+    [
+      "canto_api",
+      "v1_dispatch_detail",
+      "p_id bigint, p_quantity_cursor text, p_history_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "61d127751154f19044fda7067bca6b96"
+    ],
+    [
+      "canto_api",
+      "v1_dispatch_queue",
+      "p_completed boolean, p_order_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "c9a2dcf6af20a5d09726b3fcdd0889c1"
+    ],
+    [
+      "canto_api",
+      "v1_dispatch_record",
+      "p_id bigint, p_quantities jsonb, p_occurred_at text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "5e39df6a39f7f3424319179988f5b3c7"
     ],
     [
       "canto_api",
@@ -1736,6 +2318,42 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "7271449980041e2933c10c74ef7cfe58"
+    ],
+    [
+      "canto_api",
+      "v1_jobsheet_assign",
+      "p_id bigint, p_allocations jsonb, p_due_at text, p_completion_by text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "bc6a8c1d17ea3905e15cb4cba07194c1"
+    ],
+    [
+      "canto_api",
+      "v1_jobsheet_inspect",
+      "p_id bigint, p_quantities jsonb, p_occurred_at text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "aa58bd4baec00073138e45d4964e12d2"
+    ],
+    [
+      "canto_api",
+      "v1_jobsheets_list",
+      "p_item_id bigint, p_tailor_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "abeabc97ec0926851c343af708af405d"
     ],
     [
       "canto_api",
@@ -2099,6 +2717,18 @@
     ],
     [
       "canto_api",
+      "v1_tailor_work",
+      "p_item_id bigint, p_tailor_id bigint, p_history boolean, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "78dbc9fb0ebd7eac0427429f889f8168"
+    ],
+    [
+      "canto_api",
       "v1_task_assignees",
       "p_cursor text, p_limit integer",
       "postgres",
@@ -2231,6 +2861,18 @@
     ],
     [
       "sa_domain",
+      "assert_factory_work",
+      "p_item sa_snapshot_20261019.sa_items",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "f17e1707fc0d32ff15b7e29612f476ea"
+    ],
+    [
+      "sa_domain",
       "assert_reassignable",
       "p_order_id bigint",
       "postgres",
@@ -2240,6 +2882,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "2699f5fcd3cc5a9d4c7bb606a1a119b0"
+    ],
+    [
+      "sa_domain",
+      "assert_work_balances",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "48c3469865be595a3aad111adcc1a95d"
     ],
     [
       "sa_domain",
@@ -2923,7 +3577,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "43a3e8948f4dcd7d623feea3e3acd016"
+      "4ab694eedfa2daee818abf90ac97da12"
     ],
     [
       "sa_domain",
@@ -3023,6 +3677,19 @@
     ],
     [
       "sa_domain",
+      "recompute_item_progress",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "73cb32169419ad119280368dc946ddfa"
+    ],
+    [
+      "sa_domain",
       "recompute_order_progress",
       "p_id bigint",
       "postgres",
@@ -3032,7 +3699,7 @@
         "TimeZone=UTC"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "4c65affc85f02e6e9100db9dad360d5d"
+      "90c8df3107f0f0887ae35e68a3527e2d"
     ],
     [
       "sa_domain",
@@ -3081,6 +3748,30 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "99ff565e12e12131a71c4dc99787d435"
+    ],
+    [
+      "sa_domain",
+      "scope_item_ids",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "7cd2e4c67d24c1b9919c493369e576c9"
+    ],
+    [
+      "sa_domain",
+      "scope_order_ids",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "183e0b7d2d810524b3b2098093b7aeae"
     ],
     [
       "sa_domain",
@@ -3243,6 +3934,43 @@
     ],
     [
       "sa_domain",
+      "v1_cutting_detail",
+      "p_id bigint, p_quantity_cursor text, p_history_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "82451d1ca3d3b9d26ac36650500d594f"
+    ],
+    [
+      "sa_domain",
+      "v1_cutting_queue",
+      "p_completed boolean, p_order_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "da54358511e7995bbb57ee4e40cfe622"
+    ],
+    [
+      "sa_domain",
+      "v1_cutting_record",
+      "p_id bigint, p_quantities jsonb, p_occurred_at text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "f13dcff2a934fc2151242e4b628e31c8"
+    ],
+    [
+      "sa_domain",
       "v1_dashboard",
       "p_filters jsonb",
       "sa_executor",
@@ -3253,6 +3981,43 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "4ed0b6d411fbb833caf142b17baaca79"
+    ],
+    [
+      "sa_domain",
+      "v1_dispatch_detail",
+      "p_id bigint, p_quantity_cursor text, p_history_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "0f41d29878c68154f22a2be120ba2ff3"
+    ],
+    [
+      "sa_domain",
+      "v1_dispatch_queue",
+      "p_completed boolean, p_order_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "4749ed5b7b5a6e147dd96cb9f8aef007"
+    ],
+    [
+      "sa_domain",
+      "v1_dispatch_record",
+      "p_id bigint, p_quantities jsonb, p_occurred_at text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "bbf33d72db4c7d3e4ef68b0c336c58a6"
     ],
     [
       "sa_domain",
@@ -3304,6 +4069,45 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "b4d4a48597012fb24b6733c40b919006"
+    ],
+    [
+      "sa_domain",
+      "v1_jobsheet_assign",
+      "p_id bigint, p_allocations jsonb, p_due_at text, p_completion_by text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "95b6db240a52cb1464075edb8a3d99e3"
+    ],
+    [
+      "sa_domain",
+      "v1_jobsheet_inspect",
+      "p_id bigint, p_quantities jsonb, p_occurred_at text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "7bbb92bf90ff245666405b73f28c5dd2"
+    ],
+    [
+      "sa_domain",
+      "v1_jobsheets_list",
+      "p_item_id bigint, p_tailor_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "4bcd60e8b415ead4a80a89607cb5a548"
     ],
     [
       "sa_domain",
@@ -3693,6 +4497,19 @@
     ],
     [
       "sa_domain",
+      "v1_tailor_work",
+      "p_item_id bigint, p_tailor_id bigint, p_history boolean, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "cdcbe34affccdedb3edb2c09c8b39733"
+    ],
+    [
+      "sa_domain",
       "v1_task_assignees",
       "p_cursor text, p_limit integer",
       "sa_executor",
@@ -3833,6 +4650,19 @@
     ],
     [
       "sa_domain",
+      "work_detail",
+      "p_id bigint, p_kind text, p_quantity_cursor text, p_history_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "4260ccfdaf04ef211ecc1418cba62403"
+    ],
+    [
+      "sa_domain",
       "work_person",
       "p_id bigint, p_roles integer[], p_factory_id bigint",
       "sa_guard",
@@ -3842,6 +4672,55 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "8df43062ffabd72c7dad2ed1a711fd17"
+    ],
+    [
+      "sa_domain",
+      "work_queue",
+      "p_kind text, p_completed boolean, p_order_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "78e2efe23e135c990aaa21182211f81b"
+    ],
+    [
+      "sa_domain",
+      "work_rows",
+      "p_rows jsonb, p_kind text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "22df93a84b8b8e0b13d4ece4741d247a"
+    ],
+    [
+      "sa_domain",
+      "work_scope_ids",
+      "p_kind text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "26f3d2051796618e801256c55779e2bb"
+    ],
+    [
+      "sa_domain",
+      "work_timestamp",
+      "p_at text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "3401dfa7b3f3dcef9c096588fef51791"
     ]
   ],
   [
