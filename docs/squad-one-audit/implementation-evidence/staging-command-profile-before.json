@@ -1,0 +1,242 @@
+[
+  {
+    "function": "actor",
+    "calls": 1833,
+    "total_ms": 4906.14,
+    "self_ms": 4906.14
+  },
+  {
+    "function": "v1_order_get",
+    "calls": 2,
+    "total_ms": 1637.93,
+    "self_ms": 1492.32
+  },
+  {
+    "function": "create_order_line",
+    "calls": 12,
+    "total_ms": 4320.25,
+    "self_ms": 773.55
+  },
+  {
+    "function": "attach_order_criteria",
+    "calls": 12,
+    "total_ms": 2108.42,
+    "self_ms": 762.16
+  },
+  {
+    "function": "v1_order_place",
+    "calls": 13,
+    "total_ms": 5976.91,
+    "self_ms": 70.82
+  },
+  {
+    "function": "v1_order_cancel",
+    "calls": 1,
+    "total_ms": 109.83,
+    "self_ms": 28.45
+  },
+  {
+    "function": "custom_price",
+    "calls": 26,
+    "total_ms": 290.58,
+    "self_ms": 21.67
+  },
+  {
+    "function": "normalize_configuration",
+    "calls": 16,
+    "total_ms": 316.29,
+    "self_ms": 18.24
+  },
+  {
+    "function": "commercial_context",
+    "calls": 65,
+    "total_ms": 361.76,
+    "self_ms": 17.01
+  },
+  {
+    "function": "finish_command",
+    "calls": 21,
+    "total_ms": 71.73,
+    "self_ms": 15.41
+  },
+  {
+    "function": "begin_command",
+    "calls": 24,
+    "total_ms": 81.92,
+    "self_ms": 13.58
+  },
+  {
+    "function": "calculate_quote",
+    "calls": 14,
+    "total_ms": 726.83,
+    "self_ms": 11.17
+  },
+  {
+    "function": "v1_product_configure",
+    "calls": 2,
+    "total_ms": 105.14,
+    "self_ms": 11.09
+  },
+  {
+    "function": "order_progress_totals",
+    "calls": 1,
+    "total_ms": 12.12,
+    "self_ms": 9.39
+  },
+  {
+    "function": "order_plan",
+    "calls": 12,
+    "total_ms": 108.97,
+    "self_ms": 8.23
+  },
+  {
+    "function": "lock_order",
+    "calls": 4,
+    "total_ms": 52.66,
+    "self_ms": 7.11
+  },
+  {
+    "function": "v1_color_save",
+    "calls": 1,
+    "total_ms": 50.99,
+    "self_ms": 6.62
+  },
+  {
+    "function": "v1_order_priority_save",
+    "calls": 1,
+    "total_ms": 56.76,
+    "self_ms": 6.23
+  },
+  {
+    "function": "normalize_quantities",
+    "calls": 14,
+    "total_ms": 42.52,
+    "self_ms": 5.16
+  },
+  {
+    "function": "order_customer_context",
+    "calls": 12,
+    "total_ms": 100.74,
+    "self_ms": 4.38
+  },
+  {
+    "function": "bump_version",
+    "calls": 19,
+    "total_ms": 3.86,
+    "self_ms": 3.86
+  },
+  {
+    "function": "branding_price",
+    "calls": 14,
+    "total_ms": 39.72,
+    "self_ms": 3.52
+  },
+  {
+    "function": "check_fields",
+    "calls": 108,
+    "total_ms": 3.31,
+    "self_ms": 3.31
+  },
+  {
+    "function": "v1_order_payment_record",
+    "calls": 2,
+    "total_ms": 54.78,
+    "self_ms": 3.3
+  },
+  {
+    "function": "override_quote_prices",
+    "calls": 13,
+    "total_ms": 75.08,
+    "self_ms": 3.27
+  },
+  {
+    "function": "v1_order_due_save",
+    "calls": 1,
+    "total_ms": 50.7,
+    "self_ms": 2.67
+  },
+  {
+    "function": "v1_preset_rename",
+    "calls": 1,
+    "total_ms": 26.06,
+    "self_ms": 2.54
+  },
+  {
+    "function": "due_timestamp",
+    "calls": 1,
+    "total_ms": 2.34,
+    "self_ms": 2.34
+  },
+  {
+    "function": "v1_quote_override",
+    "calls": 2,
+    "total_ms": 85.05,
+    "self_ms": 2.07
+  },
+  {
+    "function": "quote_address",
+    "calls": 39,
+    "total_ms": 216.77,
+    "self_ms": 1.89
+  },
+  {
+    "function": "v1_quote",
+    "calls": 1,
+    "total_ms": 72.27,
+    "self_ms": 1.86
+  },
+  {
+    "function": "input_id",
+    "calls": 118,
+    "total_ms": 1.6,
+    "self_ms": 1.6
+  },
+  {
+    "function": "delivery_context",
+    "calls": 12,
+    "total_ms": 67.39,
+    "self_ms": 1.36
+  },
+  {
+    "function": "catalog_actor",
+    "calls": 69,
+    "total_ms": 188.29,
+    "self_ms": 1.22
+  },
+  {
+    "function": "unit_tax",
+    "calls": 27,
+    "total_ms": 0.98,
+    "self_ms": 0.98
+  },
+  {
+    "function": "input_number",
+    "calls": 41,
+    "total_ms": 0.79,
+    "self_ms": 0.79
+  },
+  {
+    "function": "require_roles",
+    "calls": 35,
+    "total_ms": 100.72,
+    "self_ms": 0.65
+  },
+  {
+    "function": "command_reason",
+    "calls": 5,
+    "total_ms": 0.22,
+    "self_ms": 0.22
+  },
+  {
+    "function": "page_limit",
+    "calls": 2,
+    "total_ms": 0.12,
+    "self_ms": 0.12
+  },
+  {
+    "function": "cursor_id",
+    "calls": 2,
+    "total_ms": 0.12,
+    "self_ms": 0.12
+  }
+]

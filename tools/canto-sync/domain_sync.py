@@ -41,4 +41,10 @@ def after_publication(conn):
     discarded=conn.execute("""UPDATE sa_domain.outbox SET status='dead',last_error_code='SOURCE_REFRESH_DISCARDED',
       lease_until=NULL,lease_token=NULL,completed_at=now()
       WHERE generation<%s AND status IN('pending','leased') RETURNING id""",(generation,)).fetchall()
-    return {'generation':generation,'discarded_mirror_events':len(discarded)}
+    result={'generation':generation,'discarded_mirror_events':len(discarded)}
+    if conn.execute("SELECT to_regclass('sa_domain.order_requests')").fetchone()[0]:
+        requests=conn.execute("""UPDATE sa_domain.order_requests SET state='failed',updated_at=now(),
+          spec=spec||'{"failure_code":"SOURCE_REFRESH_DISCARDED"}'::jsonb
+          WHERE generation<%s AND state IN('queued','running') RETURNING id""",(generation,)).fetchall()
+        if requests:result['discarded_order_requests']=len(requests)
+    return result

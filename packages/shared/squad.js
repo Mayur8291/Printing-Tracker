@@ -78,6 +78,21 @@ export function createSquadClient(supabase) {
       p_quote_id:quoteId,p_details:details,p_expected_version:command.expectedVersion,
       p_idempotency_key:command.idempotencyKey
     }),
+    saveOrderPriority: (id,prime,reason,command) => call("v1_order_priority_save", {
+      p_id:id,p_prime:prime,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    saveOrderDue: (id,dueAt,reason,command) => call("v1_order_due_save", {
+      p_id:id,p_due_at:dueAt,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    recordOrderPayment: (id,status,paidAmount,reference,command) => call("v1_order_payment_record", {
+      p_id:id,p_status:status,p_paid_amount:paidAmount,p_reference:reference,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    cancelOrder: (id,kind,reason,command) => call("v1_order_cancel", {
+      p_id:id,p_kind:kind,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    forceCompleteOrder: (id,reason,command) => call("v1_order_force_complete", {
+      p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
     tasks: (filters = {}, page = {}) => call("v1_tasks_list", {
       p_state: filters.state ?? null, p_order_id: filters.orderId ?? null,
       p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30

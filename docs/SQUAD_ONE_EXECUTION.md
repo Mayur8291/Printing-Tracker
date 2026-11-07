@@ -97,6 +97,18 @@ Pure ready-made orders split by eligible linked dealer/authorized brand and retu
 
 Order integration is truthfully returned as `queued`; this iteration does not claim successful warehouse reservation, notifications or provider delivery. Order editing/cancellation, production execution, detailed item/history projections, private-colour historical reorder compatibility, and full journey/load review remain open.
 
+## Iteration 7 — lifecycle commands and measured authorization performance
+
+Staging now has 40 of the original RPC names, plus `v1_color_save`. Added scoped priority/due changes, SC payment settlement, Admin force-completion and cancellation/soft-delete requests. Cancellation preserves item/history records and cannot be reclassified as completion by the legacy force flag. Force completion records an explicit exception without fabricating production quantities. Closed/partially dispatched orders, cross-scope callers and invalid payment amounts are rejected. Mixed-order completion requires both custom dispatch and external completion; aggregate progress reads all relevant items even for a narrower cutting-master view.
+
+External cancellation is durably queued and shown in order detail; the order is held against new work until reconciliation. It is not reported as canceled before provider acknowledgment. The provider consumer remains an open implementation gate. Refresh publication retires discarded-generation requests along with their outbox events.
+
+236 local integration tests pass. Hosted rollback-only checks pass for order placement, priority/due changes, final payment with exact retry, cancellation and retained item visibility. Actual GoTrue login and the shared SDK's read/denial checks also pass. Mobile typing passes. No new domain security-advisor findings beyond the previously reviewed query helper.
+
+Review caught a performance regression at 512 ms p95 against the 500 ms command budget. The live actor lookup joined a SETOF Auth bridge with a default estimate of 1,000 rows despite a maximum of one, repeatedly scanning identity/user rows. The follow-up migration states that cardinality and performs an explicit indexed identity lookup. It retains live session, mapping, email, role and approval validation on every call. The same representative command now measures **218.323 ms p95**; profiling before/after is in `implementation-evidence/staging-command-profile*.json`. Rechecked hosted order-list p95 is 10.91–46.41 ms and dashboards 29.91–37.36 ms across ten personas. Maximum-size orders and concurrent capacity remain pending; these measurements do not close the overall performance gate.
+
+Next: production allocation/checklists and job-worker controls, followed by cutting, sewing and dispatch histories. Order editing/provider reconciliation, richer detail/media contracts and the remaining matrix modules are still outstanding.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

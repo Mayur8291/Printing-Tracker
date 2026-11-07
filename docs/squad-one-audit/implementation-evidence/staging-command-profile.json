@@ -1,0 +1,242 @@
+[
+  {
+    "function": "actor",
+    "calls": 1833,
+    "total_ms": 903.97,
+    "self_ms": 903.97
+  },
+  {
+    "function": "create_order_line",
+    "calls": 12,
+    "total_ms": 2075.33,
+    "self_ms": 805.42
+  },
+  {
+    "function": "attach_order_criteria",
+    "calls": 12,
+    "total_ms": 1000.15,
+    "self_ms": 756.75
+  },
+  {
+    "function": "v1_order_get",
+    "calls": 2,
+    "total_ms": 267.85,
+    "self_ms": 241.48
+  },
+  {
+    "function": "v1_order_place",
+    "calls": 13,
+    "total_ms": 2496.11,
+    "self_ms": 72.93
+  },
+  {
+    "function": "v1_order_cancel",
+    "calls": 1,
+    "total_ms": 42.69,
+    "self_ms": 26.81
+  },
+  {
+    "function": "custom_price",
+    "calls": 26,
+    "total_ms": 68.53,
+    "self_ms": 20.32
+  },
+  {
+    "function": "finish_command",
+    "calls": 21,
+    "total_ms": 29.93,
+    "self_ms": 19.67
+  },
+  {
+    "function": "normalize_configuration",
+    "calls": 16,
+    "total_ms": 70.38,
+    "self_ms": 15.73
+  },
+  {
+    "function": "commercial_context",
+    "calls": 65,
+    "total_ms": 76.15,
+    "self_ms": 13.68
+  },
+  {
+    "function": "v1_product_configure",
+    "calls": 2,
+    "total_ms": 36.25,
+    "self_ms": 12.68
+  },
+  {
+    "function": "begin_command",
+    "calls": 24,
+    "total_ms": 22.92,
+    "self_ms": 9.38
+  },
+  {
+    "function": "calculate_quote",
+    "calls": 14,
+    "total_ms": 171.88,
+    "self_ms": 8.47
+  },
+  {
+    "function": "order_plan",
+    "calls": 12,
+    "total_ms": 31.5,
+    "self_ms": 8.38
+  },
+  {
+    "function": "v1_color_save",
+    "calls": 1,
+    "total_ms": 28.12,
+    "self_ms": 6.79
+  },
+  {
+    "function": "lock_order",
+    "calls": 4,
+    "total_ms": 14.34,
+    "self_ms": 5.94
+  },
+  {
+    "function": "normalize_quantities",
+    "calls": 14,
+    "total_ms": 12.27,
+    "self_ms": 4.77
+  },
+  {
+    "function": "order_customer_context",
+    "calls": 12,
+    "total_ms": 23.12,
+    "self_ms": 4.2
+  },
+  {
+    "function": "bump_version",
+    "calls": 19,
+    "total_ms": 3.64,
+    "self_ms": 3.64
+  },
+  {
+    "function": "override_quote_prices",
+    "calls": 13,
+    "total_ms": 19.22,
+    "self_ms": 3.3
+  },
+  {
+    "function": "check_fields",
+    "calls": 108,
+    "total_ms": 3.17,
+    "self_ms": 3.17
+  },
+  {
+    "function": "branding_price",
+    "calls": 14,
+    "total_ms": 9.76,
+    "self_ms": 3.06
+  },
+  {
+    "function": "v1_order_payment_record",
+    "calls": 2,
+    "total_ms": 14.79,
+    "self_ms": 2.98
+  },
+  {
+    "function": "v1_preset_rename",
+    "calls": 1,
+    "total_ms": 9.13,
+    "self_ms": 2.88
+  },
+  {
+    "function": "v1_order_due_save",
+    "calls": 1,
+    "total_ms": 16.9,
+    "self_ms": 2.48
+  },
+  {
+    "function": "v1_order_priority_save",
+    "calls": 1,
+    "total_ms": 13.16,
+    "self_ms": 2.32
+  },
+  {
+    "function": "v1_quote_override",
+    "calls": 2,
+    "total_ms": 23.3,
+    "self_ms": 1.9
+  },
+  {
+    "function": "quote_address",
+    "calls": 39,
+    "total_ms": 46.09,
+    "self_ms": 1.82
+  },
+  {
+    "function": "v1_quote",
+    "calls": 1,
+    "total_ms": 26.03,
+    "self_ms": 1.61
+  },
+  {
+    "function": "order_progress_totals",
+    "calls": 1,
+    "total_ms": 1.91,
+    "self_ms": 1.43
+  },
+  {
+    "function": "input_id",
+    "calls": 118,
+    "total_ms": 1.41,
+    "self_ms": 1.41
+  },
+  {
+    "function": "delivery_context",
+    "calls": 12,
+    "total_ms": 15.27,
+    "self_ms": 1.24
+  },
+  {
+    "function": "catalog_actor",
+    "calls": 69,
+    "total_ms": 42.63,
+    "self_ms": 1.01
+  },
+  {
+    "function": "unit_tax",
+    "calls": 27,
+    "total_ms": 0.94,
+    "self_ms": 0.94
+  },
+  {
+    "function": "input_number",
+    "calls": 41,
+    "total_ms": 0.78,
+    "self_ms": 0.78
+  },
+  {
+    "function": "require_roles",
+    "calls": 35,
+    "total_ms": 22.13,
+    "self_ms": 0.48
+  },
+  {
+    "function": "due_timestamp",
+    "calls": 1,
+    "total_ms": 0.18,
+    "self_ms": 0.18
+  },
+  {
+    "function": "command_reason",
+    "calls": 5,
+    "total_ms": 0.14,
+    "self_ms": 0.14
+  },
+  {
+    "function": "cursor_id",
+    "calls": 2,
+    "total_ms": 0.09,
+    "self_ms": 0.09
+  },
+  {
+    "function": "page_limit",
+    "calls": 2,
+    "total_ms": 0.08,
+    "self_ms": 0.08
+  }
+]

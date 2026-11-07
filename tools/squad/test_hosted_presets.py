@@ -7,12 +7,15 @@ from psycopg.types.json import Jsonb
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 from database import connect
+from hosted_lifecycle import exercise
 
 def run():
  checks=[]
  tables=['products','product_parts','product_part_add_ons','colors','fabric_colors','orders','items','quantities','extra_quantities','brandings','item_criteria','criteria','sizes']
  sequences=['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in tables]+['sa_domain.audit_id_seq','sa_domain.quotes_ledger_id_seq']
  with connect('staging') as c:
+  c.execute("SET track_functions='pl'")
+  stats_before={row[0]:row[1:] for row in c.execute("SELECT funcid,calls,total_time,self_time FROM pg_stat_user_functions WHERE schemaname='sa_domain'")}
   assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0],'Refresh/write is active'
   before={name:c.execute(sql.SQL('SELECT last_value,is_called FROM {}').format(sql.Identifier(*name.split('.')))).fetchone() for name in sequences}
   try:
@@ -67,10 +70,17 @@ def run():
     assert placed['total_amount']==overridden['total'];checks.append('order acceptance, partial payment and exact retry')
     order=c.execute('SELECT canto_api.v1_order_get(%s)',(int(placed['orders'][0]['id']),)).fetchone()[0]
     assert order['id']==placed['orders'][0]['id'];checks.append('created order visible through scoped detail')
+    exercise(c,placed['orders'][0],checks)
     raise psycopg.Rollback()
   finally:
    c.execute('SET ROLE postgres')
    for name,(value,called) in before.items():c.execute('SELECT setval(%s::regclass,%s,%s)',(name,value,called))
    assert all(c.execute(sql.SQL('SELECT last_value,is_called FROM {}').format(sql.Identifier(*name.split('.')))).fetchone()==state for name,state in before.items())
+   c.execute('SELECT pg_stat_force_next_flush()');c.execute('SELECT pg_stat_clear_snapshot()')
+   stats=[]
+   for oid,name,calls,total,own in c.execute("SELECT funcid,funcname,calls,total_time,self_time FROM pg_stat_user_functions WHERE schemaname='sa_domain'"):
+    b=stats_before.get(oid,(0,0,0));delta_calls=calls-b[0]
+    if delta_calls:stats.append({'function':name,'calls':delta_calls,'total_ms':round(total-b[1],2),'self_ms':round(own-b[2],2)})
+   (ROOT/'docs/squad-one-audit/implementation-evidence/staging-command-profile.json').write_text(json.dumps(sorted(stats,key=lambda x:-x['self_ms']),indent=2)+'\n')
   print(json.dumps({'environment':'staging','passed':checks,'all_rows_rolled_back':True,'sequences_restored':True}))
 if __name__=='__main__':run()

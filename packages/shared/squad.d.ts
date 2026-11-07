@@ -140,7 +140,7 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   people(filters?: {role?: number;search?: string},page?: PageRequest): Promise<Page<Person>>;
   person(id: EntityId): Promise<Person>;
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
-  order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;items:Page<OrderItem>}>;
+  order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
   catalogue(kind?:'types'|'categories'|'products',filters?:CatalogueFilters,page?:PageRequest):Promise<Page<CatalogueOption>>;
   baseProduct(id:EntityId):Promise<CatalogueOption>;
@@ -159,6 +159,11 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   overrideQuote(quoteId:string,line:number,unitPrice:string,reason:string,command:Command):Promise<Quote>;
   saveBranding(design:BrandingSaveInput,command:Command|CreateCommand):Promise<SavedEntity & {product_id:EntityId|null}>;
   placeOrder(quoteId:string,details:OrderPlacementDetails,command:Command):Promise<OrderPlacement>;
+  saveOrderPriority(id:EntityId,prime:boolean,reason:string,command:Command):Promise<SavedEntity & {is_prime:boolean}>;
+  saveOrderDue(id:EntityId,dueAt:string,reason:string,command:Command):Promise<SavedEntity & {due_at:string}>;
+  recordOrderPayment(id:EntityId,status:'paid'|'unpaid'|'partial',paidAmount:string,reference:string,command:Command):Promise<SavedEntity & {payment_status:0|1|2;paid_amount:string}>;
+  cancelOrder(id:EntityId,kind:'cancel'|'delete',reason:string,command:Command):Promise<SavedEntity & {state:'queued'|'cancelled'|'deleted';request_id:string|null}>;
+  forceCompleteOrder(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {status:1;force_completed:true}>;
   tasks(filters?: {state?:0|1|2;orderId?:EntityId},page?:PageRequest):Promise<Page<Task>>;
   task(id:EntityId):Promise<Task>;
   taskAssignees(page?:PageRequest):Promise<Page<{id:EntityId;name:string;role:number}>>;
