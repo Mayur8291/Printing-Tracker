@@ -1,0 +1,5 @@
+psycopg==3.2.12
+psycopg-binary==3.2.12
+pglast==7.21
+typing_extensions==4.16.0
+cryptography==50.0.2

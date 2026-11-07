@@ -1,4 +1,5 @@
 name: Check Scott API configuration
+run-name: ${{ inputs.job_id && format('Canto {0} {1}', inputs.environment, inputs.job_id) || 'Check Scott API configuration' }}
 
 on:
   push:
@@ -8,12 +9,30 @@ on:
       - scripts/check-scott-secrets.mjs
       - supabase/functions/scott-dashboard-masters/**
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Canto refresh environment (only used with a job ID)
+        type: choice
+        options: [staging, production]
+        default: staging
+      job_id:
+        description: Authorized Canto refresh job UUID (leave empty for config check)
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 jobs:
+  refresh:
+    if: ${{ inputs.job_id != '' }}
+    uses: ./.github/workflows/canto-refresh.yml
+    with:
+      environment: ${{ inputs.environment }}
+      job_id: ${{ inputs.job_id }}
+    secrets: inherit
   check:
+    if: ${{ !inputs.job_id }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

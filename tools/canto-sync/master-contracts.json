@@ -1,0 +1,1769 @@
+{
+  "authorized_brands": {
+    "fields": [
+      "name",
+      "is_deleted",
+      "description",
+      "logo",
+      "sort_order"
+    ],
+    "required": [
+      "name"
+    ],
+    "unique": {
+      "name": true
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      },
+      "description": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "logo": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "sort_order": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "logo"
+    ],
+    "model": "authorized_brand",
+    "references": {},
+    "search": [
+      "name"
+    ]
+  },
+  "colors": {
+    "fields": [
+      "name",
+      "hex_code",
+      "is_deleted"
+    ],
+    "required": [
+      "name",
+      "hex_code"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "hex_code": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "created_by_id": {
+        "type": "bigint",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "color",
+    "references": {},
+    "search": [
+      "name",
+      "hex_code"
+    ]
+  },
+  "sc_sizes": {
+    "fields": [
+      "name",
+      "position",
+      "size_type_id",
+      "is_deleted"
+    ],
+    "required": [
+      "name"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "position": {
+        "type": "integer",
+        "nullable": true
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "size_type_id": {
+        "type": "bigint",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "sc_size",
+    "references": {
+      "size_type_id": "size_types"
+    },
+    "search": [
+      "name"
+    ]
+  },
+  "size_types": {
+    "fields": [
+      "name",
+      "is_deleted"
+    ],
+    "required": [
+      "name"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "size_type",
+    "references": {},
+    "search": [
+      "name"
+    ]
+  },
+  "base_product_types": {
+    "fields": [
+      "name",
+      "position",
+      "image",
+      "is_deleted"
+    ],
+    "required": [
+      "name"
+    ],
+    "unique": {
+      "name": true
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "position": {
+        "type": "integer",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "base_product_type",
+    "references": {},
+    "search": [
+      "name"
+    ]
+  },
+  "parts": {
+    "fields": [
+      "name",
+      "order_criteria",
+      "position",
+      "is_deleted"
+    ],
+    "required": [
+      "name"
+    ],
+    "unique": {
+      "name": true
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "order_criteria": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "position": {
+        "type": "integer",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "part",
+    "references": {},
+    "search": [
+      "name"
+    ],
+    "relations": {
+      "add_ons": [
+        "add_on_parts",
+        "part_id",
+        "add_on_id"
+      ],
+      "colors": [
+        "part_colors",
+        "part_id",
+        "color_id"
+      ]
+    }
+  },
+  "add_ons": {
+    "fields": [
+      "add_on",
+      "add_on_price",
+      "add_on_of",
+      "add_on_sn",
+      "has_color",
+      "select_type",
+      "group_name",
+      "position",
+      "layer_sort",
+      "image",
+      "is_deleted"
+    ],
+    "required": [
+      "add_on",
+      "add_on_price",
+      "add_on_of",
+      "add_on_sn",
+      "select_type",
+      "group_name"
+    ],
+    "unique": {
+      "add_on": true
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "add_on": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "add_on_price": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "add_on_of": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "add_on_sn": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "has_color": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "select_type": {
+        "type": "integer",
+        "nullable": true
+      },
+      "group_name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "image": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "position": {
+        "type": "integer",
+        "nullable": false
+      },
+      "layer_sort": {
+        "type": "integer",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "add_on",
+    "enums": {
+      "select_type": [
+        "single",
+        "multiple"
+      ]
+    },
+    "references": {},
+    "search": [
+      "add_on",
+      "group_name"
+    ],
+    "relations": {
+      "colors": [
+        "add_on_colors",
+        "add_on_id",
+        "color_id"
+      ],
+      "base_products": [
+        "add_on_base_products",
+        "add_on_id",
+        "base_product_id"
+      ],
+      "parts": [
+        "add_on_parts",
+        "add_on_id",
+        "part_id"
+      ]
+    }
+  },
+  "fabrics": {
+    "fields": [
+      "name",
+      "fabric_type",
+      "price",
+      "uom",
+      "gsm",
+      "image",
+      "is_deleted"
+    ],
+    "required": [
+      "name",
+      "price",
+      "fabric_type"
+    ],
+    "unique": {
+      "name": true
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "fabric_type": {
+        "type": "integer",
+        "nullable": true
+      },
+      "price": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "uom": {
+        "type": "character varying",
+        "nullable": false
+      },
+      "image": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "gsm": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "fabric",
+    "enums": {
+      "fabric_type": [
+        "cotton",
+        "polyester",
+        "poly_cotton"
+      ]
+    },
+    "references": {},
+    "search": [
+      "name"
+    ],
+    "relations": {
+      "colors": [
+        "fabric_colors",
+        "fabric_id",
+        "color_id"
+      ]
+    }
+  },
+  "base_products": {
+    "fields": [
+      "name",
+      "base_of",
+      "base_sn",
+      "tims_cost",
+      "adult_consumption",
+      "kids_consumption",
+      "over_header_percentage",
+      "sample_rate",
+      "position",
+      "calculator",
+      "branding_sides",
+      "image",
+      "is_deleted",
+      "base_product_type_id",
+      "asset_info_id",
+      "size_type_id"
+    ],
+    "required": [
+      "name",
+      "base_of",
+      "base_sn",
+      "tims_cost",
+      "adult_consumption",
+      "kids_consumption",
+      "over_header_percentage",
+      "sample_rate"
+    ],
+    "unique": {
+      "name": true
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "base_of": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "base_sn": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "tims_cost": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "adult_consumption": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "kids_consumption": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "over_header_percentage": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "sample_rate": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "image": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "position": {
+        "type": "integer",
+        "nullable": false
+      },
+      "asset_info_id": {
+        "type": "bigint",
+        "nullable": true
+      },
+      "calculator": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "size_type_id": {
+        "type": "integer",
+        "nullable": true
+      },
+      "branding_sides": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "base_product_type_id": {
+        "type": "integer",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "base_product",
+    "references": {
+      "base_product_type_id": "base_product_types",
+      "asset_info_id": "asset_infos",
+      "size_type_id": "size_types"
+    },
+    "search": [
+      "name"
+    ],
+    "relations": {
+      "fabrics": [
+        "base_product_fabrics",
+        "base_product_id",
+        "fabric_id"
+      ],
+      "parts": [
+        "base_product_parts",
+        "base_product_id",
+        "part_id"
+      ],
+      "size_types": [
+        "base_size_types",
+        "base_product_id",
+        "size_type_id"
+      ],
+      "categories": [
+        "base_product_categories",
+        "base_product_id",
+        "category_id"
+      ]
+    }
+  },
+  "asset_infos": {
+    "fields": [
+      "dX",
+      "dY",
+      "mirrorDX",
+      "assetHeightRespToBox",
+      "asset",
+      "is_deleted"
+    ],
+    "required": [
+      "dX",
+      "dY",
+      "mirrorDX",
+      "assetHeightRespToBox"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "dX": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "dY": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "mirrorDX": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "assetHeightRespToBox": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "asset": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "asset"
+    ],
+    "model": "asset_info",
+    "references": {},
+    "search": []
+  },
+  "base_product_asset_infos": {
+    "fields": [
+      "base_product_id",
+      "asset_info_id",
+      "add_on_id",
+      "part_id",
+      "is_deleted"
+    ],
+    "required": [
+      "add_on_id",
+      "part_id",
+      "asset_info_id",
+      "base_product_id"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "add_on_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "part_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "asset_info_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "base_product_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "base_product_asset_info",
+    "references": {
+      "base_product_id": "base_products",
+      "asset_info_id": "asset_infos",
+      "add_on_id": "add_ons",
+      "part_id": "parts"
+    },
+    "search": []
+  },
+  "profit_margins": {
+    "fields": [
+      "name",
+      "min_range",
+      "max_range",
+      "margin_percentage",
+      "branding_embroidery",
+      "branding_print",
+      "is_deleted"
+    ],
+    "required": [
+      "name",
+      "min_range",
+      "max_range",
+      "margin_percentage",
+      "branding_embroidery",
+      "branding_print"
+    ],
+    "unique": {
+      "name": false
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "min_range": {
+        "type": "bigint",
+        "nullable": true
+      },
+      "max_range": {
+        "type": "bigint",
+        "nullable": true
+      },
+      "margin_percentage": {
+        "type": "numeric",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "branding_embroidery": {
+        "type": "numeric",
+        "nullable": false
+      },
+      "branding_print": {
+        "type": "numeric",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "profit_margin",
+    "references": {},
+    "search": [
+      "name"
+    ]
+  },
+  "promotions": {
+    "fields": [
+      "name",
+      "upload_date",
+      "link",
+      "category",
+      "thumbnail",
+      "file_size",
+      "is_deleted"
+    ],
+    "required": [],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "upload_date": {
+        "type": "date",
+        "nullable": true
+      },
+      "thumbnail": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "link": {
+        "type": "text",
+        "nullable": true
+      },
+      "file_size": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "category": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "thumbnail"
+    ],
+    "model": "promotion",
+    "references": {},
+    "search": [
+      "name"
+    ]
+  },
+  "promotional_banners": {
+    "fields": [
+      "status",
+      "position",
+      "title",
+      "image",
+      "rmp_category_id",
+      "rmp_class_id",
+      "rmp_brand_id",
+      "is_deleted"
+    ],
+    "required": [],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "title": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "status": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "position": {
+        "type": "integer",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      },
+      "image": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "rmp_category_id": {
+        "type": "integer",
+        "nullable": true
+      },
+      "rmp_brand_id": {
+        "type": "integer",
+        "nullable": true
+      },
+      "rmp_class_id": {
+        "type": "integer",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "promotional_banner",
+    "references": {
+      "rmp_category_id": "rmp_categories",
+      "rmp_class_id": "rmp_classes",
+      "rmp_brand_id": "rmp_brands"
+    },
+    "search": [
+      "title"
+    ]
+  },
+  "rmp_colors": {
+    "fields": [
+      "name",
+      "code",
+      "is_deleted"
+    ],
+    "required": [
+      "name",
+      "code"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "code": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "rmp_color",
+    "references": {},
+    "search": [
+      "name",
+      "code"
+    ]
+  },
+  "rmp_sizes": {
+    "fields": [
+      "name",
+      "size_type",
+      "position",
+      "is_deleted",
+      "image"
+    ],
+    "required": [
+      "name",
+      "size_type"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "size_type": {
+        "type": "integer",
+        "nullable": false
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "position": {
+        "type": "integer",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "rmp_size",
+    "enums": {
+      "size_type": [
+        "alpha",
+        "numeric",
+        "free_size",
+        "kids",
+        "bags"
+      ]
+    },
+    "references": {},
+    "search": [
+      "name"
+    ]
+  },
+  "rmp_brands": {
+    "fields": [
+      "name",
+      "position",
+      "main_category",
+      "authorized_brand_id",
+      "is_deleted",
+      "image"
+    ],
+    "required": [
+      "name"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "position": {
+        "type": "integer",
+        "nullable": false
+      },
+      "main_category": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "authorized_brand_id": {
+        "type": "integer",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "rmp_brand",
+    "references": {
+      "authorized_brand_id": "authorized_brands"
+    },
+    "search": [
+      "name"
+    ],
+    "relations": {
+      "rmp_categories": [
+        "rmp_category_brands",
+        "rmp_brand_id",
+        "rmp_category_id"
+      ]
+    }
+  },
+  "rmp_categories": {
+    "fields": [
+      "name",
+      "position",
+      "image",
+      "is_deleted"
+    ],
+    "required": [
+      "name"
+    ],
+    "unique": {
+      "name": true
+    },
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "position": {
+        "type": "integer",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "rmp_category",
+    "references": {},
+    "search": [
+      "name"
+    ]
+  },
+  "rmp_classes": {
+    "fields": [
+      "name",
+      "position",
+      "rmp_color_id",
+      "embeded_video",
+      "image_1",
+      "image_2",
+      "image_3",
+      "image_4",
+      "image_5",
+      "image_1_thumb",
+      "image_2_thumb",
+      "image_3_thumb",
+      "image_4_thumb",
+      "image_5_thumb",
+      "is_deleted"
+    ],
+    "required": [
+      "rmp_color_id",
+      "name"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "image_1": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_2": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_3": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_4": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_5": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "rmp_color_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "embeded_video": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "min_price": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "min_mrp": {
+        "type": "character varying",
+        "nullable": false
+      },
+      "position": {
+        "type": "integer",
+        "nullable": false
+      },
+      "image_1_thumb": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_2_thumb": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_3_thumb": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_4_thumb": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "image_5_thumb": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image_1",
+      "image_2",
+      "image_3",
+      "image_4",
+      "image_5",
+      "image_1_thumb",
+      "image_2_thumb",
+      "image_3_thumb",
+      "image_4_thumb",
+      "image_5_thumb"
+    ],
+    "model": "rmp_class",
+    "references": {
+      "rmp_color_id": "rmp_colors"
+    },
+    "search": [
+      "name"
+    ]
+  },
+  "rmp_skus": {
+    "fields": [
+      "name",
+      "cgst",
+      "igst",
+      "sgst",
+      "rmp_size_id",
+      "rmp_class_id",
+      "rmp_brand_id",
+      "rmp_category_id",
+      "is_deleted",
+      "image"
+    ],
+    "required": [
+      "rmp_size_id",
+      "rmp_class_id",
+      "rmp_brand_id",
+      "name"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "rmp_size_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "rmp_class_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "rmp_brand_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "rmp_category_id": {
+        "type": "bigint",
+        "nullable": true
+      },
+      "cgst": {
+        "type": "numeric",
+        "nullable": false
+      },
+      "igst": {
+        "type": "numeric",
+        "nullable": false
+      },
+      "sgst": {
+        "type": "numeric",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [
+      "image"
+    ],
+    "model": "rmp_sku",
+    "references": {
+      "rmp_size_id": "rmp_sizes",
+      "rmp_class_id": "rmp_classes",
+      "rmp_brand_id": "rmp_brands",
+      "rmp_category_id": "rmp_categories"
+    },
+    "search": [
+      "name"
+    ]
+  },
+  "rmp_price_types": {
+    "fields": [
+      "name",
+      "price_for",
+      "zone_id",
+      "is_deleted"
+    ],
+    "required": [
+      "name",
+      "price_for"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "price_for": {
+        "type": "integer",
+        "nullable": false
+      },
+      "zone_id": {
+        "type": "bigint",
+        "nullable": true
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "rmp_price_type",
+    "enums": {
+      "price_for": [
+        "customer",
+        "zone",
+        "dealer"
+      ]
+    },
+    "references": {
+      "zone_id": "zones"
+    },
+    "search": [
+      "name"
+    ]
+  },
+  "rmp_prices": {
+    "fields": [
+      "name",
+      "price",
+      "mrp",
+      "rmp_sku_id",
+      "rmp_price_type_id",
+      "is_deleted"
+    ],
+    "required": [
+      "rmp_sku_id",
+      "rmp_price_type_id",
+      "price",
+      "mrp"
+    ],
+    "unique": {},
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "price": {
+        "type": "numeric",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "airtable_id": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "rmp_sku_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "rmp_price_type_id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "mrp": {
+        "type": "numeric",
+        "nullable": false
+      },
+      "source": {
+        "type": "integer",
+        "nullable": false
+      }
+    },
+    "media": [],
+    "model": "rmp_price",
+    "references": {
+      "rmp_sku_id": "rmp_skus",
+      "rmp_price_type_id": "rmp_price_types"
+    },
+    "search": [
+      "name"
+    ]
+  },
+  "zones": {
+    "readOnly": true,
+    "fields": [],
+    "required": [],
+    "unique": {},
+    "references": {},
+    "media": [],
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "is_deleted": {
+        "type": "boolean",
+        "nullable": true
+      }
+    },
+    "model": "zone",
+    "search": [
+      "name"
+    ]
+  },
+  "categories": {
+    "readOnly": true,
+    "fields": [],
+    "required": [],
+    "unique": {},
+    "references": {},
+    "media": [],
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false
+      },
+      "name": {
+        "type": "character varying",
+        "nullable": true
+      },
+      "created_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      },
+      "updated_at": {
+        "type": "timestamp without time zone",
+        "nullable": false
+      }
+    },
+    "model": "category",
+    "search": [
+      "name"
+    ]
+  }
+}
