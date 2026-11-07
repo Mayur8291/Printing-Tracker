@@ -2,7 +2,7 @@
 Only the matching reviewed source origin is fetched. No arbitrary URL fetches or
 production fallback. Missing source files are explicit exceptions, never success.
 """
-import concurrent.futures,datetime,gzip,hashlib,json,mimetypes,os,re,tempfile,time,threading,urllib.parse,urllib.request,urllib.error
+import concurrent.futures,datetime,gzip,hashlib,http.client,json,mimetypes,os,re,tempfile,time,threading,urllib.parse,urllib.request,urllib.error
 from pathlib import Path
 from psycopg.types.json import Jsonb
 from management import api,PROJECTS
@@ -15,6 +15,7 @@ LIMIT=1024*1024*1024
 CHUNK=6*1024*1024
 EXTRA={'promotions':['link'],'rmp_classes':['embeded_video'],'products':['images']}
 class MediaError(RuntimeError): pass
+class TransientMediaError(OSError): pass
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,req,fp,code,msg,headers,newurl):return None
 OPENER=urllib.request.build_opener(NoRedirect())
@@ -84,10 +85,10 @@ def open_source(url):
         try:return OPENER.open(urllib.request.Request(url,headers={'User-Agent':'Canto-media-sync/1.0','Accept-Encoding':'identity'}),timeout=60)
         except urllib.error.HTTPError as e:
             if e.code in (404,410):return None
-            if e.code not in (429,500,502,503,504):raise MediaError('Source media access failed') from None
+            if e.code not in (408,429,500,502,503,504):raise MediaError('Source media access failed') from None
         except (OSError,TimeoutError):pass
         if attempt<2:time.sleep(2**attempt)
-    raise MediaError('Source media transfer failed')
+    raise TransientMediaError('Source media transfer failed')
 
 class Storage:
     def __init__(self,environment):
@@ -101,7 +102,8 @@ class Storage:
         digest=hashlib.sha256();length=0
         with self.request(self.object_url(path)) as r:
             for block in iter(lambda:r.read(1024*1024),b''):digest.update(block);length+=len(block)
-        require(length==size and digest.hexdigest()==expected,'Media object read-back verification failed')
+        if length!=size:raise TransientMediaError('Incomplete media object read-back')
+        require(digest.hexdigest()==expected,'Media object read-back verification failed')
     def exists(self,path,size):
         try:
             with self.request(self.object_url(path),'HEAD') as r:return int(r.headers.get('Content-Length','-1'))==size
@@ -118,7 +120,7 @@ class Storage:
                     return
                 except urllib.error.HTTPError as e:
                     if e.code in (400,409) and self.exists(path,size):return
-                    if e.code not in (429,500,502,503,504) or attempt==2:raise
+                    if e.code not in (408,429,500,502,503,504) or attempt==2:raise
                 except (OSError,TimeoutError):
                     if attempt==2:raise
                 time.sleep(2**attempt)
@@ -149,7 +151,7 @@ def prepare(conn,environment,directory,manifest,progress=None):
     urls=sorted({r['source_url'] for r in refs if r['source_url']})
     counts={'started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'references':len(refs),'files':len(urls),'checked':0,'copied':0,'unchanged':0,'missing':0,'external':sum(r['status']=='external' for r in refs),'bytes':0}
     results={};errors=0;cache_rows=[]
-    object_lock=threading.Lock();object_locks={}
+    object_lock=threading.Lock();object_locks={};verified_objects=set()
     def transfer_once(url):
         response=open_source(url)
         if response is None:return {'status':'missing'}
@@ -158,7 +160,7 @@ def prepare(conn,environment,directory,manifest,progress=None):
             if inp.headers.get('Content-Length'):require(int(inp.headers['Content-Length'])<=LIMIT,'Media file exceeds 1 GiB transfer limit')
             for block in iter(lambda:inp.read(1024*1024),b''):
                 size+=len(block);require(size<=LIMIT,'Media file exceeds 1 GiB transfer limit');digest.update(block);out.write(block)
-            if inp.headers.get('Content-Length'):require(size==int(inp.headers['Content-Length']),'Incomplete source media')
+            if inp.headers.get('Content-Length') and size!=int(inp.headers['Content-Length']):raise TransientMediaError('Incomplete source media')
             require(size>0,'Empty source media');out.flush();sha=digest.hexdigest()
             guessed=mimetypes.guess_type(urllib.parse.urlsplit(url).path)[0]
             require(inp.headers.get('Content-Type','').split(';')[0]!='text/html' or guessed=='text/html','Source returned HTML instead of a media file')
@@ -173,13 +175,15 @@ def prepare(conn,environment,directory,manifest,progress=None):
             try:return transfer_once(url)
             except urllib.error.HTTPError as e:
                 if e.code not in (408,429,500,502,503,504) or attempt==2:raise
-            except (urllib.error.URLError,OSError,TimeoutError):
+            except (urllib.error.URLError,OSError,TimeoutError,http.client.IncompleteRead):
                 if attempt==2:raise
             time.sleep(2**attempt)
     def store_verified(sha,path,filename,size,mime):
             cached=objects.get(sha);copied=False
-            verified=False
-            if cached:
+            # Several source URLs can contain the same file. Verify each immutable
+            # object once per run, while still hashing every source response.
+            verified=sha in verified_objects
+            if cached and not verified:
                 try:storage.verify(path,sha,size);verified=True
                 except urllib.error.HTTPError as e:
                     if e.code not in (400,404):raise
@@ -189,7 +193,8 @@ def prepare(conn,environment,directory,manifest,progress=None):
                 except urllib.error.HTTPError as e:
                     if e.code!=409:raise
                 storage.verify(path,sha,size)
-            with object_lock:objects[sha]={'path':path,'bytes':size}
+            with object_lock:
+                objects[sha]={'path':path,'bytes':size};verified_objects.add(sha)
             return {'status':'ready','sha256':sha,'object_path':path,'bytes':size,'content_type':mime,'copied':copied}
     # Deduplicate equal source URLs. Eight bounded streams keep source traffic and disk usage controlled.
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:

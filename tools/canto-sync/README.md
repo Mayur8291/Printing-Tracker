@@ -129,7 +129,12 @@ as if their HTML pages were media. The existing snapshot parity checks still cov
 The worker fetches source bytes on each refresh, so a replacement at the same filename is
 noticed. New objects use a standard upload up to 6 MiB and resumable TUS above it. Uploaded
 objects are read back and SHA-256 verified; previously cached objects are verified again.
-Completed objects persist across interrupted runs. TUS retries recover an acknowledged
+Each distinct immutable object is read back once per run even when several source URLs
+contain it. Every source URL is still downloaded and hashed. Truncated HTTP reads are
+retried; equal-length checksum mismatches remain hard failures.
+Completed objects persist across interrupted runs. Management reads and temporary
+connection-credential provisioning retry transient gateway/network failures; arbitrary
+SQL writes and other mutations are never automatically replayed. TUS retries recover an acknowledged
 server offset after a lost network response. A process restart can reuse completed objects;
 an unfinished individual upload may restart. Eight streams and a 1 GiB per-file limit bound
 resources. Larger files stop publication with a diagnostic and require a reviewed capacity
@@ -172,5 +177,7 @@ the corresponding report-generation services.
 Tests: `tests/test_media.py` covers COPY decoding, environment/path safety, nested references,
 same-path replacements, missing files, retries/deduplication and resumable lost-response
 handling. `test_media_database.py` checks real staging mapping rollback, recovery checksums
-and role denial. `apps/admin/tests/canto-media.mjs` verifies actual rendering and reporting
+and role denial. `test_media_inventory.py ENVIRONMENT` independently scans a consistent
+read-only snapshot and compares every discovered reference with the published index.
+`apps/admin/tests/canto-media.mjs` verifies actual rendering and reporting
 with all DigitalOcean media requests blocked. These do not alter the old application.

@@ -47,11 +47,12 @@ class TransferTests(unittest.TestCase):
    def execute(self,q):return list(self.objects.values())
    def cursor(self):return Cursor(self)
   class Store:
-   blobs={};uploads=0
+   blobs={};uploads=0;verifications=0
    def __init__(self,e):pass
    def upload(self,path,file,size,mime):self.blobs[path]=Path(file).read_bytes();Store.uploads+=1
    def verify(self,path,sha,size):
     import hashlib
+    Store.verifications+=1
     assert hashlib.sha256(self.blobs[path]).hexdigest()==sha and len(self.blobs[path])==size
    def exists(self,path,size):return path in self.blobs and len(self.blobs[path])==size
   with tempfile.TemporaryDirectory() as folder,mock.patch.object(media,'Storage',Store):
@@ -60,6 +61,17 @@ class TransferTests(unittest.TestCase):
    with mock.patch.object(media,'open_source',side_effect=lambda u:Source(b'%PDF-original')):
     first=media.prepare(conn,'staging',p,m);again=media.prepare(conn,'staging',p,m)
    self.assertEqual(Store.uploads,1);self.assertEqual(again['summary']['unchanged'],1)
+   (p/'catalogues.copy').write_bytes(b'1\treport.pdf\n2\treport.pdf\n')
+   checks=Store.verifications
+   with mock.patch.object(media,'open_source',side_effect=lambda u:Source(b'%PDF-original')):
+    duplicate=media.prepare(conn,'staging',p,m)
+   self.assertEqual(duplicate['summary']['unchanged'],2)
+   self.assertEqual(Store.verifications-checks,1) # distinct URLs, one immutable object
+   (p/'catalogues.copy').write_bytes(b'1\treport.pdf\n')
+   import http.client
+   with mock.patch.object(media,'open_source',side_effect=[http.client.IncompleteRead(b'partial',5),Source(b'%PDF-original')]),mock.patch.object(media.time,'sleep'):
+    resumed=media.prepare(conn,'staging',p,m)
+   self.assertEqual(resumed['summary']['failed'],0)
    with mock.patch.object(media,'open_source',side_effect=lambda u:Source(b'%PDF-changed')):
     changed=media.prepare(conn,'staging',p,m)
    self.assertNotEqual(first['references'][0]['sha256'],changed['references'][0]['sha256'])
@@ -77,6 +89,12 @@ class TransferTests(unittest.TestCase):
 
 
 class ResumableTests(unittest.TestCase):
+ def test_short_read_retries_but_wrong_checksum_is_a_hard_failure(self):
+  import io,hashlib,media_sync as m
+  store=m.Storage.__new__(m.Storage);store.base='https://example.test/storage/v1'
+  store.request=lambda *a,**k:io.BytesIO(b'partial')
+  with self.assertRaises(m.TransientMediaError):store.verify('test',hashlib.sha256(b'complete').hexdigest(),8)
+  with self.assertRaisesRegex(RuntimeError,'read-back verification failed'):store.verify('test','0'*64,7)
  def test_lost_acknowledgement_resumes_without_duplicate_chunk(self):
   import media_sync as m
   import unittest.mock as mock
