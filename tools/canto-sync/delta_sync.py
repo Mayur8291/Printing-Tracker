@@ -126,8 +126,11 @@ def apply_changes(conn,manifest,keys,changes,directory):
 
 def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,inject_failure=False,admin_revision=None,admin_restore=None,progress=None):
     check_catalog(conn,environment)
-    pub=public_structure(conn);staff=staff_auth(conn)
     with conn.transaction():
+        # Compare our own effects against one MVCC snapshot. Independent staff sign-ins
+        # may update last_sign_in_at while this transaction verifies the imported data.
+        conn.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+        pub=public_structure(conn);staff=staff_auth(conn)
         # Auth signs in by locking its user before the deferred guard reads the snapshot.
         # Follow that ordering to avoid a login/refresh deadlock; staff rows are excluded.
         conn.execute('SELECT a.id FROM auth.users a JOIN sa_identity.sa_auth_identities m ON m.auth_user_id=a.id ORDER BY a.id FOR UPDATE OF a').fetchall()
