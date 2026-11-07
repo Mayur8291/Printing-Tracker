@@ -20,6 +20,24 @@
     ],
     [
       "sa_domain",
+      "app_releases",
+      "squad_release_read",
+      "{sa_executor}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "app_releases",
+      "squad_release_write",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_domain",
       "archived_entities",
       "squad_archive_read",
       "{sa_executor}",
@@ -125,6 +143,24 @@
       "ALL",
       "true",
       "true"
+    ],
+    [
+      "sa_domain",
+      "integration_preferences",
+      "squad_integration_preferences_read",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      null
+    ],
+    [
+      "sa_domain",
+      "integration_preferences",
+      "squad_integration_preferences_write",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
     ],
     [
       "sa_domain",
@@ -331,6 +367,15 @@
       "{sa_guard}",
       "SELECT",
       "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_app_configs",
+      "squad_app_config_read",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
       null
     ],
     [
@@ -551,6 +596,42 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_cities",
+      "squad_settings_delete",
+      "{sa_executor}",
+      "DELETE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_cities",
+      "squad_settings_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_cities",
+      "squad_settings_read",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_cities",
+      "squad_settings_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_colors",
       "squad_catalog_read",
       "{sa_executor}",
@@ -593,6 +674,42 @@
       "INSERT",
       null,
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = ANY (ARRAY[1, 3, 10]))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_criteria",
+      "squad_settings_delete",
+      "{sa_executor}",
+      "DELETE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_criteria",
+      "squad_settings_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_criteria",
+      "squad_settings_read",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_criteria",
+      "squad_settings_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
     ],
     [
       "sa_snapshot_20261019",
@@ -751,6 +868,15 @@
       "sa_snapshot_20261019",
       "sa_item_criteria",
       "squad_guard_criteria_read",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_criteria",
+      "squad_guard_setting_criteria",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -1280,6 +1406,24 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_promotional_banners",
+      "squad_banner_read",
+      "{sa_executor}",
+      "SELECT",
+      "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_promotions",
+      "squad_promotion_read",
+      "{sa_executor}",
+      "SELECT",
+      "( SELECT ((sa_domain.effective_capabilities(a.role_id, a.features) ->> 'promotions'::text))::boolean AS bool\n   FROM sa_domain.actor() a(auth_id, user_id, role_id, factory_id, features))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_quantities",
       "squad_executor_quantities_read",
       "{sa_executor}",
@@ -1474,6 +1618,15 @@
       "{sa_executor}",
       "SELECT",
       "((key)::text = 'use_dashboard'::text)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_settings",
+      "squad_setting_read",
+      "{sa_executor}",
+      "SELECT",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 0) AND ((key)::text = ANY ((ARRAY['airtable_sync_enabled'::character varying, 'use_dashboard'::character varying])::text[])))",
       null
     ],
     [
@@ -1736,6 +1889,33 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_zones",
+      "squad_settings_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_zones",
+      "squad_settings_read",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_zones",
+      "squad_settings_update",
+      "{sa_executor}",
+      "UPDATE",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
     ],
     [
       "sa_sync",
@@ -2625,6 +2805,11 @@
     ],
     [
       "sa_settings",
+      "id",
+      "{sa_executor=r/postgres}"
+    ],
+    [
+      "sa_settings",
       "key",
       "{sa_executor=r/postgres}"
     ],
@@ -2951,6 +3136,18 @@
     ],
     [
       "canto_api",
+      "v1_app_bootstrap",
+      "p_platform text, p_version text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,anon=X/postgres}",
+      "a1b3ca6520aa66800f8aed0698ee87dc"
+    ],
+    [
+      "canto_api",
       "v1_backorder_place",
       "p_preview_id uuid, p_due_at text, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -2972,6 +3169,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "47ed927c48c1b298ad58740431ada00d"
+    ],
+    [
+      "canto_api",
+      "v1_banners_list",
+      "p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "0737ccec5250f1b6a1bc138b29859594"
     ],
     [
       "canto_api",
@@ -3599,6 +3808,18 @@
     ],
     [
       "canto_api",
+      "v1_person_capabilities_save",
+      "p_id bigint, p_features jsonb, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "901aa65a0be629d9fff7738a81f66a88"
+    ],
+    [
+      "canto_api",
       "v1_person_get",
       "p_id bigint",
       "postgres",
@@ -3680,6 +3901,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "c725fcf6cf0e7fdcdfca035be9632d3e"
+    ],
+    [
+      "canto_api",
+      "v1_promotions_list",
+      "p_filters jsonb, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "8adfd27c66a3ad3dd9199f8a95777765"
     ],
     [
       "canto_api",
@@ -3788,6 +4021,30 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "2a24a729eff2fc3ce16589680576c16a"
+    ],
+    [
+      "canto_api",
+      "v1_settings_read",
+      "p_group text, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "521bd5379a3282bbe7b24faadbde2e6d"
+    ],
+    [
+      "canto_api",
+      "v1_settings_save",
+      "p_group text, p_id bigint, p_fields jsonb, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "56e060cab6a77e806e5b99114195215f"
     ],
     [
       "canto_api",
@@ -3943,7 +4200,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "74da18c5f04c8efa93b709759ed21255"
+      "fcaa3ccbfa67844262acd57c9776ee2c"
     ],
     [
       "sa_domain",
@@ -3979,7 +4236,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "57ef2110495f389e9f2f4ec7a2dd82c5"
+      "eb7a7078650f434f1d4fbfc1b273016d"
     ],
     [
       "sa_domain",
@@ -4291,7 +4548,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
-      "ac92786bcd0b0dedea0eca2cc571de0d"
+      "0a88064244efe5ce4c746f5ea4ad4339"
     ],
     [
       "sa_domain",
@@ -4423,7 +4680,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "d7c7e1feb53406652d9332553c9ffae2"
+      "85446e7bbf97fa39c3b0f2c720449227"
     ],
     [
       "sa_domain",
@@ -4582,6 +4839,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "88631b1b680e13dc066323a81db6a9ee"
+    ],
+    [
+      "sa_domain",
+      "effective_capabilities",
+      "p_role integer, p_features jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
+      "05b5153f3e8cf888d5fef8e885976264"
     ],
     [
       "sa_domain",
@@ -5016,6 +5285,18 @@
     ],
     [
       "sa_domain",
+      "promotion_link",
+      "p_id bigint, p_link text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "aa08f281c633eb9304c26876213b34da"
+    ],
+    [
+      "sa_domain",
       "quote_address",
       "p_customer_id bigint, p_address_id bigint",
       "sa_guard",
@@ -5099,7 +5380,19 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "14d4c94528aa52413ac3099cf93bf58c"
+      "a0cf3a3f4e203aa3a04d05e4d99f41aa"
+    ],
+    [
+      "sa_domain",
+      "release_version",
+      "p_version text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "442f016986314f25b29ec142353152ce"
     ],
     [
       "sa_domain",
@@ -5184,6 +5477,18 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "75194fe50c9a5ae2ded7d17014fb1901"
+    ],
+    [
+      "sa_domain",
+      "setting_dependencies",
+      "p_group text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "0730a6d10d4264ae3d67350c83413821"
     ],
     [
       "sa_domain",
@@ -5367,6 +5672,18 @@
     ],
     [
       "sa_domain",
+      "v1_app_bootstrap",
+      "p_platform text, p_version text",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor,anon=X/sa_executor}",
+      "1833aead161709830ef5cf01309ea0a9"
+    ],
+    [
+      "sa_domain",
       "v1_backorder_place",
       "p_preview_id uuid, p_due_at text, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -5388,6 +5705,18 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "7d5eab0b086b3230da860a182585359e"
+    ],
+    [
+      "sa_domain",
+      "v1_banners_list",
+      "p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "a7b5c8e7f081177f533527b9246d618a"
     ],
     [
       "sa_domain",
@@ -5832,7 +6161,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_app=X/sa_executor}",
-      "589859c27f7f67f0a4741d00f8e586f9"
+      "b9dcf27c0bdde26f0c35a9b93b536b04"
     ],
     [
       "sa_domain",
@@ -6042,6 +6371,18 @@
     ],
     [
       "sa_domain",
+      "v1_person_capabilities_save",
+      "p_id bigint, p_features jsonb, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "999fb2e84f0c041780c023e50e01f1aa"
+    ],
+    [
+      "sa_domain",
       "v1_person_get",
       "p_id bigint",
       "sa_executor",
@@ -6127,6 +6468,18 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "b1eedfb7a901c0709868f3cd662b6fb8"
+    ],
+    [
+      "sa_domain",
+      "v1_promotions_list",
+      "p_filters jsonb, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "f8b93a82c360a4187121aa3ea4a2571c"
     ],
     [
       "sa_domain",
@@ -6240,6 +6593,30 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "8299a9254086591c9b9f3c8d942c3807"
+    ],
+    [
+      "sa_domain",
+      "v1_settings_read",
+      "p_group text, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "9330b823fa44c470f091b309aabd0eb9"
+    ],
+    [
+      "sa_domain",
+      "v1_settings_save",
+      "p_group text, p_id bigint, p_fields jsonb, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "3082d180885b9387158a214c574af4d2"
     ],
     [
       "sa_domain",
@@ -6440,7 +6817,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "fa2d7397ae205ba08fbd65b287b734d7"
+      "dd5d8211857abf03a05793d75a1a12f7"
     ],
     [
       "sa_domain",

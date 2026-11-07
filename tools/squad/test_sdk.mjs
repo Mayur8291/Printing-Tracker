@@ -11,11 +11,19 @@ const credentials=JSON.parse(readFileSync(process.env.SQUAD_TEST_CREDENTIALS || 
 const key=execFileSync(path.join(root,'tools/canto-sync/.venv/bin/python'),['-c',
   "import sys;sys.path.insert(0,'tools/canto-sync');from auth_test import keys;print(keys('staging'))"],{cwd:root,encoding:'utf8'}).trim();
 const client=createClient('https://scvojtvgnkmbupvyslmb.supabase.co',key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const guest=createSquadClient(client);
+const bootstrap=await guest.bootstrap('android','1.0.0');
+assert.equal(bootstrap.client,'squad');
+await assert.rejects(guest.settings('integrations'),e=>e instanceof SquadError && e.kind==='forbidden');
 const {error}=await client.auth.signInWithPassword(credentials);
 if(error)throw new Error(`Controlled test login failed: ${error.code || error.status}`);
 try {
   const sdk=createSquadClient(client),me=await sdk.me();
   assert.equal(me.role,3);
+  const promotions=await sdk.promotions({}, {limit:2});
+  const categories=await sdk.promotions({mode:'categories'}, {limit:2});
+  const banners=await sdk.banners({limit:2});
+  assert.ok([promotions,categories,banners].every(p=>p.data.length<=2));
   const person=await sdk.person(me.id);
   assert.equal(person.id,me.id);
   assert.ok(Array.isArray(person.addresses));

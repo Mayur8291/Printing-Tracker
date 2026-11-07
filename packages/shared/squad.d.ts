@@ -212,7 +212,26 @@ export class SquadError extends Error {
   code: string; kind: 'session'|'forbidden'|'conflict'|'validation'|'not_found'|'unavailable'|'unexpected';
   constructor(error: {message?: string;code?: string});
 }
+export type AppPlatform='android'|'ios'|'web';
+export interface AppBootstrap {api_version:1;client:'squad';platform:AppPlatform;minimum_version:string|null;recommended_version:string|null;update_url:string|null;update_required:boolean;update_available:boolean;version_check:'unknown_client_version'|'no_minimum_configured'|'checked'}
+export interface AppRelease {platform:AppPlatform;minimum_version:string|null;recommended_version:string|null;update_url:string|null;version:Version}
+export type SettingsGroup='app_releases'|'integrations'|'cities'|'zones'|'criteria';
+export interface IntegrationPreferences {version:Version;airtable_enabled:boolean;warehouse_provider:'dashboard'|'unicommerce';warehouse_provider_mutable:false;imported_airtable_enabled:boolean;provider_configuration:'server_only'}
+export interface SettingsMaster extends SavedEntity {name:string;parent_id:EntityId|null;archived:boolean}
+export interface Promotion {id:EntityId;name:string|null;category:string|null;upload_date:string|null;file_size:string|null;thumbnail:MediaReference|null;content:null|{kind:'external';url:string;provider:'youtube'|'google_drive'|'vimeo'}|{kind:'file';media:MediaReference|null};updated_at:string}
+export interface Banner {id:EntityId;title:string|null;status:string|null;position:number|null;image:MediaReference|null;destination:{brand_id:EntityId|null;category_id:EntityId|null;class_id:EntityId|null};availability:{state:'not_loaded'}}
 export function createSquadClient(supabase: RpcTransport): Readonly<{
+  bootstrap(platform:AppPlatform,version?:string|null):Promise<AppBootstrap>;
+  saveCapabilities(id:EntityId,features:FeatureGrant[],reason:string,command:Command):Promise<SavedEntity & {features:FeatureGrant[];capabilities:Record<string,boolean>}>;
+  promotions(filters?:{mode?:'assets';category?:string;upload_date?:string},page?:PageRequest):Promise<Page<Promotion>>;
+  promotions(filters:{mode:'categories'},page?:PageRequest):Promise<Page<{category:string}>>;
+  banners(page?:PageRequest):Promise<Page<Banner>>;
+  settings(group:'app_releases',page?:PageRequest):Promise<Page<AppRelease> & {legacy_flutter_version:string|null;legacy_version_applied_to_squad:false}>;
+  settings(group:'integrations',page?:PageRequest):Promise<IntegrationPreferences>;
+  settings(group:'cities'|'zones'|'criteria',page?:PageRequest):Promise<Page<SettingsMaster>>;
+  saveSettings(group:'app_releases',id:null,fields:Omit<AppRelease,'version'>,reason:string,command:Command):Promise<AppRelease>;
+  saveSettings(group:'integrations',id:null,fields:{airtable_enabled:boolean},reason:string,command:Command):Promise<IntegrationPreferences>;
+  saveSettings(group:'cities'|'zones'|'criteria',id:EntityId|null,fields:{name?:string;zone_id?:EntityId;archive?:boolean},reason:string,command:Command|CreateCommand):Promise<SavedEntity & {name:string;archived:boolean}>;
   me(): Promise<Me>;
   saveProfile(fields: ProfileFields,command: Command): Promise<Me>;
   people(filters?:PeopleFilters,page?:PageRequest):Promise<Page<Person>>;

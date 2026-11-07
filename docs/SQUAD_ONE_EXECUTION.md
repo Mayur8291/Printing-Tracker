@@ -197,6 +197,22 @@ The maximum bounded attribution batch (100 customers, 1,000 pending orders) init
 
 Next: remaining capability/app/settings/content contracts, order editing/detail completion, ratings/reports, then account/media/provider/job orchestration and the complete acceptance review. Current API name coverage is not a declaration that all workflow variations or external effects are complete.
 
+## Iteration 14 — shared capabilities, startup, content and business settings
+
+Staging implements 87 of the original 115 RPC names, plus three shared selectors. Added one effective-capability projection reused by the current-user and Admin feature-grant contracts. The source's `3.1` Place Order flag was an unused Flutter placeholder; enabling it is rejected, while legacy false values remain accepted. JW/Team order authority is not invented. PC promotion access matches the approved matrix. Feature revocation takes effect on the existing live session.
+
+The only anonymous domain RPC is a fixed, read-only app release projection, owned by the non-bypass executor. Anonymous callers cannot read settings tables or invoke other private functions. Android, iOS and web policies are independent and compare numeric major/minor/patch/build components. Missing client versions are explicit. New Squad/Expo minimums initially remain unset; imported Flutter version strings do not force updates in an unrelated client. Release settings are operational state retained across source refreshes, with generation-bound command versions.
+
+Promotions retain category/date filters, updated-time ordering and tie-safe pagination; categories use a bounded shared endpoint. YouTube/Drive/Vimeo links remain external links, while files/thumbnails use private media descriptors. Banners preserve position ordering and enforce dealer brand/class scope. Warehouse availability is explicitly not loaded here; provider-backed availability and file grants remain orchestration gates, not fabricated zero stock or public URLs.
+
+Allowlisted Admin settings cover release policy, the Airtable opt-in preference, criteria, cities and zones. Credentials never appear. The imported warehouse provider stays read-only to avoid introducing two inventory authorities. Airtable opt-in is a desired configuration; provider setup and the importer must still be verified before delivery. Used criteria cannot be renamed/deleted, used cities cannot silently change routing, and referenced zones cannot be archived. Unused cities/criteria may be removed with retained command audit; zones retain their existing soft-delete field. Deleted zones no longer supply eligible city/zone choices or zone pricing. Existing Masters controllers remain authoritative for product criteria configuration and ordinary catalogue CRUD; platform-staff bridging and bounded dependent-geography reconciliation remain final workflow review items.
+
+621 local tests pass, including 50 new content/settings cases. The actual GoTrue/shared SDK test caught an ambiguous city-selector column missed by the first local suite. A follow-up immutable migration qualifies that column, and an exact regression covers active versus deleted-zone cities. Guest bootstrap, forbidden settings, signed-in content and ordinary SDK flows now pass. Mobile typing passes. All staging mutation tests roll back rows/sessions and restore sequences; no provider notification is sent. Security advisors have no new domain finding beyond the reviewed `filtered_orders` helper.
+
+Warm staging database p95: bootstrap **0.344 ms**, content/categories/banners **2.496–21.809 ms**, settings reads **3.307–4.045 ms**, release/geography writes **5.213–5.451 ms**, capability grants **12.914 ms**. Evidence is in `staging-app-content-performance.json`. These are bounded representative measurements, not whole-system concurrent capacity. Printing Tracker public structure is unchanged; no production changes were made.
+
+Next: ratings and reports, then order-edit/detail completion, Auth/media/provider/jobs and the complete matrix/refresh/cutover acceptance.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

@@ -19,6 +19,12 @@ export function createSquadClient(supabase) {
   }
   return Object.freeze({
     me: () => call("v1_me"),
+    bootstrap: (platform,version = null) => call("v1_app_bootstrap", {p_platform:platform,p_version:version}),
+    saveCapabilities: (id,features,reason,command) => call("v1_person_capabilities_save", {p_id:id,p_features:features,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    promotions: (filters = {},page = {}) => call("v1_promotions_list", {p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    banners: (page = {}) => call("v1_banners_list", {p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    settings: (group,page = {}) => call("v1_settings_read", {p_group:group,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    saveSettings: (group,id,fields,reason,command) => call("v1_settings_save", {p_group:group,p_id:id,p_fields:fields,p_reason:reason,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
     saveProfile: (fields, command) => call("v1_profile_save", {
       p_fields: fields, p_expected_version: command.expectedVersion,
       p_idempotency_key: command.idempotencyKey

@@ -8055,9 +8055,24 @@
       "CREATE UNIQUE INDEX sa_promotional_banners_pkey ON sa_snapshot_20261019.sa_promotional_banners USING btree (id)"
     ],
     [
+      "sa_promotional_banners",
+      "squad_banner_page",
+      "CREATE INDEX squad_banner_page ON sa_snapshot_20261019.sa_promotional_banners USING btree (sa_domain.catalog_sort(\"position\"), id) WHERE (is_deleted IS NOT TRUE)"
+    ],
+    [
       "sa_promotions",
       "sa_promotions_pkey",
       "CREATE UNIQUE INDEX sa_promotions_pkey ON sa_snapshot_20261019.sa_promotions USING btree (id)"
+    ],
+    [
+      "sa_promotions",
+      "squad_promotion_category_page",
+      "CREATE INDEX squad_promotion_category_page ON sa_snapshot_20261019.sa_promotions USING btree (category, updated_at DESC, id DESC) WHERE (is_deleted IS NOT TRUE)"
+    ],
+    [
+      "sa_promotions",
+      "squad_promotion_page",
+      "CREATE INDEX squad_promotion_page ON sa_snapshot_20261019.sa_promotions USING btree (updated_at DESC, id DESC) WHERE (is_deleted IS NOT TRUE)"
     ],
     [
       "sa_quantities",
@@ -8625,7 +8640,7 @@
       "sa_app_configs",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_ar_internal_metadata",
@@ -8727,7 +8742,7 @@
       "sa_cities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arwd/postgres}"
     ],
     [
       "sa_colors",
@@ -8739,7 +8754,7 @@
       "sa_criteria",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arwd/postgres}"
     ],
     [
       "sa_customer_requests",
@@ -8781,7 +8796,7 @@
       "sa_item_criteria",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_item_tailor_quantities",
@@ -8919,13 +8934,13 @@
       "sa_promotional_banners",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_promotions",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_quantities",
@@ -9105,7 +9120,7 @@
       "sa_zones",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arw/postgres}"
     ]
   ],
   []

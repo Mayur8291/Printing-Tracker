@@ -1,0 +1,168 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T17:50:54.136019+00:00",
+  "scope": "warm rollback-only database content/settings journey; no external delivery; not concurrent load",
+  "queries": [
+    {
+      "rpc": "v1_settings_read",
+      "database_p95_ms": 3.307,
+      "samples_ms": [
+        3.307,
+        2.663,
+        2.382,
+        2.442,
+        2.328,
+        2.258,
+        2.248,
+        2.236,
+        2.23,
+        2.276
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_settings_save",
+      "database_p95_ms": 5.451,
+      "samples_ms": [
+        4.775,
+        4.567,
+        4.629,
+        4.536,
+        5.451,
+        4.327,
+        4.135,
+        4.178,
+        4.062,
+        4.071
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_app_bootstrap",
+      "database_p95_ms": 0.344,
+      "samples_ms": [
+        0.309,
+        0.293,
+        0.293,
+        0.344,
+        0.309,
+        0.254,
+        0.277,
+        0.281,
+        0.315,
+        0.241
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_person_capabilities_save",
+      "database_p95_ms": 12.914,
+      "samples_ms": [
+        8.84,
+        8.852,
+        8.631,
+        8.72,
+        10.847,
+        12.914,
+        8.018,
+        7.882,
+        10.634,
+        8.13
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_promotions_list",
+      "database_p95_ms": 21.809,
+      "samples_ms": [
+        19.26,
+        19.417,
+        19.657,
+        19.511,
+        21.809,
+        20.721,
+        19.277,
+        18.93,
+        19.262,
+        19.018
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_promotions_list",
+      "database_p95_ms": 2.496,
+      "samples_ms": [
+        2.496,
+        2.424,
+        2.43,
+        2.448,
+        2.481,
+        2.115,
+        2.18,
+        2.242,
+        2.24,
+        2.217
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_banners_list",
+      "database_p95_ms": 14.638,
+      "samples_ms": [
+        11.8,
+        11.408,
+        11.39,
+        11.388,
+        14.638,
+        10.398,
+        10.058,
+        9.783,
+        9.97,
+        10.447
+      ],
+      "target_ms": 200
+    },
+    {
+      "rpc": "v1_settings_save",
+      "database_p95_ms": 5.213,
+      "samples_ms": [
+        5.213,
+        4.306,
+        4.415,
+        4.261,
+        4.195,
+        4.326,
+        4.223,
+        4.302,
+        4.337,
+        4.297
+      ],
+      "target_ms": 500
+    },
+    {
+      "rpc": "v1_settings_read",
+      "database_p95_ms": 4.045,
+      "samples_ms": [
+        3.299,
+        3.307,
+        3.385,
+        3.256,
+        4.045,
+        3.104,
+        2.966,
+        2.933,
+        2.964,
+        3.09
+      ],
+      "target_ms": 200
+    }
+  ],
+  "checks": [
+    "Anonymous release policy only; numeric version comparison",
+    "Admin grant becomes effective on existing worker session",
+    "Scoped content lists, category pagination, dealer banner filtering",
+    "Unused geography create/archive with versions and audit"
+  ],
+  "all_rows_rolled_back": true,
+  "sequences_restored": true
+}

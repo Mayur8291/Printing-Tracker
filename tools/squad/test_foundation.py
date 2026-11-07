@@ -94,7 +94,7 @@ class Foundation(unittest.TestCase):
     def test_definer_owners_and_public_grants(self):
         unsafe=self.c.execute("""SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
           JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='sa_domain'
-          AND ((p.prosecdef AND (r.rolsuper OR r.rolbypassrls) AND p.proname<>'auth_context') OR has_function_privilege('anon',p.oid,'EXECUTE'))""").fetchall()
+          AND ((p.prosecdef AND (r.rolsuper OR r.rolbypassrls) AND p.proname<>'auth_context') OR (has_function_privilege('anon',p.oid,'EXECUTE') AND p.oid<>'sa_domain.v1_app_bootstrap(text,text)'::regprocedure))""").fetchall()
         self.assertEqual(unsafe,[])
     def test_auth_bridge_cannot_be_called_by_client(self):
         self.actor()
