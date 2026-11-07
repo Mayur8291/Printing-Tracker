@@ -44,6 +44,14 @@ Deno.serve(async req => {
       }
       return response(status);
     }
+    if (input.action === "retry") {
+      const status = await rpc("refresh_status", {}, authorization);
+      const job = status.jobs.find((j: { id: string }) => j.id === status.state.active_job);
+      if (!job || job.status !== "queued") return response({ error: "Only a queued job can retry worker dispatch" }, 409);
+      // Reusing the same UUID is safe: the database permits exactly one worker to claim it.
+      const dispatched = await github(`actions/workflows/${workflow}/dispatches`, { ref: Deno.env.get("CANTO_WORKFLOW_REF") || "develop", inputs: { environment, job_id: job.id } });
+      return response(dispatched.ok ? { job } : { error: "Worker dispatch is still unavailable. The queued job remains protected." }, dispatched.ok ? 202 : 503);
+    }
     if (input.action !== "start") return response({ error: "Unknown action" }, 400);
     if (!Deno.env.get("CANTO_GITHUB_TOKEN")) return response({ error: "Refresh worker is not configured" }, 503);
     const job = await rpc("request_refresh", { environment, discard_revision: input.discard_revision ?? null }, authorization);

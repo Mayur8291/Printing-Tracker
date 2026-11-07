@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS sa_admin.media (
   resource text NOT NULL, record_id bigint NOT NULL, field text NOT NULL, url text NOT NULL,
   PRIMARY KEY (resource, record_id, field)
 );
+CREATE TABLE IF NOT EXISTS sa_admin.record_extras (resource text NOT NULL,record_id bigint NOT NULL,values jsonb NOT NULL,PRIMARY KEY(resource,record_id));
+ALTER TABLE sa_admin.record_extras ENABLE ROW LEVEL SECURITY;
 CREATE TABLE IF NOT EXISTS sa_admin.audit (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY, actor_id uuid NOT NULL,
   resource text NOT NULL, record_id bigint, operation text NOT NULL,
@@ -44,6 +46,8 @@ BEGIN
   IF spec IS NULL THEN RAISE EXCEPTION 'Unknown master' USING ERRCODE='22023'; END IF;
   EXECUTE format('SELECT to_jsonb(t) FROM sa_snapshot_20261019.%I t WHERE id=$1','sa_'||p_resource) INTO result USING p_id;
   IF result IS NULL THEN RETURN NULL; END IF;
+  SELECT e.values INTO related FROM sa_admin.record_extras e WHERE e.resource=p_resource AND e.record_id=p_id;
+  result:=result||coalesce(related,'{}');
   FOR v_field,values_ IN SELECT * FROM jsonb_each(coalesce(spec->'enums','{}')) LOOP
     IF result->>v_field IS NOT NULL THEN result:=jsonb_set(result,ARRAY[v_field],values_->((result->>v_field)::int)); END IF;
   END LOOP;
@@ -196,6 +200,9 @@ BEGIN
     END IF;
   END LOOP;
   row_:=coalesce(before_,'{}')||payload;
+  IF p_resource='asset_infos' AND nullif(payload->>'add_on_id','') IS NOT NULL AND NOT EXISTS(SELECT 1 FROM sa_snapshot_20261019.sa_add_ons WHERE id=(payload->>'add_on_id')::bigint) THEN
+    RAISE EXCEPTION 'Related add-on does not exist' USING ERRCODE='23503';
+  END IF;
   IF p_action NOT IN ('delete','relations') THEN
     FOR field IN SELECT jsonb_array_elements_text(spec->'required') LOOP
       IF coalesce(btrim(row_->>field),'')='' THEN RAISE EXCEPTION '% is required',field USING ERRCODE='23514'; END IF;
@@ -229,6 +236,10 @@ BEGIN
       ELSE INSERT INTO sa_admin.media VALUES(p_resource,record_id,field,value#>>'{}') ON CONFLICT(resource,record_id,field) DO UPDATE SET url=excluded.url; END IF;
     END IF;
   END LOOP;
+  IF p_resource='asset_infos' THEN
+    INSERT INTO sa_admin.record_extras(resource,record_id,values) VALUES(p_resource,record_id,payload-ARRAY(SELECT jsonb_object_keys(spec->'columns')))
+      ON CONFLICT(resource,record_id) DO UPDATE SET values=sa_admin.record_extras.values||excluded.values;
+  END IF;
   PERFORM sa_admin.write_relations(p_resource,record_id,coalesce(p_data->'relations','{}'));
   IF p_resource='rmp_prices' THEN
     EXECUTE 'SELECT to_jsonb(t) FROM sa_snapshot_20261019.sa_rmp_prices t WHERE id=$1' INTO row_ USING record_id;

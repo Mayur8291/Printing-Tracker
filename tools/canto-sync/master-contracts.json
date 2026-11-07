@@ -730,7 +730,9 @@
       "mirrorDX",
       "assetHeightRespToBox",
       "asset",
-      "is_deleted"
+      "is_deleted",
+      "name",
+      "add_on_id"
     ],
     "required": [
       "dX",

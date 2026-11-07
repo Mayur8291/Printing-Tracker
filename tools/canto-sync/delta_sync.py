@@ -84,6 +84,7 @@ def plan_delta(conn,manifest,keys,directory,source_dir):
         if i%15==0:log('compared '+str(i)+'/86 tables; rollback data saved locally')
     if conn.execute("select to_regclass('sa_sync.environment_state')").fetchone()[0]:
         save(backup/'admin-state.json',{'media':conn.execute("SELECT coalesce(jsonb_agg(to_jsonb(m)),'[]') FROM sa_admin.media m").fetchone()[0],
+            'extras':conn.execute("SELECT coalesce(jsonb_agg(to_jsonb(e)),'[]') FROM sa_admin.record_extras e").fetchone()[0],
             'state':conn.execute('SELECT to_jsonb(s) FROM sa_sync.environment_state s WHERE singleton').fetchone()[0]})
     save(backup/'manifest.json',before)
     return changes,totals,before
@@ -141,11 +142,14 @@ def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,in
         auth_result=enroll(conn)
         if admin_restore is not None:
             from psycopg.types.json import Jsonb
+            conn.execute('DELETE FROM sa_admin.record_extras')
+            conn.execute('INSERT INTO sa_admin.record_extras SELECT * FROM jsonb_populate_recordset(NULL::sa_admin.record_extras,%s)',(Jsonb(admin_restore.get('extras',[])),))
             conn.execute('DELETE FROM sa_admin.media')
             conn.execute('INSERT INTO sa_admin.media SELECT * FROM jsonb_populate_recordset(NULL::sa_admin.media,%s)',(Jsonb(admin_restore['media']),))
             conn.execute('UPDATE sa_sync.environment_state SET edit_revision=%s,synced_revision=%s,updated_at=now() WHERE singleton',(admin_restore['state']['edit_revision'],admin_restore['state']['synced_revision']))
         elif admin_revision is not None:
-            # Companion uploads are new-side test edits too. Snapshot publication replaces them.
+            # Companion fields/uploads are new-side edits too. Snapshot publication replaces them.
+            conn.execute('DELETE FROM sa_admin.record_extras')
             conn.execute('DELETE FROM sa_admin.media')
             conn.execute('UPDATE sa_sync.environment_state SET synced_revision=edit_revision,updated_at=now() WHERE singleton AND edit_revision=%s',(admin_revision,))
         require(public_structure(conn)==pub,'Public schema changed during refresh')
