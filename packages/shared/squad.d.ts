@@ -144,6 +144,15 @@ export interface BackorderPreview {
  requirements:Array<{key:string;kind:'custom'|'rmp';size_id:EntityId;product_id:EntityId|null;class_id:EntityId|null;brand_id:EntityId|null;category_id:EntityId|null;required:number;available:number|null;shortage:number|null;received:number;consumed:number;needs_reconciliation:boolean}>;
  lines:QuoteLineInput[];status:'ready'|'no_shortage'|'needs_reconciliation';stock_reservation:'none';quote:Quote|null;
 }
+export type DispatchMode='not_defined'|'customer'|'ho'|'makali_factory';
+export interface DispatchDestination {mode:DispatchMode|'unknown';address:null|{id:EntityId;address:string|null;state:string|null;city:string|null;zip_code:string|null}}
+export interface Delivery {id:EntityId;item_id:EntityId;order_id:EntityId;customer_id:EntityId;occurred_at:string|null;quantity:number;size_rows:number;order_state:'pending'|'completed'|'cancelled';history_state:'recorded';destination:DispatchDestination;destination_basis:'dispatch_snapshot'|'current_order_only'}
+export interface TailorEarning {id:EntityId;item_id:EntityId;tailor_id:EntityId;base_product_id:EntityId|null;product_name:string|null;assigned:number;completed:number;pending:number;of_rate:string;sn_rate:string;unit_rate:string;amount:string|null;status:'calculated'|'needs_reconciliation'}
+export interface TailorEarnings extends Page<TailorEarning> {
+ summary:{rows:number;assigned:number;completed:number;pending:number;amount:string|null;calculated_subtotal:string;needs_reconciliation:boolean};
+ period:{week_start:string;week_end:string;start_utc:string;end_exclusive_utc:string;timezone:'Asia/Kolkata'};
+ basis:{formula:'legacy-tailor-v1';rates:'current_master';addons:'all_linked_base_addons';period:'assignment_date';completion:'current_at_read'};as_of:string;
+}
 export interface WorkHistoryRow {id:EntityId;history_id:EntityId;quantity_id:EntityId;remaining_before:number;quantity:number;occurred_at:string}
 export interface WorkSize {id:EntityId;size_id:EntityId|null;size_name:string|null;quantity:number;cut:number;assigned:number;inspected:number;picked:number;dispatched:number;remaining:number}
 export interface WorkDetail extends SavedEntity {order_id:EntityId;product_id:EntityId|null;sample:boolean|null;planned_quantity:number;quantities:Page<WorkSize>;history:Page<WorkHistoryRow>}
@@ -182,11 +191,14 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   people(filters?: {role?: number;search?: string},page?: PageRequest): Promise<Page<Person>>;
   person(id: EntityId): Promise<Person>;
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
-  order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
+  order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;dispatch_destination:DispatchDestination;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
   dealerStock(filters?:DealerStockFilters,context?:{dealerId?:EntityId;customerId?:EntityId},page?:PageRequest):Promise<Page<DealerStockBalance> & {context:{dealer_id:EntityId;customer_id:EntityId;physical:boolean;visibility_percentage:number}}>;
   previewBackorder(orderIds:EntityId[],addressId:EntityId):Promise<BackorderPreview>;
   placeBackorder(previewId:string,dueAt:string,command:Command):Promise<OrderPlacement & {preview_id:string;linked_order_versions:Record<EntityId,Version>;stock_reservation:'none'}>;
+  saveDispatchDestination(id:EntityId,destination:DispatchMode,reason:string,command:Command):Promise<SavedEntity & {destination:DispatchDestination}>;
+  deliveries(filters?:{from?:string;before?:string;order_id?:EntityId;customer_id?:EntityId},page?:PageRequest):Promise<Page<Delivery>>;
+  tailorEarnings(tailorId:EntityId,period?:{weekStart?:string;includeTeam?:boolean},page?:PageRequest):Promise<TailorEarnings>;
   catalogue(kind?:'types'|'categories'|'products',filters?:CatalogueFilters,page?:PageRequest):Promise<Page<CatalogueOption>>;
   baseProduct(id:EntityId):Promise<CatalogueOption>;
   catalogueOptions(kind?:'brands'|'categories'|'sizes'|'price_type',customerId?:EntityId|null,page?:PageRequest):Promise<Page<CatalogueOption> & {context:CommercialContext}>;

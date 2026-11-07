@@ -1,0 +1,80 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-07T16:52:00.562439+00:00",
+  "order_rows": 46231,
+  "method": "EXPLAIN ANALYZE, warm DB execution, transaction-only sessions; excludes network",
+  "business_writes": 0,
+  "all_temporary_sessions_rolled_back": true,
+  "results": [
+    {
+      "role": 0,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 104.61,
+      "returned_records": 1
+    },
+    {
+      "role": 1,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 42.78,
+      "returned_records": 1
+    },
+    {
+      "role": 2,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 11.87,
+      "returned_records": 1
+    },
+    {
+      "role": 3,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 9.64,
+      "returned_records": 1
+    },
+    {
+      "role": 4,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 11.09,
+      "returned_records": 1
+    },
+    {
+      "role": 7,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 23.46,
+      "returned_records": 1
+    },
+    {
+      "role": 8,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 25.32,
+      "returned_records": 1
+    },
+    {
+      "role": 9,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 23.93,
+      "returned_records": 1
+    },
+    {
+      "role": 10,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 14.81,
+      "returned_records": 1
+    },
+    {
+      "role": 11,
+      "query": "order_detail",
+      "samples": 10,
+      "database_p95_ms": 38.5,
+      "returned_records": 1
+    }
+  ]
+}

@@ -43,6 +43,13 @@ export function createSquadClient(supabase) {
     placeBackorder: (previewId,dueAt,command) => call("v1_backorder_place", {
       p_preview_id:previewId,p_due_at:dueAt,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
+    saveDispatchDestination: (id,destination,reason,command) => call("v1_dispatch_destination_save", {
+      p_id:id,p_destination:destination,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    deliveries: (filters = {},page = {}) => call("v1_deliveries_list", {p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    tailorEarnings: (tailorId,period = {},page = {}) => call("v1_tailor_earnings", {
+      p_tailor_id:tailorId,p_week_start:period.weekStart??null,p_include_team:period.includeTeam??false,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
     catalogue: (kind = "products", filters = {}, page = {}) => call("v1_catalog_tree", {
       p_kind:kind,p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),

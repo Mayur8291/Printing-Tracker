@@ -1,20 +1,20 @@
 {
   "environment": "staging",
-  "measured_at": "2026-11-07T16:38:14.838283+00:00",
+  "measured_at": "2026-11-07T16:50:25.846710+00:00",
   "scenario": "SC custom preset, quote override, partial payment, single-line order acceptance",
   "samples_ms": [
-    96.68,
-    90.694,
-    76.248,
-    80.638,
-    80.211,
-    71.588,
-    77.437,
-    74.643,
-    84.936,
-    73.024
+    115.269,
+    110.701,
+    112.747,
+    110.637,
+    111.625,
+    108.674,
+    106.614,
+    109.79,
+    106.525,
+    111.323
   ],
-  "p95_ms": 96.68,
+  "p95_ms": 115.269,
   "target_ms": 500,
   "scope": "warm database execution; rollback-only, not a concurrent load or maximum-size request guarantee"
 }

@@ -7640,6 +7640,11 @@
       "CREATE UNIQUE INDEX sa_job_sheet_assign_dates_pkey ON sa_snapshot_20261019.sa_job_sheet_assign_dates USING btree (id)"
     ],
     [
+      "sa_job_sheet_assign_dates",
+      "squad_earnings_date",
+      "CREATE INDEX squad_earnings_date ON sa_snapshot_20261019.sa_job_sheet_assign_dates USING btree (assign_at, id)"
+    ],
+    [
       "sa_job_sheet_assign_quantities",
       "sa_index_job_sheet_assign_quantities_on_item_id",
       "CREATE INDEX sa_index_job_sheet_assign_quantities_on_item_id ON sa_snapshot_20261019.sa_job_sheet_assign_quantities USING btree (item_id)"
@@ -7673,6 +7678,11 @@
       "sa_job_sheet_assign_quantities",
       "squad_assign_fifo",
       "CREATE INDEX squad_assign_fifo ON sa_snapshot_20261019.sa_job_sheet_assign_quantities USING btree (item_tailor_id, quantity_id, job_sheet_assign_date_id, id)"
+    ],
+    [
+      "sa_job_sheet_assign_quantities",
+      "squad_earnings_assignment",
+      "CREATE INDEX squad_earnings_assignment ON sa_snapshot_20261019.sa_job_sheet_assign_quantities USING btree (item_tailor_id, job_sheet_assign_date_id)"
     ],
     [
       "sa_job_sheet_assign_tailors",

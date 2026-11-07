@@ -153,6 +153,7 @@ class ConcurrentDealerDispatch(unittest.TestCase):
     c.execute('DELETE FROM sa_snapshot_20261019.sa_stocks WHERE item_id=ANY(%s)',(order_ids,))
     c.execute('DELETE FROM sa_snapshot_20261019.sa_dispatched_quantities WHERE quantity_id=ANY(%s)',(list(quantities.values()),))
     c.execute('DELETE FROM sa_snapshot_20261019.sa_job_sheet_dispatched_dates WHERE item_id=ANY(%s)',(order_ids,))
+    c.execute('DELETE FROM sa_domain.dispatch_receipts WHERE order_id=ANY(%s)',(order_ids,))
     for table,col in [('quantities','item_id'),('items','id'),('orders','id')]:c.execute(f'DELETE FROM sa_snapshot_20261019.sa_{table} WHERE {col}=ANY(%s)',(order_ids,))
     c.execute("DELETE FROM sa_domain.entity_versions WHERE kind IN('item','order') AND entity_id=ANY(%s)",(order_ids,))
     for table in ['outbox','audit']:c.execute(f'DELETE FROM sa_domain.{table} WHERE command_key=ANY(%s)',(keys,))

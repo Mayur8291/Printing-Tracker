@@ -153,6 +153,20 @@ Performance review caught a final-dispatch p95 of 577.689 ms. Batched receipt-or
 
 Next: destination and delivery projections, legacy weekly tailor earnings, then the remaining people/media/ratings/reporting/provider/job contracts. This is not yet the full backend acceptance milestone.
 
+## Iteration 11 — delivery snapshots and legacy tailor earnings
+
+Staging now implements 65 of the original 115 RPC names, plus `v1_color_save`. Added destination changes, paginated delivery history and weekly tailor/team earnings. Source inspection corrects the plan's assumed destination ID: the old model stores `not_define/customer/ho/makali_factory` as an enum, with no destination directory. The API preserves these modes and uses the authorized customer's address for customer routing; it does not invent head-office/Makali addresses. New dispatch events retain immutable destination/address snapshots. Later route/address changes do not rewrite them. Imported histories identify their destination as `current_order_only`, because the source did not preserve a dispatch-time destination. History totals use each recorded dispatch quantity, avoiding the old challan service's cumulative-quantity defect.
+
+The order detail exposes the destination mode. Shipping addresses remain restricted to customer/service/shipping roles; cutter, inspector and worker views do not gain customer address data. Destination changes require an open visible order and an exact version. Completed order routing is immutable, while a partial shipment can have a different destination for its remaining shipment.
+
+Review found that numeric IDs can be reused after a refresh discards mirror writes. Design ownership, order receipts and new dispatch receipts now key history by both ID and generation; current-generation policies prevent stale operational records from attaching to replacement source records. Tests exercise both collision prevention and visibility. The full source refresh rehearsal remains a separate gate.
+
+Tailor reporting deliberately preserves the inspected `TailorWeeklyStatsService` formula: completed quantities from assignments made within a Saturday–Friday Kolkata week, multiplied by **current** base OF/SN plus **all** linked base add-on OF/SN, including add-ons not selected on the product. This is not an inspection-week or historical-rate snapshot formula. The response states the rate/period/completion basis; parent and sub-tailor rows remain separate, and totals do not change across pages. Missing/negative rates, missing base products and impossible assignment balances require reconciliation and do not produce a false payable total. No payment execution was added. Historical source timestamp storage and finance sign-off on legacy formulas remain open release gates.
+
+454 local integration tests pass. The real staging factory journey verifies FM earnings, DI route selection, dispatch and the immutable delivery record. It rolls back all temporary business rows/sessions and restores sequences. Measured warm DB p95: earnings **10.539 ms**, destination change **102.997 ms**, delivery list **37.008 ms**, dispatch with snapshot **199.276 ms**. Rechecked order detail across ten personas is **9.64–104.61 ms**. Mobile typing passes; no new domain security-advisor finding beyond the reviewed `filtered_orders` helper. These measurements do not replace the pending maximum-batch/load and network-latency acceptance. No production changes were made.
+
+Next: scoped people/address/team mutations and customer relationship workflows, followed by remaining media, reporting, integration and durable-job gates.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

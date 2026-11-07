@@ -10,7 +10,7 @@ sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 from database import connect
 import psycopg
 
-def run(production_only=False):
+def run(production_only=False,detail_only=False):
     results=[]
     with connect('staging') as c:
         with c.transaction():
@@ -28,6 +28,7 @@ def run(production_only=False):
                 c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(actor),'session_id':str(session)}),))
                 c.execute('SET LOCAL ROLE sa_app')
                 queries=[('factory_queue',"SELECT canto_api.v1_factory_queue(NULL,NULL,NULL,30)")] if production_only else [('orders',"SELECT canto_api.v1_orders_list('{}',NULL,30)"),('dashboard',"SELECT canto_api.v1_dashboard('{}')")]
+                if detail_only:queries=[]
                 if not production_only:
                     visible=c.execute("SELECT canto_api.v1_orders_list('{}',NULL,1)").fetchone()[0]['data']
                     if visible:queries.append(('order_detail','SELECT canto_api.v1_order_get('+str(int(visible[0]['id']))+')'))
@@ -47,7 +48,7 @@ def run(production_only=False):
       'order_rows':rows,'method':'EXPLAIN ANALYZE, warm DB execution, transaction-only sessions; excludes network',
       'business_writes':0,'all_temporary_sessions_rolled_back':True,'results':results}
     evidence=ROOT/'docs/squad-one-audit/implementation-evidence';evidence.mkdir(exist_ok=True)
-    (evidence/('staging-production-performance.json' if production_only else 'staging-read-performance.json')).write_text(json.dumps(report,indent=2)+'\n')
+    (evidence/('staging-production-performance.json' if production_only else 'staging-order-detail-performance.json' if detail_only else 'staging-read-performance.json')).write_text(json.dumps(report,indent=2)+'\n')
     assert all(x['database_p95_ms']<200 for x in results),'Read performance target failed'
 
-if __name__=='__main__':run(production_only='--production-only' in sys.argv)
+if __name__=='__main__':run(production_only='--production-only' in sys.argv,detail_only='--detail-only' in sys.argv)

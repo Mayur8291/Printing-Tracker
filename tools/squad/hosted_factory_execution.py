@@ -37,10 +37,19 @@ def exercise(c,order,checks,actor,version,factory):
  call('v1_jobsheets_list',(item,tailor[0]),target=200)
  v=version('item',item);local_actor(8);r=call('v1_jobsheet_inspect',(item,Jsonb([{'item_tailor_quantity_id':str(itq),'quantity':6}]),None,v,uuid.uuid4()))
  assert r['progress']['sewn']==6;checks.append('Inspector picks inspected pieces with FIFO assignment reconciliation')
+ c.execute('SET LOCAL ROLE postgres');today=c.execute("SELECT (now() AT TIME ZONE 'Asia/Kolkata')::date").fetchone()[0];week=today-datetime.timedelta(days=(today.weekday()-5)%7)
+ local_actor(4);earnings=call('v1_tailor_earnings',(tailor[0],week,False),target=200)
+ own_row=next(x for x in earnings['data'] if x['item_id']==str(item));assert own_row['completed']==6
+ assert earnings['basis']['rates']=='current_master' and earnings['basis']['period']=='assignment_date';checks.append('FM weekly earnings include completed assignment under explicit legacy formula')
+ ov=version('order',int(order['id']));local_actor(7)
+ destination=call('v1_dispatch_destination_save',(int(order['id']),'customer','Rollback customer routing',ov,uuid.uuid4()))
+ assert destination['destination']['mode']=='customer' and destination['destination']['address'] is not None
  v=version('item',item);local_actor(7);call('v1_dispatch_queue',(False,int(order['id'])),target=200)
  key=uuid.uuid4();args=(item,Jsonb([{'quantity_id':str(q[0]),'quantity':6}]),None,v,key);r=call('v1_dispatch_record',args)
  assert r['progress']['order_completed'];assert r==call('v1_dispatch_record',args,measure=False)
  detail=call('v1_dispatch_detail',(item,),target=200);assert detail['quantities']['data'][0]['remaining']==0
+ deliveries=call('v1_deliveries_list',(Jsonb({'order_id':order['id']}),),target=200)['data'];assert len(deliveries)==1 and deliveries[0]['quantity']==6 and deliveries[0]['destination_basis']=='dispatch_snapshot'
+ checks.append('DI destination and immutable delivery snapshot retain exact event quantity')
  checks.append('DI dispatch completes custom order; exact retry keeps one history')
  evidence={'environment':'staging','measured_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'scope':'warm database calls on rollback-only real role journey; not load/capacity claim','queries':results}
  (Path(__file__).resolve().parents[2]/'docs/squad-one-audit/implementation-evidence/staging-factory-execution-performance.json').write_text(json.dumps(evidence,indent=2)+'\n')
