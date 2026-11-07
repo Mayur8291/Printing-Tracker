@@ -71,7 +71,7 @@ export default function DataRefreshPage() {
     <Card><CardHeader><CardTitle>Recent refreshes</CardTitle></CardHeader><CardContent>
       {!data?.jobs.length ? <p className="text-sm text-muted-foreground">No dashboard refreshes yet.</p> : <ul className="divide-y">{data.jobs.map(job => <li key={job.id} className="space-y-2 py-4 text-sm">
         <div className="flex flex-wrap justify-between gap-2"><span className="font-medium">{job.status === "succeeded" ? "Success — verified" : stages[job.stage] || job.status}</span><time>{when(job.created_at)}</time></div>
-        {job.summary?.changes && <p className="text-muted-foreground">{job.summary.changes.inserted.toLocaleString()} added · {job.summary.changes.updated.toLocaleString()} updated · {job.summary.changes.deleted.toLocaleString()} removed</p>}
+        {job.summary?.changes && <p className="text-muted-foreground">{job.status !== "succeeded" ? "Planned: " : ""}{job.summary.changes.inserted.toLocaleString()} added · {job.summary.changes.updated.toLocaleString()} updated · {job.summary.changes.deleted.toLocaleString()} removed</p>}
         {job.message && <p>{job.message}</p>}
         {job.github_run_id && <a className="underline" href={`https://github.com/Mayur8291/Printing-Tracker/actions/runs/${job.github_run_id}`} target="_blank" rel="noreferrer">View run</a>}
       </li>)}</ul>}
