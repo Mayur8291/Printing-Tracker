@@ -9,7 +9,7 @@ export function createSupabaseMastersService(config) {
   const cfg = { ...config, labelSingular: config.labelSingular || config.label.replace(/s$/, "") };
   function normalize(row) {
     if (!row) return null;
-    // Resolve legacy upload paths against the selected source, independent of the dashboard header.
+    // Resolve legacy upload paths against the dashboard's selected environment.
     const sourceHost = environment === "production" ? "http://165.22.210.53" : "http://64.227.186.227";
     const resolved = Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === "string" && value.startsWith("/uploads/") ? sourceHost + value : value]));
     return { ...config.normalize(resolved), updated_at: row.updated_at, _source: row };

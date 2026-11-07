@@ -5,7 +5,7 @@ Runtime code verified at `57cdd41c90c109395842460869ba08c0a66856d8`. Release com
 ## Delivered
 
 - npm workspaces: existing dashboard in `apps/admin`, Expo starter in `apps/mobile`, shared constants in `packages/shared`, refresh tooling in `tools/canto-sync`.
-- All 22 existing Masters screens retain their forms and support an independent Old system / Supabase target and staging / production selection. The new Supabase administration API is deployed to both staging and production.
+- All 22 existing Masters screens retain their forms and support an Old system / Supabase source switch. Supabase Masters and Data Refresh share the dashboard header environment and its existing signed-in client; only the Old system keeps an independent environment selector. The new Supabase administration API is deployed to both staging and production.
 - Data Refresh authorizes an administrator, starts a background GitHub job, shows progress and persistent history, verifies an encrypted recovery backup, and atomically publishes matching DigitalOcean data and Canto Auth state.
 
 ## Verification evidence
@@ -66,3 +66,9 @@ Publication compares preservation checks within a consistent transaction snapsho
 The authorized production release used `tools/canto-sync/.venv/bin/python tools/canto-sync/deploy_admin.py production`. That command installed only the reviewed Canto migrations, exposed the guarded RPC schema, deployed the controller and selected the `main` worker. Do not substitute an unrelated blanket migration push. The database refresh remains one-way and requires explicit confirmation before replacing Supabase edits; cutover disables old-system refresh.
 
 Secrets, test credentials, row exports and backups are excluded from this report and Git. The temporary test administrator and saved test browser session have been removed.
+
+## Dashboard session correction
+
+Masters previously remembered its own environment and could show Production while the dashboard was signed into Staging. Data Refresh had a separate saved selection too. Both Supabase pages now use the dashboard environment and client, ignore stale page-level environment selections, and have no second account-connection dialog. Use the existing header control to change the dashboard environment. The normal dashboard login and server-side admin guards still apply; sessions are not copied across Supabase projects.
+
+Regression: `apps/admin/tests/canto-dashboard-session.mjs` uses a real staging dashboard login with conflicting saved Production targets, verifies authenticated master reads and refresh history, checks reload behavior, and asserts no production requests or browser exceptions. It separately verifies production client resolution without moving staging credentials or writing production data. The UI build gate also passed.

@@ -8,14 +8,14 @@ import { defaultRefreshEnvironment, getCantoClient } from "./target";
 const stages = { queued: "Waiting for worker", starting: "Starting", capturing: "Reading old-system database", validating: "Checking the source snapshot", comparing: "Comparing all tables", backing_up: "Saving and verifying encrypted backup", applying: "Applying and verifying data and accounts", syncing_auth: "Syncing user accounts", verifying: "Checking final protections", verified: "Verified", failed: "Failed" };
 const when = value => value ? new Date(value).toLocaleString() : "Never";
 export default function DataRefreshPage() {
-  const [environment, setEnvironment] = useState(() => sessionStorage.getItem("canto:refresh-environment") || defaultRefreshEnvironment());
+  const environment = defaultRefreshEnvironment();
   const [data, setData] = useState(null); const [error, setError] = useState("");
   const [busy, setBusy] = useState(false); const [confirm, setConfirm] = useState(false);
   const generation = useRef(0);
   async function request(action, extra = {}) {
     const client = getCantoClient(environment);
     const { data: { session } } = await client.auth.getSession();
-    if (!session) throw new Error(`Connect your ${environment} administrator account to continue.`);
+    if (!session) throw new Error("Your dashboard session has expired. Please sign in again.");
     const result = await client.functions.invoke("canto-refresh", { body: { action, environment, ...extra } });
     if (result.error) {
       let message = result.error.message;
@@ -27,7 +27,7 @@ export default function DataRefreshPage() {
   }
   useEffect(() => {
     const version = ++generation.current; let pending = false;
-    setData(null); setError(""); sessionStorage.setItem("canto:refresh-environment", environment);
+    setData(null); setError("");
     async function load() {
       if (pending) return; pending = true;
       try { const result = await request("status"); if (generation.current === version) { setData(result); setError(""); } }
@@ -55,7 +55,7 @@ export default function DataRefreshPage() {
   const active = data?.jobs.find(j => j.id === data.state.active_job);
   return <div className="mx-auto w-full max-w-4xl space-y-6 p-6">
     <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-2xl font-semibold">Data refresh</h1><p className="mt-1 text-sm text-muted-foreground">Bring Canto up to date from the old system.</p></div>
-      <CantoTargetSwitcher environmentOnly environment={environment} onEnvironmentChange={value => { if (!busy) setEnvironment(value); }} />
+      <CantoTargetSwitcher environmentOnly />
     </div>
     <Card><CardHeader><CardTitle className="capitalize">{environment}</CardTitle><CardDescription>DigitalOcean {environment} → Supabase {environment}</CardDescription></CardHeader>
       <CardContent className="space-y-4">
