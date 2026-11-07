@@ -114,7 +114,7 @@ export default function ScottMasterCsvImportDialog({
   const toWritePayload = useCallback((row) => bulkRowToWriteForm(config, row, columns), [config, columns]);
 
   const createMutation = useCallback((form) => service.create(form), [service]);
-  const updateMutation = useCallback(({ id, updates }) => service.update(id, updates), [service]);
+  const updateMutation = useCallback(({ id, updates, previous }) => service.update(id, updates, previous), [service]);
   const fetchAll = useCallback(() => service.listAllForImport(), [service]);
 
   const serverBulkImport = useMemo(() => {

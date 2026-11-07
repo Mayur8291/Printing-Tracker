@@ -45,3 +45,5 @@ node apps/admin/tests/canto-forms.mjs
 ```
 
 These tests create identifiable staging master fixtures and retain credentials/results only in ignored `tools/canto-sync/private`. They never use production or create mail messages. `CHROME_PATH` may select an installed Chrome binary. Run the dashboard refresh with explicit replacement confirmation to restore imported staging data after tests, then run `acceptance_fixture.py --cleanup`. Browser tests cover the actual existing form serializers, images, relations, stale updates, all 22 dialogs, visible form/CSV submission, and persistent refresh history. The history test requires at least one successful dashboard refresh.
+
+`node apps/admin/tests/canto-batches.mjs` verifies concurrent batch writes and stale-record rejection. The visible CSV test imports six rows.

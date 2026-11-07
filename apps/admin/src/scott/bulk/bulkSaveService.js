@@ -59,7 +59,7 @@ function readDeleteEntry(entry) {
 
 function readUpdateEntry(entry) {
   const id = String(entry?.id ?? "");
-  return { id, rowKey: entry?.rowKey ?? id, row: entry?.row ?? entry?.updates ?? entry };
+  return { id, rowKey: entry?.rowKey ?? id, row: entry?.row ?? entry?.updates ?? entry, previous: entry?.previous };
 }
 
 function readCreateEntry(entry) {
@@ -183,7 +183,7 @@ export async function batchSave({
       for (const batch of chunk(updates, batchSize)) {
         const results = await Promise.all(
           batch.map((entry) =>
-            runOne("update", entry, () => updateMutation({ id: entry.id, updates: entry.row }))
+            runOne("update", entry, () => updateMutation({ id: entry.id, updates: entry.row, previous: entry.previous }))
           )
         );
         updated += results.filter(Boolean).length;

@@ -17,6 +17,18 @@ def configure():
         (CONFIG/'source_ed25519').write_text(os.environ['CANTO_EXPORT_SSH_KEY'].rstrip()+'\n')
         (CONFIG/'source_ed25519').chmod(0o600)
 
+def failure_reason(error):
+    # Never emit raw database/HTTP error details: they can contain row data or credentials.
+    safe = {
+        'Existing staff Auth records changed during refresh',
+        'Public schema changed during refresh', 'Auth parity mismatch',
+        'Sequence next-value mismatch', 'Unvalidated destination constraints',
+        'Imported tables unexpectedly exposed',
+        'Destination schema/access drift: review before refresh',
+        'Unexpected destination table inventory',
+    }
+    return str(error) if str(error) in safe else type(error).__name__
+
 def main():
     environment=os.environ['CANTO_ENVIRONMENT']; job_id=str(uuid.UUID(os.environ['CANTO_JOB_ID']))
     require(environment in ['staging','production'],'Invalid environment');configure()
@@ -57,9 +69,9 @@ def main():
                 committed=conn.execute("SELECT report FROM sa_sync.refresh_runs WHERE report->>'job_id'=%s",(job_id,)).fetchone()
                 with conn.transaction():
                     conn.execute("UPDATE sa_sync.jobs SET status=%s,stage=%s,finished_at=now(),message=%s WHERE id=%s",
-                        ('succeeded' if committed else 'failed','verified' if committed else 'failed',None if committed else 'Refresh stopped before verified publication ('+type(error).__name__+'). The previous data remains available.',job_id))
+                        ('succeeded' if committed else 'failed','verified' if committed else 'failed',None if committed else 'Refresh stopped before verified publication ('+failure_reason(error)+'). The previous data remains available.',job_id))
                     conn.execute('UPDATE sa_sync.environment_state SET active_job=NULL,updated_at=now() WHERE active_job=%s',(job_id,))
-            if not committed: raise RuntimeError('Refresh failed; consult the admin job status.') from None
+            if not committed: raise RuntimeError('Refresh failed: '+failure_reason(error)+'. Consult the admin job status.') from None
         finally: stopped.set();thread.join(timeout=2)
 
 if __name__=='__main__': main()

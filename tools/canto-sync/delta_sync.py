@@ -124,7 +124,7 @@ def apply_changes(conn,manifest,keys,changes,directory):
         conn.execute(sql.SQL(';').join(sql.SQL('ALTER TABLE {} ALTER CONSTRAINT {} NOT DEFERRABLE INITIALLY IMMEDIATE').format(ident(SCHEMA,t),sql.Identifier(n)) for t,n,_ in fks))
     set_sequences(conn,SCHEMA,manifest,None)
 
-def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,inject_failure=False,admin_revision=None,admin_restore=None):
+def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,inject_failure=False,admin_revision=None,admin_restore=None,progress=None):
     check_catalog(conn,environment)
     pub=public_structure(conn);staff=staff_auth(conn)
     with conn.transaction():
@@ -139,7 +139,9 @@ def publish_delta(conn,environment,manifest,keys,changes,run_dir,before,audit,in
         apply_changes(conn,manifest,keys,changes,run_dir)
         verify(conn,SCHEMA,manifest,log)
         check_catalog(conn,environment)
+        if progress:progress('syncing_auth',{})
         auth_result=enroll(conn)
+        if progress:progress('verifying',{})
         if admin_restore is not None:
             from psycopg.types.json import Jsonb
             conn.execute('DELETE FROM sa_admin.record_extras')
@@ -197,7 +199,7 @@ def run(environment,reuse=None,inject_failure=False,progress=None,backup=None,di
                 if progress:progress('backing_up',{'changes':totals})
                 report['backup']=backup(conn,directory,report)
             if progress:progress('applying',{'changes':totals})
-            result=publish_delta(conn,environment,manifest,keys,changes,directory,before,report,inject_failure,admin_revision)
+            result=publish_delta(conn,environment,manifest,keys,changes,directory,before,report,inject_failure,admin_revision,progress=progress)
             report.update(result,status='success',finished_at=datetime.datetime.now(datetime.timezone.utc).isoformat())
             save(path,report);log('SUCCESS '+environment+'; '+str(path))
             if progress:progress('verified',{'changes':totals,'auth_enrollment':result['auth_enrollment']})

@@ -767,7 +767,8 @@ export default function ScottBulkEditGrid({
         toUpdate: changes.toUpdate.map((entry) => ({
           id: entry.id,
           rowKey: entry.rowKey,
-          row: toUpdatePayload(entry.row)
+          row: toUpdatePayload(entry.row),
+          previous: rows.find(state => state.rowKey === entry.rowKey)?.original
         })),
         toDelete: changes.toDelete,
         createMutation,

@@ -109,7 +109,7 @@ export default function ScottMasterBulkEditPanel({
   );
 
   const createMutation = useCallback((form) => service.create(form), [service]);
-  const updateMutation = useCallback(({ id, updates }) => service.update(id, updates), [service]);
+  const updateMutation = useCallback(({ id, updates, previous }) => service.update(id, updates, previous), [service]);
   const deleteMutation = useCallback((id) => service.remove(id), [service]);
 
   const handleSaved = useCallback(

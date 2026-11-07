@@ -699,7 +699,8 @@ export async function runCsvImport(params) {
         const merged = { ...row.matchedExisting, ...row.data };
         await updateMutation({
           id: getRowId(row.matchedExisting),
-          updates: toUpdatePayload(merged)
+          updates: toUpdatePayload(merged),
+          previous: row.matchedExisting
         });
         updated += 1;
       }

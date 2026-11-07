@@ -1,6 +1,7 @@
 import { urlToScottFile } from "../scott/scottClient";
 import { cantoRpc, getCantoClient, getCantoTarget } from "./target";
 
+const writeQueues = new Map();
 const relationName = (resource, action) => action === "update_categories" ? (resource === "rmp_brands" ? "rmp_categories" : "categories") : action.replace(/^update_/, "");
 export function createSupabaseMastersService(config) {
   const environment = getCantoTarget().environment;
@@ -13,7 +14,15 @@ export function createSupabaseMastersService(config) {
     const resolved = Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === "string" && value.startsWith("/uploads/") ? sourceHost + value : value]));
     return { ...config.normalize(resolved), updated_at: row.updated_at, _source: row };
   }
-  const request = (action, payload = {}) => cantoRpc("masters", { resource, action, payload }, environment);
+  function request(action, payload = {}) {
+    const execute = () => cantoRpc("masters", { resource, action, payload }, environment);
+    if (["list", "get"].includes(action)) return execute();
+    // Existing CSV/grid callers use parallel batches. Serialize this browser's writes
+    // so they do not contend with each other for the database's publication lock.
+    const pending = (writeQueues.get(environment) || Promise.resolve()).then(execute);
+    writeQueues.set(environment, pending.then(() => undefined, () => undefined));
+    return pending;
+  }
   async function listPage({ page = 1, items, pageSize = 100, search = "", includeInactive = false, ...rest } = {}) {
     const filters = Object.fromEntries((config.serverFilters || []).filter(k => rest[k] != null && rest[k] !== "").map(k => [k, rest[k]]));
     const result = await request("list", { page, items: items || pageSize, search, includeInactive, filters });

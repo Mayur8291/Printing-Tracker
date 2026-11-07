@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import CantoTargetSwitcher from "./CantoTargetSwitcher";
 import { defaultRefreshEnvironment, getCantoClient } from "./target";
 
-const stages = { queued: "Waiting for worker", starting: "Starting", capturing: "Reading old-system database", validating: "Checking the source snapshot", comparing: "Comparing all tables", backing_up: "Saving and verifying encrypted backup", applying: "Applying and verifying data and accounts", verified: "Verified", failed: "Failed" };
+const stages = { queued: "Waiting for worker", starting: "Starting", capturing: "Reading old-system database", validating: "Checking the source snapshot", comparing: "Comparing all tables", backing_up: "Saving and verifying encrypted backup", applying: "Applying and verifying data and accounts", syncing_auth: "Syncing user accounts", verifying: "Checking final protections", verified: "Verified", failed: "Failed" };
 const when = value => value ? new Date(value).toLocaleString() : "Never";
 export default function DataRefreshPage() {
   const [environment, setEnvironment] = useState(() => sessionStorage.getItem("canto:refresh-environment") || defaultRefreshEnvironment());
