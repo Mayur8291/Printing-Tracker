@@ -161,7 +161,7 @@ BEGIN
   END IF;
   IF coalesce((spec->>'readOnly')::boolean,false) THEN RAISE EXCEPTION 'Read-only options' USING ERRCODE='42501'; END IF;
   IF p_action NOT IN ('create','update','delete','bulk_delete','relations') THEN RAISE EXCEPTION 'Unknown action' USING ERRCODE='22023'; END IF;
-  IF NOT pg_try_advisory_xact_lock(20261107,1) THEN RAISE EXCEPTION 'A refresh or another save is running. Try again.' USING ERRCODE='55P03'; END IF;
+  IF NOT pg_try_advisory_xact_lock(20261107,1) THEN RAISE EXCEPTION 'A refresh or another save is running. Try again.' USING ERRCODE='PT409'; END IF;
   -- A publication owns the same lock; edits cannot race the capture/comparison/apply cycle.
   IF p_action='bulk_delete' THEN
     ids:=p_data->'ids';
@@ -172,14 +172,14 @@ BEGIN
     RETURN jsonb_build_object('deleted',jsonb_array_length(ids));
   END IF;
   IF EXISTS(SELECT 1 FROM sa_sync.environment_state s WHERE singleton AND to_jsonb(s)->>'active_job' IS NOT NULL) THEN
-    RAISE EXCEPTION 'A refresh is queued or running. Wait before editing masters.' USING ERRCODE='55P03';
+    RAISE EXCEPTION 'A refresh is queued or running. Wait before editing masters.' USING ERRCODE='PT409';
   END IF;
   IF p_action<>'create' THEN
     record_id:=(p_data->>'id')::bigint;
     EXECUTE format('SELECT to_jsonb(t) FROM sa_snapshot_20261019.%I t WHERE id=$1 FOR UPDATE','sa_'||p_resource) INTO before_ USING record_id;
     IF before_ IS NULL THEN RAISE EXCEPTION 'Record not found' USING ERRCODE='P0002'; END IF;
     IF p_data->>'expectedUpdatedAt' IS NOT NULL AND (p_data->>'expectedUpdatedAt')::timestamp IS DISTINCT FROM (before_->>'updated_at')::timestamp THEN
-      RAISE EXCEPTION 'This record changed. Reload it before saving.' USING ERRCODE='40001';
+      RAISE EXCEPTION 'This record changed. Reload it before saving.' USING ERRCODE='PT409';
     END IF;
   END IF;
   payload:=coalesce(p_data->'values','{}');

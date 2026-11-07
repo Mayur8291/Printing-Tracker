@@ -16,13 +16,13 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
 DECLARE state_ sa_sync.environment_state; job_ sa_sync.jobs;
 BEGIN
   IF NOT sa_admin.is_admin() THEN RAISE EXCEPTION 'Administrator access required' USING ERRCODE='42501'; END IF;
-  IF NOT pg_try_advisory_xact_lock(20261107,1) THEN RAISE EXCEPTION 'A refresh or save is already running' USING ERRCODE='55P03'; END IF;
+  IF NOT pg_try_advisory_xact_lock(20261107,1) THEN RAISE EXCEPTION 'A refresh or save is already running' USING ERRCODE='PT409'; END IF;
   SELECT * INTO state_ FROM sa_sync.environment_state WHERE singleton FOR UPDATE;
   IF state_.environment IS DISTINCT FROM request_refresh.environment THEN RAISE EXCEPTION 'Environment mismatch' USING ERRCODE='22023'; END IF;
-  IF state_.cutover THEN RAISE EXCEPTION 'Old-system refresh is disabled after cutover' USING ERRCODE='55000'; END IF;
-  IF state_.active_job IS NOT NULL THEN RAISE EXCEPTION 'A refresh is already active' USING ERRCODE='55P03'; END IF;
+  IF state_.cutover THEN RAISE EXCEPTION 'Old-system refresh is disabled after cutover' USING ERRCODE='PT409'; END IF;
+  IF state_.active_job IS NOT NULL THEN RAISE EXCEPTION 'A refresh is already active' USING ERRCODE='PT409'; END IF;
   IF state_.edit_revision<>state_.synced_revision AND discard_revision IS DISTINCT FROM state_.edit_revision THEN
-    RAISE EXCEPTION 'Supabase has local edits. Review and confirm their replacement before refreshing.' USING ERRCODE='55000';
+    RAISE EXCEPTION 'Supabase has local edits. Review and confirm their replacement before refreshing.' USING ERRCODE='PT409';
   END IF;
   INSERT INTO sa_sync.jobs(environment,requested_by,discard_revision)
   VALUES(request_refresh.environment,auth.uid(),request_refresh.discard_revision) RETURNING * INTO job_;
