@@ -4,6 +4,8 @@
  * Run: npm run check:env
  */
 import { loadEnv } from "vite";
+import { fileURLToPath } from "node:url";
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const PROD_REF = "levwrmvqdntngeasrtnb";
 const STAGING_REF = "scvojtvgnkmbupvyslmb";
@@ -17,7 +19,7 @@ function refFromUrl(url) {
 }
 
 function checkMode(mode, label) {
-  const env = loadEnv(mode, process.cwd(), "VITE_");
+  const env = loadEnv(mode, ROOT, "VITE_");
   const url = env.VITE_SUPABASE_URL ?? "";
   const ref = refFromUrl(url);
   const ok = ref === STAGING_REF;
@@ -42,7 +44,7 @@ for (const c of checks) {
   if (!c.ok) failed = true;
 }
 
-const prodEnv = loadEnv("", process.cwd(), "VITE_");
+const prodEnv = loadEnv("", ROOT, "VITE_");
 const prodRef = refFromUrl(prodEnv.VITE_SUPABASE_URL ?? "");
 console.log(".env fallback (build/preview only — not used by npm run dev):");
 console.log(`  ref: ${prodRef || "(none)"}${prodRef === PROD_REF ? " (production — expected)" : ""}\n`);

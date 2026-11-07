@@ -149,6 +149,7 @@ import DistributorTabPanel from "./DistributorTabPanel";
 import InventoryTabPanel from "./InventoryTabPanel";
 import ScottCustomersTabPanel from "./scott/ScottCustomersTabPanel";
 import ScottReportsTabPanel from "./scott/ScottReportsTabPanel";
+import DataRefreshPage from "./canto/DataRefreshPage";
 import ScottMastersTabPanel from "./scott/ScottMastersTabPanel";
 import {
   computeNextJobSheetOrderId,
@@ -518,7 +519,8 @@ const FULL_BLEED_TABS = new Set([
   "chat",
   "scott_customers",
   "scott_reports",
-  "scott_masters"
+  "scott_masters",
+  "canto_refresh"
 ]);
 
 const PRINTING_ORDERS_TAB_STORAGE_KEY = "printing-orders-tab";
@@ -6437,6 +6439,7 @@ function App() {
               sessionUserId={session?.user?.id}
             />
           )}
+          {dashboardTab === "canto_refresh" && isAdmin && <DataRefreshPage />}
           {dashboardTab === "scott_masters" && isAdmin && (
             <ScottMastersTabPanel
               isAdmin={isAdmin}

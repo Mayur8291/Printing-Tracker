@@ -37,6 +37,7 @@
 // behaviour looks like a bug it is reproduced and commented — do not "fix" it here.
 
 import { fileToScottPayload, normalizeId, urlToScottFile } from "../scottClient";
+import { getCantoTarget } from "../../canto/target";
 
 /** Left-rail grouping in the Masters screen. */
 export const RMP_GROUP = "Ready-made products";
@@ -226,7 +227,7 @@ async function attachRmpClassImages(form, body) {
       continue;
     }
     const url = form?.[slot];
-    if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
+    if (getCantoTarget().source !== "supabase" && typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
       try {
         body[slot] = await urlToScottFile(url, `rmp_class_${slot}.png`);
       } catch {

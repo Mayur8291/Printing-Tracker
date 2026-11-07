@@ -8,3 +8,10 @@ supabase/.temp/
 !.env.example
 !.env.development.example
 !.env.staging.example
+
+**/node_modules/
+**/.expo/
+**/.venv/
+**/__pycache__/
+tools/canto-sync/private/
+*.tsbuildinfo

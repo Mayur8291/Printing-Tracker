@@ -3,18 +3,18 @@
 # If Netlify UI still overrides this, set Build command to: npm ci && npm run build
 [build]
   command = "npm ci && npm run build"
-  publish = "dist"
+  publish = "apps/admin/dist"
   ignore = "bash scripts/netlify-ignore-build.sh"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "26"
   # Ensure devDependencies (e.g. jimp) install; vite is in dependencies so build always has it
   NPM_CONFIG_PRODUCTION = "false"
   # Public Giphy client key — same on staging and production (also bundled in giphyGifApi.js)
   VITE_GIPHY_API_KEY = "YP9q9wuUUuSB7bW2I0Zf9rF3L2GI9B3l"
   # Giphy web keys are meant to ship in the browser. Do not fail publish when they appear.
   SECRETS_SCAN_OMIT_KEYS = "VITE_GIPHY_API_KEY"
-  SECRETS_SCAN_OMIT_PATHS = "src/giphyGifApi.js,netlify.toml,.env.example,.env.development.example,.env.staging.example,dist"
+  SECRETS_SCAN_OMIT_PATHS = "apps/admin/src/giphyGifApi.js,netlify.toml,.env.example,.env.development.example,.env.staging.example,apps/admin/dist"
 
 # Production = main branch. Staging = develop (enable branch deploys in Netlify UI).
 [context.production]

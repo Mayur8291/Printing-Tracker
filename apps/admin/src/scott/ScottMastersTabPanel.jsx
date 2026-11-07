@@ -20,7 +20,7 @@ import { MASTER_CONFIG_LIST, getMasterConfig } from "@/scott/data/masterConfigs"
 import { ScottMastersNav, ScottMastersNavSelect } from "@/scott/masters/ScottMastersNav";
 import ScottMasterListScreen from "@/scott/masters/ScottMasterListScreen";
 import { confirmDiscardBulkEdits } from "@/scott/masters/mastersBulkGuard";
-import ScottEnvBadge from "@/scott/ui/ScottEnvBadge";
+import CantoTargetSwitcher from "@/canto/CantoTargetSwitcher";
 import { ScottToasts, useScottToast } from "@/scott/ui/useScottToast";
 
 /** Namespaced like `SCOTT_API_TARGET_STORAGE_KEY` in `scottRuntime.js`. */
@@ -83,7 +83,7 @@ export default function ScottMastersTabPanel({ isAdmin = false, canEdit = false,
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
         <PageHeader
           title="Masters"
-          subtitle="Scott API — catalogue masters and ready-made product data."
+          subtitle="Manage catalogue and ready-made product data."
           actions={
             <>
               <ScottMastersNavSelect
@@ -91,7 +91,7 @@ export default function ScottMastersTabPanel({ isAdmin = false, canEdit = false,
                 onSelect={handleSelect}
                 className="md:hidden"
               />
-              <ScottEnvBadge showBaseUrl />
+              <CantoTargetSwitcher />
             </>
           }
         />

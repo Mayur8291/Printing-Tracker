@@ -1,3 +1,4 @@
+import { getCantoTarget } from "@/canto/target";
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { loadScottZoneOptions } from "@/scott/data/zoneOptionsService";
 const EMPTY_ROWS = [];
 
 export default function ScottZoneSelect({ id, value, record, seedRows = EMPTY_ROWS, seedComplete = false, onChange, disabled, required, loadOptions = loadScottZoneOptions }) {
+  seedComplete = seedComplete && getCantoTarget().source !== "supabase";
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [active, setActive] = useState(0);

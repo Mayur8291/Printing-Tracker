@@ -22,6 +22,11 @@ const ENV_PAIRS = {
   }
 };
 
+export function getEnvironmentConfig(environment) {
+  if (environment !== "staging" && environment !== "production") throw new Error("Unknown environment");
+  return { ...ENV_PAIRS[environment] };
+}
+
 function safeLocalStorageGet(key) {
   try {
     return window.localStorage.getItem(key);

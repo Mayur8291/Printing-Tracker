@@ -97,7 +97,7 @@ export default function ScottMasterCsvImportDialog({
   optionsLoading = false,
   onComplete
 }) {
-  const serverMode = usesServerBulkUpload(config);
+  const serverMode = service.source !== "supabase" && usesServerBulkUpload(config);
   const [status, setStatus] = useState(null);
 
   const columns = useMemo(

@@ -4,6 +4,16 @@
 
 Built with **React + Vite** on the frontend and **Supabase** (PostgreSQL, Auth, Storage, Realtime, Edge Functions) on the backend. Hosted on **Netlify** with separate **staging** and **production** environments.
 
+## Canto workspace
+
+The repository is an npm-workspaces monorepo. `apps/admin` contains this existing dashboard, `apps/mobile` contains the Expo starter, `packages/shared` contains common constants, and `tools/canto-sync` contains the one-way database/account refresh engine. Supabase migrations and functions remain in the root `supabase` directory.
+
+Use Node 26 and run `npm ci` at the repository root. `npm run dev` starts the admin dashboard and picklist API; `npm run dev:mobile` starts Expo. `npm run check:ui`, `npm run check:mobile`, and `npm run export:mobile` verify the web build, mobile types, and platform bundles. Root `.env` files continue to configure the admin app; do not move credentials into the shared package or the mobile bundle.
+
+Masters keeps its existing forms with independent **Old system / Supabase** and **Staging / Production** selectors. A Supabase target requires a dashboard administrator account in that project. Imported Canto customer accounts do not gain administrator access. New uploads go to the selected project's Storage; existing legacy media still points to DigitalOcean until a separate media transfer is performed.
+
+**Data Refresh** starts a background refresh from the matching DigitalOcean database. It shows stages, results and errors and survives closing the page. A refresh replaces Supabase-side edits only after confirmation and saves an encrypted recovery archive first. The snapshot and imported account sync stay isolated from Printing Tracker tables. See [the refresh runbook](tools/canto-sync/README.md) for recovery and cutover controls.
+
 ---
 
 ## Recent updates
@@ -141,7 +151,7 @@ Full setup: **[docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)** · Release button s
 ## Project structure (high level)
 
 ```
-src/
+apps/admin/src/
   App.jsx                      # Main app, auth, orders, admin, modals
   CreateJobSheetForm.jsx       # Production job sheet create form
   CreateInwardEntryModal.jsx   # GRN inward entry form
@@ -151,6 +161,9 @@ src/
   *TabPanel.jsx                # Billing, Dispatch, Contact Book, etc.
   dashboardSidebarConfig.js    # Sidebar tab definitions
   deployEnvironmentUtils.js    # Staging vs production detection
+apps/mobile/                   # Expo app starter
+packages/shared/               # Shared application constants
+tools/canto-sync/               # Refresh worker, contracts, recovery tools
 supabase/
   schema.sql                   # Full schema reference
   migrations/                  # Incremental DB changes (apply with db push)
@@ -254,7 +267,7 @@ Open the URL shown in the terminal (typically `http://localhost:5173`).
 
 ```bash
 npm run build
-npm run preview   # optional local preview of dist/
+npm run preview   # optional local preview of apps/admin/dist/
 ```
 
 ---
@@ -307,7 +320,7 @@ Tab visibility and edit rights are configurable per viewer in the admin panel.
 |---------|-------------|
 | `npm run dev` | Dev server — loads `.env.development` (staging Supabase) |
 | `npm run dev:staging` | Dev server — Vite `staging` mode, loads `.env.staging` |
-| `npm run build` | Production build → `dist/` |
+| `npm run build` | Production build → `apps/admin/dist/` |
 | `npm run preview` | Preview production build |
 | `npm run deploy:admin-create-user` | Deploy `admin-create-user` edge function |
 | `npm run icons:transparent` | Regenerate transparent app icon assets |

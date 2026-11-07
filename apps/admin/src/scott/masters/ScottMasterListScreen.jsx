@@ -220,7 +220,7 @@ export default function ScottMasterListScreen({ config: master, mayEdit = false,
   const [importOpen, setImportOpen] = useState(false);
 
   /** rmp_prices only: Scott owns the matching, so no relation options are needed for it. */
-  const serverUpload = usesServerBulkUpload(config);
+  const serverUpload = service.source !== "supabase" && usesServerBulkUpload(config);
   /**
    * Relation COLUMNS are the one option source that cannot wait for a dialog: ten masters
    * store a bare FK (`add_on_id`, `rmp_class_id`, …) and the table would print the raw id.
@@ -375,11 +375,11 @@ export default function ScottMasterListScreen({ config: master, mayEdit = false,
     let savedId;
     try {
       if (record && id) {
-        saved = await service.update(id, form, record);
+        saved = await service.update(id, form, record, service.supportsAtomicRelations ? relationPlan : undefined);
         savedId = idOf(saved, config) || id;
         onToast?.(`Updated ${nameOf(saved || record, config)}`);
       } else {
-        saved = await service.create(form);
+        saved = await service.create(form, service.supportsAtomicRelations ? relationPlan : undefined);
         savedId = idOf(saved, config);
         onToast?.(`Added ${nameOf(saved, config)}`);
       }
@@ -387,7 +387,7 @@ export default function ScottMasterListScreen({ config: master, mayEdit = false,
       throw new Error(applyMasterErrorHints(config, messageOf(err)));
     }
 
-    if (relationPlan.length > 0 && savedId) {
+    if (!service.supportsAtomicRelations && relationPlan.length > 0 && savedId) {
       const { failures } = await runRelationWrites(service, savedId, relationPlan);
       if (failures.length > 0) onError?.(summarizeRelationFailures(failures));
     }
@@ -660,12 +660,12 @@ export default function ScottMasterListScreen({ config: master, mayEdit = false,
             {includeInactiveToggle}
             {mayEdit ? (
               <>
-                <ScottAirtableSyncControl
+                {service.source !== "supabase" && <ScottAirtableSyncControl
                   mayEdit={mayEdit}
                   onToast={onToast}
                   onError={onError}
                   idPrefix={`scott-master-${config.key}`}
-                />
+                />}
                 <Button type="button" variant="outline" size="sm" onClick={openBulkEdit}>
                   <Table2 className="size-4" aria-hidden />
                   <span className="hidden sm:inline">Bulk edit</span>

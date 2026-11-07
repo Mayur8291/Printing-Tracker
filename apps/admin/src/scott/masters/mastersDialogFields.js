@@ -1,3 +1,4 @@
+import { getCantoTarget } from "@/canto/target";
 // Adapters between a master config's `fields` array and what `ScottEntityDialog` renders.
 //
 // The dialog (`src/scott/ui/ScottEntityDialog.jsx`) understands
@@ -385,6 +386,7 @@ export function toWriteForm(config, values, record = null) {
       slots.forEach((slot, index) => {
         const item = picked[index];
         if (slot && isFileLikeValue(item)) files[slot] = item;
+        else if (slot && item == null && getCantoTarget().source === "supabase" && record?.[slot]) files[slot] = null;
       });
       form[field.key] = Object.keys(files).length > 0 ? files : undefined;
       continue;

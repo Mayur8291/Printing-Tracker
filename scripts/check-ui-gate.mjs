@@ -10,6 +10,7 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
+const APP = join(ROOT, "apps/admin");
 const VITE = join(ROOT, "node_modules/vite/bin/vite.js");
 
 function walk(dir, acc = []) {
@@ -70,11 +71,11 @@ function checkJsxImports(filePath) {
 }
 
 console.log("UI gate: production build…");
-const build = spawnSync(process.execPath, [VITE, "build"], { cwd: ROOT, stdio: "inherit" });
+const build = spawnSync(process.execPath, [VITE, "build"], { cwd: APP, stdio: "inherit" });
 if (build.status !== 0) process.exit(build.status ?? 1);
 
 console.log("UI gate: JSX import scan (warnings)…");
-const problems = walk(join(ROOT, "src")).map(checkJsxImports).filter(Boolean);
+const problems = walk(join(APP, "src")).map(checkJsxImports).filter(Boolean);
 if (problems.length) {
   console.warn("\nReview possible missing imports (may cause blank screen):");
   for (const p of problems.slice(0, 15)) {

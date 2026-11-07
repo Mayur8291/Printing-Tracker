@@ -9,7 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.join(__dirname, "..", "public");
+const root = path.join(__dirname, "..", "apps", "admin", "public");
 const srcPath = path.join(root, "app-icon.png");
 const outPath = path.join(root, "app-icon-rgba.png");
 

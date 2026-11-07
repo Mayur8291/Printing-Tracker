@@ -22,7 +22,8 @@ export const DASHBOARD_SIDEBAR_MAIN = [
   // --- Scott API (migrated from the standalone ScottOne dashboard) ---
   { id: "scott_customers", label: "Customers" },
   { id: "scott_reports", label: "Reports" },
-  { id: "scott_masters", label: "Masters" }
+  { id: "scott_masters", label: "Masters" },
+  { id: "canto_refresh", label: "Data Refresh" }
 ];
 
 export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
@@ -36,7 +37,7 @@ export const DASHBOARD_SIDEBAR_MAIN_SECTIONS = [
   },
   {
     label: "Scott API",
-    ids: ["scott_customers", "scott_reports", "scott_masters"]
+    ids: ["scott_customers", "scott_reports", "scott_masters", "canto_refresh"]
   }
 ];
 
@@ -65,7 +66,8 @@ export const DASHBOARD_SIDEBAR_SOON_TAB_IDS = new Set(["audit"]);
 export const DASHBOARD_ADMIN_ONLY_TAB_IDS = new Set([
   "scott_customers",
   "scott_reports",
-  "scott_masters"
+  "scott_masters",
+  "canto_refresh"
 ]);
 
 export function isAdminOnlyDashboardTab(tabId) {

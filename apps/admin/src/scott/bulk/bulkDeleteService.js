@@ -196,7 +196,7 @@ export async function runMasterBulkDelete(service, ids, options = {}) {
 
   return runBulkDeletes(ids, (id) => service.remove(id), {
     ...options,
-    bulkDeleteAll: canBulk ? (list) => bulkDeleteScottRecords(resource, list) : undefined
+    bulkDeleteAll: service.source === "supabase" || canBulk ? list => service.bulkDelete(list) : undefined
   });
 }
 

@@ -111,7 +111,7 @@ jobs:
             echo "Building frontend in CI and deploying dist/ via Netlify CLI..."
             npm ci
             VITE_APP_ENV=production npm run build
-            npx --yes netlify-cli@23.1.4 deploy --prod --dir=dist --message="$DEPLOY_MSG"
+            npx --yes netlify-cli@23.1.4 deploy --prod --dir=apps/admin/dist --message="$DEPLOY_MSG"
             echo "Netlify production deploy complete (CI build)."
             exit 0
           fi

@@ -1,4 +1,6 @@
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const children = [];
 const PICKLIST_PORT = Number(process.env.PICKLIST_API_PORT || 3001);
@@ -7,6 +9,7 @@ const PICKLIST_HEALTH = `http://127.0.0.1:${PICKLIST_PORT}/health`;
 function start(name, command, args, { fatal = true } = {}) {
   const child = spawn(command, args, {
     stdio: "inherit",
+    cwd: ROOT,
     shell: process.platform === "win32"
   });
   child.on("exit", (code) => {
@@ -52,7 +55,7 @@ console.log("[dev] Picklist PDF: POST /api/picklist/pdf (proxied from Vite)");
 if (await picklistAlreadyUp()) {
   console.log(`[dev] Picklist API already on ${PICKLIST_HEALTH} — not starting a second one.`);
 } else {
-  start("picklist-api", "node", ["server/index.js"], { fatal: false });
+  start("picklist-api", "node", ["apps/admin/server/index.js"], { fatal: false });
 }
 
-start("vite", "node", ["./node_modules/vite/bin/vite.js"], { fatal: true });
+start("vite", "npm", ["run", "dev:vite", "--workspace", "@canto/admin"], { fatal: true });

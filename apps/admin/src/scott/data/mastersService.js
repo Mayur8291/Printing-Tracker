@@ -47,7 +47,7 @@
 import {
   buildScottPaginatedMeta,
   callScottBulkDelete,
-  callScottDashboard,
+  callScottDashboard as callLegacyDashboard,
   extractRecords,
   extractScottEntity,
   fileToScottPayload,
@@ -56,6 +56,8 @@ import {
   urlToScottFile
 } from "../scottClient";
 import { fetchAllScottPages } from "../scottPagination";
+import { getCantoTarget } from "../../canto/target";
+import { createSupabaseMastersService } from "../../canto/mastersService";
 
 // ---------------------------------------------------------------------------
 // Shared read helpers (used by the configs)
@@ -253,6 +255,9 @@ export async function attachScottImageField(body, field, opts = {}) {
     return body;
   }
 
+  // Supabase edits preserve existing media; only a newly selected file is uploaded.
+  if (getCantoTarget().source === "supabase") return body;
+
   const candidate = typeof url === "string" ? url.trim() : "";
   if (!candidate) return body;
   if (requireHttp && !/^https?:\/\//i.test(candidate)) return body;
@@ -368,6 +373,10 @@ function withDefaults(config) {
  * }}
  */
 export function createMastersService(config) {
+  if (getCantoTarget().source === "supabase") return createSupabaseMastersService(config);
+  const target = getCantoTarget();
+  const callScottDashboard = payload => callLegacyDashboard({ ...payload,
+    baseUrl: target.environment === "production" ? "https://leaderboard.sagarfab.com" : "http://64.227.186.227" });
   const cfg = withDefaults(config);
 
   // -- reads ----------------------------------------------------------------
@@ -711,7 +720,7 @@ export function createMastersService(config) {
   /** Single DELETE to `{resource}/bulk_delete` with repeated `ids[]` fields. */
   async function bulkDelete(ids) {
     if (!cfg.supportsBulkDelete) throw new Error(cfg.messages.bulkDeleteUnsupported);
-    await callScottBulkDelete(cfg.resource, ids ?? []);
+    await callScottDashboard({ resource: cfg.resource, method: "DELETE", pathSuffix: "bulk_delete", body: { "ids[]": (ids ?? []).map(String) } });
   }
 
   // -- relation sub-endpoints ----------------------------------------------

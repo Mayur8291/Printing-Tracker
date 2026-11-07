@@ -18,5 +18,9 @@
         }
       ]
     }
-  ]
+  ],
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "apps/admin/dist",
+  "installCommand": "npm ci"
 }
