@@ -47,6 +47,18 @@ The verifier deliberately retains `equal: false` for this remaining platform dif
 
 ## Saved release and maintenance preparation
 
-Both refresh dispatchers are verified pinned to `codex/backend-parity-20261108-112`, commit `1123afa155d3a271520dcba6059873073a529932`. See `implementation-evidence/backend-refresh-release.json`. No refresh ran.
+The initial refresh release was `codex/backend-parity-20261108-112`, commit `1123afa155d3a271520dcba6059873073a529932`. The follow-up release below supersedes it; `implementation-evidence/backend-refresh-release.json` records the current verified dispatcher ref and exact commit. No refresh ran.
 
 The user requested preparation of the remaining managed upgrade. Both projects currently offer GA build `17.11.0.018` with a one-hour estimate each, so the reviewed proposal upgrades staging first and production only after validation. Existing daily backups were checked; fresh verified recovery points remain mandatory execution gates. See [the maintenance plan](PLATFORM_MAINTENANCE_PLAN.md). No upgrade has started.
+
+## Migration 113 production follow-up
+
+On 8 November 2026, production received `20261108154028_squad_dashboard_customer_type_summary.sql`, matching staging. It restores the full filtered RMP customer-type summary before pagination. The dashboard task verified 53 focused database tests, 2,126 complete regression tests, all 14 source customer-type groups, and warm default SQL performance. The root release independently verified the production migration in a rolled-back transaction before applying it.
+
+The production apply and post-commit baseline verification passed. All 86 source tables, Auth and business data, public schema, media metadata, and sequence state were protected. Normal live `public.hr_user_presence` heartbeat activity was the sole explicitly reviewed post-commit recovery exception. Every schedule's exact definition and prior enabled state was restored. See `implementation-evidence/production-followup-20261108154028-preview.json` and `production-followup-20261108154028-applied.json`.
+
+Final hosted verification confirms 113 matching migrations, application artifact equality, unchanged public structures, disabled rehearsal writes, and passing endpoint checks. Strict overall parity remains false only for the documented managed `pg_net` patch version. The release remains in mirror mode with no refresh, cutover, provider activation, or platform upgrade.
+
+Future refreshes must use the frozen `codex/backend-parity-20261108-113` release containing both reviewed access baselines. Keep the earlier 112 branch unchanged. Do not move either ref to a frontend development branch.
+
+This backend alignment does not mark the dashboard frontend acceptance complete: the separate task is investigating a report-search/CSV statement timeout in the existing query path. Migration 113 changes the summary aggregation, not that RMP search path. Any subsequent SQL fix requires a new coordinated backend release and refreshed parity evidence.

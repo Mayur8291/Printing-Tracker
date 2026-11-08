@@ -1,0 +1,18 @@
+{
+  "added_companion_columns": [],
+  "aligned_legacy_collations": 0,
+  "cutover": false,
+  "environment": "production",
+  "migrations": [
+    "20261108154028_squad_dashboard_customer_type_summary.sql"
+  ],
+  "mode": "applied",
+  "protected_data_unchanged": true,
+  "public_structure_unchanged": true,
+  "reviewed_post_commit_operational_changes": [
+    "public.hr_user_presence"
+  ],
+  "source_tables_verified": 86,
+  "staging_artifacts_sha256": "48b5aab6393e13bd41e5c60afff21f560c656d7c8b9f150b959e415e80130b12",
+  "through": "20261108154028"
+}

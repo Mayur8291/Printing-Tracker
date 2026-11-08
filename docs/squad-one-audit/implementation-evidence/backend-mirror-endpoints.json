@@ -1,18 +1,18 @@
 {
-  "measured_at": "2026-11-08T15:18:31.958183+00:00",
+  "measured_at": "2026-11-08T17:12:15.365641+00:00",
   "checks": {
     "production": {
       "bootstrap_android": {
         "status": 200,
-        "elapsed_ms": 691.4
+        "elapsed_ms": 257.2
       },
       "bootstrap_ios": {
         "status": 200,
-        "elapsed_ms": 222.4
+        "elapsed_ms": 213.0
       },
       "bootstrap_web": {
         "status": 200,
-        "elapsed_ms": 465.9
+        "elapsed_ms": 213.8
       },
       "private_rpc_denied": {
         "status": 401
@@ -25,7 +25,7 @@
       },
       "worker_mirror_paused": {
         "status": 200,
-        "elapsed_ms": 1549.9
+        "elapsed_ms": 1857.2
       },
       "provider_ingress_disabled": {
         "status": 503
@@ -43,15 +43,15 @@
     "staging": {
       "bootstrap_android": {
         "status": 200,
-        "elapsed_ms": 309.5
+        "elapsed_ms": 272.4
       },
       "bootstrap_ios": {
         "status": 200,
-        "elapsed_ms": 155.2
+        "elapsed_ms": 274.9
       },
       "bootstrap_web": {
         "status": 200,
-        "elapsed_ms": 218.5
+        "elapsed_ms": 240.0
       },
       "private_rpc_denied": {
         "status": 401
@@ -64,7 +64,7 @@
       },
       "worker_mirror_paused": {
         "status": 200,
-        "elapsed_ms": 1285.7
+        "elapsed_ms": 1466.4
       },
       "provider_ingress_disabled": {
         "status": 503

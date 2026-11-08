@@ -1,19 +1,19 @@
 {
-  "measured_at": "2026-11-08T15:21:24.923048+00:00",
+  "measured_at": "2026-11-08T17:12:30.844320+00:00",
   "checks": {
     "production": {
       "pg_net_version": "0.20.0",
       "status": 200,
       "paused": true,
       "provider_effects": false,
-      "elapsed_ms": 3967.0
+      "elapsed_ms": 2719.1
     },
     "staging": {
       "pg_net_version": "0.20.3",
       "status": 200,
       "paused": true,
       "provider_effects": false,
-      "elapsed_ms": 2403.3
+      "elapsed_ms": 2405.8
     }
   },
   "scope": "One real pg_net HTTP request to each paused worker; no refresh, login fixtures or provider work"

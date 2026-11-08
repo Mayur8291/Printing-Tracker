@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-11-08T15:22:02.896219+00:00",
+  "measured_at": "2026-11-08T17:12:01.371986+00:00",
   "scope": "Squad/Canto backend schema, grants, RPCs, Edge artifacts, private buckets and schedules; no data refresh or cutover",
   "equal": false,
   "application_artifacts_equal": true,
@@ -15,7 +15,7 @@
       "schema_hashes": {
         "columns": "fdfc1ee19962ca7a2c6dde27ebb31ecba5da24eabb336da6004c67d6b9ac4566",
         "relations": "92e40d8870eb1e34d81adb8406209e2cc41a364df3eae9819e1c4df5a9985b46",
-        "functions": "67fba13b11b6ee38b9fef75eec0d23dac56d5621ddf123da328656edcc01d92b",
+        "functions": "5516b991840751b78286cf57772a12b11a081c14e3f75e77e7966f21f7131a51",
         "types": "50dae15469ebba72dfd3b93c8f99589bf9930ca49a4b34aaee2cd74538807601",
         "views": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "sequences": "f9fd0bb0bafc2c99d344749de1f20ed089447005735d56056d9cb44f448769a7",
@@ -28,8 +28,8 @@
         "roles": "32d150c849aa6cfe878d5233c91a354c45ab7a368c35d1dcdee94ed6f42933f2",
         "role_memberships": "2373501de6ddea38144c50ba454438210309ab70e8d2d5b5d9df41eeb3d37b60"
       },
-      "migrations": 112,
-      "last_migration": "20261108145821",
+      "migrations": 113,
+      "last_migration": "20261108154028",
       "functions": [
         {
           "slug": "canto-refresh",
@@ -58,8 +58,8 @@
       ],
       "mirror": true,
       "revision": [
-        566,
-        566
+        646,
+        646
       ],
       "test_writes_disabled": true,
       "public_structure": "05d34e00e8e4e1d5bfa9b23212717e898bd58d0c3e13888ebcaf1eceae6997fa"
@@ -68,7 +68,7 @@
       "schema_hashes": {
         "columns": "fdfc1ee19962ca7a2c6dde27ebb31ecba5da24eabb336da6004c67d6b9ac4566",
         "relations": "92e40d8870eb1e34d81adb8406209e2cc41a364df3eae9819e1c4df5a9985b46",
-        "functions": "67fba13b11b6ee38b9fef75eec0d23dac56d5621ddf123da328656edcc01d92b",
+        "functions": "5516b991840751b78286cf57772a12b11a081c14e3f75e77e7966f21f7131a51",
         "types": "50dae15469ebba72dfd3b93c8f99589bf9930ca49a4b34aaee2cd74538807601",
         "views": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "sequences": "f9fd0bb0bafc2c99d344749de1f20ed089447005735d56056d9cb44f448769a7",
@@ -81,8 +81,8 @@
         "roles": "32d150c849aa6cfe878d5233c91a354c45ab7a368c35d1dcdee94ed6f42933f2",
         "role_memberships": "2373501de6ddea38144c50ba454438210309ab70e8d2d5b5d9df41eeb3d37b60"
       },
-      "migrations": 112,
-      "last_migration": "20261108145821",
+      "migrations": 113,
+      "last_migration": "20261108154028",
       "functions": [
         {
           "slug": "canto-refresh",
