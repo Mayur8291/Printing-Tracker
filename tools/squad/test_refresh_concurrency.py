@@ -28,6 +28,12 @@ class RefreshFence(unittest.TestCase):
         self.assertEqual(after_publication(self.c),{'generation':1,'discarded_mirror_events':1})
         session(self.c,103)
         with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_profile_save',args)
+    def test_refresh_closes_leased_attempt_history(self):
+        job=uuid.uuid4();lease=uuid.uuid4()
+        self.c.execute("INSERT INTO sa_domain.outbox(id,actor_id,event_type,aggregate_kind,aggregate_id,command_key,generation,status,lease_token,lease_until) VALUES(%s,%s,'profile.saved','person',103,%s,0,'leased',%s,now()+interval '1 minute')",(job,uid(103),uuid.uuid4(),lease))
+        self.c.execute('INSERT INTO sa_domain.job_attempts(lease_token,job_id,attempt) VALUES(%s,%s,1)',(lease,job))
+        after_publication(self.c)
+        self.assertEqual(self.c.execute('SELECT state,error_code FROM sa_domain.job_attempts WHERE lease_token=%s',(lease,)).fetchone(),('failed','SOURCE_REFRESH_DISCARDED'))
     def test_password_change_fenced(self):
         with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):
             self.c.execute("UPDATE auth.users SET encrypted_password='synthetic-change' WHERE id=%s",(uid(103),))

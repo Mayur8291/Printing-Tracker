@@ -56,3 +56,7 @@ verify_jwt = true
 
 [functions.canto-refresh]
 verify_jwt = false
+
+# Service-only queue pump validates its dedicated Cron secret before any RPC.
+[functions.squad-jobs]
+verify_jwt = false

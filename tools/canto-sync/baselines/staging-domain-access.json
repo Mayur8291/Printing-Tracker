@@ -92,6 +92,24 @@
     ],
     [
       "sa_domain",
+      "audit",
+      "squad_audit_read",
+      "{sa_executor}",
+      "SELECT",
+      "(((( SELECT sa_domain.ops_context() AS ops_context) ->> 'admin'::text))::boolean OR ((((( SELECT sa_domain.ops_context() AS ops_context) ->> 'platform'::text))::boolean AND (kind = ANY (ARRAY['integration'::text, 'import'::text, 'export'::text, 'document'::text, 'media'::text, 'maintenance'::text]))) OR ((kind = 'job'::text) AND (entity_id IN ( SELECT outbox.sequence_id\n   FROM sa_domain.outbox)))))",
+      null
+    ],
+    [
+      "sa_domain",
+      "audit",
+      "squad_worker_audit",
+      "{sa_worker}",
+      "INSERT",
+      null,
+      "true"
+    ],
+    [
+      "sa_domain",
       "backorder_previews",
       "squad_backorder_preview_owner",
       "{sa_executor}",
@@ -188,6 +206,33 @@
       "UPDATE",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_domain",
+      "job_attempts",
+      "squad_attempt_read",
+      "{sa_executor}",
+      "SELECT",
+      "(job_id IN ( SELECT outbox.id\n   FROM sa_domain.outbox))",
+      null
+    ],
+    [
+      "sa_domain",
+      "job_attempts",
+      "squad_attempt_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "job_retries",
+      "squad_job_retries",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_domain",
@@ -308,12 +353,48 @@
     ],
     [
       "sa_domain",
+      "order_requests",
+      "squad_worker_order_requests",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "outbox",
       "executor_events",
       "{sa_executor}",
       "INSERT",
       null,
       "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "outbox",
+      "squad_guard_queue",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "outbox",
+      "squad_job_read",
+      "{sa_executor}",
+      "SELECT",
+      "((actor_id = ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'auth_id'::text))::uuid) OR ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'admin'::text))::boolean OR (((( SELECT sa_domain.ops_context() AS ops_context) ->> 'platform'::text))::boolean AND (aggregate_kind = ANY (ARRAY['integration'::text, 'import'::text, 'export'::text, 'document'::text, 'media'::text, 'maintenance'::text]))))",
+      null
+    ],
+    [
+      "sa_domain",
+      "outbox",
+      "squad_worker_queue",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_domain",
@@ -363,11 +444,47 @@
     [
       "sa_domain",
       "runtime_state",
+      "squad_guard_runtime",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "runtime_state",
       "squad_runtime_guard",
       "{sa_guard}",
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_domain",
+      "runtime_state",
+      "squad_worker_runtime",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "worker_context",
+      "squad_context_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "worker_context",
+      "squad_worker_context",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_domain",
@@ -2600,6 +2717,15 @@
       "ALL",
       "singleton",
       "singleton"
+    ],
+    [
+      "sa_sync",
+      "environment_state",
+      "squad_worker_environment",
+      "{sa_worker}",
+      "SELECT",
+      "singleton",
+      null
     ]
   ],
   [
@@ -4127,6 +4253,30 @@
   [
     [
       "canto_api",
+      "squad_job_claim",
+      "p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "4556f619ddce4667176cce9b322fe392"
+    ],
+    [
+      "canto_api",
+      "squad_job_execute",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "93cec4ca064cebf2dce8de79fc75629c"
+    ],
+    [
+      "canto_api",
       "v1_address_archive",
       "p_id bigint, p_user_id bigint, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -4160,6 +4310,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres,anon=X/postgres}",
       "a1b3ca6520aa66800f8aed0698ee87dc"
+    ],
+    [
+      "canto_api",
+      "v1_audit_list",
+      "p_kind text, p_entity_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "abae06835a580f0809a09ec267b4848e"
     ],
     [
       "canto_api",
@@ -4580,6 +4742,42 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "7271449980041e2933c10c74ef7cfe58"
+    ],
+    [
+      "canto_api",
+      "v1_job_get",
+      "p_id uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "d5583abfd88769d6757b5a666443a341"
+    ],
+    [
+      "canto_api",
+      "v1_job_retry",
+      "p_id uuid, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "119734eb1965ac92de3d5e4a65f5f631"
+    ],
+    [
+      "canto_api",
+      "v1_jobs_list",
+      "p_state text, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "0e900e661a33790e912a8a077de7150a"
     ],
     [
       "canto_api",
@@ -5346,7 +5544,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
       "b2f2f029c1a8964f738a8a2184ba3049"
     ],
     [
@@ -5496,6 +5694,18 @@
     ],
     [
       "sa_domain",
+      "assert_service_worker",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "f166e680dbb4645b804f66e26a8fd7c9"
+    ],
+    [
+      "sa_domain",
       "assert_work_balances",
       "p_id bigint",
       "postgres",
@@ -5540,7 +5750,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_guard=X/postgres}",
-      "fd067d98c918a8e6061f51f22012fb16"
+      "0f0d40ae8b0b14eec513f5954e0dfee4"
     ],
     [
       "sa_domain",
@@ -5851,7 +6061,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
       "b5d3a272db68e1bf90dac72663535c60"
     ],
     [
@@ -5912,7 +6122,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
       "1b98472024651e624215b6fa7d4f6a83"
     ],
     [
@@ -6141,7 +6351,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "aa63095c5f173d214c6b9fa50169448e"
+      "00df217df18d5eb358b8e7e82111483f"
     ],
     [
       "sa_domain",
@@ -6214,6 +6424,30 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "cbc799580970271013cc7d1e29a8c1ff"
+    ],
+    [
+      "sa_domain",
+      "job_handler",
+      "p_event text, p_payload jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "04a0747b5a8b734740d7a7cbe8be966d"
+    ],
+    [
+      "sa_domain",
+      "job_projection",
+      "p_job sa_domain.outbox",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "8488f360016e05bf282cc28c97f0546d"
     ],
     [
       "sa_domain",
@@ -6296,7 +6530,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
       "0b43cb4abaad0ce20d3b231a3edaee24"
     ],
     [
@@ -6334,6 +6568,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "f8569911d87946c587630bc2dafd523b"
+    ],
+    [
+      "sa_domain",
+      "ops_context",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
+      "fc962af1956bc975e16ffe5c64ece7b2"
     ],
     [
       "sa_domain",
@@ -6476,7 +6722,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
       "9cb15d63b501809a703f300ab18641fc"
     ],
     [
@@ -6804,7 +7050,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
-      "86742a1bcb7b04e8a39a66d376149bf4"
+      "2cf92e05feab9a4c211412de4f00e1c7"
     ],
     [
       "sa_domain",
@@ -6841,6 +7087,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "99ff565e12e12131a71c4dc99787d435"
+    ],
+    [
+      "sa_domain",
+      "run_delegated_amendment",
+      "p_request_id uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor}",
+      "6ed1cf870eec419e2d1b6b04d8d15cc0"
     ],
     [
       "sa_domain",
@@ -6997,6 +7255,30 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "ebe4783f1a41042e217faea54dd726d5"
+    ],
+    [
+      "sa_domain",
+      "squad_job_claim",
+      "p_limit integer",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "653290c4424855420df9dbcde749e801"
+    ],
+    [
+      "sa_domain",
+      "squad_job_execute",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "62ad527553acbbe38025f99ed0e5e9c8"
     ],
     [
       "sa_domain",
@@ -7177,6 +7459,18 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor,anon=X/sa_executor}",
       "1833aead161709830ef5cf01309ea0a9"
+    ],
+    [
+      "sa_domain",
+      "v1_audit_list",
+      "p_kind text, p_entity_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "c8a7ed2e1873a2c5d83d85f125b41f3b"
     ],
     [
       "sa_domain",
@@ -7606,6 +7900,42 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "b4d4a48597012fb24b6733c40b919006"
+    ],
+    [
+      "sa_domain",
+      "v1_job_get",
+      "p_id uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "9964d4ff31f80a8b6de97b1f8bc9541f"
+    ],
+    [
+      "sa_domain",
+      "v1_job_retry",
+      "p_id uuid, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,sa_executor=X/sa_worker,sa_app=X/sa_worker,authenticated=X/sa_worker}",
+      "2934d93bf76523be7d039e3469bc5b30"
+    ],
+    [
+      "sa_domain",
+      "v1_jobs_list",
+      "p_state text, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "0a14a20d107c04304a1c64e33be71e02"
     ],
     [
       "sa_domain",
@@ -8606,6 +8936,30 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "3401dfa7b3f3dcef9c096588fef51791"
+    ],
+    [
+      "sa_domain",
+      "worker_actor_id",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
+      "8946ae35c7caf955a78b35bad2bedf5b"
+    ],
+    [
+      "sa_domain",
+      "worker_write_fence",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "9e021ef5e7eb2ff9127c8c67965af3ad"
     ]
   ],
   [
@@ -8618,6 +8972,13 @@
     ],
     [
       "sa_guard",
+      false,
+      false,
+      false,
+      false
+    ],
+    [
+      "sa_worker",
       false,
       false,
       false,

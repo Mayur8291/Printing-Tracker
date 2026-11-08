@@ -20,6 +20,9 @@ if(error)throw new Error(`Controlled test login failed: ${error.code || error.st
 try {
   const sdk=createSquadClient(client),me=await sdk.me();
   assert.equal(me.role,3);
+  const jobs=await sdk.jobs(null,{limit:2});assert.ok(jobs.data.length<=2);
+  await assert.rejects(sdk.audit(),e=>e instanceof SquadError && e.kind==='forbidden');
+  await assert.rejects(sdk.job('00000000-0000-4000-8000-000000000001'),e=>e instanceof SquadError && e.kind==='not_found');
   const promotions=await sdk.promotions({}, {limit:2});
   const categories=await sdk.promotions({mode:'categories'}, {limit:2});
   const banners=await sdk.banners({limit:2});

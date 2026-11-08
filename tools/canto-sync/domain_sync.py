@@ -11,8 +11,8 @@ def access_catalog(conn):
     queries=[
       "SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname IN('sa_snapshot_20261019','sa_domain','sa_identity','sa_sync') ORDER BY 1,2,3",
       "SELECT c.relname,a.attname,a.attacl::text FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='sa_snapshot_20261019' AND a.attacl IS NOT NULL ORDER BY 1,2",
-      "SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_domain' OR (n.nspname='canto_api' AND p.proname LIKE 'v1_%') ORDER BY 1,2,3",
-      "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor') ORDER BY 1"
+      "SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_domain' OR (n.nspname='canto_api' AND (p.proname LIKE 'v1_%' OR p.proname LIKE 'squad_job_%')) ORDER BY 1,2,3",
+      "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor','sa_worker') ORDER BY 1"
     ]
     return json.loads(json.dumps([conn.execute(q).fetchall() for q in queries]))
 
@@ -42,6 +42,9 @@ def after_publication(conn):
       lease_until=NULL,lease_token=NULL,completed_at=now()
       WHERE generation<%s AND status IN('pending','leased') RETURNING id""",(generation,)).fetchall()
     result={'generation':generation,'discarded_mirror_events':len(discarded)}
+    if discarded and conn.execute("SELECT to_regclass('sa_domain.job_attempts')").fetchone()[0]:
+        conn.execute("""UPDATE sa_domain.job_attempts SET state='failed',error_code='SOURCE_REFRESH_DISCARDED',finished_at=now()
+          WHERE job_id=ANY(%s::uuid[]) AND state='leased'""",([row[0] for row in discarded],))
     if conn.execute("SELECT to_regclass('sa_domain.order_requests')").fetchone()[0]:
         requests=conn.execute("""UPDATE sa_domain.order_requests SET state='failed',updated_at=now(),
           spec=spec||'{"failure_code":"SOURCE_REFRESH_DISCARDED"}'::jsonb

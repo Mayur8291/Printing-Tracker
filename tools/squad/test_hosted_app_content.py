@@ -9,7 +9,7 @@ sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 from database import connect
 
 def run():
- results=[];checks=[];sequences=['sa_domain.audit_id_seq']+['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in ['zones','cities','criteria']]
+ results=[];checks=[];sequences=['sa_domain.audit_id_seq','sa_domain.outbox_sequence_id_seq']+['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in ['zones','cities','criteria']]
  with connect('staging') as c:
   assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0]
   before={n:c.execute(sql.SQL('SELECT last_value,is_called FROM {}').format(sql.Identifier(*n.split('.')))).fetchone() for n in sequences}

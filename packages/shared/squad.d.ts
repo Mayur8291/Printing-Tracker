@@ -268,6 +268,14 @@ export interface IntegrationPreferences {version:Version;airtable_enabled:boolea
 export interface SettingsMaster extends SavedEntity {name:string;parent_id:EntityId|null;archived:boolean}
 export interface Promotion {id:EntityId;name:string|null;category:string|null;upload_date:string|null;file_size:string|null;thumbnail:MediaReference|null;content:null|{kind:'external';url:string;provider:'youtube'|'google_drive'|'vimeo'}|{kind:'file';media:MediaReference|null};updated_at:string}
 export interface Banner {id:EntityId;title:string|null;status:string|null;position:number|null;image:MediaReference|null;destination:{brand_id:EntityId|null;category_id:EntityId|null;class_id:EntityId|null};availability:{state:'not_loaded'}}
+export type JobState='pending'|'leased'|'done'|'dead';
+export interface BackgroundJob {
+ id:string;event:string;kind:string;entity_id:EntityId;state:JobState;attempts:number;
+ available_at:string;created_at:string;completed_at:string|null;error_code:string|null;
+ generation:string;version:Version;handler:string;handler_available:boolean;progress:0|100;
+}
+export interface JobAttempt {attempt:number;started_at:string;finished_at:string|null;state:'leased'|'done'|'failed'|'expired';error_code:string|null;}
+export interface AuditEntry {id:EntityId;actor_id:string;legacy_user_id:EntityId|null;operation:string;kind:string;entity_id:EntityId|null;generation:string;created_at:string;}
 export function createSquadClient(supabase: RpcTransport): Readonly<{
   bootstrap(platform:AppPlatform,version?:string|null):Promise<AppBootstrap>;
   saveCapabilities(id:EntityId,features:FeatureGrant[],reason:string,command:Command):Promise<SavedEntity & {features:FeatureGrant[];capabilities:Record<string,boolean>}>;
@@ -280,6 +288,10 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   saveSettings(group:'app_releases',id:null,fields:Omit<AppRelease,'version'>,reason:string,command:Command):Promise<AppRelease>;
   saveSettings(group:'integrations',id:null,fields:{airtable_enabled:boolean},reason:string,command:Command):Promise<IntegrationPreferences>;
   saveSettings(group:'cities'|'zones'|'criteria',id:EntityId|null,fields:{name?:string;zone_id?:EntityId;archive?:boolean},reason:string,command:Command|CreateCommand):Promise<SavedEntity & {name:string;archived:boolean}>;
+  jobs(state?:JobState|null,page?:PageRequest):Promise<Page<BackgroundJob>>;
+  job(id:string):Promise<BackgroundJob & {recent_attempts:JobAttempt[]}>;
+  retryJob(id:string,reason:string,command:Command):Promise<BackgroundJob>;
+  audit(filters?:{kind?:string;entityId?:EntityId},page?:PageRequest):Promise<Page<AuditEntry>>;
   me(): Promise<Me>;
   saveProfile(fields: ProfileFields,command: Command): Promise<Me>;
   people(filters?:PeopleFilters,page?:PageRequest):Promise<Page<Person>>;

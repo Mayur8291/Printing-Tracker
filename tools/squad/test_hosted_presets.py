@@ -12,7 +12,7 @@ from hosted_lifecycle import exercise
 def run(production=False):
  checks=[]
  tables=['products','product_parts','product_part_add_ons','colors','fabric_colors','orders','items','quantities','extra_quantities','brandings','item_criteria','criteria','sizes','mark_cuttings','mark_cutting_quantities','item_tailors','item_tailor_quantities','job_sheet_assign_dates','job_sheet_assign_quantities','job_sheet_assign_tailors','job_sheet_tailor_mark_dates','job_sheet_mark_tailors','mark_tailor_quantities','job_sheet_dispatched_dates','dispatched_quantities']
- sequences=['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in tables]+['sa_domain.audit_id_seq','sa_domain.quotes_ledger_id_seq']
+ sequences=['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in tables]+['sa_domain.audit_id_seq','sa_domain.outbox_sequence_id_seq','sa_domain.quotes_ledger_id_seq']
  if production=='stock':sequences += ['sa_snapshot_20261019.sa_stocks_id_seq','sa_snapshot_20261019.sa_stock_useds_id_seq','sa_snapshot_20261019.sa_back_order_links_id_seq']
  with connect('staging') as c,contextlib.ExitStack() as recovery:
   c.execute("SET track_functions='pl'")
@@ -87,6 +87,9 @@ def run(production=False):
     if production=='amendments':
      from hosted_amendments import exercise as amendment_journey
      amendment_journey(c,placed['orders'][0],quote_request,details,checks)
+    elif production=='jobs':
+     from hosted_jobs import exercise as jobs_journey
+     jobs_journey(c,placed['orders'][0],quote_request,details,checks)
     elif production:
      from hosted_production import exercise as production_journey
      production_journey(c,placed['orders'][0],checks,execution=production in ('execution','stock'))

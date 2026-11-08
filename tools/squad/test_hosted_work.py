@@ -10,7 +10,7 @@ from database import connect
 def run():
     checks=[]
     sequences=['sa_snapshot_20261019.sa_tasks_id_seq','sa_snapshot_20261019.sa_task_users_id_seq',
-      'sa_snapshot_20261019.sa_responsibilities_id_seq','sa_snapshot_20261019.sa_milestones_id_seq','sa_domain.audit_id_seq']
+      'sa_snapshot_20261019.sa_responsibilities_id_seq','sa_snapshot_20261019.sa_milestones_id_seq','sa_domain.audit_id_seq','sa_domain.outbox_sequence_id_seq']
     with connect('staging') as c:
         assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0],'Refresh/write is active'
         before={name:c.execute(sql.SQL('SELECT last_value,is_called FROM {}').format(sql.Identifier(*name.split('.')))).fetchone() for name in sequences}

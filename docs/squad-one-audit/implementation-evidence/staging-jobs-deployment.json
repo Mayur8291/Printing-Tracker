@@ -1,0 +1,25 @@
+{
+  "environment": "staging",
+  "verified_at": "2026-11-08T02:53:57.389141+00:00",
+  "function": "squad-jobs",
+  "unauthorized_http_status": 401,
+  "authorized_mirror_response": {
+    "paused": true,
+    "results": []
+  },
+  "cron": {
+    "name": "squad-jobs-minute",
+    "active": true,
+    "latest_status": "succeeded",
+    "mirror_http_dispatch": false
+  },
+  "state": {
+    "cutover": false,
+    "active_refresh": null,
+    "edit_revision": 167,
+    "synced_revision": 167,
+    "committed_events": 0
+  },
+  "public_structure_unchanged": true,
+  "scope": "deployed Edge authorization and pause plus scheduled SQL execution; delegated write acceptance is separately rollback-tested"
+}
