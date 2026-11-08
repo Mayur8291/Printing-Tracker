@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/inventory/inventoryUiUtils";
-import ScottEnvBadge from "@/scott/ui/ScottEnvBadge";
+import CantoTargetSwitcher from "@/canto/CantoTargetSwitcher";
 // All-named import: scripts/check-ui-gate.mjs only records the FIRST binding of a mixed
 // `import Default, { Named }` statement and would report `ScottToasts` as missing.
 import { ScottToasts, useScottToast } from "@/scott/ui/useScottToast";
@@ -149,8 +149,8 @@ export default function ScottReportsTabPanel() {
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <PageHeader
           title="Reports"
-          subtitle="Scott API — orders, tailor, tracking, sales, inventory and customer performance."
-          actions={<ScottEnvBadge showBaseUrl />}
+          subtitle="Orders, tailor, tracking, sales, inventory and customer performance."
+          actions={<CantoTargetSwitcher />}
         />
 
         <div className="space-y-6">

@@ -1,3 +1,4 @@
+import { dashboardRpc, createDashboardQuery, usesSupabaseDashboard } from "../../canto/dashboardService";
 // Scott CUSTOMERS → Directory sub-tab.
 //
 // `useScottList` + `ScottListPage` over the bespoke customers service, plus create / edit /
@@ -278,12 +279,20 @@ export function resolvePriceTypeOnSubmit(values, session) {
  * @param {(message: unknown) => void} [props.toast]
  * @param {(message: unknown) => void} [props.toastError]
  */
+function customerSyncMessage(customer) {
+  return [["Account", customer?.account_sync], ["Warehouse", customer?.warehouse_sync]]
+    .filter(([, job]) => job && job.state !== "done")
+    .map(([label, job]) => ` · ${label} sync: ${job.state}${job.error_code ? ` (${job.error_code})` : ""}`).join("");
+}
+
 export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toastError }) {
   // `zone_id` is the ONE list filter besides `search` that Scott actually has a column for.
   // Status and Type are client-side quick filters on the hook — see the header note.
   const [zoneFilter, setZoneFilter] = useState("");
 
   const [dialog, setDialog] = useState(null);
+  const submissionRef = useRef(null);
+  const archiveKeysRef = useRef(new Map());
   const [opening, setOpening] = useState(false);
   // Set by the first submit that would move an owner distributor off `distributor`; the
   // second submit is the confirmation.
@@ -297,18 +306,18 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
 
   // Re-created every render on purpose: `useScottList` keeps both callbacks in a ref that it
   // refreshes before its fetch effects run, so each fetch always sees the current filters.
-  const fetchPage = useCallback(
-    ({ page, items, search }) => fetchCustomersPaginated({ page, items, search }, serverFilters),
-    [serverFilters]
-  );
+  const nativeQuery = useMemo(() => usesSupabaseDashboard() ? createDashboardQuery("customers", "", serverFilters) : null, [serverFilters]);
+  const fetchPage = useCallback(args => nativeQuery ? nativeQuery.fetchPage(args) : fetchCustomersPaginated(args, serverFilters), [serverFilters, nativeQuery]);
   const fetchAll = useCallback(() => fetchCustomers(serverFilters), [serverFilters]);
 
-  const list = useScottList({ config: customersDirectoryConfig, fetchPage, fetchAll });
+  const listConfig = useMemo(() => ({ ...customersDirectoryConfig, serverQuery: Boolean(nativeQuery) }), [nativeQuery]);
+  const list = useScottList({ config: listConfig, fetchPage, fetchAll });
 
   // A server-filter change is invisible to the hook's fetch effects (their deps are page /
   // pageSize / search / reloadToken), so nudge both: page 1 + a refresh that also drops the
   // drained 'full'-mode dataset.
   const { setPage, refresh } = list;
+  const canSave = mayEdit && (!nativeQuery || list.serverResult?.metadata?.canWrite === true);
   const firstFilterRun = useRef(true);
   useEffect(() => {
     if (firstFilterRun.current) {
@@ -325,9 +334,16 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
   // them from the loaded page made most of the country un-enterable — see
   // customerLocationCatalogue.js.)
   const optionSourceRows = list.allRows.length > 0 ? list.allRows : list.rows;
+  const [nativeZones, setNativeZones] = useState([]);
+  useEffect(() => {
+    if (!nativeQuery) return;
+    let cancelled = false;
+    dashboardRpc("customer_options").then(result => { if (!cancelled) setNativeZones(result.zones); }).catch(error => { if (!cancelled) toastError?.(error); });
+    return () => { cancelled = true; };
+  }, [Boolean(nativeQuery), toastError]);
   const zoneOptions = useMemo(
-    () => buildZoneOptionsFromCustomers(optionSourceRows),
-    [optionSourceRows]
+    () => nativeQuery ? nativeZones : buildZoneOptionsFromCustomers(optionSourceRows),
+    [nativeQuery, nativeZones, optionSourceRows]
   );
 
   // Harvest real `state_id` / `city_id` values off whatever arrived. Only nested address
@@ -368,6 +384,7 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
 
       if (!customer) {
         const seed = {
+          ...(usesSupabaseDashboard() ? { customer_code: "Assigned automatically" } : {}),
           customer_type: "retail",
           price_type_id:
             resolveDefaultRmpPriceTypeId(
@@ -430,6 +447,7 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
         // destroy address endpoints need them, so edits always re-read the full record.
         const customer = row ? await readCustomerForEdit(row) : null;
         ownerWarningAckRef.current = false;
+        submissionRef.current = null;
         setDialog(buildSession(customer, priceTypes, optionSourceRows));
       } catch (error) {
         toastError?.(error);
@@ -465,21 +483,33 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
 
       const form = { ...values, price_type_id: resolvePriceTypeOnSubmit(values, dialog) };
       const data = customerFormToCustomerData(form, dialog?.customer);
+      if (usesSupabaseDashboard()) {
+        data.gst = form.gst ?? "";
+        data.price_type_id = form.price_type_id ?? null;
+        // The dialog edits only the primary address; preserve every other address.
+        const primaryId = dialog?.customer?.addresses?.[0]?.id;
+        data.addresses = [...(data.addresses ?? []), ...(dialog?.customer?.addresses ?? []).filter(a => a.id !== primaryId)];
+        if (!dialog?.customer?.id) delete data.customer_code;
+      }
+      const signature = JSON.stringify([dialog?.customer?.id, dialog?.customer?.version, data]);
+      if (submissionRef.current?.signature !== signature) submissionRef.current = { signature, key: crypto.randomUUID() };
 
       try {
         if (dialog?.customer?.id) {
           // `updateCustomer` is read-merge-write and reconciles the address collection via
           // syncCustomerAddresses → updateCustomerAddress / destroyCustomerAddress.
-          await updateCustomer({
+          const updated = await updateCustomer({
             id: dialog.customer.id,
             updates: data,
+            version: dialog.customer.version,
+            key: submissionRef.current.key,
             previousAddresses: dialog.customer.addresses
           });
-          toast?.(`Updated ${data.company_name} · ${data.customer_code}`);
+          toast?.(`Updated ${data.company_name} · ${data.customer_code}${usesSupabaseDashboard() ? customerSyncMessage(updated) : ""}`);
         } else {
-          const created = await createCustomer(data);
+          const created = await createCustomer(data, submissionRef.current.key);
           toast?.(
-            `Added customer ${created?.company_name || data.company_name} · ${created?.customer_code || data.customer_code}`
+            `Added customer ${created?.company_name || data.company_name} · ${created?.customer_code || data.customer_code}${usesSupabaseDashboard() ? customerSyncMessage(created) : ""}`
           );
         }
       } catch (error) {
@@ -487,6 +517,7 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
         throw error; // keeps the dialog open with the inline Alert
       }
 
+      submissionRef.current = null;
       resetCustomerPerformanceEnrichmentCache();
       refresh();
     },
@@ -498,7 +529,10 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
       try {
         // Guards the owner distributor client-side and throws
         // OWNER_DISTRIBUTOR_DELETE_MESSAGE when it would be removed.
-        await deleteCustomer(row?.id);
+        const signature = `${row?.id}:${row?.version}`;
+        if (!archiveKeysRef.current.has(signature)) archiveKeysRef.current.set(signature, crypto.randomUUID());
+        await deleteCustomer(row?.id, row, archiveKeysRef.current.get(signature));
+        archiveKeysRef.current.delete(signature);
         toast?.(`Deleted ${row?.company_name || row?.customer_code || row?.id}`);
         resetCustomerPerformanceEnrichmentCache();
         refresh();
@@ -511,12 +545,13 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
 
   const handleExport = useCallback(async () => {
     try {
-      const rows = await resolveCustomerExportRows({
-        mode: list.mode,
-        processedRows: list.processedRows,
-        search: list.debouncedSearch,
-        serverFilters
-      });
+      if (nativeQuery) {
+        const result = await nativeQuery.exportCsv(DIRECTORY_COLUMNS, list.serverResult?.appliedQuery, message => toast?.(message));
+        downloadCsv(`customers-${exportDateStamp()}.csv`, result.blob);
+        toast?.(`Exported ${result.count.toLocaleString("en-IN")} customers.`);
+        return;
+      }
+      const rows = await resolveCustomerExportRows({ mode: list.mode, processedRows: list.processedRows, search: list.debouncedSearch, serverFilters });
       if (rows.length === 0) {
         toast?.("Nothing to export.");
         return;
@@ -531,6 +566,8 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
       toastError?.(error);
     }
   }, [
+    nativeQuery,
+    list.serverResult,
     list.mode,
     list.processedRows,
     list.debouncedSearch,
@@ -585,15 +622,16 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
 
   return (
     <>
+      {nativeQuery && list.serverResult?.metadata?.ownership === "mirror" ? <p className="mb-3 text-sm text-muted-foreground">Supabase mirror · Customer changes are available after ownership is transferred. Read and compare data here before cutover.</p> : null}
       <ScottListPage
-        config={customersDirectoryConfig}
+        config={listConfig}
         list={list}
         title="Customer directory"
         subtitle="Every Scott customer, with types, zones, addresses and onboarding state."
-        mayEdit={mayEdit}
-        onCreate={mayEdit ? () => openDialog(null) : undefined}
+        mayEdit={canSave}
+        onCreate={canSave ? () => openDialog(null) : undefined}
         onEdit={(row) => openDialog(row)}
-        onDelete={mayEdit ? handleDelete : undefined}
+        onDelete={canSave ? handleDelete : undefined}
         onExport={handleExport}
         onQuickFilterChange={handleQuickFilterChange}
         quickFilters={quickFilters}
@@ -607,12 +645,12 @@ export default function ScottCustomersDirectoryTab({ mayEdit = false, toast, toa
           key={dialog.customer?.id ? `edit-${dialog.customer.id}` : "create"}
           open
           config={customersDirectoryConfig}
-          fields={dialog.fields}
+          fields={dialog.fields.map(field => usesSupabaseDashboard() && field.key === "customer_code" ? { ...field, disabled: true, hint: "Assigned automatically and cannot be changed." } : usesSupabaseDashboard() && dialog.customer && field.key === "email" ? { ...field, disabled: true, hint: "Login email changes require the verified account flow." } : field)}
           record={dialog.record}
           description={
-            dialog.customer?.is_owner_distributor ? OWNER_DISTRIBUTOR_TYPE_WARNING : undefined
+            dialog.customer?.is_owner_distributor ? OWNER_DISTRIBUTOR_TYPE_WARNING : usesSupabaseDashboard() ? customerSyncMessage(dialog.customer) || "Status controls account access. Approval and onboarding are separate." : undefined
           }
-          readOnly={!mayEdit}
+          readOnly={!canSave}
           onSubmit={handleSubmit}
           onClose={() => setDialog(null)}
           idPrefix="scott-customer"

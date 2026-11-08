@@ -1,3 +1,4 @@
+import { getCantoTarget } from "../canto/target";
 // Single entry point for every Scott REST call.
 //
 // Browser -> supabase.functions.invoke("scott-dashboard-masters") -> Scott REST API.
@@ -10,7 +11,7 @@
 //   3. HTTP-200 application error (Scott answered 200 with { success: false })
 
 import { supabase } from "../supabaseClient";
-import { getEffectiveScottApiBaseUrl } from "./scottRuntime";
+import { getEffectiveScottApiBaseUrl, SCOTT_PRODUCTION_BASE_URL, SCOTT_STAGING_BASE_URL } from "./scottRuntime";
 
 export const SCOTT_EDGE_FUNCTION = "scott-dashboard-masters";
 
@@ -267,7 +268,9 @@ export async function callScottDashboard(payload) {
   }
 
   // Runtime default first so an explicit payload.baseUrl overrides it.
-  const payloadWithBaseUrl = { baseUrl: getEffectiveScottApiBaseUrl(), ...payload };
+  const target = getCantoTarget();
+  const baseUrl = target.source === "legacy" ? (target.environment === "production" ? SCOTT_PRODUCTION_BASE_URL : SCOTT_STAGING_BASE_URL) : getEffectiveScottApiBaseUrl();
+  const payloadWithBaseUrl = { baseUrl, ...payload };
 
   const { data, error } = await supabase.functions.invoke(SCOTT_EDGE_FUNCTION, {
     body: payloadWithBaseUrl

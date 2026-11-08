@@ -1,3 +1,4 @@
+import { createDashboardQuery, dashboardPeriod, usesSupabaseDashboard } from "../../canto/dashboardService";
 // Customer performance report — `GET customers/performance` + `GET customers/unique_customers`.
 //
 // ---------------------------------------------------------------------------
@@ -464,6 +465,10 @@ export async function fetchCustomerPerformance(filters = {}, { enrich = true } =
  * @param {string} [endDate] ISO
  */
 export async function fetchUniqueCustomersSummary(startDate, endDate) {
+  if (usesSupabaseDashboard()) {
+    const result = await createDashboardQuery("unique_customers", "", dashboardPeriod({ startDate, endDate })).fetchPage({ items: 1 });
+    return normalizeUniqueCustomersSummary(result.data[0]);
+  }
   const { body } = await callScottDashboard({
     resource: CUSTOMERS_RESOURCE,
     method: "GET",

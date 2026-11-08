@@ -53,7 +53,8 @@ import {
   getSortDirection as readSortDirection,
   isSortActive as readSortActive,
   nextSortDirection,
-  sortRows
+  sortRows,
+  serverSortForColumns
 } from "./tableSort";
 
 /** Search is debounced everywhere by the same amount. */
@@ -171,6 +172,7 @@ function normalizeServerResult(result, page, pageSize) {
 
   const data = Array.isArray(result?.data) ? result.data : [];
   return {
+    ...result,
     data,
     page: clampPage(result?.page ?? current),
     pageSize: clampPageSize(result?.pageSize ?? size),
@@ -286,7 +288,8 @@ export function useScottList({
   const searchActive = clientSearch && debouncedSearch.length > 0;
 
   /** What the UI has asked for. Whether it HAPPENS is the guard's call. */
-  const wantsFullDataset = filterActive || quickActive || sortActive || searchActive;
+  const wantsFullDataset = !config?.serverQuery && (filterActive || quickActive || sortActive || searchActive);
+  const serverQueryKey = config?.serverQuery ? JSON.stringify([filters, quickFilters, sort]) : "";
 
   // The drain guard. `knownTotal` is the server's own count for the current query, which is
   // exactly the number the drain would have to pull, so the decision needs no entity names.
@@ -463,9 +466,11 @@ export function useScottList({
 
     (async () => {
       try {
-        const result = await fetchOne({ page, items: pageSize, search: debouncedSearch });
+        const serverSort = serverSortForColumns(sort, config?.columns);
+        const result = await fetchOne({ page, items: pageSize, search: debouncedSearch,
+          ...(config?.serverQuery ? { filters, quickFilters, sort: serverSort } : {}) });
         if (!isCurrent()) return;
-        setServerResult(normalizeServerResult(result, page, pageSize));
+        setServerResult(normalizeServerResult({ ...result, appliedQuery: { search: debouncedSearch, filters, quickFilters, sort: serverSort } }, page, pageSize));
         if (silent) setError("");
       } catch (err) {
         if (!isCurrent()) return;
@@ -479,7 +484,7 @@ export function useScottList({
     return () => {
       cancelled = true;
     };
-  }, [needsFullDataset, page, pageSize, debouncedSearch, reloadToken]);
+  }, [needsFullDataset, page, pageSize, debouncedSearch, reloadToken, serverQueryKey]);
 
   // --- full mode: drain once, then everything is in memory ------------------
 
@@ -706,6 +711,7 @@ export function useScottList({
 
   return {
     // data
+    serverResult,
     rows,
     total,
     loading,

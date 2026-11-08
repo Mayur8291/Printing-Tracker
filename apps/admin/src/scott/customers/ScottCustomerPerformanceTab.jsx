@@ -1,3 +1,8 @@
+import { usesSupabaseDashboard } from "../../canto/dashboardService";
+import ReportView from "../reports/ReportView";
+import CustomerPerformanceKpis from "../reports/CustomerPerformanceKpis";
+import { getReport } from "../reports/reportsCatalog";
+import { ScottToasts, useScottToast } from "../ui/useScottToast";
 // Scott CUSTOMERS → Performance sub-tab.
 //
 // Two period pickers fed to `fetchCustomerPerformanceComparison` — which issues the two
@@ -281,7 +286,7 @@ function PeriodPicker({ id, label, mode, period, yearOptions, disabled, onChange
  *        When supplied the two Scott calls are skipped entirely.
  * @param {object} [props.initialSummary] matching unique-customers KPI fixture.
  */
-export default function ScottCustomerPerformanceTab({ initialRows, initialSummary }) {
+function LegacyCustomerPerformanceTab({ initialRows, initialSummary }) {
   const defaults = useMemo(() => defaultCustomerPerformancePeriods(), []);
   const usesFixture = Array.isArray(initialRows);
 
@@ -740,4 +745,14 @@ export default function ScottCustomerPerformanceTab({ initialRows, initialSummar
       </Card>
     </div>
   );
+}
+
+function SupabaseCustomerPerformanceTab() {
+  const { toasts, toast, toastError, dismiss } = useScottToast();
+  return <><ReportView report={getReport("customer_performance")} toast={toast} toastError={toastError}
+    renderExtras={values => <CustomerPerformanceKpis values={values} />} />
+    <ScottToasts toasts={toasts} onDismiss={dismiss} /></>;
+}
+export default function ScottCustomerPerformanceTab(props) {
+  return usesSupabaseDashboard() ? <SupabaseCustomerPerformanceTab {...props} /> : <LegacyCustomerPerformanceTab {...props} />;
 }

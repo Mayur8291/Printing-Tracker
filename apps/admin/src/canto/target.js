@@ -30,7 +30,7 @@ export async function cantoRpc(name, args, environment = getCantoTarget().enviro
   const { data: { session } } = await client.auth.getSession();
   if (!session) throw new Error("Your dashboard session has expired. Please sign in again.");
   const { data, error } = await client.schema("canto_api").rpc(name, args);
-  if (error) throw new Error(error.message || "The operation failed.");
+  if (error) throw Object.assign(new Error(error.message || "The operation failed."), { code: error.code, details: error.details, hint: error.hint });
   return resolveMedia(data, client);
 }
 export function defaultRefreshEnvironment() { return dashboardEnvironment; }

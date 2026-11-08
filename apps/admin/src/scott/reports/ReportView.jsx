@@ -1,3 +1,5 @@
+import { dashboardExportColumns } from "../../canto/dashboardCsv";
+import { dashboardSummary, usesSupabaseDashboard } from "../../canto/dashboardService";
 // The generic report screen — one component behind six of the seven reports.
 //
 //   report-level filters (registry `filters`)  ->  stat tiles  ->  list  ->  pagination
@@ -39,7 +41,7 @@ import ReportStatsRow from "@/scott/reports/ReportStatsRow";
 import { useReportStats } from "@/scott/reports/ReportStatsRow";
 import { ReportBreakdownCards } from "@/scott/reports/ReportStatsRow";
 import { toScottTableColumns } from "@/scott/reports/reportColumns";
-import { exportReportCsv } from "@/scott/reports/reportExport";
+import { downloadTextFile, exportReportCsv } from "@/scott/reports/reportExport";
 import { buildReportRequest, resetReportDrainCache } from "@/scott/reports/reportRequests";
 
 /** Registry filter defaults -> the report's opening filter state. */
@@ -77,6 +79,15 @@ export function mergeTabFilterValues(values, overrides, keys) {
 
 /** Banners that explain an empty table before the user files a bug about it. */
 function ReportNotices({ reportKey, rows }) {
+  if (usesSupabaseDashboard()) {
+    const message = reportKey === "order_reports" ? "Stored sales values and current master rates are shown. Historical computed costs that were not retained are unavailable."
+      : reportKey === "rmp_order_reports" && rows?.some(row => row.sku_ambiguous) ? "Ambiguous legacy SKU mappings are left blank. Reconcile the size, brand and class mapping before using those SKU fields."
+      : reportKey === "tailor_reports" ? "Amounts use recorded completed quantities and current tailor rates. Payment status is unavailable in the retained source."
+      : reportKey === "order_tracking" || reportKey === "rmp_sales" ? "Order views contain one row per order. Amounts use stored item subtotals."
+      : reportKey === "total_inventory" ? "Stock is available only when both warehouse readings are fresh. Missing or ambiguous demand and unknown stock remain blank, rather than zero."
+      : null;
+    return message ? <p className="text-xs text-muted-foreground">{message}</p> : null;
+  }
   if (reportKey !== "total_inventory") return null;
   const apiPending = isInventoryReportApiPending();
   const whPending = isWhConfigPending();
@@ -169,10 +180,11 @@ export function useReportEnumOptions(columns, request) {
     let cancelled = false;
     (async () => {
       try {
-        const rows = await fetchAll();
+        const options = request.serverQuery ? await request.fetchOptions(pending) : null;
+        const rows = options ? [] : await fetchAll();
         if (cancelled) return;
         const next = {};
-        for (const key of pending) next[key] = buildEnumOptionsFromRows(rows, key);
+        for (const key of pending) next[key] = options ? (options[key] ?? []).map(value => ({ value, label: value })) : buildEnumOptionsFromRows(rows, key);
         setDerived(next);
       } catch {
         // The list itself already surfaces the failure; leave the filters as declared.
@@ -232,8 +244,6 @@ export default function ReportView({
   // Tab-level descriptors win; the report-level ones are the single-tab case.
   const descriptor = tab ?? report;
   const statsConfig = tab?.stats ?? report?.stats ?? null;
-  const fetchById = report?.service?.fetchById;
-  const hasDetail = Boolean(report?.detailRoute && typeof fetchById === "function");
 
   const valuesKey = JSON.stringify(effectiveValues);
   const request = useMemo(
@@ -241,6 +251,9 @@ export default function ReportView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [report?.key, tab?.key, valuesKey]
   );
+
+  const fetchById = request.serverQuery ? request.fetchById : report?.service?.fetchById;
+  const hasDetail = Boolean(report?.detailRoute && typeof fetchById === "function");
 
   // A descriptor may build its columns / filter columns / export block FROM the applied
   // filters — Customer Performance names both comparison periods in its qty/value headers
@@ -273,7 +286,11 @@ export default function ReportView({
 
   const filterColumns = useReportEnumOptions(declaredFilterColumns, request);
 
-  const tableColumns = useMemo(() => toScottTableColumns(reportColumns), [reportColumns]);
+  const tableColumns = useMemo(() => {
+    const columns = request.serverQuery ? reportColumns.map(column => ({ ...column, keys: column.keys?.slice(0, 1) })) : reportColumns;
+    const adapted = toScottTableColumns(columns);
+    return request.serverQuery ? adapted.map((column, index) => ({ ...column, serverSortKey: columns[index].keys?.[0] ?? column.key })) : adapted;
+  }, [reportColumns, request.serverQuery]);
 
   const listConfig = useMemo(
     () => ({
@@ -289,10 +306,11 @@ export default function ReportView({
       // searching in server mode changed nothing at all. `searchMode: 'client'` makes a query
       // flip the list into full-dataset mode and run through `filterRowsBySearch`, which is
       // what the original report hook did (`isClientFilterActive` counted `debouncedSearch`).
-      searchMode: "client",
+      searchMode: request.serverQuery ? "server" : "client",
+      serverQuery: request.serverQuery,
       fetchAllOptions: report?.fetchAll
     }),
-    [report?.key, report?.label, report?.pageSize, report?.fetchAll, tab?.key, tab?.label, tableColumns, filterColumns]
+    [report?.key, report?.label, report?.pageSize, report?.fetchAll, tab?.key, tab?.label, tableColumns, filterColumns, request.serverQuery]
   );
 
   const fetchPage = useCallback((args) => request.fetchPage(args), [request]);
@@ -335,7 +353,8 @@ export default function ReportView({
     refresh();
   }, [request.cacheKey, setPage, refresh]);
 
-  const statsState = useReportStats({ stats: statsConfig, request, reloadToken: statsToken });
+  const legacyStats = useReportStats({ stats: request.serverQuery ? null : statsConfig, request, reloadToken: statsToken });
+  const statsState = request.serverQuery ? { stats: dashboardSummary(report.key, tab?.key, list.serverResult?.summary), loading: list.loading, error: list.error, rowCount: list.total } : legacyStats;
 
   // TILES THAT MUST HONOUR THE ACTIVE FILTERS.
   //
@@ -367,7 +386,7 @@ export default function ReportView({
   // Total Inventory paints stock immediately while its large DRR order drain runs in the
   // background. Refresh this report once that cached aggregation becomes available.
   useEffect(() => {
-    if (report?.key !== "total_inventory") return undefined;
+    if (request.serverQuery || report?.key !== "total_inventory") return undefined;
     const handleDemandReady = () => {
       resetReportDrainCache();
       setStatsToken((token) => token + 1);
@@ -384,16 +403,20 @@ export default function ReportView({
   const handleExport = useCallback(async () => {
     if (!exportConfig) return;
     try {
-      if (report?.key === "total_inventory") {
+      if (!request.serverQuery && report?.key === "total_inventory") {
         await ensureInventoryDemand(request.apiFilters);
         resetReportDrainCache();
       }
       // `processedRows` is the filtered+sorted set; in server mode it is empty, so the
       // drained dataset is the honest source — never just the visible page.
-      const rows =
-        report?.key !== "total_inventory" && list.mode === "full"
-          ? list.processedRows
-          : await request.fetchAll();
+      if (request.serverQuery) {
+        const result = await request.exportCsv(dashboardExportColumns(reportColumns, exportConfig.headers), list.serverResult?.appliedQuery, message => toast?.(message));
+        const filename = typeof exportConfig.filename === "function" ? exportConfig.filename() : `${report.key}.csv`;
+        downloadTextFile(result.blob, filename);
+        toast?.(`Exported ${result.count.toLocaleString("en-IN")} rows to CSV.`);
+        return;
+      }
+      const rows = report?.key !== "total_inventory" && list.mode === "full" ? list.processedRows : await request.fetchAll();
       const count = exportReportCsv({
         exportConfig,
         rows,
@@ -407,8 +430,10 @@ export default function ReportView({
     }
   }, [
     exportConfig,
+    reportColumns,
     report?.key,
     list.mode,
+    list.serverResult,
     list.processedRows,
     request,
     effectiveValues?.reportType,
@@ -436,6 +461,7 @@ export default function ReportView({
   );
 
   const busy = list.loading || statsState.loading;
+  const inclusiveCutoff = before => new Date(Date.parse(`${before}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
 
   return (
     <>
@@ -469,6 +495,11 @@ export default function ReportView({
         ) : null}
 
         <ReportNotices reportKey={report?.key} rows={list.rows} />
+        {request.serverQuery && list.serverResult?.metadata ? <p role="status" className="text-xs text-muted-foreground">
+          Supabase · {list.serverResult.metadata.environment} · {list.serverResult.metadata.ownership === "mirror" ? "Read-only mirror" : "Live data"}
+          {list.serverResult.metadata.asOf ? ` · Source updated ${new Date(list.serverResult.metadata.asOf).toLocaleString("en-IN")}` : ""}
+          {request.apiFilters?.before_b ? ` · A through ${inclusiveCutoff(request.apiFilters.before)}, B through ${inclusiveCutoff(request.apiFilters.before_b)} (IST)` : request.apiFilters?.before ? ` · Reporting through ${inclusiveCutoff(request.apiFilters.before)} (IST)` : ""}
+        </p> : null}
 
         <ReportFilterBar
           fields={report?.filters}

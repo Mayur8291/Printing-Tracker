@@ -100,6 +100,14 @@ export function resolveColumnSortType(column) {
   return inferSortTypeFromFormat(column?.format ?? column?.type);
 }
 
+/** Resolve UI-only duplicate header keys to the actual server projection field. */
+export function serverSortForColumns(sort, columns) {
+  if (!sort?.key) return undefined;
+  const column = (columns ?? []).find(entry => entry.key === sort.key);
+  const key = column?.serverSortKey ?? sort.key;
+  return { ...sort, key, numeric: key === "id" || resolveColumnSortType(column) === "number" };
+}
+
 /** `getSortValue(row)` when the column supplies one, else the raw cell. */
 export function getRowSortValue(row, column) {
   if (typeof column?.getSortValue === "function") return column.getSortValue(row);

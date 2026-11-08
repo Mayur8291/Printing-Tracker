@@ -1,3 +1,4 @@
+import { createDashboardQuery, dashboardReportFilters, usesSupabaseDashboard } from "../../canto/dashboardService";
 // Per-report call conventions, in one place.
 //
 // Every report service takes its filters slightly differently — `fetchAllTotalInventory`
@@ -199,6 +200,16 @@ export function buildReportApiFilters(report, values) {
  * }}
  */
 export function buildReportRequest({ report, tab, values }) {
+  if (usesSupabaseDashboard()) {
+    try { return createDashboardQuery(report.key, tab?.key ?? "", dashboardReportFilters(report.key, values)); }
+    catch (error) {
+      // Date inputs can be temporarily incomplete while editing. Let the list
+      // render its inline error instead of throwing from the React render path.
+      const fail = async () => { throw error; };
+      return { serverQuery: true, serverPaged: true, cacheKey: `supabase:invalid:${report.key}:${JSON.stringify(values)}`, apiFilters: {},
+        fetchPage: fail, fetchAll: fail, fetchOptions: fail, fetchById: fail, exportRows: fail, exportCsv: fail };
+    }
+  }
   const reportKey = String(report?.key ?? "");
   const tabKey = String(tab?.key ?? "");
   const service = tab?.service ?? report?.service ?? {};

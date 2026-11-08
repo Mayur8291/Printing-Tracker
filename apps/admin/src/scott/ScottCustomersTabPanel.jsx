@@ -12,7 +12,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScottCustomerPerformanceTab from "@/scott/customers/ScottCustomerPerformanceTab";
 import ScottCustomersDirectoryTab from "@/scott/customers/ScottCustomersDirectoryTab";
-import ScottEnvBadge from "@/scott/ui/ScottEnvBadge";
+import CantoTargetSwitcher from "@/canto/CantoTargetSwitcher";
 import { ScottToasts, useScottToast } from "@/scott/ui/useScottToast";
 
 const SUB_TABS = Object.freeze([
@@ -38,11 +38,11 @@ export default function ScottCustomersTabPanel({ isAdmin = false, canEdit = fals
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Scott API — customer directory, types and performance.
+              Customer directory, types and performance.
               {mayEdit ? null : " You have read-only access to this tab."}
             </p>
           </div>
-          <ScottEnvBadge showBaseUrl />
+          <CantoTargetSwitcher />
         </div>
 
         <Tabs value={subTab} onValueChange={setSubTab} className="mt-4" aria-label="Scott customers views">

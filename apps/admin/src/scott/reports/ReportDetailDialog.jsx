@@ -163,7 +163,7 @@ export default function ReportDetailDialog({
         ) : (
           <ScrollArea className="min-h-0 flex-1 pr-3">
             {loading ? (
-              <p className="pb-2 text-xs text-muted-foreground">Refreshing from Scott…</p>
+              <p className="pb-2 text-xs text-muted-foreground">Refreshing record…</p>
             ) : null}
 
             <dl className="divide-y">

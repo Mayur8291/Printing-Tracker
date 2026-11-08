@@ -1,0 +1,328 @@
+{
+  "checks": [
+    "real GoTrue admin, staff, Squad and anonymous authorization",
+    "all report HTTP contracts",
+    "four simultaneous authenticated queries",
+    "Customers renders with shared session and stale target resolves staging",
+    "browser customer create, address persistence and pending account work",
+    "hosted atomic edit, two addresses, idempotent retry and stale conflict",
+    "browser search, edit and status change preserve secondary address",
+    "browser report status/date controls and duplicate-header sorting reach correct server fields",
+    "all seven report screens, RMP Sales tabs, details, search and CSV buttons work with Scott blocked",
+    "Customers Performance reuses native reports and KPIs",
+    "visible transient failure recovers through Retry with no legacy fallback",
+    "browser CSV adapter completes with no Scott transport",
+    "zero Scott/proxy/production attempts and zero browser exceptions",
+    "large immutable export through hosted Edge worker, exact count, bounded chunks and no duplicates",
+    "large browser CSV resumes completed export with bounded memory and exact row count",
+    "hosted customer archive retries safely",
+    "revoked real session denied before JWT expiry",
+    "hosted warm first-page p95 <= 2s"
+  ],
+  "timings": [
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 0,
+      "ms": 634
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 0,
+      "ms": 3244
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 0,
+      "ms": 3024
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 0,
+      "ms": 1000
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 0,
+      "ms": 463
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 0,
+      "ms": 670
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 0,
+      "ms": 412
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 0,
+      "ms": 452
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 0,
+      "ms": 488
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 0,
+      "ms": 1046
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 0,
+      "ms": 1140
+    },
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 1,
+      "ms": 808
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 1,
+      "ms": 1243
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 1,
+      "ms": 786
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 1,
+      "ms": 1042
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 1,
+      "ms": 656
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 1,
+      "ms": 686
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 1,
+      "ms": 825
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 1,
+      "ms": 806
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 1,
+      "ms": 542
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 1,
+      "ms": 976
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 1,
+      "ms": 892
+    },
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 2,
+      "ms": 417
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 2,
+      "ms": 1015
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 2,
+      "ms": 485
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 2,
+      "ms": 800
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 2,
+      "ms": 580
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 2,
+      "ms": 344
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 2,
+      "ms": 685
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 2,
+      "ms": 735
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 2,
+      "ms": 488
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 2,
+      "ms": 640
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 2,
+      "ms": 805
+    }
+  ],
+  "httpWarmP95Ms": 1042,
+  "commandTimings": [
+    {
+      "action": "customer_save",
+      "ms": 1024
+    },
+    {
+      "action": "customer_save",
+      "ms": 447
+    },
+    {
+      "action": "customer_archive",
+      "ms": 618
+    },
+    {
+      "action": "customer_archive",
+      "ms": 132
+    }
+  ],
+  "screens": [
+    {
+      "report": "order_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    }
+  ],
+  "export": {
+    "rows": 13201,
+    "batchSize": 500,
+    "elapsedMs": 56528,
+    "browser": {
+      "count": 13201,
+      "bytes": 236737,
+      "lines": 13202,
+      "heapGrowthBytes": 8629372,
+      "resumeCleared": true
+    }
+  },
+  "blockedRequests": 0,
+  "browserErrors": [],
+  "cleanup": {
+    "source_content_restored": true,
+    "owned_commands": 13,
+    "edit_revision": 659,
+    "synced_revision": 659,
+    "audits_and_commands_retained": true,
+    "fixture_auth_removed": 3,
+    "native_provider_requests": 0
+  },
+  "environment": "staging",
+  "timestamp": "2026-11-08T17:38:29.815457+00:00"
+}

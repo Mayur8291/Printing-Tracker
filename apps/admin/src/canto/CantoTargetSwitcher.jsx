@@ -11,7 +11,7 @@ export default function CantoTargetSwitcher({ environmentOnly = false }) {
   }
   return <div className="flex flex-wrap items-center gap-2">
     {!environmentOnly && <Select value={target.source} onValueChange={source => change({ source })}>
-      <SelectTrigger className="w-36" aria-label="Masters data source"><SelectValue /></SelectTrigger>
+      <SelectTrigger className="w-36" aria-label="Scott dashboard data source"><SelectValue /></SelectTrigger>
       <SelectContent><SelectItem value="legacy">Old system</SelectItem><SelectItem value="supabase">Supabase</SelectItem></SelectContent>
     </Select>}
     {usesDashboard ? <div className="flex items-center gap-2" aria-label="Data environment">

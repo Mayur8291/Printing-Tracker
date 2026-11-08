@@ -1,3 +1,4 @@
+import { archiveDashboardCustomer, createDashboardQuery, dashboardRpc, saveDashboardCustomer, usesSupabaseDashboard } from "../../canto/dashboardService";
 // Scott CUSTOMERS data layer — bespoke, not driven by the masters config factory.
 //
 // Why bespoke: customers are the only Scott entity whose list rows and detail rows have
@@ -528,6 +529,7 @@ function buildCustomerListQuery(pageParams, filters) {
  * @returns {Promise<{data: object[], page:number, pageSize:number, totalCount:number, totalPages:number, totalCountIsExact:boolean}>}
  */
 export async function fetchCustomersPaginated(params = {}, filters = {}) {
+  if (usesSupabaseDashboard()) return createDashboardQuery("customers", "", filters).fetchPage(params);
   const { page, pageSize, items, ...inlineFilters } = isPlainObject(params) ? params : {};
   const pageParams = normalizeScottPageParams({
     page,
@@ -558,6 +560,7 @@ export async function fetchCustomersPaginated(params = {}, filters = {}) {
  * @returns {Promise<object[]>}
  */
 export async function fetchCustomers(filters = {}) {
+  if (usesSupabaseDashboard()) return createDashboardQuery("customers", "", filters).fetchAll();
   const rows = await fetchAllScottPages(
     (pp) => fetchCustomersPaginated({ page: pp.page, items: pp.items }, filters),
     CUSTOMERS_FETCH_ALL
@@ -573,6 +576,7 @@ export async function fetchCustomers(filters = {}) {
  * @throws when the response carries no record
  */
 export async function getCustomerById(id) {
+  if (usesSupabaseDashboard()) return dashboardRpc("customer_get", { id });
   const { body } = await callScottDashboard({
     resource: CUSTOMERS_RESOURCE,
     method: "GET",
@@ -594,6 +598,12 @@ export const fetchCustomerById = getCustomerById;
  * @returns {Promise<object|null>}
  */
 export async function getCustomerByCode(code) {
+  if (usesSupabaseDashboard()) {
+    const match = /^(S|P)-([1-9][0-9]*)$/.exec(String(code));
+    if (!match) return null;
+    const row = await getCustomerById(match[2]);
+    return row.customer_code === code ? row : null;
+  }
   const { body } = await callScottDashboard({
     resource: CUSTOMERS_RESOURCE,
     method: "GET",
@@ -615,7 +625,8 @@ export async function getCustomerByCode(code) {
  * @param {object} customerData
  * @returns {Promise<object>}
  */
-export async function createCustomer(customerData) {
+export async function createCustomer(customerData, key) {
+  if (usesSupabaseDashboard()) return saveDashboardCustomer({ values: customerData, key });
   const { body } = await callScottDashboard({
     resource: CUSTOMERS_RESOURCE,
     method: "POST",
@@ -642,7 +653,8 @@ export async function createCustomer(customerData) {
  * @param {{id: string, updates: object, previousAddresses?: object[]}} args
  * @returns {Promise<object>} the re-read customer
  */
-export async function updateCustomer({ id, updates = {}, previousAddresses } = {}) {
+export async function updateCustomer({ id, updates = {}, previousAddresses, version, key } = {}) {
+  if (usesSupabaseDashboard()) return saveDashboardCustomer({ id, values: updates, version, key });
   const rid = normalizeId(id);
   const current = await getCustomerById(rid);
 
@@ -809,7 +821,8 @@ export async function destroyCustomerAddress(customerId, addressId) {
  *
  * @param {string} id
  */
-export async function deleteCustomer(id) {
+export async function deleteCustomer(id, snapshot, key) {
+  if (usesSupabaseDashboard()) return archiveDashboardCustomer(snapshot, key);
   const rid = normalizeId(id);
   const customer = await getCustomerById(rid);
 

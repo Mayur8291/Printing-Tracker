@@ -416,6 +416,7 @@ export default function ScottListPage({
             className="shrink-0"
             page={page}
             pageSize={pageSize}
+            pageSizeOptions={config.serverQuery ? [10, 20, 50, 100, 500] : undefined}
             total={total}
             totalPages={totalPages}
             totalCountIsExact={totalCountIsExact}

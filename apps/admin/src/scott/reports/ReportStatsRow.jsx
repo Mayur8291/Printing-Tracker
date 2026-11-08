@@ -153,8 +153,8 @@ export function ReportBreakdownCards({ rows, title = "Customer Type Sales" }) {
             <div key={String(entry.type)} className="rounded-lg border p-3 text-sm">
               <p className="font-medium capitalize">{String(entry.type)}</p>
               <p className="text-muted-foreground tabular-nums">
-                {Number(entry.qty ?? 0).toLocaleString("en-IN")} units ·{" "}
-                {formatScottCurrency(entry.amount ?? 0)}
+                {entry.qty == null ? "—" : Number(entry.qty).toLocaleString("en-IN")} units ·{" "}
+                {entry.amount == null ? "—" : formatScottCurrency(entry.amount)}
               </p>
             </div>
           ))}

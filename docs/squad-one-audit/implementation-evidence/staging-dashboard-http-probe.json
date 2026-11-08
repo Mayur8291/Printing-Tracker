@@ -1,0 +1,55 @@
+{
+  "checks": [
+    "real GoTrue admin, staff, Squad and anonymous authorization"
+  ],
+  "results": [
+    {
+      "report": "rmp_order_reports",
+      "round": 0,
+      "ms": 5888,
+      "count": 0
+    },
+    {
+      "report": "customer_performance",
+      "round": 0,
+      "ms": 1000,
+      "count": 0
+    },
+    {
+      "report": "rmp_order_reports",
+      "round": 1,
+      "ms": 2442,
+      "count": 0
+    },
+    {
+      "report": "customer_performance",
+      "round": 1,
+      "ms": 1071,
+      "count": 0
+    },
+    {
+      "report": "rmp_order_reports",
+      "round": 2,
+      "ms": 3172,
+      "count": 0
+    },
+    {
+      "report": "customer_performance",
+      "round": 2,
+      "ms": 1088,
+      "count": 0
+    }
+  ],
+  "probeOnly": true,
+  "cleanup": {
+    "source_content_restored": true,
+    "owned_commands": 0,
+    "edit_revision": 646,
+    "synced_revision": 646,
+    "audits_and_commands_retained": true,
+    "fixture_auth_removed": 3,
+    "native_provider_requests": 0
+  },
+  "environment": "staging",
+  "timestamp": "2026-11-08T17:30:55.352415+00:00"
+}

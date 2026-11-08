@@ -1,0 +1,118 @@
+{
+  "timestamp": "2026-11-08T17:39:18.746180+00:00",
+  "scope": "Scott dashboard Customers and all seven Reports; shared Masters target/session",
+  "databaseMigrationCutoff": "20261108154028",
+  "databaseMigrationCount": 113,
+  "checks": {
+    "database": {
+      "passed": 2126,
+      "failed": 0,
+      "seconds": 221.278,
+      "dashboardTestsIncluded": 53
+    },
+    "adapter": {
+      "passed": 26,
+      "failed": 0
+    },
+    "edge": {
+      "jobs": 283,
+      "account": 62,
+      "webhooks": 26,
+      "failed": 0,
+      "jobsTypecheck": "passed"
+    },
+    "uiGateAndBuild": "passed",
+    "environmentGate": "staging passed",
+    "hostedAcceptance": {
+      "passed": 18,
+      "evidence": "staging-dashboard-browser.json"
+    },
+    "sourceReconciliation": "staging-dashboard-reports.json",
+    "securityReview": "staging-dashboard-security.json",
+    "cleanup": {
+      "source_content_restored": true,
+      "owned_commands": 13,
+      "edit_revision": 659,
+      "synced_revision": 659,
+      "audits_and_commands_retained": true,
+      "fixture_auth_removed": 3,
+      "native_provider_requests": 0
+    }
+  },
+  "performance": {
+    "warmDefaultSqlMaxMs": 178.756,
+    "warmDefaultHttpP95Ms": 1042,
+    "coldDefaultHttpMaxMs": 3244,
+    "fullHistoryScenarios": [
+      {
+        "scenario": "rmp_deep_page",
+        "elapsed_ms": 182.12,
+        "count": 90336
+      },
+      {
+        "scenario": "rmp_search",
+        "elapsed_ms": 2758.73,
+        "count": 90336
+      },
+      {
+        "scenario": "rmp_boolean_search",
+        "elapsed_ms": 5045.94,
+        "count": 6007
+      },
+      {
+        "scenario": "rmp_amount_sort",
+        "elapsed_ms": 2627.92,
+        "count": 90336
+      },
+      {
+        "scenario": "customer_search",
+        "elapsed_ms": 1573.69,
+        "count": 54
+      }
+    ],
+    "largeExport": {
+      "rows": 13201,
+      "batchSize": 500,
+      "elapsedMs": 56528,
+      "browser": {
+        "count": 13201,
+        "bytes": 236737,
+        "lines": 13202,
+        "heapGrowthBytes": 8629372,
+        "resumeCleared": true
+      }
+    },
+    "scope": "Warm defaults meet gates; cold requests and full-history searches can take several seconds. This is a staging sample, not a production SLA."
+  },
+  "reliabilityFixes": [
+    "RMP search uses the returned JSON boolean/timestamp representations",
+    "Full-result customer-type cards preserved",
+    "Duplicate UI headers sort by their server projection keys",
+    "Current periods stop after today in IST; incomplete dates show an inline error",
+    "Identical in-flight reads coalesce within one target/login; writes invalidate sharing; no settled query cache",
+    "Source/session and revision checks prevent mixed-context exports"
+  ],
+  "reviewedWarnings": [
+    "Existing UI gate warning: OpsBriefingPanel.jsx QueueIcon; build passes",
+    "Local Node24.11.1 differs from repository engine26.x; hosted deployment must confirm its build",
+    "199 raw security advisor notices, including four documented dashboard notices"
+  ],
+  "sourceLimitations": [
+    "Ten historical manufacturing-cost fields are absent and remain null",
+    "Tailor payment status and unpersisted Uniware failure reason remain null",
+    "Warehouse stock remains unknown when missing, stale or incomplete"
+  ],
+  "ownership": {
+    "sourceCutoverChanged": false,
+    "providerBusinessEffects": 0,
+    "productionBackend": "Parity through113 released by coordinated backend thread; frozen refresh ref codex/backend-parity-20261108-113",
+    "frontendDeployment": "Pending publication and deployment verification"
+  },
+  "fileSha256": {
+    "apps/admin/src/canto/dashboardService.js": "4219509e9234413d20b0ff2f76c037e9d681878959b617cc0dcc10f2248d592c",
+    "apps/admin/src/canto/dashboardCsv.js": "7fc9c8b5debf9048f5f617b91795013db77f983b998bb92c50c86f6c65314db2",
+    "tools/squad/test_dashboard_adapter.mjs": "fb1118388361c9a00620bf084ecfdfd1cc4ee0a42554068a72956584f27a64eb",
+    "tools/squad/test_dashboard_hosted_browser.mjs": "d8a9b319e796e9226ce68333b5edf98e59baddfcd0f811c9ba8d8258eb474a35",
+    "tools/squad/test_hosted_dashboard_acceptance.py": "9b27885b1a7b84ecba445bab5fef2aa1abd1cd99a5e3cf67e1a78b929d164bdd"
+  }
+}
