@@ -3,7 +3,7 @@
 Production is deliberately not an accepted argument. New migrations are first
 executed and verified in a transaction that is rolled back by --check.
 """
-import argparse,json,sys
+import argparse,json,re,sys
 from pathlib import Path
 from pglast import parse_sql,ast
 from pglast.stream import RawStream
@@ -22,7 +22,10 @@ def statements(body):
             continue
         yield RawStream()(item.stmt)
 
-def deploy(check=True):
+def deploy(check=True,through=None):
+    # Parallel implementation may have later, unfinished local migrations.
+    # Release only a reviewed chronological prefix, never reorder migrations.
+    require(through is None or re.fullmatch(r'[0-9]{14}',through),'Invalid migration cutoff')
     with connect('staging') as c:
         check_catalog(c,'staging')
         with c.transaction():
@@ -33,6 +36,7 @@ def deploy(check=True):
             applied=[]
             for path in sorted((ROOT/'supabase/migrations').glob('*_squad_*.sql')):
                 version,name=path.stem.split('_',1);body=path.read_text()
+                if through is not None and version>through:continue
                 require(bool(list(statements(body))),'Empty migration: '+path.name)
                 old=c.execute('SELECT statements FROM supabase_migrations.schema_migrations WHERE version=%s',(version,)).fetchone()
                 if old:
@@ -58,5 +62,5 @@ def deploy(check=True):
             print('Staging migrations and reviewed refresh fingerprints verified')
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--apply',action='store_true');args=parser.parse_args()
-    deploy(check=not args.apply)
+    parser=argparse.ArgumentParser();parser.add_argument('--apply',action='store_true');parser.add_argument('--through',help='Last reviewed migration timestamp (inclusive)');args=parser.parse_args()
+    deploy(check=not args.apply,through=args.through)

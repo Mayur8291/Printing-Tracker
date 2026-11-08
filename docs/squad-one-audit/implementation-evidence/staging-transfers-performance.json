@@ -1,0 +1,45 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T08:23:44.333618+00:00",
+  "results": [
+    {
+      "name": "validate_100_master_rows",
+      "p95_ms": 415.431,
+      "samples": 10,
+      "target_ms": 2000
+    },
+    {
+      "name": "apply_50_master_rows",
+      "p95_ms": 201.517,
+      "samples": 10,
+      "target_ms": 2000
+    },
+    {
+      "name": "capture_1002_master_export_rows",
+      "p95_ms": 387.495,
+      "samples": 10,
+      "target_ms": 2000
+    },
+    {
+      "name": "history_25_with_2000_unrelated",
+      "p95_ms": 3.798,
+      "samples": 10,
+      "target_ms": 200
+    },
+    {
+      "name": "history_100_with_2000_unrelated",
+      "p95_ms": 6.89,
+      "samples": 10,
+      "target_ms": 500
+    },
+    {
+      "name": "detail_100_row_statuses",
+      "p95_ms": 3.422,
+      "samples": 10,
+      "target_ms": 200
+    }
+  ],
+  "all_changes_and_sequences_rolled_back": true,
+  "public_structure_unchanged": true,
+  "scope": "Two warmups and ten measured database executions; 100 synthetic import rows, 50-row atomic apply, 1002 captured export rows, 100 own and 2000 unrelated history records. Storage/CSV parsing/deployed Edge acceptance is separate. Not a mixed-load SLA."
+}

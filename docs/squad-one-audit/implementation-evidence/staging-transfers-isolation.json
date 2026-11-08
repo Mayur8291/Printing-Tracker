@@ -1,0 +1,42 @@
+{
+  "environment": "staging",
+  "verified_at": "2026-11-08T08:30:20.748291+00:00",
+  "state": [
+    false,
+    null,
+    167,
+    167
+  ],
+  "runtime": [
+    0,
+    false
+  ],
+  "counts": {
+    "transfer_uploads": 0,
+    "transfers": 0,
+    "transfer_rows": 0,
+    "transfer_parts": 0,
+    "transfer_replacements": 0,
+    "transfer_cleanup": 0,
+    "stock_reconciliations": 0
+  },
+  "pending_jobs": 0,
+  "generated_objects": 0,
+  "schedules": [
+    [
+      "squad-documents-pump",
+      true
+    ],
+    [
+      "squad-jobs-minute",
+      true
+    ],
+    [
+      "squad-media-cleanup",
+      true
+    ]
+  ],
+  "refresh_fingerprints_match": true,
+  "transfer_checkpoint_absent": true,
+  "production_unchanged": true
+}

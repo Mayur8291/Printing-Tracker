@@ -1,0 +1,97 @@
+{
+  "environment": "staging",
+  "scope": "Iteration 27; sa_domain and canto_api findings. Existing Printing Tracker public-schema findings are outside this isolated rebuild.",
+  "reviewed_at": "2026-11-08T08:21:58.522Z",
+  "findings": [
+    {
+      "name": "function_search_path_mutable",
+      "level": "WARN",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "total_count": 35,
+      "findings": [
+        {
+          "detail": "Function \\`sa_domain.sales_rows\\` has a role mutable search_path",
+          "metadata": {
+            "name": "sales_rows",
+            "type": "function",
+            "schema": "sa_domain"
+          },
+          "observed_at": "2026-11-08T08:21:38.664Z"
+        },
+        {
+          "detail": "Function \\`sa_domain.filtered_orders\\` has a role mutable search_path",
+          "metadata": {
+            "name": "filtered_orders",
+            "type": "function",
+            "schema": "sa_domain"
+          },
+          "observed_at": "2026-11-08T08:21:38.664Z"
+        }
+      ]
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+      "total_count": 94,
+      "findings": [
+        {
+          "detail": "Function `canto_api.access()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/access`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "access",
+            "schema": "canto_api",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-08T08:21:38.664Z"
+        },
+        {
+          "detail": "Function `canto_api.media_exceptions(page_number integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/media_exceptions`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "media_exceptions",
+            "schema": "canto_api",
+            "language": "plpgsql",
+            "arguments": "page_number integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-08T08:21:38.664Z"
+        },
+        {
+          "detail": "Function `canto_api.media_status()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/media_status`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "media_status",
+            "schema": "canto_api",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-08T08:21:38.664Z"
+        },
+        {
+          "detail": "Function `canto_api.refresh_status()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/refresh_status`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "refresh_status",
+            "schema": "canto_api",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-08T08:21:38.664Z"
+        },
+        {
+          "detail": "Function `canto_api.request_refresh(environment text, discard_revision bigint)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/request_refresh`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "request_refresh",
+            "schema": "canto_api",
+            "language": "plpgsql",
+            "arguments": "environment text, discard_revision bigint",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-08T08:21:38.664Z"
+        }
+      ]
+    }
+  ],
+  "review": "No new transfer or stock finding. The two sa_domain SQL-standard helpers resolve qualified identifiers at definition time; five canto_api functions predate this backend slice and retain their existing internal staff checks."
+}

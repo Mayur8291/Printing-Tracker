@@ -1,0 +1,84 @@
+{
+  "environment": "staging",
+  "scope": "Read-only hosted EXPLAIN ANALYZE; largest dealer, latest 100 receipt IDs. No customer identifiers or business writes. Twelve successive executions per planner mode.",
+  "auto_samples_ms": [
+    225.28,
+    128.69,
+    122.71,
+    121.07,
+    120.94,
+    362.77,
+    353.88,
+    352.94,
+    352.2,
+    350.89,
+    348.6,
+    345.21
+  ],
+  "force_custom_plan_samples_ms": [
+    125.49,
+    114.67,
+    111.59,
+    112.1,
+    117.98,
+    112.14,
+    111.85,
+    110.59,
+    111.17,
+    112.88,
+    110.32,
+    111.99
+  ],
+  "force_generic_plan_samples_ms": [
+    339.98,
+    338.51,
+    337.97,
+    335.75,
+    335.63,
+    334.6,
+    333.96,
+    335.34,
+    352.27,
+    355.37,
+    351.23,
+    351.05
+  ],
+  "finding": "Auto switches to a generic plan on the sixth invocation; that plan more than triples warm execution time. Scope a custom plan to the bounded private reconciliation helper, preserving all predicates and fail-closed semantics.",
+  "warm_literal_plan_ms": 111.504,
+  "warm_literal_balances_cte_ms": 100.465,
+  "business_writes": 0,
+  "recorded_at": "2026-11-08T08:18:38.125705+00:00",
+  "rollback_patch_rpc_timings": {
+    "25": {
+      "samples_ms": [
+        107.641,
+        108.225,
+        107.222,
+        107.206,
+        106.981,
+        107.067,
+        111.868,
+        112.307,
+        107.378,
+        108.058
+      ],
+      "p95_ms": 112.307
+    },
+    "100": {
+      "samples_ms": [
+        114.18,
+        112.885,
+        115.881,
+        113.601,
+        112.459,
+        111.848,
+        111.626,
+        112.723,
+        113.596,
+        114.21
+      ],
+      "p95_ms": 115.881
+    }
+  },
+  "patch_ddl_and_temporary_auth_session_rolled_back": true
+}

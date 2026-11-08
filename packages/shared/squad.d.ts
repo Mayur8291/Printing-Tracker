@@ -184,6 +184,10 @@ export interface WorkInspectionInput {item_tailor_quantity_id:EntityId;quantity:
 export interface WorkProgress {required:number;cut:number;assigned:number;sewn:number;dispatched:number;order_completed:boolean}
 export interface WorkRecorded extends WorkItemSaved {history_id:EntityId;progress:WorkProgress}
 export interface StockReceipt {received:number;dealer_id?:EntityId;state?:'ready'|'awaiting_completion'}
+export type StockEvidenceVersion = `${number}:${string}`;
+export interface StockReconciliationRow {id:EntityId;dealer_id:EntityId;order_id:EntityId|null;item_id:EntityId|null;size_id:EntityId|null;kind:'rmp'|'custom'|'invalid';received:number|null;source_quantity:number|null;consumed:number;counter:number|null;usage_count:number;issues:string[];status:'ready'|'needs_reconciliation';available:number|null;group_needs_reconciliation:boolean;safe_action:'rebuild_counter'|null;version:StockEvidenceVersion}
+export interface StockCounterRepair {receipt_id:EntityId;correction_id:EntityId;before:number|null;after:number}
+export interface StockCounterHistory {id:EntityId;receipt_id:EntityId;before:number|null;after:number;reason:string;generation:string;created_at:string}
 export interface StockAllocation {id:EntityId;receipt_id:EntityId;quantity:number}
 export interface DispatchRecorded extends WorkRecorded {stock_receipt:StockReceipt;stock_allocations:StockAllocation[]}
 export interface DealerAvailability {stock_status:'ready'|'partial'|'waiting_stock'|'needs_reconciliation'|'complete';available_to_dispatch:number|null;remaining_quantity:number}
@@ -310,6 +314,16 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   removeDevice(id:string,command:Command):Promise<DeviceBinding>;
   notifications(id?:EntityId|null,page?:PageRequest):Promise<Page<InboxNotification> & {generation:string}>;
   notificationFromPush(payload:unknown,projectRef:string):Promise<InboxNotification|null>;
+  reserveTransferUpload(kind:CsvImportKind,resource:string|null,file:{filename:string;bytes:string|number},idempotencyKey:string):Promise<{id:string;state:'reserved'|'verified'|'used';upload_url?:string;bytes?:string;content_type?:'text/csv';expires_at?:string}>;
+  verifyTransferUpload(id:string):Promise<{id:string;state:'verified'|'used'}>;
+  requestImport(kind:CsvImportKind,request:ImportRequest,idempotencyKey:string):Promise<Transfer>;
+  transfers(page?:PageRequest):Promise<Page<Transfer> & {generation:string;as_of:string}>;
+  transfer(id:string,page?:PageRequest):Promise<Transfer & {rows:Page<TransferRow>;as_of:string}>;
+  requestExport(resource:string,request:ExportRequest,idempotencyKey:string):Promise<Transfer>;
+  downloadTransfer(id:string):Promise<{id:string;url:string;expires_in:120;generation:string;bytes:string;sha256:string}>;
+  reviewStock(dealerId:EntityId,filters?:{receipt_id?:EntityId;order_id?:EntityId;item_id?:EntityId;size_id?:EntityId},page?:PageRequest):Promise<Page<StockReconciliationRow> & {as_of:string;data_revision:string;dealer_id:EntityId;summary_scope:'current_page';requires_review:number}>;
+  rebuildStockCounters(dealerId:EntityId,receipts:Array<{id:EntityId;expectedVersion:StockEvidenceVersion}>,reason:string,idempotencyKey:string):Promise<{dealer_id:EntityId;state:'completed';repairs:StockCounterRepair[];data_revision:string}>;
+  stockReconciliationHistory(dealerId:EntityId,receiptId?:EntityId|null,page?:PageRequest):Promise<Page<StockCounterHistory> & {as_of:string}>;
   requestDocument<K extends DocumentKind>(kind:K,request:DocumentRequestByKind[K],idempotencyKey:string):Promise<{id:string;kind:K;state:'queued';generation:string}>;
   documents(filters?:{kind?:DocumentKind;state?:DocumentState;legacy?:boolean},page?:PageRequest):Promise<Page<GeneratedDocument>>;
   document(id:string):Promise<GeneratedDocument>;
@@ -429,3 +443,10 @@ export interface CatalogueDocumentRequest {
 export interface DocumentRequestByKind {catalogue:CatalogueDocumentRequest;delivery_challan:{item_id:EntityId;dispatch_id:EntityId;delivery?:'download'|'email'};tailor_weekly:{tailor_id:EntityId;week_start?:string;include_team?:boolean;delivery?:'download'|'email'}}
 export type DocumentRequest=DocumentRequestByKind[DocumentKind];
 export interface GeneratedDocument {id:string;kind:DocumentKind;state:DocumentState;job_id?:string;generation:string;created_at:string;captured_at?:string|null;completed_at?:string|null;expires_at?:string|null;pages?:number|null;bytes?:string|null;error_code?:string|null;snapshot_hash?:string|null;delivery?:'download'|'email';delivery_state?:'not_requested'|'pending'|'sent'|'failed';completed_parts?:number;total_parts?:number|null;media_reference?:MediaReference|null}
+
+export type CsvImportKind='masters'|'prices'|'zones';
+export type ImportRequest={action?:'validate';upload_id:string;options?:{mapping?:Record<string,string>;match_field?:string;replace_all?:boolean}}|{action:'apply'|'cancel';id:string;version:Version};
+export interface ExportRequest {columns?:string[];include_inactive?:boolean;search?:string;filters?:Record<string,string|number|boolean|null>}
+export type TransferState='queued'|'validating'|'invalid'|'validated'|'applying'|'exporting'|'completed'|'failed'|'cancelled'|'expired';
+export interface Transfer {id:string;direction:'import'|'export';kind:CsvImportKind|'export';resource:string|null;state:TransferState;job_id:string|null;version:Version;generation:string;total_rows:number;valid_rows:number;invalid_rows:number;applied_rows:number;error_code:string|null;created_at:string;completed_at:string|null;expires_at:string;download_ready:boolean;result:Record<string,unknown>}
+export interface TransferRow {row:number;state:'pending'|'valid'|'invalid'|'applied'|'failed';errors:unknown[];result_id:EntityId|null}

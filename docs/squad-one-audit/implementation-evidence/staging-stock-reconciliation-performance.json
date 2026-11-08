@@ -1,0 +1,28 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T08:29:23.535611+00:00",
+  "largest_dealer_receipts": 13170,
+  "results": [
+    {
+      "name": "largest_dealer_review_25",
+      "p95_ms": 120.855,
+      "samples": 10,
+      "target_ms": 200
+    },
+    {
+      "name": "largest_dealer_review_100",
+      "p95_ms": 128.496,
+      "samples": 10,
+      "target_ms": 200
+    },
+    {
+      "name": "synthetic_counter_rebuild_100_in_existing_ledger",
+      "p95_ms": 328.146,
+      "samples": 10,
+      "target_ms": 500
+    }
+  ],
+  "public_structure_unchanged": true,
+  "all_changes_and_sequences_rolled_back": true,
+  "scope": "Ten warm measured DB executions after two warmups. Existing largest dealer ledger reads; 100 exact synthetic receipt counter repairs within that ledger. Current staff scope with temporary rolled-back Auth session. No HTTP latency or concurrent-load SLA claim."
+}

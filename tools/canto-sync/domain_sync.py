@@ -11,8 +11,8 @@ def access_catalog(conn):
     queries=[
       "SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname IN('sa_snapshot_20261019','sa_domain','sa_identity','sa_sync','sa_media','sa_admin') ORDER BY 1,2,3",
       "SELECT c.relname,a.attname,a.attacl::text FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='sa_snapshot_20261019' AND a.attacl IS NOT NULL ORDER BY 1,2",
-      "SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_domain' OR (n.nspname='canto_api' AND (p.proname LIKE 'v1_%' OR p.proname LIKE 'squad_job_%' OR p.proname LIKE 'squad_notification_%' OR p.proname LIKE 'squad_document_%' OR p.proname LIKE 'squad_account_%' OR p.proname LIKE 'account_%')) ORDER BY 1,2,3",
-      "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor','sa_worker','sa_media_writer','sa_account_writer') ORDER BY 1"
+      "SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_domain' OR (n.nspname='canto_api' AND (p.proname LIKE 'v1_%' OR p.proname LIKE 'squad_job_%' OR p.proname LIKE 'squad_notification_%' OR p.proname LIKE 'squad_document_%' OR p.proname LIKE 'squad_transfer_%' OR p.proname LIKE 'squad_cutover_%' OR p.proname LIKE 'squad_warehouse_%' OR p.proname LIKE 'squad_webhook_%' OR p.proname LIKE 'squad_account_%' OR p.proname LIKE 'account_%')) ORDER BY 1,2,3",
+      "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor','sa_worker','sa_media_writer','sa_account_writer','sa_integrator') ORDER BY 1"
       ,"SELECT n.nspname,c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity,c.relacl::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN('sa_domain','sa_media','sa_identity','sa_admin','sa_sync') AND c.relkind IN('r','p','S','v') ORDER BY 1,2"
       ,"SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname='storage' AND tablename='objects' AND (policyname LIKE 'canto_media_%' OR policyname LIKE 'canto_masters_%') ORDER BY 1,2,3"
       ,"SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_admin' ORDER BY 1,2,3"
@@ -78,4 +78,10 @@ def after_publication(conn):
           error_code='SOURCE_REFRESH_DISCARDED'
           WHERE generation<%s AND state IN('queued','rendering','ready') RETURNING id""",(generation,)).fetchall()
         if rows:result['discarded_documents']=len(rows)
+    if conn.execute("SELECT to_regclass('sa_domain.transfers')").fetchone()[0]:
+        rows=conn.execute("""UPDATE sa_domain.transfers SET state='expired',error_code='SOURCE_REFRESH_DISCARDED',
+          revision=revision+1,completed_at=coalesce(completed_at,now()),expires_at=least(expires_at,now())
+          WHERE generation<%s AND state NOT IN('expired','cancelled') RETURNING id""",(generation,)).fetchall()
+        conn.execute("UPDATE sa_domain.transfer_uploads SET state='expired',expires_at=least(expires_at,now()) WHERE generation<%s AND state<>'expired'",(generation,))
+        if rows:result['discarded_transfers']=len(rows)
     return result

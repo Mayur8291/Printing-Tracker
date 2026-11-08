@@ -1,0 +1,130 @@
+{
+  "environment": "staging",
+  "shared_sdk": true,
+  "deployed_edges": true,
+  "import_rows": 201,
+  "import_bytes": 291510,
+  "export_bytes": 292637,
+  "range_read_exercised": true,
+  "write_once_upload": true,
+  "validation_before_apply": true,
+  "bounded_batches": true,
+  "idempotent_requests": true,
+  "duplicate_rows_reported": true,
+  "formula_escaped": true,
+  "unicode_roundtrip": true,
+  "sha256_verified": true,
+  "private_storage": true,
+  "unauthenticated_denied": true,
+  "keyset_history": true,
+  "timings": [
+    {
+      "operation": "validated",
+      "step": 0,
+      "wall_ms": 3165.737,
+      "state": "validating",
+      "valid_rows": 99,
+      "applied_rows": 0
+    },
+    {
+      "operation": "validated",
+      "step": 1,
+      "wall_ms": 1450.068,
+      "state": "validating",
+      "valid_rows": 199,
+      "applied_rows": 0
+    },
+    {
+      "operation": "validated",
+      "step": 2,
+      "wall_ms": 958.061,
+      "state": "validated",
+      "valid_rows": 201,
+      "applied_rows": 0
+    },
+    {
+      "operation": "completed",
+      "step": 0,
+      "wall_ms": 1131.501,
+      "state": "applying",
+      "valid_rows": 201,
+      "applied_rows": 50
+    },
+    {
+      "operation": "completed",
+      "step": 1,
+      "wall_ms": 817.742,
+      "state": "applying",
+      "valid_rows": 201,
+      "applied_rows": 100
+    },
+    {
+      "operation": "completed",
+      "step": 2,
+      "wall_ms": 806.039,
+      "state": "applying",
+      "valid_rows": 201,
+      "applied_rows": 150
+    },
+    {
+      "operation": "completed",
+      "step": 3,
+      "wall_ms": 845.565,
+      "state": "applying",
+      "valid_rows": 201,
+      "applied_rows": 200
+    },
+    {
+      "operation": "completed",
+      "step": 4,
+      "wall_ms": 510.522,
+      "state": "completed",
+      "valid_rows": 201,
+      "applied_rows": 201
+    },
+    {
+      "operation": "completed",
+      "step": 0,
+      "wall_ms": 1395.527,
+      "state": "exporting",
+      "valid_rows": 201,
+      "applied_rows": 0
+    },
+    {
+      "operation": "completed",
+      "step": 1,
+      "wall_ms": 780.069,
+      "state": "exporting",
+      "valid_rows": 201,
+      "applied_rows": 0
+    },
+    {
+      "operation": "completed",
+      "step": 2,
+      "wall_ms": 686.775,
+      "state": "exporting",
+      "valid_rows": 201,
+      "applied_rows": 0
+    },
+    {
+      "operation": "completed",
+      "step": 3,
+      "wall_ms": 2031.738,
+      "state": "completed",
+      "valid_rows": 201,
+      "applied_rows": 0
+    },
+    {
+      "operation": "invalid",
+      "step": 0,
+      "wall_ms": 781.073,
+      "state": "invalid",
+      "valid_rows": 0,
+      "applied_rows": 0
+    }
+  ],
+  "measured_at": "2026-11-08T08:12:03.565097+00:00",
+  "fixture_cleanup_verified": true,
+  "public_structure_unchanged": true,
+  "scope": "201 exact-owned synthetic Masters, immutable CSV >256 KiB, actual GoTrue SDK, deployed Edges and private Storage. All disposable Auth/profile, data, job, audit and file fixtures removed. Original mirror revisions/schedules restored; sequence gaps retained. No production or DigitalOcean changes."
+}

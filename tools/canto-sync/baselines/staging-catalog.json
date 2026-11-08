@@ -8777,7 +8777,7 @@
       "sa_cities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arwd/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arwd/postgres,sa_worker=arw/postgres}"
     ],
     [
       "sa_colors",
@@ -8849,7 +8849,7 @@
       "sa_items",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres,sa_integrator=r/postgres}"
     ],
     [
       "sa_job_sheet_assign_dates",
@@ -8921,7 +8921,7 @@
       "sa_orders",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_integrator=r/postgres}"
     ],
     [
       "sa_part_colors",
@@ -8981,7 +8981,7 @@
       "sa_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres,sa_integrator=r/postgres}"
     ],
     [
       "sa_ratings",
@@ -9041,13 +9041,13 @@
       "sa_rmp_price_types",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_prices",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_sizes",
@@ -9059,13 +9059,13 @@
       "sa_rmp_sku_prices",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_skus",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_sc_sizes",
@@ -9113,7 +9113,7 @@
       "sa_stocks",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_integrator=ar/postgres}"
     ],
     [
       "sa_sync_airtables",
@@ -9155,7 +9155,7 @@
       "sa_zones",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arw/postgres,sa_worker=arw/postgres}"
     ]
   ],
   []

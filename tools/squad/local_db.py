@@ -1,17 +1,25 @@
 """Isolated PostgreSQL harness: source schema plus synthetic identities, never customer dumps."""
-import argparse,json,os,subprocess,sys,uuid
+import argparse,json,os,re,subprocess,sys,uuid
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 HERE=Path(__file__).resolve().parent
 PRIVATE=HERE/'private'
 PG=Path('/opt/homebrew/opt/postgresql@17/bin')
 PORT=55441
+# Parallel work uses separate synthetic databases on the same localhost cluster.
+# Keep the name constrained so an environment override cannot target a real DB.
+DATABASE=os.environ.get('SQUAD_TEST_DATABASE','squad_test')
+if not re.fullmatch(r'squad_test(?:_[a-z0-9_]{1,40})?',DATABASE):
+ raise ValueError('SQUAD_TEST_DATABASE must name an isolated squad_test database')
+MIGRATION_THROUGH=os.environ.get('SQUAD_TEST_MIGRATION_THROUGH')
+if MIGRATION_THROUGH is not None and not re.fullmatch(r'[0-9]{14}',MIGRATION_THROUGH):
+ raise ValueError('SQUAD_TEST_MIGRATION_THROUGH must be a migration timestamp')
 sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 import psycopg
 from psycopg.types.json import Jsonb
 from snapshot import read_schema,render_schema
 
-def connect():return psycopg.connect(host='127.0.0.1',port=PORT,user='postgres',dbname='squad_test',autocommit=True)
+def connect():return psycopg.connect(host='127.0.0.1',port=PORT,user='postgres',dbname=DATABASE,autocommit=True)
 def start():
  PRIVATE.mkdir(exist_ok=True,mode=0o700)
  data=PRIVATE/'pgdata'
@@ -20,7 +28,7 @@ def start():
  if subprocess.run([str(PG/'pg_ctl'),'-D',str(data),'status'],capture_output=True).returncode:
   subprocess.run([str(PG/'pg_ctl'),'-D',str(data),'-l',str(PRIVATE/'postgres.log'),'-o',f'-p {PORT} -h 127.0.0.1 -k {PRIVATE}','-w','start'],check=True,capture_output=True)
  with psycopg.connect(host='127.0.0.1',port=PORT,user='postgres',dbname='postgres',autocommit=True) as c:
-  if not c.execute("SELECT 1 FROM pg_database WHERE datname='squad_test'").fetchone():c.execute('CREATE DATABASE squad_test')
+  if not c.execute('SELECT 1 FROM pg_database WHERE datname=%s',(DATABASE,)).fetchone():c.execute(psycopg.sql.SQL('CREATE DATABASE {}').format(psycopg.sql.Identifier(DATABASE)))
 
 def bootstrap():
  start()
@@ -88,11 +96,12 @@ def rebuild():
  start()
  # This connection is hard-coded to the synthetic localhost cluster, never Supabase.
  with psycopg.connect(host='127.0.0.1',port=PORT,user='postgres',dbname='postgres',autocommit=True) as c:
-  c.execute('DROP DATABASE squad_test WITH (FORCE)')
-  c.execute('CREATE DATABASE squad_test')
+  c.execute(psycopg.sql.SQL('DROP DATABASE {} WITH (FORCE)').format(psycopg.sql.Identifier(DATABASE)))
+  c.execute(psycopg.sql.SQL('CREATE DATABASE {}').format(psycopg.sql.Identifier(DATABASE)))
  bootstrap()
  with connect() as c:
   for path in sorted((ROOT/'supabase/migrations').glob('*_squad_*.sql')):
+   if MIGRATION_THROUGH is not None and path.name.split('_',1)[0]>MIGRATION_THROUGH:continue
    c.execute(path.read_text());print('Applied',path.name)
 
 def main():

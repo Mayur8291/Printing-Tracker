@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {createSquadClient,SquadError} from '../../packages/shared/squad.js';
+const calls=[];const client=createSquadClient({schema(name){assert.equal(name,'canto_api');return{rpc:async(name,args)=>{calls.push({name,args});return{data:{ok:true},error:null};}};},functions:{invoke:async(name,{body})=>{calls.push({name,body});return{data:{ok:true},error:null};}}});
+await client.reserveTransferUpload('prices',null,{filename:'prices.csv',bytes:20},'reserve-key');assert.deepEqual(calls.pop(),{name:'squad-account/transfers/uploads',body:{kind:'prices',resource:null,file:{filename:'prices.csv',bytes:20},idempotency_key:'reserve-key'}});
+await client.verifyTransferUpload('upload');assert.deepEqual(calls.pop(),{name:'squad-account/transfers/verify',body:{id:'upload'}});
+const request={action:'validate',upload_id:'upload',options:{replace_all:true}};await client.requestImport('prices',request,'command');assert.deepEqual(calls.pop(),{name:'v1_import_request',args:{p_kind:'prices',p_request:request,p_idempotency_key:'command'}});
+await client.requestImport('prices',{action:'apply',id:'transfer',version:'0:2'},'command2');assert.equal(calls.pop().args.p_request.version,'0:2');
+await client.transfers();assert.deepEqual(calls.pop(),{name:'v1_import_status',args:{p_id:null,p_cursor:null,p_limit:25}});
+await client.transfer('transfer',{cursor:'cursor',limit:5});assert.deepEqual(calls.pop(),{name:'v1_import_status',args:{p_id:'transfer',p_cursor:'cursor',p_limit:5}});
+const spec={columns:['name','price'],include_inactive:false,search:'shirt'};await client.requestExport('rmp_prices',spec,'export-key');assert.deepEqual(calls.pop(),{name:'v1_export_request',args:{p_resource:'rmp_prices',p_request:spec,p_idempotency_key:'export-key'}});
+await client.downloadTransfer('transfer');assert.deepEqual(calls.pop(),{name:'squad-account/transfers/download',body:{id:'transfer'}});
+assert.equal(new SquadError({code:'INVALID_CSV'}).kind,'validation');assert.equal(new SquadError({code:'TRANSFER_UNAVAILABLE'}).kind,'unavailable');
+await client.reviewStock('dealer',{size_id:'size'},{cursor:'cursor',limit:20});assert.deepEqual(calls.pop(),{name:'v1_stock_reconciliation',args:{p_dealer_id:'dealer',p_action:'review',p_request:{size_id:'size'},p_cursor:'cursor',p_limit:20}});
+await client.rebuildStockCounters('dealer',[{id:'receipt',expectedVersion:'0:hash'}],'Reviewed ledger','key');assert.deepEqual(calls.pop().args.p_request,{receipts:[{id:'receipt',expected_version:'0:hash'}],reason:'Reviewed ledger',idempotency_key:'key'});
+await client.stockReconciliationHistory('dealer','receipt');assert.deepEqual(calls.pop(),{name:'v1_stock_reconciliation',args:{p_dealer_id:'dealer',p_action:'history',p_request:{receipt_id:'receipt'},p_cursor:null,p_limit:25}});
+console.log('Transfer/stock SDK: 13 contract checks passed');

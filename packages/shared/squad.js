@@ -5,7 +5,7 @@ export class SquadError extends Error {
     this.name = "SquadError";
     this.code = error.code || "TRANSPORT_ERROR";
     this.kind = ({"28000":"session", "42501":"forbidden", "40001":"conflict",
-      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "VERSION_CONFLICT":"conflict", "WRITE_UNAVAILABLE":"unavailable", "UPLOAD_NOT_FOUND":"conflict", "QUOTA_EXCEEDED":"unavailable", "INVALID_MEDIA":"validation", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable", "INVALID_OR_EXPIRED_CODE":"validation", "ACCOUNT_REQUEST_CONFLICT":"conflict", "ACCOUNT_REQUEST_BUSY":"unavailable", "PROVIDER_UNAVAILABLE":"unavailable", "IDENTITY_CONFLICT":"conflict", "ACCOUNT_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
+      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "VERSION_CONFLICT":"conflict", "WRITE_UNAVAILABLE":"unavailable", "UPLOAD_NOT_FOUND":"conflict", "QUOTA_EXCEEDED":"unavailable", "INVALID_MEDIA":"validation", "INVALID_CSV":"validation", "TRANSFER_UNAVAILABLE":"unavailable", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable", "INVALID_OR_EXPIRED_CODE":"validation", "ACCOUNT_REQUEST_CONFLICT":"conflict", "ACCOUNT_REQUEST_BUSY":"unavailable", "PROVIDER_UNAVAILABLE":"unavailable", "IDENTITY_CONFLICT":"conflict", "ACCOUNT_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
   }
 }
 
@@ -49,6 +49,16 @@ export function createSquadClient(supabase) {
         return page.data[0]??null;
       } catch(error) { if(error instanceof SquadError&&error.code==="40001")return null;throw error; }
     },
+    reserveTransferUpload: (kind,resource,file,idempotencyKey) => account("transfers/uploads",{kind,resource,file,idempotency_key:idempotencyKey}),
+    verifyTransferUpload: (id) => account("transfers/verify",{id}),
+    requestImport: (kind,request,idempotencyKey) => call("v1_import_request",{p_kind:kind,p_request:request,p_idempotency_key:idempotencyKey}),
+    transfers: (page = {}) => call("v1_import_status",{p_id:null,p_cursor:page.cursor??null,p_limit:page.limit??25}),
+    transfer: (id,page = {}) => call("v1_import_status",{p_id:id,p_cursor:page.cursor??null,p_limit:page.limit??25}),
+    requestExport: (resource,request,idempotencyKey) => call("v1_export_request",{p_resource:resource,p_request:request,p_idempotency_key:idempotencyKey}),
+    downloadTransfer: (id) => account("transfers/download",{id}),
+    reviewStock: (dealerId,filters = {},page = {}) => call("v1_stock_reconciliation",{p_dealer_id:dealerId,p_action:"review",p_request:filters,p_cursor:page.cursor??null,p_limit:page.limit??25}),
+    rebuildStockCounters: (dealerId,receipts,reason,idempotencyKey) => call("v1_stock_reconciliation",{p_dealer_id:dealerId,p_action:"rebuild",p_request:{receipts:receipts.map(r=>({id:r.id,expected_version:r.expectedVersion})),reason,idempotency_key:idempotencyKey},p_cursor:null,p_limit:25}),
+    stockReconciliationHistory: (dealerId,receiptId = null,page = {}) => call("v1_stock_reconciliation",{p_dealer_id:dealerId,p_action:"history",p_request:receiptId?{receipt_id:receiptId}:{},p_cursor:page.cursor??null,p_limit:page.limit??25}),
     requestDocument: (kind,request,idempotencyKey) => call("v1_document_request",{p_kind:kind,p_request:request,p_idempotency_key:idempotencyKey}),
     documents: (filters = {},page = {}) => call("v1_documents_list",{p_kind:filters.kind??null,p_state:filters.state??null,p_legacy:filters.legacy??false,p_cursor:page.cursor??null,p_limit:page.limit??30}),
     document: (id) => call("v1_document_get",{p_id:id}),

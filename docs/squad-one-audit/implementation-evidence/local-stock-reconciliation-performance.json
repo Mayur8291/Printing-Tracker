@@ -1,0 +1,60 @@
+{
+  "environment": "local_synthetic",
+  "database": "squad_test_stock",
+  "measured_at": "2026-11-08T08:00:19.079300+00:00",
+  "receipt_rows": 13170,
+  "scope": "Single dealer matching largest observed staging ledger; warm database timings, no network/provider/load SLA",
+  "results": [
+    {
+      "operation": "review_25",
+      "database_p95_ms": 34.511,
+      "samples_ms": [
+        34.511,
+        34.049,
+        34.0,
+        33.463,
+        32.693,
+        33.304,
+        32.725,
+        32.677,
+        32.513,
+        32.835
+      ],
+      "target_ms": 200
+    },
+    {
+      "operation": "review_100",
+      "database_p95_ms": 36.063,
+      "samples_ms": [
+        36.063,
+        35.236,
+        34.834,
+        35.055,
+        34.804,
+        35.03,
+        34.886,
+        35.207,
+        35.158,
+        34.632
+      ],
+      "target_ms": 200
+    },
+    {
+      "operation": "rebuild_100",
+      "database_p95_ms": 84.132,
+      "samples_ms": [
+        82.042,
+        81.701,
+        81.727,
+        81.164,
+        81.907,
+        81.43,
+        84.132,
+        82.634,
+        81.536,
+        80.97
+      ],
+      "target_ms": 500
+    }
+  ]
+}

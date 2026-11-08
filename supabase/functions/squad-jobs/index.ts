@@ -5,6 +5,7 @@ import {accountCrypto} from '../_shared/squad-account-crypto.ts';
 import {proofMailer} from '../_shared/squad-mail.ts';
 import {documentMailWorker,documentMailer} from './document-mail.ts';
 import {documentWorker,documentStorage} from './documents.ts';
+import {transferWorker,transferStorage} from './transfers.ts';
 import {dispatchNotifications,fcmPush,parseFcmAccount} from './notifications.ts';
 const url=Deno.env.get('SUPABASE_URL');
 const key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -24,4 +25,8 @@ const documents={run:documentWorker(rpc,files),mail:documentMailWorker(rpc,files
  const r=await fetch(url+'/storage/v1/object/squad-documents',{method:'DELETE',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({prefixes:paths}),signal:AbortSignal.timeout(12000)});
  if(!r.ok){await r.body?.cancel();throw new Error('document_cleanup_failed');}await r.body?.cancel();
 }};
-Deno.serve(createHandler(Deno.env.get('SQUAD_JOBS_SECRET'),rpc,storageCleanup(url,key),reconcileAccount(rpc,authAdmin(url,key)),mail,push,documents));
+const transfers={run:transferWorker(rpc,transferStorage(url,key)),remove:async(paths:string[])=>{
+ const r=await fetch(url+'/storage/v1/object/squad-transfers',{method:'DELETE',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({prefixes:paths}),signal:AbortSignal.timeout(12000),redirect:'error'});
+ if(!r.ok){await r.body?.cancel();throw new Error('transfer_cleanup_failed');}await r.body?.cancel();
+}};
+Deno.serve(createHandler(Deno.env.get('SQUAD_JOBS_SECRET'),rpc,storageCleanup(url,key),reconcileAccount(rpc,authAdmin(url,key)),mail,push,documents,transfers));
