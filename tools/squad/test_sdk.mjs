@@ -37,6 +37,13 @@ try {
   assert.ok(page.data.every(o=>o.customer_id===me.id));
   assert.ok(page.data.every(o=>!('factory_manager_id' in o)));
   if(page.data.length) {
+    const order=await sdk.order(page.data[0].id,{limit:2});
+    assert.ok(order.items.data.length<=2 && order.items.data.every(i=>i.quantities.length<=20));
+    if(order.items.data.length) {
+      const item=await sdk.orderItem(order.items.data[0].id,'quantities',{limit:2});
+      assert.equal(item.order_id,order.id);
+      assert.ok(item.records.data.length<=2 && !('worker_unit_cost' in item) && !('fabric_consumption' in item));
+    }
     const feedback=await sdk.ratings('Order',page.data[0].id,{}, {limit:2});
     assert.ok(feedback.data.every(r=>r.from_id===me.id||r.to_id===me.id));
   }
@@ -57,6 +64,7 @@ try {
     assert.ok(variants.data.every(v=>v.availability.one_day===null));
   }
   await assert.rejects(sdk.salesReport('customers'),e=>e instanceof SquadError && e.kind==='forbidden');
+  await assert.rejects(sdk.editOrder('1',crypto.randomUUID(),'0:0',{due_at:'2026-12-01T00:00:00Z'},'Forbidden customer amendment',{expectedVersion:'0:0',idempotencyKey:crypto.randomUUID()}),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.salesCoordinatorMetrics(),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.workMetrics(),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.tailorLeaderboard(),e=>e instanceof SquadError && e.kind==='forbidden');

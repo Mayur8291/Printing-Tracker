@@ -1,5 +1,5 @@
 """Staging configure/quote/order journey, rolled back with sequences restored."""
-import datetime,json,sys,uuid
+import contextlib,datetime,json,sys,uuid
 from pathlib import Path
 import psycopg
 from psycopg import sql
@@ -14,13 +14,22 @@ def run(production=False):
  tables=['products','product_parts','product_part_add_ons','colors','fabric_colors','orders','items','quantities','extra_quantities','brandings','item_criteria','criteria','sizes','mark_cuttings','mark_cutting_quantities','item_tailors','item_tailor_quantities','job_sheet_assign_dates','job_sheet_assign_quantities','job_sheet_assign_tailors','job_sheet_tailor_mark_dates','job_sheet_mark_tailors','mark_tailor_quantities','job_sheet_dispatched_dates','dispatched_quantities']
  sequences=['sa_snapshot_20261019.sa_'+t+'_id_seq' for t in tables]+['sa_domain.audit_id_seq','sa_domain.quotes_ledger_id_seq']
  if production=='stock':sequences += ['sa_snapshot_20261019.sa_stocks_id_seq','sa_snapshot_20261019.sa_stock_useds_id_seq','sa_snapshot_20261019.sa_back_order_links_id_seq']
- with connect('staging') as c:
+ with connect('staging') as c,contextlib.ExitStack() as recovery:
   c.execute("SET track_functions='pl'")
   stats_before={row[0]:row[1:] for row in c.execute("SELECT funcid,calls,total_time,self_time FROM pg_stat_user_functions WHERE schemaname='sa_domain'")}
   assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0],'Refresh/write is active'
   before={name:c.execute(sql.SQL('SELECT last_value,is_called FROM {}').format(sql.Identifier(*name.split('.')))).fetchone() for name in sequences}
+  checkpoint=ROOT/'tools/squad/private/presets-sequence-checkpoint.json'
+  assert not checkpoint.exists(),'An earlier staging sequence checkpoint needs recovery before a new run'
+  guard=c.execute('SELECT generation FROM sa_domain.runtime_state').fetchone()[0],c.execute('SELECT edit_revision,synced_revision FROM sa_sync.environment_state').fetchone()
+  checkpoint.write_text(json.dumps({'environment':'staging','generation':guard[0],'revisions':guard[1],'sequences':before,'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat()})+'\n')
+  checkpoint.chmod(0o600)
   try:
    with c.transaction():
+    # RESTART is transactional (nextval alone is not). Keep fixture sequence
+    # advances inside a disposable sequence version, including connection loss.
+    for name,(value,called) in before.items():
+     c.execute(sql.SQL('ALTER SEQUENCE {} RESTART WITH {}').format(sql.Identifier(*name.split('.')),sql.Literal(value+int(called))))
     actor=c.execute("""SELECT sc.id,m.auth_user_id,u.id,a.id FROM sa_snapshot_20261019.sa_users sc JOIN sa_identity.sa_auth_identities m ON m.legacy_user_id=sc.id
      JOIN sa_snapshot_20261019.sa_users u ON u.created_by_id=sc.id AND u.role=3 AND u.deleted_at IS NULL AND u.disabled IS NOT TRUE AND u.approved IS NOT FALSE
      JOIN sa_snapshot_20261019.sa_addresses a ON a.user_id=u.id AND a.deleted_at IS NULL AND length(btrim(a.state))>0
@@ -75,7 +84,10 @@ def run(production=False):
     assert placed['total_amount']==overridden['total'];checks.append('order acceptance, partial payment and exact retry')
     order=c.execute('SELECT canto_api.v1_order_get(%s)',(int(placed['orders'][0]['id']),)).fetchone()[0]
     assert order['id']==placed['orders'][0]['id'];checks.append('created order visible through scoped detail')
-    if production:
+    if production=='amendments':
+     from hosted_amendments import exercise as amendment_journey
+     amendment_journey(c,placed['orders'][0],quote_request,details,checks)
+    elif production:
      from hosted_production import exercise as production_journey
      production_journey(c,placed['orders'][0],checks,execution=production in ('execution','stock'))
      if production=='stock':
@@ -84,9 +96,15 @@ def run(production=False):
     else:exercise(c,placed['orders'][0],checks)
     raise psycopg.Rollback()
   finally:
+   if c.closed:
+    c=recovery.enter_context(connect('staging'))
+    assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0],'Disconnected test still holds its transaction; recover the saved checkpoint once it rolls back'
+   assert c.execute('SELECT generation FROM sa_domain.runtime_state').fetchone()[0]==guard[0]
+   assert c.execute('SELECT edit_revision,synced_revision FROM sa_sync.environment_state').fetchone()==guard[1]
    c.execute('SET ROLE postgres')
    for name,(value,called) in before.items():c.execute('SELECT setval(%s::regclass,%s,%s)',(name,value,called))
    assert all(c.execute(sql.SQL('SELECT last_value,is_called FROM {}').format(sql.Identifier(*name.split('.')))).fetchone()==state for name,state in before.items())
+   checkpoint.unlink()
    c.execute('SELECT pg_stat_force_next_flush()');c.execute('SELECT pg_stat_clear_snapshot()')
    stats=[]
    for oid,name,calls,total,own in c.execute("SELECT funcid,funcname,calls,total_time,self_time FROM pg_stat_user_functions WHERE schemaname='sa_domain'"):

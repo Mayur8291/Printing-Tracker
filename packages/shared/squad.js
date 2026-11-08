@@ -121,6 +121,13 @@ export function createSquadClient(supabase) {
       p_id:design.id??null,p_product_id:design.productId??null,p_spec:design.spec,
       p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey
     }),
+    orderItem: (id,section = "quantities",page = {}) => call("v1_order_item_get", {
+      p_id:id,p_section:section,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    editOrder: (id,quoteId,quoteVersion,details,reason,command) => call("v1_order_edit", {
+      p_id:id,p_quote_id:quoteId,p_quote_version:quoteVersion,p_details:details,p_reason:reason,
+      p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
     placeOrder: (quoteId,details,command) => call("v1_order_place", {
       p_quote_id:quoteId,p_details:details,p_expected_version:command.expectedVersion,
       p_idempotency_key:command.idempotencyKey

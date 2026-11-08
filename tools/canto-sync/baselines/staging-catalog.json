@@ -8695,7 +8695,7 @@
       "sa_back_order_links",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_base_product_asset_infos",
@@ -8743,7 +8743,7 @@
       "sa_brandings",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_bulk_uploads",
@@ -8797,7 +8797,7 @@
       "sa_extra_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_fabric_colors",
@@ -8821,7 +8821,7 @@
       "sa_item_criteria",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_item_tailor_quantities",
@@ -8833,13 +8833,13 @@
       "sa_item_tailors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_items",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_job_sheet_assign_dates",
@@ -8911,7 +8911,7 @@
       "sa_orders",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_part_colors",
@@ -8929,7 +8929,7 @@
       "sa_product_images",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_product_part_add_ons",
@@ -8971,7 +8971,7 @@
       "sa_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ard/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_ratings",
@@ -9103,7 +9103,7 @@
       "sa_stocks",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_sync_airtables",

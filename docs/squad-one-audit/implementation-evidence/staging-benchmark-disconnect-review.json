@@ -1,0 +1,18 @@
+{
+  "environment": "staging",
+  "observed_state": {
+    "cutover": false,
+    "active_job": null,
+    "edit_revision": 167,
+    "synced_revision": 167,
+    "allow_test_writes": false,
+    "generation": 0,
+    "amendments": 0,
+    "domain_audit_rows": 0,
+    "quotes": 0,
+    "active_benchmark_queries": 0
+  },
+  "incident": "Staging benchmark database connection timed out; outer transaction rolled back.",
+  "sequence_note": "The interrupted pre-checkpoint run allocated unused sequence values. These harmless gaps were retained; its exact earlier counters were not persisted.",
+  "hardening": "Harness persists counters and generation/revision checkpoint, reconnects for cleanup, and transactionally restarts fixture sequences so disconnect rolls back their advances. Local rollback/disconnect tests pass."
+}

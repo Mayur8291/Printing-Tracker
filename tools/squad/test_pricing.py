@@ -25,6 +25,26 @@ class Pricing(unittest.TestCase):
  def test_sample_order_retains_bulk_plan(self):
   line=custom(10);line['sample']={'size_id':'1','quantity':1}
   r=self.quote([line])['lines'][0];self.assertEqual(D(r['variants'][0]['unit_price']),500);self.assertEqual(r['quantities']['sample']['quantity'],1);self.assertEqual(r['quantity'],10)
+ def test_repeated_configuration_keeps_quantity_bands_and_sample_distinct(self):
+  sample=custom(10);sample['sample']={'size_id':'1','quantity':1}
+  r=self.quote([custom(5),custom(6),custom(10),sample,custom(6)])
+  self.assertEqual([D(x['variants'][0]['unit_price']) for x in r['lines']],[D('500'),D('191.4'),D('175.45'),D('500'),D('191.4')])
+  self.assertEqual([x['quantity'] for x in r['lines']],[5,6,10,10,6])
+ def test_repeated_quantities_keep_configuration_prices_distinct(self):
+  kids=custom();kids['configuration']['category_id']='2'
+  self.assertEqual([D(x['variants'][0]['unit_price']) for x in self.quote([custom(),kids,custom()])['lines']],[D('191.4'),D('125.4'),D('191.4')])
+ def test_price_is_reloaded_on_next_rpc(self):
+  self.assertEqual(self.unit(1),D('500'));self.raw('UPDATE sa_snapshot_20261019.sa_base_products SET sample_rate=700 WHERE id=1');self.assertEqual(self.unit(1),D('700'))
+ def test_reused_configuration_still_validates_each_line(self):
+  invalid=custom();invalid['unit_price']='1'
+  with self.assertRaises(psycopg.errors.InvalidParameterValue):self.quote([custom(),invalid])
+ def test_reused_configuration_still_validates_each_quantity_selection(self):
+  with self.assertRaises(psycopg.errors.InvalidParameterValue):self.quote([custom(),custom(0)])
+ def test_cached_preset_cannot_also_supply_configuration(self):
+  self.raw('UPDATE sa_domain.runtime_state SET allow_test_writes=true')
+  p=rpc(self.c,'v1_product_configure',(Jsonb(CONFIG),'Pricing validation','',uuid.uuid4()))
+  line=custom();del line['configuration'];line['preset_id']=p['id'];invalid=dict(line,configuration=CONFIG)
+  with self.assertRaisesRegex(psycopg.errors.InvalidParameterValue,'not both'):self.quote([line,invalid])
  def test_kids_consumption(self):
   line=custom();line['configuration']['category_id']='2';self.assertEqual(D(self.quote([line])['lines'][0]['variants'][0]['unit_price']),D('125.400'))
  def test_kg_formula(self):

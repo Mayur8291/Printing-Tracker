@@ -61,12 +61,36 @@ export interface OrderSummary {
   factory_manager_id?: EntityId|null; worker_id?: EntityId|null;
 }
 export interface OrderItem {
-  id: EntityId; type: number; product_id: EntityId|null; rmp_class_id: EntityId|null;
+  id: EntityId; order_id:EntityId; type: number; product_id: EntityId|null; rmp_class_id: EntityId|null;
   rmp_brand_id: EntityId|null; total_quantity: number; sample_order: boolean|null;
   worker_stage: number|null; cut: number; sewn: number; dispatched: number; version: Version;
-  quantities: Array<{id:EntityId;size_id:EntityId;quantity:number;cut:number;assigned:number;completed:number;dispatched:number}>;
+  quantities: ItemSize[]; quantities_next_cursor:string|null;
+  assigned:number;comment:string|null;comment_truncated:boolean|null;provider_status:string;
+  progress:{cutting:number;sample_cutting:number;sample_cut:number;tailor:number;inspection:number;dispatch:number;jobsheet_assigned:boolean;jobsheet_due_at:string|null;jobsheet_completed_at:string|null};
+  fabric_consumption?:{per_piece:string;total:string;basis:'stored_order_item'};
   unit_amount?: string; total_amount?: string; worker_unit_cost?: string|null; worker_total_cost?: string|null;
 }
+export interface ItemSize {id:EntityId;size_id:EntityId;size_name:string|null;quantity:number;cut:number;assigned:number;completed:number;dispatched:number}
+export interface ItemSections {
+  quantities:ItemSize;
+  bulk_plan:{id:EntityId;size_id:EntityId;size_name:string|null;quantity:number};
+  brandings:SavedEntity & {type:number;side:string;area:string|null;dimension:string|null;width:string;height:string;unit:string;comment:string|null;parent_id:EntityId|null;image:MediaReference;mockup_image:MediaReference;attachment:MediaReference};
+  criteria:{id:EntityId;criteria_id:EntityId;name:string|null;checked:boolean;checked_by_id:EntityId|null;unchecked_by_id:EntityId|null;updated_by_id:EntityId|null;updated_at:string};
+  parts:{id:EntityId;part_id:EntityId;name:string|null;color_link_id:EntityId|null;color_id:EntityId|null;color_name:string|null;color_hex:string|null};
+  addons:{id:EntityId;product_part_id:EntityId;addon_id:EntityId;name:string|null;color_link_id:EntityId|null;color_id:EntityId|null;color_name:string|null;color_hex:string|null;image:MediaReference};
+  images:{id:EntityId;comment:string|null;image:MediaReference};
+  source_images:{id:EntityId;image:MediaReference & {pointer:string}};
+  variants:{id:EntityId;sku_id:EntityId|null;size_id:EntityId|null;quantity:number;unit_amount?:string;subtotal?:string};
+}
+export type ItemSection=keyof ItemSections;
+export interface ItemProduct {
+  id:EntityId;name:string|null;master_basis:'current_referenced_records';style_number?:string|null;comment?:string|null;
+  category?:{id:EntityId|null;name:string|null};base_product?:{id:EntityId|null;name:string|null;image:MediaReference};
+  fabric?:{id:EntityId|null;name:string|null;type:number|null;uom:string|null;image:MediaReference};color?:{id:EntityId|null;name:string|null;hex:string|null};
+  color_id?:EntityId|null;brand_name?:string|null;category_name?:string|null;images?:MediaReference[];video?:MediaReference;
+}
+export type OrderItemDetail<S extends ItemSection> = Omit<OrderItem,'quantities'|'quantities_next_cursor'> & {product:ItemProduct|null;section:S;records:Page<ItemSections[S]> & {basis?:'accepted_quote'|'not_recorded_in_source'};accepted_pricing_available:boolean};
+export interface OrderAmendment extends SavedEntity {state:'applied'|'queued';execution?:'background';amendment_id?:string;request_id?:string;provider_confirmation_required?:boolean;total_amount?:string;proposed_total_amount?:string;paid_amount?:string;items?:Array<{item_id:EntityId;line:number}>}
 export interface Dashboard {
   orders: number; pending: number; completed: number; cancelled: number;
   quantity: number; dispatched: number; as_of: string; total_amount?: string;
@@ -311,6 +335,8 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   overrideQuote(quoteId:string,line:number,unitPrice:string,reason:string,command:Command):Promise<Quote>;
   saveBranding(design:BrandingSaveInput,command:Command|CreateCommand):Promise<SavedEntity & {product_id:EntityId|null}>;
   placeOrder(quoteId:string,details:OrderPlacementDetails,command:Command):Promise<OrderPlacement>;
+  editOrder(id:EntityId,quoteId:string,quoteVersion:Version,details:OrderPlacementDetails,reason:string,command:Command):Promise<OrderAmendment>;
+  orderItem<S extends ItemSection='quantities'>(id:EntityId,section?:S,page?:PageRequest):Promise<OrderItemDetail<S>>;
   saveOrderPriority(id:EntityId,prime:boolean,reason:string,command:Command):Promise<SavedEntity & {is_prime:boolean}>;
   saveOrderDue(id:EntityId,dueAt:string,reason:string,command:Command):Promise<SavedEntity & {due_at:string}>;
   recordOrderPayment(id:EntityId,status:'paid'|'unpaid'|'partial',paidAmount:string,reference:string,command:Command):Promise<SavedEntity & {payment_status:0|1|2;paid_amount:string}>;

@@ -38,6 +38,33 @@
     ],
     [
       "sa_domain",
+      "archived_designs",
+      "squad_archived_designs_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (amendment_id IN ( SELECT order_amendments.id\n   FROM sa_domain.order_amendments\n  WHERE (order_amendments.order_id = archived_designs.order_id))))"
+    ],
+    [
+      "sa_domain",
+      "archived_designs",
+      "squad_archived_designs_read",
+      "{sa_executor}",
+      "SELECT",
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)))",
+      null
+    ],
+    [
+      "sa_domain",
+      "archived_designs",
+      "squad_archived_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "archived_entities",
       "squad_archive_read",
       "{sa_executor}",
@@ -164,12 +191,57 @@
     ],
     [
       "sa_domain",
+      "line_receipts",
+      "squad_line_receipts_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND sa_domain.can_write_order_lines(order_id) AND sa_domain.receipt_item_parent(item_id, order_id))"
+    ],
+    [
+      "sa_domain",
+      "line_receipts",
+      "squad_line_receipts_read",
+      "{sa_executor}",
+      "SELECT",
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items)))",
+      null
+    ],
+    [
+      "sa_domain",
+      "order_amendments",
+      "squad_amendments_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)))"
+    ],
+    [
+      "sa_domain",
+      "order_amendments",
+      "squad_amendments_read",
+      "{sa_executor}",
+      "SELECT",
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = ANY (ARRAY[0, 1])))",
+      null
+    ],
+    [
+      "sa_domain",
+      "order_receipts",
+      "squad_receipt_history_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "order_receipts",
       "squad_receipts_insert",
       "{sa_executor}",
       "INSERT",
       null,
-      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id)) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders\n  WHERE (sa_orders.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)))))"
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id)) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders\n  WHERE ((sa_orders.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (sa_orders.customer_sc_id = ( SELECT (sa_domain.actor()).user_id AS user_id)))))))"
     ],
     [
       "sa_domain",
@@ -179,6 +251,15 @@
       "SELECT",
       "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (order_id IN ( SELECT sa_domain.scope_order_ids() AS scope_order_ids)))",
       null
+    ],
+    [
+      "sa_domain",
+      "order_receipts",
+      "squad_receipts_update",
+      "{sa_executor}",
+      "UPDATE",
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)))",
+      "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)))"
     ],
     [
       "sa_domain",
@@ -197,6 +278,15 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_domain",
+      "order_requests",
+      "squad_local_amendment_finish",
+      "{sa_executor}",
+      "UPDATE",
+      "((actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = 1))",
+      "((actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = 1))"
     ],
     [
       "sa_domain",
@@ -344,6 +434,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_add_on_colors",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_add_on_parts",
       "squad_catalog_read",
       "{sa_executor}",
@@ -358,6 +457,15 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_add_ons",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -489,6 +597,15 @@
     [
       "sa_snapshot_20261019",
       "sa_back_order_links",
+      "squad_amendment_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_back_order_links",
       "squad_backlinks_insert",
       "{sa_executor}",
       "INSERT",
@@ -561,6 +678,15 @@
     [
       "sa_snapshot_20261019",
       "sa_base_products",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_products",
       "squad_guard_earnings",
       "{sa_guard}",
       "SELECT",
@@ -588,11 +714,38 @@
     [
       "sa_snapshot_20261019",
       "sa_brandings",
+      "squad_amendment_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_brandings",
+      "squad_archive_art",
+      "{sa_executor}",
+      "UPDATE",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (id IN ( SELECT archived_designs.branding_id\n   FROM sa_domain.archived_designs)))",
+      "((item_id IS NULL) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (id IN ( SELECT archived_designs.branding_id\n   FROM sa_domain.archived_designs)))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_brandings",
+      "squad_archived_art_read",
+      "{sa_executor}",
+      "SELECT",
+      "(id IN ( SELECT archived_designs.branding_id\n   FROM sa_domain.archived_designs))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_brandings",
       "squad_brandings_insert",
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT i.id\n   FROM (sa_snapshot_20261019.sa_items i\n     JOIN sa_snapshot_20261019.sa_orders o ON ((o.id = i.order_id)))\n  WHERE (o.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+      "sa_domain.can_write_item_lines(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -632,11 +785,29 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_brandings",
+      "squad_detail_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_categories",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_categories",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -732,6 +903,15 @@
     [
       "sa_snapshot_20261019",
       "sa_criteria",
+      "squad_detail_criteria_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_criteria",
       "squad_settings_delete",
       "{sa_executor}",
       "DELETE",
@@ -822,11 +1002,29 @@
     [
       "sa_snapshot_20261019",
       "sa_extra_quantities",
+      "squad_amendment_delete",
+      "{sa_executor}",
+      "DELETE",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_extra_quantities",
+      "squad_amendment_extras_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_extra_quantities",
       "squad_extras_insert",
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT i.id\n   FROM (sa_snapshot_20261019.sa_items i\n     JOIN sa_snapshot_20261019.sa_orders o ON ((o.id = i.order_id)))\n  WHERE (o.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+      "sa_domain.can_write_item_lines(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -862,6 +1060,15 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_fabrics",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -912,11 +1119,29 @@
     [
       "sa_snapshot_20261019",
       "sa_item_criteria",
+      "squad_amendment_criteria_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_criteria",
+      "squad_amendment_delete",
+      "{sa_executor}",
+      "DELETE",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_criteria",
       "squad_criteria_insert",
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT i.id\n   FROM (sa_snapshot_20261019.sa_items i\n     JOIN sa_snapshot_20261019.sa_orders o ON ((o.id = i.order_id)))\n  WHERE (o.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+      "sa_domain.can_write_item_lines(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -993,6 +1218,15 @@
     [
       "sa_snapshot_20261019",
       "sa_item_tailors",
+      "squad_amendment_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailors",
       "squad_guard_work_parent",
       "{sa_guard}",
       "SELECT",
@@ -1029,6 +1263,15 @@
     [
       "sa_snapshot_20261019",
       "sa_items",
+      "squad_amendment_delete",
+      "{sa_executor}",
+      "DELETE",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_items",
       "squad_executor_items_read",
       "{sa_executor}",
       "SELECT",
@@ -1051,7 +1294,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders\n  WHERE (sa_orders.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+      "sa_domain.can_write_order_lines(order_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -1096,6 +1339,15 @@
       "{sa_executor}",
       "SELECT",
       "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_assign_quantities",
+      "squad_amendment_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1231,6 +1483,15 @@
       "{sa_executor}",
       "SELECT",
       "((job_sheet_tailor_mark_date_id IN ( SELECT sa_domain.work_scope_ids('inspection'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_tailor_mark_dates",
+      "squad_amendment_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1434,6 +1695,15 @@
     [
       "sa_snapshot_20261019",
       "sa_part_colors",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_part_colors",
       "squad_part_color_insert",
       "{sa_executor}",
       "INSERT",
@@ -1447,6 +1717,42 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_parts",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_images",
+      "squad_detail_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_images",
+      "squad_work_images",
+      "{sa_executor}",
+      "SELECT",
+      "(product_id IN ( SELECT sa_products.id\n   FROM sa_snapshot_20261019.sa_products))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_part_add_ons",
+      "squad_detail_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1488,6 +1794,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_parts",
+      "squad_detail_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_parts",
       "squad_guard_stock_configuration",
       "{sa_guard}",
       "SELECT",
@@ -1516,6 +1831,15 @@
       "sa_snapshot_20261019",
       "sa_product_parts",
       "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_products",
+      "squad_detail_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -1605,6 +1929,15 @@
     [
       "sa_snapshot_20261019",
       "sa_quantities",
+      "squad_amendment_delete",
+      "{sa_executor}",
+      "DELETE",
+      "((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items)))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_quantities",
       "squad_executor_quantities_read",
       "{sa_executor}",
       "SELECT",
@@ -1636,7 +1969,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT i.id\n   FROM (sa_snapshot_20261019.sa_items i\n     JOIN sa_snapshot_20261019.sa_orders o ON ((o.id = i.order_id)))\n  WHERE (o.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+      "sa_domain.can_write_item_lines(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -1739,11 +2072,29 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_rmp_brands",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_rmp_categories",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_categories",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1762,6 +2113,15 @@
       "{sa_executor}",
       "SELECT",
       "(( SELECT sa_domain.catalog_enabled() AS catalog_enabled) AND (id IN ( SELECT sa_rmp_skus.rmp_class_id\n   FROM sa_snapshot_20261019.sa_rmp_skus\n  WHERE (sa_rmp_skus.is_deleted IS NOT TRUE))))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_classes",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1938,6 +2298,15 @@
     [
       "sa_snapshot_20261019",
       "sa_sizes",
+      "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_sizes",
       "squad_guard_stock_sku",
       "{sa_guard}",
       "SELECT",
@@ -1987,6 +2356,15 @@
       "{sa_executor}",
       "SELECT",
       "(stock_id IN ( SELECT sa_stocks.id\n   FROM sa_snapshot_20261019.sa_stocks))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_stocks",
+      "squad_amendment_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -2241,6 +2619,21 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_add_on_colors",
+      "color_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_add_on_colors",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_add_ons",
+      "add_on",
+      "{sa_guard=r/postgres}"
+    ],
+    [
       "sa_add_ons",
       "add_on_of",
       "{sa_guard=r/postgres}"
@@ -2253,6 +2646,11 @@
     [
       "sa_add_ons",
       "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_add_ons",
+      "image",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -2322,6 +2720,11 @@
     ],
     [
       "sa_base_products",
+      "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_base_products",
       "name",
       "{sa_guard=r/postgres}"
     ],
@@ -2357,6 +2760,11 @@
     ],
     [
       "sa_brandings",
+      "item_id",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_brandings",
       "print_area",
       "{sa_executor=w/postgres}"
     ],
@@ -2371,6 +2779,21 @@
       "{sa_executor=w/postgres}"
     ],
     [
+      "sa_categories",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_categories",
+      "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_colors",
+      "hex_code",
+      "{sa_guard=r/postgres}"
+    ],
+    [
       "sa_colors",
       "id",
       "{sa_guard=r/postgres}"
@@ -2378,6 +2801,46 @@
     [
       "sa_colors",
       "is_deleted",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_colors",
+      "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_criteria",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_criteria",
+      "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_fabrics",
+      "fabric_type",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_fabrics",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_fabrics",
+      "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_fabrics",
+      "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_fabrics",
+      "uom",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -2783,7 +3246,7 @@
     [
       "sa_orders",
       "address_id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
@@ -2798,7 +3261,7 @@
     [
       "sa_orders",
       "assigned_to_tailor_quantity",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2807,13 +3270,18 @@
     ],
     [
       "sa_orders",
-      "branding_amount",
+      "back_order_for_id",
       "{sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
+      "branding_amount",
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
+    ],
+    [
+      "sa_orders",
       "cgst_amount",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
@@ -2823,7 +3291,7 @@
     [
       "sa_orders",
       "completed_by_tailor_quantity",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2868,7 +3336,7 @@
     [
       "sa_orders",
       "cutting_done",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2898,7 +3366,7 @@
     [
       "sa_orders",
       "dispatched_quantity",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -2923,7 +3391,7 @@
     [
       "sa_orders",
       "igst_amount",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
@@ -2942,6 +3410,11 @@
     ],
     [
       "sa_orders",
+      "is_updated",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_orders",
       "job_worker_reason",
       "{sa_executor=w/postgres}"
     ],
@@ -2953,7 +3426,7 @@
     [
       "sa_orders",
       "order_item_type",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
@@ -2968,7 +3441,7 @@
     [
       "sa_orders",
       "sgst_amount",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
@@ -2978,7 +3451,7 @@
     [
       "sa_orders",
       "sub_total_amount",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
@@ -2988,12 +3461,12 @@
     [
       "sa_orders",
       "total_amount",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
       "total_quantity",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_orders",
@@ -3009,6 +3482,26 @@
       "sa_orders",
       "worker_status",
       "{sa_executor=w/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_part_colors",
+      "color_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_part_colors",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_parts",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_parts",
+      "name",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_product_part_add_ons",
@@ -3211,13 +3704,68 @@
       "{sa_executor=w/postgres}"
     ],
     [
+      "sa_rmp_brands",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_brands",
+      "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_categories",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_categories",
+      "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "embeded_video",
+      "{sa_guard=r/postgres}"
+    ],
+    [
       "sa_rmp_classes",
       "id",
       "{sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_classes",
+      "image_1",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "image_2",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "image_3",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "image_4",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "image_5",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
       "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "rmp_color_id",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -4179,6 +4727,18 @@
     ],
     [
       "canto_api",
+      "v1_order_edit",
+      "p_id bigint, p_quote_id uuid, p_quote_version text, p_details jsonb, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "4bcf034ec50a048a880df6b07aeeda6f"
+    ],
+    [
+      "canto_api",
       "v1_order_force_complete",
       "p_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -4200,6 +4760,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "05ef6aa2617dd3e893a04b1a382a05d8"
+    ],
+    [
+      "canto_api",
+      "v1_order_item_get",
+      "p_id bigint, p_section text, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "5cb8b9b56dddbc94119e630c241b2a89"
     ],
     [
       "canto_api",
@@ -4827,6 +5399,43 @@
     ],
     [
       "sa_domain",
+      "amendment_runs_inline",
+      "p_id bigint, p_lines jsonb",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "a178b2f9196154248ee5e741c80839a9"
+    ],
+    [
+      "sa_domain",
+      "amendment_source_rows",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "10f9de3ef25de575479d46f7474a79b9"
+    ],
+    [
+      "sa_domain",
+      "apply_order_amendment",
+      "p_id bigint, p_spec jsonb, p_command_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "e48da1931c5972f6282623a09b7f201b"
+    ],
+    [
+      "sa_domain",
       "archive_entity",
       "p_kind text, p_id bigint, p_reason text",
       "postgres",
@@ -4863,6 +5472,18 @@
     ],
     [
       "sa_domain",
+      "assert_order_amendable",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "6bb683072a3b7edd42703d7e6d7d067e"
+    ],
+    [
+      "sa_domain",
       "assert_reassignable",
       "p_order_id bigint",
       "postgres",
@@ -4896,18 +5517,6 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "78149a05a84e135847cef3eba866d39d"
-    ],
-    [
-      "sa_domain",
-      "attach_order_criteria",
-      "p_item_id bigint, p_product_id bigint, p_branding boolean",
-      "postgres",
-      false,
-      [
-        "search_path=pg_catalog"
-      ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
-      "a3787487b319ce0694a7747882bd6f46"
     ],
     [
       "sa_domain",
@@ -5015,7 +5624,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "e519bce9dc200c32436a8a7f867333f2"
+      "d96468b4f89ef4c94cc77fb1d398dae9"
     ],
     [
       "sa_domain",
@@ -5076,6 +5685,30 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "95656342409d91245eb333340fe53bff"
+    ],
+    [
+      "sa_domain",
+      "can_write_item_lines",
+      "p_item_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "00789bdc0dffae4a6c05e7c34987d4b6"
+    ],
+    [
+      "sa_domain",
+      "can_write_order_lines",
+      "p_order_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "56c68cacad412f64cd50d35b029cd60d"
     ],
     [
       "sa_domain",
@@ -5260,15 +5893,15 @@
     ],
     [
       "sa_domain",
-      "create_order_line",
-      "p_order_id bigint, p_line jsonb, p_settings jsonb, p_state text",
+      "create_order_lines",
+      "p_order_id bigint, p_lines jsonb, p_settings jsonb, p_state text",
       "postgres",
       false,
       [
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "8739bb8d0aa678f57dbab75bfbf4f308"
+      "6cc89215b8508b6d01e64cb27214ece1"
     ],
     [
       "sa_domain",
@@ -5429,6 +6062,18 @@
     ],
     [
       "sa_domain",
+      "execute_local_amendment",
+      "p_request_id uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "b471b56bbf19848caa44d67a4c605639"
+    ],
+    [
+      "sa_domain",
       "factory_manager_ids",
       "",
       "sa_guard",
@@ -5533,6 +6178,42 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "edd8ce57f33e0e3c677f8b6453f76bc4"
+    ],
+    [
+      "sa_domain",
+      "item_children",
+      "p_id bigint, p_section text, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "642b3422fd35bf12859f0ca8be165d30"
+    ],
+    [
+      "sa_domain",
+      "item_context",
+      "p_id bigint, p_section text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "c5cfbc955f6e5d3b9d61cade60e9b08a"
+    ],
+    [
+      "sa_domain",
+      "item_projection",
+      "i jsonb, a sa_domain.actor, p_version text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "cbc799580970271013cc7d1e29a8c1ff"
     ],
     [
       "sa_domain",
@@ -5677,6 +6358,18 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "a4a8f1104387f2f9d248042d39529e7a"
+    ],
+    [
+      "sa_domain",
+      "order_details",
+      "p_details jsonb, p_pricing jsonb, p_previous_paid numeric",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "66e6c194ab37079771b5e4789e7df7c3"
     ],
     [
       "sa_domain",
@@ -5848,6 +6541,18 @@
     ],
     [
       "sa_domain",
+      "prepare_order_line",
+      "p_order_id bigint, p_line jsonb, p_settings jsonb, p_state text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "4eeb694aebe8af897b7f9ca30fe644dc"
+    ],
+    [
+      "sa_domain",
       "product_configuration",
       "p_id bigint",
       "postgres",
@@ -5856,7 +6561,19 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "2a2fdf41df32d3c64f0ba2dd89748be8"
+      "11758775fc61c36b0ef18af52170f31f"
+    ],
+    [
+      "sa_domain",
+      "product_configurations",
+      "p_ids bigint[]",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "fb41383de6a26b8820c96631ef2d39d5"
     ],
     [
       "sa_domain",
@@ -5965,6 +6682,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "6b4ef5906fb669c924f28d5d36de1a61"
+    ],
+    [
+      "sa_domain",
+      "receipt_item_parent",
+      "p_item bigint, p_order bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "bb509c0754c3b6d54b1082dcc92a8301"
     ],
     [
       "sa_domain",
@@ -6508,7 +7237,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "8618ca8ee9de7c5652ded67a2ee453e4"
+      "fefed45d2d01494c5e32ce8dd7d85abe"
     ],
     [
       "sa_domain",
@@ -7036,6 +7765,19 @@
     ],
     [
       "sa_domain",
+      "v1_order_edit",
+      "p_id bigint, p_quote_id uuid, p_quote_version text, p_details jsonb, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "b630e6430d8e97123ee8cff63d7dcf91"
+    ],
+    [
+      "sa_domain",
       "v1_order_force_complete",
       "p_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -7058,7 +7800,20 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "341c30c9d58fbad79c299de79c4f8bae"
+      "9db1b11b06ddf3d17df8d6a8540311e9"
+    ],
+    [
+      "sa_domain",
+      "v1_order_item_get",
+      "p_id bigint, p_section text, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "14c845161fa76ec17fc8e29db6b51b59"
     ],
     [
       "sa_domain",
@@ -7084,7 +7839,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "c1c6d82e1006488609d07f5a28de4f6e"
+      "d69875ea37aef4b77cdef86d9030e3fa"
     ],
     [
       "sa_domain",
@@ -7660,6 +8415,18 @@
     ],
     [
       "sa_domain",
+      "validate_order_line_settings",
+      "p_lines jsonb, p_settings jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "73e87529966b05775e3ab0c0dd6225c6"
+    ],
+    [
+      "sa_domain",
       "validate_person_fields",
       "p_fields jsonb",
       "postgres",
@@ -7669,6 +8436,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "dd5d8211857abf03a05793d75a1a12f7"
+    ],
+    [
+      "sa_domain",
+      "validated_order_quote",
+      "p_quote_id uuid, p_expected_version text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "715ecb2f246e0de7393897393b909df3"
     ],
     [
       "sa_domain",
@@ -7684,6 +8463,18 @@
     ],
     [
       "sa_domain",
+      "work_color",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "54b75b2f10c11efff486b15139f4da22"
+    ],
+    [
+      "sa_domain",
       "work_detail",
       "p_id bigint, p_kind text, p_quantity_cursor text, p_history_cursor text, p_limit integer",
       "postgres",
@@ -7694,6 +8485,42 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "6b2086e639914434b1a1f2fca7111e2e"
+    ],
+    [
+      "sa_domain",
+      "work_master",
+      "p_resource text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "863cdea0900411882eba45d59311a335"
+    ],
+    [
+      "sa_domain",
+      "work_masters",
+      "p_resource text, p_ids bigint[]",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "6886f921d575de3d22a374a49b98afdc"
+    ],
+    [
+      "sa_domain",
+      "work_media_visible",
+      "p_resource text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "bbed86e06cbe37b6241d16c115082caa"
     ],
     [
       "sa_domain",
@@ -7718,6 +8545,18 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "8df43062ffabd72c7dad2ed1a711fd17"
+    ],
+    [
+      "sa_domain",
+      "work_product_visible",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard}",
+      "ec8b410b4c90dc1a66db2b4dbc7c0fc3"
     ],
     [
       "sa_domain",
