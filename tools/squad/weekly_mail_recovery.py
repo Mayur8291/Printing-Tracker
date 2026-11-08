@@ -9,6 +9,13 @@ from business_cleanup_documents import cleanup_documents
 import test_hosted_business_journeys as business
 
 
+def lease_deadline(value):
+    # PostgreSQL JSON omits trailing fractional zeroes. Python 3.9's
+    # fromisoformat accepts only 3/6 fractional digits; strptime accepts 1..6.
+    pattern='%Y-%m-%dT%H:%M:%S' + ('.%f' if '.' in value else '') + '%z'
+    return datetime.datetime.strptime(value,pattern)
+
+
 def cap_id(state):return uuid.uuid5(uuid.UUID(state['run_id']),'weekly-mail.capability')
 def actors(state):return {x['role']:x for x in state['identity']['actors']}
 def manual_documents(c,state,required=True):
@@ -179,7 +186,7 @@ def quiesce(c,state):
                 docs=roots(c,state);current_jobs=jobs(c,state,docs);settings_provenance(c,state)
                 job=next(j for j in current_jobs if j['id']==initial['id'])
                 if job['status']!='leased':continue
-                deadline=datetime.datetime.fromisoformat(job['lease_until'])
+                deadline=lease_deadline(job['lease_until'])
                 assert deadline+datetime.timedelta(seconds=60)<datetime.datetime.now(datetime.timezone.utc),'Rehearsal worker may still run; preserve checkpoint until lease plus 60 seconds'
                 c.execute("UPDATE sa_domain.job_attempts SET state='failed',finished_at=clock_timestamp(),error_code='REHEARSAL_MAIL_ABORT' WHERE job_id=%s AND state='leased'",(job['id'],))
                 c.execute("UPDATE sa_domain.outbox SET status='dead',lease_until=NULL,last_error_code='REHEARSAL_MAIL_ABORT',completed_at=clock_timestamp() WHERE id=%s",(job['id'],))

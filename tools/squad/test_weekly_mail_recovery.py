@@ -18,6 +18,16 @@ from test_business_journey_composition import run_sdk
 import weekly_mail_recovery as recovery
 
 
+class LeaseTimestamp(unittest.TestCase):
+    def test_postgres_fractional_precision(self):
+        for digits in ('','1','12','123','1234','73313','123456'):
+            with self.subTest(digits=digits):
+                value='2026-11-08T19:09:57'+('.'+digits if digits else '')+'+05:30'
+                parsed=recovery.lease_deadline(value)
+                self.assertEqual(parsed.microsecond,int(digits.ljust(6,'0') or '0'))
+                self.assertEqual(parsed.utcoffset().total_seconds(),19800)
+
+
 class WeeklyMailRecovery(unittest.TestCase):
     setUpClass = classmethod(lambda cls: base.BusinessHarness.setUpClass())
     setUp = base.BusinessHarness.setUp
