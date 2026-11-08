@@ -1,5 +1,6 @@
 /** Service-only, bounded queue pump. Provider/document handlers are added here;
  * callers never supply actor IDs, URLs, SQL or arbitrary handler names. */
+import {AccountProviderError} from './accounts.ts';
 type ClaimedJob = { id: string; lease_token: string; handler: string };
 type Result = { id: string; state: string; error_code?: string };
 export type Rpc = (name: string, args: Record<string, unknown>) => Promise<unknown>;
@@ -28,7 +29,7 @@ async function boundedBody(req: Request): Promise<Record<string, unknown>> {
   if(!value || Array.isArray(value) || typeof value !== 'object')throw new Error('invalid_body');
   return value;
 }
-export function createHandler(secret: string | undefined, rpc: Rpc, removeUploads?: (paths:string[])=>Promise<void>) {
+export function createHandler(secret: string | undefined, rpc: Rpc, removeUploads?: (paths:string[])=>Promise<void>, runAccount?: (job:ClaimedJob)=>Promise<Result>) {
   return async (req: Request): Promise<Response> => {
     if (req.method !== 'POST') return json({error:'METHOD_NOT_ALLOWED'},405);
     if (!secret || secret.length < 32) return json({error:'WORKER_NOT_CONFIGURED'},503);
@@ -60,8 +61,9 @@ export function createHandler(secret: string | undefined, rpc: Rpc, removeUpload
     for(const job of claim.jobs){
       if(performance.now()-started>45000)break; // Unstarted leases recover automatically.
       try {
-        if(job.handler!=='local_amendment')throw new Error('uninstalled_handler');
-        const result=await rpc('squad_job_execute',{p_id:job.id,p_lease_token:job.lease_token}) as Result;
+        const result=job.handler==='account_reconciliation'&&runAccount?await runAccount(job):job.handler==='local_amendment'
+          ?await rpc('squad_job_execute',{p_id:job.id,p_lease_token:job.lease_token}) as Result
+          :(()=>{throw new Error('uninstalled_handler');})();
         results.push({id:job.id,state:result.state,...(result.error_code?{error_code:result.error_code}:{})});
       } catch {
         // A network failure is not proof that the DB transaction failed. Never
@@ -74,12 +76,19 @@ export function createHandler(secret: string | undefined, rpc: Rpc, removeUpload
 }
 export function serviceRpc(url: string, key: string): Rpc {
   return async (name,args) => {
-    if(!['squad_job_claim','squad_job_execute','account_upload_cleanup'].includes(name))throw new Error('unknown_rpc');
+    if(!['squad_job_claim','squad_job_execute','account_upload_cleanup','squad_account_prepare','squad_account_finish'].includes(name))throw new Error('unknown_rpc');
     const response=await fetch(`${url}/rest/v1/rpc/${name}`,{
       method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json','Content-Profile':'canto_api','Accept-Profile':'canto_api'},
       body:JSON.stringify(args),signal:AbortSignal.timeout(12000),
     });
-    if(!response.ok){await response.body?.cancel();throw new Error('rpc_failed');}
+    if(!response.ok){
+      if(name==='squad_account_prepare'){
+        const body=await response.json().catch(()=>({}));
+        if(body.code==='23505')throw new AccountProviderError('IDENTITY_CONFLICT');
+        if(body.code==='P0002')throw new AccountProviderError('ACCOUNT_UNAVAILABLE');
+      } else await response.body?.cancel();
+      throw new Error('rpc_failed');
+    }
     return await response.json();
   };
 }

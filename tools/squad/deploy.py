@@ -47,7 +47,7 @@ def deploy(check=True):
             require(public_structure(c)==before,'Printing Tracker public structure changed')
             require(not c.execute("""SELECT FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
               JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='sa_domain' AND
-              ((p.prosecdef AND (r.rolsuper OR r.rolbypassrls) AND p.proname<>'auth_context') OR (has_function_privilege('anon',p.oid,'EXECUTE') AND p.oid<>'sa_domain.v1_app_bootstrap(text,text)'::regprocedure))""").fetchone(),'Unsafe function privileges')
+              ((p.prosecdef AND (r.rolsuper OR r.rolbypassrls) AND p.oid NOT IN('sa_domain.auth_context()'::regprocedure,'sa_domain.revoke_account_sessions(bigint)'::regprocedure)) OR (has_function_privilege('anon',p.oid,'EXECUTE') AND p.oid<>'sa_domain.v1_app_bootstrap(text,text)'::regprocedure))""").fetchone(),'Unsafe function privileges')
             reviewed_catalog=catalog(c);reviewed_access=access_catalog(c)
             print(json.dumps({'environment':'staging','migrations':applied,'public_structure_unchanged':True,'mode':'rollback verification' if check else 'apply'}))
             if check:raise psycopg.Rollback()

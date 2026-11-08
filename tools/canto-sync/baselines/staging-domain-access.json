@@ -48,6 +48,15 @@
     [
       "sa_domain",
       "account_requests",
+      "account_requests_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "account_requests",
       "squad_account_request_insert",
       "{sa_executor}",
       "INSERT",
@@ -138,6 +147,15 @@
     [
       "sa_domain",
       "audit",
+      "account_audit",
+      "{sa_account_writer}",
+      "INSERT",
+      null,
+      "true"
+    ],
+    [
+      "sa_domain",
+      "audit",
       "executor_audit",
       "{sa_executor}",
       "INSERT",
@@ -179,6 +197,15 @@
       "ALL",
       "(actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id))",
       "(actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id))"
+    ],
+    [
+      "sa_domain",
+      "commands",
+      "account_commands",
+      "{sa_account_writer}",
+      "ALL",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
     ],
     [
       "sa_domain",
@@ -264,6 +291,15 @@
     [
       "sa_domain",
       "entity_versions",
+      "account_versions",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "entity_versions",
       "executor_versions",
       "{sa_executor}",
       "ALL",
@@ -305,6 +341,15 @@
       "UPDATE",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_domain",
+      "job_attempts",
+      "account_attempts",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_domain",
@@ -489,6 +534,15 @@
     [
       "sa_domain",
       "outbox",
+      "account_outbox",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "outbox",
       "executor_events",
       "{sa_executor}",
       "INSERT",
@@ -519,7 +573,7 @@
       "squad_job_read",
       "{sa_executor}",
       "SELECT",
-      "((actor_id = ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'auth_id'::text))::uuid) OR ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'admin'::text))::boolean OR (((( SELECT sa_domain.ops_context() AS ops_context) ->> 'platform'::text))::boolean AND (aggregate_kind = ANY (ARRAY['integration'::text, 'import'::text, 'export'::text, 'document'::text, 'media'::text, 'maintenance'::text]))))",
+      "((actor_id = ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'auth_id'::text))::uuid) OR ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'admin'::text))::boolean OR (((( SELECT sa_domain.ops_context() AS ops_context) ->> 'platform'::text))::boolean AND ((aggregate_kind = ANY (ARRAY['integration'::text, 'import'::text, 'export'::text, 'document'::text, 'media'::text, 'maintenance'::text])) OR (sa_domain.job_handler(event_type, payload) = 'account_reconciliation'::text))))",
       null
     ],
     [
@@ -563,6 +617,15 @@
       "rating_moderation",
       "squad_rating_moderation_read",
       "{sa_executor,sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "runtime_state",
+      "account_runtime",
+      "{sa_account_writer}",
       "SELECT",
       "true",
       null
@@ -647,6 +710,15 @@
       "ALL",
       "(order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders))",
       "(order_id IN ( SELECT sa_orders.id\n   FROM sa_snapshot_20261019.sa_orders))"
+    ],
+    [
+      "sa_identity",
+      "sa_auth_identities",
+      "account_identity",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_identity",
@@ -3162,6 +3234,15 @@
     [
       "sa_snapshot_20261019",
       "sa_users",
+      "account_people",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_users",
       "squad_executor_people_read",
       "{sa_executor}",
       "SELECT",
@@ -3261,6 +3342,15 @@
     [
       "sa_sync",
       "environment_state",
+      "account_environment",
+      "{sa_account_writer}",
+      "ALL",
+      "singleton",
+      "singleton"
+    ],
+    [
+      "sa_sync",
+      "environment_state",
       "media_environment",
       "{sa_media_writer}",
       "ALL",
@@ -3284,6 +3374,15 @@
       "SELECT",
       "singleton",
       null
+    ],
+    [
+      "sa_sync",
+      "legacy_identity_keys",
+      "account_identity_keys",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
     ]
   ],
   [
@@ -4920,7 +5019,7 @@
     [
       "sa_users",
       "approved",
-      "{sa_guard=r/postgres,sa_executor=arw/postgres}"
+      "{sa_guard=r/postgres,sa_executor=arw/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_users",
@@ -4931,6 +5030,11 @@
       "sa_users",
       "auto_approve_customers",
       "{sa_executor=rw/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_users",
+      "confirmed_at",
+      "{sa_account_writer=r/postgres}"
     ],
     [
       "sa_users",
@@ -4970,7 +5074,7 @@
     [
       "sa_users",
       "deleted_at",
-      "{sa_guard=r/postgres,sa_executor=rw/postgres}"
+      "{sa_guard=r/postgres,sa_executor=rw/postgres,sa_account_writer=rw/postgres}"
     ],
     [
       "sa_users",
@@ -4980,17 +5084,22 @@
     [
       "sa_users",
       "disabled",
-      "{sa_guard=r/postgres,sa_executor=rw/postgres}"
+      "{sa_guard=r/postgres,sa_executor=rw/postgres,sa_account_writer=rw/postgres}"
     ],
     [
       "sa_users",
       "disabled_at",
-      "{sa_executor=rw/postgres}"
+      "{sa_executor=rw/postgres,sa_account_writer=w/postgres}"
     ],
     [
       "sa_users",
       "email",
-      "{sa_guard=r/postgres,sa_executor=ar/postgres}"
+      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_account_writer=r/postgres}"
+    ],
+    [
+      "sa_users",
+      "encrypted_password",
+      "{sa_account_writer=r/postgres}"
     ],
     [
       "sa_users",
@@ -5015,7 +5124,7 @@
     [
       "sa_users",
       "id",
-      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_media_writer=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_media_writer=r/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_users",
@@ -5025,7 +5134,7 @@
     [
       "sa_users",
       "name",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_users",
@@ -5060,7 +5169,7 @@
     [
       "sa_users",
       "role",
-      "{sa_guard=r/postgres,sa_executor=arw/postgres}"
+      "{sa_guard=r/postgres,sa_executor=arw/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_users",
@@ -5070,7 +5179,7 @@
     [
       "sa_users",
       "updated_at",
-      "{sa_executor=arw/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres,sa_account_writer=rw/postgres}"
     ],
     [
       "sa_users",
@@ -5162,6 +5271,42 @@
       ],
       "{postgres=X/postgres,service_role=X/postgres}",
       "d4c3c0c17b1efff096c99719b6851cc7"
+    ],
+    [
+      "canto_api",
+      "account_user_status",
+      "p_id bigint, p_action text, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "220951e5093125d419657395aba02424"
+    ],
+    [
+      "canto_api",
+      "squad_account_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb, p_error text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "49c9ca8b89f0db50ce06049d628cc29a"
+    ],
+    [
+      "canto_api",
+      "squad_account_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "38db3e5be185fe6e0425dc6bb5f484f0"
     ],
     [
       "canto_api",
@@ -6485,6 +6630,18 @@
     ],
     [
       "sa_domain",
+      "account_target",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "fc9f0e0b0952dec8b3131047ce9a8ae1"
+    ],
+    [
+      "sa_domain",
       "account_upload_cleanup",
       "p_completed uuid[]",
       "sa_media_writer",
@@ -6530,6 +6687,18 @@
       ],
       "{sa_media_writer=X/sa_media_writer,service_role=X/sa_media_writer}",
       "e6f1c535aff64497b910ff8d362555d8"
+    ],
+    [
+      "sa_domain",
+      "account_user_status",
+      "p_id bigint, p_action text, p_reason text, p_expected_version text, p_idempotency_key uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,authenticated=X/sa_account_writer,sa_app=X/sa_account_writer}",
+      "af3a198f11e6f9af67c8ff51c500f5bf"
     ],
     [
       "sa_domain",
@@ -6721,7 +6890,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_account_writer=X/postgres}",
       "f166e680dbb4645b804f66e26a8fd7c9"
     ],
     [
@@ -6817,8 +6986,8 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
-      "7f4b420ffd6d394d7cb5dd45a94992c4"
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
+      "34059ac203059e4a46db7fe11c16a0fd"
     ],
     [
       "sa_domain",
@@ -6853,7 +7022,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
       "df68b45742202d0e40fc389fee9b3dbf"
     ],
     [
@@ -7069,7 +7238,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
       "1ba08f05e953c73b9ded78bfe39d1dec"
     ],
     [
@@ -7093,7 +7262,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_account_writer=X/postgres}",
       "b5d3a272db68e1bf90dac72663535c60"
     ],
     [
@@ -7382,8 +7551,8 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
-      "00df217df18d5eb358b8e7e82111483f"
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
+      "aa787d6d4c3bcce7ebea7ed3bb289779"
     ],
     [
       "sa_domain",
@@ -7478,8 +7647,8 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres}",
-      "04a0747b5a8b734740d7a7cbe8be966d"
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
+      "78399d5dde61a91bcd2e3850f4c164f7"
     ],
     [
       "sa_domain",
@@ -7491,7 +7660,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
-      "8488f360016e05bf282cc28c97f0546d"
+      "aa35fa65b43c300d47fdbc40b595d6de"
     ],
     [
       "sa_domain",
@@ -7706,7 +7875,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard,sa_account_writer=X/sa_guard}",
       "fc962af1956bc975e16ffe5c64ece7b2"
     ],
     [
@@ -7874,8 +8043,8 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "71d4749852493c75141d378a071cbbde"
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_account_writer=X/sa_guard}",
+      "b25abcf7e01dab7e6bf419864574ce5e"
     ],
     [
       "sa_domain",
@@ -7910,7 +8079,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
       "7f2905f06c2a3f732dc6c1015cea04ac"
     ],
     [
@@ -7960,6 +8129,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "aa08f281c633eb9304c26876213b34da"
+    ],
+    [
+      "sa_domain",
+      "queue_account",
+      "p_id bigint, p_job_id uuid, p_revoke boolean",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_executor=X/sa_account_writer}",
+      "18c9ba63d74a037a269954f080b20752"
     ],
     [
       "sa_domain",
@@ -8177,7 +8358,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
       "2cf92e05feab9a4c211412de4f00e1c7"
     ],
     [
@@ -8203,6 +8384,18 @@
       ],
       "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
       "691e14581a77f979c266ecece6ab76b7"
+    ],
+    [
+      "sa_domain",
+      "revoke_account_sessions",
+      "p_legacy_id bigint",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "2b44460a598b77ab4b5906645d123434"
     ],
     [
       "sa_domain",
@@ -8362,6 +8555,18 @@
     ],
     [
       "sa_domain",
+      "settle_account_failures",
+      "",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_worker=X/sa_account_writer}",
+      "3f3b4810b83d13ed228a3a3695bf3827"
+    ],
+    [
+      "sa_domain",
       "sku_price",
       "p_sku_id bigint, p_price_type bigint",
       "postgres",
@@ -8386,6 +8591,30 @@
     ],
     [
       "sa_domain",
+      "squad_account_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb, p_error text",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "5dba372580aede31d7e8fbe85ec1f657"
+    ],
+    [
+      "sa_domain",
+      "squad_account_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "d1bb756246ef0efc5408c876f34a6b37"
+    ],
+    [
+      "sa_domain",
       "squad_job_claim",
       "p_limit integer",
       "sa_worker",
@@ -8394,7 +8623,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "653290c4424855420df9dbcde749e801"
+      "c413babe8c0c6205e7cca5626d35f7a4"
     ],
     [
       "sa_domain",
@@ -9051,7 +9280,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,sa_executor=X/sa_worker,sa_app=X/sa_worker,authenticated=X/sa_worker}",
-      "2934d93bf76523be7d039e3469bc5b30"
+      "b6c724178f9a074e1b318f8cf4e888fe"
     ],
     [
       "sa_domain",
@@ -9395,7 +9624,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "b7c1a129af6fc8fb1ead2fc7d7b69398"
+      "a8b9164fc99e652ae1a2d37b21267a8e"
     ],
     [
       "sa_domain",
@@ -9940,7 +10169,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
       "177a1d4ac15fc61c8d7616a8434c39e5"
     ],
     [
@@ -10098,7 +10327,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard,sa_account_writer=X/sa_guard}",
       "8946ae35c7caf955a78b35bad2bedf5b"
     ],
     [
@@ -10110,7 +10339,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_account_writer=X/postgres}",
       "9e021ef5e7eb2ff9127c8c67965af3ad"
     ],
     [
@@ -10127,6 +10356,13 @@
     ]
   ],
   [
+    [
+      "sa_account_writer",
+      false,
+      false,
+      false,
+      false
+    ],
     [
       "sa_executor",
       false,
@@ -10203,7 +10439,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_domain",
@@ -10235,7 +10471,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=a/postgres,sa_media_writer=a/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=a/postgres,sa_media_writer=a/postgres,sa_account_writer=a/postgres}"
     ],
     [
       "sa_domain",
@@ -10243,7 +10479,7 @@
       "S",
       false,
       false,
-      "{postgres=rwU/postgres,sa_executor=U/postgres,sa_worker=U/postgres,sa_media_writer=U/postgres}"
+      "{postgres=rwU/postgres,sa_executor=U/postgres,sa_worker=U/postgres,sa_media_writer=U/postgres,sa_account_writer=U/postgres}"
     ],
     [
       "sa_domain",
@@ -10259,7 +10495,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_media_writer=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_media_writer=arw/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_domain",
@@ -10291,7 +10527,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_media_writer=arw/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_media_writer=arw/postgres,sa_guard=r/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_domain",
@@ -10307,7 +10543,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres,sa_executor=r/postgres,sa_account_writer=rw/postgres}"
     ],
     [
       "sa_domain",
@@ -10379,7 +10615,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=rw/postgres,sa_media_writer=a/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=rw/postgres,sa_media_writer=a/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_domain",
@@ -10387,7 +10623,7 @@
       "S",
       false,
       false,
-      "{postgres=rwU/postgres,sa_worker=U/postgres,sa_executor=U/postgres,sa_media_writer=U/postgres}"
+      "{postgres=rwU/postgres,sa_worker=U/postgres,sa_executor=U/postgres,sa_media_writer=U/postgres,sa_account_writer=U/postgres}"
     ],
     [
       "sa_domain",
@@ -10427,7 +10663,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_domain",
@@ -10459,7 +10695,7 @@
       "r",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_media",
@@ -10491,7 +10727,7 @@
       "r",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_sync",
@@ -10507,7 +10743,7 @@
       "r",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_sync",

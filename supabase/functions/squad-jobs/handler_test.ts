@@ -44,3 +44,7 @@ Deno.test('failed storage cleanup remains unacknowledged',async()=>{
 Deno.test('cleanup refuses paths outside reserved upload bucket',async()=>{
  let removed=false;const h=createHandler('x'.repeat(48),async()=>({uploads:[{id:'x',path:'../canonical'}]}),async()=>{removed=true;});const r=await h(new Request('https://test.invalid/squad-jobs/media-cleanup',{method:'POST',headers:{Authorization:'Bearer '+'x'.repeat(48)},body:'{}'}));assert(r.status===503);assert(!removed);
 });
+Deno.test('account reconciliation uses the installed handler and retains lease secrecy',async()=>{
+ let seen=false;const rpc:Rpc=async()=>({paused:false,jobs:[{id:'account',lease_token:'private',handler:'account_reconciliation'}]});
+ const h=createHandler(secret,rpc,undefined,async j=>{assert(j.id==='account'&&j.lease_token==='private');seen=true;return{id:j.id,state:'done'};});const body=await(await h(request())).text();assert(seen&&body.includes('done')&&!body.includes('private'));
+});

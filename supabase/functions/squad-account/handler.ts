@@ -10,6 +10,7 @@ export interface Dependencies {
  signMedia:(paths:string[],expiresIn:number)=>Promise<Array<{path:string;signedURL?:string;error?:string|null}>>;
  storageUrl:string;
  uploads?:UploadDependencies;
+ accountStatus?:(authorization:string,input:Record<string,unknown>)=>Promise<unknown>;
 }
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
@@ -29,11 +30,19 @@ export function createHandler(deps:Dependencies){
   if(req.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
   const path=new URL(req.url).pathname.replace(/\/+$/,'');
   const route=path.slice(path.lastIndexOf('/squad-account/')+15);
-  if(!['media/grants','media/uploads','media/finalize','media/verify'].includes(route))return response({error:'NOT_FOUND'},404);
+  if(!['media/grants','media/uploads','media/finalize','media/verify','users/status'].includes(route))return response({error:'NOT_FOUND'},404);
   const authorization=req.headers.get('authorization')??'';
   if(!/^Bearer [^\s]+$/.test(authorization)||authorization.length>16384)return response({error:'SESSION_REQUIRED'},401);
   try{
    const input=await readBody(req);
+   if(route==='users/status'){
+    if(Object.keys(input).some(k=>!['user_id','action','reason','expected_version','idempotency_key'].includes(k))
+     ||typeof input.user_id!=='string'||!/^[1-9][0-9]{0,18}$/.test(input.user_id)
+     ||!['enable','disable','archive'].includes(String(input.action))||typeof input.reason!=='string'||typeof input.expected_version!=='string'
+     ||typeof input.idempotency_key!=='string'||!/^[a-f0-9-]{36}$/i.test(input.idempotency_key))throw new AccountError('INVALID_REQUEST',400);
+    if(!deps.accountStatus)throw new AccountError('SERVICE_UNAVAILABLE',503);
+    return response(await deps.accountStatus(authorization,input));
+   }
    if(route!=='media/grants'){
     if(!deps.uploads)throw new AccountError('SERVICE_UNAVAILABLE',503);
     return response(await(route==='media/uploads'?uploadRequest(deps.uploads,authorization,input):finalizeRequest(deps.uploads,authorization,input,route!=='media/verify')));
@@ -80,6 +89,7 @@ export function dependencies(url:string,anon:string,service:string):Dependencies
  }
  return {
   storageUrl:url+'/storage/v1',
+  accountStatus:(authorization,input)=>rpc(authorization,'account_user_status',{p_id:input.user_id,p_action:input.action,p_reason:input.reason,p_expected_version:input.expected_version,p_idempotency_key:input.idempotency_key}),
   resolveMedia:(authorization,references)=>rpc(authorization,'account_media_resolve',{p_references:references}),
   uploads:{
    rpc,

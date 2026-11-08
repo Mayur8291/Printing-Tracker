@@ -296,6 +296,7 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   me(): Promise<Me>;
   reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
   verifyMediaUpload(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached'}>;
+  setAccountStatus(id:EntityId,action:'enable'|'disable'|'archive',reason:string,command:Command):Promise<{id:EntityId;version:string;state:'enabled'|'disabled'|'archived';account_reconciliation:'queued'}>;
   finalizeMediaUpload(uploadId:string,command:Command):Promise<MediaMutation>;
   detachMedia(target:{resource:string;record_id:EntityId;field:string},reason:string,command:Command):Promise<MediaMutation>;
   mediaGrants(references:Array<Pick<MediaReference,'resource'|'record_id'|'field'|'pointer'>>,options?:{download?:boolean}):Promise<{references:Array<Omit<MediaReference,'status'> & {status:MediaReference['status']|'unavailable'|'external_unavailable';url?:string;expires_in?:number;bytes?:string;content_type?:string;version?:string}>;generation:string;as_of:string}>;

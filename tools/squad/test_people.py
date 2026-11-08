@@ -195,10 +195,10 @@ class ConcurrentPeople(unittest.TestCase):
  def tearDown(self):
   with connect() as c,c.transaction():
    ids=[r[0] for r in c.execute('SELECT id FROM sa_snapshot_20261019.sa_users WHERE email=%s',(self.email,))]
+   c.execute('DELETE FROM sa_domain.account_requests WHERE legacy_user_id=ANY(%s)',(ids,))
    for table in ['outbox','audit']:
     c.execute('DELETE FROM sa_domain.'+table+' WHERE command_key=ANY(%s)',(self.keys,))
    c.execute('DELETE FROM sa_domain.commands WHERE key=ANY(%s)',(self.keys,))
-   c.execute('DELETE FROM sa_domain.account_requests WHERE legacy_user_id=ANY(%s)',(ids,))
    c.execute("DELETE FROM sa_domain.entity_versions WHERE kind='person' AND entity_id=ANY(%s)",(ids,))
    c.execute('DELETE FROM sa_snapshot_20261019.sa_users WHERE id=ANY(%s)',(ids,))
    c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=false');c.execute('UPDATE sa_sync.environment_state SET edit_revision=%s,synced_revision=%s',self.initial)

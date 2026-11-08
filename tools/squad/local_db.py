@@ -38,6 +38,7 @@ def bootstrap():
   CREATE TABLE auth.users(id uuid PRIMARY KEY,role text,email text,encrypted_password text,banned_until timestamptz,
     raw_app_meta_data jsonb DEFAULT '{}',raw_user_meta_data jsonb DEFAULT '{}',created_at timestamptz DEFAULT now(),updated_at timestamptz DEFAULT now());
   CREATE TABLE auth.sessions(id uuid PRIMARY KEY,user_id uuid REFERENCES auth.users,created_at timestamptz DEFAULT now(),updated_at timestamptz DEFAULT now(),not_after timestamptz);
+  CREATE TABLE auth.refresh_tokens(id bigint GENERATED ALWAYS AS IDENTITY,user_id text,session_id uuid REFERENCES auth.sessions ON DELETE CASCADE);
   CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $f$ SELECT (nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub')::uuid $f$;
   CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $f$ SELECT coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb,'{}'::jsonb) $f$;
   GRANT USAGE ON SCHEMA auth TO PUBLIC;

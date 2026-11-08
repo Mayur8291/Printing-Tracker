@@ -1,0 +1,26 @@
+{
+  "environment": "staging",
+  "actualSDK": true,
+  "actualGoTrue": true,
+  "actualEdgeWorker": true,
+  "immediateAccessRevoked": true,
+  "oldRefreshRevoked": true,
+  "oldAccessStillRevokedAfterEnable": true,
+  "samePasswordLoginRestored": true,
+  "idempotentStatus": true,
+  "customerDenied": true,
+  "timings": [
+    {
+      "operation": "disable",
+      "ms": 833
+    },
+    {
+      "operation": "enable",
+      "ms": 308
+    }
+  ],
+  "measured_at": "2026-11-08T04:38:58.350522+00:00",
+  "fixture_cleanup_verified": true,
+  "public_structure_unchanged": true,
+  "mirror_restored": true
+}

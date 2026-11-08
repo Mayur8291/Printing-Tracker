@@ -16,3 +16,11 @@ Deno.test('unsafe resolved bucket cannot be signed',async()=>{const d=deps();d.r
 Deno.test('duplicate verified files signed once',async()=>{const d=deps();const original=d.resolveMedia;d.resolveMedia=async(...args)=>{const r=await original(...args);r.references.push({...r.references[0]});return r;};d.signMedia=async(paths)=>{assert(paths.length===1);return[{path,signedURL:'/object/sign/canto-media/'+path+'?token=signed'}];};const body=await(await createHandler(d)(request({references:[ref,ref]}))).json();assert(body.references.length===2);});
 Deno.test('unsafe content gets download disposition',async()=>{const d=deps();const original=d.resolveMedia;d.resolveMedia=async(...args)=>{const r=await original(...args);r.references[0].content_type='image/svg+xml';return r;};const body=await(await createHandler(d)(request())).json();assert(new URL(body.references[0].url).searchParams.has('download'));});
 Deno.test('unexpected error exposes no internal message',async()=>{const d=deps();d.signMedia=()=>{throw new Error('private service credential');};const r=await createHandler(d)(request());assert(r.status===503);assert(!JSON.stringify(await r.json()).includes('credential'));});
+Deno.test('account status preserves caller JWT and accepts only bounded status commands',async()=>{
+ let calls=0;const h=createHandler({storageUrl:'https://test.invalid/storage/v1',resolveMedia:async()=>{throw new Error();},signMedia:async()=>[],accountStatus:async(auth,input)=>{assert(auth==='Bearer actor');assert(input.user_id==='42');calls++;return{state:'disabled'};}});
+ const input={user_id:'42',action:'disable',reason:'Test',expected_version:'0:0',idempotency_key:crypto.randomUUID()};
+ const req=(body:unknown,auth='Bearer actor')=>new Request('https://test.invalid/squad-account/users/status',{method:'POST',headers:{Authorization:auth},body:JSON.stringify(body)});
+ assert((await h(req(input))).status===200&&calls===1);
+ for(const body of [{...input,user_id:42},{...input,role:0},{...input,action:'delete'},{...input,idempotency_key:null}])assert((await h(req(body))).status===400);
+ assert((await h(req(input,''))).status===401&&calls===1);
+});
