@@ -1,0 +1,1966 @@
+{
+  "source_commit": "14277820c78e018e62be3da1a14cd8d716cdbf02",
+  "rules": [
+    {
+      "legacy_type": 1,
+      "strategy": "NewCustomerRegisteredStrategy",
+      "topic": "customer.registered",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "person",
+      "title": "New Customer Alert!",
+      "body": "Yay! A brand-new customer has just joined the family. Time to impress!",
+      "action": "Take user to Customer verification Page",
+      "source": "services/notifications/strategies/new_customer_registered_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/customers_controller.rb:323"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 2,
+      "strategy": "SalesCoordinatorAssignedCustomerStrategy",
+      "topic": "customer.coordinator_assigned",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "person",
+      "title": "New Customer Alert!",
+      "body": "Woohoo! You've just been paired up with {{Customer Name}} as their Account Manager. Time to roll up your sleeves and make some magic happen!",
+      "action": "Take user to customer onboarding page",
+      "source": "services/notifications/strategies/sales_coordinator_assigned_customer_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/customers_controller.rb:273",
+        "controllers/api/v1/customers_controller.rb:385",
+        "controllers/api/v1/customers_controller.rb:421",
+        "services/convert_to_direct_deal_service.rb:39"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 3,
+      "strategy": "RmpOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Order Placed Successfully",
+      "body": "Your order (ID: {{Order Number}}) has been placed! We'll notify you once it's processed. Track it in your orders section.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/rmp_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:27",
+        "services/notifications/order_notification_trigger_service.rb:30"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 4,
+      "strategy": "AdminRmpOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "admin",
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "New Order Received!",
+      "body": "{{Customer Name}} just placed a new order worth ₹{{Order Amount}} for {{Product Class}}{{Product Count}}. Tap to view order details",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/admin_rmp_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:31"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 5,
+      "strategy": "DealerOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Order Placed Successfully",
+      "body": "Your order (ID: {{Order Number}}) has been placed! We'll notify you once it's processed. Track it in your orders section.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/dealer_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:34"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 6,
+      "strategy": "AdminDealerOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "admin",
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "New Order Received!",
+      "body": "{{Dealer Name}} just placed a new order worth ₹{{Order Amount}} for {{Product Class}}{{Product Count}}. Tap to view order details",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/admin_dealer_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:35"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 7,
+      "strategy": "DealerCustomOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Order Placed Successfully",
+      "body": "Your custom order {{Order Number}} has been received. Your Key Account Manager will review and contact you shortly for next steps.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/dealer_custom_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:58"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 8,
+      "strategy": "AdminDealerCustomOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "New Custom Order from {{Dealer Name}}",
+      "body": "Your dealer {{Dealer Name}} has placed a custom order {{Order Number}}. Please review all details and coordinate with the production team for feasibility and next steps.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/admin_dealer_custom_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:59"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 9,
+      "strategy": "SalesCoordinatorCustomerOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Order Placed Successfully",
+      "body": "You KAM {{SC Name}} has placed an order {{Order Number}} for {{Order Amount}} for {{Product Class}}{{Product Count}} on your behalf. Track it in your orders section.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/sales_coordinator_customer_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:39"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 10,
+      "strategy": "AdminSalesCoordinatorCustomerOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "New Order Received!",
+      "body": "{{SC Name}} just placed a new order worth ₹{{Order Amount}} for {{Product Class}}{{Product Count}} on behalf of {{Customer Name}}.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/admin_sales_coordinator_customer_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:40"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 11,
+      "strategy": "SalesCoordinatorDealerOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Order Placed Successfully",
+      "body": "You KAM {{SC Name}} has placed an order {{Order Number}} for {{Order Amount}} for{{Product Class}}{{Product Count}} on your behalf. Track it in your orders section.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/sales_coordinator_dealer_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:43",
+        "services/notifications/order_notification_trigger_service.rb:70"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 12,
+      "strategy": "AdminSalesCoordinatorDealerOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "New Order Received!",
+      "body": "{{SC Name}} just placed a new order worth ₹{{Order Amount}} for {{Product Class}}{{Product Count}} on behalf of {{Dealer Name}}.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/admin_sales_coordinator_dealer_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:44",
+        "services/notifications/order_notification_trigger_service.rb:71"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 14,
+      "strategy": "CustomOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "customer_when_actor_customer",
+        "dealer_when_actor_dealer"
+      ],
+      "entity": "order",
+      "title": "Custom Order Placed Successfully!",
+      "body": "Your custom order (ID: {{Order Number}}) has been placed! We'll notify you with next steps soon.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/custom_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:80"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 15,
+      "strategy": "AdminCustomOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "admin",
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "New Custom Order Received!",
+      "body": "{{Customer Name}} has placed a new custom order worth ₹{{Order Amount}}. Please review and coordinate with production.",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/admin_custom_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:81"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 16,
+      "strategy": "CustomerRmpOrderProcessingStrategy",
+      "topic": "order.processing",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Order {{Order Number}} is Now Being Processed",
+      "body": "Great news! Your order {{Order Number}} is now under processing. We'll update you when it's ready for dispatch.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_rmp_order_processing_strategy.rb",
+      "callsites": [
+        "services/update_uc_order_status_service.rb:47"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 17,
+      "strategy": "SalesCoordinatorRmpOrderProcessingStrategy",
+      "topic": "order.processing",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Order Processed for Your Customer",
+      "body": "The order {{Order Number}} placed by {{Customer Name}} has been processed. Track the next steps or follow up if needed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_rmp_order_processing_strategy.rb",
+      "callsites": [
+        "services/update_uc_order_status_service.rb:48"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 18,
+      "strategy": "CustomerRmpOrderCancellationStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "❌ Your Order Has Been Cancelled",
+      "body": "Your order {{Order Number}} has been cancelled. Please contact your Sales Coordinator or support if this was unintentional.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_rmp_order_cancellation_strategy.rb",
+      "callsites": [
+        "services/update_uc_order_status_service.rb:51"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 19,
+      "strategy": "SalesCoordinatorRmpOrderCancellationStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "❌ Order Cancellation Update",
+      "body": "{{Order Number}} was cancelled by inventory team. Please review and follow up if required.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_rmp_order_cancellation_strategy.rb",
+      "callsites": [
+        "services/update_uc_order_status_service.rb:52"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 20,
+      "strategy": "CustomerPartialPickupCompletedStrategy",
+      "topic": "order.pickup_partial",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "📦 Your Order is Partially Ready",
+      "body": "Good news! Part of your order {{Order Number}} is ready for pickup. We'll notify you when the rest is completed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_partial_pickup_completed_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 21,
+      "strategy": "SalesCoordinatorPartialPickupCompletedStrategy",
+      "topic": "order.pickup_partial",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Partial Completion: Order {{Order Number}}",
+      "body": "Order {{Order Number}} for your customer {{Customer Name}} has been partially completed. Please review the status and coordinate next steps.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_partial_pickup_completed_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 22,
+      "strategy": "CustomerRmpOrderCompletedStrategy",
+      "topic": "order.completed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "✅ Order {{Order Number}} Completed – How Did We Do?",
+      "body": "Your order is complete! Tap here to rate your experience and help us improve.",
+      "action": "Take user to rating page",
+      "source": "services/notifications/strategies/customer_rmp_order_completed_strategy.rb",
+      "callsites": [
+        "services/update_order_status_service.rb:37"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 23,
+      "strategy": "SalesCoordinatorRmpOrderCompletedStrategy",
+      "topic": "order.completed",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "🎯 Order Completed & Milestone Updated",
+      "body": "Order {{Order Number}} for {{Customer Name}} is complete. Check your milestone progress now.",
+      "action": "Take user to milestone page",
+      "source": "services/notifications/strategies/sales_coordinator_rmp_order_completed_strategy.rb",
+      "callsites": [
+        "services/update_order_status_service.rb:38"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 24,
+      "strategy": "DealerCustomerOrderPartiallyReadyStrategy",
+      "topic": "order.dealer_ready",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "📦 Your Order is Partially Ready",
+      "body": "Good news! Part of your order {{Order Number}} is ready for pickup. We'll notify you when the rest is completed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_customer_order_partially_ready_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 26,
+      "strategy": "CustomerCustomOrderDueDateChangedStrategy",
+      "topic": "order.due_changed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Due Date Changed for Your Order {{Order Number}}",
+      "body": "The due date for your custom order {{Order Number}} has been updated to {{New Due Date}} by your Sales Coordinator. Please contact your coordinator if you have any questions.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_custom_order_due_date_changed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:555"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 27,
+      "strategy": "SalesCoordinatorCustomOrderDueDateChangedStrategy",
+      "topic": "order.due_changed",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Due Date Updated for Order {{Order Number}}",
+      "body": "You have successfully updated the due date for Order {{Order Number}} to {{New Due Date}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_custom_order_due_date_changed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:556"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 28,
+      "strategy": "ProductionCoordinatorCustomOrderDueDateChangedStrategy",
+      "topic": "order.due_changed",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "📅 Due Date Changed for Order {{Order Number}}",
+      "body": "The Sales Coordinator {{SC Name}} has updated the due date for Order {{Order Number}} of (Customer: {{Customer/Dealer Name}}) to {{New Due Date}}. Please review and adjust production schedules accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_custom_order_due_date_changed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:557"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 29,
+      "strategy": "CustomerCustomOrderFactoryAssignedStrategy",
+      "topic": "order.factory_assigned",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Custom Order is Now in Production",
+      "body": "Good news! Your custom order {{Order Number}} has been assigned to a production factory. We'll keep you updated on the progress.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_custom_order_factory_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:322"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 30,
+      "strategy": "SalesCoordinatorCustomerOrderFactoryAssignedStrategy",
+      "topic": "order.factory_assigned",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Factory Assigned for Customer Order {{Order Number}}",
+      "body": "The production for your customer {{Customer Name}}'s custom order {{Order Number}} has been assigned to {{Factory Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_customer_order_factory_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:323"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 31,
+      "strategy": "ProductionCoordinatorCustomOrderFactoryAssignedStrategy",
+      "topic": "order.factory_assigned",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Factory Assignment Confirmed for Order {{Order Number}}",
+      "body": "You have successfully assigned {{Factory Name}} for custom order {{Order Number}} of customer {{Customer Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_custom_order_factory_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:324"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 32,
+      "strategy": "FactoryManagerCustomOrderAssignedStrategy",
+      "topic": "order.factory_assigned",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "New Custom Order Assigned: {{Order Number}}",
+      "body": "A new custom order {{Order Number}} has been assigned to your factory with Due Date on {{Due Date}}. Please review and schedule production.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/factory_manager_custom_order_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:325"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 33,
+      "strategy": "FactoryManagerCuttingMasterAssignedStrategy",
+      "topic": "item.cutter_assigned",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "Cutting Master Assigned Successfully for Order {{Order Number}}",
+      "body": "You have successfully assigned {{Cutting Master Name}} for the cutting process of Order {{Order Number}}. Please ensure the cutting process starts as per the production timeline.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/factory_manager_cutting_master_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:417"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 34,
+      "strategy": "SalesCoordinatorCuttingMasterAssignedStrategy",
+      "topic": "item.cutter_assigned",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Cutting Master Assigned for Order {{Order Number}}",
+      "body": "Factory has assigned {{Cutting Master Name}} to start the cutting process for your customer's order {{Order Number}} for ({{Customer Name}}).",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_cutting_master_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:418"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 35,
+      "strategy": "ProductionCoordinatorCuttingMasterAssignedStrategy",
+      "topic": "item.cutter_assigned",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Cutting Master Assigned for Order {{Order Number}}",
+      "body": "{{Cutting Master Name}} has been assigned for the cutting process of Order {{Order Number}} ({{Customer Name}}). Factory: {{Factory Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_cutting_master_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:419"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 36,
+      "strategy": "CuttingMasterAssignedStrategy",
+      "topic": "item.cutter_assigned",
+      "recipients": [
+        "cutting_master"
+      ],
+      "entity": "order",
+      "title": "You Have Been Assigned to Cutting for Order {{Order Number}}",
+      "body": "You’ve been assigned as the Cutting Master for Order {{Order Number}}. Please start as per schedule.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:420"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 37,
+      "strategy": "CuttingMasterPartialCuttingSelfStrategy",
+      "topic": "item.cut_partial",
+      "recipients": [
+        "cutting_master"
+      ],
+      "entity": "order",
+      "title": "Partial Cutting Completed for Order {{Order Number}}",
+      "body": "You have marked partial completion for the cutting process of Order {{Order Number}}. Please continue as per the production schedule.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_self_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:32"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 38,
+      "strategy": "CuttingMasterPartialCuttingFactoryManagerStrategy",
+      "topic": "item.cut_partial",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "Partial Cutting Completed for Order {{Order Number}}",
+      "body": "Cutting Master {{Cutting Master Name}} has partially completed cutting for Order {{Order Number}} ({{Customer Name}}).",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_factory_manager_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:33"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 39,
+      "strategy": "CuttingMasterPartialCuttingSalesCoordinatorStrategy",
+      "topic": "item.cut_partial",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Partial Cutting Completed for Order {{Order Number}}",
+      "body": "Cutting Master {{Cutting Master Name}} has partially completed cutting for your customer’s Order {{Order Number}} ({{Customer Name}}).",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_sales_coordinator_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:34"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 40,
+      "strategy": "CuttingMasterPartialCuttingProductionCoordinatorStrategy",
+      "topic": "item.cut_partial",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Partial Cutting Completed for Order {{Order Number}}",
+      "body": "Cutting Master {{Cutting Master Name}} has partially completed cutting for Order {{Order Number}} ({{Customer Name}}) at Factory {{Factory Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_production_coordinator_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:35"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 41,
+      "strategy": "CuttingMasterFullCuttingSelfStrategy",
+      "topic": "item.cut_complete",
+      "recipients": [
+        "cutting_master"
+      ],
+      "entity": "order",
+      "title": "Cutting Completed for Order {{Order Number}}",
+      "body": "You have successfully completed cutting for Order {{Order Number}}. Please inform the next department in production.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_full_cutting_self_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:27"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 42,
+      "strategy": "CuttingMasterFullCuttingFactoryManagerStrategy",
+      "topic": "item.cut_complete",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "Cutting Completed for Order {{Order Number}}",
+      "body": "{{Cutting Master Name}} has marked the cutting process as fully completed for Order {{Order Number}}. You can now assign remaining pcs to tailors for stitching.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_full_cutting_factory_manager_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:28"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 43,
+      "strategy": "CuttingMasterFullCuttingSalesCoordinatorStrategy",
+      "topic": "item.cut_complete",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Cutting Completed for Order {{Order Number}}",
+      "body": "Cutting Master {{Cutting Master Name}} has completed cutting for your customer’s Order {{Order Number}} ({{Customer Name}}).",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_full_cutting_sales_coordinator_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:29"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 44,
+      "strategy": "CuttingMasterFullCuttingProductionCoordinatorStrategy",
+      "topic": "item.cut_complete",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Cutting Completed for Order {{Order Number}}",
+      "body": "Cutting Master {{Cutting Master Name}} has completed cutting for Order {{Order Number}} ({{Customer Name}}) at Factory {{Factory Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/cutting_master_full_cutting_production_coordinator_strategy.rb",
+      "callsites": [
+        "services/update_order_cutting_status_service.rb:30"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 45,
+      "strategy": "FactoryManagerTailorAssignedStrategy",
+      "topic": "item.work_assigned",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "Tailors Assigned for Order {{Order Number}}",
+      "body": "You have successfully assigned Tailors for the stitching of Order {{Order Number}}, Qty {{Assigned Qty}}",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/factory_manager_tailor_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:287"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 46,
+      "strategy": "SalesCoordinatorTailorAssignedStrategy",
+      "topic": "item.work_assigned",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Tailors Assigned for Your Customer’s Order {{Order Number}}",
+      "body": "Tailors have been assigned for stitching your customer's Order {{Order Number}} ({{Customer Name}}). We will notify once the stitching is done.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_tailor_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:288"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 47,
+      "strategy": "ProductionCoordinatorTailorAssignedStrategy",
+      "topic": "item.work_assigned",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Stitching Stage Started for Order {{Order Number}}",
+      "body": "Tailors have been assigned for stitching Order {{Order Number}} (Customer: {{Customer Name}}). Please track production timelines.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_tailor_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:289"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 48,
+      "strategy": "InspectorTailorAssignedStrategy",
+      "topic": "item.work_assigned",
+      "recipients": [
+        "inspectors"
+      ],
+      "entity": "order",
+      "title": "Stitching Started - Be Ready for Pickup: Order {{Order Number}}",
+      "body": "Tailors have been assigned for stitching Order {{Order Number}}. Please plan for pickup of stitched garments after completion.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/inspector_tailor_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/factory_managers_controller.rb:290"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 49,
+      "strategy": "InspectorPartialPickupCompletedStrategy",
+      "topic": "item.inspected_partial",
+      "recipients": [
+        "inspectors"
+      ],
+      "entity": "order",
+      "title": "Partial Pickup Completed for Order {{Order Number}}",
+      "body": "You have successfully picked up {{Picked Quantity}} pieces from {{Tailor Name}} for Order {{Order Number}}. {{Balance Qty with that Tailor}} are left with him.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/inspector_partial_pickup_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:222"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 50,
+      "strategy": "FactoryManagerPartialPickupDoneStrategy",
+      "topic": "item.inspected_partial",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "Partial Pickup Done for Order {{Order Number}}",
+      "body": "{{Inspector/Chotu}} has picked up {{Picked Quantity}} pieces from {{Tailor Name}} for Order {{Order Number}}. Balance pieces still pending with other tailors.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/factory_manager_partial_pickup_done_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:223"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 51,
+      "strategy": "SalesCoordinatorPartialStitchingCompletedStrategy",
+      "topic": "item.inspected_partial",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Stitching completed of {{Picked Quantity}} pcs for Order {{Order Number}}",
+      "body": "A partial quantity ({{Picked Quantity}} pieces) for your customer’s order {{Order Number}} (Customer: {{Customer Name}}) has been picked up from Tailor and sent for Finishing. Remaining pieces are still in process.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_partial_stitching_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:227"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 52,
+      "strategy": "ProductionCoordinatorPartialStitchingCompletedStrategy",
+      "topic": "item.inspected_partial",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Partial Stitching Completed for Order {{Order Number}}",
+      "body": "Partial stitching has been completed for Order {{Order Number}} (Customer: {{Customer Name}}).",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_partial_stitching_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:228"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 53,
+      "strategy": "CustomerStitchingCompletedStrategy",
+      "topic": "item.inspected_complete",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Stitching Completed for Your Order {{Order Number}}",
+      "body": "The stitching for your Order {{Order Number}} is now complete. We will notify you when it is ready for delivery.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_stitching_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:230"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 54,
+      "strategy": "InspectorAllPiecesPickedStrategy",
+      "topic": "item.inspected_complete",
+      "recipients": [
+        "inspectors"
+      ],
+      "entity": "order",
+      "title": "All Pieces Picked for Order {{Order Number}}",
+      "body": "You have picked up all stitched pieces for Order {{Order Number}}. The garments are ready for delivery or further processing.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/inspector_all_pieces_picked_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:231"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 55,
+      "strategy": "FactoryManagerFullPickupCompletedStrategy",
+      "topic": "item.inspected_complete",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "Full Pickup Completed for Order {{Order Number}}",
+      "body": "Full pickup has been completed for Order {{Order Number}} by the inspector. Please prepare for delivery to the customer.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/factory_manager_full_pickup_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:232"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 56,
+      "strategy": "SalesCoordinatorFullStitchingCompletedStrategy",
+      "topic": "item.inspected_complete",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Full Stitching Completed for Order {{Order Number}}",
+      "body": "Full stitching has been completed for Order {{Order Number}} (Customer: {{Customer Name}}).",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_full_stitching_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:233"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 57,
+      "strategy": "ProductionCoordinatorFullStitchingCompletedStrategy",
+      "topic": "item.inspected_complete",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Full Stitching Completed for Order {{Order Number}}",
+      "body": "Full stitching has been completed for Order {{Order Number}} (Customer: {{Customer Name}}).",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_full_stitching_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/inspectors_controller.rb:234"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 58,
+      "strategy": "FactoryManagerPartialDispatchCompletedStrategy",
+      "topic": "item.dispatched",
+      "recipients": [
+        "factory_manager"
+      ],
+      "entity": "order",
+      "title": "Partial Dispatch Completed - Order {{Order Number}}",
+      "body": "Dispatch Incharge has marked {{Dispatched Qty}} of Order {{Order Number}} as dispatched. Balance quantity remains.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/factory_manager_partial_dispatch_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/dispatch_incharges_controller.rb:276"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 59,
+      "strategy": "SalesCoordinatorPartialDispatchCompletedStrategy",
+      "topic": "item.dispatched",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Partial Dispatch for Your Customer’s Order {{Order Number}}",
+      "body": "{{Dispatched Qty}} from your customer’s order {{Order Number}} (Customer: {{Customer Name}}) has been dispatched from {{Factory Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_partial_dispatch_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/dispatch_incharges_controller.rb:277"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 60,
+      "strategy": "ProductionCoordinatorPartialDispatchCompletedStrategy",
+      "topic": "item.dispatched",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Partial Dispatch Completed for Order {{Order Number}}",
+      "body": "{{Dispatched Qty}} from Order {{Order Number}} (Customer: {{Customer Name}}) has been dispatched from the factory. Remaining quantity is still under process.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_partial_dispatch_completed_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/dispatch_incharges_controller.rb:278"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 61,
+      "strategy": "ProductionCoordinatorJobworkerAssignedStrategy",
+      "topic": "order.worker_assigned",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Jobworker Assigned for Order {{Order Number}}",
+      "body": "You have successfully assigned {{Jobworker Factory Name}} to handle production for Order {{Order Number}} (Customer: {{Customer Name}}). Please track the production progress.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_jobworker_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:342"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 62,
+      "strategy": "SalesCoordinatorJobworkerAssignedStrategy",
+      "topic": "order.worker_assigned",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Jobworker Assigned for Your Customer’s Order {{Order Number}}",
+      "body": "Production for your customer’s order {{Order Number}} ({{Customer Name}}) has been assigned to {{Jobworker Factory Name}}. Production has started as per schedule.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_jobworker_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:343"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 63,
+      "strategy": "JobworkerNewProductionOrderAssignedStrategy",
+      "topic": "order.worker_assigned",
+      "recipients": [
+        "jobworker"
+      ],
+      "entity": "order",
+      "title": "New Production Order Assigned: {{Order Number}}",
+      "body": "You’ve been assigned to handle the production for Order {{Order Number}}. Please review the job details and start production as per the timeline.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/jobworker_new_production_order_assigned_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:344"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 64,
+      "strategy": "CustomerOrderNowInProductionStrategy",
+      "topic": "order.worker_assigned",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Custom Order is Now in Production",
+      "body": "Good news! Your custom order {{Order Number}} has been assigned to a production factory. We'll keep you updated on the progress.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_order_now_in_production_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/orders_controller.rb:345"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 65,
+      "strategy": "ProductionCoordinatorPriceAssignedForJobworkerStrategy",
+      "topic": "item.worker_cost_changed",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Price successfully Assigned for Order {{Order Number}}",
+      "body": "You have successfully assigned pricing for workers at {{Jobworker Factory Name}} for Order {{Order Number}} (Customer: {{Customer Name}}). Please monitor production accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_price_assigned_for_jobworker_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:37"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 66,
+      "strategy": "JobworkerPriceUpdatedStrategy",
+      "topic": "item.worker_cost_changed",
+      "recipients": [
+        "jobworker"
+      ],
+      "entity": "order",
+      "title": "Price updated for Order {{Order Number}}",
+      "body": "The production price for Order {{Order Number}} has been updated. Please review the revised rates before proceeding further.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/jobworker_price_updated_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:38"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 67,
+      "strategy": "SalesCoordinatorFabricOrderedStrategy",
+      "topic": "item.fabric_ordered",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Fabric Ordered for Your Customer’s Order {{Order Number}}",
+      "body": "Fabric for your customer's custom order {{Order Number}} (Customer: {{Customer Name}}) has been ordered. We’ll notify you as the production progresses.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_fabric_ordered_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:58"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 68,
+      "strategy": "ProductionCoordinatorFabricOrderedStrategy",
+      "topic": "item.fabric_ordered",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Fabric Ordered for Order {{Order Number}}",
+      "body": "Fabric for order {{Order Number}} (Customer: {{Customer Name}}) has been ordered. We’ll notify you as the production progresses.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_fabric_ordered_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:59"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 69,
+      "strategy": "SalesCoordinatorCuttingStartedStrategy",
+      "topic": "item.cutting_started",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Cutting Started for Your Customer’s Order {{Order Number}}",
+      "body": "Cutting for your customer {{Customer Name}}'s custom order {{Order Number}} has started. Production is underway.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_cutting_started_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:61"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 70,
+      "strategy": "ProductionCoordinatorCuttingStartedStrategy",
+      "topic": "item.cutting_started",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Cutting Started by Jobworker for Order {{Order Number}}",
+      "body": "The status for Order {{Order Number}} (Customer: {{Customer Name}}) has been updated to \"Under Cutting by Jobworker.\" Please monitor the progress.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_cutting_started_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:62"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 71,
+      "strategy": "CustomerDealerStitchingStartedStrategy",
+      "topic": "item.stitching_started",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Stitching Started for Your Order {{Order Number}}",
+      "body": "Your custom order {{Order Number}} is now in the stitching stage. Our production team is working to complete your order as per the timeline.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_dealer_stitching_started_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:64"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 72,
+      "strategy": "SalesCoordinatorStitchingStartedStrategy",
+      "topic": "item.stitching_started",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Stitching Started for Your Customer’s Order {{Order Number}}",
+      "body": "Stitching for your customer’s order {{Order Number}} (Customer: {{Customer Name}}) has started. We’ll keep you updated on further progress.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_stitching_started_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:65"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 73,
+      "strategy": "ProductionCoordinatorStitchingStartedStrategy",
+      "topic": "item.stitching_started",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Stitching Started for Order {{Order Number}}",
+      "body": "The status for Order {{Order Number}} (Customer: {{Customer Name}}) has been updated to \"In Stitching.\" Please monitor production milestones.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_stitching_started_strategy.rb",
+      "callsites": [
+        "controllers/api/v1/items_controller.rb:66"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 74,
+      "strategy": "CustomerPriceUpdatedStrategy",
+      "topic": "order.price_changed",
+      "recipients": [
+        "customer",
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Price Updated for Your Order {{Order Number}}",
+      "body": "The price for your custom order {{Order Number}} has been updated by your Sales Coordinator. Please review the updated pricing and contact your coordinator for any clarification.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_price_updated_strategy.rb",
+      "callsites": [
+        "services/check_item_prices_service.rb:28"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 75,
+      "strategy": "SalesCoordinatorPriceUpdatedStrategy",
+      "topic": "order.price_changed",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Price Updated Successfully for Order {{Order Number}}",
+      "body": "You have successfully updated the price for Order {{Order Number}} of {{Customer Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_price_updated_strategy.rb",
+      "callsites": [
+        "services/check_item_prices_service.rb:29"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 76,
+      "strategy": "ProductionCoordinatorPriceChangedStrategy",
+      "topic": "order.price_changed",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Price Changed for Custom Order {{Order Number}}",
+      "body": "{{Sales Coordinator Name}} has updated the price for Order{{Order Number}} of (Customer: {{Customer Name}}). Please review if this impacts production costing or planning.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_price_changed_strategy.rb",
+      "callsites": [
+        "services/check_item_prices_service.rb:30"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 77,
+      "strategy": "AdminPriceChangeAlertStrategy",
+      "topic": "order.price_changed",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "Price Change Alert: Order {{Order Number}}",
+      "body": "The Sales Coordinator {{Sales Coordinator Name}} has updated the price for Custom Order {{Order Number}} of (Customer: {{Customer Name}}).",
+      "action": "-",
+      "source": "services/notifications/strategies/admin_price_change_alert_strategy.rb",
+      "callsites": [
+        "services/check_item_prices_service.rb:31"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 78,
+      "strategy": "CustomerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Order Has Been Updated!",
+      "body": "You've successfully edited your order {{Order Number}}. Check your updated order details in the order section",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:52"
+      ]
+    },
+    {
+      "legacy_type": 79,
+      "strategy": "SalesCoordinatorCustomerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Customer Edited Their Order!",
+      "body": "{{Customer Name}} has updated Order {{Order Number}}. Review the changes and follow up if needed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_customer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:52"
+      ]
+    },
+    {
+      "legacy_type": 80,
+      "strategy": "AdminCustomerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "Customer Edited Their Order!",
+      "body": "{{Customer Name}} has updated Order {{Order Number}}. Review the changes and follow up if needed.",
+      "action": "-",
+      "source": "services/notifications/strategies/admin_customer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:52"
+      ]
+    },
+    {
+      "legacy_type": 81,
+      "strategy": "DealerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Your Order Has Been Updated!",
+      "body": "You've successfully edited your order {{Order Number}}. Check your updated order details in the order section",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:54"
+      ]
+    },
+    {
+      "legacy_type": 82,
+      "strategy": "SalesCoordinatorDealerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Dealer Edited Their Order!",
+      "body": "{{Dealer Name}} has updated Order {{Order Number}}. Review the changes and follow up if needed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_dealer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:54"
+      ]
+    },
+    {
+      "legacy_type": 83,
+      "strategy": "AdminDealerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "Dealer Edited Their Order!",
+      "body": "{{Dealer Name}} has updated Order {{Order Number}}.",
+      "action": "-",
+      "source": "services/notifications/strategies/admin_dealer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:54"
+      ]
+    },
+    {
+      "legacy_type": 84,
+      "strategy": "DealerCustomerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Customer Edited Their Order!",
+      "body": "{{Customer Name}} has updated Order {{Order Number}}. Review the changes and follow up if needed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_customer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:56"
+      ]
+    },
+    {
+      "legacy_type": 85,
+      "strategy": "DealersCustomerOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Order Has Been Updated!",
+      "body": "You've successfully edited your order {{Order Number}}. Check your updated order details in the order section",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealers_customer_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:56"
+      ]
+    },
+    {
+      "legacy_type": 86,
+      "strategy": "CustomerOrderEditedByScStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Order Has Been Updated!",
+      "body": "Your KAM {{SC Name}} has edited an order {{Order Number}} on your behalf. Review changes now.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_order_edited_by_sc_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:59"
+      ]
+    },
+    {
+      "legacy_type": 87,
+      "strategy": "AdminCustomerOrderEditedByScStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "Customer Edited Their Order!",
+      "body": "{{SC Name}} just edited Order {{Order Number}} on behalf of {{Customer Name}}.",
+      "action": "-",
+      "source": "services/notifications/strategies/admin_customer_order_edited_by_sc_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:59"
+      ]
+    },
+    {
+      "legacy_type": 88,
+      "strategy": "DealerOrderEditedByScStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Order Has Been Updated!",
+      "body": "Your KAM {{SC Name}} has edited an order {{Order Number}} on your behalf. Review changes now.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_order_edited_by_sc_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:61"
+      ]
+    },
+    {
+      "legacy_type": 89,
+      "strategy": "CustomerDealerCustomOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Custom Order {{Order Number}} Has Been Updated",
+      "body": "Your custom order {{Order Number}} has been updated successfully. Our team will review the changes and proceed accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_dealer_custom_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:72",
+        "services/notifications/update_notification_order_service.rb:74"
+      ]
+    },
+    {
+      "legacy_type": 90,
+      "strategy": "SalesCoordinatorCustomOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Updated by {{Customer/Dealer Name}}",
+      "body": "{{Customer/Dealer Name}} has edited their custom order {{Order Number}}. Please review the changes and coordinate with the production team if required.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_custom_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:72",
+        "services/notifications/update_notification_order_service.rb:74"
+      ]
+    },
+    {
+      "legacy_type": 91,
+      "strategy": "ProductionCoordinatorCustomOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Updated – Review Changes",
+      "body": "The custom order {{Order Number}} has been edited. Please review the updated details and adjust production plans if necessary.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_custom_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:72",
+        "services/notifications/update_notification_order_service.rb:74"
+      ]
+    },
+    {
+      "legacy_type": 92,
+      "strategy": "DealerCustomerCustomOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Custom Order {{Order Number}} Has Been Updated",
+      "body": "Your KAM {{Dealer Name}} has edited a custom order {{Order Number}} for you. Please check and review.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_customer_custom_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:76"
+      ],
+      "correction": "The source calls undefined add_dealers_customer_recipients. Resolve the order customer, then apply current recipient scope."
+    },
+    {
+      "legacy_type": 93,
+      "strategy": "DealerCustomOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Updated Successfully",
+      "body": "You have successfully updated the custom order {{Order Number}} for your customer {{Customer Name}}. Please ensure to update your backorder with us accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_custom_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:76"
+      ]
+    },
+    {
+      "legacy_type": 94,
+      "strategy": "ScCustomOrderEditedStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Updated Successfully",
+      "body": "You have successfully updated the custom order {{Order Number}} for your customer {{Customer Name}} / dealer {{Dealer Name}}. Please coordinate with Production Team accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sc_custom_order_edited_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:78"
+      ]
+    },
+    {
+      "legacy_type": 95,
+      "strategy": "CustomerDealerCustomOrderEditedByScStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Custom Order {{Order Number}} Has Been Updated",
+      "body": "Your KAM {{Sales Coordinator Name}} has edited a custom order {{Order Number}} for you. Please check and review.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_dealer_custom_order_edited_by_sc_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:78"
+      ]
+    },
+    {
+      "legacy_type": 96,
+      "strategy": "ProductionCoordinatorCustomOrderEditedByScStrategy",
+      "topic": "order.edited",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Updated by Sales Coordinator",
+      "body": "{{Sales Coordinator Name}} has updated the custom order {{Order Number}} for {{Customer/Dealer Name}}. Please review the changes and adjust production plans if needed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_custom_order_edited_by_sc_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": [
+        "services/notifications/update_notification_order_service.rb:78"
+      ]
+    },
+    {
+      "legacy_type": 97,
+      "strategy": "RmpPriceEditCustomerStrategy",
+      "topic": "order.rmp_price_changed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Price Update in Your Order {{Order Number}}",
+      "body": "The price of an item in your order {{Order Number}} has been updated. Please review the changes before proceeding.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/rmp_price_edit_customer_strategy.rb",
+      "callsites": [
+        "services/check_item_prices_service.rb:25"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 98,
+      "strategy": "RmpPriceEditDealerStrategy",
+      "topic": "order.rmp_price_changed",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Price Update in Your Order {{Order Number}}",
+      "body": "The price of an item in your order {{Order Number}} has been updated. Please review the changes before proceeding.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/rmp_price_edit_dealer_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 99,
+      "strategy": "RmpPriceEditAdminStrategy",
+      "topic": "order.rmp_price_changed",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "Price Updated by SC",
+      "body": "The price of an item is updated in Order {{Order Number}} by {{SC Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/rmp_price_edit_admin_strategy.rb",
+      "callsites": [
+        "services/check_item_prices_service.rb:26"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 100,
+      "strategy": "CustomOrderCancelledCustomerStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "❌ Your Order {{Order Number}} Has Been Cancelled",
+      "body": "Your custom order {{Order Number}} has been cancelled by your KAM {{SC Name}}. For any questions, please contact your coordinator.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/custom_order_cancelled_customer_strategy.rb",
+      "callsites": [
+        "services/delete_order_service.rb:31"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 101,
+      "strategy": "CustomOrderCancelledSalesCoordinatorStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Order {{Order Number}} Cancelled Successfully",
+      "body": "You have successfully cancelled the custom order {{Order Number}} for {{Customer Name}}.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/custom_order_cancelled_sales_coordinator_strategy.rb",
+      "callsites": [
+        "services/delete_order_service.rb:32"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 102,
+      "strategy": "CustomOrderCancelledProductionCoordinatorStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Cancelled by Sales Coordinator",
+      "body": "{{SC Name}} has cancelled the custom order {{Order Number}} for {{Customer Name}}. Please stop any ongoing production processes if pplicable.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/custom_order_cancelled_production_coordinator_strategy.rb",
+      "callsites": [
+        "services/delete_order_service.rb:33"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 103,
+      "strategy": "CustomOrderCancelledAdminStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "❌ Order {{Order Number}} Cancelled by Sales Coordinator",
+      "body": "{{SC Name}} has cancelled the custom order {{Order Number}} for {{Customer Name}}. Please review the cancellation.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/custom_order_cancelled_admin_strategy.rb",
+      "callsites": [
+        "services/delete_order_service.rb:34"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 104,
+      "strategy": "DealerCancelledCustomOrderCustomerStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Your Order {{Order Number}} Has Been Cancelled",
+      "body": "Your custom order {{Order Number}} has been cancelled by your dealer {{Dealer Name}}. For any questions, please contact your coordinator.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_cancelled_custom_order_customer_strategy.rb",
+      "callsites": [
+        "services/cancel_order_service.rb:26"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 105,
+      "strategy": "DealerCancelledCustomOrderDealerStrategy",
+      "topic": "order.cancelled",
+      "recipients": [
+        "actor"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Cancelled Successfully",
+      "body": "You have successfully cancelled the custom order {{Order Number}} of your customer {{Customer Name}}. Please inform the customer if needed.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_cancelled_custom_order_dealer_strategy.rb",
+      "callsites": [
+        "services/cancel_order_service.rb:27"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 106,
+      "strategy": "DealerCustomerRmpOrderPlacedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "New Order Received!",
+      "body": "{{Customer Name}} just placed a new order worth ₹{{Order Amount}} for {{Product Class}}{{Product Count}}. Tap to view order details",
+      "action": "Take user to order details page",
+      "source": "services/notifications/strategies/dealer_customer_rmp_order_placed_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:28"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 107,
+      "strategy": "ProductionCoordinatorCustomOrderCreatedByCustomerStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "New Custom Order from {{Customer Name}}",
+      "body": "Custom order {{Order Number}} received. Deadline: {{Due Date}}. Please review and assign a production factory accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_custom_order_created_by_customer_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:82"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 108,
+      "strategy": "AdminCustomOrderCreatedByCustomerStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "New Custom Order from {{Customer Name}}",
+      "body": "{{Customer Name}} just placed a new custom order worth ₹{{Order Amount}} for {{Product Class}}{{Product Count}}.tap to view order details.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/admin_custom_order_created_by_customer_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:83"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 109,
+      "strategy": "CustomerCustomOrderCreatedByScStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Custom Order Placed on Your Behalf",
+      "body": "Your KAM {{SC Name}} has placed a custom order {{Order Number}} for you. Our team will contact you for next steps.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/customer_custom_order_created_by_sc_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:65"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 110,
+      "strategy": "ProductionCoordinatorCustomOrderCreatedByScStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "production_coordinator"
+      ],
+      "entity": "order",
+      "title": "New Custom Order from {{Customer Name}}",
+      "body": "Custom order {{Order Number}} received. Deadline: {{Due Date}}. Please review and assign a production factory accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/production_coordinator_custom_order_created_by_sc_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:66"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 111,
+      "strategy": "AdminCustomOrderCreatedByScStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "admin"
+      ],
+      "entity": "order",
+      "title": "New Custom Order from {{Customer Name}}",
+      "body": "{{Customer Name}} just placed a new custom order worth ₹{{Order Amount}} for {{Product Class}}{{Product Count}}. tap to view order details.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/admin_custom_order_created_by_sc_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:67"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 112,
+      "strategy": "SalesCoordinatorCustomOrderCreatedByScStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "sales_coordinator"
+      ],
+      "entity": "order",
+      "title": "Custom Order {{Order Number}} Placed Successfully",
+      "body": "You have successfully placed a custom order for {{Customer Name}}. Please coordinate with the production team.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/sales_coordinator_custom_order_created_by_sc_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:68"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 113,
+      "strategy": "DealerCustomOrderCreatedByDealersCustomerStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Custom Order Placed Successfully!",
+      "body": "Your custom order {{Order Number}} for {{Customer Name}} has been placed successfully. Please place the backorder accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_custom_order_created_by_dealers_customer_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:54"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 114,
+      "strategy": "DealersCustomerCustomOrderCreatedByDealerStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Custom Order Placed on Your Behalf",
+      "body": "Your KAM {{Dealer Name}} has placed a custom order {{Order Number}} for you. Please check and review.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealers_customer_custom_order_created_by_dealer_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:55"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 115,
+      "strategy": "DealerCustomOrderCreatedByDealerStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "Custom Order Placed Successfully!",
+      "body": "Your custom order {{Order Number}} for {{Customer Name}} has been placed successfully. Please place the backorder accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_custom_order_created_by_dealer_strategy.rb",
+      "callsites": [],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 116,
+      "strategy": "DealerCustomerCustomOrderCreatedStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "customer"
+      ],
+      "entity": "order",
+      "title": "Custom Order Placed Successfully!",
+      "body": "Your custom order {{Order Number}} has been received. Your Key Account Manager will review and contact you shortly for next steps.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_customer_custom_order_created_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:76"
+      ],
+      "dynamic_callsites": []
+    },
+    {
+      "legacy_type": 117,
+      "strategy": "DealerNotifiedOfCustomerCustomOrderStrategy",
+      "topic": "order.placed",
+      "recipients": [
+        "dealer"
+      ],
+      "entity": "order",
+      "title": "New Custom Order from {{Customer Name}}",
+      "body": "A custom order {{Order Number}} from your customer {{Customer Name}} has been received. Deadline: {{Due Date}}. Please place a backorder accordingly.",
+      "action": "Take user to order detail page",
+      "source": "services/notifications/strategies/dealer_notified_of_customer_custom_order_strategy.rb",
+      "callsites": [
+        "services/notifications/order_notification_trigger_service.rb:77"
+      ],
+      "dynamic_callsites": []
+    }
+  ],
+  "policy": "Configuration selects candidates; live identity, role, resource and capability rules must authorize each recipient. Push payloads must not contain sensitive template values."
+}

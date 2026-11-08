@@ -299,6 +299,15 @@
     ],
     [
       "sa_domain",
+      "devices",
+      "device_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "dispatch_receipts",
       "squad_dispatch_receipt_insert",
       "{sa_executor}",
@@ -461,6 +470,42 @@
     ],
     [
       "sa_domain",
+      "notification_deliveries",
+      "notification_delivery_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "notification_records",
+      "notification_record_executor",
+      "{sa_executor}",
+      "ALL",
+      "(recipient_id = ( SELECT (sa_domain.actor()).user_id AS user_id))",
+      "(recipient_id = ( SELECT (sa_domain.actor()).user_id AS user_id))"
+    ],
+    [
+      "sa_domain",
+      "notification_records",
+      "notification_record_worker",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "notification_rules",
+      "notification_rules_read",
+      "{sa_executor,sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "order_amendments",
       "squad_amendments_insert",
       "{sa_executor}",
@@ -609,7 +654,7 @@
       "squad_job_read",
       "{sa_executor}",
       "SELECT",
-      "((actor_id = ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'auth_id'::text))::uuid) OR ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'admin'::text))::boolean OR (((( SELECT sa_domain.ops_context() AS ops_context) ->> 'platform'::text))::boolean AND ((aggregate_kind = ANY (ARRAY['integration'::text, 'import'::text, 'export'::text, 'document'::text, 'media'::text, 'maintenance'::text])) OR (sa_domain.job_handler(event_type, payload) = 'account_reconciliation'::text))))",
+      "((actor_id = ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'auth_id'::text))::uuid) OR ((( SELECT sa_domain.ops_context() AS ops_context) ->> 'admin'::text))::boolean OR (((( SELECT sa_domain.ops_context() AS ops_context) ->> 'platform'::text))::boolean AND ((aggregate_kind = ANY (ARRAY['integration'::text, 'import'::text, 'export'::text, 'document'::text, 'media'::text, 'maintenance'::text, 'notification'::text])) OR (sa_domain.job_handler(event_type, payload) = 'account_reconciliation'::text))))",
       null
     ],
     [
@@ -2258,6 +2303,15 @@
       "UPDATE",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_notifications",
+      "squad_notification_own",
+      "{sa_executor}",
+      "ALL",
+      "(recipient_id = ( SELECT (sa_domain.actor()).user_id AS user_id))",
+      "(recipient_id = ( SELECT (sa_domain.actor()).user_id AS user_id))"
     ],
     [
       "sa_snapshot_20261019",
@@ -4234,6 +4288,16 @@
       "{sa_executor=w/postgres}"
     ],
     [
+      "sa_notifications",
+      "status",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_notifications",
+      "updated_at",
+      "{sa_executor=w/postgres}"
+    ],
+    [
       "sa_orders",
       "address_id",
       "{sa_guard=r/postgres,sa_executor=w/postgres}"
@@ -5490,6 +5554,42 @@
     ],
     [
       "canto_api",
+      "squad_notification_fanout",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "5c33528666e06d3a22e155464db782ff"
+    ],
+    [
+      "canto_api",
+      "squad_notification_finish",
+      "p_id uuid, p_lease_token uuid, p_results jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "6b80c9c10014e01feb4d7d7682bd0a5f"
+    ],
+    [
+      "canto_api",
+      "squad_notification_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "ce2154ba268e4cf0af392f31bd8d92f9"
+    ],
+    [
+      "canto_api",
       "v1_address_archive",
       "p_id bigint, p_user_id bigint, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -5826,6 +5926,42 @@
     ],
     [
       "canto_api",
+      "v1_delivery_failures",
+      "p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "bc4515ae3beb5874ab385c65ce14950f"
+    ],
+    [
+      "canto_api",
+      "v1_device_remove",
+      "p_id uuid, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "10a8509667968336bd105053a67afa6d"
+    ],
+    [
+      "canto_api",
+      "v1_device_save",
+      "p_installation_id uuid, p_platform text, p_token text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "5d55f9cbc246963cbcd6766d5b48f549"
+    ],
+    [
+      "canto_api",
       "v1_dispatch_destination_save",
       "p_id bigint, p_destination text, p_reason text, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -6111,6 +6247,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "a7dd10736900799fe3f6a709f4de6a2c"
+    ],
+    [
+      "canto_api",
+      "v1_notifications_list",
+      "p_id bigint, p_cursor text, p_limit integer, p_generation bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "ff5a5bccfd22e7f094ef61616f3bd9ef"
     ],
     [
       "canto_api",
@@ -6925,7 +7073,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_account_writer=X/sa_guard}",
       "b2f2f029c1a8964f738a8a2184ba3049"
     ],
     [
@@ -6990,6 +7138,18 @@
     ],
     [
       "sa_domain",
+      "amendment_prices_changed",
+      "p_before jsonb, p_order_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "d7f944de7759ddb95db04364096ffbbe"
+    ],
+    [
+      "sa_domain",
       "amendment_runs_inline",
       "p_id bigint, p_lines jsonb",
       "sa_guard",
@@ -7023,7 +7183,7 @@
         "TimeZone=UTC"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "e48da1931c5972f6282623a09b7f201b"
+      "9b4c918dae0741a2b50cd11c024c175a"
     ],
     [
       "sa_domain",
@@ -7339,6 +7499,18 @@
     ],
     [
       "sa_domain",
+      "capture_notification_event",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "26b48fb488aa18afd76fd00ee9b38f23"
+    ],
+    [
+      "sa_domain",
       "catalog_actor",
       "p_capability text",
       "postgres",
@@ -7628,6 +7800,18 @@
     ],
     [
       "sa_domain",
+      "device_projection",
+      "d sa_domain.devices",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "4dc585a145e788a5be05b6680e981857"
+    ],
+    [
+      "sa_domain",
       "due_timestamp",
       "p_due text",
       "postgres",
@@ -7685,7 +7869,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "b471b56bbf19848caa44d67a4c605639"
+      "a5550dc50b0a93beaf08d2b3a1fba4a2"
     ],
     [
       "sa_domain",
@@ -7852,7 +8036,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
-      "8b37df9548f48d936f7365de96468bf9"
+      "455b53493ad5011754915c4955b6bbcb"
     ],
     [
       "sa_domain",
@@ -7864,7 +8048,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
-      "0c964976efc726f4fdbfb1dcb8108a28"
+      "3f360f348c1f79a03719ce6aa03bf301"
     ],
     [
       "sa_domain",
@@ -7949,6 +8133,18 @@
       ],
       "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard}",
       "d566de855a244368563685b8d94e351a"
+    ],
+    [
+      "sa_domain",
+      "materialize_notification",
+      "p_job sa_domain.outbox",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor}",
+      "f72bb03615ee8b65b52b662a0c16ca0a"
     ],
     [
       "sa_domain",
@@ -8069,6 +8265,78 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "f8569911d87946c587630bc2dafd523b"
+    ],
+    [
+      "sa_domain",
+      "notification_can_open",
+      "p_kind text, p_id bigint",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "58627396e2281507a15d4a16130bdfb8"
+    ],
+    [
+      "sa_domain",
+      "notification_candidates",
+      "p_plan jsonb, p_after bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "532e109b9239e15a90ffd9bf618c76f8"
+    ],
+    [
+      "sa_domain",
+      "notification_device_batch",
+      "p_job sa_domain.outbox",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_worker=X/sa_account_writer}",
+      "708abf6fce1da747fe1440cb189d4d29"
+    ],
+    [
+      "sa_domain",
+      "notification_edit_types",
+      "p_type integer, p_role integer, p_actor bigint, p_sc bigint, p_dealer bigint, p_customer_role integer",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard}",
+      "26dff00b5aa3fe0e7a2a41e50cd3e549"
+    ],
+    [
+      "sa_domain",
+      "notification_plan",
+      "p_event text, p_kind text, p_id bigint, p_actor uuid, p_changes jsonb",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "62864c2af8311b7120a37dd7eb85f773"
+    ],
+    [
+      "sa_domain",
+      "notification_title",
+      "p_topic text",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "2afb443d5addad60647282299442a1b0"
     ],
     [
       "sa_domain",
@@ -8771,6 +9039,18 @@
     ],
     [
       "sa_domain",
+      "settle_notification_devices",
+      "p_job sa_domain.outbox, p_results jsonb",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_worker=X/sa_account_writer}",
+      "7f192f19dc2c6c48c05d6b835451d55e"
+    ],
+    [
+      "sa_domain",
       "sku_price",
       "p_sku_id bigint, p_price_type bigint",
       "postgres",
@@ -8899,7 +9179,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "8bbc890747fa078b13aa3d0454936dbd"
+      "d7670a22ba6372d8797b28d89527acac"
     ],
     [
       "sa_domain",
@@ -8912,6 +9192,42 @@
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
       "62ad527553acbbe38025f99ed0e5e9c8"
+    ],
+    [
+      "sa_domain",
+      "squad_notification_fanout",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "938bd69fdf69d7a518a47af341e912f3"
+    ],
+    [
+      "sa_domain",
+      "squad_notification_finish",
+      "p_id uuid, p_lease_token uuid, p_results jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "78fd0dc4c4009a73b8a388613cf63c9f"
+    ],
+    [
+      "sa_domain",
+      "squad_notification_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "5d97f5164caf7a8e611b7113137c3da0"
     ],
     [
       "sa_domain",
@@ -9400,6 +9716,42 @@
     ],
     [
       "sa_domain",
+      "v1_delivery_failures",
+      "p_cursor text, p_limit integer",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,sa_app=X/sa_worker,authenticated=X/sa_worker}",
+      "8c17c63b0320ac34e110101402811331"
+    ],
+    [
+      "sa_domain",
+      "v1_device_remove",
+      "p_id uuid, p_expected_version text, p_idempotency_key uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_app=X/sa_account_writer}",
+      "0260b380d24667dd216d7d9704838605"
+    ],
+    [
+      "sa_domain",
+      "v1_device_save",
+      "p_installation_id uuid, p_platform text, p_token text, p_expected_version text, p_idempotency_key uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_app=X/sa_account_writer}",
+      "54e8d7aba0c5cc4fafddc4bc7ce67ea4"
+    ],
+    [
+      "sa_domain",
       "v1_dispatch_destination_save",
       "p_id bigint, p_destination text, p_reason text, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -9556,7 +9908,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,sa_executor=X/sa_worker,sa_app=X/sa_worker,authenticated=X/sa_worker}",
-      "b6c724178f9a074e1b318f8cf4e888fe"
+      "ceb5cfe650ac648bcb0079ad8f4404a4"
     ],
     [
       "sa_domain",
@@ -9700,6 +10052,18 @@
     ],
     [
       "sa_domain",
+      "v1_notifications_list",
+      "p_id bigint, p_cursor text, p_limit integer, p_generation bigint",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "fd83a63a71fb3419e1aae7153c00137f"
+    ],
+    [
+      "sa_domain",
       "v1_order_assign_factory",
       "p_id bigint, p_manager_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -9761,7 +10125,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "b630e6430d8e97123ee8cff63d7dcf91"
+      "2ee1a788a5a93e1e4bd048525948745b"
     ],
     [
       "sa_domain",
@@ -10285,7 +10649,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "3be3b77458e7fea8615b8dafa43f60b7"
+      "1b6dbaad811fbe56a2a2ada3c16188e8"
     ],
     [
       "sa_domain",
@@ -10835,6 +11199,14 @@
     ],
     [
       "sa_domain",
+      "devices",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=arw/postgres}"
+    ],
+    [
+      "sa_domain",
       "dispatch_receipts",
       "r",
       true,
@@ -10915,6 +11287,30 @@
     ],
     [
       "sa_domain",
+      "notification_deliveries",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "notification_records",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "notification_rules",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres}"
+    ],
+    [
+      "sa_domain",
       "order_amendments",
       "r",
       true,
@@ -10943,7 +11339,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=rw/postgres,sa_media_writer=a/postgres,sa_account_writer=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=arw/postgres,sa_media_writer=a/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_domain",
@@ -11243,6 +11639,20 @@
       ],
       "{sa_executor=X/sa_executor}",
       "7a6dc6c861c05939787f00bc9ffaf246"
+    ],
+    [
+      "squad_capture_notification_event",
+      "O",
+      "CREATE TRIGGER squad_capture_notification_event AFTER INSERT ON sa_domain.outbox FOR EACH ROW EXECUTE FUNCTION sa_domain.capture_notification_event()",
+      "sa_domain",
+      "capture_notification_event",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "26b48fb488aa18afd76fd00ee9b38f23"
     ]
   ]
 ]

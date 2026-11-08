@@ -306,6 +306,11 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   completeRecovery(proof:AccountProof):Promise<AccountProofResult>;
   invitePerson(id:EntityId,requestId:string):Promise<AccountProofRequest>;
   acceptInvitation(proof:AccountProof):Promise<AccountProofResult>;
+  saveDevice(installationId:string,platform:"android"|"ios"|"web",token:string,command:Command|CreateCommand):Promise<DeviceBinding>;
+  removeDevice(id:string,command:Command):Promise<DeviceBinding>;
+  notifications(id?:EntityId|null,page?:PageRequest):Promise<Page<InboxNotification> & {generation:string}>;
+  notificationFromPush(payload:unknown,projectRef:string):Promise<InboxNotification|null>;
+  deliveryFailures(page?:PageRequest):Promise<Page<BackgroundJob>>;
   me(): Promise<Me>;
   reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
   verifyMediaUpload(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached'}>;
@@ -406,3 +411,6 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   saveMilestone(target:MilestoneInput,command:Command|CreateCommand):Promise<SavedEntity>;
   archiveMilestone(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {archived:true}>;
 }>;
+
+export interface DeviceBinding {id:string;installation_id:string;platform:"android"|"ios"|"web";active:boolean;version:Version;expires_at:string}
+export interface InboxNotification {id:EntityId;title:string;body:string;topic:string;created_at:string;delivery_status:0|1|2;push_state:"inbox_only"|"accepted"|"validated"|"skipped"|"pending"|null;target:{kind:string;id:EntityId}|null}

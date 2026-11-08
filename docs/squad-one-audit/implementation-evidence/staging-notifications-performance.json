@@ -1,0 +1,45 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T06:01:54.416683+00:00",
+  "results": [
+    {
+      "name": "device_registration",
+      "p95_ms": 4.954,
+      "samples": 10,
+      "target_ms": 200
+    },
+    {
+      "name": "due_change_with_notification_capture",
+      "p95_ms": 19.828,
+      "samples": 10,
+      "target_ms": 500
+    },
+    {
+      "name": "recipient_fanout",
+      "p95_ms": 31.608,
+      "samples": 10,
+      "target_ms": 500
+    },
+    {
+      "name": "delivery_prepare_current_recipient",
+      "p95_ms": 21.365,
+      "samples": 10,
+      "target_ms": 500
+    },
+    {
+      "name": "inbox_25_with_20k_unrelated_rows",
+      "p95_ms": 40.518,
+      "samples": 10,
+      "target_ms": 200
+    },
+    {
+      "name": "inbox_100_with_20k_unrelated_rows",
+      "p95_ms": 151.17,
+      "samples": 10,
+      "target_ms": 500
+    }
+  ],
+  "public_structure_unchanged": true,
+  "all_changes_and_sequences_rolled_back": true,
+  "scope": "Two warmups and ten measured database RPC executions. Real mapped coordinator changes an assigned order due date, fanout resolves recipients, recipient authorization creates the inbox record, device result is simulated VALIDATED; no provider calls. 20k unrelated inbox rows and disjoint pages. Not mixed concurrent-load or physical-phone acceptance."
+}

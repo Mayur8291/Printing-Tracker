@@ -7820,6 +7820,11 @@
       "CREATE UNIQUE INDEX sa_notifications_pkey ON sa_snapshot_20261019.sa_notifications USING btree (id)"
     ],
     [
+      "sa_notifications",
+      "squad_notification_recipient_page",
+      "CREATE INDEX squad_notification_recipient_page ON sa_snapshot_20261019.sa_notifications USING btree (recipient_id, id DESC)"
+    ],
+    [
       "sa_orders",
       "sa_index_orders_on_address_id",
       "CREATE INDEX sa_index_orders_on_address_id ON sa_snapshot_20261019.sa_orders USING btree (address_id)"
@@ -8905,7 +8910,7 @@
       "sa_notifications",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
     ],
     [
       "sa_orders",

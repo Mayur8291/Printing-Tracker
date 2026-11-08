@@ -1,0 +1,13 @@
+{
+  "environment": "staging",
+  "real_shared_sdk": true,
+  "deployed_worker": true,
+  "provider": "FCM HTTP v1",
+  "push_state": "validated",
+  "device_id": "52fa981f-d280-49ed-98ce-a0edc8c4704c",
+  "notification_id": "208480",
+  "notifications_sent": 0,
+  "measured_at": "2026-11-08T06:26:37.778217+00:00",
+  "cleanup": "Exact-owned device, inbox, job, attempts, command and audit removed; mirror/revisions/schedule restored. Unused sequence gaps retained.",
+  "scope": "Synthetic own-person notification job; actual SDK device registration, deployed worker, current-recipient authorization, Google OAuth/FCM validation, and scoped SDK inbox. No physical push. Order event capture is verified separately under rollback."
+}

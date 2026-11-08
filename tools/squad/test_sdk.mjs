@@ -20,6 +20,9 @@ if(error)throw new Error(`Controlled test login failed: ${error.code || error.st
 try {
   const sdk=createSquadClient(client),me=await sdk.me();
   assert.equal(me.role,3);
+  const inbox=await sdk.notifications(null,{limit:2});assert.ok(inbox.data.length<=2&&inbox.data.every(n=>!('recipient_id' in n)&&!('token' in n)));
+  await assert.rejects(sdk.deliveryFailures(),e=>e instanceof SquadError&&e.kind==='forbidden');
+  await assert.rejects(sdk.saveDevice(crypto.randomUUID(),'android','synthetic_'+crypto.randomUUID().replaceAll('-',''),{idempotencyKey:crypto.randomUUID()}),e=>e instanceof SquadError&&e.kind==='unavailable');
   const jobs=await sdk.jobs(null,{limit:2});assert.ok(jobs.data.length<=2);
   await assert.rejects(sdk.audit(),e=>e instanceof SquadError && e.kind==='forbidden');
   await assert.rejects(sdk.job('00000000-0000-4000-8000-000000000001'),e=>e instanceof SquadError && e.kind==='not_found');

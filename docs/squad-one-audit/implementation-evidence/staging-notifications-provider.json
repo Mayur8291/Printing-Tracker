@@ -1,0 +1,10 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T06:03:21.857087+00:00",
+  "mode": "validate_only",
+  "results": [
+    "VALIDATED"
+  ],
+  "notifications_sent": 0,
+  "scope": "Actual OAuth and Firebase HTTP v1 validation using existing staging source token. No token copied into new device bindings. Provider acceptance does not prove physical-device delivery."
+}

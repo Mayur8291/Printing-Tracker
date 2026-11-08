@@ -29,8 +29,8 @@ def exercise(c,order,request,details,checks):
  measure('own_jobs_with_20k_events','SELECT canto_api.v1_jobs_list(NULL,NULL,25)',(),200)
  measure('own_job_detail','SELECT canto_api.v1_job_get(%s)',(job,),200)
  page=c.execute('SELECT canto_api.v1_jobs_list(NULL,NULL,25)').fetchone()[0];more=c.execute('SELECT canto_api.v1_jobs_list(NULL,%s,25)',(page['next_cursor'],)).fetchone()[0];assert not{x['id'] for x in page['data']}&{x['id'] for x in more['data']}
- worker();measure('claim_amendment_among_20k_other_events','SELECT canto_api.squad_job_claim(1)',(),500)
- claimed=c.execute('SELECT canto_api.squad_job_claim(1)').fetchone()[0]['jobs'];assert len(claimed)==1 and claimed[0]['id']==str(job);lease=uuid.UUID(claimed[0]['lease_token'])
+ worker();measure('claim_amendment_among_20k_other_events','SELECT canto_api.squad_job_claim(10)',(),500)
+ claimed=c.execute('SELECT canto_api.squad_job_claim(10)').fetchone()[0]['jobs'];target=next(j for j in claimed if j['id']==str(job));assert target['handler']=='local_amendment';lease=uuid.UUID(target['lease_token'])
  # Remove only this harness's temporary session. Accepted jobs outlive logout,
  # while the Auth account and source role/relationships must remain eligible.
  c.execute('SET LOCAL ROLE postgres');c.execute('DELETE FROM auth.sessions WHERE id=%s',(uuid.UUID(json.loads(claims)['session_id']),));worker()

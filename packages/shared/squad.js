@@ -36,6 +36,20 @@ export function createSquadClient(supabase) {
     invitePerson: (id,requestId) => account("users/invite",{action:"request",request_id:requestId,user_id:id}),
     acceptInvitation: (proof) => account("users/invite",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
     me: () => call("v1_me"),
+    saveDevice: (installationId,platform,token,command) => call("v1_device_save",{p_installation_id:installationId,p_platform:platform,p_token:token,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    removeDevice: (id,command) => call("v1_device_remove",{p_id:id,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
+    notifications: (id = null,page = {}) => call("v1_notifications_list",{p_id:id,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    notificationFromPush: async (payload,projectRef) => {
+      if(!payload || payload.project_ref!==projectRef || !["scvojtvgnkmbupvyslmb","levwrmvqdntngeasrtnb"].includes(projectRef)
+        || typeof payload.notification_id!=="string" || !/^[1-9][0-9]{0,18}$/.test(payload.notification_id)
+        || typeof payload.generation!=="string" || !/^[0-9]{1,19}$/.test(payload.generation)
+        || (payload.notification_id.length===19&&payload.notification_id>"9223372036854775807") || (payload.generation.length===19&&payload.generation>"9223372036854775807"))return null;
+      try {
+        const page=await call("v1_notifications_list",{p_id:payload.notification_id,p_cursor:null,p_limit:1,p_generation:payload.generation});
+        return page.data[0]??null;
+      } catch(error) { if(error instanceof SquadError&&error.code==="40001")return null;throw error; }
+    },
+    deliveryFailures: (page = {}) => call("v1_delivery_failures",{p_cursor:page.cursor??null,p_limit:page.limit??30}),
     reserveMediaUpload: (target,file,command) => account("media/uploads",{target,file,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     verifyMediaUpload: (uploadId,command) => account("media/verify",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     setAccountStatus: (id,action,reason,command) => account("users/status",{user_id:id,action,reason,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),

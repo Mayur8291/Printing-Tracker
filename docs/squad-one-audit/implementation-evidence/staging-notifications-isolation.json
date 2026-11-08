@@ -1,0 +1,30 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T06:27:34.593727+00:00",
+  "state": {
+    "cutover": false,
+    "active_job": null,
+    "edit_revision": 167,
+    "synced_revision": 167,
+    "generation": 0,
+    "allow_test_writes": false
+  },
+  "pending_jobs": 0,
+  "fixture_tables": {
+    "devices": 0,
+    "notification_records": 0,
+    "notification_deliveries": 0
+  },
+  "schedules": [
+    [
+      "squad-jobs-minute",
+      true
+    ],
+    [
+      "squad-media-cleanup",
+      true
+    ]
+  ],
+  "refresh_fingerprints_verified": true,
+  "production_or_digitalocean_changed": false
+}

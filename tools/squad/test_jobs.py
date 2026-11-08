@@ -16,7 +16,11 @@ class Jobs(unittest.TestCase):
   self.raw('UPDATE sa_sync.environment_state SET cutover=true')
  def worker(self):
   self.c.execute('RESET ROLE');self.c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'service_role'}),));self.c.execute('SET LOCAL ROLE service_role')
- def claim(self,n=5):self.worker();return self.c.execute('SELECT canto_api.squad_job_claim(%s)',(n,)).fetchone()[0]
+ def claim(self,n=5):
+  self.worker();r=self.c.execute('SELECT canto_api.squad_job_claim(%s)',(n,)).fetchone()[0]
+  # Placement now also queues independent notifications. This suite targets the
+  # amendment lease; notification claims have their own integration coverage.
+  r['jobs']=[j for j in r['jobs'] if j['handler']=='local_amendment'];return r
  def run_job(self,job=None):
   job=job or self.claim()['jobs'][0];self.worker();return self.c.execute('SELECT canto_api.squad_job_execute(%s,%s)',(uuid.UUID(str(job['id'])),uuid.UUID(str(job['lease_token'])))).fetchone()[0]
  def test_queue_applies_as_original_actor_without_a_session(self):
