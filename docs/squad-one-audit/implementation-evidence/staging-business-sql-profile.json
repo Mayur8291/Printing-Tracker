@@ -1,0 +1,4357 @@
+{
+  "completed": true,
+  "groups": {
+    "commercial": 8,
+    "factory": 3,
+    "collaboration": 7
+  },
+  "samples": [
+    {
+      "number": 1,
+      "phase": "identity",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 154.474,
+      "sqlstate": null,
+      "adapter_ms": 638.22
+    },
+    {
+      "number": 2,
+      "phase": "identity",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 69.713,
+      "sqlstate": null,
+      "adapter_ms": 520.788
+    },
+    {
+      "number": 3,
+      "phase": "identity",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 67.289,
+      "sqlstate": null,
+      "adapter_ms": 593.155
+    },
+    {
+      "number": 4,
+      "phase": "identity",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 67.532,
+      "sqlstate": null,
+      "adapter_ms": 516.703
+    },
+    {
+      "number": 5,
+      "phase": "identity",
+      "command_label": null,
+      "role": 4,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 66.776,
+      "sqlstate": null,
+      "adapter_ms": 513.9
+    },
+    {
+      "number": 6,
+      "phase": "identity",
+      "command_label": null,
+      "role": 7,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 135.783,
+      "sqlstate": null,
+      "adapter_ms": 908.961
+    },
+    {
+      "number": 7,
+      "phase": "identity",
+      "command_label": null,
+      "role": 8,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 67.947,
+      "sqlstate": null,
+      "adapter_ms": 517.124
+    },
+    {
+      "number": 8,
+      "phase": "identity",
+      "command_label": null,
+      "role": 9,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 69.695,
+      "sqlstate": null,
+      "adapter_ms": 517.972
+    },
+    {
+      "number": 9,
+      "phase": "identity",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 67.728,
+      "sqlstate": null,
+      "adapter_ms": 514.986
+    },
+    {
+      "number": 10,
+      "phase": "identity",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 74.583,
+      "sqlstate": null,
+      "adapter_ms": 595.132
+    },
+    {
+      "number": 11,
+      "phase": "identity",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 67.335,
+      "sqlstate": null,
+      "adapter_ms": 516.495
+    },
+    {
+      "number": 12,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 170.129,
+      "sqlstate": null,
+      "adapter_ms": 623.888
+    },
+    {
+      "number": 13,
+      "phase": "commercial",
+      "command_label": "commercial.onboard",
+      "role": 0,
+      "rpc": "v1_customer_review",
+      "argument_names": [
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 359.857,
+      "sqlstate": null,
+      "adapter_ms": 809.208
+    },
+    {
+      "number": 14,
+      "phase": "commercial",
+      "command_label": "commercial.approve",
+      "role": 0,
+      "rpc": "v1_customer_review",
+      "argument_names": [
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 128.19,
+      "sqlstate": null,
+      "adapter_ms": 578.929
+    },
+    {
+      "number": 15,
+      "phase": "commercial",
+      "command_label": "commercial.links",
+      "role": 0,
+      "rpc": "v1_customer_links_save",
+      "argument_names": [
+        "p_coordinator_id",
+        "p_dealer_ids",
+        "p_direct",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 195.179,
+      "sqlstate": null,
+      "adapter_ms": 646.223
+    },
+    {
+      "number": 16,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 74.968,
+      "sqlstate": null,
+      "adapter_ms": 522.78
+    },
+    {
+      "number": 17,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 74.283,
+      "sqlstate": null,
+      "adapter_ms": 522.634
+    },
+    {
+      "number": 18,
+      "phase": "commercial",
+      "command_label": "commercial.customer-review-denied",
+      "role": 3,
+      "rpc": "v1_customer_review",
+      "argument_names": [
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 64.198,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_customer_review",
+          "line": 4
+        },
+        {
+          "function": "v1_customer_review"
+        }
+      ],
+      "adapter_ms": 641.621
+    },
+    {
+      "number": 19,
+      "phase": "commercial",
+      "command_label": "commercial.create-team",
+      "role": 0,
+      "rpc": "v1_person_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_role"
+      ],
+      "sql_ms": 90.077,
+      "sqlstate": null,
+      "adapter_ms": 543.33
+    },
+    {
+      "number": 20,
+      "phase": "commercial",
+      "command_label": "commercial.create-team",
+      "role": 0,
+      "rpc": "v1_person_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_role"
+      ],
+      "sql_ms": 67.149,
+      "sqlstate": null,
+      "adapter_ms": 516.07
+    },
+    {
+      "number": 21,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 76.978,
+      "sqlstate": null,
+      "adapter_ms": 588.068
+    },
+    {
+      "number": 22,
+      "phase": "commercial",
+      "command_label": "commercial.staff-grants",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 96.976,
+      "sqlstate": null,
+      "adapter_ms": 543.963
+    },
+    {
+      "number": 23,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 73.659,
+      "sqlstate": null,
+      "adapter_ms": 584.54
+    },
+    {
+      "number": 24,
+      "phase": "commercial",
+      "command_label": "commercial.team-revoke",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 120.408,
+      "sqlstate": null,
+      "adapter_ms": 828.867
+    },
+    {
+      "number": 25,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 64.704,
+      "sqlstate": null,
+      "adapter_ms": 514.894
+    },
+    {
+      "number": 26,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_configurator_options",
+      "argument_names": [
+        "p_base_id",
+        "p_cursor",
+        "p_kind",
+        "p_limit",
+        "p_parent_id",
+        "p_part_id"
+      ],
+      "sql_ms": 69.74,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.catalog_actor",
+          "line": 7
+        },
+        {
+          "function": "sa_domain.v1_configurator_options",
+          "line": 2
+        },
+        {
+          "function": "v1_configurator_options"
+        }
+      ],
+      "adapter_ms": 649.681
+    },
+    {
+      "number": 27,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 119.075,
+      "sqlstate": null,
+      "adapter_ms": 570.784
+    },
+    {
+      "number": 28,
+      "phase": "commercial",
+      "command_label": "commercial.team-grant",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 79.287,
+      "sqlstate": null,
+      "adapter_ms": 526.217
+    },
+    {
+      "number": 29,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_me",
+      "argument_names": [],
+      "sql_ms": 67.272,
+      "sqlstate": null,
+      "adapter_ms": 583.858
+    },
+    {
+      "number": 30,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_configurator_options",
+      "argument_names": [
+        "p_base_id",
+        "p_cursor",
+        "p_kind",
+        "p_limit",
+        "p_parent_id",
+        "p_part_id"
+      ],
+      "sql_ms": 134.867,
+      "sqlstate": null,
+      "adapter_ms": 585.445
+    },
+    {
+      "number": 31,
+      "phase": "commercial",
+      "command_label": "commercial.milestone",
+      "role": 0,
+      "rpc": "v1_milestone_save",
+      "argument_names": [
+        "p_amount",
+        "p_end",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_name",
+        "p_start",
+        "p_subject_id"
+      ],
+      "sql_ms": 92.037,
+      "sqlstate": null,
+      "adapter_ms": 607.468
+    },
+    {
+      "number": 32,
+      "phase": "commercial",
+      "command_label": "commercial.milestone",
+      "role": 0,
+      "rpc": "v1_milestone_save",
+      "argument_names": [
+        "p_amount",
+        "p_end",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_name",
+        "p_start",
+        "p_subject_id"
+      ],
+      "sql_ms": 99.653,
+      "sqlstate": null,
+      "adapter_ms": 1045.57
+    },
+    {
+      "number": 33,
+      "phase": "commercial",
+      "command_label": "commercial.responsibility",
+      "role": 0,
+      "rpc": "v1_responsibility_save",
+      "argument_names": [
+        "p_idempotency_key",
+        "p_items"
+      ],
+      "sql_ms": 87.528,
+      "sqlstate": null,
+      "adapter_ms": 531.256
+    },
+    {
+      "number": 34,
+      "phase": "commercial",
+      "command_label": "commercial.responsibility-complete",
+      "role": 1,
+      "rpc": "v1_responsibility_transition",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_state"
+      ],
+      "sql_ms": 88.504,
+      "sqlstate": null,
+      "adapter_ms": 537.053
+    },
+    {
+      "number": 35,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_responsibilities_list",
+      "argument_names": [
+        "p_completed",
+        "p_cursor",
+        "p_kind",
+        "p_limit",
+        "p_subject_id"
+      ],
+      "sql_ms": 78.54,
+      "sqlstate": null,
+      "adapter_ms": 527.719
+    },
+    {
+      "number": 36,
+      "phase": "commercial",
+      "command_label": "commercial.configure",
+      "role": 3,
+      "rpc": "v1_product_configure",
+      "argument_names": [
+        "p_comment",
+        "p_configuration",
+        "p_idempotency_key",
+        "p_name"
+      ],
+      "sql_ms": 823.083,
+      "sqlstate": null,
+      "adapter_ms": 1274.075
+    },
+    {
+      "number": 37,
+      "phase": "commercial",
+      "command_label": "commercial.configure",
+      "role": 3,
+      "rpc": "v1_product_configure",
+      "argument_names": [
+        "p_comment",
+        "p_configuration",
+        "p_idempotency_key",
+        "p_name"
+      ],
+      "sql_ms": 65.467,
+      "sqlstate": null,
+      "adapter_ms": 514.84
+    },
+    {
+      "number": 38,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 133.056,
+      "sqlstate": null,
+      "adapter_ms": 584.789
+    },
+    {
+      "number": 39,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 68.552,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.catalog_actor",
+          "line": 7
+        },
+        {
+          "function": "sa_domain.v1_quote",
+          "line": 2
+        },
+        {
+          "function": "v1_quote"
+        }
+      ],
+      "adapter_ms": 643.203
+    },
+    {
+      "number": 40,
+      "phase": "commercial",
+      "command_label": "commercial.place-factory",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 430.092,
+      "sqlstate": null,
+      "adapter_ms": 880.878
+    },
+    {
+      "number": 41,
+      "phase": "commercial",
+      "command_label": "commercial.place-factory",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 66.181,
+      "sqlstate": null,
+      "adapter_ms": 513.827
+    },
+    {
+      "number": 42,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 91.248,
+      "sqlstate": null,
+      "adapter_ms": 605.338
+    },
+    {
+      "number": 43,
+      "phase": "commercial",
+      "command_label": "commercial.deposit",
+      "role": 1,
+      "rpc": "v1_order_payment_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_paid_amount",
+        "p_reference",
+        "p_status"
+      ],
+      "sql_ms": 80.818,
+      "sqlstate": null,
+      "adapter_ms": 541.736
+    },
+    {
+      "number": 44,
+      "phase": "commercial",
+      "command_label": "commercial.deposit",
+      "role": 1,
+      "rpc": "v1_order_payment_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_paid_amount",
+        "p_reference",
+        "p_status"
+      ],
+      "sql_ms": 67.314,
+      "sqlstate": null,
+      "adapter_ms": 579.24
+    },
+    {
+      "number": 45,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 129.391,
+      "sqlstate": null,
+      "adapter_ms": 835.516
+    },
+    {
+      "number": 46,
+      "phase": "commercial",
+      "command_label": "commercial.pc-payment-denied",
+      "role": 2,
+      "rpc": "v1_order_payment_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_paid_amount",
+        "p_reference",
+        "p_status"
+      ],
+      "sql_ms": 64.273,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_order_payment_record",
+          "line": 2
+        },
+        {
+          "function": "v1_order_payment_record"
+        }
+      ],
+      "adapter_ms": 640.339
+    },
+    {
+      "number": 47,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 95.229,
+      "sqlstate": null,
+      "adapter_ms": 540.188
+    },
+    {
+      "number": 48,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 78.396,
+      "sqlstate": null,
+      "adapter_ms": 530.569
+    },
+    {
+      "number": 49,
+      "phase": "commercial",
+      "command_label": "commercial.amend",
+      "role": 1,
+      "rpc": "v1_order_edit",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_quote_id",
+        "p_quote_version",
+        "p_reason"
+      ],
+      "sql_ms": 2823.814,
+      "sqlstate": null,
+      "adapter_ms": 3701.122
+    },
+    {
+      "number": 50,
+      "phase": "commercial",
+      "command_label": "commercial.amend",
+      "role": 1,
+      "rpc": "v1_order_edit",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_quote_id",
+        "p_quote_version",
+        "p_reason"
+      ],
+      "sql_ms": 66.566,
+      "sqlstate": null,
+      "adapter_ms": 514.945
+    },
+    {
+      "number": 51,
+      "phase": "commercial",
+      "command_label": "commercial.stale-due",
+      "role": 1,
+      "rpc": "v1_order_due_save",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 73.575,
+      "sqlstate": "PT409",
+      "context_functions": [
+        {
+          "function": "sa_domain.bump_version",
+          "line": 6
+        },
+        {
+          "function": "sa_domain.v1_order_due_save",
+          "line": 5
+        },
+        {
+          "function": "v1_order_due_save"
+        }
+      ],
+      "adapter_ms": 654.436
+    },
+    {
+      "number": 52,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 77.354,
+      "sqlstate": null,
+      "adapter_ms": 528.983
+    },
+    {
+      "number": 53,
+      "phase": "commercial",
+      "command_label": "commercial.priority",
+      "role": 1,
+      "rpc": "v1_order_priority_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_prime",
+        "p_reason"
+      ],
+      "sql_ms": 86.266,
+      "sqlstate": null,
+      "adapter_ms": 532.956
+    },
+    {
+      "number": 54,
+      "phase": "commercial",
+      "command_label": "commercial.due",
+      "role": 1,
+      "rpc": "v1_order_due_save",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 82.057,
+      "sqlstate": null,
+      "adapter_ms": 591.896
+    },
+    {
+      "number": 55,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 80.492,
+      "sqlstate": null,
+      "adapter_ms": 537.822
+    },
+    {
+      "number": 56,
+      "phase": "commercial",
+      "command_label": "commercial.factory",
+      "role": 2,
+      "rpc": "v1_order_assign_factory",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_manager_id",
+        "p_reason"
+      ],
+      "sql_ms": 107.485,
+      "sqlstate": null,
+      "adapter_ms": 623.21
+    },
+    {
+      "number": 57,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 175.132,
+      "sqlstate": null,
+      "adapter_ms": 883.163
+    },
+    {
+      "number": 58,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 122.75,
+      "sqlstate": null,
+      "adapter_ms": 569.831
+    },
+    {
+      "number": 59,
+      "phase": "commercial",
+      "command_label": "commercial.criteria",
+      "role": 2,
+      "rpc": "v1_item_criteria_save",
+      "argument_names": [
+        "p_checks",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key"
+      ],
+      "sql_ms": 200.766,
+      "sqlstate": null,
+      "adapter_ms": 664.699
+    },
+    {
+      "number": 60,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 77.828,
+      "sqlstate": null,
+      "adapter_ms": 532.81
+    },
+    {
+      "number": 61,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 93.401,
+      "sqlstate": null,
+      "adapter_ms": 541.64
+    },
+    {
+      "number": 62,
+      "phase": "commercial",
+      "command_label": "commercial.place-worker",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 165.731,
+      "sqlstate": null,
+      "adapter_ms": 613.395
+    },
+    {
+      "number": 63,
+      "phase": "commercial",
+      "command_label": "commercial.place-worker",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 65.571,
+      "sqlstate": null,
+      "adapter_ms": 512.797
+    },
+    {
+      "number": 64,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 75.567,
+      "sqlstate": null,
+      "adapter_ms": 523.585
+    },
+    {
+      "number": 65,
+      "phase": "commercial",
+      "command_label": "commercial.worker",
+      "role": 2,
+      "rpc": "v1_order_assign_worker",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_worker_id"
+      ],
+      "sql_ms": 124.013,
+      "sqlstate": null,
+      "adapter_ms": 578.496
+    },
+    {
+      "number": 66,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 143.222,
+      "sqlstate": null,
+      "adapter_ms": 592.883
+    },
+    {
+      "number": 67,
+      "phase": "commercial",
+      "command_label": "commercial.worker-cost",
+      "role": 2,
+      "rpc": "v1_worker_cost_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_unit_cost"
+      ],
+      "sql_ms": 100.159,
+      "sqlstate": null,
+      "adapter_ms": 554.148
+    },
+    {
+      "number": 68,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 75.704,
+      "sqlstate": null,
+      "adapter_ms": 521.883
+    },
+    {
+      "number": 69,
+      "phase": "commercial",
+      "command_label": "commercial.worker-due",
+      "role": 2,
+      "rpc": "v1_worker_due_save",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 145.535,
+      "sqlstate": null,
+      "adapter_ms": 596.535
+    },
+    {
+      "number": 70,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 168.589,
+      "sqlstate": null,
+      "adapter_ms": 619.013
+    },
+    {
+      "number": 71,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 156.025,
+      "sqlstate": null,
+      "adapter_ms": 604.295
+    },
+    {
+      "number": 72,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 76.418,
+      "sqlstate": null,
+      "adapter_ms": 528.6
+    },
+    {
+      "number": 73,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 87.423,
+      "sqlstate": null,
+      "adapter_ms": 533.907
+    },
+    {
+      "number": 74,
+      "phase": "commercial",
+      "command_label": "commercial.place-force-close",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 162.996,
+      "sqlstate": null,
+      "adapter_ms": 611.239
+    },
+    {
+      "number": 75,
+      "phase": "commercial",
+      "command_label": "commercial.place-force-close",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 66.043,
+      "sqlstate": null,
+      "adapter_ms": 511.846
+    },
+    {
+      "number": 76,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 203.263,
+      "sqlstate": null,
+      "adapter_ms": 654.52
+    },
+    {
+      "number": 77,
+      "phase": "commercial",
+      "command_label": "commercial.sc-force-denied",
+      "role": 1,
+      "rpc": "v1_order_force_complete",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 65.869,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_order_force_complete",
+          "line": 2
+        },
+        {
+          "function": "v1_order_force_complete"
+        }
+      ],
+      "adapter_ms": 640.541
+    },
+    {
+      "number": 78,
+      "phase": "commercial",
+      "command_label": "commercial.force-close",
+      "role": 0,
+      "rpc": "v1_order_force_complete",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 102.752,
+      "sqlstate": null,
+      "adapter_ms": 557.137
+    },
+    {
+      "number": 79,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 78.001,
+      "sqlstate": null,
+      "adapter_ms": 527.448
+    },
+    {
+      "number": 80,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_sales_report",
+      "argument_names": [
+        "p_before",
+        "p_cursor",
+        "p_filters",
+        "p_from",
+        "p_kind",
+        "p_limit"
+      ],
+      "sql_ms": 104.517,
+      "sqlstate": null,
+      "adapter_ms": 616.669
+    },
+    {
+      "number": 81,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_sales_report",
+      "argument_names": [
+        "p_before",
+        "p_cursor",
+        "p_filters",
+        "p_from",
+        "p_kind",
+        "p_limit"
+      ],
+      "sql_ms": 76.963,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_sales_report",
+          "line": 2
+        },
+        {
+          "function": "v1_sales_report"
+        }
+      ],
+      "adapter_ms": 654.281
+    },
+    {
+      "number": 82,
+      "phase": "commercial",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_milestone_progress",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 85.826,
+      "sqlstate": null,
+      "adapter_ms": 543.439
+    },
+    {
+      "number": 83,
+      "phase": "factory",
+      "command_label": null,
+      "role": 4,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 175.117,
+      "sqlstate": null,
+      "adapter_ms": 632.342
+    },
+    {
+      "number": 84,
+      "phase": "factory",
+      "command_label": "factory.assign-cutter",
+      "role": 4,
+      "rpc": "v1_item_assign_cutter",
+      "argument_names": [
+        "p_cutter_id",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 122.896,
+      "sqlstate": null,
+      "adapter_ms": 644.077
+    },
+    {
+      "number": 85,
+      "phase": "factory",
+      "command_label": null,
+      "role": 9,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 155.835,
+      "sqlstate": null,
+      "adapter_ms": 608.022
+    },
+    {
+      "number": 86,
+      "phase": "factory",
+      "command_label": null,
+      "role": 9,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 127.934,
+      "sqlstate": null,
+      "adapter_ms": 645.628
+    },
+    {
+      "number": 87,
+      "phase": "factory",
+      "command_label": "factory.cut-partial",
+      "role": 9,
+      "rpc": "v1_cutting_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 283.996,
+      "sqlstate": null,
+      "adapter_ms": 1024.367
+    },
+    {
+      "number": 88,
+      "phase": "factory",
+      "command_label": "factory.cut-partial",
+      "role": 9,
+      "rpc": "v1_cutting_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 68.502,
+      "sqlstate": null,
+      "adapter_ms": 515.792
+    },
+    {
+      "number": 89,
+      "phase": "factory",
+      "command_label": null,
+      "role": 9,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 131.087,
+      "sqlstate": null,
+      "adapter_ms": 573.774
+    },
+    {
+      "number": 90,
+      "phase": "factory",
+      "command_label": "factory.cut-overrun",
+      "role": 9,
+      "rpc": "v1_cutting_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 129.591,
+      "sqlstate": "22023",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_cutting_record",
+          "line": 12
+        },
+        {
+          "function": "v1_cutting_record"
+        }
+      ],
+      "adapter_ms": 704.65
+    },
+    {
+      "number": 91,
+      "phase": "factory",
+      "command_label": null,
+      "role": 9,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 129.965,
+      "sqlstate": null,
+      "adapter_ms": 578.356
+    },
+    {
+      "number": 92,
+      "phase": "factory",
+      "command_label": "factory.cut-balance",
+      "role": 9,
+      "rpc": "v1_cutting_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 195.693,
+      "sqlstate": null,
+      "adapter_ms": 640.701
+    },
+    {
+      "number": 93,
+      "phase": "factory",
+      "command_label": null,
+      "role": 9,
+      "rpc": "v1_cutting_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 99.598,
+      "sqlstate": null,
+      "adapter_ms": 614.098
+    },
+    {
+      "number": 94,
+      "phase": "factory",
+      "command_label": null,
+      "role": 9,
+      "rpc": "v1_cutting_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 85.409,
+      "sqlstate": null,
+      "adapter_ms": 529.682
+    },
+    {
+      "number": 95,
+      "phase": "factory",
+      "command_label": null,
+      "role": 4,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 119.437,
+      "sqlstate": null,
+      "adapter_ms": 637.706
+    },
+    {
+      "number": 96,
+      "phase": "factory",
+      "command_label": "factory.assign-tailors",
+      "role": 4,
+      "rpc": "v1_jobsheet_assign",
+      "argument_names": [
+        "p_allocations",
+        "p_completion_by",
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key"
+      ],
+      "sql_ms": 329.834,
+      "sqlstate": null,
+      "adapter_ms": 1033.026
+    },
+    {
+      "number": 97,
+      "phase": "factory",
+      "command_label": "factory.assign-tailors",
+      "role": 4,
+      "rpc": "v1_jobsheet_assign",
+      "argument_names": [
+        "p_allocations",
+        "p_completion_by",
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key"
+      ],
+      "sql_ms": 68.495,
+      "sqlstate": null,
+      "adapter_ms": 539.071
+    },
+    {
+      "number": 98,
+      "phase": "factory",
+      "command_label": null,
+      "role": 4,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 115.789,
+      "sqlstate": null,
+      "adapter_ms": 567.838
+    },
+    {
+      "number": 99,
+      "phase": "factory",
+      "command_label": "factory.assign-overrun",
+      "role": 4,
+      "rpc": "v1_jobsheet_assign",
+      "argument_names": [
+        "p_allocations",
+        "p_completion_by",
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key"
+      ],
+      "sql_ms": 132.224,
+      "sqlstate": "22023",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_jobsheet_assign",
+          "line": 13
+        },
+        {
+          "function": "v1_jobsheet_assign"
+        }
+      ],
+      "adapter_ms": 709.164
+    },
+    {
+      "number": 100,
+      "phase": "factory",
+      "command_label": null,
+      "role": 4,
+      "rpc": "v1_production_progress",
+      "argument_names": [
+        "p_order_id"
+      ],
+      "sql_ms": 75.204,
+      "sqlstate": null,
+      "adapter_ms": 527.585
+    },
+    {
+      "number": 101,
+      "phase": "factory",
+      "command_label": null,
+      "role": 8,
+      "rpc": "v1_tailor_work",
+      "argument_names": [
+        "p_cursor",
+        "p_history",
+        "p_item_id",
+        "p_limit",
+        "p_tailor_id"
+      ],
+      "sql_ms": 121.472,
+      "sqlstate": null,
+      "adapter_ms": 568.091
+    },
+    {
+      "number": 102,
+      "phase": "factory",
+      "command_label": null,
+      "role": 8,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 129.609,
+      "sqlstate": null,
+      "adapter_ms": 647.358
+    },
+    {
+      "number": 103,
+      "phase": "factory",
+      "command_label": "factory.inspect-1900008006",
+      "role": 8,
+      "rpc": "v1_jobsheet_inspect",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 383.087,
+      "sqlstate": null,
+      "adapter_ms": 834.831
+    },
+    {
+      "number": 104,
+      "phase": "factory",
+      "command_label": "factory.inspect-1900008006",
+      "role": 8,
+      "rpc": "v1_jobsheet_inspect",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 68.636,
+      "sqlstate": null,
+      "adapter_ms": 580.738
+    },
+    {
+      "number": 105,
+      "phase": "factory",
+      "command_label": null,
+      "role": 8,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 132.311,
+      "sqlstate": null,
+      "adapter_ms": 839.588
+    },
+    {
+      "number": 106,
+      "phase": "factory",
+      "command_label": "factory.inspect-1900008005",
+      "role": 8,
+      "rpc": "v1_jobsheet_inspect",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 364.815,
+      "sqlstate": null,
+      "adapter_ms": 819.357
+    },
+    {
+      "number": 107,
+      "phase": "factory",
+      "command_label": "factory.inspect-1900008005",
+      "role": 8,
+      "rpc": "v1_jobsheet_inspect",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 68.387,
+      "sqlstate": null,
+      "adapter_ms": 519.886
+    },
+    {
+      "number": 108,
+      "phase": "factory",
+      "command_label": null,
+      "role": 8,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 126.761,
+      "sqlstate": null,
+      "adapter_ms": 579.334
+    },
+    {
+      "number": 109,
+      "phase": "factory",
+      "command_label": "factory.inspect-overrun",
+      "role": 8,
+      "rpc": "v1_jobsheet_inspect",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 235.882,
+      "sqlstate": "22023",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_jobsheet_inspect",
+          "line": 13
+        },
+        {
+          "function": "v1_jobsheet_inspect"
+        }
+      ],
+      "adapter_ms": 818.394
+    },
+    {
+      "number": 110,
+      "phase": "factory",
+      "command_label": null,
+      "role": 8,
+      "rpc": "v1_tailor_work",
+      "argument_names": [
+        "p_cursor",
+        "p_history",
+        "p_item_id",
+        "p_limit",
+        "p_tailor_id"
+      ],
+      "sql_ms": 142.759,
+      "sqlstate": null,
+      "adapter_ms": 589.733
+    },
+    {
+      "number": 111,
+      "phase": "factory",
+      "command_label": null,
+      "role": 4,
+      "rpc": "v1_production_progress",
+      "argument_names": [
+        "p_order_id"
+      ],
+      "sql_ms": 74.687,
+      "sqlstate": null,
+      "adapter_ms": 530.762
+    },
+    {
+      "number": 112,
+      "phase": "factory",
+      "command_label": null,
+      "role": 7,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 132.924,
+      "sqlstate": null,
+      "adapter_ms": 647.533
+    },
+    {
+      "number": 113,
+      "phase": "factory",
+      "command_label": "factory.dispatch-partial",
+      "role": 7,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 378.084,
+      "sqlstate": null,
+      "adapter_ms": 826.739
+    },
+    {
+      "number": 114,
+      "phase": "factory",
+      "command_label": "factory.dispatch-partial",
+      "role": 7,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 68.299,
+      "sqlstate": null,
+      "adapter_ms": 578.949
+    },
+    {
+      "number": 115,
+      "phase": "factory",
+      "command_label": null,
+      "role": 7,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 130.923,
+      "sqlstate": null,
+      "adapter_ms": 830.335
+    },
+    {
+      "number": 116,
+      "phase": "factory",
+      "command_label": "factory.dispatch-overrun",
+      "role": 7,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 222.467,
+      "sqlstate": "22023",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_dispatch_record",
+          "line": 23
+        },
+        {
+          "function": "v1_dispatch_record"
+        }
+      ],
+      "adapter_ms": 798.012
+    },
+    {
+      "number": 117,
+      "phase": "factory",
+      "command_label": null,
+      "role": 7,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 129.341,
+      "sqlstate": null,
+      "adapter_ms": 576.474
+    },
+    {
+      "number": 118,
+      "phase": "factory",
+      "command_label": "factory.dispatch-balance",
+      "role": 7,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 350.371,
+      "sqlstate": null,
+      "adapter_ms": 796.952
+    },
+    {
+      "number": 119,
+      "phase": "factory",
+      "command_label": "factory.dispatch-balance",
+      "role": 7,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 68.496,
+      "sqlstate": null,
+      "adapter_ms": 582.907
+    },
+    {
+      "number": 120,
+      "phase": "factory",
+      "command_label": null,
+      "role": 7,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 112.065,
+      "sqlstate": null,
+      "adapter_ms": 560.866
+    },
+    {
+      "number": 121,
+      "phase": "factory",
+      "command_label": null,
+      "role": 7,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 105.575,
+      "sqlstate": null,
+      "adapter_ms": 619.04
+    },
+    {
+      "number": 122,
+      "phase": "ratings",
+      "command_label": "commercial.rating-3",
+      "role": 3,
+      "rpc": "v1_rating_save",
+      "argument_names": [
+        "p_entity_id",
+        "p_entity_kind",
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_to_id"
+      ],
+      "sql_ms": 146.628,
+      "sqlstate": null,
+      "adapter_ms": 856.035
+    },
+    {
+      "number": 123,
+      "phase": "ratings",
+      "command_label": "commercial.rating-3",
+      "role": 3,
+      "rpc": "v1_rating_save",
+      "argument_names": [
+        "p_entity_id",
+        "p_entity_kind",
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_to_id"
+      ],
+      "sql_ms": 65.022,
+      "sqlstate": null,
+      "adapter_ms": 518.172
+    },
+    {
+      "number": 124,
+      "phase": "ratings",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_ratings_list",
+      "argument_names": [
+        "p_cursor",
+        "p_entity_id",
+        "p_entity_kind",
+        "p_from_id",
+        "p_include_archived",
+        "p_limit",
+        "p_to_id"
+      ],
+      "sql_ms": 73.45,
+      "sqlstate": null,
+      "adapter_ms": 525.095
+    },
+    {
+      "number": 125,
+      "phase": "ratings",
+      "command_label": "commercial.rating-1",
+      "role": 1,
+      "rpc": "v1_rating_save",
+      "argument_names": [
+        "p_entity_id",
+        "p_entity_kind",
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_to_id"
+      ],
+      "sql_ms": 96.221,
+      "sqlstate": null,
+      "adapter_ms": 542.637
+    },
+    {
+      "number": 126,
+      "phase": "ratings",
+      "command_label": "commercial.rating-1",
+      "role": 1,
+      "rpc": "v1_rating_save",
+      "argument_names": [
+        "p_entity_id",
+        "p_entity_kind",
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_to_id"
+      ],
+      "sql_ms": 66.376,
+      "sqlstate": null,
+      "adapter_ms": 515.621
+    },
+    {
+      "number": 127,
+      "phase": "ratings",
+      "command_label": null,
+      "role": 1,
+      "rpc": "v1_ratings_list",
+      "argument_names": [
+        "p_cursor",
+        "p_entity_id",
+        "p_entity_kind",
+        "p_from_id",
+        "p_include_archived",
+        "p_limit",
+        "p_to_id"
+      ],
+      "sql_ms": 73.849,
+      "sqlstate": null,
+      "adapter_ms": 520.55
+    },
+    {
+      "number": 128,
+      "phase": "ratings",
+      "command_label": "commercial.rating-2",
+      "role": 2,
+      "rpc": "v1_rating_save",
+      "argument_names": [
+        "p_entity_id",
+        "p_entity_kind",
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_to_id"
+      ],
+      "sql_ms": 93.374,
+      "sqlstate": null,
+      "adapter_ms": 541.586
+    },
+    {
+      "number": 129,
+      "phase": "ratings",
+      "command_label": "commercial.rating-2",
+      "role": 2,
+      "rpc": "v1_rating_save",
+      "argument_names": [
+        "p_entity_id",
+        "p_entity_kind",
+        "p_expected_version",
+        "p_fields",
+        "p_id",
+        "p_idempotency_key",
+        "p_to_id"
+      ],
+      "sql_ms": 132.053,
+      "sqlstate": null,
+      "adapter_ms": 579.752
+    },
+    {
+      "number": 130,
+      "phase": "ratings",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_ratings_list",
+      "argument_names": [
+        "p_cursor",
+        "p_entity_id",
+        "p_entity_kind",
+        "p_from_id",
+        "p_include_archived",
+        "p_limit",
+        "p_to_id"
+      ],
+      "sql_ms": 73.348,
+      "sqlstate": null,
+      "adapter_ms": 520.045
+    },
+    {
+      "number": 131,
+      "phase": "ratings",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 76.374,
+      "sqlstate": null,
+      "adapter_ms": 524.855
+    },
+    {
+      "number": 132,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 208.398,
+      "sqlstate": null,
+      "adapter_ms": 656.641
+    },
+    {
+      "number": 133,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-due-3",
+      "role": 11,
+      "rpc": "v1_worker_due_save",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 171.703,
+      "sqlstate": null,
+      "adapter_ms": 619.801
+    },
+    {
+      "number": 134,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-due-4",
+      "role": 11,
+      "rpc": "v1_worker_due_save",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 144.881,
+      "sqlstate": null,
+      "adapter_ms": 593.253
+    },
+    {
+      "number": 135,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 175.095,
+      "sqlstate": null,
+      "adapter_ms": 622.186
+    },
+    {
+      "number": 136,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-cannot-set-cost",
+      "role": 11,
+      "rpc": "v1_worker_cost_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_unit_cost"
+      ],
+      "sql_ms": 71.765,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_worker_cost_save",
+          "line": 2
+        },
+        {
+          "function": "v1_worker_cost_save"
+        }
+      ],
+      "adapter_ms": 653.03
+    },
+    {
+      "number": 137,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-cannot-skip",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 118.301,
+      "sqlstate": "22023",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_worker_stage_save",
+          "line": 10
+        },
+        {
+          "function": "v1_worker_stage_save"
+        }
+      ],
+      "adapter_ms": 631.837
+    },
+    {
+      "number": 138,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-cannot-progress",
+      "role": 12,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 69.118,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_worker_stage_save",
+          "line": 2
+        },
+        {
+          "function": "v1_worker_stage_save"
+        }
+      ],
+      "adapter_ms": 581.548
+    },
+    {
+      "number": 139,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 185.627,
+      "sqlstate": null,
+      "adapter_ms": 700.369
+    },
+    {
+      "number": 140,
+      "phase": "collaboration",
+      "command_label": "collaboration.direct-worker-stage-1",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 198.974,
+      "sqlstate": null,
+      "adapter_ms": 649.498
+    },
+    {
+      "number": 141,
+      "phase": "collaboration",
+      "command_label": "collaboration.direct-worker-stage-1",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 65.669,
+      "sqlstate": null,
+      "adapter_ms": 578.839
+    },
+    {
+      "number": 142,
+      "phase": "collaboration",
+      "command_label": "collaboration.direct-worker-stage-2",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 190.852,
+      "sqlstate": null,
+      "adapter_ms": 900.205
+    },
+    {
+      "number": 143,
+      "phase": "collaboration",
+      "command_label": "collaboration.direct-worker-stage-3",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 208.002,
+      "sqlstate": null,
+      "adapter_ms": 661.563
+    },
+    {
+      "number": 144,
+      "phase": "collaboration",
+      "command_label": "collaboration.direct-worker-stage-4",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 196.944,
+      "sqlstate": null,
+      "adapter_ms": 640.416
+    },
+    {
+      "number": 145,
+      "phase": "collaboration",
+      "command_label": "collaboration.direct-worker-stage-5",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 261.276,
+      "sqlstate": null,
+      "adapter_ms": 706.861
+    },
+    {
+      "number": 146,
+      "phase": "collaboration",
+      "command_label": "collaboration.direct-worker-stage-5",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 66.139,
+      "sqlstate": null,
+      "adapter_ms": 509.12
+    },
+    {
+      "number": 147,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 96.496,
+      "sqlstate": null,
+      "adapter_ms": 541.185
+    },
+    {
+      "number": 148,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 215.169,
+      "sqlstate": null,
+      "adapter_ms": 659.155
+    },
+    {
+      "number": 149,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 74.307,
+      "sqlstate": null,
+      "adapter_ms": 518.33
+    },
+    {
+      "number": 150,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 200.474,
+      "sqlstate": null,
+      "adapter_ms": 654.219
+    },
+    {
+      "number": 151,
+      "phase": "collaboration",
+      "command_label": "collaboration.customer-dealer-link",
+      "role": 0,
+      "rpc": "v1_customer_links_save",
+      "argument_names": [
+        "p_coordinator_id",
+        "p_dealer_ids",
+        "p_direct",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 323.825,
+      "sqlstate": null,
+      "adapter_ms": 773.228
+    },
+    {
+      "number": 152,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-preset",
+      "role": 10,
+      "rpc": "v1_product_configure",
+      "argument_names": [
+        "p_comment",
+        "p_configuration",
+        "p_idempotency_key",
+        "p_name"
+      ],
+      "sql_ms": 266.055,
+      "sqlstate": null,
+      "adapter_ms": 713.814
+    },
+    {
+      "number": 153,
+      "phase": "collaboration",
+      "command_label": "collaboration.customer-preset",
+      "role": 3,
+      "rpc": "v1_product_configure",
+      "argument_names": [
+        "p_comment",
+        "p_configuration",
+        "p_idempotency_key",
+        "p_name"
+      ],
+      "sql_ms": 83.721,
+      "sqlstate": null,
+      "adapter_ms": 531.83
+    },
+    {
+      "number": 154,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 205.83,
+      "sqlstate": null,
+      "adapter_ms": 655.14
+    },
+    {
+      "number": 155,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-place",
+      "role": 10,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 354.065,
+      "sqlstate": null,
+      "adapter_ms": 799.303
+    },
+    {
+      "number": 156,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-place",
+      "role": 10,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 66.503,
+      "sqlstate": null,
+      "adapter_ms": 514.6
+    },
+    {
+      "number": 157,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 74.665,
+      "sqlstate": null,
+      "adapter_ms": 533.843
+    },
+    {
+      "number": 158,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 81.2,
+      "sqlstate": null,
+      "adapter_ms": 524.294
+    },
+    {
+      "number": 159,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-assign",
+      "role": 2,
+      "rpc": "v1_order_assign_worker",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_worker_id"
+      ],
+      "sql_ms": 157.184,
+      "sqlstate": null,
+      "adapter_ms": 613.343
+    },
+    {
+      "number": 160,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 115.108,
+      "sqlstate": null,
+      "adapter_ms": 562.053
+    },
+    {
+      "number": 161,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-cost",
+      "role": 2,
+      "rpc": "v1_worker_cost_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_unit_cost"
+      ],
+      "sql_ms": 97.554,
+      "sqlstate": null,
+      "adapter_ms": 547.493
+    },
+    {
+      "number": 162,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 172.58,
+      "sqlstate": null,
+      "adapter_ms": 619.51
+    },
+    {
+      "number": 163,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-stage-1",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 205.196,
+      "sqlstate": null,
+      "adapter_ms": 652.508
+    },
+    {
+      "number": 164,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-stage-1",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 64.84,
+      "sqlstate": null,
+      "adapter_ms": 517.711
+    },
+    {
+      "number": 165,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-stage-2",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 193.773,
+      "sqlstate": null,
+      "adapter_ms": 646.625
+    },
+    {
+      "number": 166,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-stage-3",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 196.44,
+      "sqlstate": null,
+      "adapter_ms": 645.887
+    },
+    {
+      "number": 167,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-stage-4",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 197.732,
+      "sqlstate": null,
+      "adapter_ms": 650.584
+    },
+    {
+      "number": 168,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-stage-5",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 404.496,
+      "sqlstate": null,
+      "adapter_ms": 859.713
+    },
+    {
+      "number": 169,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-supply-stage-5",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 296.329,
+      "sqlstate": null,
+      "adapter_ms": 747.934
+    },
+    {
+      "number": 170,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 128.25,
+      "sqlstate": null,
+      "adapter_ms": 572.28
+    },
+    {
+      "number": 171,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 265.981,
+      "sqlstate": null,
+      "adapter_ms": 714.389
+    },
+    {
+      "number": 172,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dealer_stock",
+      "argument_names": [
+        "p_cursor",
+        "p_customer_id",
+        "p_dealer_id",
+        "p_filters",
+        "p_limit"
+      ],
+      "sql_ms": 123.131,
+      "sqlstate": null,
+      "adapter_ms": 580.667
+    },
+    {
+      "number": 173,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 117.425,
+      "sqlstate": "P0002",
+      "context_functions": [
+        {
+          "function": "sa_domain.work_detail",
+          "line": 8
+        },
+        {
+          "function": "v1_dispatch_detail"
+        }
+      ],
+      "adapter_ms": 628.975
+    },
+    {
+      "number": 174,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_dealer_stock",
+      "argument_names": [
+        "p_cursor",
+        "p_customer_id",
+        "p_dealer_id",
+        "p_filters",
+        "p_limit"
+      ],
+      "sql_ms": 80.57,
+      "sqlstate": null,
+      "adapter_ms": 526.473
+    },
+    {
+      "number": 175,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 310.847,
+      "sqlstate": null,
+      "adapter_ms": 766.893
+    },
+    {
+      "number": 176,
+      "phase": "collaboration",
+      "command_label": "collaboration.customer-demand-place",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 458.159,
+      "sqlstate": null,
+      "adapter_ms": 905.792
+    },
+    {
+      "number": 177,
+      "phase": "collaboration",
+      "command_label": "collaboration.customer-demand-place",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 67.187,
+      "sqlstate": null,
+      "adapter_ms": 515.956
+    },
+    {
+      "number": 178,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 139.225,
+      "sqlstate": null,
+      "adapter_ms": 593.36
+    },
+    {
+      "number": 179,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 164.563,
+      "sqlstate": null,
+      "adapter_ms": 613.698
+    },
+    {
+      "number": 180,
+      "phase": "collaboration",
+      "command_label": "collaboration.customer-cannot-dispatch",
+      "role": 3,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 77.401,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_dispatch_record",
+          "line": 2
+        },
+        {
+          "function": "v1_dispatch_record"
+        }
+      ],
+      "adapter_ms": 590.797
+    },
+    {
+      "number": 181,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-partial-2",
+      "role": 10,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 469.708,
+      "sqlstate": null,
+      "adapter_ms": 915.894
+    },
+    {
+      "number": 182,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-partial-2",
+      "role": 10,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 67.031,
+      "sqlstate": null,
+      "adapter_ms": 512.713
+    },
+    {
+      "number": 183,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dealer_stock",
+      "argument_names": [
+        "p_cursor",
+        "p_customer_id",
+        "p_dealer_id",
+        "p_filters",
+        "p_limit"
+      ],
+      "sql_ms": 71.698,
+      "sqlstate": null,
+      "adapter_ms": 519.249
+    },
+    {
+      "number": 184,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 106.867,
+      "sqlstate": null,
+      "adapter_ms": 555.479
+    },
+    {
+      "number": 185,
+      "phase": "collaboration",
+      "command_label": "collaboration.stale-dispatch",
+      "role": 10,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 89.819,
+      "sqlstate": "PT409",
+      "context_functions": [
+        {
+          "function": "sa_domain.bump_version",
+          "line": 6
+        },
+        {
+          "function": "sa_domain.v1_dispatch_record",
+          "line": 18
+        },
+        {
+          "function": "v1_dispatch_record"
+        }
+      ],
+      "adapter_ms": 604.433
+    },
+    {
+      "number": 186,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-final-4",
+      "role": 10,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 181.836,
+      "sqlstate": null,
+      "adapter_ms": 631.629
+    },
+    {
+      "number": 187,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dealer_stock",
+      "argument_names": [
+        "p_cursor",
+        "p_customer_id",
+        "p_dealer_id",
+        "p_filters",
+        "p_limit"
+      ],
+      "sql_ms": 69.365,
+      "sqlstate": null,
+      "adapter_ms": 520.308
+    },
+    {
+      "number": 188,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 77.648,
+      "sqlstate": null,
+      "adapter_ms": 527.685
+    },
+    {
+      "number": 189,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 78.138,
+      "sqlstate": null,
+      "adapter_ms": 525.345
+    },
+    {
+      "number": 190,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 111.083,
+      "sqlstate": null,
+      "adapter_ms": 561.691
+    },
+    {
+      "number": 191,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 110.532,
+      "sqlstate": null,
+      "adapter_ms": 558.144
+    },
+    {
+      "number": 192,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_quote",
+      "argument_names": [
+        "p_request"
+      ],
+      "sql_ms": 99.704,
+      "sqlstate": null,
+      "adapter_ms": 558.903
+    },
+    {
+      "number": 193,
+      "phase": "collaboration",
+      "command_label": "collaboration.customer-shortage-place",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 158.0,
+      "sqlstate": null,
+      "adapter_ms": 605.632
+    },
+    {
+      "number": 194,
+      "phase": "collaboration",
+      "command_label": "collaboration.customer-shortage-place",
+      "role": 3,
+      "rpc": "v1_order_place",
+      "argument_names": [
+        "p_details",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_quote_id"
+      ],
+      "sql_ms": 130.172,
+      "sqlstate": null,
+      "adapter_ms": 580.494
+    },
+    {
+      "number": 195,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 75.12,
+      "sqlstate": null,
+      "adapter_ms": 519.138
+    },
+    {
+      "number": 196,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 90.591,
+      "sqlstate": null,
+      "adapter_ms": 537.011
+    },
+    {
+      "number": 197,
+      "phase": "collaboration",
+      "command_label": "collaboration.insufficient-stock",
+      "role": 10,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 113.518,
+      "sqlstate": "55000",
+      "context_functions": [
+        {
+          "function": "sa_domain.consume_dealer_stock",
+          "line": 12
+        },
+        {
+          "function": "sa_domain.v1_dispatch_record",
+          "line": 26
+        },
+        {
+          "function": "v1_dispatch_record"
+        }
+      ],
+      "adapter_ms": 689.227
+    },
+    {
+      "number": 198,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dealer_stock",
+      "argument_names": [
+        "p_cursor",
+        "p_customer_id",
+        "p_dealer_id",
+        "p_filters",
+        "p_limit"
+      ],
+      "sql_ms": 70.033,
+      "sqlstate": null,
+      "adapter_ms": 515.736
+    },
+    {
+      "number": 199,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_backorder_preview",
+      "argument_names": [
+        "p_address_id",
+        "p_order_ids"
+      ],
+      "sql_ms": 199.501,
+      "sqlstate": null,
+      "adapter_ms": 653.878
+    },
+    {
+      "number": 200,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_backorder_preview",
+      "argument_names": [
+        "p_address_id",
+        "p_order_ids"
+      ],
+      "sql_ms": 65.09,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_roles",
+          "line": 4
+        },
+        {
+          "function": "sa_domain.v1_backorder_preview",
+          "line": 2
+        },
+        {
+          "function": "v1_backorder_preview"
+        }
+      ],
+      "adapter_ms": 576.741
+    },
+    {
+      "number": 201,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-place",
+      "role": 10,
+      "rpc": "v1_backorder_place",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_preview_id"
+      ],
+      "sql_ms": 283.76,
+      "sqlstate": null,
+      "adapter_ms": 737.414
+    },
+    {
+      "number": 202,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-place",
+      "role": 10,
+      "rpc": "v1_backorder_place",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_idempotency_key",
+        "p_preview_id"
+      ],
+      "sql_ms": 68.178,
+      "sqlstate": null,
+      "adapter_ms": 519.398
+    },
+    {
+      "number": 203,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 83.698,
+      "sqlstate": null,
+      "adapter_ms": 533.233
+    },
+    {
+      "number": 204,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-assign",
+      "role": 2,
+      "rpc": "v1_order_assign_worker",
+      "argument_names": [
+        "p_due_at",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_worker_id"
+      ],
+      "sql_ms": 169.491,
+      "sqlstate": null,
+      "adapter_ms": 618.164
+    },
+    {
+      "number": 205,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 182.82,
+      "sqlstate": null,
+      "adapter_ms": 630.411
+    },
+    {
+      "number": 206,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-cost",
+      "role": 2,
+      "rpc": "v1_worker_cost_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_unit_cost"
+      ],
+      "sql_ms": 104.756,
+      "sqlstate": null,
+      "adapter_ms": 552.191
+    },
+    {
+      "number": 207,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 172.186,
+      "sqlstate": null,
+      "adapter_ms": 623.715
+    },
+    {
+      "number": 208,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-stage-1",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 202.005,
+      "sqlstate": null,
+      "adapter_ms": 652.756
+    },
+    {
+      "number": 209,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-stage-1",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 68.044,
+      "sqlstate": null,
+      "adapter_ms": 515.601
+    },
+    {
+      "number": 210,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-stage-2",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 193.388,
+      "sqlstate": null,
+      "adapter_ms": 643.647
+    },
+    {
+      "number": 211,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-stage-3",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 193.424,
+      "sqlstate": null,
+      "adapter_ms": 642.556
+    },
+    {
+      "number": 212,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-stage-4",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 202.494,
+      "sqlstate": null,
+      "adapter_ms": 661.324
+    },
+    {
+      "number": 213,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-stage-5",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 230.517,
+      "sqlstate": null,
+      "adapter_ms": 689.681
+    },
+    {
+      "number": 214,
+      "phase": "collaboration",
+      "command_label": "collaboration.backorder-stage-5",
+      "role": 11,
+      "rpc": "v1_worker_stage_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_stage"
+      ],
+      "sql_ms": 67.805,
+      "sqlstate": null,
+      "adapter_ms": 527.173
+    },
+    {
+      "number": 215,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 91.124,
+      "sqlstate": null,
+      "adapter_ms": 544.572
+    },
+    {
+      "number": 216,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_order_item_get",
+      "argument_names": [
+        "p_cursor",
+        "p_id",
+        "p_limit",
+        "p_section"
+      ],
+      "sql_ms": 186.889,
+      "sqlstate": null,
+      "adapter_ms": 637.856
+    },
+    {
+      "number": 217,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dealer_stock",
+      "argument_names": [
+        "p_cursor",
+        "p_customer_id",
+        "p_dealer_id",
+        "p_filters",
+        "p_limit"
+      ],
+      "sql_ms": 149.525,
+      "sqlstate": null,
+      "adapter_ms": 593.649
+    },
+    {
+      "number": 218,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dispatch_detail",
+      "argument_names": [
+        "p_history_cursor",
+        "p_id",
+        "p_limit",
+        "p_quantity_cursor"
+      ],
+      "sql_ms": 154.634,
+      "sqlstate": null,
+      "adapter_ms": 601.234
+    },
+    {
+      "number": 219,
+      "phase": "collaboration",
+      "command_label": "collaboration.dealer-backorder-7",
+      "role": 10,
+      "rpc": "v1_dispatch_record",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_occurred_at",
+        "p_quantities"
+      ],
+      "sql_ms": 247.29,
+      "sqlstate": null,
+      "adapter_ms": 694.656
+    },
+    {
+      "number": 220,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 10,
+      "rpc": "v1_dealer_stock",
+      "argument_names": [
+        "p_cursor",
+        "p_customer_id",
+        "p_dealer_id",
+        "p_filters",
+        "p_limit"
+      ],
+      "sql_ms": 69.646,
+      "sqlstate": null,
+      "adapter_ms": 527.149
+    },
+    {
+      "number": 221,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 76.299,
+      "sqlstate": null,
+      "adapter_ms": 527.428
+    },
+    {
+      "number": 222,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 3,
+      "rpc": "v1_order_get",
+      "argument_names": [
+        "p_id",
+        "p_item_cursor",
+        "p_item_limit"
+      ],
+      "sql_ms": 77.972,
+      "sqlstate": null,
+      "adapter_ms": 525.249
+    },
+    {
+      "number": 223,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 193.034,
+      "sqlstate": null,
+      "adapter_ms": 641.881
+    },
+    {
+      "number": 224,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-notes-goals",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 141.471,
+      "sqlstate": null,
+      "adapter_ms": 591.645
+    },
+    {
+      "number": 225,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 73.384,
+      "sqlstate": null,
+      "adapter_ms": 519.656
+    },
+    {
+      "number": 226,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-no-grants",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 77.397,
+      "sqlstate": null,
+      "adapter_ms": 530.258
+    },
+    {
+      "number": 227,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_tasks_list",
+      "argument_names": [
+        "p_cursor",
+        "p_limit",
+        "p_order_id",
+        "p_state"
+      ],
+      "sql_ms": 84.611,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_capability",
+          "line": 3
+        },
+        {
+          "function": "sa_domain.task_page",
+          "line": 2
+        },
+        {
+          "function": "v1_tasks_list"
+        }
+      ],
+      "adapter_ms": 720.343
+    },
+    {
+      "number": 228,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_responsibilities_list",
+      "argument_names": [
+        "p_completed",
+        "p_cursor",
+        "p_kind",
+        "p_limit",
+        "p_subject_id"
+      ],
+      "sql_ms": 70.512,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_capability",
+          "line": 3
+        },
+        {
+          "function": "sa_domain.v1_responsibilities_list",
+          "line": 2
+        },
+        {
+          "function": "v1_responsibilities_list"
+        }
+      ],
+      "adapter_ms": 584.135
+    },
+    {
+      "number": 229,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-task",
+      "role": 11,
+      "rpc": "v1_task_save",
+      "argument_names": [
+        "p_assignee_ids",
+        "p_deadline",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_note",
+        "p_order_id"
+      ],
+      "sql_ms": 233.27,
+      "sqlstate": null,
+      "adapter_ms": 684.206
+    },
+    {
+      "number": 230,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-task",
+      "role": 11,
+      "rpc": "v1_task_save",
+      "argument_names": [
+        "p_assignee_ids",
+        "p_deadline",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_note",
+        "p_order_id"
+      ],
+      "sql_ms": 65.232,
+      "sqlstate": null,
+      "adapter_ms": 584.179
+    },
+    {
+      "number": 231,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 2,
+      "rpc": "v1_task_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 79.769,
+      "sqlstate": null,
+      "adapter_ms": 523.971
+    },
+    {
+      "number": 232,
+      "phase": "collaboration",
+      "command_label": "collaboration.assignee-cannot-edit",
+      "role": 2,
+      "rpc": "v1_task_save",
+      "argument_names": [
+        "p_assignee_ids",
+        "p_deadline",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_note",
+        "p_order_id"
+      ],
+      "sql_ms": 74.313,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_task_save",
+          "line": 19
+        },
+        {
+          "function": "v1_task_save"
+        }
+      ],
+      "adapter_ms": 590.13
+    },
+    {
+      "number": 233,
+      "phase": "collaboration",
+      "command_label": "collaboration.assignee-cannot-archive",
+      "role": 2,
+      "rpc": "v1_task_transition",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_state"
+      ],
+      "sql_ms": 72.034,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_task_transition",
+          "line": 7
+        },
+        {
+          "function": "v1_task_transition"
+        }
+      ],
+      "adapter_ms": 589.049
+    },
+    {
+      "number": 234,
+      "phase": "collaboration",
+      "command_label": "collaboration.assignee-complete",
+      "role": 2,
+      "rpc": "v1_task_transition",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_state"
+      ],
+      "sql_ms": 78.804,
+      "sqlstate": null,
+      "adapter_ms": 530.728
+    },
+    {
+      "number": 235,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-goal",
+      "role": 0,
+      "rpc": "v1_responsibility_save",
+      "argument_names": [
+        "p_idempotency_key",
+        "p_items"
+      ],
+      "sql_ms": 107.294,
+      "sqlstate": null,
+      "adapter_ms": 558.698
+    },
+    {
+      "number": 236,
+      "phase": "collaboration",
+      "command_label": "collaboration.worker-goal-complete",
+      "role": 11,
+      "rpc": "v1_responsibility_transition",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_state"
+      ],
+      "sql_ms": 86.417,
+      "sqlstate": null,
+      "adapter_ms": 535.474
+    },
+    {
+      "number": 237,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 73.26,
+      "sqlstate": null,
+      "adapter_ms": 522.535
+    },
+    {
+      "number": 238,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-notes-only",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 75.693,
+      "sqlstate": null,
+      "adapter_ms": 522.686
+    },
+    {
+      "number": 239,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_responsibilities_list",
+      "argument_names": [
+        "p_completed",
+        "p_cursor",
+        "p_kind",
+        "p_limit",
+        "p_subject_id"
+      ],
+      "sql_ms": 65.604,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_capability",
+          "line": 3
+        },
+        {
+          "function": "sa_domain.v1_responsibilities_list",
+          "line": 2
+        },
+        {
+          "function": "v1_responsibilities_list"
+        }
+      ],
+      "adapter_ms": 577.52
+    },
+    {
+      "number": 240,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-task",
+      "role": 12,
+      "rpc": "v1_task_save",
+      "argument_names": [
+        "p_assignee_ids",
+        "p_deadline",
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_note",
+        "p_order_id"
+      ],
+      "sql_ms": 74.639,
+      "sqlstate": null,
+      "adapter_ms": 524.273
+    },
+    {
+      "number": 241,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_task_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 77.135,
+      "sqlstate": null,
+      "adapter_ms": 523.752
+    },
+    {
+      "number": 242,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_task_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 71.218,
+      "sqlstate": "P0002",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_task_get",
+          "line": 3
+        },
+        {
+          "function": "v1_task_get"
+        }
+      ],
+      "adapter_ms": 580.624
+    },
+    {
+      "number": 243,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 73.183,
+      "sqlstate": null,
+      "adapter_ms": 527.975
+    },
+    {
+      "number": 244,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-notes-goals",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 76.161,
+      "sqlstate": null,
+      "adapter_ms": 526.608
+    },
+    {
+      "number": 245,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-goal",
+      "role": 0,
+      "rpc": "v1_responsibility_save",
+      "argument_names": [
+        "p_idempotency_key",
+        "p_items"
+      ],
+      "sql_ms": 74.322,
+      "sqlstate": null,
+      "adapter_ms": 528.484
+    },
+    {
+      "number": 246,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-cannot-complete-worker-goal",
+      "role": 12,
+      "rpc": "v1_responsibility_transition",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_state"
+      ],
+      "sql_ms": 72.477,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_responsibility_transition",
+          "line": 8
+        },
+        {
+          "function": "v1_responsibility_transition"
+        }
+      ],
+      "adapter_ms": 586.816
+    },
+    {
+      "number": 247,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-goal-complete",
+      "role": 12,
+      "rpc": "v1_responsibility_transition",
+      "argument_names": [
+        "p_expected_version",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason",
+        "p_state"
+      ],
+      "sql_ms": 76.971,
+      "sqlstate": null,
+      "adapter_ms": 527.033
+    },
+    {
+      "number": 248,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 0,
+      "rpc": "v1_person_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 135.4,
+      "sqlstate": null,
+      "adapter_ms": 636.394
+    },
+    {
+      "number": 249,
+      "phase": "collaboration",
+      "command_label": "collaboration.team-revoke-notes",
+      "role": 0,
+      "rpc": "v1_person_capabilities_save",
+      "argument_names": [
+        "p_expected_version",
+        "p_features",
+        "p_id",
+        "p_idempotency_key",
+        "p_reason"
+      ],
+      "sql_ms": 73.299,
+      "sqlstate": null,
+      "adapter_ms": 525.59
+    },
+    {
+      "number": 250,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_task_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 65.517,
+      "sqlstate": "42501",
+      "context_functions": [
+        {
+          "function": "sa_domain.require_capability",
+          "line": 3
+        },
+        {
+          "function": "sa_domain.task_page",
+          "line": 2
+        },
+        {
+          "function": "sa_domain.v1_task_get",
+          "line": 2
+        },
+        {
+          "function": "v1_task_get"
+        }
+      ],
+      "adapter_ms": 581.867
+    },
+    {
+      "number": 251,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 11,
+      "rpc": "v1_task_get",
+      "argument_names": [
+        "p_id"
+      ],
+      "sql_ms": 73.12,
+      "sqlstate": null,
+      "adapter_ms": 527.683
+    },
+    {
+      "number": 252,
+      "phase": "collaboration",
+      "command_label": null,
+      "role": 12,
+      "rpc": "v1_responsibilities_list",
+      "argument_names": [
+        "p_completed",
+        "p_cursor",
+        "p_kind",
+        "p_limit",
+        "p_subject_id"
+      ],
+      "sql_ms": 92.683,
+      "sqlstate": null,
+      "adapter_ms": 540.596
+    }
+  ],
+  "environment": "staging",
+  "scope": "Shared SDK via direct SQL; not GoTrue, HTTP, SMTP, Cron execution or provider acceptance",
+  "all_changes_rolled_back": true,
+  "sequences_restored": 95,
+  "source_restored": true,
+  "public_and_staff_unchanged": true,
+  "cron_unchanged": true,
+  "migration_prefix": "20261108112012",
+  "measured_at": "2026-11-08T11:27:59.166275+00:00",
+  "sample_count": 252,
+  "final_fifo_dispatch_sql_ms": 247.29,
+  "source_bindings": {
+    "tools/squad/profile_hosted_business_journeys.py": "cd12d9c521d4c9e5db8057067046720b0c4563c2a7bc0c3e71e3e63eff692f1d",
+    "tools/squad/test_business_journey_composition.py": "8904a1ba9c5cbec44e20ba4b342b2f59c321fc0f2ddb310c390d3403c720dc86",
+    "supabase/migrations/20261108112012_squad_stock_allocation_scope.sql": "8bdc92dc1e2f4b42f8ad8ce6422d5f310f1db310f63742ff137c41a537bd959b"
+  }
+}

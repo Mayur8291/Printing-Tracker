@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 from fixtures import claim_test_workers
 """Synthetic warehouse preparation, frozen money, reconciliation and custody."""
 import datetime,decimal,json,unittest,uuid
@@ -64,7 +65,7 @@ class WarehouseOutbound(unittest.TestCase):
   self.assertEqual(self.raw('SELECT status FROM sa_domain.outbox WHERE id=%s',(uuid.UUID(j['id']),)),[('leased',)])
  def test_stale_lease_cannot_extend_provider_cooldown(self):
   self.place();j=self.claim()[0];self.prepare(j);stale=dict(j,lease_token=str(uuid.uuid4()))
-  with self.assertRaises(psycopg.errors.SerializationFailure):
+  with assert_app_conflict(self):
    with self.c.transaction():self.finish(stale,{'code':'RETRY','retry_after_seconds':300})
   self.assertEqual(self.raw('SELECT status FROM sa_domain.outbox WHERE id=%s',(uuid.UUID(j['id']),)),[('leased',)])
  def test_fanout_keeps_notification_event_independent(self):
@@ -88,7 +89,7 @@ class WarehouseOutbound(unittest.TestCase):
   self.raw("UPDATE sa_snapshot_20261019.sa_settings SET value='false' WHERE key='use_dashboard'");self.raw("UPDATE sa_domain.warehouse_config SET provider='unicommerce'");r,q=self.place(3);p=self.prepare(self.claim()[0]);self.assertEqual(p['provider'],'unicommerce');lines=p['payload']['saleOrder']['saleOrderItems'];self.assertEqual(len(lines),3);self.assertEqual(len({x['code'] for x in lines}),3);self.assertEqual(sum(decimal.Decimal(str(x['sellingPrice'])) for x in lines),decimal.Decimal(q['total']));self.assertTrue(all(x['facilityCode']=='ONE' for x in lines))
  def test_stale_generation_cannot_prepare(self):
   self.place();j=self.claim()[0];self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.prepare(j)
+  with assert_app_conflict(self):self.prepare(j)
 
  def test_current_provider_change_after_http_keeps_receipt_evidence(self):
   self.place();j=self.claim()[0];p=self.prepare(j);self.raw("UPDATE sa_domain.warehouse_config SET enabled=false");r=self.finish(j,self.ack(p));self.assertEqual(r['state'],'dead');self.assertEqual(self.raw("SELECT state,result->>'external_id' FROM sa_domain.warehouse_operations"),[('reconciliation_required',self.ack(p)['external_id'])])

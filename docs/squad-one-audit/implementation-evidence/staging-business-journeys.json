@@ -1,0 +1,280 @@
+{
+  "environment": "staging",
+  "run_id": "25ef1f70-d889-44d0-88ad-da39350c9955",
+  "auth_personas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "journeys": {
+    "commercial": {
+      "checks": [
+        "admin_onboarding_approval_and_sc_relationship_are_distinct",
+        "admin_staff_creation_retry_and_live_team_permission_revoke_grant",
+        "admin_target_and_responsibility_assignment_sc_completion",
+        "customer_configuration_quote_place_retry_sc_payment_and_amendment_pc_factory_assignment",
+        "pc_worker_assignment_due_cost_and_worker_selling_price_redaction",
+        "admin_exception_closure_preserves_undispatched_quantity",
+        "admin_scoped_report_and_sc_target_reflect_three_actual_orders",
+        "completed_factory_order_rating_chain_customer_sc_pc_and_unchanged_financials"
+      ],
+      "entities": {
+        "quoteIds": [
+          "f391b1b8-3a7e-4f6a-a560-255d973a4005",
+          "18cd2031-322e-4977-8355-7ad3d8981ffd",
+          "2e5b40db-6b2e-4bf8-a039-60b18128407c",
+          "34bd11fc-6c54-42e1-a6db-f944b2f2e75f"
+        ],
+        "orderIds": [
+          "55232",
+          "55233",
+          "55234"
+        ],
+        "itemIds": [
+          "116013",
+          "116014",
+          "116015",
+          "116016"
+        ],
+        "ratingIds": [
+          "306",
+          "307",
+          "308"
+        ],
+        "createdTeamId": "7695",
+        "accountRequestId": "ee951a7b-8fad-48db-b5e0-788c35428cc6",
+        "milestoneId": "109",
+        "responsibilityId": "709",
+        "presetId": "2021",
+        "factoryOrderId": "55232",
+        "amendmentId": "5ad93ce2-372e-432a-bce0-c90a8a631e4e",
+        "factoryItemId": "116014",
+        "workerOrderId": "55233",
+        "workerItemId": "116015",
+        "forceOrderId": "55234"
+      },
+      "expected": {
+        "factoryQuantity": 3,
+        "factoryTotal": "1575",
+        "paidAmount": "100",
+        "dueAt": "2026-11-22T11:28:50.041119+00:00"
+      },
+      "scope": "Commercial mutations via authenticated shared SDK; factory completion and ratings follow in finishJourney."
+    },
+    "factory": {
+      "checks": [
+        "cutter_partial_balance_exact_retry_overrun_denial_and_history_cursor",
+        "factory_tailor_subtailor_allocation_retry_inspection_pick_and_rollups",
+        "dispatch_partial_twice_exact_retry_overrun_denial_and_completed_order"
+      ],
+      "entities": {
+        "orderId": "55232",
+        "itemId": "116014",
+        "quantityId": "268846",
+        "managedTailorIds": [
+          "1900000805",
+          "1900000806"
+        ]
+      },
+      "finalProgress": {
+        "cut": 3,
+        "sewn": 3,
+        "assigned": 3,
+        "required": 3,
+        "dispatched": 3,
+        "order_completed": true
+      }
+    },
+    "commercialFinish": {
+      "checks": [
+        "admin_onboarding_approval_and_sc_relationship_are_distinct",
+        "admin_staff_creation_retry_and_live_team_permission_revoke_grant",
+        "admin_target_and_responsibility_assignment_sc_completion",
+        "customer_configuration_quote_place_retry_sc_payment_and_amendment_pc_factory_assignment",
+        "pc_worker_assignment_due_cost_and_worker_selling_price_redaction",
+        "admin_exception_closure_preserves_undispatched_quantity",
+        "admin_scoped_report_and_sc_target_reflect_three_actual_orders",
+        "completed_factory_order_rating_chain_customer_sc_pc_and_unchanged_financials"
+      ],
+      "entities": {
+        "quoteIds": [
+          "f391b1b8-3a7e-4f6a-a560-255d973a4005",
+          "18cd2031-322e-4977-8355-7ad3d8981ffd",
+          "2e5b40db-6b2e-4bf8-a039-60b18128407c",
+          "34bd11fc-6c54-42e1-a6db-f944b2f2e75f"
+        ],
+        "orderIds": [
+          "55232",
+          "55233",
+          "55234"
+        ],
+        "itemIds": [
+          "116013",
+          "116014",
+          "116015",
+          "116016"
+        ],
+        "ratingIds": [
+          "306",
+          "307",
+          "308"
+        ],
+        "createdTeamId": "7695",
+        "accountRequestId": "ee951a7b-8fad-48db-b5e0-788c35428cc6",
+        "milestoneId": "109",
+        "responsibilityId": "709",
+        "presetId": "2021",
+        "factoryOrderId": "55232",
+        "amendmentId": "5ad93ce2-372e-432a-bce0-c90a8a631e4e",
+        "factoryItemId": "116014",
+        "workerOrderId": "55233",
+        "workerItemId": "116015",
+        "forceOrderId": "55234"
+      },
+      "expected": {
+        "factoryQuantity": 3,
+        "factoryTotal": "1575",
+        "paidAmount": "100",
+        "dueAt": "2026-11-22T11:28:50.041119+00:00"
+      },
+      "scope": "Commercial creation, amendment, payment, factory completion and rating chain via authenticated shared SDK. Staff enrollment delivery and external warehouse acceptance are not exercised."
+    },
+    "collaboration": {
+      "checks": [
+        "job_worker_due_baseline_sequential_stages_retry_and_cost_authority",
+        "job_worker_completion_has_no_fabricated_factory_dispatch_or_customer_price",
+        "dealer_purchase_worker_completion_creates_real_receipt_and_equivalent_preset_stock",
+        "dealer_partial_and_final_dispatch_retry_stale_version_history_pagination_and_residual",
+        "dealer_backorder_shortage_purchase_actual_receipt_fifo_fulfillment_and_zero_residual",
+        "worker_feature_grants_notes_assignee_authority_and_self_goal_completion",
+        "team_notes_and_goals_are_independent_grants_with_live_revocation_and_subject_isolation"
+      ],
+      "entities": {
+        "orderIds": [
+          "55235",
+          "55236",
+          "55237",
+          "55238"
+        ],
+        "itemIds": [
+          "116017",
+          "116018",
+          "116019",
+          "116020"
+        ],
+        "presetIds": [
+          "2022",
+          "2021"
+        ],
+        "quoteIds": [
+          "b3fc5464-b625-4293-ae6e-20816d4b1a0b",
+          "496cd4b8-b272-4451-b2b1-e32f7e2dc218",
+          "ebaca79a-5131-4d23-b773-62c7f88e395f"
+        ],
+        "taskIds": [
+          "1324",
+          "1325"
+        ],
+        "responsibilityIds": [
+          "710",
+          "711"
+        ]
+      },
+      "scope": "Actual shared-SDK custom Dealer/Job Worker/Team commands, receipts, FIFO dispatch and backorder fulfillment. Ready-made provider fulfillment, notification delivery and UI are separate acceptance paths."
+    }
+  },
+  "transport": {
+    "rpc_requests": 252,
+    "application_conflicts": [
+      {
+        "rpc": "v1_order_due_save",
+        "status": 409,
+        "code": "PT409",
+        "elapsed_ms": 284.39
+      },
+      {
+        "rpc": "v1_dispatch_record",
+        "status": 409,
+        "code": "PT409",
+        "elapsed_ms": 178.92
+      }
+    ],
+    "conflict_response_bound_ms": 5000
+  },
+  "scope": "Actual staged Auth/shared-SDK business commands with workers paused; no provider, email, document rendering or cutover acceptance",
+  "cleanup": {
+    "run_id": "25ef1f70-d889-44d0-88ad-da39350c9955",
+    "owned_commands": 79,
+    "removed_source_rows": 133,
+    "tables": {
+      "sa_users": 17,
+      "sa_factories": 2,
+      "sa_addresses": 2,
+      "sa_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_milestones": 1,
+      "sa_responsibilities": 3,
+      "sa_products": 2,
+      "sa_orders": 7,
+      "sa_items": 7,
+      "sa_ratings": 3,
+      "sa_tasks": 2,
+      "sa_back_order_links": 1,
+      "sa_item_criteria": 21,
+      "sa_item_tailors": 2,
+      "sa_job_sheet_assign_dates": 1,
+      "sa_job_sheet_assign_quantities": 2,
+      "sa_job_sheet_assign_tailors": 2,
+      "sa_job_sheet_dispatched_dates": 5,
+      "sa_job_sheet_mark_tailors": 2,
+      "sa_job_sheet_tailor_mark_dates": 2,
+      "sa_mark_cuttings": 2,
+      "sa_mark_tailor_quantities": 2,
+      "sa_product_part_add_ons": 2,
+      "sa_product_parts": 2,
+      "sa_quantities": 7,
+      "sa_stocks": 2,
+      "sa_task_users": 1,
+      "sa_user_dealers": 1,
+      "sa_dispatched_quantities": 5,
+      "sa_item_tailor_quantities": 2,
+      "sa_mark_cutting_quantities": 2,
+      "sa_stock_useds": 4
+    },
+    "edit_revision_before": 247,
+    "edit_revision_after": 326,
+    "synced_revision_after": 326,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true
+  },
+  "measured_at": "2026-11-08T11:31:12.941518+00:00",
+  "cutover_unchanged": true,
+  "cron_restored": true,
+  "provider_requests": 0,
+  "emails_sent": 0,
+  "migration_prefix": "20261108112012"
+}

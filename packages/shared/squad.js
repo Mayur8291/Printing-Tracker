@@ -4,7 +4,7 @@ export class SquadError extends Error {
     super(error.message || "The request could not be completed.");
     this.name = "SquadError";
     this.code = error.code || "TRANSPORT_ERROR";
-    this.kind = ({"28000":"session", "42501":"forbidden", "40001":"conflict",
+    this.kind = ({"28000":"session", "42501":"forbidden", "PT409":"conflict", "40001":"conflict",
       "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "VERSION_CONFLICT":"conflict", "WRITE_UNAVAILABLE":"unavailable", "UPLOAD_NOT_FOUND":"conflict", "QUOTA_EXCEEDED":"unavailable", "INVALID_MEDIA":"validation", "INVALID_CSV":"validation", "TRANSFER_UNAVAILABLE":"unavailable", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable", "INVALID_OR_EXPIRED_CODE":"validation", "ACCOUNT_REQUEST_CONFLICT":"conflict", "ACCOUNT_REQUEST_BUSY":"unavailable", "PROVIDER_UNAVAILABLE":"unavailable", "IDENTITY_CONFLICT":"conflict", "ACCOUNT_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
   }
 }
@@ -47,7 +47,7 @@ export function createSquadClient(supabase) {
       try {
         const page=await call("v1_notifications_list",{p_id:payload.notification_id,p_cursor:null,p_limit:1,p_generation:payload.generation});
         return page.data[0]??null;
-      } catch(error) { if(error instanceof SquadError&&error.code==="40001")return null;throw error; }
+      } catch(error) { if(error instanceof SquadError&&["PT409","40001"].includes(error.code))return null;throw error; }
     },
     reserveTransferUpload: (kind,resource,file,idempotencyKey) => account("transfers/uploads",{kind,resource,file,idempotency_key:idempotencyKey}),
     verifyTransferUpload: (id) => account("transfers/verify",{id}),

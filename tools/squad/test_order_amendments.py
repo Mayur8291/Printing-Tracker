@@ -1,4 +1,5 @@
 """SC amendments reuse accepted quotes, preserve history and fence provider work."""
+from sqlstate_assertions import assert_app_conflict, is_app_conflict
 import unittest,uuid,decimal,concurrent.futures,threading
 import psycopg
 from psycopg.types.json import Jsonb
@@ -35,10 +36,10 @@ class Amendments(unittest.TestCase):
   q=self.quote([custom(10)]);key=uuid.uuid4();a=self.edit(q,key=key);b=self.edit(q,key=key);self.assertEqual(a,b);self.assertEqual(self.raw('SELECT count(*) FROM sa_domain.order_amendments WHERE order_id=%s',(self.id,)),[(1,)])
  def test_exact_order_version_required(self):
   q=self.quote([custom(10)]);self.edit(q)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.edit()
+  with assert_app_conflict(self):self.edit()
  def test_quote_cannot_be_reused_after_amendment(self):
   q=self.quote([custom(10)]);r=self.edit(q)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.edit(q,version=r['version'])
+  with assert_app_conflict(self):self.edit(q,version=r['version'])
  def test_customer_cannot_edit(self):
   self.actor(103)
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.edit()
@@ -83,7 +84,7 @@ class Amendments(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.edit(details={'total_amount':'1'})
  def test_price_change_requires_new_quote(self):
   q=self.quote([custom(10)]);self.raw('UPDATE sa_snapshot_20261019.sa_fabrics SET price=999 WHERE id=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.edit(q)
+  with assert_app_conflict(self):self.edit(q)
  def test_invalid_preset_rolls_back_every_replacement(self):
   with self.assertRaises(psycopg.errors.InvalidParameterValue),self.c.transaction():self.edit(details={'line_settings':{'1':{'product_id':'999999'}}})
   self.assertEqual(self.raw('SELECT id FROM sa_snapshot_20261019.sa_items WHERE order_id=%s',(self.id,)),[(self.item,)]);self.assertEqual(self.raw('SELECT count(*) FROM sa_domain.order_amendments WHERE order_id=%s',(self.id,)),[(0,)]);self.assertEqual(self.version(),self.order['version'])
@@ -165,7 +166,9 @@ class ConcurrentAmendments(unittest.TestCase):
      if which and other=='assignment':return rpc(c,'v1_order_assign_factory',(id_,104,'Concurrent allocation',order['version'],keys[3]))
      if which and other=='cancel':return rpc(c,'v1_order_cancel',(id_,'cancel','Concurrent cancellation',order['version'],keys[3]))
      return rpc(c,'v1_order_edit',(id_,uuid.UUID(q['quote_id']),q['version'],Jsonb(details),'Concurrent amendment',order['version'],keys[2] if not which or other=='retry' else keys[3]))
-   except (psycopg.errors.SerializationFailure,psycopg.errors.ObjectNotInPrerequisiteState):return 'conflict'
+   except psycopg.DatabaseError as error:
+    if not (is_app_conflict(error) or isinstance(error,psycopg.errors.ObjectNotInPrerequisiteState)):raise
+    return 'conflict'
   try:
    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(command,[0,1]))
    if other=='retry':self.assertEqual(results[0],results[1]);self.assertIsInstance(results[0],dict)

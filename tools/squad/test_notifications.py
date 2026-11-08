@@ -1,4 +1,5 @@
 """Notifications reuse current recipient authority; tokens never leave private worker calls."""
+from sqlstate_assertions import assert_app_conflict
 import json,unittest,uuid
 from pathlib import Path
 import psycopg
@@ -50,7 +51,7 @@ class Notifications(unittest.TestCase):
   with self.assertRaises(psycopg.errors.ProgramLimitExceeded):self.save()
  def test_stale_version_cannot_replace_new_token(self):
   r=self.save();self.save(uuid.UUID(r['installation_id']),version=r['version'])
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.save(uuid.UUID(r['installation_id']),version=r['version'])
+  with assert_app_conflict(self):self.save(uuid.UUID(r['installation_id']),version=r['version'])
  def test_token_switch_retires_old_account_binding(self):
   t='synthetic_'+uuid.uuid4().hex;old=self.save(token=t);self.actor_as(203);new=self.save(token=t)
   self.assertEqual(self.raw('SELECT active FROM sa_domain.devices WHERE id=%s',(uuid.UUID(old['id']),)),[(False,)])
@@ -91,7 +92,7 @@ class Notifications(unittest.TestCase):
   j=self.mine(self.ready());self.raw("UPDATE auth.users SET banned_until=now()+interval '1 day' WHERE id=%s",(uid(103),));self.assertEqual(self.call('squad_notification_prepare',j)['state'],'dead')
  def test_source_refresh_rejects_queued_delivery(self):
   j=self.mine(self.ready());self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.call('squad_notification_prepare',j)
+  with assert_app_conflict(self):self.call('squad_notification_prepare',j)
  def test_old_device_generation_not_reused(self):
   self.save();self.raw('UPDATE sa_domain.devices SET generation=-1');j=self.mine(self.ready());self.assertEqual(self.call('squad_notification_prepare',j)['devices'],[])
  def test_invalid_token_result_retires_only_exact_binding(self):
@@ -155,7 +156,7 @@ class Notifications(unittest.TestCase):
   token='synthetic_'+uuid.uuid4().hex;first=self.save(token=token);second=self.save(uuid.UUID(first['installation_id']),token=token);self.assertEqual(first['id'],second['id'])
  def test_foreign_or_stale_delivery_result_cannot_remove_another_device(self):
   d=self.save();j=self.mine(self.ready());self.call('squad_notification_prepare',j)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.call('squad_notification_finish',j,Jsonb([{'id':d['id'],'revision':'2','code':'UNREGISTERED'}]))
+  with assert_app_conflict(self):self.call('squad_notification_finish',j,Jsonb([{'id':d['id'],'revision':'2','code':'UNREGISTERED'}]))
  def test_provider_retry_after_is_persisted_in_queue(self):
   d=self.save();j=self.mine(self.ready());self.call('squad_notification_prepare',j);self.call('squad_notification_finish',j,Jsonb([{'id':d['id'],'revision':'1','code':'RATE_LIMITED','retry_after':7200}]))
   self.assertEqual(self.raw('SELECT extract(epoch from available_at-now())::integer FROM sa_domain.outbox WHERE id=%s',(uuid.UUID(j['id']),)),[(7200,)])
@@ -195,7 +196,7 @@ class Notifications(unittest.TestCase):
   before={'items':[row]};self.assertFalse(self.raw('SELECT sa_domain.amendment_prices_changed(%s,1001)',(Jsonb(before),))[0][0])
   row['per_piece_amount']=90;self.assertTrue(self.raw('SELECT sa_domain.amendment_prices_changed(%s,1001)',(Jsonb(before),))[0][0])
  def test_delayed_push_cannot_open_reused_id_after_refresh(self):
-  with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_notifications_list',(1001,None,1,99))
+  with assert_app_conflict(self):rpc(self.c,'v1_notifications_list',(1001,None,1,99))
  def test_inbox_response_has_current_generation(self):
   self.assertEqual(rpc(self.c,'v1_notifications_list')['generation'],'0')
 

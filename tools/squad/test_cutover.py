@@ -1,4 +1,5 @@
 """Local ownership activation contracts; never connects to a hosted environment."""
+from sqlstate_assertions import assert_app_conflict
 import datetime,json,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -76,7 +77,7 @@ class Cutover(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.preview()
  def test_generation_change_invalidates_acceptance_and_preview(self):
   id=self.register();p=self.preview(id);self.raw('UPDATE sa_domain.runtime_state SET generation=1');self.assertFalse(self.preview(id)['checks']['acceptance_current'])
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.commit(id,p['version'])
+  with assert_app_conflict(self):self.commit(id,p['version'])
  def test_local_write_invalidates_acceptance(self):
   id=self.register();self.raw('UPDATE sa_sync.environment_state SET edit_revision=1');r=self.preview(id);self.assertIn('clean_revision',r['blockers']);self.assertIn('acceptance_current',r['blockers'])
  def test_source_run_change_invalidates_acceptance(self):
@@ -135,7 +136,7 @@ class Cutover(unittest.TestCase):
   self.raw("INSERT INTO sa_media.references(resource,record_id,field,source_value,status) VALUES('rmp_classes',1,'image1','old-missing.png','missing')");id=self.register();self.assertIn('media_exception_policy',self.preview(id)['blockers']);e=self.evidence();e['media_policy']='reviewed_source_missing';id=self.register(e);self.assertTrue(self.preview(id)['ready'])
  def test_changed_missing_report_invalidates_review(self):
   e=self.evidence();self.raw("INSERT INTO sa_media.references(resource,record_id,field,source_value,status) VALUES('rmp_classes',1,'image1','old-missing.png','missing')")
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.register(e)
+  with assert_app_conflict(self):self.register(e)
  def test_missing_storage_object_is_hard_blocker_even_with_exception_policy(self):
   self.raw("INSERT INTO sa_media.references(resource,record_id,field,source_value,status,sha256) VALUES('rmp_classes',1,'image1','file.png','ready',%s)",('d'*64,));e=self.evidence();e['media_policy']='reviewed_source_missing';id=self.register(e);self.assertIn('media_verified',self.preview(id)['blockers'])
  def test_known_identity_exceptions_require_explicit_bound_review(self):

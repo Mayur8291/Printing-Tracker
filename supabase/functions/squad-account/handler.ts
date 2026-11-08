@@ -106,7 +106,7 @@ export function dependencies(url:string,anon:string,service:string,flowSecret?:s
    if(code==='28000'||r.status===401)throw new AccountError('SESSION_REQUIRED',401);
    if(code==='42501')throw new AccountError('FORBIDDEN',403);
    if(code==='P0002')throw new AccountError('NOT_FOUND',404);
-   if(code==='40001')throw new AccountError('VERSION_CONFLICT',409);
+   if(code==='PT409'||code==='40001')throw new AccountError('VERSION_CONFLICT',409);
    if(code==='55000')throw new AccountError('WRITE_UNAVAILABLE',409);
    if(code==='54000')throw new AccountError('QUOTA_EXCEEDED',429);
    if(code.startsWith('22'))throw new AccountError('INVALID_REQUEST',400);

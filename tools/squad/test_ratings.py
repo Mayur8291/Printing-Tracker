@@ -1,4 +1,5 @@
 """RATE-01..03: real work targets, private feedback and immutable moderation."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid,json,concurrent.futures
 import psycopg
 from psycopg.types.json import Jsonb
@@ -91,7 +92,7 @@ class Ratings(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.save(id=int(r['id']),version=r['version'])
  def test_stale_edit_denied(self):
   self.actor();r=self.save()
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.save(id=int(r['id']),version='0:0')
+  with assert_app_conflict(self):self.save(id=int(r['id']),version='0:0')
  def test_relationship_change_does_not_redirect_old_rating(self):
   self.actor();r=self.save();self.c.execute('RESET ROLE');self.c.execute('UPDATE sa_snapshot_20261019.sa_users SET created_by_id=201 WHERE id=103');self.actor()
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.save(id=int(r['id']),version=r['version'])
@@ -176,4 +177,4 @@ class ConcurrentRatings(unittest.TestCase):
  def test_racing_edit_and_moderation_version_serializes(self):
   self.keys=[uuid.uuid4(),uuid.uuid4(),uuid.uuid4()]
   with connect() as c,c.transaction():session(c,103);rating=rpc(c,'v1_rating_save',(None,'Order',1005,None,Jsonb({'score':'3'}),None,self.keys[0]))
-  r=self.pair(self.keys[1:],rating,True);self.assertEqual(sum(isinstance(x,dict) for x in r),1);self.assertIn('40001',r)
+  r=self.pair(self.keys[1:],rating,True);self.assertEqual(sum(isinstance(x,dict) for x in r),1);self.assertIn('PT409',r)

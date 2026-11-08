@@ -1,4 +1,5 @@
 """Scheduled weekly documents: bounded delegation, current authority and no SMTP."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid
 from datetime import date
 import psycopg
@@ -35,7 +36,7 @@ class Weekly(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT canto_api.squad_weekly_tailor_heartbeat(25)')
  def test_setting_is_idempotent_and_compare_and_swap(self):
   self.raw("UPDATE sa_domain.business_mail_settings SET recipient_ids=ARRAY[100] WHERE kind='tailor_weekly'");key=uuid.uuid4();first=self.configure(key=key);self.assertEqual(first,self.configure(key=key));self.assertEqual(first['owner_user_id'],'100')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.configure(False)
+  with assert_app_conflict(self):self.configure(False)
  def test_initial_enable_uses_only_latest_completed_week(self):
   status=self.enable();latest=self.raw('SELECT sa_domain.weekly_tailor_latest_week(statement_timestamp())')[0][0];self.assertEqual(status['next_week_start'],str(latest));r=self.beat();self.assertEqual(r['week_start'],str(latest));self.assertEqual(r['state'],'queued');self.assertGreater(r['queued'],0);self.assertEqual(self.beat()['state'],'waiting')
  def test_queued_documents_exact_request_and_delegated_owner(self):

@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict, is_app_conflict
 import concurrent.futures,copy,threading,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -44,21 +45,21 @@ class Backorders(unittest.TestCase):
   self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE event_type='business.mail_fanout' AND aggregate_id=%s",(back,)),[(1,)])
  def test_new_key_cannot_reuse_accepted_preview(self):
   p=self.preview();self.place(p)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(p)
+  with assert_app_conflict(self):self.place(p)
  def test_already_linked_order_is_excluded(self):
   self.place(self.preview([1004]));p=self.preview();self.assertEqual(p['eligible_order_ids'],['1005']);self.assertEqual(p['excluded'],[{'order_id':'1004','reason':'already_linked'}]);self.assertEqual(p['quote']['quantity'],7)
  def test_competing_previews_revalidate_original_links(self):
   p=self.preview();other=self.preview();self.place(p)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(other)
+  with assert_app_conflict(self):self.place(other)
  def test_changed_stock_invalidates_preview(self):
   p=self.preview();self.supply()
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(p)
+  with assert_app_conflict(self):self.place(p)
  def test_changed_quantity_invalidates_preview(self):
   p=self.preview();self.raw('UPDATE sa_snapshot_20261019.sa_quantities SET quantity=8 WHERE item_id=1004')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(p)
+  with assert_app_conflict(self):self.place(p)
  def test_changed_price_invalidates_purchase(self):
   p=self.preview();self.raw('UPDATE sa_snapshot_20261019.sa_rmp_prices SET price=price+1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(p)
+  with assert_app_conflict(self):self.place(p)
  def test_reconciliation_problem_is_explicit_and_not_quotable(self):
   self.supply();self.raw('UPDATE sa_snapshot_20261019.sa_stocks SET dispatched_quantity=-1');p=self.preview();self.assertEqual(p['status'],'needs_reconciliation');self.assertIsNone(p['quote']);self.assertIsNone(p['requirements'][0]['available'])
   with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):self.place(p)
@@ -83,10 +84,10 @@ class Backorders(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.preview([])
  def test_expired_preview_rejected(self):
   p=self.preview();self.raw("UPDATE sa_domain.backorder_previews SET expires_at=now()-interval '1 second'")
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(p)
+  with assert_app_conflict(self):self.place(p)
  def test_refresh_generation_invalidates_preview(self):
   p=self.preview();self.raw('UPDATE sa_domain.runtime_state SET generation=generation+1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(p)
+  with assert_app_conflict(self):self.place(p)
  def test_mirror_blocks_purchase(self):
   p=self.preview();self.raw('UPDATE sa_domain.runtime_state SET allow_test_writes=false')
   with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):self.place(p)
@@ -118,7 +119,9 @@ class ConcurrentBackorders(unittest.TestCase):
     with connect() as c,c.transaction():
      session(c,110);barrier.wait(timeout=3)
      return rpc(c,'v1_backorder_place',(p['preview_id'],'2026-12-01T00:00:00Z',p['version'],key))
-   except psycopg.errors.SerializationFailure:return 'conflict'
+   except psycopg.DatabaseError as error:
+    if not is_app_conflict(error):raise
+    return 'conflict'
   try:
    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(place,zip(previews,keys)))
    self.assertEqual(results.count('conflict'),1)

@@ -57,14 +57,14 @@ def run():
       c.execute('DELETE FROM sa_domain.entity_versions WHERE kind=%s AND entity_id=%s',('media:'+resource,id))
      for table in ['sa_domain.outbox','sa_domain.audit','sa_domain.media_history','sa_domain.media_uploads','sa_domain.commands','sa_admin.audit']:
       c.execute(sql.SQL('DELETE FROM {} WHERE actor_id=%s').format(sql.Identifier(*table.split('.'))),(actor,))
-     assert not c.execute('SELECT FROM sa_media.references WHERE sha256=ANY(%s::text[])',(state['hashes'],)).fetchone()
+     assert not c.execute('SELECT 1 FROM sa_media.references WHERE sha256=ANY(%s::text[])',(state['hashes'],)).fetchone()
      c.execute('DELETE FROM sa_media.objects WHERE sha256=ANY(%s::text[])',(state['hashes'],))
      c.execute('UPDATE sa_sync.environment_state SET edit_revision=edit_revision-%s WHERE singleton',(edits,))
     for bucket,paths in [('squad-uploads',['pending/'+str(x[0]) for x in uploads]),('canto-media',['sha256/'+h[:2]+'/'+h for h in state['hashes']])]:
      if paths:assert request('/storage/v1/object/'+bucket,'DELETE',{'prefixes':paths})[0]==200,'Storage cleanup failed'
     assert request('/auth/v1/admin/users/'+str(actor),'DELETE')[0]==200,'Auth fixture cleanup failed'
-    assert not c.execute('SELECT FROM auth.users WHERE id=%s',(actor,)).fetchone()
-    assert not c.execute('SELECT FROM public.profiles WHERE id=%s',(actor,)).fetchone()
+    assert not c.execute('SELECT 1 FROM auth.users WHERE id=%s',(actor,)).fetchone()
+    assert not c.execute('SELECT 1 FROM public.profiles WHERE id=%s',(actor,)).fetchone()
    c.execute('DELETE FROM public.admin_emails WHERE email=%s',(email,))
    assert public_structure(c)==structure
    CHECKPOINT.unlink();print('Hosted fixture cleanup verified; public structure unchanged; sequence gaps retained',flush=True)

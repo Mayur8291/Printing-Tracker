@@ -1,0 +1,446 @@
+{
+  "measured_at": "2026-11-08T11:22:08.996910+00:00",
+  "migration": "20261108112012",
+  "scope": "EXPLAIN without ANALYZE: INSERT was planned, never executed. No source row contents, record identifiers, credentials, or parameters are included. After-local fixture and guard instrumentation rolled back.",
+  "before_hosted": {
+    "environment": "staging",
+    "read_only_transaction": true,
+    "role": "sa_executor",
+    "plans": {
+      "force_custom_plan": [
+        {
+          "Node Type": "ModifyTable",
+          "Relation Name": "sa_stock_useds",
+          "Plan Rows": 0,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_stocks",
+          "Index Name": "sa_index_stocks_on_user_id",
+          "Plan Rows": 1088,
+          "Startup Cost": 8.57,
+          "Total Cost": 573.54,
+          "predicate_shape": "dealer_filter",
+          "visibility_function_calls_per_row": 0
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "ProjectSet",
+          "Parent Relationship": "SubPlan",
+          "Plan Rows": 1000,
+          "Startup Cost": 0.0,
+          "Total Cost": 5.27
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.01
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_dispatched_quantities",
+          "Plan Rows": 362,
+          "Startup Cost": 0.0,
+          "Total Cost": 1694.11,
+          "visibility_function_calls_per_row": 2
+        }
+      ],
+      "force_generic_plan": [
+        {
+          "Node Type": "ModifyTable",
+          "Relation Name": "sa_stock_useds",
+          "Plan Rows": 0,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_stocks",
+          "Index Name": "sa_index_stocks_on_user_id",
+          "Plan Rows": 1088,
+          "Startup Cost": 8.57,
+          "Total Cost": 573.54,
+          "predicate_shape": "dealer_filter",
+          "visibility_function_calls_per_row": 0
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "ProjectSet",
+          "Parent Relationship": "SubPlan",
+          "Plan Rows": 1000,
+          "Startup Cost": 0.0,
+          "Total Cost": 5.27
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.01
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_dispatched_quantities",
+          "Plan Rows": 362,
+          "Startup Cost": 0.0,
+          "Total Cost": 1694.11,
+          "visibility_function_calls_per_row": 2
+        }
+      ]
+    }
+  },
+  "after_local": {
+    "environment": "isolated localhost synthetic PostgreSQL",
+    "role": "sa_executor",
+    "unrelated_dispatch_history_rows": 3051,
+    "plans": {
+      "force_custom_plan": [
+        {
+          "Node Type": "ModifyTable",
+          "Relation Name": "sa_stock_useds",
+          "Plan Rows": 0,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_stocks",
+          "Plan Rows": 1,
+          "Startup Cost": 8.29,
+          "Total Cost": 10.12,
+          "visibility_function_calls_per_row": 0
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "ProjectSet",
+          "Parent Relationship": "SubPlan",
+          "Plan Rows": 1000,
+          "Startup Cost": 0.0,
+          "Total Cost": 5.27
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.01
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_dispatched_quantities",
+          "Index Name": "sa_dispatched_quantities_pkey",
+          "Plan Rows": 1,
+          "Startup Cost": 0.28,
+          "Total Cost": 8.8,
+          "predicate_shape": "exact_referenced_primary_key",
+          "visibility_function_calls_per_row": 2
+        }
+      ],
+      "force_generic_plan": [
+        {
+          "Node Type": "ModifyTable",
+          "Relation Name": "sa_stock_useds",
+          "Plan Rows": 0,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_stocks",
+          "Plan Rows": 1,
+          "Startup Cost": 8.29,
+          "Total Cost": 10.12,
+          "visibility_function_calls_per_row": 0
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "ProjectSet",
+          "Parent Relationship": "SubPlan",
+          "Plan Rows": 1000,
+          "Startup Cost": 0.0,
+          "Total Cost": 5.27
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.01
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_dispatched_quantities",
+          "Index Name": "sa_dispatched_quantities_pkey",
+          "Plan Rows": 1,
+          "Startup Cost": 0.28,
+          "Total Cost": 8.8,
+          "predicate_shape": "exact_referenced_primary_key",
+          "visibility_function_calls_per_row": 2
+        }
+      ]
+    }
+  },
+  "authorization_runtime": {
+    "environment": "isolated localhost synthetic PostgreSQL",
+    "actual_fifo_allocations": [
+      3,
+      7
+    ],
+    "unrelated_dispatch_history_rows": 3051,
+    "before_guard_calls": 6110,
+    "after_guard_calls": 8,
+    "test": "test_stock_allocation_scope.StockAllocationScope.test_fifo_authorization_does_not_visit_unrelated_dispatch_history",
+    "method": "Transaction-local counter inserted into original work_parent_visible body; original authorization result preserved. All fixtures/instrumentation rolled back."
+  },
+  "regression": {
+    "tests": 87,
+    "seconds": 4.632,
+    "passed": true,
+    "modules": [
+      "test_stock_allocation_scope",
+      "test_stock_execution",
+      "test_stock",
+      "test_backorders",
+      "test_business_journey_composition"
+    ]
+  },
+  "files": {
+    "supabase/migrations/20261108112012_squad_stock_allocation_scope.sql": "8bdc92dc1e2f4b42f8ad8ce6422d5f310f1db310f63742ff137c41a537bd959b",
+    "tools/squad/test_stock_allocation_scope.py": "2879a38d03585d2144430bfc587ab5e3e721dc82feaeddea7ea75156c4572119"
+  },
+  "limitation": "Hosted EXPLAIN confirms the bounded authorization plans. Hosted HTTP journey acceptance remains pending parent execution. Local timing is not an HTTP latency or production SLA claim.",
+  "after_hosted": {
+    "environment": "staging",
+    "measured_at": "2026-11-08T11:23:35.383085+00:00",
+    "migration_verified": "20261108112012",
+    "read_only_transaction": true,
+    "role": "sa_executor",
+    "plans": {
+      "force_custom_plan": [
+        {
+          "Node Type": "ModifyTable",
+          "Relation Name": "sa_stock_useds",
+          "Plan Rows": 0,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_stocks",
+          "Index Name": "sa_stocks_pkey",
+          "Plan Rows": 1,
+          "Startup Cost": 8.57,
+          "Total Cost": 10.8,
+          "predicate_shape": "exact_referenced_primary_key",
+          "visibility_function_calls_per_row": 0
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "ProjectSet",
+          "Parent Relationship": "SubPlan",
+          "Plan Rows": 1000,
+          "Startup Cost": 0.0,
+          "Total Cost": 5.27
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.01
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_dispatched_quantities",
+          "Index Name": "sa_dispatched_quantities_pkey",
+          "Plan Rows": 1,
+          "Startup Cost": 0.28,
+          "Total Cost": 3.0,
+          "predicate_shape": "exact_referenced_primary_key",
+          "visibility_function_calls_per_row": 2
+        }
+      ],
+      "force_generic_plan": [
+        {
+          "Node Type": "ModifyTable",
+          "Relation Name": "sa_stock_useds",
+          "Plan Rows": 0,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.02
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_stocks",
+          "Index Name": "sa_stocks_pkey",
+          "Plan Rows": 1,
+          "Startup Cost": 8.57,
+          "Total Cost": 10.8,
+          "predicate_shape": "exact_referenced_primary_key",
+          "visibility_function_calls_per_row": 0
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "InitPlan",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.26
+        },
+        {
+          "Node Type": "ProjectSet",
+          "Parent Relationship": "SubPlan",
+          "Plan Rows": 1000,
+          "Startup Cost": 0.0,
+          "Total Cost": 5.27
+        },
+        {
+          "Node Type": "Result",
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Startup Cost": 0.0,
+          "Total Cost": 0.01
+        },
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "SubPlan",
+          "Relation Name": "sa_dispatched_quantities",
+          "Index Name": "sa_dispatched_quantities_pkey",
+          "Plan Rows": 1,
+          "Startup Cost": 0.28,
+          "Total Cost": 3.0,
+          "predicate_shape": "exact_referenced_primary_key",
+          "visibility_function_calls_per_row": 2
+        }
+      ]
+    },
+    "reference_authorization": "Both custom and generic plans probe stock and dispatch primary-key indexes with the exact referenced IDs; no INSERT executed."
+  }
+}

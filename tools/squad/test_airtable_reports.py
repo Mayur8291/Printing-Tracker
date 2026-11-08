@@ -1,4 +1,5 @@
 """Airtable report projections, private scopes and durable HTTP intent boundaries."""
+from sqlstate_assertions import assert_app_conflict
 import json,unittest,uuid
 from decimal import Decimal
 from pathlib import Path
@@ -55,7 +56,7 @@ class Reports(unittest.TestCase):
   self.enable();self.emit('backorder.placed',payload={'placement_command_key':str(uuid.uuid4())});self.assertEqual(self.jobs(),[])
  def test_old_generation_and_expired_leases_cannot_finish(self):
   j,p=self.ready();self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.finish(j,self.ack(p))
+  with assert_app_conflict(self):self.finish(j,self.ack(p))
  def test_abandoned_http_intent_fences_later_entity_updates(self):
   j,p=self.ready();self.raw("UPDATE sa_domain.outbox SET attempts=5,lease_until=now()-interval '1 second' WHERE id=%s",(uuid.UUID(j['id']),));self.jobs();self.assertEqual(self.raw('SELECT state FROM sa_domain.airtable_report_operations'),[('reconciliation_required',)]);self.request();next_=self.jobs()[0];self.assertEqual(self.prepare(next_)['error_code'],'AIRTABLE_REPORT_PREVIOUS_PENDING')
  def test_tailor_pick_projection_keeps_selected_quantity_and_parent_key(self):
@@ -83,7 +84,7 @@ class Reports(unittest.TestCase):
 
  def test_report_request_idempotency_and_settings_compare_and_swap(self):
   self.enable();self.actor_as(100);key=uuid.uuid4();a=rpc(self.c,'v1_airtable_reports_request',('customer',[103],key));self.assertEqual(a,rpc(self.c,'v1_airtable_reports_request',('customer',[103],key)));self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE event_type='airtable.report_customer'"),[(1,)])
-  with self.assertRaises(psycopg.errors.SerializationFailure),self.c.transaction():rpc(self.c,'v1_airtable_reports_configure',(False,'0:0',uuid.uuid4()))
+  with assert_app_conflict(self),self.c.transaction():rpc(self.c,'v1_airtable_reports_configure',(False,'0:0',uuid.uuid4()))
  def test_non_customer_staff_events_do_not_create_failed_customer_reports(self):
   self.enable();self.emit('person.saved.notify',104,'person',{'created':True});self.emit('profile.saved',101,'person');self.assertEqual(self.jobs(),[])
  def test_config_disable_does_not_erase_confirmed_remote_truth(self):

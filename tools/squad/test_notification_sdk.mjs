@@ -6,6 +6,11 @@ assert.equal(await sdk.notificationFromPush({project_ref:prod,notification_id:'1
 assert.equal(await sdk.notificationFromPush({project_ref:stage,notification_id:'9223372036854775808',generation:'0'},stage),null);
 assert.equal(calls,0);
 assert.equal((await sdk.notificationFromPush({project_ref:stage,notification_id:'1',generation:'0'},stage)).id,'1');
-error={code:'40001'};assert.equal(await sdk.notificationFromPush({project_ref:stage,notification_id:'1',generation:'0'},stage),null);
+for(const code of ['PT409','40001']){
+ error={code};const before=calls;
+ assert.equal(await sdk.notificationFromPush({project_ref:stage,notification_id:'1',generation:'0'},stage),null);
+ assert.equal(calls,before+1,'Stale push lookup must make one request without SDK retries');
+}
+error={code:'23505'};await assert.rejects(sdk.notificationFromPush({project_ref:stage,notification_id:'1',generation:'0'},stage),e=>e instanceof SquadError&&e.code==='23505');
 error={code:'28000'};await assert.rejects(sdk.notificationFromPush({project_ref:stage,notification_id:'1',generation:'0'},stage),e=>e instanceof SquadError&&e.kind==='session');
 console.log('Push resolution: environment, generation, integer bounds and current-session errors verified');

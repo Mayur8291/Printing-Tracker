@@ -1,4 +1,5 @@
 """Source-backed stock review and derived-counter repair, on synthetic data only."""
+from sqlstate_assertions import assert_app_conflict
 import json,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -69,13 +70,13 @@ class StockReconciliation(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.call('rebuild',p)
  def test_stale_fingerprint_rejected(self):
   self.stale();p=self.payload();self.raw("UPDATE sa_snapshot_20261019.sa_stocks SET updated_at=now()+interval '1 second' WHERE id=%s",(self.stock_id,))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.call('rebuild',p)
+  with assert_app_conflict(self):self.call('rebuild',p)
  def test_source_quantity_change_invalidates_review(self):
   self.stale();p=self.payload();self.raw('UPDATE sa_snapshot_20261019.sa_quantities SET quantity=11 WHERE item_id=1001')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.call('rebuild',p)
+  with assert_app_conflict(self):self.call('rebuild',p)
  def test_source_generation_change_invalidates_review(self):
   self.stale();p=self.payload();self.raw('UPDATE sa_domain.runtime_state SET generation=generation+1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.call('rebuild',p)
+  with assert_app_conflict(self):self.call('rebuild',p)
  def test_mirror_denies_repair_but_allows_review(self):
   self.stale();p=self.payload();self.raw('UPDATE sa_domain.runtime_state SET allow_test_writes=false');self.assertEqual(self.row()['safe_action'],'rebuild_counter')
   with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):self.call('rebuild',p)

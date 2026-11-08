@@ -1,4 +1,5 @@
 """CRM-01/03/04: approval, commercial scope and atomic attribution changes."""
+from sqlstate_assertions import assert_app_conflict, is_app_conflict
 import unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -56,7 +57,8 @@ class Relationships(unittest.TestCase):
   with self.c.transaction():
    try:
     with self.c.transaction():self.reassign([{'id':'103','version':'0:0'},{'id':'203','version':'0:99'}])
-   except psycopg.errors.SerializationFailure:pass
+   except psycopg.DatabaseError as error:
+    if not is_app_conflict(error):raise
    else:self.fail('Expected stale second member')
    self.assertEqual(rpc(self.c,'v1_person_get',(103,))['coordinator_id'],'101')
  def test_bulk_reassign_rejects_duplicate_targets(self):
@@ -95,7 +97,7 @@ class Relationships(unittest.TestCase):
   self.actor(103);self.request();self.actor(203);self.assertEqual(rpc(self.c,'v1_coordinator_requests')['data'],[])
  def test_decision_requires_current_customer_version(self):
   self.actor(103);r=self.request();rpc(self.c,'v1_profile_save',(Jsonb({'name':'Changed'}),'0:0',uuid.uuid4()));self.actor(100)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.decide(r)
+  with assert_app_conflict(self):self.decide(r)
  def test_rejection_keeps_current_coordinator(self):
   self.actor(103);r=self.request();self.actor(100);self.decide(r,'rejected');self.assertEqual(rpc(self.c,'v1_person_get',(103,))['coordinator_id'],'101')
  def test_decided_request_cannot_apply_again_with_new_key(self):
@@ -245,7 +247,7 @@ class ConcurrentCoordinatorRequests(unittest.TestCase):
   with connect() as c,c.transaction():session(c,103);r=rpc(c,'v1_coordinator_change_request',(201,'Request for racing decisions',self.keys[0]))
   results=self.pair(self.keys[1:],r)
   if not any(isinstance(x,dict) for x in results):
-   self.assertEqual(results,['40001','40001'])
+   self.assertEqual(results,['PT409','PT409'])
    with connect() as c,c.transaction():session(c,100);results[0]=rpc(c,'v1_coordinator_change_decide',(int(r['id']),'approved','Concurrent decision',r['version'],'0:0',self.keys[1]))
   self.assertEqual(sum(isinstance(x,dict) for x in results),1)
   with connect() as c:self.assertEqual(c.execute("SELECT count(*) FROM sa_domain.audit WHERE operation='customer.coordinator_decided' AND entity_id=%s",(int(r['id']),)).fetchone()[0],1)

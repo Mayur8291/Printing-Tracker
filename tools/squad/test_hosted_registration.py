@@ -22,11 +22,11 @@ def run():
  ok=False;process=None;evidence=None
  with connect('staging') as c:
   env=c.execute('SELECT environment,cutover,active_job,edit_revision,synced_revision FROM sa_sync.environment_state').fetchone();assert env[:3]==('staging',False,None) and env[3]==env[4]
-  assert not c.execute("SELECT FROM sa_domain.outbox WHERE status IN('pending','leased')").fetchone()
+  assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE status IN('pending','leased')").fetchone()
   assert c.execute('SELECT max(id) FROM sa_snapshot_20261019.sa_users').fetchone()[0]<100000000
   TEST_ID=c.execute('SELECT coalesce(max(legacy_user_id)+1,%s) FROM sa_sync.legacy_identity_keys WHERE legacy_user_id>=%s',(TEST_ID,TEST_ID)).fetchone()[0]
   assert TEST_ID<9000000000001000,'Review accumulated acceptance reservations'
-  assert not c.execute('SELECT FROM sa_sync.legacy_identity_keys WHERE legacy_user_id=%s',(TEST_ID,)).fetchone()
+  assert not c.execute('SELECT 1 FROM sa_sync.legacy_identity_keys WHERE legacy_user_id=%s',(TEST_ID,)).fetchone()
   seq=c.execute('SELECT last_value,is_called FROM sa_snapshot_20261019.sa_users_id_seq').fetchone();assert seq[0]<100000000
   generation=c.execute('SELECT generation FROM sa_domain.runtime_state').fetchone()[0];structure=public_structure(c);schedules=c.execute("SELECT jobid,active FROM cron.job WHERE jobname='squad-jobs-minute'").fetchall();assert len(schedules)==1
   checkpoint={'request_id':str(run_id),'target':TEST_ID,'email':email,'sequence_last':seq[0],'sequence_called':seq[1],'edit_revision':env[3],'generation':generation,'schedule_id':schedules[0][0],'schedule_active':schedules[0][1]};CHECKPOINT.write_text(json.dumps(checkpoint)+'\n');CHECKPOINT.chmod(0o600)

@@ -25,7 +25,7 @@ def run():
   row=c.execute("SELECT u.id,m.auth_user_id,u.disabled,u.disabled_at,u.deleted_at,u.updated_at,a.banned_until,m.enrollment_state,a.encrypted_password=u.encrypted_password FROM sa_snapshot_20261019.sa_users u JOIN sa_identity.sa_auth_identities m ON m.legacy_user_id=u.id JOIN auth.users a ON a.id=m.auth_user_id WHERE u.email=%s AND u.role=3 AND u.approved IS TRUE",(credentials['email'],)).fetchone()
   assert row and not row[2] and row[4] is None and row[6] is None and row[7]=='ready' and row[8],'Controlled account must start eligible with original password'
   target=row[0];version=c.execute("SELECT revision FROM sa_domain.entity_versions WHERE kind='person' AND entity_id=%s",(target,)).fetchone()
-  assert not c.execute('SELECT FROM sa_domain.account_requests WHERE legacy_user_id=%s',(target,)).fetchone(),'Controlled target already has account work'
+  assert not c.execute('SELECT 1 FROM sa_domain.account_requests WHERE legacy_user_id=%s',(target,)).fetchone(),'Controlled target already has account work'
   generation=c.execute('SELECT generation FROM sa_domain.runtime_state').fetchone()[0];structure=public_structure(c)
   schedules=c.execute("SELECT jobid,active FROM cron.job WHERE jobname='squad-jobs-minute'").fetchall();assert len(schedules)==1
   state={'email':email,'target':target,'auth_id':str(row[1]),'disabled':row[2],'disabled_at':str(row[3]) if row[3] else None,'deleted_at':str(row[4]) if row[4] else None,'updated_at':str(row[5]),'revision':version[0] if version else None,'edit_revision':env[3],'generation':generation,'schedule_id':schedules[0][0],'schedule_active':schedules[0][1]}

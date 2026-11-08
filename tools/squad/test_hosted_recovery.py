@@ -15,8 +15,8 @@ def run():
   env=c.execute('SELECT environment,cutover,active_job,edit_revision,synced_revision FROM sa_sync.environment_state').fetchone();assert env[:3]==('staging',False,None) and env[3]==env[4]
   assert c.execute("SELECT count(*) FROM sa_domain.outbox WHERE status IN('pending','leased')").fetchone()[0]==0
   row=c.execute("SELECT u.id,m.auth_user_id,u.confirmed_at,u.updated_at,a.raw_app_meta_data,a.email_confirmed_at,a.encrypted_password=u.encrypted_password FROM sa_snapshot_20261019.sa_users u JOIN sa_identity.sa_auth_identities m ON m.legacy_user_id=u.id JOIN auth.users a ON a.id=m.auth_user_id WHERE u.email=%s AND u.role=3 AND u.approved IS TRUE AND u.disabled IS NOT TRUE AND u.deleted_at IS NULL AND a.banned_until IS NULL",(credentials['email'],)).fetchone();assert row and row[6]
-  target,auth=row[:2];assert not c.execute('SELECT FROM sa_domain.credential_states WHERE legacy_user_id=%s',(target,)).fetchone()
-  assert not c.execute('SELECT FROM sa_domain.account_flows WHERE legacy_user_id=%s',(target,)).fetchone()
+  target,auth=row[:2];assert not c.execute('SELECT 1 FROM sa_domain.credential_states WHERE legacy_user_id=%s',(target,)).fetchone()
+  assert not c.execute('SELECT 1 FROM sa_domain.account_flows WHERE legacy_user_id=%s',(target,)).fetchone()
   version=c.execute("SELECT revision FROM sa_domain.entity_versions WHERE kind='person' AND entity_id=%s",(target,)).fetchone();generation=c.execute('SELECT generation FROM sa_domain.runtime_state').fetchone()[0];structure=public_structure(c)
   schedules=c.execute("SELECT jobid,active FROM cron.job WHERE jobname='squad-jobs-minute'").fetchall();assert len(schedules)==1
   state={'request_id':str(request_id),'target':target,'auth_id':str(auth),'confirmed_at':str(row[2]) if row[2] else None,'updated_at':str(row[3]),'app_metadata':row[4],'auth_confirmed_at':str(row[5]),'revision':version[0] if version else None,'edit_revision':env[3],'generation':generation,'schedule_id':schedules[0][0],'schedule_active':schedules[0][1]}

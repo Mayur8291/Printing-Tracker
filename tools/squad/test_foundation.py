@@ -1,4 +1,5 @@
 """Database integration tests: real roles, RLS, transactions and command retries."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid,json
 from local_db import connect
 from fixtures import seed,uid,sid,session,rpc
@@ -81,7 +82,7 @@ class Foundation(unittest.TestCase):
         with self.assertRaises(psycopg.errors.InvalidParameterValue):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Different'}),'0:0',key))
     def test_stale_version(self):
         self.allow_writes();self.actor()
-        with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Changed'}),'0:9',uuid.uuid4()))
+        with assert_app_conflict(self):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Changed'}),'0:9',uuid.uuid4()))
     def test_profile_rejects_promotion(self):
         self.allow_writes();self.actor()
         with self.assertRaises(psycopg.errors.InvalidParameterValue):rpc(self.c,'v1_profile_save',(Jsonb({'role':0}),'0:0',uuid.uuid4()))
@@ -90,7 +91,7 @@ class Foundation(unittest.TestCase):
         with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Changed'}),'0:0',uuid.uuid4()))
     def test_generation_invalidates_versions(self):
         self.allow_writes();self.c.execute('UPDATE sa_domain.runtime_state SET generation=1');self.actor()
-        with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Changed'}),'0:0',uuid.uuid4()))
+        with assert_app_conflict(self):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Changed'}),'0:0',uuid.uuid4()))
     def test_definer_owners_and_public_grants(self):
         unsafe=self.c.execute("""SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
           JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='sa_domain'

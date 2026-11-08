@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -38,7 +39,7 @@ class Deliveries(unittest.TestCase):
   self.assertEqual(r['dispatch_destination']['mode'],'customer');self.assertIsNone(r['dispatch_destination']['address'])
  def test_stale_destination_rejected(self):
   self.actor(107);v=self.ov();self.destination()
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.destination('ho',version=v)
+  with assert_app_conflict(self):self.destination('ho',version=v)
  def test_exact_retry_returns_original_route_version(self):
   self.actor(107);v=self.ov();k=uuid.uuid4();r=self.destination(key=k,version=v);self.assertEqual(r,self.destination(key=k,version=v))
  def test_completed_order_route_is_immutable(self):

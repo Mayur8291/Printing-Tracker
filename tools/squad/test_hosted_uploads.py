@@ -52,7 +52,7 @@ def run():
     c.execute('DELETE FROM sa_snapshot_20261019.sa_brandings WHERE id=ANY(%s::bigint[]) AND item_id IS NULL AND product_id IS NULL',(list(designs),))
     c.execute('DELETE FROM sa_domain.entity_versions WHERE kind=\'branding\' AND entity_id=ANY(%s::bigint[])',(list(designs),))
     c.execute('DELETE FROM sa_domain.commands WHERE actor_id=%s AND key=ANY(%s::uuid[])',(actor,keys))
-    assert not c.execute('SELECT FROM sa_media.references WHERE sha256=ANY(%s::text[])',(state['hashes'],)).fetchone(),'Unexpected shared test object'
+    assert not c.execute('SELECT 1 FROM sa_media.references WHERE sha256=ANY(%s::text[])',(state['hashes'],)).fetchone(),'Unexpected shared test object'
     c.execute('DELETE FROM sa_media.objects WHERE sha256=ANY(%s::text[])',(state['hashes'],))
     c.execute('UPDATE sa_sync.environment_state SET edit_revision=%s WHERE singleton',(env[3],))
    service=next(x['api_key'] for x in api('staging','/api-keys') if x['name']=='service_role')

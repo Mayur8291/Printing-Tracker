@@ -57,7 +57,7 @@ def run(synthetic_media=False,cron_mode=False):
      # Delivery now fans out to grandchildren. Ownership comes from the exact
      # request root, never from a broad actor/date match that could delete work.
      owned=[r[0] for r in c.execute('WITH RECURSIVE owned(id) AS(SELECT id FROM sa_domain.outbox WHERE id=%s UNION SELECT j.id FROM sa_domain.outbox j JOIN owned o ON j.parent_id=o.id) SELECT id FROM owned',(job,))]
-     assert not c.execute("SELECT FROM sa_domain.outbox WHERE id=ANY(%s) AND status='leased' AND lease_until>now()",(owned,)).fetchone(),'Live document lease: keep checkpoint until worker settles'
+     assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE id=ANY(%s) AND status='leased' AND lease_until>now()",(owned,)).fetchone(),'Live document lease: keep checkpoint until worker settles'
      prefix='g'+str(state['generation'])+'/'+state['actor']+'/'+str(id_)+'/'
      paths=[prefix+'document.pdf']+[prefix+'part-'+str(i).zfill(4)+'.pdf' for i in range(parts+1)]
      request=urllib.request.Request('https://scvojtvgnkmbupvyslmb.supabase.co/storage/v1/object/squad-documents',data=json.dumps({'prefixes':paths}).encode(),headers={'apikey':service,'Authorization':'Bearer '+service,'Content-Type':'application/json'},method='DELETE')

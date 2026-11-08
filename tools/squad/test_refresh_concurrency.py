@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 import concurrent.futures,json,threading,time,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -27,7 +28,7 @@ class RefreshFence(unittest.TestCase):
         before_publication(self.c,1)
         self.assertEqual(after_publication(self.c),{'generation':1,'discarded_mirror_events':1})
         session(self.c,103)
-        with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_profile_save',args)
+        with assert_app_conflict(self):rpc(self.c,'v1_profile_save',args)
     def test_refresh_closes_leased_attempt_history(self):
         job=uuid.uuid4();lease=uuid.uuid4()
         self.c.execute("INSERT INTO sa_domain.outbox(id,actor_id,event_type,aggregate_kind,aggregate_id,command_key,generation,status,lease_token,lease_until) VALUES(%s,%s,'profile.saved','person',103,%s,0,'leased',%s,now()+interval '1 minute')",(job,uid(103),uuid.uuid4(),lease))
@@ -92,6 +93,6 @@ class ConcurrentCommands(unittest.TestCase):
         with connect() as c:self.assertEqual(c.execute('SELECT count(*) FROM sa_domain.audit WHERE command_key=%s',(self.keys[0],)).fetchone()[0],1)
     def test_competing_edits_do_not_lose_updates(self):
         self.keys=[uuid.uuid4(),uuid.uuid4()];results=self.run_pair(self.keys)
-        self.assertEqual(sum(isinstance(x,dict) for x in results),1);self.assertIn('40001',results)
+        self.assertEqual(sum(isinstance(x,dict) for x in results),1);self.assertIn('PT409',results)
 
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -51,7 +51,7 @@ def run():
      c.execute('UPDATE sa_sync.environment_state SET cutover=false')
     if actor:
      assert c.execute('SELECT generation FROM sa_domain.runtime_state').fetchone()[0]==state['generation'],'Refresh raced: preserve checkpoint'
-     assert not c.execute("SELECT FROM sa_domain.outbox WHERE actor_id=%s AND status='leased' AND lease_until>now()",(actor,)).fetchone(),'Wait for owned live lease before cleanup'
+     assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE actor_id=%s AND status='leased' AND lease_until>now()",(actor,)).fetchone(),'Wait for owned live lease before cleanup'
      edits=c.execute('SELECT (SELECT count(*) FROM sa_domain.audit WHERE actor_id=%s)+(SELECT count(*) FROM sa_admin.audit WHERE actor_id=%s)',(actor,actor)).fetchone()[0]
      assert c.execute('SELECT edit_revision FROM sa_sync.environment_state').fetchone()[0]==state['revision']+edits,'Other writes observed: keep checkpoint and preserve revision'
      uploads=c.execute('SELECT id FROM sa_domain.transfer_uploads WHERE actor_id=%s',(actor,)).fetchall()

@@ -1,4 +1,5 @@
 """Bulk transfer ownership, row privacy, command fences and live staff authority."""
+from sqlstate_assertions import assert_app_conflict
 import json, unittest, uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -84,7 +85,7 @@ class TransferContracts(unittest.TestCase):
   with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):self.action(t)
  def test_apply_requires_current_version(self):
   t=self.request(self.verified());self.raw("UPDATE sa_domain.transfers SET state='validated',valid_rows=1,total_rows=1,revision=1 WHERE id=%s",(uuid.UUID(t['id']),))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.action(t)
+  with assert_app_conflict(self):self.action(t)
  def test_apply_replay_does_not_enqueue_twice(self):
   t=self.request(self.verified());self.raw("UPDATE sa_domain.transfers SET state='validated',valid_rows=1,total_rows=1 WHERE id=%s",(uuid.UUID(t['id']),));k=uuid.uuid4();r=self.action(t,key=k);self.assertEqual(r,self.action(t,key=k));self.assertEqual(r['state'],'applying');self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE event_type='transfer.apply'"),[(1,)])
  def test_cancel_revokes_outstanding_lease_and_is_replayable(self):

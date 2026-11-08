@@ -1,0 +1,859 @@
+{
+  "iteration": 32,
+  "migration": "20261108112012_squad_stock_allocation_scope.sql",
+  "scope": "Local synthetic source only; actual shared SDK via PostgreSQL RPC bridge. No hosted mutation, HTTP transport, provider activity or cutover.",
+  "timing": "Elapsed wall time includes the Python SQL bridge catalogue lookup, savepoint, role setup and SQL execution. Excludes synthetic seed time and network/UI latency. These are nine explicit samples, not a p95 load claim.",
+  "fixture": "Adds 46231 foreign orders, 93544 foreign items and quantities, 43497 foreign stock receipts and 3051 foreign dispatch histories before the first dealer allocation. Every journey follows actual SDK commands for the owned customer/dealer records. All seeded business rows and temporary runtime settings roll back.",
+  "before_single_sample": {
+    "plan_cache_mode": "auto",
+    "state": "passed",
+    "checks": {
+      "commercial": 8,
+      "factory": 3,
+      "collaboration": 7
+    },
+    "background_rows": {
+      "orders": 46231,
+      "items": 93544,
+      "stocks": 43497,
+      "dispatches": 3051
+    },
+    "measured_at": "2026-11-08T11:18:58.420400+00:00",
+    "dealer_dispatches": [
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 930.639,
+        "error_code": null,
+        "requested_quantity": 2,
+        "allocations": [
+          2
+        ]
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 1.121,
+        "error_code": null,
+        "requested_quantity": 2,
+        "allocations": [
+          2
+        ]
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 4.632,
+        "error_code": "PT409",
+        "requested_quantity": 1,
+        "allocations": []
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 937.487,
+        "error_code": null,
+        "requested_quantity": 4,
+        "allocations": [
+          4
+        ]
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 14.219,
+        "error_code": "55000",
+        "requested_quantity": 7,
+        "allocations": []
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 1838.65,
+        "error_code": null,
+        "requested_quantity": 7,
+        "allocations": [
+          4,
+          3
+        ]
+      }
+    ]
+  },
+  "rollback_only_policy_probe": {
+    "plan_cache_mode": "auto",
+    "state": "passed",
+    "checks": {
+      "commercial": 8,
+      "factory": 3,
+      "collaboration": 7
+    },
+    "background_rows": {
+      "orders": 46231,
+      "items": 93544,
+      "stocks": 43497,
+      "dispatches": 3051
+    },
+    "measured_at": "2026-11-08T11:19:30.139303+00:00",
+    "dealer_dispatches": [
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 29.822,
+        "error_code": null,
+        "requested_quantity": 2,
+        "allocations": [
+          2
+        ]
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 1.051,
+        "error_code": null,
+        "requested_quantity": 2,
+        "allocations": [
+          2
+        ]
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 5.642,
+        "error_code": "PT409",
+        "requested_quantity": 1,
+        "allocations": []
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 24.203,
+        "error_code": null,
+        "requested_quantity": 4,
+        "allocations": [
+          4
+        ]
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 10.641,
+        "error_code": "55000",
+        "requested_quantity": 7,
+        "allocations": []
+      },
+      {
+        "name": "v1_dispatch_record",
+        "role": 10,
+        "ms": 24.446,
+        "error_code": null,
+        "requested_quantity": 7,
+        "allocations": [
+          4,
+          3
+        ]
+      }
+    ]
+  },
+  "installed_samples": [
+    {
+      "plan_cache_mode": "auto",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:21:18.065925+00:00",
+      "sample": 1,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 29.782,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.257,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 5.361,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 27.334,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 13.344,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 27.045,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "auto",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:21:24.531754+00:00",
+      "sample": 2,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 33.735,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 0.989,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 5.309,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 24.012,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 10.938,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 24.85,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "auto",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:21:32.188633+00:00",
+      "sample": 3,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 32.485,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.218,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 5.488,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 23.979,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 10.654,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 24.508,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "force_custom_plan",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:21:46.467590+00:00",
+      "sample": 1,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 48.054,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.264,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 7.868,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 38.773,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 18.503,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 39.543,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "force_custom_plan",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:22:03.208312+00:00",
+      "sample": 2,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 44.854,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.27,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 8.406,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 37.823,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 15.625,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 37.416,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "force_custom_plan",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:22:18.239790+00:00",
+      "sample": 3,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 52.892,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.25,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 7.845,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 37.747,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 17.889,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 38.346,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "force_generic_plan",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:22:27.733878+00:00",
+      "sample": 1,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 113.568,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.133,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 26.84,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 102.973,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 48.823,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 97.074,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "force_generic_plan",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:22:36.913604+00:00",
+      "sample": 2,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 115.05,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.115,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 26.93,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 108.765,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 52.807,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 107.7,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "plan_cache_mode": "force_generic_plan",
+      "state": "passed",
+      "checks": {
+        "commercial": 8,
+        "factory": 3,
+        "collaboration": 7
+      },
+      "background_rows": {
+        "orders": 46231,
+        "items": 93544,
+        "stocks": 43497,
+        "dispatches": 3051
+      },
+      "measured_at": "2026-11-08T11:22:46.809837+00:00",
+      "sample": 3,
+      "policy_fingerprint": "c1dc12a8e8b8010c43528ed245812b99",
+      "dealer_dispatches": [
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 124.569,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 1.156,
+          "error_code": null,
+          "requested_quantity": 2,
+          "allocations": [
+            2
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 29.29,
+          "error_code": "PT409",
+          "requested_quantity": 1,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 117.846,
+          "error_code": null,
+          "requested_quantity": 4,
+          "allocations": [
+            4
+          ]
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 56.312,
+          "error_code": "55000",
+          "requested_quantity": 7,
+          "allocations": []
+        },
+        {
+          "name": "v1_dispatch_record",
+          "role": 10,
+          "ms": 111.145,
+          "error_code": null,
+          "requested_quantity": 7,
+          "allocations": [
+            4,
+            3
+          ]
+        }
+      ]
+    }
+  ],
+  "full_regression": {
+    "database": "squad_test_stock",
+    "fresh_rebuild_through": "20261108112012",
+    "tests": 1841,
+    "seconds": 99.846,
+    "result": "OK"
+  }
+}

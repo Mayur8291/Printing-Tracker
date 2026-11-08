@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict, is_app_conflict
 import unittest,uuid,json
 import psycopg
 from psycopg.types.json import Jsonb
@@ -33,7 +34,9 @@ class Accounts(unittest.TestCase):
  def test_old_version_cannot_revoke_current_sessions(self):
   with self.c.transaction():
    try:self.status(version='0:99')
-   except psycopg.errors.SerializationFailure:raise psycopg.Rollback()
+   except psycopg.DatabaseError as error:
+    if not is_app_conflict(error):raise
+    raise psycopg.Rollback()
    else:self.fail('Stale version allowed')
   self.assertEqual(self.raw('SELECT count(*) FROM auth.sessions WHERE user_id=%s',(uid(103),)),[(1,)])
  def test_customer_and_coordinator_cannot_change_login_status(self):
@@ -69,10 +72,10 @@ class Accounts(unittest.TestCase):
   self.create();j=self.claim()[0];t=self.prepare(j);self.assertEqual(self.finish(j,t,False,'IDENTITY_CONFLICT')['state'],'dead')
  def test_expired_lease_cannot_prepare(self):
   self.create();j=self.claim()[0];self.raw("UPDATE sa_domain.outbox SET lease_until=now()-interval '1 second'");self.worker()
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.prepare(j)
+  with assert_app_conflict(self):self.prepare(j)
  def test_refresh_generation_invalidates_lease(self):
   self.create();j=self.claim()[0];self.raw('UPDATE sa_domain.runtime_state SET generation=generation+1');self.worker()
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.prepare(j)
+  with assert_app_conflict(self):self.prepare(j)
  def test_newer_command_supersedes_an_older_pending_account_job(self):
   self.status();self.status(action='enable');jobs=self.claim();t=self.prepare(jobs[0]);self.assertTrue(t['superseded']);self.assertEqual(self.finish(jobs[0],t)['state'],'done');latest=self.prepare(jobs[1]);self.assertTrue(latest['allowed'])
  def test_source_change_during_provider_call_requires_reconciliation(self):
@@ -99,7 +102,7 @@ class Accounts(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT sa_domain.revoke_account_sessions(103)')
  def test_worker_cannot_read_source_hash_without_live_matching_lease(self):
   self.worker()
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.prepare({'id':str(uuid.uuid4()),'lease_token':str(uuid.uuid4())})
+  with assert_app_conflict(self):self.prepare({'id':str(uuid.uuid4()),'lease_token':str(uuid.uuid4())})
  def test_prepare_resets_full_provider_lease_budget(self):
   self.create();j=self.claim()[0];self.raw("UPDATE sa_domain.outbox SET lease_until=statement_timestamp()+interval '3 seconds' WHERE id=%s",(uuid.UUID(j['id']),));self.worker();self.prepare(j);self.assertGreater(self.raw('SELECT extract(epoch from lease_until-statement_timestamp()) FROM sa_domain.outbox WHERE id=%s',(uuid.UUID(j['id']),))[0][0],80)
 

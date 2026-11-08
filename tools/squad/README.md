@@ -24,7 +24,7 @@ API contract conventions:
 - Bigint entity IDs are decimal strings in JSON responses. Versions are opaque `generation:revision` strings.
 - Commands require an immutable UUID idempotency key. Reuse it with exactly the same payload after an uncertain response. A different operation/payload with the same key is rejected.
 - Lists use a bounded cursor and return at most 100 records. Filters and actor scopes must be applied before the page boundary.
-- `40001` means reload the entity; `42501` means forbidden; `28000` means the live session/account is no longer eligible; `55000` means temporarily unavailable/read-only; `22023` means invalid input.
+- `PT409` is an application conflict: reload the entity or reconcile the command; actual PostgreSQL `40001` remains an engine serialization failure; `42501` means forbidden; `28000` means the live session/account is no longer eligible; `55000` means temporarily unavailable/read-only; `22023` means invalid input.
 - A source mirror is read-only. Disposable staging writes require an explicit operator setting; their revisions prevent unconfirmed refresh replacement. Cutover ownership enables normal writes and disables old-source refresh.
 - A successful refresh increments the generation atomically and discards undelivered events from replaced mirror writes. It does not replay imported business side effects.
 

@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 import concurrent.futures,copy,threading,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -36,7 +37,7 @@ class Presets(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):rpc(self.c,'v1_preset_rename',(int(p['id']),'Rename',p['version'],uuid.uuid4()))
  def test_sc_rename_and_stale_conflict(self):
   self.actor(101);p=self.create();r=rpc(self.c,'v1_preset_rename',(int(p['id']),'Rename',p['version'],uuid.uuid4()));self.assertNotEqual(r['version'],p['version'])
-  with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_preset_rename',(int(p['id']),'Again',p['version'],uuid.uuid4()))
+  with assert_app_conflict(self):rpc(self.c,'v1_preset_rename',(int(p['id']),'Again',p['version'],uuid.uuid4()))
  def test_other_coordinator_cannot_rename(self):
   self.actor(201);p=self.create();self.actor(101)
   with self.assertRaises(psycopg.errors.NoDataFound):rpc(self.c,'v1_preset_rename',(int(p['id']),'Rename',p['version'],uuid.uuid4()))

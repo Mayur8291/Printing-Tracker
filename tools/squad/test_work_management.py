@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 import datetime,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -102,6 +103,6 @@ class WorkManagement(unittest.TestCase):
     def test_stale_task_transition(self):
         self.actor(101);task=self.task()
         rpc(self.c,'v1_task_transition',(int(task['id']),1,task['version'],uuid.uuid4()))
-        with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_task_transition',(int(task['id']),0,task['version'],uuid.uuid4()))
+        with assert_app_conflict(self):rpc(self.c,'v1_task_transition',(int(task['id']),0,task['version'],uuid.uuid4()))
 
 if __name__=='__main__':unittest.main(verbosity=2)

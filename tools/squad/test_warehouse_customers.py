@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 from fixtures import claim_test_workers
 """Local provider customer synchronization, custody and dependency tests."""
 import unittest,uuid
@@ -66,7 +67,7 @@ class WarehouseCustomers(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT canto_api.squad_warehouse_prepare(%s,%s)',(uuid.uuid4(),uuid.uuid4()))
  def test_generation_mismatch_rejects_ack(self):
   self.event();j=self.claim()[0];p=self.prepare(j);self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.finish(j,self.ack(p))
+  with assert_app_conflict(self):self.finish(j,self.ack(p))
  def test_dashboard_keeps_customers_inline_without_standalone_job(self):
   self.raw("UPDATE sa_snapshot_20261019.sa_settings SET value='true' WHERE key='use_dashboard'");self.raw("UPDATE sa_domain.warehouse_config SET provider='dashboard'");self.event();self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE event_type='warehouse.customer'"),[(0,)])
  def test_staging_mirror_does_not_emit_customer_effects(self):
@@ -81,7 +82,7 @@ class WarehouseCustomers(unittest.TestCase):
   self.event();j=self.claim()[0];self.prepare(j);self.assertTrue(self.prepare(j)['attempted']);self.finish(j,{'code':'RETRY','error_code':'PROVIDER_TOKEN_UNAVAILABLE','proof':{'mutation_attempted':False}});self.assertEqual(self.raw('SELECT attempted FROM sa_domain.warehouse_operations'),[(True,)])
  def test_released_lease_cannot_publish_customer_result(self):
   self.event();j=self.claim()[0];p=self.prepare(j);self.raw('UPDATE sa_domain.outbox SET lease_token=%s WHERE id=%s',(uuid.uuid4(),uuid.UUID(j['id'])))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.finish(j,self.ack(p))
+  with assert_app_conflict(self):self.finish(j,self.ack(p))
  def test_concurrent_profile_events_wait_and_then_edit_current_values(self):
   self.event();first=self.claim()[0];p=self.prepare(first);self.raw("UPDATE sa_snapshot_20261019.sa_users SET phone='9999999999' WHERE id=103");self.event();second=self.claim()[0];wait=self.prepare(second);self.assertEqual(wait['state'],'pending');self.assertEqual(wait['dependency'],'previous_customer_operation');self.assertEqual(self.finish(first,self.ack(p))['state'],'done');self.raw('UPDATE sa_domain.outbox SET available_at=now() WHERE id=%s',(uuid.UUID(second['id']),));p2=self.prepare(self.claim()[0]);self.assertEqual(p2['customer_action'],'edit');self.assertEqual(p2['payload']['customer']['partyContacts'][0]['phone'],'9999999999')
  def test_first_order_waits_for_customer_confirmation_then_submits(self):

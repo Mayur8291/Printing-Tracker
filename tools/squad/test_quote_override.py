@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 import datetime,decimal,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -27,7 +28,7 @@ class QuoteOverrides(unittest.TestCase):
   self.c.execute('RESET ROLE');self.assertEqual(self.c.execute('SELECT count(*) FROM sa_domain.audit WHERE command_key=%s',(key,)).fetchone()[0],1)
  def test_stale_version_rejected(self):
   q=self.quote();self.override(q)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.override(q,price='91')
+  with assert_app_conflict(self):self.override(q,price='91')
  def test_customer_cannot_override(self):
   q=self.quote();self.c.execute('RESET ROLE');session(self.c,103)
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.override(q)
@@ -36,13 +37,13 @@ class QuoteOverrides(unittest.TestCase):
   with self.assertRaises(psycopg.errors.NoDataFound):self.override(q)
  def test_expired_quote_rejected(self):
   q=self.quote();self.c.execute('RESET ROLE');self.c.execute("UPDATE sa_domain.quotes SET expires_at=now()-interval '1 second'");session(self.c,101)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.override(q)
+  with assert_app_conflict(self):self.override(q)
  def test_master_price_change_invalidates_override(self):
   q=self.quote();self.c.execute('RESET ROLE');self.c.execute('UPDATE sa_snapshot_20261019.sa_fabrics SET price=51 WHERE id=1');session(self.c,101)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.override(q)
+  with assert_app_conflict(self):self.override(q)
  def test_generation_invalidates_quote(self):
   q=self.quote();self.c.execute('RESET ROLE');self.c.execute('UPDATE sa_domain.runtime_state SET generation=generation+1');session(self.c,101)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.override(q)
+  with assert_app_conflict(self):self.override(q)
  def test_invalid_line_rejected(self):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.override(self.quote(),line=3)
  def test_negative_override_rejected(self):

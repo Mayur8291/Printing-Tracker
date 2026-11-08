@@ -1,4 +1,5 @@
 """Legacy uncertain-create failures recover only through leased provider reads."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -40,7 +41,7 @@ class UniwareFailedRecovery(unittest.TestCase):
   self.f.raw("INSERT INTO sa_domain.warehouse_links(order_id,provider,external_id,external_code,generation,status) VALUES(%s,'unicommerce',%s,%s,0,'FAILED')",(self.f.oid,'S-'+str(self.f.oid),'S-'+str(self.f.oid)));j,p=self.prepare();self.assertEqual(self.f.finish(j,self.observed(p))['state'],'dead');self.assertEqual(self.status(),'FAILED')
  def test_stale_lease_has_no_recovery_authority(self):
   j,p=self.prepare();bad=dict(j,lease_token=str(uuid.uuid4()))
-  with self.assertRaises(psycopg.errors.SerializationFailure):
+  with assert_app_conflict(self):
    with self.f.c.transaction():self.f.finish(bad,self.observed(p))
   self.assertEqual(self.status(),'FAILED')
  def test_dashboard_failed_stays_terminal(self):

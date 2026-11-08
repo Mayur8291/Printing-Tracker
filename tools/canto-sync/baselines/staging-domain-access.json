@@ -4867,7 +4867,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "((stock_id IN ( SELECT sa_stocks.id\n   FROM sa_snapshot_20261019.sa_stocks\n  WHERE (sa_stocks.user_id = ( SELECT (sa_domain.actor()).user_id AS user_id)))) AND (dispatched_quantity_id IN ( SELECT sa_dispatched_quantities.id\n   FROM sa_snapshot_20261019.sa_dispatched_quantities)))"
+      "((EXISTS ( SELECT 1\n   FROM sa_snapshot_20261019.sa_stocks s\n  WHERE ((s.id = sa_stock_useds.stock_id) AND (s.user_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))) AND (EXISTS ( SELECT 1\n   FROM sa_snapshot_20261019.sa_dispatched_quantities d\n  WHERE (d.id = sa_stock_useds.dispatched_quantity_id))))"
     ],
     [
       "sa_snapshot_20261019",
@@ -4875,7 +4875,7 @@
       "squad_stock_used_read",
       "{sa_executor}",
       "SELECT",
-      "(stock_id IN ( SELECT sa_stocks.id\n   FROM sa_snapshot_20261019.sa_stocks))",
+      "(EXISTS ( SELECT 1\n   FROM sa_snapshot_20261019.sa_stocks s\n  WHERE (s.id = sa_stock_useds.stock_id)))",
       null
     ],
     [
@@ -9537,7 +9537,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "55dbb5c06f1bdb832088fc1f38e07120"
+      "02b118b31e8e0e74972063f3e87bccd6"
     ],
     [
       "sa_domain",
@@ -9645,7 +9645,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "73cdcb5828d4eb4c5421449d97047acb"
+      "174a7590c1fc0c91ff8ab9e8eb61b8e5"
     ],
     [
       "sa_domain",
@@ -9657,7 +9657,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,service_role=X/sa_media_writer}",
-      "e6f1c535aff64497b910ff8d362555d8"
+      "3c72fef11e5649c700f1a344c211a275"
     ],
     [
       "sa_domain",
@@ -9765,7 +9765,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "251bc38206304ef4b4bfd8cec9c9baed"
+      "01f9f348c64db5473e104357b15bd55e"
     ],
     [
       "sa_domain",
@@ -9789,7 +9789,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "471ebe42588dff47c075b33e46af43f6"
+      "d7bb8b1cf4e63eec65fcab9352f7abc6"
     ],
     [
       "sa_domain",
@@ -9885,7 +9885,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "632ff55dd013928e09cc83a9f0d1ea9d"
+      "000f1174b93e5d581f6909b843e584a4"
     ],
     [
       "sa_domain",
@@ -9909,7 +9909,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,sa_worker=X/sa_media_writer}",
-      "05488c9864717b41fb307a5f008a08db"
+      "29ef98b4df61c90e2637d16e803d5065"
     ],
     [
       "sa_domain",
@@ -9946,7 +9946,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,sa_media_writer=X/sa_worker}",
-      "d998060ef71da5f219d23713dfb6b693"
+      "044e7f5f4ecf19a4de8b17515932e248"
     ],
     [
       "sa_domain",
@@ -9958,7 +9958,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "90a6c0c6b07a57c2ee6c757815156f1a"
+      "5c92356b0b88b27d60f038af599482ac"
     ],
     [
       "sa_domain",
@@ -10043,7 +10043,7 @@
         "TimeZone=UTC"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "9b4c918dae0741a2b50cd11c024c175a"
+      "4ef3b39eba351a1afedcf9d9f79878e5"
     ],
     [
       "sa_domain",
@@ -10235,7 +10235,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
-      "0c475d2b0d7984356332c5ce429c22f1"
+      "2c713de740e734cf45dc5bd4f5258814"
     ],
     [
       "sa_domain",
@@ -10247,7 +10247,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_media_writer=X/postgres}",
-      "5ca44f1e5d110f1dc105c8c3f6b3d7dd"
+      "3d30c3c02c65f40376ad5b0f00cf2d72"
     ],
     [
       "sa_domain",
@@ -10271,7 +10271,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres,sa_integrator=X/postgres}",
-      "df68b45742202d0e40fc389fee9b3dbf"
+      "7823afa2a9a648243586bc24ae29bdee"
     ],
     [
       "sa_domain",
@@ -10657,7 +10657,7 @@
         "TimeZone=UTC"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "b5b0497c52f04d8103fcc6ca94f8341c"
+      "fec779db24b2a7fd66634440901a0097"
     ],
     [
       "sa_domain",
@@ -10825,7 +10825,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "7dd8b18d8b209cc1471748aaea782299"
+      "7ff4582116a72fdd1f8bfea9543838c6"
     ],
     [
       "sa_domain",
@@ -11149,7 +11149,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer}",
-      "17b5bbf2200281975fc7ccaa40b8c4cc"
+      "60f11c520aeeb5d5c3978e49d946bcda"
     ],
     [
       "sa_domain",
@@ -11737,7 +11737,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "772f35e15add24fc41a9939f0732be0c"
+      "5990ed2ee6d26d9e559c3bc45584eef9"
     ],
     [
       "sa_domain",
@@ -11833,7 +11833,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
-      "7f2905f06c2a3f732dc6c1015cea04ac"
+      "5a99772021313e3e9f491bf7ce401dee"
     ],
     [
       "sa_domain",
@@ -11977,7 +11977,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "5db6b8858441130e49b076d244bb59bb"
+      "60cbf001380190b26f2d2a215e4d2a30"
     ],
     [
       "sa_domain",
@@ -12412,7 +12412,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,sa_worker=X/sa_account_writer}",
-      "7f192f19dc2c6c48c05d6b835451d55e"
+      "81b32b96a363f22fbd37a51efbdbb512"
     ],
     [
       "sa_domain",
@@ -12460,7 +12460,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "5dba372580aede31d7e8fbe85ec1f657"
+      "f8933852eecb347b7941b4fa99e6e579"
     ],
     [
       "sa_domain",
@@ -12484,7 +12484,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "beee3c0dd2f621b8ea283d92123b939b"
+      "aba87ad5fc5021a90ee076349e20813a"
     ],
     [
       "sa_domain",
@@ -12520,7 +12520,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "1a85aa42a723b34a915194aeb38d7061"
+      "74884f4408d3e1f594c0060e1028c808"
     ],
     [
       "sa_domain",
@@ -12532,7 +12532,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "fb4b37853d527861f921c98ef8ac3a73"
+      "91dba467a549de88875b31536a7093b0"
     ],
     [
       "sa_domain",
@@ -12544,7 +12544,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "d1bb756246ef0efc5408c876f34a6b37"
+      "68e32502e744b9065d7c845d41148fc1"
     ],
     [
       "sa_domain",
@@ -12556,7 +12556,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "547b0f75db740906e0cd2917c9fb4fed"
+      "a09b160dbfb84ba54b8a53af3d2599a8"
     ],
     [
       "sa_domain",
@@ -12568,7 +12568,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "de05a5da93ca6efaf55f85c70d263c45"
+      "df4147cecc2e04d51efa66b165e4be26"
     ],
     [
       "sa_domain",
@@ -12580,7 +12580,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "41ab94418852a3538d8d98d5ea1b85c0"
+      "014e8f36e62fe25928c21b408abd0535"
     ],
     [
       "sa_domain",
@@ -12592,7 +12592,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "4493e0923aca8675eb5e0f226bd888f3"
+      "a215458145ee6c5c70caee17a8e4afb8"
     ],
     [
       "sa_domain",
@@ -12604,7 +12604,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "25807c29b147b06763a160ad798a8189"
+      "cbd53d3cc6b5183ab0aba736df7938f7"
     ],
     [
       "sa_domain",
@@ -12616,7 +12616,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "b0ec5f3e05ec16d8b0bdb64274e7dcab"
+      "f19360e9d3f00ea3ebca3d493450e4b1"
     ],
     [
       "sa_domain",
@@ -12640,7 +12640,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "d7f79a11cd52cc27b8531c65358f1973"
+      "70f01fb433e86e945ef131c71fa7caac"
     ],
     [
       "sa_domain",
@@ -12652,7 +12652,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "2531ba752e60baeadf5dad1501ef5e39"
+      "f7a5ee10c8bbb25cdeced52969160d09"
     ],
     [
       "sa_domain",
@@ -12676,7 +12676,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "e079f8da8efb1a6f5c38dbf362f2367e"
+      "94f2155ae144e0e697f100fd8b6a9cac"
     ],
     [
       "sa_domain",
@@ -12700,7 +12700,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "62ad527553acbbe38025f99ed0e5e9c8"
+      "967af4b4d860988e0efa461ccee78183"
     ],
     [
       "sa_domain",
@@ -12712,7 +12712,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "938bd69fdf69d7a518a47af341e912f3"
+      "b0fcebca8f8ea4149bef4b4bf66446a4"
     ],
     [
       "sa_domain",
@@ -12724,7 +12724,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "78fd0dc4c4009a73b8a388613cf63c9f"
+      "f70d345c46f81e5e7710d2331962eecf"
     ],
     [
       "sa_domain",
@@ -12736,7 +12736,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "5d97f5164caf7a8e611b7113137c3da0"
+      "33428b8f4d617775f5249574fca0a814"
     ],
     [
       "sa_domain",
@@ -12760,7 +12760,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "b1dc40dbd90417d42a2ed0b16eae67e3"
+      "b356540608bd0160040cb1c4059c6aa6"
     ],
     [
       "sa_domain",
@@ -12796,7 +12796,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "eeb98d3389be1d53c9da4c544ed8af83"
+      "089600a6ef6f9d998f32e919cc54ee27"
     ],
     [
       "sa_domain",
@@ -12808,7 +12808,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "6d7e1b7536ab533e44358f0d83085f08"
+      "42a4dc88b74f8dd2ddadd4bfe6aa95b2"
     ],
     [
       "sa_domain",
@@ -13205,7 +13205,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "c7afdde83805935426e0b082e13a99ec"
+      "d01031029b8a4bf1ea553e1568809f5f"
     ],
     [
       "sa_domain",
@@ -13328,7 +13328,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "25a3cae873c036d3e17bf948c584a38e"
+      "66d09aeafe40fb384d131ad63bfb9124"
     ],
     [
       "sa_domain",
@@ -13412,7 +13412,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "edeb1d745ec170084a741ddc09b42184"
+      "2fcb18624d60c04013909ff0ca31a5cf"
     ],
     [
       "sa_domain",
@@ -13534,7 +13534,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,sa_app=X/sa_account_writer}",
-      "0260b380d24667dd216d7d9704838605"
+      "a0cb77a3170bcd9a29da9590a38be4ba"
     ],
     [
       "sa_domain",
@@ -13546,7 +13546,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,sa_app=X/sa_account_writer}",
-      "54e8d7aba0c5cc4fafddc4bc7ce67ea4"
+      "8e18eb2c117912f00608f518683e38a7"
     ],
     [
       "sa_domain",
@@ -13704,7 +13704,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,authenticated=X/sa_media_writer,sa_app=X/sa_media_writer}",
-      "a058dc1bacc6da486014d3451d54515d"
+      "39868354da4f4c9bbf1e393ffbb6a8e3"
     ],
     [
       "sa_domain",
@@ -13802,7 +13802,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,sa_executor=X/sa_worker,sa_app=X/sa_worker,authenticated=X/sa_worker}",
-      "0925d6c19307c26f263924ed17aefe57"
+      "99026605e99c240489d34b3679e78a5c"
     ],
     [
       "sa_domain",
@@ -13902,7 +13902,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "1ae370009b06ef66179e752f8547f6a0"
+      "b3370b76f3066b79ed431c98e48d056b"
     ],
     [
       "sa_domain",
@@ -13978,7 +13978,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "fd83a63a71fb3419e1aae7153c00137f"
+      "ae3266a4df0b9235fc4bfa6f33bb547b"
     ],
     [
       "sa_domain",
@@ -14296,7 +14296,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "5e2f5f0e375f7e3f89ca3fc81ee666af"
+      "a1d3b659681de0f150b9400b754baaed"
     ],
     [
       "sa_domain",
@@ -14479,7 +14479,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,authenticated=X/sa_media_writer,sa_app=X/sa_media_writer}",
-      "16663354c0781b68b0b7b41d2b969abc"
+      "a9a35fa3157958ac4c5002e636006a6f"
     ],
     [
       "sa_domain",
@@ -14788,7 +14788,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "715ecb2f246e0de7393897393b909df3"
+      "9d2cd9530748769de5fa321163732d54"
     ],
     [
       "sa_domain",
@@ -14813,7 +14813,7 @@
         "TimeZone=UTC"
       ],
       "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
-      "026aac84810359821a3257c3ad45efd1"
+      "bb2945633a2493e3edd3f37a3e5bf389"
     ],
     [
       "sa_domain",
@@ -14849,7 +14849,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
-      "99f60169aa766698654adbd4b330835a"
+      "d768b95a84674f4f854e2baa73daa8a4"
     ],
     [
       "sa_domain",
@@ -14885,7 +14885,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_integrator=X/sa_integrator,sa_worker=X/sa_integrator}",
-      "ee5533123731f0afb8569ccd283c18c7"
+      "1cf982a33470abd27841f2e36ee79033"
     ],
     [
       "sa_domain",
@@ -14921,7 +14921,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_integrator=X/sa_integrator,sa_worker=X/sa_integrator}",
-      "a145a27145ff459442b366c17f9e51e2"
+      "fbae685ce021960909333e833d6ee2e5"
     ],
     [
       "sa_domain",
@@ -14945,7 +14945,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
-      "ce5ab9bcb464e9eca109382ac7a383d6"
+      "65778ab644c2a7ef4e9ea8e9e2173b8a"
     ],
     [
       "sa_domain",
@@ -14969,7 +14969,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "117653ec260b093ca0ba59a9275e894a"
+      "def7393c2acc39619d6a3279abdf8573"
     ],
     [
       "sa_domain",
@@ -14981,7 +14981,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "e0e49d0e7fd0fb010c9e96219d0797ad"
+      "7156e72013d6ef068cab1b5d1e86156c"
     ],
     [
       "sa_domain",
@@ -14993,7 +14993,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "3801f2397c69a3d3ecd85fe40ebbea7e"
+      "d567c765c9792b09fdf5231b2fcfbe18"
     ],
     [
       "sa_domain",
@@ -15041,7 +15041,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "a7e5fff881df707d785c43daab43c0d8"
+      "f5a734281f01ed67b0aaae525f752d06"
     ],
     [
       "sa_domain",
@@ -15126,7 +15126,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "e61913adac6554bdad327de5f78a2c94"
+      "a4fa698f0d22c5f25605587711c8b6f5"
     ],
     [
       "sa_domain",
@@ -15138,7 +15138,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "3b701e5766d130ecabf7426234ef8d6b"
+      "2953ed577a54dcf306c7771e1fb1e148"
     ],
     [
       "sa_domain",
@@ -15150,7 +15150,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "257b9ec29c8a521b905ad9a8771567f9"
+      "a7dcd642682d12df03268d85c5eda7a6"
     ],
     [
       "sa_domain",
@@ -15186,7 +15186,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_worker=X/postgres}",
-      "23218981bd0f908f9170aab62c8835eb"
+      "e5f3a09c4dabbfd65d54b2fd46f616c7"
     ],
     [
       "sa_domain",
@@ -15247,7 +15247,7 @@
         "TimeZone=UTC"
       ],
       "{sa_integrator=X/sa_integrator,sa_worker=X/sa_integrator}",
-      "042a40fa57882d3b5c26a8d3ebc4841b"
+      "09b4ae1928f95e69f2c128238fe8177f"
     ],
     [
       "sa_domain",
@@ -15489,7 +15489,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_media_writer=X/postgres}",
-      "d9361e1050f1e2719ef5056b23246f25"
+      "e8f6b2e3d3b01434cdfefa4d36cb0f52"
     ]
   ],
   [

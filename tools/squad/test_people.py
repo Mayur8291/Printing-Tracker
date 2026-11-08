@@ -1,4 +1,5 @@
 """CRM-01/02/03 and SEC-04/06/08: real RLS and atomic people commands."""
+from sqlstate_assertions import assert_app_conflict
 import concurrent.futures,threading,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -62,7 +63,7 @@ class People(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.save(id=103,fields={'encrypted_password':'bad'},version='0:0')
  def test_stale_profile_version(self):
   self.actor(101)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.save(id=103,fields={'name':'New'},version='0:99')
+  with assert_app_conflict(self):self.save(id=103,fields={'name':'New'},version='0:99')
  def test_edit_preserves_creator_and_approval(self):
   self.actor(110);p=self.save(id=103,fields={'name':'Renamed'},version='0:0');d=self.details(p['id']);self.assertEqual(d['coordinator_id'],'101');self.assertTrue(d['approved']);self.assertEqual(d['name'],'Renamed')
  def test_admin_feature_grants_live(self):
@@ -169,13 +170,13 @@ class People(unittest.TestCase):
   with connect() as other:
    other.execute('BEGIN');other.execute('SELECT pg_advisory_xact_lock_shared(20261107,2)')
    self.actor(100)
-   with self.assertRaises(psycopg.errors.SerializationFailure):self.save(11,{'name':'Role changed'},112,'0:0')
+   with assert_app_conflict(self):self.save(11,{'name':'Role changed'},112,'0:0')
    other.execute('ROLLBACK')
  def test_new_assignment_fails_during_people_structure_change(self):
   with connect() as other:
    other.execute('BEGIN');other.execute('SELECT pg_advisory_xact_lock(20261107,2)')
    self.actor(103)
-   with self.assertRaises(psycopg.errors.SerializationFailure):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Change'}),'0:0',uuid.uuid4()))
+   with assert_app_conflict(self):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Change'}),'0:0',uuid.uuid4()))
    other.execute('ROLLBACK')
  def test_refresh_discards_enrollment_intent(self):
   from domain_sync import after_publication

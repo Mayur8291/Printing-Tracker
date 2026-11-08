@@ -1,4 +1,5 @@
 """Bounded warehouse polling, delegated authority and existing read-only jobs."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -38,7 +39,7 @@ class Schedule(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT canto_api.squad_warehouse_heartbeat()')
  def test_settings_are_idempotent_compare_and_swap_and_self_delegated(self):
   key=uuid.uuid4();a=self.configure(key=key);self.assertEqual(a,self.configure(key=key));self.assertEqual(a['owner_user_id'],'100');self.assertEqual(a['inventory_interval_seconds'],120);self.assertEqual(a['orders_interval_seconds'],300)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.configure(False)
+  with assert_app_conflict(self):self.configure(False)
  def test_repeated_ticks_queue_each_due_scope_once_without_duplicates(self):
   self.configure();first=self.beat();self.assertEqual((first['state'],first['scope']),('queued','inventory'));again=self.beat();self.assertEqual((again['state'],again['scope']),('queued','orders'));self.assertEqual(self.beat()['state'],'waiting');self.assertEqual(self.raw('SELECT count(*) FROM sa_domain.warehouse_scheduled_runs'),[(2,)])
  def test_real_inventory_jobs_update_cache_then_orders_run_then_wait(self):

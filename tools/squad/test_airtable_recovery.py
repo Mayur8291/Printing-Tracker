@@ -1,4 +1,5 @@
 """Consecutive failures, deterministic validation, and partial-import recovery."""
+from sqlstate_assertions import assert_app_conflict
 import json,unittest,uuid
 import psycopg
 import test_airtable as fixture
@@ -67,7 +68,7 @@ class AirtableRecovery(unittest.TestCase):
   self.assertEqual(self.status(t)['result']['failure'],{'code':'AIRTABLE_INVALID_RECORD','sqlstate':'22023','action':'capture'})
  def test_serialization_conflict_remains_retryable_without_failed_transfer(self):
   t=self.start();j=self.claim();d=self.page(1,next_='next');self.work(j,'capture',d);d['next_offset']='changed'
-  with self.assertRaises(psycopg.errors.SerializationFailure):
+  with assert_app_conflict(self):
    with self.c.transaction():self.work(j,'capture',d)
   self.assertEqual(self.status(t)['state'],'validating');self.assertEqual(self.raw('SELECT status FROM sa_domain.outbox WHERE id=%s',(uuid.UUID(j['id']),)),[('leased',)])
  def test_deadlock_and_unknown_outcome_are_not_mislabeled_as_invalid_data(self):

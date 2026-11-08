@@ -1,4 +1,5 @@
 """Real leased transfer worker, shared Masters validation and resumable CSV state."""
+from sqlstate_assertions import assert_app_conflict
 import json, unittest, uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -82,7 +83,7 @@ class TransferWorker(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT canto_api.squad_transfer_work(%s,%s,\'input\')',(uuid.UUID(j['id']),uuid.UUID(j['lease_token'])))
  def test_fake_lease_rejected(self):
   t=self.start();j=self.claim();j['lease_token']=str(uuid.uuid4())
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.work(j,'input')
+  with assert_app_conflict(self):self.work(j,'input')
  def test_prices_strict_numeric_and_missing_references(self):
   t=self.start('prices','rmp_prices');_,s=self.validate(t,[{'name':'Bad','rmp_sku':'SKU A','price_type':'Regular','price':'garbage'}]);self.assertEqual(s['state'],'invalid')
  def test_price_import_reactivates_moves_join_and_blank_mrp_zero(self):

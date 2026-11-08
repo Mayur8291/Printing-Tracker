@@ -14,7 +14,7 @@ def run():
   with c.transaction():
    assert c.execute('SELECT cutover,active_job FROM sa_sync.environment_state').fetchone()==(False,None)
    assert c.execute('SELECT pg_try_advisory_xact_lock(20261107,1)').fetchone()[0]
-   assert not c.execute("SELECT FROM sa_domain.outbox WHERE status IN('pending','leased')").fetchone()
+   assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE status IN('pending','leased')").fetchone()
    actor=c.execute("SELECT u.id FROM auth.users u JOIN public.profiles p ON p.id=u.id WHERE u.role='authenticated' AND p.role='admin' AND(u.banned_until IS NULL OR u.banned_until<now()) ORDER BY u.id LIMIT 1").fetchone()[0]
    session=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id) VALUES(%s,%s)',(session,actor))
    for name in ['sa_domain.audit_id_seq','sa_admin.audit_id_seq','sa_domain.outbox_sequence_id_seq','sa_domain.transfers_sequence_id_seq','sa_snapshot_20261019.sa_base_product_types_id_seq']:
@@ -49,7 +49,7 @@ def run():
    assert c.execute(work,work_args(j,'apply')).fetchone()[0]['state']=='pending';j=claim();assert c.execute(work,work_args(j,'apply')).fetchone()[0]['state']=='done'
    c.execute('SET LOCAL ROLE postgres')
    lo=9000000000005000;hi=lo+1001
-   assert not c.execute('SELECT FROM sa_snapshot_20261019.sa_base_product_types WHERE id BETWEEN %s AND %s',(lo,hi)).fetchone()
+   assert not c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_base_product_types WHERE id BETWEEN %s AND %s',(lo,hi)).fetchone()
    c.execute('INSERT INTO sa_snapshot_20261019.sa_base_product_types(id,name,created_at,updated_at) SELECT n,%s||n::text,now(),now() FROM generate_series(%s,%s)n',(prefix+'export',lo,hi))
    app();c.execute("SELECT canto_api.v1_export_request('base_product_types',%s,%s)",(Jsonb({'columns':['id','name'],'search':prefix+'export'}),uuid.uuid4()));j=claim()
    measure('capture_1002_master_export_rows',work,work_args(j,'input'),2000)

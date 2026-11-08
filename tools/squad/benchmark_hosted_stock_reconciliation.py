@@ -34,8 +34,8 @@ def run():
    for seq in ('sa_snapshot_20261019.sa_quantities_id_seq','sa_snapshot_20261019.sa_stocks_id_seq','sa_domain.stock_reconciliations_id_seq','sa_domain.audit_id_seq'):
     last=c.execute(sql.SQL('SELECT last_value FROM {}').format(sql.Identifier(*seq.split('.')))).fetchone()[0];c.execute(sql.SQL('ALTER SEQUENCE {} RESTART WITH {}').format(sql.Identifier(*seq.split('.')),sql.Literal(last+1)))
    lo=9000000000003000;hi=lo+99
-   assert not c.execute('SELECT FROM sa_snapshot_20261019.sa_orders WHERE id BETWEEN %s AND %s',(lo,hi)).fetchone()
-   assert not c.execute('SELECT FROM sa_snapshot_20261019.sa_items WHERE id BETWEEN %s AND %s',(lo,hi)).fetchone()
+   assert not c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_orders WHERE id BETWEEN %s AND %s',(lo,hi)).fetchone()
+   assert not c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_items WHERE id BETWEEN %s AND %s',(lo,hi)).fetchone()
    address=c.execute('SELECT o.address_id FROM sa_snapshot_20261019.sa_orders o JOIN sa_snapshot_20261019.sa_addresses a ON a.id=o.address_id WHERE o.customer_id=%s ORDER BY o.id DESC LIMIT 1',(dealer,)).fetchone();assert address
    c.execute('INSERT INTO sa_snapshot_20261019.sa_orders(id,customer_id,address_id,created_at,updated_at) SELECT n,%s,%s,now(),now() FROM generate_series(%s,%s)n',(dealer,address[0],lo,hi))
    c.execute("INSERT INTO sa_snapshot_20261019.sa_items(id,order_id,item_type,rmp_class_id,rmp_brand_id,rmp_category_id,uc_order_status,created_at,updated_at) SELECT n,n,1,%s,%s,%s,'COMPLETE',now(),now() FROM generate_series(%s,%s)n",(*variant[1:],lo,hi))

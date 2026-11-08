@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 from fixtures import claim_test_workers
 """Durable provider-confirmed order changes, with actual shared local publication."""
 import datetime,decimal,unittest,uuid
@@ -92,10 +93,10 @@ class WarehouseAmendments(unittest.TestCase):
   self.use_uniware();self.place();j,p=self.edit();j,p=self.next_phase(j,p);self.assertEqual(self.finish(j,self.cancel_ack(p))['state'],'pending');j=self.claim()[0];p=self.prepare(j);self.assertEqual(self.finish(j,{'code':'RECONCILIATION_REQUIRED','error_code':'PROVIDER_TIMEOUT'})['state'],'dead');history=self.raw("SELECT saga->'history' FROM sa_domain.warehouse_operations WHERE request_id=%s",(self.rid,))[0][0];self.assertEqual(set(history),{'inspect','cancel'});self.assertEqual(history['cancel']['result']['status'],'CANCELLED')
  def test_wrong_lease_cannot_finish_amendment(self):
   self.place();j,p=self.edit();j,p=self.next_phase(j,p);bad=dict(j,lease_token=str(uuid.uuid4()))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.finish(bad,self.ack(p))
+  with assert_app_conflict(self):self.finish(bad,self.ack(p))
  def test_generation_change_denies_provider_result(self):
   self.place();j,p=self.edit();j,p=self.next_phase(j,p);self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.finish(j,self.ack(p))
+  with assert_app_conflict(self):self.finish(j,self.ack(p))
  def test_browser_cannot_publish_private_change(self):
   self.actor(101)
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT sa_domain.warehouse_change_publish(%s)',(uuid.uuid4(),))

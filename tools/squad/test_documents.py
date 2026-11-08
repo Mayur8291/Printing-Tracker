@@ -1,4 +1,5 @@
 """Document snapshots, current-authority checks and durable worker boundaries."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid
 from decimal import Decimal
 import psycopg
@@ -76,10 +77,10 @@ class Documents(unittest.TestCase):
   r=self.request();self.raw("UPDATE auth.users SET banned_until=now()+interval '1 day' WHERE id=%s",(uid(103),));j,p=self.prepare(r);self.assertEqual(p['state'],'dead');self.assertEqual(self.raw('SELECT count(*) FROM sa_domain.worker_context'),[(0,)])
  def test_changed_generation_rejects_old_lease(self):
   j,r=self.prepare();self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.finish(j)
+  with assert_app_conflict(self):self.finish(j)
  def test_wrong_lease_cannot_publish(self):
   j,r=self.prepare();j['lease_token']=str(uuid.uuid4())
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.finish(j)
+  with assert_app_conflict(self):self.finish(j)
  def test_storage_retry_preserves_captured_snapshot(self):
   j,r=self.prepare();self.assertEqual(self.finish(j,'STORAGE_UNAVAILABLE')['state'],'pending');self.raw('UPDATE sa_domain.outbox SET available_at=now()');j=self.claim('document_render')[0];self.assertEqual(self.call('squad_document_prepare',j)['snapshot_hash'],r['snapshot_hash'])
  def test_duplicate_finish_is_idempotent(self):
@@ -120,7 +121,7 @@ class Documents(unittest.TestCase):
   with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):self.finish(j)
  def test_part_replay_matches_all_metadata_and_retains_progress(self):
   r,j,p=self.large();self.part(j);self.assertTrue(self.part(j)['replayed']);self.assertEqual(self.raw('SELECT next_part FROM sa_domain.documents'),[(1,)])
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.call('squad_document_finish',j,Jsonb({'code':'PART_READY','part_index':0,'bytes':1001,'pages':2,'sha256':'a'*64}))
+  with assert_app_conflict(self):self.call('squad_document_finish',j,Jsonb({'code':'PART_READY','part_index':0,'bytes':1001,'pages':2,'sha256':'a'*64}))
  def test_part_preparation_rechecks_current_authority(self):
   r,j,p=self.large();self.part(j);self.raw('UPDATE sa_snapshot_20261019.sa_users SET role=10 WHERE id=103');j=self.claim('document_render')[0];self.assertEqual(self.call('squad_document_prepare',j)['state'],'dead')
  def test_parts_cleanup_keeps_ready_final_and_acknowledges_only_known_paths(self):

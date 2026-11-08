@@ -110,11 +110,11 @@ class JobsheetConcurrency(unittest.TestCase):
         keys = [self.new_key(), self.new_key()]
         requests = [self.args(6, tailor, key, version) for tailor, key in zip([105, 106], keys)]
         results = self.race(requests)
-        self.assertCountEqual([r['sqlstate'] for r in results], [None, '40001'])
+        self.assertCountEqual([r['sqlstate'] for r in results], [None, 'PT409'])
         self.assert_balance(6, 1)
         loser = next(i for i, result in enumerate(results) if result['sqlstate'])
         # The failed transaction did not consume its command key or capacity.
-        self.assertEqual(self.invoke(requests[loser])['sqlstate'], '40001')
+        self.assertEqual(self.invoke(requests[loser])['sqlstate'], 'PT409')
         latest = self.version()
         too_large = self.args(6, [105, 106][loser], keys[loser], latest)
         self.assertEqual(self.invoke(too_large)['sqlstate'], '22023')

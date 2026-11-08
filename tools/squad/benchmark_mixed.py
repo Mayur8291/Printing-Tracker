@@ -204,8 +204,8 @@ def contention(c,preset):
   key=uuid.uuid4();same=concurrent_call(n,method,[args(f['item_version'],key)]*4)
   check(all(x['sqlstate'] is None for x in same),'Same-key contention failed');check(all(x['result']==same[0]['result'] for x in same),'Same-key responses differ')
   c.execute('RESET ROLE');v=version(c,'item',f['item']);keys=[uuid.uuid4() for _ in range(4)];compete=concurrent_call(n,method,[args(v,k) for k in keys]);codes=Counter(x['sqlstate'] or 'success' for x in compete)
-  check(codes=={'success':1,'40001':3},'Unexpected concurrent optimistic result: '+str(codes))
-  retry_key=next(keys[i] for i,x in enumerate(compete) if x['sqlstate']=='40001')
+  check(codes=={'success':1,'PT409':3},'Unexpected concurrent optimistic result: '+str(codes))
+  retry_key=next(keys[i] for i,x in enumerate(compete) if x['sqlstate']=='PT409')
   with c.transaction():
    v=version(c,'item',f['item']);actor(c,n);retried=rpc(c,method,args(v,retry_key));check(retried['progress']['cut' if stage==0 else 'dispatched']==6,'Reload/retry lost quantity')
   v=version(c,'item',f['item'])

@@ -53,17 +53,17 @@ def validate(state):
 def plan(c):
  environment=c.execute('SELECT environment,cutover,active_job,edit_revision,synced_revision FROM sa_sync.environment_state').fetchone();assert environment[:3]==('staging',False,None) and environment[3]==environment[4],'Requires idle, clean staging mirror'
  assert c.execute('SELECT allow_test_writes FROM sa_domain.runtime_state').fetchone()[0] is False
- assert not c.execute("SELECT FROM sa_domain.outbox WHERE status IN('pending','leased') LIMIT 1").fetchone(),'Existing worker work must finish first'
- assert not c.execute("SELECT FROM sa_domain.account_flows WHERE state IN('pending','processing') LIMIT 1").fetchone(),'Existing account flows must finish first'
+ assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE status IN('pending','leased') LIMIT 1").fetchone(),'Existing worker work must finish first'
+ assert not c.execute("SELECT 1 FROM sa_domain.account_flows WHERE state IN('pending','processing') LIMIT 1").fetchone(),'Existing account flows must finish first'
  assert c.execute("SELECT to_regprocedure('extensions.crypt(text,text)'),to_regprocedure('extensions.gen_salt(text,integer)')").fetchone()==('extensions.crypt(text,text)','extensions.gen_salt(text,integer)'), 'Server bcrypt fixture capability unavailable'
  top=c.execute('SELECT greatest(coalesce((SELECT max(legacy_user_id) FROM sa_sync.legacy_identity_keys WHERE legacy_user_id>=%s AND legacy_user_id<%s),%s),coalesce((SELECT max(id) FROM sa_snapshot_20261019.sa_users WHERE id>=%s AND id<%s),%s))',(MIN_ID,MAX_ID,MIN_ID-200,MIN_ID,MAX_ID,MIN_ID-200)).fetchone()[0]
  base=max(MIN_ID,((top-MIN_ID)//200+1)*200+MIN_ID);assert base+120<MAX_ID,'Review accumulated test reservations before further fixture creation'
  run=uuid.uuid4();state={'format':'squad-persona-fixture/v1','environment':'staging','url':URL,'run_id':str(run),'label':'SQP '+run.hex[:12],'base':base,'stage':'planned','created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'edit_revision':environment[3],'synced_revision':environment[4],'generation':c.execute('SELECT generation FROM sa_domain.runtime_state').fetchone()[0],'actors':[{'role':role,'id':str(base+role),'auth_id':str(uuid.uuid4()),'email':f'squad-persona-{run.hex[:12]}-{role}@mailinator.com'} for role in ROLES],'objects':{'factories':[base+100,base+101],'addresses':[base+102,base+103],'orders':[base+104,base+105],'items':[base+106,base+107],'quantities':[base+108,base+109],'dealer_link':base+110,'size':base+111}}
  validate(state)
  for table,ids in [('users',list(range(base,base+15))),('factories',state['objects']['factories']),('addresses',state['objects']['addresses']),('orders',state['objects']['orders']),('items',state['objects']['items']),('quantities',state['objects']['quantities']),('sizes',[state['objects']['size']]),('user_dealers',[state['objects']['dealer_link']])]:
-  assert not c.execute(sql.SQL('SELECT FROM sa_snapshot_20261019.{} WHERE id=ANY(%s::bigint[]) LIMIT 1').format(sql.Identifier('sa_'+table)),(ids,)).fetchone(),'Planned fixture IDs collide'
+  assert not c.execute(sql.SQL('SELECT 1 FROM sa_snapshot_20261019.{} WHERE id=ANY(%s::bigint[]) LIMIT 1').format(sql.Identifier('sa_'+table)),(ids,)).fetchone(),'Planned fixture IDs collide'
  for actor in state['actors']:
-  assert not c.execute('SELECT FROM auth.users WHERE id=%s OR lower(email)=%s',(uuid.UUID(actor['auth_id']),actor['email'])).fetchone(),'Auth fixture identity collides'
+  assert not c.execute('SELECT 1 FROM auth.users WHERE id=%s OR lower(email)=%s',(uuid.UUID(actor['auth_id']),actor['email'])).fetchone(),'Auth fixture identity collides'
  return state
 
 
@@ -100,8 +100,8 @@ def create(c,state):
    c.execute('INSERT INTO sa_snapshot_20261019.sa_quantities(id,item_id,size_id,quantity,created_at,updated_at) VALUES(%s,%s,%s,10,now(),now())',(objects['quantities'][i],objects['items'][i],objects['size']))
   c.execute('SET CONSTRAINTS ALL IMMEDIATE')
   assert c.execute("SELECT count(*) FROM sa_identity.sa_auth_identities m JOIN auth.users a ON a.id=m.auth_user_id JOIN sa_snapshot_20261019.sa_users u ON u.id=m.legacy_user_id WHERE m.legacy_user_id=ANY(%s::bigint[]) AND a.encrypted_password=u.encrypted_password AND a.role='sa_app'",([int(a['id']) for a in state['actors']],)).fetchone()[0]==11
-  assert not c.execute('SELECT FROM public.profiles WHERE id=ANY(%s::uuid[])',([uuid.UUID(a['auth_id']) for a in state['actors']],)).fetchone()
-  assert not c.execute('SELECT FROM sa_identity.sa_auth_identities WHERE legacy_user_id=ANY(%s::bigint[])',([base+5,base+6],)).fetchone(),'Managed subjects must not receive Auth identities'
+  assert not c.execute('SELECT 1 FROM public.profiles WHERE id=ANY(%s::uuid[])',([uuid.UUID(a['auth_id']) for a in state['actors']],)).fetchone()
+  assert not c.execute('SELECT 1 FROM sa_identity.sa_auth_identities WHERE legacy_user_id=ANY(%s::bigint[])',([base+5,base+6],)).fetchone(),'Managed subjects must not receive Auth identities'
  return credentials
 
 
@@ -132,9 +132,9 @@ def cleanup(c,state):
   for table,values in [('quantities',objects['quantities']),('items',objects['items']),('orders',objects['orders']),('addresses',objects['addresses']),('user_dealers',[objects['dealer_link']]),('users',ids),('factories',objects['factories']),('sizes',[objects['size']])]:
    c.execute(sql.SQL('DELETE FROM sa_snapshot_20261019.{} WHERE id=ANY(%s::bigint[])').format(sql.Identifier('sa_'+table)),(values,))
   c.execute('SET CONSTRAINTS ALL IMMEDIATE')
-  assert not c.execute('SELECT FROM auth.users WHERE id=ANY(%s::uuid[])',(auths,)).fetchone()
-  assert not c.execute('SELECT FROM sa_snapshot_20261019.sa_users WHERE id=ANY(%s::bigint[])',(ids,)).fetchone()
-  assert not c.execute("SELECT FROM sa_identity.sa_auth_identities WHERE auth_user_id=ANY(%s::uuid[]) AND enrollment_state<>'blocked'",(auths,)).fetchone()
+  assert not c.execute('SELECT 1 FROM auth.users WHERE id=ANY(%s::uuid[])',(auths,)).fetchone()
+  assert not c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_users WHERE id=ANY(%s::bigint[])',(ids,)).fetchone()
+  assert not c.execute("SELECT 1 FROM sa_identity.sa_auth_identities WHERE auth_user_id=ANY(%s::uuid[]) AND enrollment_state<>'blocked'",(auths,)).fetchone()
 
 
 def run(execute=False,recover=False):

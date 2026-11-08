@@ -1,4 +1,5 @@
 """Order acceptance invariants: scoped designs, financial totals and atomic retries."""
+from sqlstate_assertions import assert_app_conflict, is_app_conflict
 import concurrent.futures,copy,decimal,threading,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -62,19 +63,19 @@ class Orders(unittest.TestCase):
   self.assertEqual(self.raw('SELECT count(*) FROM sa_domain.outbox WHERE command_key=%s',(key,))[0][0],1)
  def test_accepted_quote_cannot_create_again_with_new_key(self):
   q=self.quote();self.place(q)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(q)
+  with assert_app_conflict(self):self.place(q)
  def test_different_payload_same_key_rejected(self):
   q=self.quote();key=uuid.uuid4();self.place(q,key=key)
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.place(q,{'comment':'Changed'},key)
  def test_expired_quote_rejected(self):
   q=self.quote();self.raw("UPDATE sa_domain.quotes SET expires_at=now()-interval '1 second'")
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(q)
+  with assert_app_conflict(self):self.place(q)
  def test_changed_price_rejected(self):
   q=self.quote();self.raw('UPDATE sa_snapshot_20261019.sa_rmp_prices SET price=81 WHERE id=2')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(q)
+  with assert_app_conflict(self):self.place(q)
  def test_changed_address_rejected(self):
   q=self.quote();self.raw("UPDATE sa_snapshot_20261019.sa_addresses SET state='Maharashtra' WHERE id=100")
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(q)
+  with assert_app_conflict(self):self.place(q)
  def test_other_actor_quote_is_invisible(self):
   q=self.quote();self.actor(101)
   with self.assertRaises(psycopg.errors.NoDataFound):self.place(q)
@@ -138,7 +139,7 @@ class Orders(unittest.TestCase):
  def test_changed_design_version_rejected(self):
   d=self.design(True);line=rmp();line['brandings']=[d];q=self.quote([line]);spec=dict(SPEC,comment='Changed')
   rpc(self.c,'v1_branding_save',(int(d['design_id']),None,Jsonb(spec),d['design_version'],uuid.uuid4()))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(q)
+  with assert_app_conflict(self):self.place(q)
  def test_arbitrary_source_url_rejected(self):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):rpc(self.c,'v1_branding_save',(None,None,Jsonb(dict(SPEC,image='https://outside.invalid/file')),None,uuid.uuid4()))
  def test_unzoned_due_date_rejected(self):
@@ -173,7 +174,9 @@ class ConcurrentOrders(unittest.TestCase):
     with connect() as c,c.transaction():
      session(c,103);barrier.wait(timeout=3)
      return rpc(c,'v1_order_place',(uuid.UUID(q['quote_id']),q['version'],Jsonb({'due_at':'2026-12-01T00:00:00Z'}),key))
-   except psycopg.errors.SerializationFailure:return 'conflict'
+   except psycopg.DatabaseError as error:
+    if not is_app_conflict(error):raise
+    return 'conflict'
   try:
    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(place,keys))
    self.assertEqual(results.count('conflict'),1);self.assertEqual(sum(len(r['orders']) for r in results if isinstance(r,dict)),1)

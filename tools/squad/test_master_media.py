@@ -1,4 +1,5 @@
 """Atomic master form/media transactions use the real legacy dispatcher."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid,json
 import psycopg
 from psycopg.types.json import Jsonb
@@ -37,7 +38,7 @@ class MasterMedia(unittest.TestCase):
   self.assertEqual(self.raw('SELECT name FROM sa_snapshot_20261019.sa_base_product_types WHERE id=1'),[('Shirts',)])
  def test_stale_form_cannot_publish_staged_file(self):
   u=self.reserve('base_product_types','image',1);row=self.c.execute("SELECT canto_api.masters('base_product_types','get','{\"id\":\"1\"}')").fetchone()[0];self.raw("UPDATE sa_snapshot_20261019.sa_base_product_types SET updated_at=now()+interval '1 second' WHERE id=1")
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.save('base_product_types','update',{'id':'1','values':{'name':'Stale'},'expectedUpdatedAt':row['updated_at']},[u])
+  with assert_app_conflict(self):self.save('base_product_types','update',{'id':'1','values':{'name':'Stale'},'expectedUpdatedAt':row['updated_at']},[u])
  def test_foreign_resource_lease_denied(self):
   u=self.reserve('base_product_types')
   with self.assertRaises(psycopg.errors.NoDataFound):self.save('base_products','create',{'values':{'name':'Foreign'}},[u])

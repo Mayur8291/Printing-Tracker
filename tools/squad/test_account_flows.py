@@ -1,4 +1,5 @@
 """Email proof, enumeration resistance and provider credential fencing."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid,json
 import psycopg
 from psycopg.types.json import Jsonb
@@ -131,7 +132,7 @@ class AccountFlows(unittest.TestCase):
   self.request();j=self.claim_mail();self.raw("UPDATE sa_domain.outbox SET attempts=5,lease_until=now()-interval '1 second' WHERE id=%s",(uuid.UUID(j['id']),));self.c.execute('SELECT canto_api.squad_job_claim(1)');self.assertEqual(self.raw('SELECT mail_state,code_cipher FROM sa_domain.account_flows'),[('failed',None)])
  def test_mail_lease_cannot_be_used_for_another_job(self):
   self.request();j=self.claim_mail();j['id']=str(uuid.uuid4())
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.prepare_mail(j)
+  with assert_app_conflict(self):self.prepare_mail(j)
 
  def test_native_change_after_recovery_rejects_delayed_same_marker(self):
   id=self.request()['request_id'];t=self.prepare(id);self.provider(t);self.finish(t)

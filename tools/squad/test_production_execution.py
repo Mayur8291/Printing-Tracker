@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict, is_app_conflict
 import concurrent.futures,datetime,threading,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -39,7 +40,7 @@ class Execution(unittest.TestCase):
   v=self.iv();key=uuid.uuid4();r=self.cut(3,key,v);self.assertEqual(r,self.cut(3,key,v));self.assertEqual(self.raw('SELECT cutting_done FROM sa_snapshot_20261019.sa_quantities WHERE id=%s',(self.q,)),[(3,)])
  def test_stale_version_rejects_second_cut(self):
   v=self.iv();self.cut(3)
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.cut(3,version=v)
+  with assert_app_conflict(self):self.cut(3,version=v)
  def test_cut_negative_denied(self):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.cut(-1)
  def test_cut_zero_denied(self):
@@ -167,7 +168,9 @@ class ConcurrentWork(unittest.TestCase):
     with connect() as c,c.transaction():
      session(c,109);barrier.wait(timeout=3)
      return rpc(c,'v1_cutting_record',(item,Jsonb([{'quantity_id':str(q),'quantity':6}]),None,v,key))
-   except psycopg.errors.SerializationFailure:return 'conflict'
+   except psycopg.DatabaseError as error:
+    if not is_app_conflict(error):raise
+    return 'conflict'
   try:
    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(cut,keys))
    self.assertEqual(results.count('conflict'),1)

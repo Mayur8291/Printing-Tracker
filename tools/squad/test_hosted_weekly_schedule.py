@@ -36,7 +36,7 @@ def run(local=False):
   assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0],'Refresh/release is active'
   try:
    environment=c.execute('SELECT environment,cutover,active_job,edit_revision,synced_revision FROM sa_sync.environment_state').fetchone();assert environment[0:3]==('staging',False,None) and environment[3]==environment[4],'Requires an idle staging mirror'
-   assert not c.execute("SELECT FROM sa_domain.outbox WHERE status IN('pending','leased') LIMIT 1").fetchone(),'Existing work must finish first'
+   assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE status IN('pending','leased') LIMIT 1").fetchone(),'Existing work must finish first'
    assert not c.execute('SELECT enabled FROM sa_domain.weekly_tailor_schedule').fetchone()[0],'An active user schedule is not an acceptance fixture'
    assert all(c.execute('SELECT to_regprocedure(%s)',(f,)).fetchone()[0] for f in FUNCTIONS),'Required deployed contracts are missing'
    prefix=None if local else c.execute("SELECT max(version) FROM supabase_migrations.schema_migrations WHERE name LIKE 'squad_%'").fetchone()[0]
@@ -79,7 +79,7 @@ def run(local=False):
       terminal=heartbeat(25);assert terminal['queued']<=25
      assert terminal['state']=='queued';assert heartbeat()['state']=='waiting';privileged();assert c.execute('SELECT count(*) FROM sa_domain.weekly_tailor_entries WHERE run_id=%s',(run_id,)).fetchone()[0]==tailors;checks.append('entire current Tailor cohort enumerates in bounded pages; natural final page waits without duplicates')
      worker();jobs=c.execute('SELECT canto_api.squad_job_claim(1)').fetchone()[0]['jobs'];assert len(jobs)==1 and jobs[0]['handler']=='document_render';job=jobs[0];args=(uuid.UUID(job['id']),uuid.UUID(job['lease_token']));prepared=c.execute('SELECT canto_api.squad_document_prepare(%s,%s)',args).fetchone()[0];assert prepared['state']=='prepared' and prepared['snapshot']['kind']=='tailor_weekly';checks.append('real document worker prepares the authorized weekly snapshot; no READY or SMTP fabricated')
-     disabled=configure(False,settings['version']);worker();assert c.execute('SELECT canto_api.squad_document_prepare(%s,%s)',args).fetchone()[0]['state']=='dead';privileged();assert not c.execute("SELECT FROM sa_domain.outbox WHERE event_type IN('document.mail','business.mail') AND payload->>'document_id'=%s",(str(first_document),)).fetchone();checks.append('disabling delegation revokes queued rendering before any mail job')
+     disabled=configure(False,settings['version']);worker();assert c.execute('SELECT canto_api.squad_document_prepare(%s,%s)',args).fetchone()[0]['state']=='dead';privileged();assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE event_type IN('document.mail','business.mail') AND payload->>'document_id'=%s",(str(first_document),)).fetchone();checks.append('disabling delegation revokes queued rendering before any mail job')
      settings=configure(True,disabled['version'])
      for mode,error in [('owner','SCHEDULE_OWNER_UNAVAILABLE'),('recipients','MAIL_RECIPIENTS_NOT_CONFIGURED'),('generation','SOURCE_REFRESH_RECONFIGURE')]:
       with c.transaction():
@@ -102,7 +102,7 @@ def run(local=False):
    assert environment==c.execute('SELECT environment,cutover,active_job,edit_revision,synced_revision FROM sa_sync.environment_state').fetchone()
    assert counts=={t:c.execute(sql.SQL('SELECT count(*) FROM sa_domain.{}').format(sql.Identifier(t))).fetchone()[0] for t in TABLES}
    assert sequences=={n:c.execute(sql.SQL('SELECT last_value,is_called FROM {}').format(sql.Identifier(*n.split('.')))).fetchone() for n in SEQUENCES}
-   assert not c.execute('SELECT FROM auth.sessions WHERE id=%s',(session_id,)).fetchone()
+   assert not c.execute('SELECT 1 FROM auth.sessions WHERE id=%s',(session_id,)).fetchone()
    if not local:
     assert public_structure(c)==before_structure
     assert cron==c.execute("SELECT jobid,active FROM cron.job WHERE jobname IN('squad-jobs-minute','squad-documents-pump','squad-media-cleanup') ORDER BY jobid").fetchall()

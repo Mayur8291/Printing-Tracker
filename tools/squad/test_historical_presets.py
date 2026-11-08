@@ -1,3 +1,4 @@
+from sqlstate_assertions import assert_app_conflict
 import copy,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -55,7 +56,7 @@ class HistoricalPresets(unittest.TestCase):
   with self.assertRaises(psycopg.errors.NoDataFound):self.place(q)
  def test_changed_master_price_invalidates_cached_quote(self):
   q=self.quote();self.raw('UPDATE sa_snapshot_20261019.sa_fabrics SET price=price+1 WHERE id=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.place(q)
+  with assert_app_conflict(self):self.place(q)
  def test_ordinary_client_cannot_read_private_color_projection(self):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT sa_domain.active_preset_colors(ARRAY[1::bigint])')
  def test_ordinary_client_cannot_invoke_preset_validation_helper(self):

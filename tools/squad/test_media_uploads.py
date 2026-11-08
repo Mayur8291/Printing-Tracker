@@ -1,4 +1,5 @@
 """Upload intent, service attestation and resource mutation boundaries."""
+from sqlstate_assertions import assert_app_conflict
 import json,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -45,7 +46,7 @@ class Uploads(unittest.TestCase):
   with self.assertRaises(psycopg.errors.NoDataFound):self.attach(u)
  def test_changed_design_invalidates_upload(self):
   u=self.reserve();self.verify(u);self.f.raw("UPDATE sa_snapshot_20261019.sa_brandings SET updated_at=now()+interval '1 second' WHERE id=%s",(int(self.target['record_id']),))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.attach(u)
+  with assert_app_conflict(self):self.attach(u)
  def test_generation_invalidates_verified_upload(self):
   u=self.reserve();self.verify(u);self.f.raw('UPDATE sa_domain.runtime_state SET generation=generation+1')
   with self.assertRaises(psycopg.errors.NoDataFound):self.attach(u)

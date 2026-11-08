@@ -41,7 +41,7 @@ def run():
     assert result['state']=='paused',name
    raise psycopg.Rollback()
   assert public_structure(c)==before
-  assert not c.execute('SELECT FROM auth.sessions WHERE id=%s',(session,)).fetchone()
+  assert not c.execute('SELECT 1 FROM auth.sessions WHERE id=%s',(session,)).fetchone()
   assert c.execute("SELECT count(*) FROM sa_domain.outbox WHERE status IN('pending','leased')").fetchone()[0]==0
  print(json.dumps({'environment':'staging','controls':states,'mirror_heartbeats_paused':True,'temporary_session_rolled_back':True,'provider_requests':0,'public_structure_unchanged':True}))
 

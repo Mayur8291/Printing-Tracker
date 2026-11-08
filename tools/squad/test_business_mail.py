@@ -1,4 +1,5 @@
 """Synthetic mail identities, recipient scope, durable fanout and retry contract."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -90,7 +91,7 @@ class BusinessMail(unittest.TestCase):
   self.raw('UPDATE sa_snapshot_20261019.sa_users SET approved=false WHERE id=103');self.emit('account.registration_completed',103,'person',{});self.assertEqual(self.fanout(),[]);self.raw('UPDATE sa_snapshot_20261019.sa_users SET approved=true WHERE id=103');self.emit('customer.reviewed.notify',103,'person',{'before':{'approved':False},'after':{'approved':True}});self.fanout();j=self.deliveries()[0];self.assertEqual(self.call('squad_business_mail_prepare',j)['kind'],'welcome')
  def test_config_idempotency_cas_and_string_identifiers(self):
   self.actor_as(100);key=uuid.uuid4();a=rpc(self.c,'v1_mail_settings_save',('price_alert',[100],'0:0',key));self.assertEqual(a,rpc(self.c,'v1_mail_settings_save',('price_alert',[100],'0:0',key)));self.assertEqual(a['recipient_ids'],['100']);self.assertEqual(next(x for x in rpc(self.c,'v1_mail_settings_read')['data'] if x['kind']=='price_alert')['recipient_ids'],['100'])
-  with self.assertRaises(psycopg.errors.SerializationFailure),self.c.transaction():rpc(self.c,'v1_mail_settings_save',('price_alert',[],'0:0',uuid.uuid4()))
+  with assert_app_conflict(self),self.c.transaction():rpc(self.c,'v1_mail_settings_save',('price_alert',[],'0:0',uuid.uuid4()))
  def test_operator_retries_configuration_failure_only_after_fix(self):
   self.emit('order.price_changed',1001,payload={});j,m=self.fanout()[0];self.assertEqual(m['state'],'dead');self.configure();self.assertEqual(self.retry(j)['state'],'pending');self.assertEqual(self.fanout()[0][1]['state'],'done');self.assertEqual(len(self.deliveries()),1)
  def test_exhausted_mail_lease_has_visible_failure_and_operator_retry(self):
@@ -100,7 +101,7 @@ class BusinessMail(unittest.TestCase):
  def test_expired_lease_cannot_finish_or_read_private_content(self):
   j,m=self.ready();self.raw("UPDATE sa_domain.outbox SET lease_until=now()-interval '1 second' WHERE id=%s",(uuid.UUID(j['id']),))
   for operation,args in [('squad_business_mail_prepare',()),('squad_business_mail_finish',('SENT',))]:
-   with self.assertRaises(psycopg.errors.SerializationFailure),self.c.transaction():self.call(operation,j,*args)
+   with assert_app_conflict(self),self.c.transaction():self.call(operation,j,*args)
  def test_refresh_discards_private_delivery_intent(self):
   from domain_sync import after_publication
   j,m=self.ready();self.c.execute('RESET ROLE');self.c.execute('UPDATE sa_sync.environment_state SET cutover=false');after_publication(self.c);self.assertEqual(self.c.execute('SELECT state,error_code FROM sa_domain.business_mail_deliveries').fetchall(),[('failed','SOURCE_REFRESH_DISCARDED')])
@@ -112,6 +113,6 @@ class BusinessMail(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege),self.c.transaction():self.c.execute('SELECT canto_api.squad_business_mail_prepare(%s,%s)',(uuid.uuid4(),uuid.uuid4()))
  def test_generation_and_expired_lease_are_fenced(self):
   j,m=self.ready();self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.call('squad_business_mail_finish',j,'SENT')
+  with assert_app_conflict(self):self.call('squad_business_mail_finish',j,'SENT')
 
 if __name__=='__main__':unittest.main()

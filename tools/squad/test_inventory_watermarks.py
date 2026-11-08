@@ -1,4 +1,5 @@
 """Inventory snapshots cannot erase concurrent or cold-cache invalidations."""
+from sqlstate_assertions import assert_app_conflict
 import concurrent.futures
 import datetime
 import threading
@@ -84,7 +85,7 @@ class InventoryWatermarks(unittest.TestCase):
   j,p=self.start();self.set_start_before_event(j);old=self.as_of(j);self.finish(j,{'code':'RETRY','error_code':'PROVIDER_UNAVAILABLE'});self.raw('UPDATE sa_domain.outbox SET available_at=now() WHERE id=%s',(uuid.UUID(j['id']),));j2=self.claim();self.prepare(j2);self.assertGreater(self.as_of(j2),old)
  def test_expired_lease_cannot_write_cache(self):
   j,p=self.start();self.raw("UPDATE sa_domain.outbox SET lease_until=clock_timestamp()-interval '1 second' WHERE id=%s",(uuid.UUID(j['id']),))
-  with self.assertRaises(psycopg.errors.SerializationFailure),self.c.transaction():self.finish(j,self.ack(p))
+  with assert_app_conflict(self),self.c.transaction():self.finish(j,self.ack(p))
   self.assertEqual(self.state(),[])
  def test_private_watermark_helpers_are_not_browser_or_service_api(self):
   for role in ['sa_app','authenticated','service_role']:

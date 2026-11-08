@@ -1,4 +1,5 @@
 """Isolated, source-backed Airtable capture/validate/apply and security contracts."""
+from sqlstate_assertions import assert_app_conflict
 import json,pathlib,time,unittest,uuid
 import psycopg
 from psycopg.types.json import Jsonb
@@ -105,7 +106,7 @@ class Airtable(unittest.TestCase):
   t=self.start();j=self.claim();r=self.work(j,'retry',{'code':'AIRTABLE_RATE_LIMIT','retry_after_seconds':300});self.assertEqual(r['state'],'pending');self.assertEqual(self.raw('SELECT round(extract(epoch FROM available_at-now())) FROM sa_domain.outbox WHERE id=%s',(uuid.UUID(j['id']),)),[(300,)])
  def test_fake_lease_rejected(self):
   t=self.start();j=self.claim();j['lease_token']=str(uuid.uuid4())
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.work(j,'input')
+  with assert_app_conflict(self):self.work(j,'input')
  def test_expired_lease_exhaustion_and_explicit_retry_resume(self):
   t=self.start();j=self.claim();self.raw("UPDATE sa_domain.outbox SET attempts=5,lease_until=now()-interval '1 second' WHERE id=%s",(uuid.UUID(j['id']),));self.service();self.c.execute('SELECT canto_api.squad_job_claim(10)');s=self.status(t);self.assertEqual(s['state'],'failed');job=self.c.execute('SELECT canto_api.v1_job_get(%s)',(uuid.UUID(j['id']),)).fetchone()[0];self.c.execute('SELECT canto_api.v1_job_retry(%s,%s,%s,%s)',(uuid.UUID(j['id']),'Retry worker restart',job['version'],uuid.uuid4()));self.assertEqual(self.status(t)['state'],'validating');j=self.claim();self.assertEqual(self.work(j,'input')['state'],'ready')
  def test_source_contract_snapshot_matches_edge_mappings(self):
@@ -183,7 +184,7 @@ class Airtable(unittest.TestCase):
   t=self.start();j=self.claim();i=self.work(j,'input');d={'resource':i['resource'],'offset':None,'next_offset':None,'records':[],'eof':True};self.work(j,'capture',d);self.work(j,'capture',d);self.assertEqual(self.raw('SELECT count(*) FROM sa_domain.airtable_pages WHERE transfer_id=%s',(uuid.UUID(t['id']),)),[(1,)])
  def test_capture_changed_same_page_is_conflict(self):
   t=self.start();j=self.claim();i=self.work(j,'input');d={'resource':i['resource'],'offset':None,'next_offset':None,'records':[],'eof':True};self.work(j,'capture',d);d['next_offset']='next';d['eof']=False
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.work(j,'capture',d)
+  with assert_app_conflict(self):self.work(j,'capture',d)
  def test_yield_preserves_checkpoint_with_new_lease(self):
   t=self.start();j=self.claim();i=self.work(j,'input');self.work(j,'capture',{'resource':i['resource'],'offset':None,'next_offset':'next','records':[],'eof':False});self.assertEqual(self.work(j,'yield')['state'],'pending');j=self.claim();self.assertEqual(self.work(j,'input')['offset'],'next')
  def test_global_single_import_includes_validated_waiting_for_apply(self):

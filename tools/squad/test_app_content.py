@@ -1,4 +1,5 @@
 """APP/PROMO/JOB/MASTER: guest isolation, capabilities, content cursors and safe settings."""
+from sqlstate_assertions import assert_app_conflict
 import unittest,uuid,json
 import psycopg
 from psycopg.types.json import Jsonb
@@ -63,7 +64,7 @@ class AppContent(unittest.TestCase):
   with self.assertRaises(psycopg.errors.InvalidParameterValue):self.release('2.0.0','1.0.0')
  def test_release_retry_and_stale_version(self):
   self.actor();k=uuid.uuid4();r=self.release(key=k);self.assertEqual(r,self.release(key=k))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.release()
+  with assert_app_conflict(self):self.release()
  def test_nonadmin_cannot_change_release(self):
   self.actor(101)
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.release()

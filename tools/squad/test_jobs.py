@@ -1,4 +1,5 @@
 """Queue leases are service-only; delegated commands recheck live authority."""
+from sqlstate_assertions import assert_app_conflict
 import concurrent.futures,json,threading,unittest,uuid
 import psycopg
 from fixtures import rpc,session,uid
@@ -48,10 +49,10 @@ class Jobs(unittest.TestCase):
   self.raw('UPDATE sa_snapshot_20261019.sa_orders SET customer_sc_id=201 WHERE id=%s',(self.id,));self.assertEqual(self.run_job()['state'],'dead')
  def test_other_lease_token_rejected(self):
   j=self.claim()['jobs'][0];j['lease_token']=str(uuid.uuid4())
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.run_job(j)
+  with assert_app_conflict(self):self.run_job(j)
  def test_expired_lease_rejected(self):
   j=self.claim()['jobs'][0];self.raw("UPDATE sa_domain.outbox SET lease_until=now()-interval '1 second' WHERE id=%s",(self.job,))
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.run_job(j)
+  with assert_app_conflict(self):self.run_job(j)
  def test_expired_lease_reclaimed_with_new_token(self):
   a=self.claim()['jobs'][0];self.raw("UPDATE sa_domain.outbox SET lease_until=now()-interval '1 second' WHERE id=%s",(self.job,));b=self.claim()['jobs'][0]
   self.assertNotEqual(a['lease_token'],b['lease_token']);self.assertEqual(b['attempt'],2);self.assertEqual(self.run_job(b)['state'],'done')
@@ -65,7 +66,7 @@ class Jobs(unittest.TestCase):
   self.raw('UPDATE sa_domain.runtime_state SET generation=1');self.assertEqual(self.claim()['jobs'],[])
  def test_generation_replaced_after_claim(self):
   j=self.claim()['jobs'][0];self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.run_job(j)
+  with assert_app_conflict(self):self.run_job(j)
  def test_provider_job_not_claimed_by_local_handler(self):
   self.raw("UPDATE sa_domain.outbox SET payload=jsonb_set(payload,'{provider_confirmation_required}','true') WHERE id=%s",(self.job,));self.assertEqual(self.claim()['jobs'],[])
  def test_client_cannot_claim_jobs(self):
@@ -113,7 +114,7 @@ class Jobs(unittest.TestCase):
   with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):self.retry(v)
  def test_retry_old_generation_denied(self):
   v=self.retry_ready();self.raw('UPDATE sa_domain.runtime_state SET generation=1')
-  with self.assertRaises(psycopg.errors.SerializationFailure):self.retry(v)
+  with assert_app_conflict(self):self.retry(v)
  def test_worker_has_no_raw_business_or_auth_grants(self):
   self.c.execute('RESET ROLE')
   for table in ['sa_snapshot_20261019.sa_orders','auth.users','sa_snapshot_20261019.sa_users']:
