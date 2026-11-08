@@ -545,10 +545,13 @@ test("incomplete report dates become inline request errors without an RPC", asyn
 test("simultaneous identical reads share one request without retaining settled data", async () => {
   reset();
   let finish;
-  respond = () => new Promise(resolve => { finish = resolve; });
+  respond = () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
   const a = api.dashboardRpc("query", { report: "customers" });
   const b = api.dashboardRpc("query", { report: "customers" });
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(calls.length, 1);
   finish(response());
   await Promise.all([a, b]);
@@ -559,29 +562,39 @@ test("simultaneous identical reads share one request without retaining settled d
 test("pending reads do not cross login, target, or a customer mutation", async () => {
   reset();
   const finishes = [];
-  respond = (name, args) => args.p_action === "query"
-    ? new Promise(resolve => finishes.push(resolve)) : response();
+  respond = (name, args) =>
+    args.p_action === "query"
+      ? new Promise((resolve) => finishes.push(resolve))
+      : response();
   const reads = [api.dashboardRpc("query", { report: "customers" })];
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   session = { user: { id: "staff-b" }, access_token: "session-b" };
   reads.push(api.dashboardRpc("query", { report: "customers" }));
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   target = { source: "supabase", environment: "production" };
   reads.push(api.dashboardRpc("query", { report: "customers" }));
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   await api.dashboardRpc("customer_save", { id: "1" });
   reads.push(api.dashboardRpc("query", { report: "customers" }));
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(finishes.length, 4);
   for (const finish of finishes) finish(response());
   await Promise.all(reads);
 });
 test("a failed shared read can be retried immediately", async () => {
   reset();
-  respond = async () => { throw new Error("unavailable"); };
+  respond = async () => {
+    throw new Error("unavailable");
+  };
   await Promise.all([
-    assert.rejects(api.dashboardRpc("query", { report: "customers" }), /unavailable/),
-    assert.rejects(api.dashboardRpc("query", { report: "customers" }), /unavailable/),
+    assert.rejects(
+      api.dashboardRpc("query", { report: "customers" }),
+      /unavailable/,
+    ),
+    assert.rejects(
+      api.dashboardRpc("query", { report: "customers" }),
+      /unavailable/,
+    ),
   ]);
   assert.equal(calls.length, 1);
   respond = async () => response();

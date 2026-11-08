@@ -1,0 +1,513 @@
+{
+  "checks": [
+    "real GoTrue admin, staff, Squad and anonymous authorization",
+    "all report HTTP contracts",
+    "four simultaneous authenticated queries",
+    "Customers renders with shared session and stale target resolves staging",
+    "browser customer create, address persistence and pending account work",
+    "hosted atomic edit, two addresses, idempotent retry and stale conflict",
+    "browser search, edit and status change preserve secondary address",
+    "deployed customer CSV contains the edited fixture row",
+    "browser report status/date controls and duplicate-header sorting reach correct server fields",
+    "all seven report screens, RMP Sales tabs, details, search and CSV buttons work with Scott blocked",
+    "Customers Performance reuses native reports and KPIs",
+    "visible transient failure recovers through Retry with no legacy fallback",
+    "deployed build: all report CSV buttons, zero Scott/proxy/production attempts and zero browser errors",
+    "hosted customer archive retries safely",
+    "revoked real session denied before JWT expiry",
+    "hosted warm first-page p95 <= 2s"
+  ],
+  "timings": [
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 0,
+      "ms": 692
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 0,
+      "ms": 3252
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 0,
+      "ms": 368
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 0,
+      "ms": 877
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 0,
+      "ms": 2052
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 0,
+      "ms": 690
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 0,
+      "ms": 513
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 0,
+      "ms": 469
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 0,
+      "ms": 473
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 0,
+      "ms": 1261
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 0,
+      "ms": 844
+    },
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 1,
+      "ms": 919
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 1,
+      "ms": 1584
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 1,
+      "ms": 648
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 1,
+      "ms": 962
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 1,
+      "ms": 654
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 1,
+      "ms": 732
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 1,
+      "ms": 623
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 1,
+      "ms": 587
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 1,
+      "ms": 554
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 1,
+      "ms": 834
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 1,
+      "ms": 1002
+    },
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 2,
+      "ms": 713
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 2,
+      "ms": 1011
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 2,
+      "ms": 712
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 2,
+      "ms": 736
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 2,
+      "ms": 762
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 2,
+      "ms": 685
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 2,
+      "ms": 637
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 2,
+      "ms": 755
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 2,
+      "ms": 806
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 2,
+      "ms": 968
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 2,
+      "ms": 626
+    },
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 3,
+      "ms": 604
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 3,
+      "ms": 791
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 3,
+      "ms": 518
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 3,
+      "ms": 1056
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 3,
+      "ms": 828
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 3,
+      "ms": 846
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 3,
+      "ms": 916
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 3,
+      "ms": 661
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 3,
+      "ms": 818
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 3,
+      "ms": 1053
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 3,
+      "ms": 1032
+    },
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 4,
+      "ms": 461
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 4,
+      "ms": 774
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 4,
+      "ms": 394
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 4,
+      "ms": 784
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 4,
+      "ms": 820
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 4,
+      "ms": 539
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 4,
+      "ms": 675
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 4,
+      "ms": 1004
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 4,
+      "ms": 504
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 4,
+      "ms": 744
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 4,
+      "ms": 668
+    },
+    {
+      "report": "customers",
+      "tab": "",
+      "round": 5,
+      "ms": 612
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "round": 5,
+      "ms": 1108
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "round": 5,
+      "ms": 683
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "round": 5,
+      "ms": 744
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "round": 5,
+      "ms": 726
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "round": 5,
+      "ms": 421
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "round": 5,
+      "ms": 465
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "round": 5,
+      "ms": 446
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "round": 5,
+      "ms": 674
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "round": 5,
+      "ms": 7559
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "round": 5,
+      "ms": 2237
+    }
+  ],
+  "httpWarmP95Ms": 1584,
+  "commandTimings": [
+    {
+      "action": "customer_save",
+      "ms": 776
+    },
+    {
+      "action": "customer_save",
+      "ms": 367
+    },
+    {
+      "action": "customer_archive",
+      "ms": 1802
+    },
+    {
+      "action": "customer_archive",
+      "ms": 593
+    }
+  ],
+  "screens": [
+    {
+      "report": "order_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    }
+  ],
+  "deploymentUi": "https://scottdashboard.vercel.app",
+  "blockedRequests": 0,
+  "browserErrors": [],
+  "cleanup": {
+    "source_content_restored": true,
+    "owned_commands": 13,
+    "edit_revision": 685,
+    "synced_revision": 685,
+    "audits_and_commands_retained": true,
+    "fixture_auth_removed": 3,
+    "native_provider_requests": 0
+  },
+  "environment": "staging",
+  "timestamp": "2026-11-08T17:55:42.934892+00:00"
+}

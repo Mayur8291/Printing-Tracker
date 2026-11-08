@@ -61,6 +61,10 @@ Warm default HTTP p95 was 1,042 ms; the slowest cold default was 3,244 ms. Full-
 
 Both backend environments are at migration 113, with the coordinated refresh release pinned to `codex/backend-parity-20261108-113`. No source ownership cutover was made by this work.
 
+The frontend is deployed at <https://scottdashboard.vercel.app> from commit `34f2073` on `develop` (Vercel production deployment `7639459441`). The public alias serves the new `index-Dvz8lOpT.js` bundle. Its compiled UI passed 16 additional checks against disposable staging fixtures, including an edited customer CSV, all reports, retries and session revocation, with production/Scott requests blocked. Final cleanup restored the source and removed the fixtures. The 55-request warm sample measured p95 1,584 ms. An earlier 22-request sample measured 2,010 ms and missed the 2-second target; that run is retained in `staging-dashboard-deployed-latency-miss.json`. No application or backend changes were made between those deployed samples.
+
+Vercel currently treats `develop` as production for this project, despite older Netlify documentation describing it as staging. Publish reviewed Git revisions deliberately; the frozen backend refresh branch is separate and must not move.
+
 ## Commands
 
 ```sh
@@ -77,5 +81,7 @@ tools/canto-sync/.venv/bin/python tools/squad/test_hosted_dashboard_acceptance.p
 The hosted browser command expects the admin Vite server at `http://127.0.0.1:5173` (`npm run dev:staging`) and Chrome; set `CHROME_PATH` if Chrome is installed elsewhere. Synthetic diagnostics and progress are written to `/tmp/dashboard-browser-progress.log`; credentials remain in memory.
 
 The optional `--rpc-probe` runs repeated real authenticated no-match search/CSV-size requests separately and writes `staging-dashboard-http-probe.json`. It is diagnostic evidence, not a substitute for the full browser/worker acceptance run.
+
+Use `--ui-url https://scottdashboard.vercel.app` for the compiled deployment checks. This still targets staging fixtures and blocks production APIs. Module-level large-export memory checks remain in the local-Vite run; the deployed run exercises actual customer/report Export buttons. Evidence is written to `staging-dashboard-deployed-browser.json`.
 
 If a hosted fixture run is interrupted, inspect its exact private checkpoint and run the acceptance script with `--recover`. Never remove a foreign checkpoint or overwrite its scope. Preserve audit/command records and restore the recorded schedule states.

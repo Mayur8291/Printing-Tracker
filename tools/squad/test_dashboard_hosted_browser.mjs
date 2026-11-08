@@ -83,21 +83,41 @@ if (config.rpcProbe) {
       const started = performance.now();
       try {
         const data = await rpc(clients.admin, "query", {
-          report, filters: filtersFor(report),
-          query: { page: 1, items: 500, search: "impossible-dashboard-fixture-search", quick: {logic:"and",conditions:[]}, option_fields: [] },
+          report,
+          filters: filtersFor(report),
+          query: {
+            page: 1,
+            items: 500,
+            search: "impossible-dashboard-fixture-search",
+            quick: { logic: "and", conditions: [] },
+            option_fields: [],
+          },
         });
-        results.push({report, round, ms: Math.round(performance.now()-started), count:data.totalCount});
+        results.push({
+          report,
+          round,
+          ms: Math.round(performance.now() - started),
+          count: data.totalCount,
+        });
       } catch (error) {
-        results.push({report, round, ms: Math.round(performance.now()-started), error: error.message, code: error.code});
+        results.push({
+          report,
+          round,
+          ms: Math.round(performance.now() - started),
+          error: error.message,
+          code: error.code,
+        });
       }
       console.error(JSON.stringify(results.at(-1)));
     }
   }
   for (const client of Object.values(clients)) await client.auth.signOut();
-  console.log(JSON.stringify({checks, results, probeOnly:true}));
+  console.log(JSON.stringify({ checks, results, probeOnly: true }));
   process.exit(0);
 }
-for (let round = 0; round < 3; round++)
+// Deployed verification uses 55 warm requests; retain all samples so a single
+// network fluctuation cannot dominate the percentile of a 22-request smoke run.
+for (let round = 0; round < (config.uiUrl ? 6 : 3); round++)
   for (const [report, tab] of reportCases) {
     const t = performance.now();
     const r = await rpc(clients.admin, "query", {
@@ -213,7 +233,9 @@ try {
     },
     { session: sessions.admin },
   );
-  await page.goto("http://127.0.0.1:5173", { waitUntil: "networkidle2" });
+  await page.goto(config.uiUrl || "http://127.0.0.1:5173", {
+    waitUntil: "networkidle2",
+  });
   const loaded = () =>
     page.waitForFunction(
       () =>
@@ -410,6 +432,21 @@ try {
   recordCheck(
     "browser search, edit and status change preserve secondary address",
   );
+  if (config.uiUrl) {
+    await page.evaluate(() => {
+      window.dashboardDownload = null;
+      const original = URL.createObjectURL;
+      URL.createObjectURL = function (blob) {
+        window.dashboardDownload = blob;
+        return original.call(this, blob);
+      };
+    });
+    await clickText("Export");
+    await page.waitForFunction(() => window.dashboardDownload instanceof Blob);
+    const csv = await page.evaluate(() => window.dashboardDownload.text());
+    assert(csv.includes(config.label + " UI edited"));
+    recordCheck("deployed customer CSV contains the edited fixture row");
+  }
   for (const [report, tab] of reportCases.filter((x) => x[0] !== "customers")) {
     await page.evaluate(
       ({ report, tab }) => {
@@ -572,145 +609,162 @@ try {
   await loaded();
   // The prior failure toast may remain briefly; the list's error/Retry panel
   // must disappear after a successful request and actual rows must return.
-  await page.waitForFunction(() =>
-    ![...document.querySelectorAll("button")].some(
-      (button) => button.textContent.trim() === "Retry",
-    ) && document.querySelectorAll("tbody tr td").length > 1,
+  await page.waitForFunction(
+    () =>
+      ![...document.querySelectorAll("button")].some(
+        (button) => button.textContent.trim() === "Retry",
+      ) && document.querySelectorAll("tbody tr td").length > 1,
   );
   recordCheck(
     "visible transient failure recovers through Retry with no legacy fallback",
   );
-  // A small real browser CSV confirms rendered field headers and exact decimal cells.
-  const csv = await page.evaluate(async () => {
-    const { createDashboardQuery } = await import(
-      "/src/canto/dashboardService.js"
-    );
-    const q = createDashboardQuery("rmp_order_reports");
-    const b = await q.exportCsv(
-      [
-        { key: "id", header: "ID" },
-        { key: "total_amount", header: "Amount" },
-      ],
-      { search: "impossible-dashboard-fixture-search" },
-    );
-    return await b.blob.text();
-  });
-  assert(csv.includes("ID"));
-  recordCheck("browser CSV adapter completes with no Scott transport");
-  assert.deepEqual(blocked, []);
-  assert.deepEqual(errors, []);
-  assert.deepEqual(failedResponses, []);
-  recordCheck(
-    "zero Scott/proxy/production attempts and zero browser exceptions",
-  );
-  // Immutable >10k export uses the real deployed Edge worker; batches remain bounded.
-  const request = {
-    report: "order_tracking",
-    filters: filtersFor("order_tracking"),
-    query: {},
-  };
-  const exportKey = crypto.randomUUID();
-  const exp = await rpc(clients.admin, "export_request", {
-    request,
-    key: exportKey,
-  });
-  assert.deepEqual(
-    await rpc(clients.admin, "export_request", { request, key: exportKey }),
-    exp,
-  );
-  let status = await rpc(clients.admin, "export_read", { id: exp.id });
-  assert(status.totalCount > 10000);
-  const started = performance.now();
-  for (let i = 0; status.state !== "completed" && i < 100; i++) {
-    const r = await fetch(config.url + "/functions/v1/squad-jobs/run", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + config.worker_secret,
-      },
-      body: '{"limit":5}',
-    });
-    assert.equal(r.status, 200);
-    const work = await r.json();
-    assert(
-      work.results.every((x) => ["pending", "done"].includes(x.state)),
-      JSON.stringify(work),
-    );
-    status = await rpc(clients.admin, "export_read", { id: exp.id });
-    assert(!["dead", "failed"].includes(status.state));
-  }
-  assert.equal(status.state, "completed");
-  let count = 0,
-    ids = new Set();
-  for (let p = 1; p <= status.totalPages; p++) {
-    const batch = await rpc(clients.admin, "export_read", {
-      id: exp.id,
-      page: p,
-    });
-    assert(batch.data.length <= 500);
-    count += batch.data.length;
-    for (const row of batch.data) ids.add(row.id);
-  }
-  assert.equal(count, status.totalCount);
-  assert.equal(ids.size, count);
-  recordCheck(
-    "large immutable export through hosted Edge worker, exact count, bounded chunks and no duplicates",
-  );
-  const exportEvidence = {
-    rows: count,
-    batchSize: 500,
-    elapsedMs: Math.round(performance.now() - started),
-  };
-  const cdp = await page.createCDPSession();
-  await cdp.send("HeapProfiler.collectGarbage");
-  const browserExport = await page.evaluate(
-    async ({ id, key, filters, userId }) => {
+  let exportEvidence;
+  if (!config.uiUrl) {
+    // Module-level CSV/memory checks run on Vite; deployed builds exercise the
+    // actual Export buttons above and reuse the same independently tested adapter.
+    const csv = await page.evaluate(async () => {
       const { createDashboardQuery } = await import(
         "/src/canto/dashboardService.js"
       );
-      const request = { report: "order_tracking", tab: "", filters, query: {quick:{logic:"and",conditions:[]}} };
-      const storageKey = `canto:dashboard-export:v1:staging:${userId}:${JSON.stringify(request)}`;
-      localStorage.setItem(storageKey, JSON.stringify({ id, key }));
-      const start = performance.memory.usedJSHeapSize;
-      let peak = start;
-      const result = await createDashboardQuery(
-        "order_tracking",
-        "",
-        filters,
-      ).exportCsv(
+      const q = createDashboardQuery("rmp_order_reports");
+      const b = await q.exportCsv(
         [
           { key: "id", header: "ID" },
-          { key: "total_amount", header: "Amount", format: "currency" },
+          { key: "total_amount", header: "Amount" },
         ],
-        {},
-        () => {
-          peak = Math.max(peak, performance.memory.usedJSHeapSize);
-        },
+        { search: "impossible-dashboard-fixture-search" },
       );
-      const text = await result.blob.text();
-      return {
-        count: result.count,
-        bytes: result.blob.size,
-        lines: text.split("\r\n").length,
-        heapGrowthBytes: peak - start,
-        resumeCleared: localStorage.getItem(storageKey) === null,
-      };
-    },
-    {
-      id: exp.id,
+      return await b.blob.text();
+    });
+    assert(csv.includes("ID"));
+    recordCheck("browser CSV adapter completes with no Scott transport");
+    assert.deepEqual(blocked, []);
+    assert.deepEqual(errors, []);
+    assert.deepEqual(failedResponses, []);
+    recordCheck(
+      "zero Scott/proxy/production attempts and zero browser exceptions",
+    );
+    // Immutable >10k export uses the real deployed Edge worker; batches remain bounded.
+    const request = {
+      report: "order_tracking",
+      filters: filtersFor("order_tracking"),
+      query: {},
+    };
+    const exportKey = crypto.randomUUID();
+    const exp = await rpc(clients.admin, "export_request", {
+      request,
       key: exportKey,
-      filters: request.filters,
-      userId: sessions.admin.user.id,
-    },
-  );
-  assert.equal(browserExport.count, count);
-  assert.equal(browserExport.lines, count + 1);
-  assert(browserExport.resumeCleared);
-  assert(browserExport.heapGrowthBytes < 64 * 1024 * 1024);
-  exportEvidence.browser = browserExport;
-  recordCheck(
-    "large browser CSV resumes completed export with bounded memory and exact row count",
-  );
+    });
+    assert.deepEqual(
+      await rpc(clients.admin, "export_request", { request, key: exportKey }),
+      exp,
+    );
+    let status = await rpc(clients.admin, "export_read", { id: exp.id });
+    assert(status.totalCount > 10000);
+    const started = performance.now();
+    for (let i = 0; status.state !== "completed" && i < 100; i++) {
+      const r = await fetch(config.url + "/functions/v1/squad-jobs/run", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + config.worker_secret,
+        },
+        body: '{"limit":5}',
+      });
+      assert.equal(r.status, 200);
+      const work = await r.json();
+      assert(
+        work.results.every((x) => ["pending", "done"].includes(x.state)),
+        JSON.stringify(work),
+      );
+      status = await rpc(clients.admin, "export_read", { id: exp.id });
+      assert(!["dead", "failed"].includes(status.state));
+    }
+    assert.equal(status.state, "completed");
+    let count = 0,
+      ids = new Set();
+    for (let p = 1; p <= status.totalPages; p++) {
+      const batch = await rpc(clients.admin, "export_read", {
+        id: exp.id,
+        page: p,
+      });
+      assert(batch.data.length <= 500);
+      count += batch.data.length;
+      for (const row of batch.data) ids.add(row.id);
+    }
+    assert.equal(count, status.totalCount);
+    assert.equal(ids.size, count);
+    recordCheck(
+      "large immutable export through hosted Edge worker, exact count, bounded chunks and no duplicates",
+    );
+    exportEvidence = {
+      rows: count,
+      batchSize: 500,
+      elapsedMs: Math.round(performance.now() - started),
+    };
+    const cdp = await page.createCDPSession();
+    await cdp.send("HeapProfiler.collectGarbage");
+    const browserExport = await page.evaluate(
+      async ({ id, key, filters, userId }) => {
+        const { createDashboardQuery } = await import(
+          "/src/canto/dashboardService.js"
+        );
+        const request = {
+          report: "order_tracking",
+          tab: "",
+          filters,
+          query: { quick: { logic: "and", conditions: [] } },
+        };
+        const storageKey = `canto:dashboard-export:v1:staging:${userId}:${JSON.stringify(request)}`;
+        localStorage.setItem(storageKey, JSON.stringify({ id, key }));
+        const start = performance.memory.usedJSHeapSize;
+        let peak = start;
+        const result = await createDashboardQuery(
+          "order_tracking",
+          "",
+          filters,
+        ).exportCsv(
+          [
+            { key: "id", header: "ID" },
+            { key: "total_amount", header: "Amount", format: "currency" },
+          ],
+          {},
+          () => {
+            peak = Math.max(peak, performance.memory.usedJSHeapSize);
+          },
+        );
+        const text = await result.blob.text();
+        return {
+          count: result.count,
+          bytes: result.blob.size,
+          lines: text.split("\r\n").length,
+          heapGrowthBytes: peak - start,
+          resumeCleared: localStorage.getItem(storageKey) === null,
+        };
+      },
+      {
+        id: exp.id,
+        key: exportKey,
+        filters: request.filters,
+        userId: sessions.admin.user.id,
+      },
+    );
+    assert.equal(browserExport.count, count);
+    assert.equal(browserExport.lines, count + 1);
+    assert(browserExport.resumeCleared);
+    assert(browserExport.heapGrowthBytes < 64 * 1024 * 1024);
+    exportEvidence.browser = browserExport;
+    recordCheck(
+      "large browser CSV resumes completed export with bounded memory and exact row count",
+    );
+  } else {
+    assert.deepEqual(blocked, []);
+    assert.deepEqual(errors, []);
+    assert.deepEqual(failedResponses, []);
+    recordCheck(
+      "deployed build: all report CSV buttons, zero Scott/proxy/production attempts and zero browser errors",
+    );
+  }
   const archiveKey = crypto.randomUUID();
   const archived = await rpc(clients.admin, "customer_archive", {
     id: customer.id,
@@ -750,6 +804,7 @@ try {
       commandTimings,
       screens,
       export: exportEvidence,
+      deploymentUi: config.uiUrl || null,
       blockedRequests: blocked.length,
       browserErrors: errors,
     }),

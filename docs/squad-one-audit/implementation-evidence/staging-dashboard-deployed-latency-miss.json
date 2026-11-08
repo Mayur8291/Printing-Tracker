@@ -1,0 +1,292 @@
+{
+  "deploymentUi": "https://scottdashboard.vercel.app",
+  "commit": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+  "result": "functional checks passed; sampled latency target missed",
+  "http": {
+    "stage": "http",
+    "p95": 2010,
+    "timings": [
+      {
+        "report": "customers",
+        "tab": "",
+        "round": 0,
+        "ms": 686
+      },
+      {
+        "report": "order_reports",
+        "tab": "",
+        "round": 0,
+        "ms": 3213
+      },
+      {
+        "report": "rmp_order_reports",
+        "tab": "",
+        "round": 0,
+        "ms": 2840
+      },
+      {
+        "report": "tailor_reports",
+        "tab": "",
+        "round": 0,
+        "ms": 950
+      },
+      {
+        "report": "order_tracking",
+        "tab": "",
+        "round": 0,
+        "ms": 427
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "overview",
+        "round": 0,
+        "ms": 603
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "brand",
+        "round": 0,
+        "ms": 943
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "class",
+        "round": 0,
+        "ms": 746
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "coordinator",
+        "round": 0,
+        "ms": 389
+      },
+      {
+        "report": "customer_performance",
+        "tab": "",
+        "round": 0,
+        "ms": 742
+      },
+      {
+        "report": "total_inventory",
+        "tab": "",
+        "round": 0,
+        "ms": 815
+      },
+      {
+        "report": "customers",
+        "tab": "",
+        "round": 1,
+        "ms": 860
+      },
+      {
+        "report": "order_reports",
+        "tab": "",
+        "round": 1,
+        "ms": 1749
+      },
+      {
+        "report": "rmp_order_reports",
+        "tab": "",
+        "round": 1,
+        "ms": 861
+      },
+      {
+        "report": "tailor_reports",
+        "tab": "",
+        "round": 1,
+        "ms": 975
+      },
+      {
+        "report": "order_tracking",
+        "tab": "",
+        "round": 1,
+        "ms": 895
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "overview",
+        "round": 1,
+        "ms": 622
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "brand",
+        "round": 1,
+        "ms": 577
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "class",
+        "round": 1,
+        "ms": 658
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "coordinator",
+        "round": 1,
+        "ms": 589
+      },
+      {
+        "report": "customer_performance",
+        "tab": "",
+        "round": 1,
+        "ms": 1069
+      },
+      {
+        "report": "total_inventory",
+        "tab": "",
+        "round": 1,
+        "ms": 672
+      },
+      {
+        "report": "customers",
+        "tab": "",
+        "round": 2,
+        "ms": 623
+      },
+      {
+        "report": "order_reports",
+        "tab": "",
+        "round": 2,
+        "ms": 1660
+      },
+      {
+        "report": "rmp_order_reports",
+        "tab": "",
+        "round": 2,
+        "ms": 1534
+      },
+      {
+        "report": "tailor_reports",
+        "tab": "",
+        "round": 2,
+        "ms": 2433
+      },
+      {
+        "report": "order_tracking",
+        "tab": "",
+        "round": 2,
+        "ms": 1281
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "overview",
+        "round": 2,
+        "ms": 730
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "brand",
+        "round": 2,
+        "ms": 755
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "class",
+        "round": 2,
+        "ms": 909
+      },
+      {
+        "report": "rmp_sales",
+        "tab": "coordinator",
+        "round": 2,
+        "ms": 1062
+      },
+      {
+        "report": "customer_performance",
+        "tab": "",
+        "round": 2,
+        "ms": 1363
+      },
+      {
+        "report": "total_inventory",
+        "tab": "",
+        "round": 2,
+        "ms": 2010
+      }
+    ]
+  },
+  "checks": [
+    "real GoTrue admin, staff, Squad and anonymous authorization",
+    "all report HTTP contracts",
+    "four simultaneous authenticated queries",
+    "Customers renders with shared session and stale target resolves staging",
+    "browser customer create, address persistence and pending account work",
+    "hosted atomic edit, two addresses, idempotent retry and stale conflict",
+    "browser search, edit and status change preserve secondary address",
+    "deployed customer CSV contains the edited fixture row",
+    "browser report status/date controls and duplicate-header sorting reach correct server fields",
+    "all seven report screens, RMP Sales tabs, details, search and CSV buttons work with Scott blocked",
+    "Customers Performance reuses native reports and KPIs",
+    "visible transient failure recovers through Retry with no legacy fallback",
+    "deployed build: all report CSV buttons, zero Scott/proxy/production attempts and zero browser errors",
+    "hosted customer archive retries safely",
+    "revoked real session denied before JWT expiry"
+  ],
+  "failedResponses": [],
+  "browserErrors": [],
+  "screens": [
+    {
+      "report": "order_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "rows": 20,
+      "emptySearchAndCsv": true
+    }
+  ],
+  "failure": "HTTP p95 2010ms exceeds 2s",
+  "note": "Retained failed sample; a larger predeclared five-warm-round sample follows. No application or backend change between these deployed runs."
+}

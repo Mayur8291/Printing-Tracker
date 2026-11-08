@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-08T17:39:18.746180+00:00",
+  "timestamp": "2026-11-08T18:02:13.998014+00:00",
   "scope": "Scott dashboard Customers and all seven Reports; shared Masters target/session",
   "databaseMigrationCutoff": "20261108154028",
   "databaseMigrationCount": 113,
@@ -34,6 +34,21 @@
       "owned_commands": 13,
       "edit_revision": 659,
       "synced_revision": 659,
+      "audits_and_commands_retained": true,
+      "fixture_auth_removed": 3,
+      "native_provider_requests": 0
+    },
+    "deployedBrowser": {
+      "passed": 16,
+      "evidence": "staging-dashboard-deployed-browser.json",
+      "backendEnvironment": "staging",
+      "productionRequests": 0
+    },
+    "finalCleanup": {
+      "source_content_restored": true,
+      "owned_commands": 13,
+      "edit_revision": 685,
+      "synced_revision": 685,
       "audits_and_commands_retained": true,
       "fixture_auth_removed": 3,
       "native_provider_requests": 0
@@ -82,7 +97,17 @@
         "resumeCleared": true
       }
     },
-    "scope": "Warm defaults meet gates; cold requests and full-history searches can take several seconds. This is a staging sample, not a production SLA."
+    "scope": "Warm defaults meet gates; cold requests and full-history searches can take several seconds. This is a staging sample, not a production SLA.",
+    "deployedWarmHttpP95Ms": 1584,
+    "deployedWarmSamples": 55,
+    "priorDeployedSample": {
+      "p95Ms": 2010,
+      "warmSamples": 22,
+      "targetMs": 2000,
+      "targetMet": false,
+      "evidence": "staging-dashboard-deployed-latency-miss.json",
+      "resolution": "No application/backend change; retained miss and verified 55 warm samples at1584ms. Network percentile samples are not a production SLA."
+    }
   },
   "reliabilityFixes": [
     "RMP search uses the returned JSON boolean/timestamp representations",
@@ -94,7 +119,7 @@
   ],
   "reviewedWarnings": [
     "Existing UI gate warning: OpsBriefingPanel.jsx QueueIcon; build passes",
-    "Local Node24.11.1 differs from repository engine26.x; hosted deployment must confirm its build",
+    "Local Node24.11.1 differs from repository engine26.x; both Vercel preview and production builds passed for the exact committed application",
     "199 raw security advisor notices, including four documented dashboard notices"
   ],
   "sourceLimitations": [
@@ -106,13 +131,33 @@
     "sourceCutoverChanged": false,
     "providerBusinessEffects": 0,
     "productionBackend": "Parity through113 released by coordinated backend thread; frozen refresh ref codex/backend-parity-20261108-113",
-    "frontendDeployment": "Pending publication and deployment verification"
+    "frontendDeployment": "Production READY on develop at34f2073; public alias and compiled-browser behavior verified"
   },
   "fileSha256": {
     "apps/admin/src/canto/dashboardService.js": "4219509e9234413d20b0ff2f76c037e9d681878959b617cc0dcc10f2248d592c",
     "apps/admin/src/canto/dashboardCsv.js": "7fc9c8b5debf9048f5f617b91795013db77f983b998bb92c50c86f6c65314db2",
-    "tools/squad/test_dashboard_adapter.mjs": "fb1118388361c9a00620bf084ecfdfd1cc4ee0a42554068a72956584f27a64eb",
-    "tools/squad/test_dashboard_hosted_browser.mjs": "d8a9b319e796e9226ce68333b5edf98e59baddfcd0f811c9ba8d8258eb474a35",
-    "tools/squad/test_hosted_dashboard_acceptance.py": "9b27885b1a7b84ecba445bab5fef2aa1abd1cd99a5e3cf67e1a78b929d164bdd"
+    "tools/squad/test_dashboard_adapter.mjs": "23f9b4c21670cd0450511f680d8a9757300ff759c4b0008d9820980186adb9fb",
+    "tools/squad/test_dashboard_hosted_browser.mjs": "58d75ca84a409f1b53e9bce4562356292baa234f584476b101aaf27eea520125",
+    "tools/squad/test_hosted_dashboard_acceptance.py": "ecd15f77c33d5aedf8e91326eb2ae27a2ebc0a1ae0cb3d4fff0c82d89c123f16"
+  },
+  "applicationCommit": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+  "deployment": {
+    "url": "https://scottdashboard.vercel.app",
+    "target": "production",
+    "status": "READY",
+    "commit": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+    "branch": "develop",
+    "team": "mayur8291s-projects",
+    "project": "scott_dashboard",
+    "githubDeploymentId": 7639459441,
+    "deploymentUrl": "https://scottdashboard-j1bf5rh6x-mayur8291s-projects.vercel.app",
+    "previewDeploymentId": 7639432068,
+    "previewStatus": "READY",
+    "previewBrowserAccess": "Vercel team authentication required; live public bundle tested instead",
+    "asset": "/assets/index-Dvz8lOpT.js",
+    "assetSha256": "12ee7bab7279d067e0ab9a6a66e29795cd52b54d179c7a17bf2e1aef4b7b7966",
+    "previousAsset": "/assets/index-0fo1AHgk.js",
+    "uiChangedSinceAcceptedCommit": false,
+    "providerConfigurationChanged": false
   }
 }

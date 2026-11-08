@@ -162,7 +162,16 @@ def cleanup(c, s):
     }
 
 
-def run(recover=False, rpc_probe=False):
+def run(recover=False, rpc_probe=False, ui_url=None):
+    if ui_url:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(ui_url)
+        assert parsed.scheme == "https" and not parsed.query and not parsed.fragment
+        assert parsed.hostname == "scottdashboard.vercel.app" or (
+            parsed.hostname.startswith("scottdashboard-")
+            and parsed.hostname.endswith("-mayur8291s-projects.vercel.app")
+        ), "Only the verified dashboard deployment is allowed"
     if not recover:
         assert not CHECKPOINT.exists(), "Recover owned checkpoint first"
     with connect("staging") as c:
@@ -285,6 +294,7 @@ def run(recover=False, rpc_probe=False):
                 "label": s["label"],
                 "worker_secret": secret,
                 "rpcProbe": rpc_probe,
+                "uiUrl": ui_url,
             }
             # This file contains synthetic field diagnostics and timings, never credentials.
             with open("/tmp/dashboard-browser-progress.log", "w+") as progress:
@@ -312,11 +322,14 @@ def run(recover=False, rpc_probe=False):
             environment="staging",
             timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         )
-        (
-            ROOT
-            / ("docs/squad-one-audit/implementation-evidence/staging-dashboard-http-probe.json"
-               if rpc_probe else "docs/squad-one-audit/implementation-evidence/staging-dashboard-browser.json")
-        ).write_text(json.dumps(report, indent=2) + "\n")
+        filename = "staging-dashboard-browser.json"
+        if rpc_probe:
+            filename = "staging-dashboard-http-probe.json"
+        elif ui_url:
+            filename = "staging-dashboard-deployed-browser.json"
+        (ROOT / "docs/squad-one-audit/implementation-evidence" / filename).write_text(
+            json.dumps(report, indent=2) + "\n"
+        )
         print(json.dumps(report, indent=2))
 
 
@@ -324,5 +337,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--recover", action="store_true")
     parser.add_argument("--rpc-probe", action="store_true")
+    parser.add_argument("--ui-url")
     args = parser.parse_args()
-    run(args.recover, args.rpc_probe)
+    run(args.recover, args.rpc_probe, args.ui_url)
