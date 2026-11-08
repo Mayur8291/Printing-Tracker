@@ -22,7 +22,7 @@ def run():
     actors[4]=next(r for r in rows if r[1]==cm[1]);sessions={}
     for role,r in actors.items():
      sessions[role]=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sessions[role],r[2]))
-    c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=true')
+    c.execute("UPDATE sa_domain.runtime_state SET allow_test_writes=true,test_actor_ids=%s,test_write_expires_at=now()+interval '15 minutes'",([a[2] for a in actors.values()],))
     c.execute('UPDATE sa_snapshot_20261019.sa_users SET is_direct_deal=true,created_by_id=%s WHERE id=%s',(actors[1][1],actors[3][1]))
     address=c.execute("INSERT INTO sa_snapshot_20261019.sa_addresses(user_id,address,created_at,updated_at) VALUES(%s,'Rollback feedback address',now(),now()) RETURNING id",(actors[3][1],)).fetchone()[0]
     order=c.execute("""INSERT INTO sa_snapshot_20261019.sa_orders(address_id,customer_id,customer_sc_id,assigned_by_id,assigned_to_id,order_item_type,status,total_quantity,total_amount,created_at,updated_at) VALUES(%s,%s,%s,%s,%s,1,1,1,100,now(),now()) RETURNING id""",(address,actors[3][1],actors[1][1],actors[2][1],actors[4][1])).fetchone()[0]

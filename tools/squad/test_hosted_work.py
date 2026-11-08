@@ -25,7 +25,7 @@ def run():
                 for role,legacy,actor in actors:
                     sid=uuid.uuid4();identities[role]=(legacy,actor,sid)
                     c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sid,actor))
-                c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=true')
+                c.execute("UPDATE sa_domain.runtime_state SET allow_test_writes=true,test_actor_ids=%s,test_write_expires_at=now()+interval '15 minutes'",([a[1] for a in identities.values()],))
                 def actor(role):
                     c.execute('SET LOCAL ROLE postgres');legacy,user,sid=identities[role]
                     c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(user),'session_id':str(sid)}),))

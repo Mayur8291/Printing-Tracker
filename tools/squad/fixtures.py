@@ -9,6 +9,12 @@ def claims(n, role='sa_app'):
     return {'sub':str(uid(n)), 'session_id':str(sid(n)), 'role':role}
 
 def seed(c):
+    # This fixture helper is only for the isolated localhost synthetic cluster.
+    # Explicit UUIDs retain realistic mirror fences without a global bypass.
+    assert c.info.host == '127.0.0.1' and c.info.dbname.startswith('squad_test')
+    if c.execute("SELECT EXISTS(SELECT FROM pg_attribute WHERE attrelid=to_regclass('sa_domain.runtime_state') AND attname='test_actor_ids')").fetchone()[0]:
+        c.execute("UPDATE sa_domain.runtime_state SET test_actor_ids=%s,test_write_expires_at=now()+interval '1 day'",
+          ([uid(group+role) for group in [100,200] for role in range(13)]+[uid(999)],))
     if c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_users WHERE id=100').fetchone(): return
     with c.transaction():
         c.execute("INSERT INTO sa_snapshot_20261019.sa_factories(id,name,created_at,updated_at) VALUES (1,'Test factory',now(),now()),(2,'Other factory',now(),now())")

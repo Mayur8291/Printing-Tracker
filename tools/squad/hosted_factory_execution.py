@@ -12,7 +12,9 @@ def exercise(c,order,checks,actor,version,factory):
  staff={r[0]:(r[1],r[2],uuid.uuid4()) for r in staff}
  tailor=c.execute('SELECT id FROM sa_snapshot_20261019.sa_users WHERE role=5 AND factory_manager_id=%s AND deleted_at IS NULL AND disabled IS NOT TRUE ORDER BY id LIMIT 1',(factory[0],)).fetchone()
  assert set(staff)=={7,8} and tailor,'Factory must have an inspector, dispatch incharge and tailor'
- for _,auth,sid in staff.values():c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sid,auth))
+ for _,auth,sid in staff.values():
+  c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sid,auth))
+  c.execute('UPDATE sa_domain.runtime_state SET test_actor_ids=array_append(test_actor_ids,%s) WHERE NOT %s=ANY(test_actor_ids)',(auth,auth))
  def local_actor(role):
   if role not in staff:return actor(role)
   _,auth,sid=staff[role];c.execute('SET LOCAL ROLE postgres');c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(auth),'session_id':str(sid)}),));c.execute('SET LOCAL ROLE sa_app')

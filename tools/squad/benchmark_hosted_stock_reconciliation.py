@@ -29,7 +29,7 @@ def run():
     value={'name':name,'p95_ms':max(values),'samples':len(values),'target_ms':budget};results.append(value);print(json.dumps(value),flush=True)
    app()
    for n in (25,100):measure('largest_dealer_review_'+str(n),"SELECT canto_api.v1_stock_reconciliation(%s,'review','{}',NULL,%s)",(dealer,n),200)
-   c.execute('SET LOCAL ROLE postgres');c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=true')
+   c.execute('SET LOCAL ROLE postgres');c.execute("UPDATE sa_domain.runtime_state SET allow_test_writes=true,test_actor_ids=%s,test_write_expires_at=now()+interval '15 minutes'",([actor],))
    variant=c.execute('SELECT size_id,rmp_class_id,rmp_brand_id,rmp_category_id FROM sa_snapshot_20261019.sa_stocks WHERE user_id=%s AND stock_type=0 AND size_id IS NOT NULL AND rmp_class_id IS NOT NULL AND rmp_brand_id IS NOT NULL LIMIT 1',(dealer,)).fetchone();assert variant
    for seq in ('sa_snapshot_20261019.sa_quantities_id_seq','sa_snapshot_20261019.sa_stocks_id_seq','sa_domain.stock_reconciliations_id_seq','sa_domain.audit_id_seq'):
     last=c.execute(sql.SQL('SELECT last_value FROM {}').format(sql.Identifier(*seq.split('.')))).fetchone()[0];c.execute(sql.SQL('ALTER SEQUENCE {} RESTART WITH {}').format(sql.Identifier(*seq.split('.')),sql.Literal(last+1)))

@@ -10199,7 +10199,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor}",
-      "7a6dc6c861c05939787f00bc9ffaf246"
+      "5305f3a770dd7ae0a0abec59add22de6"
     ],
     [
       "sa_domain",
@@ -10235,7 +10235,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
-      "34059ac203059e4a46db7fe11c16a0fd"
+      "0c475d2b0d7984356332c5ce429c22f1"
     ],
     [
       "sa_domain",
@@ -10247,7 +10247,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_media_writer=X/postgres}",
-      "2bfd8744facce620dd29d89104962b8e"
+      "5ca44f1e5d110f1dc105c8c3f6b3d7dd"
     ],
     [
       "sa_domain",
@@ -12041,6 +12041,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_integrator=X/postgres}",
       "d8579a38aa96d40ab54a8fadd98bc514"
+    ],
+    [
+      "sa_domain",
+      "rehearsal_actor_allowed",
+      "p_actor uuid",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_media_writer=X/sa_guard,sa_account_writer=X/sa_guard}",
+      "859853e683bd40365a7a52dea9be80b6"
     ],
     [
       "sa_domain",
@@ -16490,7 +16502,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor}",
-      "7a6dc6c861c05939787f00bc9ffaf246"
+      "5305f3a770dd7ae0a0abec59add22de6"
     ],
     [
       "squad_capture_airtable_report",

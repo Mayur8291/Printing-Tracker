@@ -1,0 +1,11 @@
+# Scoped staging rehearsal
+
+Migration `20261108103400` narrows the existing `allow_test_writes` switch. While staging remains a source mirror, a business or personal-media command now also requires its exact Auth UUID in `sa_domain.runtime_state.test_actor_ids` and a future `test_write_expires_at`. The list is bounded to 32 non-null UUIDs and defaults to empty; the deadline defaults to null. An expired or interrupted rehearsal fails closed without changing ownership.
+
+Only the privileged test operator can configure these private fields. No client RPC, editable user metadata, new API route or public-table permission can enable them. The private invoker helper is executable only by the three existing internal writers. Existing live identity, role, resource, optimistic-version, idempotency and refresh checks still apply. Production mirrors never accept the staging override. Ordinary owned operation after real cutover does not depend on rehearsal settings.
+
+The same predicate guards business commands, personal-media commands and meaningful Auth credential changes. Auth checks bind the changed user's actual ID, rather than trusting client metadata. Existing Printing Tracker administrative Masters/media editing retains its earlier permission model. Background consumers, registration workers and bulk imports continue to require real ownership; adding a test principal does not activate them.
+
+The common business-journey harness configures a bounded deadline for its disposable accounts, pauses the three owned schedules, and retains an exact recovery checkpoint. It checks foreign edits before reconciling its cleanup. No test is allowed to mark a real cutover accepted, send a Uniware order or acknowledge unrelated source changes.
+
+The 18 focused tests verify exact and foreign principals; missing, empty, expired and disabled settings; production and active-refresh denial; normal cutover; direct configuration/helper denial; metadata forgery; bounded lists; target-bound Auth changes; ordinary login timestamps; scoped upload reservation; and a paused job consumer. The complete local SQL suite through this migration passed 1,795 tests. This is database evidence; the composed real Auth/SDK journeys have their own execution artifacts.

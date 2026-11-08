@@ -48,7 +48,7 @@ def run(production=False):
      JOIN sa_snapshot_20261019.sa_categories cat ON cat.id=bc.category_id WHERE b.is_deleted IS NOT TRUE ORDER BY b.id,f.id,col.id,cat.id LIMIT 1""").fetchone()
     size=c.execute('SELECT id FROM sa_snapshot_20261019.sa_sizes ORDER BY id LIMIT 1').fetchone()[0]
     session=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(session,actor[1]))
-    c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=true')
+    c.execute("UPDATE sa_domain.runtime_state SET allow_test_writes=true,test_actor_ids=%s,test_write_expires_at=now()+interval '15 minutes'",([actor[1]],))
     c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(actor[1]),'session_id':str(session)}),));c.execute('SET LOCAL ROLE sa_app')
     color=c.execute("SELECT canto_api.v1_color_save('fabric',%s,'Rollback-only color','#A101D3',%s)",(config[1],uuid.uuid4())).fetchone()[0]
     config=dict(zip(['base_product_id','fabric_id','fabric_color_id','category_id'],map(str,config)));config['fabric_color_id']=color['id']

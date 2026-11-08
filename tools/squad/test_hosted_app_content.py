@@ -21,7 +21,7 @@ def run():
     actors={r[0]:r for r in rows};sessions={}
     for role,r in actors.items():
      sessions[role]=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sessions[role],r[2]))
-    c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=true')
+    c.execute("UPDATE sa_domain.runtime_state SET allow_test_writes=true,test_actor_ids=%s,test_write_expires_at=now()+interval '15 minutes'",([a[2] for a in actors.values()],))
     def actor(role):
      c.execute('SET LOCAL ROLE postgres');c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(actors[role][2]),'session_id':str(sessions[role])}),));c.execute('SET LOCAL ROLE sa_app')
     def call(name,args=(),target=200,measure=True):

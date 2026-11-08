@@ -18,6 +18,7 @@ def exercise(c,order,checks,execution=False):
  actor_ids={2:actors[2][1],11:actors[11][1],4:factory[1],9:factory[3]};sessions={}
  for role,auth_id in actor_ids.items():
   sid=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sid,auth_id));sessions[role]=sid
+  c.execute('UPDATE sa_domain.runtime_state SET test_actor_ids=array_append(test_actor_ids,%s) WHERE NOT %s=ANY(test_actor_ids)',(auth_id,auth_id))
  def actor(role):
   c.execute('SET LOCAL ROLE postgres');c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'sa_app','sub':str(actor_ids[role]),'session_id':str(sessions[role])}),));c.execute('SET LOCAL ROLE sa_app')
  def version(kind,id_):

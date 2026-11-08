@@ -41,6 +41,7 @@ def exercise(c,sc,sc_session,customer,config,preset,size,checks):
  c.execute('SET LOCAL ROLE postgres')
  assert c.execute('SELECT customer_dealer_id FROM sa_snapshot_20261019.sa_orders WHERE id=%s',(int(order['id']),)).fetchone()[0]==sc[2]
  qid=c.execute('SELECT id FROM sa_snapshot_20261019.sa_quantities WHERE item_id=%s',(item,)).fetchone()[0]
+ c.execute('UPDATE sa_domain.runtime_state SET test_actor_ids=array_append(test_actor_ids,%s) WHERE NOT %s=ANY(test_actor_ids)',(customer[2],customer[2]))
  sid=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sid,customer[2]));switch(customer[2],sid)
  stock=call('v1_dealer_stock',(None,None,Jsonb({'product_id':preset['id']})))['data'];assert len(stock)==1 and stock[0]['available']==6
  checks.append('Factory completion receives the dealer purchase exactly once')
