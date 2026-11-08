@@ -1,5 +1,6 @@
 import {
   type BusinessMail,
+  type BusinessMailCapability,
   businessMailer,
   businessMailWorker,
   businessMessage,
@@ -48,6 +49,140 @@ const config = {
   sender: "fixture@squad.invalid",
   allowedRecipients: ["squad-fixture@mailinator.com"],
 };
+
+function grantedMail() {
+  const doc = "00000000-0000-4000-8000-000000000035";
+  const alias = "controlled+squad-000000000000-0@gmail.com";
+  const value: BusinessMail = {
+    state: "prepared",
+    message_id: job.id,
+    kind: "catalogue",
+    email: alias,
+    data: { document_id: doc, pages: 1 },
+    attachment: {
+      path: `g1/${job.id}/${doc}/document.pdf`,
+      bytes: 1,
+      sha256: "a".repeat(64),
+      pages: 1,
+    },
+  };
+  const capability: BusinessMailCapability = {
+    source: "weekly_mail_rehearsal",
+    capability_id: job.lease_token,
+    message_id: job.id,
+    document_id: doc,
+    kind: "catalogue",
+    recipient: alias,
+    attachment_path: value.attachment!.path,
+  };
+  return { value, capability, cfg: { ...config, allowedRecipients: [alias] } };
+}
+Deno.test("normal staging mail still rejects non-Mailinator even when explicitly allowlisted", async () => {
+  const f = grantedMail();
+  let transports = 0;
+  try {
+    await businessMailer(f.cfg, undefined, () => {
+      transports++;
+      return {
+        sendMail: async () => ({ accepted: [f.value.email] }),
+        close: () => {},
+      };
+    })(f.value, new Uint8Array([1]));
+    throw new Error("unexpected success");
+  } catch (error) {
+    assert(
+      error instanceof Error && error.message === "mail_recipient_not_enabled",
+    );
+  }
+  assert(transports === 0);
+});
+Deno.test("staging exact one-message document capability permits approved alias with bounded ordinary transport", async () => {
+  const f = grantedMail();
+  let sent = 0, closed = 0;
+  await businessMailer(f.cfg, f.capability, (options) => {
+    assert(
+      options.requireTLS === true && options.disableFileAccess === true &&
+        options.disableUrlAccess === true,
+    );
+    return {
+      sendMail: async (content) => {
+        sent++;
+        assert((content.to as { address: string }).address === f.value.email);
+        assert(
+          content.messageId ===
+            `<squad-business-${job.id}@scottinternational.com>`,
+        );
+        return { accepted: [f.value.email], rejected: [] };
+      },
+      close: () => {
+        closed++;
+      },
+    };
+  })(f.value, new Uint8Array([1]));
+  assert(
+    sent === 1 && closed === 1 &&
+      config.allowedRecipients.join() === message.email,
+  );
+});
+Deno.test("one-message mail capability rejects every identity, content, path and allowlist mismatch before SMTP", async () => {
+  const f = grantedMail();
+  const patches = [
+    { capability_id: "invalid" },
+    { source: "request" },
+    { message_id: job.lease_token },
+    { document_id: job.id },
+    { kind: "tailor_weekly" },
+    { recipient: "different@gmail.com" },
+    { attachment_path: `g1/${job.id}/${job.id}/document.pdf` },
+  ];
+  for (const patch of patches) {
+    let transports = 0;
+    try {
+      await businessMailer(
+        f.cfg,
+        { ...f.capability, ...patch } as BusinessMailCapability,
+        () => {
+          transports++;
+          return {
+            sendMail: async () => ({ accepted: [f.value.email] }),
+            close: () => {},
+          };
+        },
+      )(f.value, new Uint8Array([1]));
+      throw new Error("unexpected success");
+    } catch (error) {
+      assert(
+        error instanceof Error &&
+          error.message === "mail_recipient_not_enabled",
+      );
+    }
+    assert(transports === 0);
+  }
+  for (
+    const cfg of [{
+      ...f.cfg,
+      allowedRecipients: [f.value.email, "other@gmail.com"],
+    }, { ...f.cfg, projectRef: "levwrmvqdntngeasrtnb" }]
+  ) {
+    let transports = 0;
+    try {
+      await businessMailer(cfg, f.capability, () => {
+        transports++;
+        return {
+          sendMail: async () => ({ accepted: [f.value.email] }),
+          close: () => {},
+        };
+      })(f.value, new Uint8Array([1]));
+      throw new Error("unexpected success");
+    } catch (error) {
+      assert(
+        error instanceof Error &&
+          error.message === "mail_recipient_not_enabled",
+      );
+    }
+    assert(transports === 0);
+  }
+});
 Deno.test("business mail preserves dealer order details and bounded stable Message-ID", () => {
   const a = businessMessage(message), b = businessMessage(message);
   assert(

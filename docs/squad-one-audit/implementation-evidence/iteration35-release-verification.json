@@ -1,0 +1,47 @@
+{
+  "iteration": 35,
+  "environment": "staging",
+  "migration_prefix": "20261108125014",
+  "migration_rollback_verified": true,
+  "migration_applied": true,
+  "public_structure_unchanged": true,
+  "prior_cron_states_restored": true,
+  "security_advisors": {
+    "before_findings": 195,
+    "after_findings": 195,
+    "new_findings": 0,
+    "removed_findings": 0
+  },
+  "edge": {
+    "name": "squad-jobs",
+    "version": 38,
+    "ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176",
+    "tests_passed": 371,
+    "entrypoints_typechecked": 3
+  },
+  "python_full_run": {
+    "tests_run": 2007,
+    "passed": 2007,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 230.067,
+    "scope": "Fresh isolated rebuild through115936 plus reviewed121820,121935,125014; full tools/squad unittest modules except unrelated dashboard task modules test_dashboard_customers_reports and test_hosted_dashboard_reports."
+  },
+  "warehouse_acceptance": "user_deferred_after_customer_rejection_no_order_submission",
+  "mail_acceptance": {
+    "local_pipeline_and_recovery_passed": true,
+    "hosted_read_only_preflight_passed": true,
+    "hosted_endpoint_denials_passed": [
+      401,
+      400,
+      503
+    ],
+    "actual_automatic_cron_asserted": false,
+    "smtp_messages_sent": 0,
+    "inbox_delivery_asserted": false,
+    "awaiting": "Explicit attachment-capable controlled base inbox; exact role aliases and received PDFs must then be verified."
+  },
+  "final_state_artifact": "iteration35-final-state.json",
+  "production_changed": false,
+  "digitalocean_changed": false
+}

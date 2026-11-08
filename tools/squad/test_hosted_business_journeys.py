@@ -44,6 +44,7 @@ def save(state):
 def validate(state):
  assert state['format']=='squad-business-fixture/v1' and state['environment']=='staging'
  identity=identities.validate(state['identity']);run=uuid.UUID(state['run_id'])
+ if 'weekly_mail_inbox' in identity:assert state.get('weekly_mail_rehearsal') is True
  assert state['run_id']==identity['run_id'] and state['base']==identity['base']
  assert state['label']=='SQB '+run.hex[:12]
  assert type(state['data_base']) is int and 1901000000<=state['data_base']<1902000000 and state['data_base']%10000==0
@@ -190,7 +191,7 @@ def delete_graph(c,graph,keys):
    c.execute(sql.SQL('DELETE FROM {}.{} WHERE id=ANY(%s::bigint[])').format(sql.Identifier(SCHEMA),sql.Identifier(table)),(list(graph[table]),));pending.remove(table)
 
 
-def cleanup(c,state,journal_entries=None,document_cleanup=None):
+def cleanup(c,state,journal_entries=None,document_cleanup=None,weekly_mail_cleanup=None):
  """Exact-owned cleanup, or atomic refusal. Never discards foreign writes."""
  validate(state);entries=journal(state) if journal_entries is None else journal_entries;identity=state['identity']
  auths=[uuid.UUID(a['auth_id']) for a in identity['actors']]
@@ -232,6 +233,21 @@ def cleanup(c,state,journal_entries=None,document_cleanup=None):
   # output harness can clean exact audit-bound document jobs and return only
   # those IDs. No journal entry alone is authority to exempt a job.
   executed=[];removed_documents=None;processed_documents=0
+  if weekly_mail_cleanup is not None:
+   assert document_cleanup is None and state.get('weekly_mail_rehearsal') is True
+   proof=weekly_mail_cleanup(c,state,rows,auths,{int(row[-1]) for row in raw_rows})
+   expected_cap=uuid.uuid5(uuid.UUID(state['run_id']),'weekly-mail.capability')
+   assert proof['capability_id']==str(expected_cap)
+   executed=list(map(uuid.UUID,map(str,proof['executed_job_ids'])))
+   server=c.execute('''SELECT p.job_id,j.actor_id,j.status,j.lease_until,p.job_xmin=j.xmin::text,
+     p.job_sha256=encode(sha256(convert_to(to_jsonb(j)::text,'UTF8')),'hex')
+     FROM sa_domain.weekly_mail_job_receipts p JOIN sa_domain.outbox j ON j.id=p.job_id
+     WHERE p.capability_id=%s''',(expected_cap,)).fetchall()
+   assert len(executed)<=11 and len(set(executed))==len(executed) and set(executed)=={r[0] for r in server},'Unbound mail worker exception'
+   assert all(r[1] in auths and r[2] in('pending','done','dead') and r[3] is None and r[4] and r[5] for r in server),'Unsettled or changed mail worker receipt'
+   assert not c.execute("SELECT 1 FROM sa_domain.job_attempts WHERE job_id=ANY(%s::uuid[]) AND(state='leased' OR finished_at IS NULL)",(executed,)).fetchone()
+   removed_documents=proof['removed_documents'];processed_documents=proof['processed_documents']
+   assert type(removed_documents) is int and type(processed_documents) is int and 0<=processed_documents<=3 and processed_documents<=removed_documents<=40
   if document_cleanup is not None:
    proof=document_cleanup(c,state,rows,auths,{int(row[-1]) for row in raw_rows})
    executed=list(map(uuid.UUID,map(str,proof['executed_job_ids'])))

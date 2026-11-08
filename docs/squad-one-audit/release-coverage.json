@@ -2,17 +2,17 @@
   "format": "squad-release-coverage-index/v1",
   "purpose": "Traceability index only. NOT an acceptance report, NOT a cutover input, NOT a release authorization.",
   "reviewed_at": "2026-11-08",
-  "reviewed_migration_ceiling": "20261108115936",
-  "hosted_deployment_state": "Staging applied through20261108115936; no production deployment or ownership cutover.",
+  "reviewed_migration_ceiling": "20261108125014",
+  "hosted_deployment_state": "Staging applied through20261108125014/jobs38; no production deployment or ownership cutover.",
   "execution_claim": "Only explicitly listed audit-run tests were run by this review. Other references identify executable assertions, scoped saved artifacts or clearly labeled integrator reports. A file hash is a source binding, not a passing runtime claim.",
   "integrator_reported_status": {
-    "staging_sql_prefix": "20261108115936",
-    "three_edge_suite_tests_passed": 323,
+    "staging_sql_prefix": "20261108125014",
+    "three_edge_suite_tests_passed": 371,
     "new_hosted_advisor_findings": 0,
-    "full_sql_suite_tests_passed": 1895,
-    "full_sql_suite_elapsed_seconds": 203.976,
+    "full_sql_suite_tests_passed": 2007,
+    "full_sql_suite_elapsed_seconds": 230.067,
     "full_sql_suite_skips": 0,
-    "full_sql_suite_scope_note": "Fresh isolated rebuild through115936; one excluded Airtable timing check failed under concurrent load. The same test passed in isolation with594.3ms maximum SQL batch against2000ms. All functional assertions passed.",
+    "full_sql_suite_scope_note": "Fresh isolated rebuild through115936 plus reviewed121820,121935,125014; full tools/squad unittest modules except unrelated dashboard task modules test_dashboard_customers_reports and test_hosted_dashboard_reports.",
     "latest_persona_harness_tests_passed": 7,
     "latest_persona_harness_elapsed_seconds": 3.325,
     "all11_persona_hosted_result": "passed_auth_read_session_only",
@@ -21,11 +21,11 @@
     "production_release_approved_by_this_index": false,
     "hosted_business_composite_result": "passed_34_groups_11_login_roles_437_rpc_calls",
     "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
-    "hosted_business_remaining_scope": "Actual Uniware customer/order/amendment lifecycle, intended inbox delivery and automatic weekly execution remain explicit runtime/provider acceptance.",
+    "hosted_business_remaining_scope": "Uniware provider acceptance explicitly user-deferred; actual automatic weekly execution and intended attachment inbox delivery await controlled inbox selection.",
     "expanded_composition_recovery_tests_passed": 34,
     "expanded_composition_recovery_elapsed_seconds": 21.732,
-    "full_sql_suite_tests_run": 1896,
-    "full_sql_suite_failures": 1,
+    "full_sql_suite_tests_run": 2007,
+    "full_sql_suite_failures": 0,
     "isolated_failed_test_rerun_passed": true,
     "hosted_document_outputs": "passed_actual_weekly_and_partial_challan_private_PDF_download_content_hash_visual_and_cleanup",
     "hosted_document_outputs_artifact": "docs/squad-one-audit/implementation-evidence/staging-document-outputs.json"
@@ -595,6 +595,21 @@
     {
       "path": "supabase/migrations/20261108115936_squad_document_rehearsal.sql",
       "sha256": "231274effc789138ecdeee66de082584d92c53e4a574ceda4e8dd61352b1f079",
+      "evidence_kind": "migration_source"
+    },
+    {
+      "path": "supabase/migrations/20261108121820_squad_warehouse_rehearsal.sql",
+      "sha256": "fa77f1e74a279c77caebfd2ccf91a8fedf8b328072b8fb7989d2b9665d725f1a",
+      "evidence_kind": "migration_source"
+    },
+    {
+      "path": "supabase/migrations/20261108121935_squad_weekly_mail_rehearsal.sql",
+      "sha256": "863ed66d920dd289be760dd68674278fb866e7ab20ea3c037c5749ac7b7eb6e9",
+      "evidence_kind": "migration_source"
+    },
+    {
+      "path": "supabase/migrations/20261108125014_squad_warehouse_rejection_diagnostics.sql",
+      "sha256": "1410646c5b2a96ea84698f9bae6ed27a004005928e9da40c117c85290a867d87",
       "evidence_kind": "migration_source"
     }
   ],
@@ -15914,10 +15929,10 @@
       "remaining": "The34-group real-GoTrue/shared-SDK composition passed437 RPCs at112012, including all11 login actors and managed Tailor/SubTailor work. Named separate Auth/scope/catalogue/document/PrintingTracker artifacts cover the14 required backend persona paths. No additional command/query composition gap was found. Queued PDF and warehouse intents are not output or provider completion; see DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE."
     },
     "WAREHOUSE": {
-      "kind": "external_acceptance_dependency",
+      "kind": "user_deferred_external_acceptance",
       "priority": "required for enabled legacy warehouse behavior",
       "scope": "INTEGRATE.01\u201304, ORD-03/04",
-      "remaining": "Both original DigitalOcean Rails tenants/facilities were read-only verified; production selects Uniware, staging selects Dashboard. Rebuild-only Uniware reads now use WH1/WH2:2/2 sampled SKUs found in each and historical order read succeeds. Existing provider selection/write flags remain unchanged. Controlled synthetic customer\u2192submit\u2192amend\u2192reconcile\u2192cancel acceptance remains; no real provider business write is claimed."
+      "remaining": "Exact order-code absence preflight passed, controlled customer creation rejected; no order submitted. User deferred Uniware until admin UI access is available. Customer existence is unverified; retained checkpoint and permanent codes require exact reconciliation before replay."
     },
     "TIMEZONE": {
       "kind": "source_fact_dependency",
@@ -15941,7 +15956,7 @@
       "kind": "external_acceptance_dependency",
       "priority": "required for claimed recipient delivery",
       "scope": "DOC, business emails",
-      "remaining": "Verify controlled intended-recipient inbox delivery for catalogue/challan/weekly and business templates. Existing real document SMTP acceptance is recorded with inbox_delivery_asserted=false. Recovery/registration mail receipt does not prove every business recipient route."
+      "remaining": "Reviewed exact five-message staging capability is deployed; local pipeline/recovery tests and hosted denied-request tests pass. Actual delivery and PDF attachment hashes await a controlled attachment-capable inbox; public Mailinator strips attachments. No SMTP or inbox success claimed for iteration35."
     },
     "PUSH": {
       "kind": "explicit_later_ui_acceptance",
@@ -15953,19 +15968,19 @@
       "kind": "hosted_acceptance_test",
       "priority": "required before enabling automatic schedules",
       "scope": "DOC.04, INTEGRATE.04, OPS.03",
-      "remaining": "Hosted rollback-only weekly scheduler/preparation acceptance now exists at prefix `20261108094744`; it proves due/busy/idempotency/revocation/current authority without Cron, PDF or SMTP. Actual automatic weekly/report and configured warehouse execution remain enablement/provider acceptance, not absent scheduler services."
+      "remaining": "Real weekly selector is composed and tested locally through rendering/fanout/send receipts/recovery. Exact staging Cron runner is deployed and read-only preflight passed; actual automatic run awaits controlled inbox. Uniware provider acceptance is user-deferred."
     },
     "RELEASE_RUN": {
       "kind": "release_evidence_assembly",
       "priority": "required before release",
       "scope": "All retained backend modules",
-      "remaining": "Staging runtime remains through112012, with1,841 clean-rebuild SQL tests and311 Edge tests previously passed. The expanded composition/recovery suite passed34 tests in21.732seconds, followed by34 hosted groups/437 RPCs and verified cleanup. No runtime changes were needed in iteration33. Remaining external/output acceptance is explicit; no production/cutover release is inferred."
+      "remaining": "At125014/jobs38, clean2007-test Python suite,371 Edge tests,3entrypoint typechecks, staging rollback/apply/refresh fingerprints and endpoint denials pass. No new advisors. Actual weekly/mail outputs and deferred Uniware acceptance remain explicit; no production/cutover inference."
     },
     "SECURITY_RELEASE": {
       "kind": "release_evidence_assembly",
       "priority": "required before release",
       "scope": "SEC-09/10, REF-03",
-      "remaining": "No new hosted advisor findings at115936 (195 pre-existing findings retained). Exact staging document capability, receipt provenance, two-connection foreign-edit race and recovery were verified; refresh fingerprints and public structure match. Production is unchanged."
+      "remaining": "No new hosted advisors at125014 (195 pre-existing findings). Dedicated non-login lock role passes privileged-definer/ACL checks; controlled recipient, cleanup interleavings and default restrictions pass. Public structure and revisions566 match. One existing staff Auth hash changed coincident with token rotation; final evidence records this instead of claiming complete Auth equality."
     },
     "FINAL_REFRESH": {
       "kind": "fresh_evidence_dependency",
@@ -23004,6 +23019,14 @@
       "errors": 0,
       "elapsed_seconds": 0.38,
       "scope": "Local synthetic committed contention; exact owned cleanup; no hosted writes or providers."
+    },
+    {
+      "command": "Fresh squad_test_root35 rebuild plus reviewed121820/121935/125014, then all tools/squad unittest modules excluding the unrelated dashboard task modules",
+      "tests": 2007,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 230.067,
+      "scope": "Local SQL/SDK/recovery assertions; no SMTP or provider calls by this suite."
     }
   ],
   "release_decision": null,

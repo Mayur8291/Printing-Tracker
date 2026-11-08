@@ -1,0 +1,95 @@
+{
+  "environment": "staging",
+  "run_id": "255a278d-d61e-419d-8dc9-c36fcd771ee1",
+  "customer_code": "S-1954286882",
+  "result": "provider_acceptance_deferred_by_user",
+  "preflight_confirmed": true,
+  "customer_result": "REJECTED/PROVIDER_REJECTED",
+  "customer_existence_unverified": true,
+  "order_submission_attempts": 0,
+  "active_provider_lease": false,
+  "checkpoint_retained": true,
+  "requires_next": "Exact customer lookup in original Uniware UI; no blind create replay",
+  "source_rollback_verified": true,
+  "source_business_writes": 0,
+  "public_structure_unchanged": true,
+  "steps": [
+    {
+      "step": "cancel_initial",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "cancel_replacement",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "cleanup_initial",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "cleanup_replacement",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "customer",
+      "attempted": true,
+      "completed": false,
+      "state": "blocked",
+      "error_code": "PROVIDER_REJECTED"
+    },
+    {
+      "step": "customer_disable",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "preflight",
+      "attempted": true,
+      "completed": true,
+      "state": "done",
+      "error_code": null
+    },
+    {
+      "step": "reconcile",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "reconcile_replacement",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "replace",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    },
+    {
+      "step": "submit",
+      "attempted": false,
+      "completed": false,
+      "state": "ready",
+      "error_code": null
+    }
+  ]
+}

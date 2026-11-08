@@ -38,6 +38,29 @@ const errorCodes = (r: WarehouseResponse) =>
   Array.isArray(r.body.errors)
     ? r.body.errors.map((e: unknown) => object(e).code)
     : [];
+function providerRejection(r: WarehouseResponse): WarehouseError {
+  const error = new WarehouseError("REJECTED", "PROVIDER_REJECTED");
+  // Provider descriptions/field values can contain names, emails, addresses or
+  // credentials. Persist only bounded numeric diagnostics, never raw errors.
+  const codes =
+    (Array.isArray(r.body.errors) ? r.body.errors.slice(0, 100) : [])
+      .flatMap((entry: unknown) => {
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+          return [];
+        }
+        const code = (entry as Record<string, unknown>).code;
+        return typeof code === "number" && Number.isSafeInteger(code) &&
+            code >= 0 && code <= 999999
+          ? [code]
+          : [];
+      });
+  error.proof = {
+    source: "provider_rejection",
+    http_status: r.status,
+    error_codes: [...new Set(codes)].slice(0, 10),
+  };
+  return error;
+}
 function numberText(v: unknown) {
   const s = String(v);
   if (!/^-?\d+(\.\d+)?$/.test(s) || Math.abs(Number(s)) > 1e12) {
@@ -368,13 +391,22 @@ export function unicommerceWarehouse(
     return r;
   }
   function success(r: WarehouseResponse) {
-    if (r.status !== 200) responseFailure(r);
+    if (r.status !== 200) {
+      try {
+        responseFailure(r);
+      } catch (error) {
+        if (error instanceof WarehouseError && error.code === "REJECTED") {
+          throw providerRejection(r);
+        }
+        throw error;
+      }
+    }
     if (r.body.successful !== true) {
       const codes = errorCodes(r);
       if (!codes.length || codes.some((c) => c === 0 || c === 40011)) {
         throw new WarehouseError("RETRY", "PROVIDER_UNAVAILABLE", 60);
       }
-      throw new WarehouseError("REJECTED", "PROVIDER_REJECTED");
+      throw providerRejection(r);
     }
   }
   async function get(
@@ -667,10 +699,25 @@ export function unicommerceWarehouse(
               "PROVIDER_IDENTITY_MISMATCH",
             );
           }
+          if (typeof returned.enabled !== "boolean") {
+            throw new WarehouseError(
+              "RECONCILIATION_REQUIRED",
+              "PROVIDER_CUSTOMER_STATE_MISSING",
+            );
+          }
+          if (returned.enabled !== customer.enabled) {
+            throw new WarehouseError(
+              "RECONCILIATION_REQUIRED",
+              "PROVIDER_CUSTOMER_STATE_MISMATCH",
+            );
+          }
           return {
             code: "CONFIRMED",
             customer_code: customer.code,
-            proof: { source: "customer_write_response" },
+            proof: {
+              source: "customer_write_response",
+              enabled: returned.enabled,
+            },
           };
         }
         // Uniware amendments are separate persisted cancel/new-submit phases. A

@@ -533,6 +533,24 @@
     ],
     [
       "sa_domain",
+      "business_mail_settings",
+      "weekly_mail_lock_only",
+      "{sa_mail_lock}",
+      "UPDATE",
+      "true",
+      "false"
+    ],
+    [
+      "sa_domain",
+      "business_mail_settings",
+      "weekly_mail_lock_read",
+      "{sa_mail_lock}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "commands",
       "account_commands",
       "{sa_account_writer}",
@@ -1712,6 +1730,42 @@
     ],
     [
       "sa_domain",
+      "warehouse_rehearsal_attempts",
+      "warehouse_rehearsal_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_codes",
+      "warehouse_rehearsal_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_steps",
+      "warehouse_rehearsal_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsals",
+      "warehouse_rehearsal_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "warehouse_schedule",
       "warehouse_schedule_admin",
       "{sa_executor}",
@@ -1775,6 +1829,141 @@
     ],
     [
       "sa_domain",
+      "weekly_mail_context",
+      "weekly_mail_context_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_context",
+      "weekly_mail_context_write",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_context",
+      "weekly_mail_worker_read",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_documents",
+      "weekly_mail_documents_write",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_documents",
+      "weekly_mail_worker_read",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_job_receipts",
+      "weekly_mail_job_receipts_write",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_job_receipts",
+      "weekly_mail_worker_read",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_rehearsals",
+      "weekly_mail_cap_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_rehearsals",
+      "weekly_mail_lock_only",
+      "{sa_mail_lock}",
+      "UPDATE",
+      "true",
+      "false"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_rehearsals",
+      "weekly_mail_lock_read",
+      "{sa_mail_lock}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_rehearsals",
+      "weekly_mail_worker_read",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_sends",
+      "weekly_mail_sends_write",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_sends",
+      "weekly_mail_worker_read",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_settings_receipts",
+      "weekly_mail_settings_receipts_write",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_settings_receipts",
+      "weekly_mail_worker_read",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "weekly_tailor_entries",
       "weekly_admin_read",
       "{sa_executor}",
@@ -1787,6 +1976,24 @@
       "weekly_tailor_entries",
       "weekly_guard",
       "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_entries",
+      "weekly_mail_lock_only",
+      "{sa_mail_lock}",
+      "UPDATE",
+      "true",
+      "false"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_entries",
+      "weekly_mail_lock_read",
+      "{sa_mail_lock}",
       "SELECT",
       "true",
       null
@@ -1814,6 +2021,24 @@
       "weekly_tailor_runs",
       "weekly_guard",
       "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_runs",
+      "weekly_mail_lock_only",
+      "{sa_mail_lock}",
+      "UPDATE",
+      "true",
+      "false"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_runs",
+      "weekly_mail_lock_read",
+      "{sa_mail_lock}",
       "SELECT",
       "true",
       null
@@ -1850,6 +2075,24 @@
       "weekly_tailor_schedule",
       "weekly_guard",
       "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_schedule",
+      "weekly_mail_lock_only",
+      "{sa_mail_lock}",
+      "UPDATE",
+      "true",
+      "false"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_schedule",
+      "weekly_mail_lock_read",
+      "{sa_mail_lock}",
       "SELECT",
       "true",
       null
@@ -7915,6 +8158,30 @@
     ],
     [
       "canto_api",
+      "squad_warehouse_rehearsal_finish",
+      "p_id uuid, p_step text, p_lease_token uuid, p_result jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "c7922acea8ba5cf95e8f8034a15ae46a"
+    ],
+    [
+      "canto_api",
+      "squad_warehouse_rehearsal_prepare",
+      "p_id uuid, p_step text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "979f1f75db49014e374918e720492d0f"
+    ],
+    [
+      "canto_api",
       "squad_warehouse_webhook",
       "p_id uuid, p_lease_token uuid",
       "postgres",
@@ -10975,7 +11242,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "96958af1efd161798bb0a3c72d7b27d3"
+      "f9b79a523d4eb285dfdb8e96528e1efb"
     ],
     [
       "sa_domain",
@@ -11107,7 +11374,19 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "507f76e3754c011e9d2ff3493717e5d0"
+      "d8eb741d29478b6c469770c835db3448"
+    ],
+    [
+      "sa_domain",
+      "document_worker_fence_download",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "b0df3dbd4b0f3273d59de5041894b8c4"
     ],
     [
       "sa_domain",
@@ -12718,7 +12997,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "a215458145ee6c5c70caee17a8e4afb8"
+      "78f505e2da31db8cedf026ff902dd856"
     ],
     [
       "sa_domain",
@@ -12730,7 +13009,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "cbd53d3cc6b5183ab0aba736df7938f7"
+      "7c9ca574a5e225a93e7a76528a5475b1"
     ],
     [
       "sa_domain",
@@ -12766,7 +13045,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "e168e43fb8f45a9b4135707f29c7878b"
+      "bb2e9092d615cafb5e6c562ab0164b33"
     ],
     [
       "sa_domain",
@@ -12802,7 +13081,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "d36ba3fb67f8ec08f1e5486d4b219fe0"
+      "deb80a2d0e3d90c2f17162fc57503d78"
     ],
     [
       "sa_domain",
@@ -12938,6 +13217,30 @@
     ],
     [
       "sa_domain",
+      "squad_warehouse_rehearsal_finish",
+      "p_id uuid, p_step text, p_lease_token uuid, p_result jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "9b7b5c4c0d83b39187aeec428e3eba92"
+    ],
+    [
+      "sa_domain",
+      "squad_warehouse_rehearsal_prepare",
+      "p_id uuid, p_step text",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "7475f97a66c1523328821cd4ad262bdc"
+    ],
+    [
+      "sa_domain",
       "squad_warehouse_webhook",
       "p_id uuid, p_lease_token uuid",
       "sa_worker",
@@ -12962,6 +13265,30 @@
     ],
     [
       "sa_domain",
+      "squad_weekly_mail_rehearsal_send_begin",
+      "p_id uuid, p_job_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "d23e1bfd8b83ff263bcc358c13d08938"
+    ],
+    [
+      "sa_domain",
+      "squad_weekly_mail_rehearsal_tick",
+      "p_id uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "4f01e692331c36629418b3eb3be94b80"
+    ],
+    [
+      "sa_domain",
       "squad_weekly_tailor_heartbeat",
       "p_limit integer",
       "sa_worker",
@@ -12970,7 +13297,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "38bfd76db05be367517c93b424435ce8"
+      "7a233f536737f9adc5b065371a25d5e1"
     ],
     [
       "sa_domain",
@@ -15352,6 +15679,66 @@
     ],
     [
       "sa_domain",
+      "warehouse_rehearsal_builders_sha256",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "7e36819659a574c41900f1981a45b3b7"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_immutable",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "75d60d28c98264d496ce2da3b391fdf9"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_register",
+      "p_run_id uuid, p_tenant text, p_controlled_email text, p_capture jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "065fc4ff705211df8c07efcfa5cc1ba9"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_result",
+      "p_manifest jsonb, p_step text, p_result jsonb",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "974789133d3003d243bcfd30a3050efb"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_step_scope",
+      "p_run sa_domain.warehouse_rehearsals, p_step text, p_finish boolean",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "fa35652d56dea93b0c6dfbd25b6fbea2"
+    ],
+    [
+      "sa_domain",
       "warehouse_schedule_projection",
       "",
       "sa_guard",
@@ -15401,6 +15788,162 @@
     ],
     [
       "sa_domain",
+      "weekly_mail_bind",
+      "p_cap uuid, p_document uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "45dc4884d1a9dd8f190dea002875db42"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_context_id",
+      "",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "65d544f380400edf5cfd17c8fa8f8336"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_job_document",
+      "p_job uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "d7179f4d719d8551039be61004d1b374"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_job_record",
+      "p_cap uuid, p_document uuid, p_job uuid, p_new boolean",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "620707329c5f84c742b95e5701fd9fba"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_job_scope",
+      "p_job uuid, p_lease uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "f9925ee02325a97099c7d3f1447200d0"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_lock",
+      "p_cap uuid",
+      "sa_mail_lock",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_mail_lock=X/sa_mail_lock,sa_worker=X/sa_mail_lock}",
+      "463d15799f97d2c08cd4ff145f396404"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_record",
+      "p_job uuid, p_phase text",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "2daeefde563c597e150524c6af71ddbc"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_register",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "49b0a5dc09e9855a26c759824468e69d"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_schedule_fence",
+      "",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "64c378724ccd18989989808963c38bbc"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_scope",
+      "p_cap uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "2ffcfa025d4713988d5327face83cf46"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_seed",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "f4f10325186230fd9cfa653522f60507"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_settings_record",
+      "p_cap uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "2a514cd0f7dcb7b5a64c363f0e61113e"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_worker_fence",
+      "p_job uuid, p_lease uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "13369a0a81293d774cac9c7a5c7732bb"
+    ],
+    [
+      "sa_domain",
       "weekly_tailor_ceiling",
       "",
       "sa_guard",
@@ -15409,7 +15952,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
-      "af4bab63c3855efad91d1846f59c341a"
+      "bfb55a304ea89f51014101e22c69c52e"
     ],
     [
       "sa_domain",
@@ -15433,7 +15976,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
-      "ca0ca9d85d6e96d08fd3899867ce3483"
+      "afa43538cb31b97226a06a93cd8024b8"
     ],
     [
       "sa_domain",
@@ -15897,7 +16440,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=r/postgres,sa_executor=rw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=r/postgres,sa_executor=rw/postgres,sa_mail_lock=r/postgres}"
     ],
     [
       "sa_domain",
@@ -16357,6 +16900,38 @@
     ],
     [
       "sa_domain",
+      "warehouse_rehearsal_attempts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_codes",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsal_steps",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=rw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "warehouse_rehearsals",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=r/postgres}"
+    ],
+    [
+      "sa_domain",
       "warehouse_schedule",
       "r",
       true,
@@ -16373,11 +16948,59 @@
     ],
     [
       "sa_domain",
+      "weekly_mail_context",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=ard/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_documents",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_job_receipts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_rehearsals",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=r/postgres,sa_guard=r/postgres,sa_mail_lock=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_sends",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_mail_settings_receipts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
       "weekly_tailor_entries",
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=arw/postgres,sa_mail_lock=r/postgres}"
     ],
     [
       "sa_domain",
@@ -16385,7 +17008,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=arw/postgres,sa_mail_lock=r/postgres}"
     ],
     [
       "sa_domain",
@@ -16393,7 +17016,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=rw/postgres,sa_worker=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=rw/postgres,sa_worker=arw/postgres,sa_mail_lock=r/postgres}"
     ],
     [
       "sa_domain",

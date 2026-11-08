@@ -1,0 +1,75 @@
+{
+  "environment": "staging",
+  "checked_at": "2026-11-08T13:11:43.076277+00:00",
+  "migration_prefix": "20261108125014",
+  "environment_state": [
+    "staging",
+    false,
+    null,
+    566,
+    566
+  ],
+  "public_structure_sha256": "05d34e00e8e4e1d5bfa9b23212717e898bd58d0c3e13888ebcaf1eceae6997fa",
+  "public_structure_unchanged": true,
+  "staff_auth_fingerprint_unchanged": false,
+  "staff_auth_change": {
+    "existing_rows_changed": 1,
+    "added": 0,
+    "removed": 0,
+    "user_updated_at": "2026-11-08 13:06:00.055427+00:00",
+    "refresh_created_at": "2026-11-08 13:06:00.040052+00:00",
+    "prior_token_revoked_at": "2026-11-08 13:06:00.015178+00:00",
+    "interpretation": "Consistent with existing-session token refresh; complete unchanged Auth rows are not claimed."
+  },
+  "cron_unchanged": true,
+  "cron": [
+    {
+      "jobid": 6,
+      "jobname": "squad-jobs-minute",
+      "active": true,
+      "definition_sha256": "6d9bc2beb392edb280719c06c22b9f703470c61d5e3af68ccb077602400ac4ca"
+    },
+    {
+      "jobid": 7,
+      "jobname": "squad-media-cleanup",
+      "active": true,
+      "definition_sha256": "3bc0983eb5bff809969b4ff735495370b54f2c70d0e3dcce8fc3fb9154b87f5c"
+    },
+    {
+      "jobid": 13,
+      "jobname": "squad-documents-pump",
+      "active": true,
+      "definition_sha256": "62c3de11917cf0a55a5485e71240b9d4efcfc7853b801bcc55f9f02946ae7e69"
+    }
+  ],
+  "weekly_mail_capabilities": 0,
+  "weekly_mail_sends": 0,
+  "weekly_mail_documents": 0,
+  "endpoint_denials": [
+    {
+      "check": "anonymous",
+      "status": 401,
+      "result": {
+        "error": "UNAUTHORIZED"
+      }
+    },
+    {
+      "check": "caller_recipient",
+      "status": 400,
+      "result": {
+        "error": "INVALID_REQUEST"
+      }
+    },
+    {
+      "check": "unregistered_capability",
+      "status": 503,
+      "result": {
+        "error": "MAIL_REHEARSAL_UNAVAILABLE"
+      }
+    }
+  ],
+  "warehouse_checkpoint": "retained_user_deferred",
+  "warehouse_order_submissions": 0,
+  "production_changed": false,
+  "digitalocean_changed": false
+}

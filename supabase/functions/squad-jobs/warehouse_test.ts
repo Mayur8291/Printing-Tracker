@@ -878,7 +878,7 @@ Deno.test("Uniware uncertain cancellation reconciles cancelled status or stops w
 });
 Deno.test("Uniware customer create/edit require confirmed response identity; uncertain work has no invented GET", async () => {
   for (const action of ["create", "edit"] as const) {
-    const f = uni([json({ successful: true, customer: { code: "S-2" } })]);
+    const f = uni([json({ successful: true, customer: { code: "S-2", enabled: true } })]);
     const r = await f.adapter.run({
       ...uniIntent,
       operation: "customer",
@@ -886,7 +886,7 @@ Deno.test("Uniware customer create/edit require confirmed response identity; unc
       payload: { customer },
     }, signal());
     assert(
-      r.customer_code === "S-2" &&
+      r.customer_code === "S-2" && r.proof?.enabled === true &&
         f.calls[1].url.endsWith("/customer/" + action),
     );
   }
@@ -903,6 +903,17 @@ Deno.test("Uniware customer create/edit require confirmed response identity; unc
     "PROVIDER_CUSTOMER_UNCERTAIN",
   );
   assert(!uncertain.calls.length);
+});
+Deno.test("Uniware customer edit proves disabled state and rejects omitted or mismatched enabled", async () => {
+  for (const actual of [undefined, true, false]) {
+    const f = uni([json({ successful: true, customer: { code: "S-2", ...(actual === undefined ? {} : { enabled: actual }) } })]);
+    const i: WarehouseIntent = { ...uniIntent, operation: "customer", customer_action: "edit", payload: { customer: { ...customer, enabled: false } } };
+    if (actual === false) {
+      const r = await f.adapter.run(i, signal());
+      assert(r.code === "CONFIRMED" && r.proof?.enabled === false);
+    } else await fails(() => f.adapter.run(i, signal()), actual === undefined ? "PROVIDER_CUSTOMER_STATE_MISSING" : "PROVIDER_CUSTOMER_STATE_MISMATCH");
+    assert(f.calls.filter(c => c.url.endsWith("/customer/edit")).length === 1);
+  }
 });
 Deno.test("Uniware customer payload cannot insert remote tenant URLs or API secrets", async () => {
   const f = uni([]);
@@ -922,6 +933,48 @@ Deno.test("Uniware customer payload cannot insert remote tenant URLs or API secr
     "WAREHOUSE_CONTRACT_INVALID",
   );
   assert(!f.calls.length);
+});
+Deno.test("Uniware rejection retains only bounded numeric diagnostics without permitting mutation replay", async () => {
+  for (const status of [200, 400, 422]) {
+    const f = uni([json({
+      successful: false,
+      message: "secret fixture@example.com",
+      errors: [
+        { code: 10025, fieldName: "secret", description: "PII", errorParams: { password: "secret" } },
+        { code: 10025 }, { code: "400" }, { code: -1 }, { code: 1.5 },
+        { code: 9000000000 }, ...Array.from({ length: 20 }, (_, n) => ({ code: 1000 + n })),
+      ],
+    }, status)]);
+    try {
+      await f.adapter.run({ ...uniIntent, operation: "customer", customer_action: "create", payload: { customer } }, signal());
+      throw new Error("accepted unexpectedly");
+    } catch (error) {
+      if (!(error instanceof WarehouseError)) throw error;
+      const result = error.result();
+      assert(result.code === "REJECTED" && result.error_code === "PROVIDER_REJECTED");
+      assert(equal(result.proof, { source: "provider_rejection", http_status: status, error_codes: [10025, 1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008] }));
+      assert(!JSON.stringify(result).includes("secret") && result.proof?.mutation_attempted !== false);
+    }
+    assert(f.calls.filter(c => c.url.endsWith("/customer/create")).length === 1);
+    const before = f.calls.length;
+    await fails(() => f.adapter.run({ ...uniIntent, operation: "customer", customer_action: "create", attempted: true, payload: { customer } }, signal()), "PROVIDER_CUSTOMER_UNCERTAIN");
+    assert(f.calls.length === before);
+  }
+});
+Deno.test("Uniware uncoded HTTP rejection stays diagnosable while transient failure stays uncertain", async () => {
+  for (const [status, body] of [[400, {}], [200, { successful: false, errors: [{ code: 0 }] }], [503, {}]] as const) {
+    const f = uni([json(body, status)]);
+    try {
+      await f.adapter.run({ ...uniIntent, operation: "customer", customer_action: "create", payload: { customer } }, signal());
+      throw new Error("accepted unexpectedly");
+    } catch (error) {
+      if (!(error instanceof WarehouseError)) throw error;
+      const result = error.result();
+      if (status === 400) assert(equal(result.proof, { source: "provider_rejection", http_status: 400, error_codes: [] }));
+      else assert(result.code === "RETRY" && result.proof === undefined);
+    }
+    assert(f.calls.filter(c => c.url.endsWith("/customer/create")).length === 1);
+  }
 });
 Deno.test("Uniware amendments must be persisted cancellation/create phases", async () => {
   const f = uni([]);

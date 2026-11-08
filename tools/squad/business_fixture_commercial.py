@@ -80,6 +80,17 @@ def plan_fixture(state):
         else:
             table_rows.append(entry);by_table[entry['table']] = entry
     result['commercialExtras'] = extras['commercialExtras']
+    if state.get('weekly_mail_rehearsal') is True:
+        from business_fixture_weekly_mail import plan_fixture as plan_weekly
+        weekly=plan_weekly(state)
+        for entry in weekly['fixture_tables']:
+            if entry['table'] in by_table:
+                target=by_table[entry['table']]
+                assert not set(target['ids']) & set(entry['ids'])
+                target['ids'].extend(entry['ids']);target['rows'].extend(entry['rows'])
+            else:
+                table_rows.append(entry);by_table[entry['table']]=entry
+        result['weeklyMail']=weekly['weeklyMail']
     return result
 
 

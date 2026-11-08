@@ -1,6 +1,9 @@
 import nodemailer from "npm:nodemailer@10.3.1";
 import { Buffer } from "node:buffer";
-import type { MailConfig } from "../_shared/squad-mail.ts";
+import type {
+  MailConfig,
+  ProofMailTransportFactory,
+} from "../_shared/squad-mail.ts";
 import type { DocumentStorage } from "./documents.ts";
 import type { Rpc } from "./handler.ts";
 export interface BusinessMail {
@@ -30,6 +33,18 @@ const kinds = [
   "tailor_weekly",
 ];
 const docKinds = ["catalogue", "delivery_challan", "tailor_weekly"];
+/** Created only by the service rehearsal route after its durable send grant.
+ * This never changes the normal staging recipient policy. */
+export interface BusinessMailCapability {
+  source: "weekly_mail_rehearsal";
+  capability_id: string;
+  message_id: string;
+  document_id: string;
+  kind: "catalogue" | "delivery_challan" | "tailor_weekly";
+  recipient: string;
+  attachment_path: string;
+}
+const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const validEmail = (s: string) =>
   s.length <= 254 &&
   /^[^\s\x00-\x1f\x7f<>;,"@]+@[^\s\x00-\x1f\x7f<>;,"@]+\.[^\s\x00-\x1f\x7f<>;,"@]+$/
@@ -173,7 +188,12 @@ export function businessMessage(m: BusinessMail, attachment?: Uint8Array) {
       : {}),
   };
 }
-export function businessMailer(config: MailConfig & { projectRef: string }) {
+export function businessMailer(
+  config: MailConfig & { projectRef: string },
+  capability?: BusinessMailCapability,
+  createTransport: ProofMailTransportFactory = (options) =>
+    nodemailer.createTransport(options),
+) {
   return async (message: BusinessMail, attachment?: Uint8Array) => {
     if (
       !["scvojtvgnkmbupvyslmb", "levwrmvqdntngeasrtnb"].includes(
@@ -182,16 +202,37 @@ export function businessMailer(config: MailConfig & { projectRef: string }) {
       !config.sender || ![2525, 465].includes(config.port)
     ) throw new Error("mail_recipient_not_enabled");
     if (
+      capability !== undefined && (
+        config.projectRef !== "scvojtvgnkmbupvyslmb" ||
+        capability.source !== "weekly_mail_rehearsal" ||
+        !uuid.test(capability.capability_id) ||
+        !uuid.test(capability.message_id) ||
+        !uuid.test(capability.document_id) ||
+        capability.message_id !== message.message_id ||
+        capability.document_id !== message.data?.document_id ||
+        !docKinds.includes(capability.kind) ||
+        capability.kind !== message.kind ||
+        capability.recipient !== message.email ||
+        !validEmail(capability.recipient) ||
+        config.allowedRecipients?.length !== 1 ||
+        config.allowedRecipients[0] !== capability.recipient ||
+        capability.attachment_path !== message.attachment?.path ||
+        !new RegExp(
+          `^g[0-9]+/[a-f0-9-]{36}/${capability.document_id}/document[.]pdf$`,
+        ).test(capability.attachment_path)
+      )
+    ) throw new Error("mail_recipient_not_enabled");
+    if (
       config.projectRef === "scvojtvgnkmbupvyslmb" &&
       (!config.allowedRecipients?.length ||
-        !message.email.endsWith("@mailinator.com"))
+        !message.email.endsWith("@mailinator.com") && !capability)
     ) throw new Error("mail_recipient_not_enabled");
     if (
       config.allowedRecipients &&
       !config.allowedRecipients.includes(message.email)
     ) throw new Error("mail_recipient_not_enabled");
     const content = businessMessage(message, attachment);
-    const transport = nodemailer.createTransport({
+    const transport = createTransport({
       host: config.host,
       port: config.port,
       secure: config.port === 465,

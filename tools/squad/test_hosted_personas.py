@@ -10,6 +10,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -37,13 +38,39 @@ def save_checkpoint(state):
  temporary=CHECKPOINT.with_suffix('.tmp');temporary.write_text(json.dumps(state,indent=2)+'\n');temporary.chmod(0o600);temporary.replace(CHECKPOINT)
 
 
+def controlled_alias(base,run,role):
+ """Only deterministic role aliases of an explicitly supplied inbox are allowed."""
+ assert isinstance(base,str) and base==base.strip().lower() and len(base)<=254
+ assert re.fullmatch(r'[a-z0-9][a-z0-9._-]*@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,63}',base), 'Plain base inbox required'
+ local,domain=base.split('@');assert '..' not in local and '..' not in domain and not local.endswith('.')
+ assert domain!='mailinator.com','Public disposable inbox cannot preserve PDF attachments'
+ assert role in [0,2,3,4]
+ alias=f'{local}+squad-{uuid.UUID(str(run)).hex[:12]}-{role}@{domain}'
+ assert len(alias.split('@')[0])<=64 and len(alias)<=254,'Controlled alias exceeds email length limits'
+ return alias
+
+
+def bind_controlled_inbox(c,state,base):
+ assert state['stage']=='planned' and 'weekly_mail_inbox' not in state
+ state['weekly_mail_inbox']=base
+ for actor in state['actors']:
+  if actor['role'] in [0,2,3,4]:actor['email']=controlled_alias(base,state['run_id'],actor['role'])
+ validate(state)
+ for actor in state['actors']:
+  assert not c.execute('SELECT 1 FROM auth.users WHERE id=%s OR lower(email)=%s',(actor['auth_id'],actor['email'])).fetchone(),'Controlled Auth alias collides'
+  assert not c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_users WHERE lower(email)=%s',(actor['email'],)).fetchone(),'Controlled source alias collides'
+  assert not c.execute('SELECT 1 FROM sa_identity.sa_auth_identities WHERE canonical_email=%s',(actor['email'],)).fetchone(),'Controlled reserved alias collides'
+ return state
+
+
 def validate(state):
  assert state['format']=='squad-persona-fixture/v1' and state['environment']=='staging' and state['url']==URL
  run=uuid.UUID(state['run_id']);assert state['label']=='SQP '+run.hex[:12]
  base=state['base'];assert type(base) is int and MIN_ID<=base and base+120<MAX_ID
  assert [a['role'] for a in state['actors']]==ROLES
  for actor in state['actors']:
-  assert actor['id']==str(base+actor['role']);assert actor['email']==f'squad-persona-{run.hex[:12]}-{actor["role"]}@mailinator.com';uuid.UUID(actor['auth_id'])
+  expected=controlled_alias(state['weekly_mail_inbox'],run,actor['role']) if 'weekly_mail_inbox' in state and actor['role'] in [0,2,3,4] else f'squad-persona-{run.hex[:12]}-{actor["role"]}@mailinator.com'
+  assert actor['id']==str(base+actor['role']);assert actor['email']==expected;uuid.UUID(actor['auth_id'])
  assert len({a['auth_id'] for a in state['actors']})==11
  assert state['objects']=={'factories':[base+100,base+101],'addresses':[base+102,base+103],'orders':[base+104,base+105],'items':[base+106,base+107],'quantities':[base+108,base+109],'dealer_link':base+110,'size':base+111}
  assert not any(k in state for k in ['password','passwords','service_role','access_token','refresh_token'])
@@ -70,6 +97,10 @@ def plan(c):
 def create(c,state):
  validate(state);base=state['base'];objects=state['objects'];credentials=[]
  with c.transaction():
+  for actor in state['actors']:
+   assert not c.execute('SELECT 1 FROM auth.users WHERE id=%s OR lower(email)=%s',(actor['auth_id'],actor['email'])).fetchone(),'Auth fixture identity collides'
+   assert not c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_users WHERE lower(email)=%s',(actor['email'],)).fetchone(),'Source fixture email collides'
+   assert not c.execute('SELECT 1 FROM sa_identity.sa_auth_identities WHERE canonical_email=%s',(actor['email'],)).fetchone(),'Reserved fixture email collides'
   c.execute("SET LOCAL statement_timeout='10s'")
   c.execute('INSERT INTO sa_snapshot_20261019.sa_factories(id,name,created_at,updated_at) VALUES(%s,%s,now(),now()),(%s,%s,now(),now())',(objects['factories'][0],state['label']+' factory',objects['factories'][1],state['label']+' foreign factory'))
   for role in range(15):
