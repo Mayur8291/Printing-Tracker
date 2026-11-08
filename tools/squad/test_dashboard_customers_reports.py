@@ -234,6 +234,34 @@ class Dashboard(unittest.TestCase):
     actual=self.query('rmp_order_reports',search=term)
     self.assertEqual({r['id'] for r in actual['data']},expected)
     self.assertEqual(actual['totalCount'],len(expected))
+ def test_customer_type_summary_covers_full_filtered_result(self):
+  from decimal import Decimal
+  rows=self.query('rmp_sales','overview')['data']
+  self.assertGreater(len(rows),1)
+  def expected(rows):
+   groups={}
+   for row in rows:
+    entry=groups.setdefault((row['customer_type'] or '').strip() or 'Unknown',{'qty':Decimal(0),'amount':Decimal(0)})
+    for field,key in [('total_qty','qty'),('total_amount','amount')]:
+     entry[key]=None if row[field] is None or entry[key] is None else entry[key]+Decimal(str(row[field]))
+   return groups
+  def actual(result):
+   return {entry['type']:{k:None if entry[k] is None else Decimal(entry[k]) for k in ('qty','amount')} for entry in result['summary']['customerTypeBreakdown']}
+  for options in ({'items':1},{'items':1,'sort':{'key':'id','direction':'asc','numeric':True}}):
+   with self.subTest(options=options):self.assertEqual(actual(self.query('rmp_sales','overview',**options)),expected(rows))
+  chosen=rows[0]
+  filtered=self.query('rmp_sales','overview',quick={'logic':'and','conditions':[{'field':'id','operator':'equals','value':chosen['id']}]})
+  self.assertEqual(actual(filtered),expected([chosen]))
+  empty=self.query('rmp_sales','overview',search='not-a-real-order-fixture')
+  self.assertEqual(empty['summary']['customerTypeBreakdown'],[])
+ def test_customer_type_summary_keeps_unknown_values(self):
+  self.raw('UPDATE sa_snapshot_20261019.sa_users SET rmp_price_type_id=NULL WHERE id=103')
+  self.raw('UPDATE sa_snapshot_20261019.sa_items SET total_amount=-1 WHERE id=1002')
+  for options in ({},{'sort':{'key':'id','direction':'asc','numeric':True}}):
+   with self.subTest(options=options):
+    entries=self.query('rmp_sales','overview',**options)['summary']['customerTypeBreakdown']
+    entry=next(e for e in entries if e['type']=='Unknown')
+    self.assertIsNone(entry['qty']);self.assertIsNone(entry['amount'])
  def test_bulk_customer_projection_matches_detail(self):
   for row in self.query()['data']:self.assertEqual(row,self.call('customer_get',id=row['id']))
 

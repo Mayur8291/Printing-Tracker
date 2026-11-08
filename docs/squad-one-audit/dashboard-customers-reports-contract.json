@@ -2,6 +2,10 @@
   {
     "report": "order_reports",
     "tab": "",
+    "summaryFields": [
+      "totalCount",
+      "totalAmount"
+    ],
     "columns": [
       {
         "label": "Jobsheet Number",
@@ -490,6 +494,11 @@
   {
     "report": "rmp_order_reports",
     "tab": "",
+    "summaryFields": [
+      "totalCount",
+      "totalQuantity",
+      "totalValue"
+    ],
     "columns": [
       {
         "label": "Order ID",
@@ -688,6 +697,11 @@
   {
     "report": "tailor_reports",
     "tab": "",
+    "summaryFields": [
+      "totalCount",
+      "totalItems",
+      "totalValue"
+    ],
     "columns": [
       {
         "label": "Jobsheet Number",
@@ -876,6 +890,7 @@
   {
     "report": "order_tracking",
     "tab": "",
+    "summaryFields": [],
     "columns": [
       {
         "label": "Order Date",
@@ -1054,6 +1069,13 @@
   {
     "report": "rmp_sales",
     "tab": "overview",
+    "summaryFields": [
+      "totalUnits",
+      "salesValue",
+      "fillRate",
+      "totalOrders",
+      "customerTypeBreakdown"
+    ],
     "columns": [
       {
         "label": "Order #",
@@ -1142,6 +1164,12 @@
   {
     "report": "rmp_sales",
     "tab": "brand",
+    "summaryFields": [
+      "itemQty",
+      "orderValue",
+      "fillRate",
+      "entityCount"
+    ],
     "columns": [
       {
         "label": "Brand",
@@ -1310,6 +1338,12 @@
   {
     "report": "rmp_sales",
     "tab": "class",
+    "summaryFields": [
+      "itemQty",
+      "orderValue",
+      "fillRate",
+      "entityCount"
+    ],
     "columns": [
       {
         "label": "Class",
@@ -1488,6 +1522,12 @@
   {
     "report": "rmp_sales",
     "tab": "coordinator",
+    "summaryFields": [
+      "orderedQty",
+      "orderValue",
+      "fillRate",
+      "coordinatorCount"
+    ],
     "columns": [
       {
         "label": "Sales Coordinator",
@@ -1556,6 +1596,12 @@
   {
     "report": "total_inventory",
     "tab": "",
+    "summaryFields": [
+      "totalCount",
+      "totalUnits",
+      "outOfStockCount",
+      "salesLoss"
+    ],
     "columns": [
       {
         "label": "SKU",
@@ -1614,6 +1660,14 @@
   {
     "report": "customer_performance",
     "tab": "",
+    "summaryFields": [
+      "customerCount",
+      "qtyA",
+      "qtyB",
+      "qtyGrowth",
+      "valueB",
+      "valueGrowth"
+    ],
     "columns": [
       {
         "label": "Customer ID",

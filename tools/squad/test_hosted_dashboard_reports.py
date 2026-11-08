@@ -8,7 +8,7 @@ sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 from database import connect,public_structure
 from delta_sync import check_catalog
 from deploy import statements
-MIGRATIONS=[ROOT/'supabase/migrations'/name for name in ('20261108125302_squad_dashboard_customers_reports.sql','20261108145821_squad_dashboard_rmp_search_projection.sql')]
+MIGRATIONS=[ROOT/'supabase/migrations'/name for name in ('20261108125302_squad_dashboard_customers_reports.sql','20261108145821_squad_dashboard_rmp_search_projection.sql','20261108154028_squad_dashboard_customer_type_summary.sql')]
 def run():
  results=[];scenarios=[];reconciliation=[]
  with connect('staging') as c:
@@ -48,6 +48,15 @@ def run():
     elif report=='total_inventory':source_sql='SELECT count(*) FROM sa_snapshot_20261019.sa_rmp_skus WHERE NOT is_deleted'
     if source_sql:
      count=c.execute(source_sql).fetchone()[0];assert count==payload['totalCount'],(report,count,payload['totalCount']);reconciliation.append({'report':report,'tab':tab,'sourceCount':count,'matched':True,'revision':payload['revision']})
+    if report=='rmp_sales' and tab=='overview':
+     from decimal import Decimal
+     typed_base=base.replace(' WHERE ', ' LEFT JOIN sa_snapshot_20261019.sa_rmp_price_types pt ON pt.id=u.rmp_price_type_id WHERE ',1)
+     invalid="bool_or(i.total_quantity IS NULL OR i.total_quantity<0 OR i.total_amount IS NULL OR i.total_amount<0 OR i.total_amount>='Infinity'::numeric)"
+     sql="SELECT coalesce(nullif(btrim(pt.name),''),'Unknown'),CASE WHEN NOT "+invalid+" THEN sum(i.total_quantity) END,CASE WHEN NOT "+invalid+" THEN sum(i.total_amount) END"+typed_base+period+" AND o.order_item_type=0 AND i.item_type=1 GROUP BY coalesce(nullif(btrim(pt.name),''),'Unknown')"
+     expected={t:(qty,amount) for t,qty,amount in c.execute(sql)}
+     actual={x['type']:tuple(Decimal(x[k]) if x[k] is not None else None for k in ('qty','amount')) for x in payload['summary']['customerTypeBreakdown']}
+     assert actual==expected,'Customer-type summary differs from source'
+     reconciliation[-1].update(customerTypeSummaryMatched=True,customerTypes=len(actual))
     c.execute('SET LOCAL ROLE authenticated')
     row={'report':report,'tab':tab,'cold_ms':samples[0],'warm_ms':samples[1:],'summary_cache':'revision_keyed_5_minutes' if report=='rmp_order_reports' else 'none','total':payload['totalCount'],'revision':payload['revision'],'target_ms':200}
     results.append(row);print(json.dumps(row),flush=True)
@@ -65,7 +74,7 @@ def run():
    c.execute('SET LOCAL ROLE postgres');assert public_structure(c)==before
    raise psycopg.Rollback()
   assert public_structure(c)==before
- evidence={'environment':'staging','timestamp':datetime.datetime.now(datetime.timezone.utc).isoformat(),'migration_and_sessions_rolled_back':True,'public_structure_unchanged':True,'results':results,'scenarios':scenarios,'source_reconciliation':reconciliation}
+ evidence={'environment':'staging','dashboard_migrations':[p.name for p in MIGRATIONS],'timestamp':datetime.datetime.now(datetime.timezone.utc).isoformat(),'migration_and_sessions_rolled_back':True,'public_structure_unchanged':True,'results':results,'scenarios':scenarios,'source_reconciliation':reconciliation}
  if not os.getenv('DASHBOARD_SCENARIOS_ONLY'):(ROOT/'docs/squad-one-audit/implementation-evidence/staging-dashboard-reports.json').write_text(json.dumps(evidence,indent=2)+'\n')
  assert all(max(x['warm_ms'])<200 for x in results),'Performance targets not met; inspect evidence'
 if __name__=='__main__':run()
