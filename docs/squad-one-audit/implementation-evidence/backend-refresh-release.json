@@ -1,7 +1,7 @@
 {
-  "measured_at": "2026-11-08T15:27:40.704124+00:00",
-  "release_ref": "codex/backend-parity-20261108-112",
-  "commit": "1123afa155d3a271520dcba6059873073a529932",
+  "measured_at": "2026-11-08T17:13:21.398522+00:00",
+  "release_ref": "codex/backend-parity-20261108-113",
+  "commit": "f2ed1a1f0b4e086f0e154fc7a4d78b4bb27e41bb",
   "remote_verified": true,
   "environments": {
     "staging": {
@@ -11,5 +11,7 @@
       "workflow_ref_verified": true
     }
   },
-  "refresh_dispatched": false
+  "refresh_dispatched": false,
+  "supersedes_ref": "codex/backend-parity-20261108-112",
+  "migration_count": 113
 }
