@@ -1,0 +1,1752 @@
+[
+  {
+    "report": "order_reports",
+    "tab": "",
+    "columns": [
+      {
+        "label": "Jobsheet Number",
+        "key": "jobsheet_number",
+        "format": "text"
+      },
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Order ID",
+        "key": "order_id",
+        "format": "text"
+      },
+      {
+        "label": "Expected Delivery Date",
+        "key": "expected_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Actual Delivery Date",
+        "key": "actual_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Key Account Manager (KAM)",
+        "key": "kam",
+        "format": "text"
+      },
+      {
+        "label": "Order Status",
+        "key": "order_status",
+        "format": "enum"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Product",
+        "key": "product",
+        "format": "text"
+      },
+      {
+        "label": "Description",
+        "key": "description",
+        "format": "text"
+      },
+      {
+        "label": "Factory",
+        "key": "factory",
+        "format": "text"
+      },
+      {
+        "label": "Total Quantity",
+        "key": "total_quantity",
+        "format": "number"
+      },
+      {
+        "label": "Size Breakup",
+        "key": "size_breakup",
+        "format": "text"
+      },
+      {
+        "label": "Base OF",
+        "key": "base_of",
+        "format": "number"
+      },
+      {
+        "label": "Base SN",
+        "key": "base_sn",
+        "format": "number"
+      },
+      {
+        "label": "Add-on OF",
+        "key": "add_on_of",
+        "format": "number"
+      },
+      {
+        "label": "Add-on SN",
+        "key": "add_on_sn",
+        "format": "number"
+      },
+      {
+        "label": "Total OF",
+        "key": "total_of",
+        "format": "number"
+      },
+      {
+        "label": "Total SN",
+        "key": "total_sn",
+        "format": "number"
+      },
+      {
+        "label": "Total Stitching Cost",
+        "key": "total_stitching_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Add-on Cost",
+        "key": "add_on_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Add-on Cost",
+        "key": "total_add_on_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Fabric Consumption",
+        "key": "fabric_consumption",
+        "format": "text"
+      },
+      {
+        "label": "Fabric Used (Kgs)",
+        "key": "fabric_used_kgs",
+        "format": "number"
+      },
+      {
+        "label": "Fabric Rate",
+        "key": "fabric_rate",
+        "format": "currency"
+      },
+      {
+        "label": "Fabric Cost",
+        "key": "fabric_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Trims Cost/Pc",
+        "key": "trims_cost_pc",
+        "format": "currency"
+      },
+      {
+        "label": "Total Trims Cost",
+        "key": "total_trims_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Material Cost",
+        "key": "total_material_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Cost",
+        "key": "total_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Overhead",
+        "key": "overhead",
+        "format": "currency"
+      },
+      {
+        "label": "C.O.G.S",
+        "key": "cogs",
+        "format": "currency"
+      },
+      {
+        "label": "Margin %",
+        "key": "margin_percentage",
+        "format": "percent"
+      },
+      {
+        "label": "Sales Value (Ex Taxes)",
+        "key": "sales_value_ex_taxes",
+        "format": "currency"
+      },
+      {
+        "label": "SP",
+        "key": "sp",
+        "format": "currency"
+      },
+      {
+        "label": "Branding Cost",
+        "key": "branding_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Sales (including Branding)",
+        "key": "total_sales_including_branding",
+        "format": "currency"
+      },
+      {
+        "label": "GST%",
+        "key": "gst_percent",
+        "format": "percent"
+      },
+      {
+        "label": "GST Amount",
+        "key": "gst_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Total Sales (Including GST)",
+        "key": "total_sales_including_gst",
+        "format": "currency"
+      },
+      {
+        "label": "Item Type",
+        "key": "item_type",
+        "format": "enum"
+      },
+      {
+        "label": "Rmp Category",
+        "key": "rmp_category",
+        "format": "text"
+      },
+      {
+        "label": "Rmp Class",
+        "key": "rmp_class",
+        "format": "text"
+      },
+      {
+        "label": "Rmp Brand",
+        "key": "rmp_brand",
+        "format": "text"
+      },
+      {
+        "label": "Created By",
+        "key": "created_by",
+        "format": "text"
+      },
+      {
+        "label": "Rating",
+        "key": "rating",
+        "format": "text"
+      },
+      {
+        "label": "Customer Positive Review",
+        "key": "customer_positive_review",
+        "format": "text"
+      },
+      {
+        "label": "Customer Negative Review",
+        "key": "customer_negative_review",
+        "format": "text"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Jobsheet Number",
+        "key": "jobsheet_number",
+        "format": "text"
+      },
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Order ID",
+        "key": "order_id",
+        "format": "text"
+      },
+      {
+        "label": "Expected Delivery Date",
+        "key": "expected_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Actual Delivery Date",
+        "key": "actual_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Key Account Manager (KAM)",
+        "key": "kam",
+        "format": "text"
+      },
+      {
+        "label": "Order Status",
+        "key": "order_status",
+        "format": "enum"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Product",
+        "key": "product",
+        "format": "text"
+      },
+      {
+        "label": "Description",
+        "key": "description",
+        "format": "text"
+      },
+      {
+        "label": "Factory",
+        "key": "factory",
+        "format": "text"
+      },
+      {
+        "label": "Total Quantity",
+        "key": "total_quantity",
+        "format": "number"
+      },
+      {
+        "label": "Size Breakup",
+        "key": "size_breakup",
+        "format": "text"
+      },
+      {
+        "label": "Base OF",
+        "key": "base_of",
+        "format": "number"
+      },
+      {
+        "label": "Base SN",
+        "key": "base_sn",
+        "format": "number"
+      },
+      {
+        "label": "Add-on OF",
+        "key": "add_on_of",
+        "format": "number"
+      },
+      {
+        "label": "Add-on SN",
+        "key": "add_on_sn",
+        "format": "number"
+      },
+      {
+        "label": "Total OF",
+        "key": "total_of",
+        "format": "number"
+      },
+      {
+        "label": "Total SN",
+        "key": "total_sn",
+        "format": "number"
+      },
+      {
+        "label": "Total Stitching Cost",
+        "key": "total_stitching_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Add-on Cost",
+        "key": "add_on_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Add-on Cost",
+        "key": "total_add_on_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Fabric Consumption",
+        "key": "fabric_consumption",
+        "format": "text"
+      },
+      {
+        "label": "Fabric Used (Kgs)",
+        "key": "fabric_used_kgs",
+        "format": "number"
+      },
+      {
+        "label": "Fabric Rate",
+        "key": "fabric_rate",
+        "format": "currency"
+      },
+      {
+        "label": "Fabric Cost",
+        "key": "fabric_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Trims Cost/Pc",
+        "key": "trims_cost_pc",
+        "format": "currency"
+      },
+      {
+        "label": "Total Trims Cost",
+        "key": "total_trims_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Material Cost",
+        "key": "total_material_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Cost",
+        "key": "total_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Overhead",
+        "key": "overhead",
+        "format": "currency"
+      },
+      {
+        "label": "C.O.G.S",
+        "key": "cogs",
+        "format": "currency"
+      },
+      {
+        "label": "Margin %",
+        "key": "margin_percentage",
+        "format": "percent"
+      },
+      {
+        "label": "Sales Value (Ex Taxes)",
+        "key": "sales_value_ex_taxes",
+        "format": "currency"
+      },
+      {
+        "label": "SP",
+        "key": "sp",
+        "format": "currency"
+      },
+      {
+        "label": "Branding Cost",
+        "key": "branding_cost",
+        "format": "currency"
+      },
+      {
+        "label": "Total Sales (including Branding)",
+        "key": "total_sales_including_branding",
+        "format": "currency"
+      },
+      {
+        "label": "GST%",
+        "key": "gst_percent",
+        "format": "percent"
+      },
+      {
+        "label": "GST Amount",
+        "key": "gst_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Total Sales (Including GST)",
+        "key": "total_sales_including_gst",
+        "format": "currency"
+      },
+      {
+        "label": "Item Type",
+        "key": "item_type",
+        "format": "enum"
+      },
+      {
+        "label": "Rmp Category",
+        "key": "rmp_category",
+        "format": "text"
+      },
+      {
+        "label": "Rmp Class",
+        "key": "rmp_class",
+        "format": "text"
+      },
+      {
+        "label": "Rmp Brand",
+        "key": "rmp_brand",
+        "format": "text"
+      },
+      {
+        "label": "Created By",
+        "key": "created_by",
+        "format": "text"
+      },
+      {
+        "label": "Rating",
+        "key": "rating",
+        "format": "text"
+      },
+      {
+        "label": "Customer Positive Review",
+        "key": "customer_positive_review",
+        "format": "text"
+      },
+      {
+        "label": "Customer Negative Review",
+        "key": "customer_negative_review",
+        "format": "text"
+      }
+    ]
+  },
+  {
+    "report": "rmp_order_reports",
+    "tab": "",
+    "columns": [
+      {
+        "label": "Order ID",
+        "key": "order_id",
+        "format": "text"
+      },
+      {
+        "label": "Order Number",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Customer Code",
+        "key": "customer_code",
+        "format": "text"
+      },
+      {
+        "label": "Customer Type",
+        "key": "customer_type",
+        "format": "text"
+      },
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "SKU ID",
+        "key": "rmp_sku_id",
+        "format": "text"
+      },
+      {
+        "label": "SKU Name",
+        "key": "rmp_sku_name",
+        "format": "text"
+      },
+      {
+        "label": "Quantity",
+        "key": "quantity",
+        "format": "number"
+      },
+      {
+        "label": "Unit Price",
+        "key": "price",
+        "format": "currency"
+      },
+      {
+        "label": "Total Amount",
+        "key": "total_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Order Status",
+        "key": "order_status",
+        "format": "enum"
+      },
+      {
+        "label": "Sales Coordinator",
+        "key": "sales_coordinator",
+        "format": "text"
+      },
+      {
+        "label": "Dispatch Date",
+        "key": "dispatch_date",
+        "format": "date"
+      },
+      {
+        "label": "Delivery Required On",
+        "key": "delivery_required_on",
+        "format": "date"
+      },
+      {
+        "label": "Expected Delivery",
+        "key": "expected_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Actual Delivery",
+        "key": "actual_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Created",
+        "key": "created_at",
+        "format": "date"
+      },
+      {
+        "label": "Updated",
+        "key": "updated_at",
+        "format": "date"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Order ID",
+        "key": "order_id",
+        "format": "text"
+      },
+      {
+        "label": "Order Number",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Customer Code",
+        "key": "customer_code",
+        "format": "text"
+      },
+      {
+        "label": "Customer Type",
+        "key": "customer_type",
+        "format": "text"
+      },
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "SKU ID",
+        "key": "rmp_sku_id",
+        "format": "text"
+      },
+      {
+        "label": "SKU Name",
+        "key": "rmp_sku_name",
+        "format": "text"
+      },
+      {
+        "label": "Quantity",
+        "key": "quantity",
+        "format": "number"
+      },
+      {
+        "label": "Unit Price",
+        "key": "price",
+        "format": "currency"
+      },
+      {
+        "label": "Total Amount",
+        "key": "total_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Order Status",
+        "key": "order_status",
+        "format": "enum"
+      },
+      {
+        "label": "Sales Coordinator",
+        "key": "sales_coordinator",
+        "format": "text"
+      },
+      {
+        "label": "Dispatch Date",
+        "key": "dispatch_date",
+        "format": "date"
+      },
+      {
+        "label": "Delivery Required On",
+        "key": "delivery_required_on",
+        "format": "date"
+      },
+      {
+        "label": "Expected Delivery",
+        "key": "expected_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Actual Delivery",
+        "key": "actual_delivery_date",
+        "format": "date"
+      },
+      {
+        "label": "Created",
+        "key": "created_at",
+        "format": "date"
+      },
+      {
+        "label": "Updated",
+        "key": "updated_at",
+        "format": "date"
+      }
+    ]
+  },
+  {
+    "report": "tailor_reports",
+    "tab": "",
+    "columns": [
+      {
+        "label": "Jobsheet Number",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Tailor Name",
+        "key": "tailor_name",
+        "format": "text"
+      },
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Total Quantity",
+        "key": "total_quantity",
+        "format": "number"
+      },
+      {
+        "label": "Base OF",
+        "key": "base_of",
+        "format": "number"
+      },
+      {
+        "label": "Base SN",
+        "key": "base_sn",
+        "format": "number"
+      },
+      {
+        "label": "Add-on OF",
+        "key": "add_on_of",
+        "format": "number"
+      },
+      {
+        "label": "Add-on SN",
+        "key": "add_on_sn",
+        "format": "number"
+      },
+      {
+        "label": "OF Rate",
+        "key": "of_rate",
+        "format": "currency"
+      },
+      {
+        "label": "SN Rate",
+        "key": "sn_rate",
+        "format": "currency"
+      },
+      {
+        "label": "OF Amount",
+        "key": "of_amount",
+        "format": "currency"
+      },
+      {
+        "label": "SN Amount",
+        "key": "sn_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Total Amount",
+        "key": "total_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Size Breakup",
+        "key": "size_breakup",
+        "format": "text"
+      },
+      {
+        "label": "Payment Status",
+        "key": "payment_status",
+        "format": "enum"
+      },
+      {
+        "label": "Picking Date",
+        "key": "picking_date_time",
+        "format": "date"
+      },
+      {
+        "label": "Updated On",
+        "key": "updated_on",
+        "format": "date"
+      },
+      {
+        "label": "Week Number",
+        "key": "week_number",
+        "format": "number"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Jobsheet Number",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Tailor Name",
+        "key": "tailor_name",
+        "format": "text"
+      },
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Total Quantity",
+        "key": "total_quantity",
+        "format": "number"
+      },
+      {
+        "label": "Base OF",
+        "key": "base_of",
+        "format": "number"
+      },
+      {
+        "label": "Base SN",
+        "key": "base_sn",
+        "format": "number"
+      },
+      {
+        "label": "Add-on OF",
+        "key": "add_on_of",
+        "format": "number"
+      },
+      {
+        "label": "Add-on SN",
+        "key": "add_on_sn",
+        "format": "number"
+      },
+      {
+        "label": "OF Rate",
+        "key": "of_rate",
+        "format": "currency"
+      },
+      {
+        "label": "SN Rate",
+        "key": "sn_rate",
+        "format": "currency"
+      },
+      {
+        "label": "OF Amount",
+        "key": "of_amount",
+        "format": "currency"
+      },
+      {
+        "label": "SN Amount",
+        "key": "sn_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Total Amount",
+        "key": "total_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Size Breakup",
+        "key": "size_breakup",
+        "format": "text"
+      },
+      {
+        "label": "Payment Status",
+        "key": "payment_status",
+        "format": "enum"
+      },
+      {
+        "label": "Picking Date",
+        "key": "picking_date_time",
+        "format": "date"
+      },
+      {
+        "label": "Updated On",
+        "key": "updated_on",
+        "format": "date"
+      },
+      {
+        "label": "Week Number",
+        "key": "week_number",
+        "format": "number"
+      }
+    ]
+  },
+  {
+    "report": "order_tracking",
+    "tab": "",
+    "columns": [
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Order ID",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Order Number",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Customer ID",
+        "key": "customer_id",
+        "format": "text"
+      },
+      {
+        "label": "Customer Type",
+        "key": "customer_type",
+        "format": "text"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Class ID",
+        "key": "class_id",
+        "format": "text"
+      },
+      {
+        "label": "Class",
+        "key": "class_name",
+        "format": "text"
+      },
+      {
+        "label": "Qty",
+        "key": "qty",
+        "format": "number"
+      },
+      {
+        "label": "Price",
+        "key": "price",
+        "format": "currency"
+      },
+      {
+        "label": "Value",
+        "key": "value",
+        "format": "currency"
+      },
+      {
+        "label": "Status",
+        "key": "status",
+        "format": "text"
+      },
+      {
+        "label": "SLA Date",
+        "key": "sla_date",
+        "format": "date"
+      },
+      {
+        "label": "Is Overdue",
+        "key": "is_overdue",
+        "format": "boolean"
+      },
+      {
+        "label": "Is Failed",
+        "key": "is_failed",
+        "format": "boolean"
+      },
+      {
+        "label": "Is OOS",
+        "key": "is_oos",
+        "format": "boolean"
+      },
+      {
+        "label": "Uniware Reason",
+        "key": "uniware_reason",
+        "format": "text"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Order Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Order ID",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Order Number",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Customer ID",
+        "key": "customer_id",
+        "format": "text"
+      },
+      {
+        "label": "Customer Type",
+        "key": "customer_type",
+        "format": "text"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Class ID",
+        "key": "class_id",
+        "format": "text"
+      },
+      {
+        "label": "Class",
+        "key": "class_name",
+        "format": "text"
+      },
+      {
+        "label": "Qty",
+        "key": "qty",
+        "format": "number"
+      },
+      {
+        "label": "Price",
+        "key": "price",
+        "format": "currency"
+      },
+      {
+        "label": "Value",
+        "key": "value",
+        "format": "currency"
+      },
+      {
+        "label": "Status",
+        "key": "status",
+        "format": "text"
+      },
+      {
+        "label": "SLA Date",
+        "key": "sla_date",
+        "format": "date"
+      },
+      {
+        "label": "Is Overdue",
+        "key": "is_overdue",
+        "format": "boolean"
+      },
+      {
+        "label": "Is Failed",
+        "key": "is_failed",
+        "format": "boolean"
+      },
+      {
+        "label": "Is OOS",
+        "key": "is_oos",
+        "format": "boolean"
+      },
+      {
+        "label": "Uniware Reason",
+        "key": "uniware_reason",
+        "format": "text"
+      }
+    ]
+  },
+  {
+    "report": "rmp_sales",
+    "tab": "overview",
+    "columns": [
+      {
+        "label": "Order #",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Customer",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Type",
+        "key": "customer_type",
+        "format": "text"
+      },
+      {
+        "label": "Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Qty",
+        "key": "total_qty",
+        "format": "number"
+      },
+      {
+        "label": "Amount",
+        "key": "total_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Status",
+        "key": "status",
+        "format": "text"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Order ID",
+        "key": "order_id",
+        "format": "text"
+      },
+      {
+        "label": "Order Number",
+        "key": "order_number",
+        "format": "text"
+      },
+      {
+        "label": "Customer",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Customer Code",
+        "key": "customer_code",
+        "format": "text"
+      },
+      {
+        "label": "Customer Type",
+        "key": "customer_type",
+        "format": "text"
+      },
+      {
+        "label": "Date",
+        "key": "order_date",
+        "format": "date"
+      },
+      {
+        "label": "Qty",
+        "key": "total_qty",
+        "format": "number"
+      },
+      {
+        "label": "Amount",
+        "key": "total_amount",
+        "format": "currency"
+      },
+      {
+        "label": "Status",
+        "key": "status",
+        "format": "text"
+      }
+    ]
+  },
+  {
+    "report": "rmp_sales",
+    "tab": "brand",
+    "columns": [
+      {
+        "label": "Brand",
+        "key": "label",
+        "format": "text"
+      },
+      {
+        "label": "Item Qty",
+        "key": "item_qty",
+        "format": "number"
+      },
+      {
+        "label": "Order Value",
+        "key": "order_value",
+        "format": "currency"
+      },
+      {
+        "label": "Closed Ordered Qty",
+        "key": "closed_ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Value",
+        "key": "closed_ordered_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Qty",
+        "key": "distributor_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Value",
+        "key": "distributor_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Closed Qty",
+        "key": "distributor_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Closed Value",
+        "key": "distributor_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Qty",
+        "key": "other_customer_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Value",
+        "key": "other_customer_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Closed Qty",
+        "key": "other_customer_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Closed Value",
+        "key": "other_customer_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Fill Rate Total",
+        "key": "fill_rate_total",
+        "format": "text"
+      },
+      {
+        "label": "Distributor Fill Rate",
+        "key": "distributor_fill_rate",
+        "format": "text"
+      },
+      {
+        "label": "Other Fill Rate",
+        "key": "other_fill_rate",
+        "format": "text"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Brand",
+        "key": "label",
+        "format": "text"
+      },
+      {
+        "label": "Item Qty",
+        "key": "item_qty",
+        "format": "number"
+      },
+      {
+        "label": "Order Value",
+        "key": "order_value",
+        "format": "currency"
+      },
+      {
+        "label": "Closed Ordered Qty",
+        "key": "closed_ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Value",
+        "key": "closed_ordered_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Qty",
+        "key": "distributor_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Value",
+        "key": "distributor_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Closed Qty",
+        "key": "distributor_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Closed Value",
+        "key": "distributor_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Qty",
+        "key": "other_customer_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Value",
+        "key": "other_customer_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Closed Qty",
+        "key": "other_customer_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Closed Value",
+        "key": "other_customer_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Fill Rate Total",
+        "key": "fill_rate_total",
+        "format": "text"
+      },
+      {
+        "label": "Distributor Fill Rate",
+        "key": "distributor_fill_rate",
+        "format": "text"
+      },
+      {
+        "label": "Other Fill Rate",
+        "key": "other_fill_rate",
+        "format": "text"
+      }
+    ]
+  },
+  {
+    "report": "rmp_sales",
+    "tab": "class",
+    "columns": [
+      {
+        "label": "Class",
+        "key": "label",
+        "format": "text"
+      },
+      {
+        "label": "Item Qty",
+        "key": "item_qty",
+        "format": "number"
+      },
+      {
+        "label": "Order Value",
+        "key": "order_value",
+        "format": "currency"
+      },
+      {
+        "label": "DRR",
+        "key": "drr",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Qty",
+        "key": "closed_ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Value",
+        "key": "closed_ordered_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Qty",
+        "key": "distributor_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Value",
+        "key": "distributor_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Closed Qty",
+        "key": "distributor_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Closed Value",
+        "key": "distributor_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Qty",
+        "key": "other_customer_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Value",
+        "key": "other_customer_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Closed Qty",
+        "key": "other_customer_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Closed Value",
+        "key": "other_customer_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Fill Rate Total",
+        "key": "fill_rate_total",
+        "format": "text"
+      },
+      {
+        "label": "Distributor Fill Rate",
+        "key": "distributor_fill_rate",
+        "format": "text"
+      },
+      {
+        "label": "Other Fill Rate",
+        "key": "other_fill_rate",
+        "format": "text"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Class",
+        "key": "label",
+        "format": "text"
+      },
+      {
+        "label": "Item Qty",
+        "key": "item_qty",
+        "format": "number"
+      },
+      {
+        "label": "Order Value",
+        "key": "order_value",
+        "format": "currency"
+      },
+      {
+        "label": "DRR",
+        "key": "drr",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Qty",
+        "key": "closed_ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Value",
+        "key": "closed_ordered_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Qty",
+        "key": "distributor_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Value",
+        "key": "distributor_value",
+        "format": "currency"
+      },
+      {
+        "label": "Distributor Closed Qty",
+        "key": "distributor_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Distributor Closed Value",
+        "key": "distributor_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Qty",
+        "key": "other_customer_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Value",
+        "key": "other_customer_value",
+        "format": "currency"
+      },
+      {
+        "label": "Other Customer Closed Qty",
+        "key": "other_customer_closed_qty",
+        "format": "number"
+      },
+      {
+        "label": "Other Customer Closed Value",
+        "key": "other_customer_closed_value",
+        "format": "currency"
+      },
+      {
+        "label": "Fill Rate Total",
+        "key": "fill_rate_total",
+        "format": "text"
+      },
+      {
+        "label": "Distributor Fill Rate",
+        "key": "distributor_fill_rate",
+        "format": "text"
+      },
+      {
+        "label": "Other Fill Rate",
+        "key": "other_fill_rate",
+        "format": "text"
+      }
+    ]
+  },
+  {
+    "report": "rmp_sales",
+    "tab": "coordinator",
+    "columns": [
+      {
+        "label": "Sales Coordinator",
+        "key": "coordinator_name",
+        "format": "text"
+      },
+      {
+        "label": "Ordered Qty",
+        "key": "ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Order Value",
+        "key": "order_value",
+        "format": "currency"
+      },
+      {
+        "label": "Closed Ordered Qty",
+        "key": "closed_ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Value",
+        "key": "closed_ordered_value",
+        "format": "currency"
+      },
+      {
+        "label": "Fill Rate Total",
+        "key": "fill_rate_total",
+        "format": "text"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Sales Coordinator",
+        "key": "coordinator_name",
+        "format": "text"
+      },
+      {
+        "label": "Ordered Qty",
+        "key": "ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Order Value",
+        "key": "order_value",
+        "format": "currency"
+      },
+      {
+        "label": "Closed Ordered Qty",
+        "key": "closed_ordered_qty",
+        "format": "number"
+      },
+      {
+        "label": "Closed Ordered Value",
+        "key": "closed_ordered_value",
+        "format": "currency"
+      },
+      {
+        "label": "Fill Rate Total",
+        "key": "fill_rate_total",
+        "format": "text"
+      }
+    ]
+  },
+  {
+    "report": "total_inventory",
+    "tab": "",
+    "columns": [
+      {
+        "label": "SKU",
+        "key": "sku",
+        "format": "text"
+      },
+      {
+        "label": "Inventory",
+        "key": "inventory",
+        "format": "number"
+      },
+      {
+        "label": "DRR",
+        "key": "drr",
+        "format": "number"
+      },
+      {
+        "label": "Days of Cover",
+        "key": "daysOfCover",
+        "format": "number"
+      },
+      {
+        "label": "Status",
+        "key": "status",
+        "format": "enum"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "SKU",
+        "key": "sku",
+        "format": "text"
+      },
+      {
+        "label": "Inventory",
+        "key": "inventory",
+        "format": "number"
+      },
+      {
+        "label": "DRR",
+        "key": "drr",
+        "format": "number"
+      },
+      {
+        "label": "Days of Cover",
+        "key": "daysOfCover",
+        "format": "number"
+      },
+      {
+        "label": "Status",
+        "key": "status",
+        "format": "enum"
+      }
+    ]
+  },
+  {
+    "report": "customer_performance",
+    "tab": "",
+    "columns": [
+      {
+        "label": "Customer ID",
+        "key": "customer_id",
+        "format": "text"
+      },
+      {
+        "label": "Customer Type",
+        "key": "customer_type",
+        "format": "enum"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Zone",
+        "key": "zone",
+        "format": "enum"
+      },
+      {
+        "label": "Qty (September 2026)",
+        "key": "qtyA",
+        "format": "number"
+      },
+      {
+        "label": "Value (September 2026)",
+        "key": "valueA",
+        "format": "currency"
+      },
+      {
+        "label": "Qty (November 2026)",
+        "key": "qtyB",
+        "format": "number"
+      },
+      {
+        "label": "Value (November 2026)",
+        "key": "valueB",
+        "format": "currency"
+      },
+      {
+        "label": "Qty Change",
+        "key": "qtyChange",
+        "format": "number"
+      },
+      {
+        "label": "Value Change",
+        "key": "valueChange",
+        "format": "currency"
+      },
+      {
+        "label": "Qty Change %",
+        "key": "qtyChangePct",
+        "format": "text"
+      },
+      {
+        "label": "Value Change %",
+        "key": "valueChangePct",
+        "format": "text"
+      },
+      {
+        "label": "Last Purchased Date",
+        "key": "last_purchased_date",
+        "format": "text"
+      }
+    ],
+    "exportColumns": [
+      {
+        "label": "Customer ID",
+        "key": "customer_id",
+        "format": "text"
+      },
+      {
+        "label": "Customer Type",
+        "key": "customer_type",
+        "format": "enum"
+      },
+      {
+        "label": "Customer Name",
+        "key": "customer_name",
+        "format": "text"
+      },
+      {
+        "label": "Zone",
+        "key": "zone",
+        "format": "enum"
+      },
+      {
+        "label": "Qty (September 2026)",
+        "key": "qtyA",
+        "format": "number"
+      },
+      {
+        "label": "Value (September 2026)",
+        "key": "valueA",
+        "format": "currency"
+      },
+      {
+        "label": "Qty (November 2026)",
+        "key": "qtyB",
+        "format": "number"
+      },
+      {
+        "label": "Value (November 2026)",
+        "key": "valueB",
+        "format": "currency"
+      },
+      {
+        "label": "Qty Change",
+        "key": "qtyChange",
+        "format": "number"
+      },
+      {
+        "label": "Value Change",
+        "key": "valueChange",
+        "format": "currency"
+      },
+      {
+        "label": "Qty Change %",
+        "key": "qtyChangePct",
+        "format": "text"
+      },
+      {
+        "label": "Value Change %",
+        "key": "valueChangePct",
+        "format": "text"
+      },
+      {
+        "label": "Last Purchased Date",
+        "key": "last_purchased_date",
+        "format": "text"
+      }
+    ]
+  }
+]

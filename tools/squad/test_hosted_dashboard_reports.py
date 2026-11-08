@@ -1,0 +1,69 @@
+"""Verify this migration in a rolled-back staging transaction; no release or business writes."""
+import datetime,json,sys,uuid,time,os
+from pathlib import Path
+import psycopg
+from psycopg.types.json import Jsonb
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'tools/canto-sync'))
+from database import connect,public_structure
+from delta_sync import check_catalog
+from deploy import statements
+MIGRATION=ROOT/'supabase/migrations/20261108125302_squad_dashboard_customers_reports.sql'
+def run():
+ results=[];scenarios=[];reconciliation=[]
+ with connect('staging') as c:
+  check_catalog(c,'staging')
+  before=public_structure(c)
+  with c.transaction():
+   c.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+   c.execute("SET LOCAL lock_timeout='3s'")
+   assert c.execute('SELECT pg_try_advisory_xact_lock(20261107,1)').fetchone()[0],'Refresh/write active; retry later'
+   assert c.execute('SELECT environment,active_job FROM sa_sync.environment_state').fetchone()==('staging',None)
+   if not c.execute("SELECT 1 FROM supabase_migrations.schema_migrations WHERE version='20261108125302'").fetchone():
+    c.execute(';'.join(statements(MIGRATION.read_text())))
+   assert public_structure(c)==before
+   actor=c.execute("SELECT p.id FROM public.profiles p JOIN auth.users u ON u.id=p.id WHERE p.role='admin' AND u.role='authenticated' AND(u.banned_until IS NULL OR u.banned_until<now()) ORDER BY p.id LIMIT 1").fetchone()[0]
+   sid=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sid,actor))
+   c.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'role':'authenticated','sub':str(actor),'session_id':str(sid)}),));c.execute('SET LOCAL ROLE authenticated')
+   c.execute("SET LOCAL statement_timeout='30s'")
+   for report,tab in [('customers',''),('order_reports',''),('rmp_order_reports',''),('tailor_reports',''),('order_tracking',''),('rmp_sales','overview'),('rmp_sales','brand'),('rmp_sales','class'),('rmp_sales','coordinator'),('customer_performance',''),('unique_customers',''),('total_inventory','')][:0 if os.getenv('DASHBOARD_SCENARIOS_ONLY') else None]:
+    args={'report':report,'tab':tab,'filters':{'from':'2026-01-01','before':'2026-11-09','from_b':'2025-01-01','before_b':'2025-11-09'},'query':{'items':20}}
+    if report in ('customers','order_reports','rmp_order_reports','tailor_reports'):args['filters']={}
+    samples=[]
+    for i in range(3):
+     samples.append(c.execute("EXPLAIN(ANALYZE,BUFFERS,FORMAT JSON) SELECT canto_api.dashboard('query',%s)",(Jsonb(args),)).fetchone()[0][0]['Execution Time'])
+    payload=c.execute("SELECT canto_api.dashboard('query',%s)",(Jsonb(args),)).fetchone()[0]
+    assert len(payload['data'])<=20
+    assert payload['summary']['count']==payload['totalCount']
+    c.execute('SET LOCAL ROLE postgres')
+    base=" FROM sa_snapshot_20261019.sa_orders o JOIN sa_snapshot_20261019.sa_users u ON u.id=o.customer_id LEFT JOIN sa_snapshot_20261019.sa_items i ON i.order_id=o.id WHERE o.deleted_at IS NULL AND o.is_deleted IS NOT TRUE"
+    period=" AND coalesce(o.created_on,o.created_at)>='2025-12-31 18:30:00' AND coalesce(o.created_on,o.created_at)<'2026-11-08 18:30:00'"
+    source_sql=None
+    if report in ('customers','customer_performance'):source_sql="SELECT count(*) FROM sa_snapshot_20261019.sa_users WHERE role=3 AND deleted_at IS NULL"
+    elif report in ('order_reports','rmp_order_reports'):source_sql='SELECT count(*)'+base+' AND i.item_type='+('0' if report=='order_reports' else '1')
+    elif report=='tailor_reports':source_sql='SELECT count(DISTINCT i.id)'+base+' AND EXISTS(SELECT FROM sa_snapshot_20261019.sa_job_sheet_tailor_mark_dates d WHERE d.item_id=i.id)'
+    elif report=='order_tracking':source_sql='SELECT count(DISTINCT o.id)'+base+period
+    elif report=='rmp_sales' and tab=='overview':source_sql='SELECT count(DISTINCT o.id)'+base+period+' AND o.order_item_type=0 AND i.item_type=1'
+    elif report=='total_inventory':source_sql='SELECT count(*) FROM sa_snapshot_20261019.sa_rmp_skus WHERE NOT is_deleted'
+    if source_sql:
+     count=c.execute(source_sql).fetchone()[0];assert count==payload['totalCount'],(report,count,payload['totalCount']);reconciliation.append({'report':report,'tab':tab,'sourceCount':count,'matched':True,'revision':payload['revision']})
+    c.execute('SET LOCAL ROLE authenticated')
+    row={'report':report,'tab':tab,'cold_ms':samples[0],'warm_ms':samples[1:],'summary_cache':'revision_keyed_5_minutes' if report=='rmp_order_reports' else 'none','total':payload['totalCount'],'revision':payload['revision'],'target_ms':200}
+    results.append(row);print(json.dumps(row),flush=True)
+   for label,args in [
+    ('rmp_deep_page',{'report':'rmp_order_reports','query':{'page':4000,'items':20}}),
+    ('rmp_search',{'report':'rmp_order_reports','query':{'search':'OD-S-','items':20}}),
+    ('rmp_amount_sort',{'report':'rmp_order_reports','query':{'sort':{'key':'total_amount','direction':'desc','numeric':True},'items':20}}),
+    ('customer_search',{'report':'customers','query':{'search':'company','items':20}}),
+   ]:
+    started=time.monotonic();payload=c.execute("SELECT canto_api.dashboard('query',%s)",(Jsonb(args),)).fetchone()[0]
+    elapsed=(time.monotonic()-started)*1000
+    assert len(payload['data'])<=20 and payload['totalCount']==payload['summary']['count']
+    scenario={'scenario':label,'elapsed_ms':round(elapsed,2),'count':payload['totalCount']};scenarios.append(scenario);print(json.dumps(scenario),flush=True)
+   c.execute('SET LOCAL ROLE postgres');assert public_structure(c)==before
+   raise psycopg.Rollback()
+  assert public_structure(c)==before
+ evidence={'environment':'staging','timestamp':datetime.datetime.now(datetime.timezone.utc).isoformat(),'migration_and_sessions_rolled_back':True,'public_structure_unchanged':True,'results':results,'scenarios':scenarios,'source_reconciliation':reconciliation}
+ if not os.getenv('DASHBOARD_SCENARIOS_ONLY'):(ROOT/'docs/squad-one-audit/implementation-evidence/staging-dashboard-reports.json').write_text(json.dumps(evidence,indent=2)+'\n')
+ assert all(max(x['warm_ms'])<200 for x in results),'Performance targets not met; inspect evidence'
+if __name__=='__main__':run()

@@ -7636,6 +7636,11 @@
     ],
     [
       "sa_items",
+      "dashboard_item_summary",
+      "CREATE INDEX dashboard_item_summary ON sa_snapshot_20261019.sa_items USING btree (item_type, id DESC) INCLUDE (order_id, total_quantity, total_amount, branding_amount, cgst_amount, sgst_amount, igst_amount, uc_order_status, dispatched_status)"
+    ],
+    [
+      "sa_items",
       "sa_index_items_on_cutting_master_id",
       "CREATE INDEX sa_index_items_on_cutting_master_id ON sa_snapshot_20261019.sa_items USING btree (cutting_master_id)"
     ],
@@ -7863,6 +7868,11 @@
       "sa_notifications",
       "squad_notification_recipient_page",
       "CREATE INDEX squad_notification_recipient_page ON sa_snapshot_20261019.sa_notifications USING btree (recipient_id, id DESC)"
+    ],
+    [
+      "sa_orders",
+      "dashboard_live_orders",
+      "CREATE INDEX dashboard_live_orders ON sa_snapshot_20261019.sa_orders USING btree (id) INCLUDE (customer_id, created_on, created_at) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],
     [
       "sa_orders",
@@ -8158,6 +8168,11 @@
       "sa_promotions",
       "squad_promotion_page",
       "CREATE INDEX squad_promotion_page ON sa_snapshot_20261019.sa_promotions USING btree (updated_at DESC, id DESC) WHERE (is_deleted IS NOT TRUE)"
+    ],
+    [
+      "sa_quantities",
+      "dashboard_quantity_mapping",
+      "CREATE INDEX dashboard_quantity_mapping ON sa_snapshot_20261019.sa_quantities USING btree (item_id, size_id) WHERE (quantity > 0)"
     ],
     [
       "sa_quantities",
@@ -8643,6 +8658,11 @@
       "sa_tasks",
       "squad_tasks_order_page",
       "CREATE INDEX squad_tasks_order_page ON sa_snapshot_20261019.sa_tasks USING btree (order_id, id DESC)"
+    ],
+    [
+      "sa_user_dealers",
+      "dashboard_dealer_customer",
+      "CREATE INDEX dashboard_dealer_customer ON sa_snapshot_20261019.sa_user_dealers USING btree (user_id, dealer_id)"
     ],
     [
       "sa_user_dealers",

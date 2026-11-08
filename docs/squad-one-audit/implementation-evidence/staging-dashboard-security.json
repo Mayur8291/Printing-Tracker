@@ -1,0 +1,91 @@
+{
+  "environment": "staging",
+  "raw_security_lint_count": 199,
+  "prior_backend_release_raw_count": 195,
+  "connector_category_count": 5,
+  "new_reviewed_notices": [
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`sa_domain.report_money\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "schema": "sa_domain",
+        "name": "report_money",
+        "type": "function"
+      },
+      "cache_key": "function_search_path_mutable_sa_domain_report_money_cb62187b4301a1729e18914f2f07d8fe",
+      "observed_at": "2026-11-08T14:27:10.165Z"
+    },
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`sa_domain.dashboard_breakdown_row\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "schema": "sa_domain",
+        "name": "dashboard_breakdown_row",
+        "type": "function"
+      },
+      "cache_key": "function_search_path_mutable_sa_domain_dashboard_breakdown_row_9709ea7a8c7d28a9e0ecc0dcda7a551f",
+      "observed_at": "2026-11-08T14:27:10.165Z"
+    },
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`sa_domain.dashboard_number\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "schema": "sa_domain",
+        "name": "dashboard_number",
+        "type": "function"
+      },
+      "cache_key": "function_search_path_mutable_sa_domain_dashboard_number_4d861f047491d18483afb8dee58553f3",
+      "observed_at": "2026-11-08T14:27:10.165Z"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects `SECURITY DEFINER` functions that are callable by signed-in users. Revoke `EXECUTE`, switch the function to `SECURITY INVOKER`, or move it out of your exposed API schema if signed-in users should not call it.",
+      "detail": "Function `canto_api.dashboard(p_action text, p_args jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/dashboard`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+      "metadata": {
+        "schema": "canto_api",
+        "name": "dashboard",
+        "language": "plpgsql",
+        "arguments": "p_action text, p_args jsonb",
+        "security_definer": true
+      },
+      "cache_key": "authenticated_security_definer_function_executable_canto_api_dashboard_p_action text, p_args jsonb",
+      "observed_at": "2026-11-08T14:27:10.165Z"
+    }
+  ],
+  "review": {
+    "pure_scalars": "SECURITY INVOKER; built-in scalar expressions only, no relation access or dynamic SQL; private calls under fixed pg_catalog boundaries. SET search_path would disable required SQL inlining.",
+    "dashboard_dispatch": "Authenticated callable by design, with live platform admin/session check before private context creation. Owner is NOLOGIN NOINHERIT NOBYPASSRLS. Anonymous and Squad roles have no EXECUTE. Denial/forged-context tests pass."
+  },
+  "public_structure_unchanged": true
+}

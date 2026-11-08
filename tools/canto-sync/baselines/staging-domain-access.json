@@ -659,6 +659,114 @@
     ],
     [
       "sa_domain",
+      "dashboard_context",
+      "dashboard_context_dispatch",
+      "{sa_dashboard}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "dashboard_context",
+      "dashboard_context_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "dashboard_context",
+      "dashboard_export_context",
+      "{sa_executor}",
+      "ALL",
+      "((actor_id = ( SELECT sa_domain.worker_actor_id() AS worker_actor_id)) AND (backend_pid = pg_backend_pid()) AND (transaction_id = txid_current()))",
+      "((actor_id = ( SELECT sa_domain.worker_actor_id() AS worker_actor_id)) AND (backend_pid = pg_backend_pid()) AND (transaction_id = txid_current()))"
+    ],
+    [
+      "sa_domain",
+      "dashboard_effects",
+      "dashboard_effect_executor",
+      "{sa_executor}",
+      "ALL",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "dashboard_effects",
+      "dashboard_effect_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "dashboard_export_rows",
+      "dashboard_export_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "dashboard_export_rows",
+      "dashboard_export_row_owner",
+      "{sa_executor}",
+      "ALL",
+      "(export_id IN ( SELECT dashboard_exports.id\n   FROM sa_domain.dashboard_exports))",
+      "(export_id IN ( SELECT dashboard_exports.id\n   FROM sa_domain.dashboard_exports))"
+    ],
+    [
+      "sa_domain",
+      "dashboard_exports",
+      "dashboard_export_cleanup",
+      "{sa_worker}",
+      "ALL",
+      "(expires_at <= now())",
+      null
+    ],
+    [
+      "sa_domain",
+      "dashboard_exports",
+      "dashboard_export_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "dashboard_exports",
+      "dashboard_export_owner",
+      "{sa_executor}",
+      "ALL",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "dashboard_summaries",
+      "dashboard_summary_dispatch",
+      "{sa_dashboard}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "dashboard_summaries",
+      "dashboard_summary_read",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "design_owners",
       "squad_design_owners",
       "{sa_executor}",
@@ -782,6 +890,15 @@
       "ALL",
       "true",
       "true"
+    ],
+    [
+      "sa_domain",
+      "entity_versions",
+      "dashboard_version_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_domain",
@@ -2109,6 +2226,15 @@
     [
       "sa_domain",
       "worker_context",
+      "dashboard_worker_context_read",
+      "{sa_executor}",
+      "SELECT",
+      "((backend_pid = pg_backend_pid()) AND (transaction_id = txid_current()) AND (actor_id = ( SELECT sa_domain.worker_actor_id() AS worker_actor_id)))",
+      null
+    ],
+    [
+      "sa_domain",
+      "worker_context",
       "squad_context_guard",
       "{sa_guard}",
       "SELECT",
@@ -2298,6 +2424,15 @@
     [
       "sa_snapshot_20261019",
       "sa_add_ons",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_add_ons",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -2371,6 +2506,15 @@
       "sa_snapshot_20261019",
       "sa_addresses",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_addresses",
+      "dashboard_address_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -2669,6 +2813,15 @@
       "sa_base_products",
       "airtable_worker_catalog",
       "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_products",
+      "dashboard_report_guard",
+      "{sa_guard}",
       "SELECT",
       "true",
       null
@@ -3198,6 +3351,15 @@
     [
       "sa_snapshot_20261019",
       "sa_fabrics",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_fabrics",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -3244,6 +3406,15 @@
       "sa_snapshot_20261019",
       "sa_factories",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_factories",
+      "dashboard_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -3360,6 +3531,15 @@
     [
       "sa_snapshot_20261019",
       "sa_item_tailor_quantities",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailor_quantities",
       "squad_guard_work_parent",
       "{sa_guard}",
       "SELECT",
@@ -3397,6 +3577,15 @@
       "sa_snapshot_20261019",
       "sa_item_tailors",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailors",
+      "dashboard_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -3639,6 +3828,15 @@
     [
       "sa_snapshot_20261019",
       "sa_job_sheet_dispatched_dates",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_dispatched_dates",
       "squad_guard_stock_dispatch",
       "{sa_guard}",
       "SELECT",
@@ -3693,6 +3891,15 @@
     [
       "sa_snapshot_20261019",
       "sa_job_sheet_mark_tailors",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_mark_tailors",
       "squad_guard_work_parent",
       "{sa_guard}",
       "SELECT",
@@ -3730,6 +3937,15 @@
       "sa_snapshot_20261019",
       "sa_job_sheet_tailor_mark_dates",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_tailor_mark_dates",
+      "dashboard_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -3847,6 +4063,15 @@
       "sa_snapshot_20261019",
       "sa_mark_tailor_quantities",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_tailor_quantities",
+      "dashboard_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -4089,6 +4314,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_part_add_ons",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_part_add_ons",
       "squad_detail_guard",
       "{sa_guard}",
       "SELECT",
@@ -4143,6 +4377,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_parts",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_parts",
       "squad_detail_guard",
       "{sa_guard}",
       "SELECT",
@@ -4189,6 +4432,15 @@
       "sa_snapshot_20261019",
       "sa_products",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_products",
+      "dashboard_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -4287,6 +4539,15 @@
     [
       "sa_snapshot_20261019",
       "sa_profit_margins",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_profit_margins",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -4378,6 +4639,15 @@
       "sa_snapshot_20261019",
       "sa_quantities",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_quantities",
+      "dashboard_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -4548,6 +4818,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_brands",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_brands",
       "squad_catalog_guard",
       "{sa_guard}",
       "SELECT",
@@ -4595,6 +4874,15 @@
       "sa_rmp_categories",
       "airtable_worker_catalog",
       "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_categories",
+      "dashboard_report_guard",
+      "{sa_guard}",
       "SELECT",
       "true",
       null
@@ -4674,6 +4962,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_classes",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_classes",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -4746,6 +5043,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_colors",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_colors",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -4784,6 +5090,15 @@
       "sa_rmp_price_types",
       "airtable_worker_catalog",
       "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_price_types",
+      "dashboard_price_type_guard",
+      "{sa_guard}",
       "SELECT",
       "true",
       null
@@ -4863,6 +5178,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_sizes",
+      "dashboard_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_sizes",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -4928,6 +5252,15 @@
       "sa_rmp_skus",
       "airtable_worker_catalog",
       "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_skus",
+      "dashboard_report_guard",
+      "{sa_guard}",
       "SELECT",
       "true",
       null
@@ -5063,6 +5396,15 @@
       "sa_sizes",
       "airtable_worker_sizes",
       "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_sizes",
+      "dashboard_report_guard",
+      "{sa_guard}",
       "SELECT",
       "true",
       null
@@ -5485,6 +5827,15 @@
       "sa_snapshot_20261019",
       "sa_zones",
       "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_zones",
+      "dashboard_zone_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -7459,7 +7810,7 @@
     [
       "sa_users",
       "approved_at",
-      "{sa_executor=arw/postgres,sa_account_writer=w/postgres}"
+      "{sa_executor=arw/postgres,sa_account_writer=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -7579,7 +7930,7 @@
     [
       "sa_users",
       "onboarded_at",
-      "{sa_executor=arw/postgres,sa_account_writer=w/postgres}"
+      "{sa_executor=arw/postgres,sa_account_writer=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -9965,7 +10316,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_account_writer=X/sa_account_writer,authenticated=X/sa_account_writer,sa_app=X/sa_account_writer}",
+      "{sa_account_writer=X/sa_account_writer,authenticated=X/sa_account_writer,sa_app=X/sa_account_writer,sa_dashboard=X/sa_account_writer,sa_executor=X/sa_account_writer}",
       "af3a198f11e6f9af67c8ff51c500f5bf"
     ],
     [
@@ -10002,7 +10353,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_account_writer=X/sa_guard}",
-      "b2f2f029c1a8964f738a8a2184ba3049"
+      "572aa667d8e97ee448f1a4d4cdfe51ca"
     ],
     [
       "sa_domain",
@@ -11066,6 +11417,276 @@
     ],
     [
       "sa_domain",
+      "dashboard_actor_id",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "eb22c887e735fb18d3adec12ed725642"
+    ],
+    [
+      "sa_domain",
+      "dashboard_breakdown_row",
+      "v jsonb, p_filters jsonb",
+      "sa_guard",
+      false,
+      null,
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "4f8303b12ca9b1403cd46b19aecafd58"
+    ],
+    [
+      "sa_domain",
+      "dashboard_capture_export",
+      "p_id uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor,sa_guard=X/sa_executor,sa_dashboard=X/sa_executor}",
+      "f667736c27acdb2cf91be1a5c6762faf"
+    ],
+    [
+      "sa_domain",
+      "dashboard_customer",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "20ead899d6228187d84752119293b693"
+    ],
+    [
+      "sa_domain",
+      "dashboard_customer_archive",
+      "p_id bigint, p_version text, p_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_dashboard=X/sa_executor}",
+      "df122ff85d0e5069ee326c1e735609af"
+    ],
+    [
+      "sa_domain",
+      "dashboard_customer_effects",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "b688da008be5570c56f08adbfb398161"
+    ],
+    [
+      "sa_domain",
+      "dashboard_customer_options",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "2e0b3ea32e6fee93697e55fd54dbf174"
+    ],
+    [
+      "sa_domain",
+      "dashboard_customer_save",
+      "p_id bigint, p_values jsonb, p_version text, p_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_dashboard=X/sa_executor}",
+      "ccba978228d452b66e161f771c73eb55"
+    ],
+    [
+      "sa_domain",
+      "dashboard_customers",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "4d331ee8450ebed1b537d4e462cf90d9"
+    ],
+    [
+      "sa_domain",
+      "dashboard_event_applied",
+      "",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_dashboard=X/sa_executor}",
+      "e459850b3fb948bc3753cbbf502d3447"
+    ],
+    [
+      "sa_domain",
+      "dashboard_export_claim",
+      "p_limit integer",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "8f599555a804694fbb805d2bde5a562f"
+    ],
+    [
+      "sa_domain",
+      "dashboard_export_execute",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog",
+        "jit=off"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "04f9c46a2f2762e969d1d82736d88a18"
+    ],
+    [
+      "sa_domain",
+      "dashboard_export_read",
+      "p_id uuid, p_page integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "611601e525aaa4dad48e253fed824c24"
+    ],
+    [
+      "sa_domain",
+      "dashboard_export_request",
+      "p_request jsonb, p_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_dashboard=X/sa_executor}",
+      "7c831ebc3bf6d000040d7ce05f25ef36"
+    ],
+    [
+      "sa_domain",
+      "dashboard_fast_result",
+      "p_report text, p_tab text, p_filters jsonb, p_page integer, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan",
+        "work_mem=32MB"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "9d097953f17da33f1303c12ad2d38c26"
+    ],
+    [
+      "sa_domain",
+      "dashboard_item_rows",
+      "p_kind text, p_filters jsonb",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "418651ec6713f314bfb9f87cf1127c78"
+    ],
+    [
+      "sa_domain",
+      "dashboard_match",
+      "p_row jsonb, p_group jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_dashboard=X/postgres}",
+      "1644bf7b23995f70255c99017084ba50"
+    ],
+    [
+      "sa_domain",
+      "dashboard_number",
+      "p_value text",
+      "postgres",
+      false,
+      null,
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_dashboard=X/postgres}",
+      "b71c3923722a3d3044b809692bda12f0"
+    ],
+    [
+      "sa_domain",
+      "dashboard_query",
+      "p_report text, p_tab text, p_filters jsonb, p_query jsonb",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "948cdf4ebd594a7f0b9d8d16adc59135"
+    ],
+    [
+      "sa_domain",
+      "dashboard_rmp_query",
+      "p_filters jsonb, p_query jsonb",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan",
+        "work_mem=32MB"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "ef927c913a6611315bd74694f2f31d61"
+    ],
+    [
+      "sa_domain",
+      "dashboard_rmp_rows",
+      "p_filters jsonb",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan",
+        "work_mem=32MB"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "8f0594e4704a8b71015fb26e2de42fa7"
+    ],
+    [
+      "sa_domain",
+      "dashboard_rows",
+      "p_report text, p_tab text, p_filters jsonb",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "plan_cache_mode=force_custom_plan"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_dashboard=X/sa_guard}",
+      "37eecaad75e7caf28d36b0374e2a3c36"
+    ],
+    [
+      "sa_domain",
       "day_start",
       "p_day date",
       "postgres",
@@ -11661,8 +12282,8 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres,sa_integrator=X/postgres}",
-      "eb0690da59ce1a93d1da527abec3b984"
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres,sa_integrator=X/postgres,sa_guard=X/postgres}",
+      "6a377224efdaf218466de2ff213bc4ee"
     ],
     [
       "sa_domain",
@@ -12549,11 +13170,9 @@
       "p_value numeric",
       "postgres",
       false,
-      [
-        "search_path=pg_catalog"
-      ],
+      null,
       "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
-      "774670ba2ac747b9267903431d756b15"
+      "7078d82c689c76ea3dc50f1889d6647d"
     ],
     [
       "sa_domain",
@@ -12588,7 +13207,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres,sa_dashboard=X/postgres}",
       "2cf92e05feab9a4c211412de4f00e1c7"
     ],
     [
@@ -12662,7 +13281,7 @@
         "plan_cache_mode=force_custom_plan"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "0be9eb52e21ee331a0649a8ad207713f"
+      "5d0b00d3ef42bd1a5fc88a34d4cb48cb"
     ],
     [
       "sa_domain",
@@ -13033,7 +13652,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "75a5862056e97372436e0b97673f5fe6"
+      "548386b02ddeb5bf8fd0311fd96b884b"
     ],
     [
       "sa_domain",
@@ -13105,7 +13724,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "7b3b38d8faeaa6d59e8cc2210d517a60"
+      "7b3caeca21f913063498694aad130fb3"
     ],
     [
       "sa_domain",
@@ -13117,7 +13736,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "967af4b4d860988e0efa461ccee78183"
+      "9ef5719f7e5b9f313276200b91cdbafe"
     ],
     [
       "sa_domain",
@@ -16145,7 +16764,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard,sa_account_writer=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard,sa_account_writer=X/sa_guard,sa_dashboard=X/sa_guard}",
       "8946ae35c7caf955a78b35bad2bedf5b"
     ],
     [
@@ -16489,6 +17108,54 @@
       true,
       true,
       "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_media_writer=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "dashboard_context",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_dashboard=ard/postgres,sa_guard=r/postgres,sa_executor=ard/postgres}"
+    ],
+    [
+      "sa_domain",
+      "dashboard_effects",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "dashboard_export_rows",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "dashboard_exports",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arwd/postgres,sa_worker=rd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "dashboard_exports_sequence_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_executor=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "dashboard_summaries",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_dashboard=ard/postgres}"
     ],
     [
       "sa_domain",
@@ -17024,7 +17691,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_worker=ard/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_worker=ard/postgres,sa_guard=r/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_domain",
@@ -17146,7 +17813,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,authenticated=X/postgres,sa_guard=X/postgres}",
+      "{postgres=X/postgres,authenticated=X/postgres,sa_guard=X/postgres,sa_dashboard=X/postgres}",
       "2baf422283dd189e51aea30536f1fa40"
     ],
     [
@@ -17211,6 +17878,20 @@
     ]
   ],
   [
+    [
+      "dashboard_event_applied",
+      "O",
+      "CREATE TRIGGER dashboard_event_applied BEFORE INSERT ON sa_domain.outbox FOR EACH ROW WHEN ((new.event_type = ANY (ARRAY['dashboard.customer_saved'::text, 'dashboard.customer_archived'::text]))) EXECUTE FUNCTION sa_domain.dashboard_event_applied()",
+      "sa_domain",
+      "dashboard_event_applied",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_dashboard=X/sa_executor}",
+      "e459850b3fb948bc3753cbbf502d3447"
+    ],
     [
       "sa_validate_scott_auth_state",
       "O",

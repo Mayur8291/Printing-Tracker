@@ -1,0 +1,244 @@
+{
+  "environment": "staging",
+  "timestamp": "2026-11-08T13:54:18.213851+00:00",
+  "migration_and_sessions_rolled_back": true,
+  "public_structure_unchanged": true,
+  "results": [
+    {
+      "report": "customers",
+      "tab": "",
+      "cold_ms": 404.343,
+      "warm_ms": [
+        89.327,
+        92.15
+      ],
+      "summary_cache": "none",
+      "total": 6819,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "cold_ms": 825.495,
+      "warm_ms": [
+        53.79,
+        50.488
+      ],
+      "summary_cache": "none",
+      "total": 1482,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "cold_ms": 405.699,
+      "warm_ms": [
+        40.419,
+        36.473
+      ],
+      "summary_cache": "revision_keyed_5_minutes",
+      "total": 90336,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "cold_ms": 632.874,
+      "warm_ms": [
+        76.321,
+        69.49
+      ],
+      "summary_cache": "none",
+      "total": 1272,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "cold_ms": 277.83,
+      "warm_ms": [
+        106.451,
+        105.994
+      ],
+      "summary_cache": "none",
+      "total": 13201,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "cold_ms": 135.148,
+      "warm_ms": [
+        132.54,
+        133.685
+      ],
+      "summary_cache": "none",
+      "total": 13127,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "brand",
+      "cold_ms": 463.414,
+      "warm_ms": [
+        156.82,
+        156.351
+      ],
+      "summary_cache": "none",
+      "total": 112,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "class",
+      "cold_ms": 170.559,
+      "warm_ms": [
+        165.759,
+        158.103
+      ],
+      "summary_cache": "none",
+      "total": 605,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "coordinator",
+      "cold_ms": 156.864,
+      "warm_ms": [
+        155.194,
+        154.395
+      ],
+      "summary_cache": "none",
+      "total": 21,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "cold_ms": 228.628,
+      "warm_ms": [
+        173.591,
+        173.456
+      ],
+      "summary_cache": "none",
+      "total": 6819,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "unique_customers",
+      "tab": "",
+      "cold_ms": 72.437,
+      "warm_ms": [
+        62.819,
+        63.758
+      ],
+      "summary_cache": "none",
+      "total": 1,
+      "revision": "0:566",
+      "target_ms": 200
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "cold_ms": 164.153,
+      "warm_ms": [
+        116.563,
+        116.357
+      ],
+      "summary_cache": "none",
+      "total": 4134,
+      "revision": "0:566",
+      "target_ms": 200
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario": "rmp_deep_page",
+      "elapsed_ms": 246.89,
+      "count": 90336
+    },
+    {
+      "scenario": "rmp_search",
+      "elapsed_ms": 3734.41,
+      "count": 90336
+    },
+    {
+      "scenario": "rmp_amount_sort",
+      "elapsed_ms": 2154.29,
+      "count": 90336
+    },
+    {
+      "scenario": "customer_search",
+      "elapsed_ms": 1381.61,
+      "count": 54
+    }
+  ],
+  "source_reconciliation": [
+    {
+      "report": "customers",
+      "tab": "",
+      "sourceCount": 6819,
+      "matched": true,
+      "revision": "0:566"
+    },
+    {
+      "report": "order_reports",
+      "tab": "",
+      "sourceCount": 1482,
+      "matched": true,
+      "revision": "0:566"
+    },
+    {
+      "report": "rmp_order_reports",
+      "tab": "",
+      "sourceCount": 90336,
+      "matched": true,
+      "revision": "0:566"
+    },
+    {
+      "report": "tailor_reports",
+      "tab": "",
+      "sourceCount": 1272,
+      "matched": true,
+      "revision": "0:566"
+    },
+    {
+      "report": "order_tracking",
+      "tab": "",
+      "sourceCount": 13201,
+      "matched": true,
+      "revision": "0:566"
+    },
+    {
+      "report": "rmp_sales",
+      "tab": "overview",
+      "sourceCount": 13127,
+      "matched": true,
+      "revision": "0:566"
+    },
+    {
+      "report": "customer_performance",
+      "tab": "",
+      "sourceCount": 6819,
+      "matched": true,
+      "revision": "0:566"
+    },
+    {
+      "report": "total_inventory",
+      "tab": "",
+      "sourceCount": 4134,
+      "matched": true,
+      "revision": "0:566"
+    }
+  ]
+}
