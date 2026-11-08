@@ -1,0 +1,68 @@
+{
+  "captured_at": "2026-11-08T15:28:08.213499+00:00",
+  "upgrade_started": false,
+  "environments": {
+    "production": {
+      "project_ref": "levwrmvqdntngeasrtnb",
+      "status": "ACTIVE_HEALTHY",
+      "current_database_build": "17.6.1.084",
+      "eligibility": {
+        "eligible": true,
+        "current_app_version": "supabase-postgres-17.6.1.084",
+        "current_app_version_release_channel": "ga",
+        "latest_app_version": "supabase-postgres-17.11.0.018",
+        "target_upgrade_versions": [
+          {
+            "postgres_version": "17",
+            "release_channel": "ga",
+            "app_version": "supabase-postgres-17.11.0.018"
+          }
+        ],
+        "duration_estimate_hours": 1,
+        "legacy_auth_custom_roles": [],
+        "objects_to_be_dropped": [],
+        "unsupported_extensions": [],
+        "user_defined_objects_in_internal_schemas": [],
+        "validation_errors": [],
+        "warnings": []
+      },
+      "backup_summary": {
+        "pitr_enabled": false,
+        "walg_enabled": true,
+        "completed_physical_backup_count": 7,
+        "latest_completed_at": "2026-11-07T21:41:00.792Z"
+      }
+    },
+    "staging": {
+      "project_ref": "scvojtvgnkmbupvyslmb",
+      "status": "ACTIVE_HEALTHY",
+      "current_database_build": "17.6.1.127",
+      "eligibility": {
+        "eligible": true,
+        "current_app_version": "supabase-postgres-17.6.1.127",
+        "current_app_version_release_channel": "ga",
+        "latest_app_version": "supabase-postgres-17.11.0.018",
+        "target_upgrade_versions": [
+          {
+            "postgres_version": "17",
+            "release_channel": "ga",
+            "app_version": "supabase-postgres-17.11.0.018"
+          }
+        ],
+        "duration_estimate_hours": 1,
+        "legacy_auth_custom_roles": [],
+        "objects_to_be_dropped": [],
+        "unsupported_extensions": [],
+        "user_defined_objects_in_internal_schemas": [],
+        "validation_errors": [],
+        "warnings": []
+      },
+      "backup_summary": {
+        "pitr_enabled": false,
+        "walg_enabled": true,
+        "completed_physical_backup_count": 7,
+        "latest_completed_at": "2026-11-07T22:10:05.645Z"
+      }
+    }
+  }
+}

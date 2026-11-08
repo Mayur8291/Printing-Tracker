@@ -1,0 +1,194 @@
+{
+  "measured_at": "2026-11-08T15:28:08.213499+00:00",
+  "read_only": true,
+  "upgrade_started": false,
+  "environments": {
+    "production": {
+      "database_bytes": [
+        [
+          481176723
+        ]
+      ],
+      "cron_history_bytes": [
+        [
+          9748480
+        ]
+      ],
+      "extensions": [
+        [
+          "pg_cron",
+          "1.6.4"
+        ],
+        [
+          "pg_net",
+          "0.20.0"
+        ],
+        [
+          "pg_stat_statements",
+          "1.11"
+        ],
+        [
+          "pgcrypto",
+          "1.3"
+        ],
+        [
+          "plpgsql",
+          "1.0"
+        ],
+        [
+          "supabase_vault",
+          "0.3.1"
+        ],
+        [
+          "uuid-ossp",
+          "1.1"
+        ]
+      ],
+      "slots": [],
+      "ltree_columns": [],
+      "invalid_indexes": [],
+      "cron_inventory": [
+        [
+          "inv-drift-nightly",
+          "0 21 * * *",
+          true
+        ],
+        [
+          "ops-daily-briefing",
+          "30 3 * * *",
+          true
+        ],
+        [
+          "promote-stale-new-orders",
+          "*/10 * * * *",
+          true
+        ],
+        [
+          "purge-expired-order-customer-assets",
+          "30 * * * *",
+          true
+        ],
+        [
+          "purge-expired-team-chat-attachments",
+          "15 * * * *",
+          true
+        ],
+        [
+          "squad-documents-pump",
+          "5 seconds",
+          true
+        ],
+        [
+          "squad-jobs-minute",
+          "* * * * *",
+          true
+        ],
+        [
+          "squad-media-cleanup",
+          "17 * * * *",
+          true
+        ]
+      ],
+      "public_structure_sha256": "3c990c6e990622980608dcc152f65c9e47d8dd1ea8a714aafabcaeddeab7b9d2"
+    },
+    "staging": {
+      "database_bytes": [
+        [
+          814320787
+        ]
+      ],
+      "cron_history_bytes": [
+        [
+          29155328
+        ]
+      ],
+      "extensions": [
+        [
+          "pg_cron",
+          "1.6.4"
+        ],
+        [
+          "pg_net",
+          "0.20.3"
+        ],
+        [
+          "pg_stat_statements",
+          "1.11"
+        ],
+        [
+          "pgcrypto",
+          "1.3"
+        ],
+        [
+          "plpgsql",
+          "1.0"
+        ],
+        [
+          "supabase_vault",
+          "0.3.1"
+        ],
+        [
+          "uuid-ossp",
+          "1.1"
+        ]
+      ],
+      "slots": [
+        [
+          "supabase_realtime_replication_slot_2_148_1_3932dc7",
+          "logical",
+          true
+        ],
+        [
+          "supabase_realtime_messages_replication_slot_2_148_1_3932dc7",
+          "logical",
+          true
+        ]
+      ],
+      "ltree_columns": [],
+      "invalid_indexes": [],
+      "cron_inventory": [
+        [
+          "inv-drift-nightly",
+          "0 21 * * *",
+          true
+        ],
+        [
+          "ops-daily-briefing",
+          "30 3 * * *",
+          true
+        ],
+        [
+          "promote-stale-new-orders",
+          "*/10 * * * *",
+          true
+        ],
+        [
+          "purge-expired-order-customer-assets",
+          "30 * * * *",
+          true
+        ],
+        [
+          "purge-expired-team-chat-attachments",
+          "15 * * * *",
+          true
+        ],
+        [
+          "squad-documents-pump",
+          "5 seconds",
+          true
+        ],
+        [
+          "squad-jobs-minute",
+          "* * * * *",
+          true
+        ],
+        [
+          "squad-media-cleanup",
+          "17 * * * *",
+          true
+        ]
+      ],
+      "public_structure_sha256": "05d34e00e8e4e1d5bfa9b23212717e898bd58d0c3e13888ebcaf1eceae6997fa"
+    }
+  }
+}

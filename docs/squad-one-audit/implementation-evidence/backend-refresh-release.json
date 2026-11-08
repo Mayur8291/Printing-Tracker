@@ -1,0 +1,15 @@
+{
+  "measured_at": "2026-11-08T15:27:40.704124+00:00",
+  "release_ref": "codex/backend-parity-20261108-112",
+  "commit": "1123afa155d3a271520dcba6059873073a529932",
+  "remote_verified": true,
+  "environments": {
+    "staging": {
+      "workflow_ref_verified": true
+    },
+    "production": {
+      "workflow_ref_verified": true
+    }
+  },
+  "refresh_dispatched": false
+}

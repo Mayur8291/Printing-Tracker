@@ -44,3 +44,9 @@ The final application schema, role/grant definitions, RPCs, four checked Edge ar
 The verifier deliberately retains `equal: false` for this remaining platform difference and reports `application_artifacts_equal` separately. No managed database upgrade, downgrade, restart or fabricated extension-version change was performed. Supabase requires a [platform/Postgres upgrade to obtain newer pg_net packages](https://supabase.com/docs/guides/database/extensions/pg_net); its [current extension policy](https://supabase.com/changelog/extension-version-pinning-ignored) also ignores explicit version pins for non-superusers. A production maintenance upgrade must be planned separately because it can interrupt the live Printing Tracker and affect platform-managed extensions.
 
 `verify_mirror_transport.py` exercises each installed pg_net version against its own paused worker and records the actual HTTP response. This establishes the required transport behavior without claiming the extension packages are identical or activating provider work.
+
+## Saved release and maintenance preparation
+
+Both refresh dispatchers are verified pinned to `codex/backend-parity-20261108-112`, commit `1123afa155d3a271520dcba6059873073a529932`. See `implementation-evidence/backend-refresh-release.json`. No refresh ran.
+
+The user requested preparation of the remaining managed upgrade. Both projects currently offer GA build `17.11.0.018` with a one-hour estimate each, so the reviewed proposal upgrades staging first and production only after validation. Existing daily backups were checked; fresh verified recovery points remain mandatory execution gates. See [the maintenance plan](PLATFORM_MAINTENANCE_PLAN.md). No upgrade has started.
