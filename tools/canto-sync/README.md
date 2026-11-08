@@ -44,6 +44,25 @@ The source environment, host, database, destination and archive SHA-256 are chec
 8. **Verify before commit.** Compare every resulting table to the captured source, validate sequence positions, constraints and isolation, and confirm the transaction has not changed the public schema or existing staff Auth records. These comparisons share a repeatable-read snapshot so an independent staff sign-in does not cause a false failure. Save a durable commit record. Any validation failure rolls back the entire publication. Identical repeated input yields zero row changes.
 9. **Re-run on demand.** Repeat the same environment-specific command after ten days or whenever needed. Use the admin Data Refresh page for a background GitHub job, or the local command when this Mac is available. The Edge Function only authorizes and dispatches; it does not perform the long-running import. There is no automatic refresh schedule.
 
+## Production backend companion columns
+
+The rebuilt backend uses `sa_orders.dashboard_reservation_id` (nullable varchar)
+and `sa_orders.order_source` (varchar, non-null, default `unicommerce`) in both
+Supabase environments. Production's DigitalOcean source still has its reviewed
+848 columns; its pinned source AST and fingerprint do not change. These two
+production destination-only fields are explicitly allowlisted by exact type,
+nullability and default. Unknown destination-only fields stop the refresh.
+
+Production refresh comparison and writes continue to use source columns only.
+Existing companion values survive source-field updates, and new source orders
+receive the reviewed defaults. The rollback COPY files and their `before`
+manifest include every destination column, including both companions. The full
+backup hash also detects intervening companion changes before publication.
+Encrypted recovery archives contain this same complete backup, so deletion and
+later rollback reinsertion restore both values. Staging's ordinary 850-column
+source path remains unchanged. Backend deployment does not itself run a data or
+media refresh.
+
 ## Rollback
 
 Each successful delta run includes `rollback_directory`. Restore it with:

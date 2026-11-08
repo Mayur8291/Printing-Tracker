@@ -1,0 +1,127 @@
+{
+  "measured_at": "2026-11-08T15:22:02.896219+00:00",
+  "scope": "Squad/Canto backend schema, grants, RPCs, Edge artifacts, private buckets and schedules; no data refresh or cutover",
+  "equal": false,
+  "application_artifacts_equal": true,
+  "required_extension_versions_equal": false,
+  "differences": {
+    "extensions": {
+      "staging": 3,
+      "production": 3
+    }
+  },
+  "environments": {
+    "staging": {
+      "schema_hashes": {
+        "columns": "fdfc1ee19962ca7a2c6dde27ebb31ecba5da24eabb336da6004c67d6b9ac4566",
+        "relations": "92e40d8870eb1e34d81adb8406209e2cc41a364df3eae9819e1c4df5a9985b46",
+        "functions": "67fba13b11b6ee38b9fef75eec0d23dac56d5621ddf123da328656edcc01d92b",
+        "types": "50dae15469ebba72dfd3b93c8f99589bf9930ca49a4b34aaee2cd74538807601",
+        "views": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "sequences": "f9fd0bb0bafc2c99d344749de1f20ed089447005735d56056d9cb44f448769a7",
+        "constraints": "fd251414543e83dc484af51e4b05ab9c3ab4e79fd44e76ef7f07ba891d202893",
+        "indexes": "e6d2d2d83367f89e5daf881f3d31f0eca5bb4297117aeff376385acd828dbe98",
+        "policies": "5e800a41c4ffd4da16e50752e0ed5c4e5abdca1eadeeed6eef94495bbfac127b",
+        "triggers": "5f09e54ca1344e32901adbbf471a68cfcc51921aa561de9de46e1db7ad2e4463",
+        "schema_acl": "d21445f59b0cc740e7f5a1c299d3573761d262f4b98309d8ee39220c87434148",
+        "default_acl": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "roles": "32d150c849aa6cfe878d5233c91a354c45ab7a368c35d1dcdee94ed6f42933f2",
+        "role_memberships": "2373501de6ddea38144c50ba454438210309ab70e8d2d5b5d9df41eeb3d37b60"
+      },
+      "migrations": 112,
+      "last_migration": "20261108145821",
+      "functions": [
+        {
+          "slug": "canto-refresh",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0"
+        },
+        {
+          "slug": "squad-account",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d"
+        },
+        {
+          "slug": "squad-jobs",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176"
+        },
+        {
+          "slug": "squad-webhooks",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9"
+        }
+      ],
+      "mirror": true,
+      "revision": [
+        566,
+        566
+      ],
+      "test_writes_disabled": true,
+      "public_structure": "05d34e00e8e4e1d5bfa9b23212717e898bd58d0c3e13888ebcaf1eceae6997fa"
+    },
+    "production": {
+      "schema_hashes": {
+        "columns": "fdfc1ee19962ca7a2c6dde27ebb31ecba5da24eabb336da6004c67d6b9ac4566",
+        "relations": "92e40d8870eb1e34d81adb8406209e2cc41a364df3eae9819e1c4df5a9985b46",
+        "functions": "67fba13b11b6ee38b9fef75eec0d23dac56d5621ddf123da328656edcc01d92b",
+        "types": "50dae15469ebba72dfd3b93c8f99589bf9930ca49a4b34aaee2cd74538807601",
+        "views": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "sequences": "f9fd0bb0bafc2c99d344749de1f20ed089447005735d56056d9cb44f448769a7",
+        "constraints": "fd251414543e83dc484af51e4b05ab9c3ab4e79fd44e76ef7f07ba891d202893",
+        "indexes": "e6d2d2d83367f89e5daf881f3d31f0eca5bb4297117aeff376385acd828dbe98",
+        "policies": "5e800a41c4ffd4da16e50752e0ed5c4e5abdca1eadeeed6eef94495bbfac127b",
+        "triggers": "5f09e54ca1344e32901adbbf471a68cfcc51921aa561de9de46e1db7ad2e4463",
+        "schema_acl": "d21445f59b0cc740e7f5a1c299d3573761d262f4b98309d8ee39220c87434148",
+        "default_acl": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "roles": "32d150c849aa6cfe878d5233c91a354c45ab7a368c35d1dcdee94ed6f42933f2",
+        "role_memberships": "2373501de6ddea38144c50ba454438210309ab70e8d2d5b5d9df41eeb3d37b60"
+      },
+      "migrations": 112,
+      "last_migration": "20261108145821",
+      "functions": [
+        {
+          "slug": "canto-refresh",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0"
+        },
+        {
+          "slug": "squad-account",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d"
+        },
+        {
+          "slug": "squad-jobs",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176"
+        },
+        {
+          "slug": "squad-webhooks",
+          "status": "ACTIVE",
+          "verify_jwt": false,
+          "ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9"
+        }
+      ],
+      "mirror": true,
+      "revision": [
+        0,
+        0
+      ],
+      "test_writes_disabled": true,
+      "public_structure": "3c990c6e990622980608dcc152f65c9e47d8dd1ea8a714aafabcaeddeab7b9d2"
+    }
+  },
+  "intentional_differences": [
+    "business data and Auth identities",
+    "environment-specific credentials and source endpoints",
+    "provider activation and deferred Uniware configuration",
+    "existing public-schema applications and unrelated Storage buckets"
+  ]
+}

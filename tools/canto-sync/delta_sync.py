@@ -51,6 +51,37 @@ def keyed(line,positions):
     values=line[:-1].split(b'\t')
     return b'\t'.join(values[p] for p in positions)
 
+# Production's immutable Rails source has 848 columns. The reviewed backend
+# adds these two destination companions without changing that source contract.
+DESTINATION_COMPANIONS={('production','orders'):{
+    'dashboard_reservation_id':('character varying',False,None),
+    'order_source':('character varying',True,"'unicommerce'::character varying"),
+}}
+
+
+def backup_columns(conn,environment,source,table):
+    """Back up every destination value; never silently ignore unknown columns."""
+    actual=conn.execute("""SELECT a.attname,format_type(a.atttypid,a.atttypmod),a.attnotnull,pg_get_expr(d.adbin,d.adrelid)
+      FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace
+      LEFT JOIN pg_attrdef d ON d.adrelid=c.oid AND d.adnum=a.attnum
+      WHERE n.nspname=%s AND c.relname=%s AND c.relkind='r' AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum""",
+      (SCHEMA,table['target'])).fetchall()
+    names=[r[0] for r in actual];columns=table['columns']
+    require(len(columns)==len(set(columns)) and set(columns)<=set(names),'Manifest columns differ from destination')
+    extra={name:(kind,notnull,default) for name,kind,notnull,default in actual if name not in columns}
+    if extra:
+        require(extra==DESTINATION_COMPANIONS.get((environment,source)),'Unreviewed destination-only columns')
+    return list(columns)+[name for name in names if name not in columns]
+
+
+def project_copy_line(line,positions,width):
+    """COPY text escapes embedded tabs/newlines, so field projection is lossless."""
+    require(line.endswith(b'\n'),'Incomplete COPY row')
+    values=line[:-1].split(b'\t')
+    require(len(values)==width,'Destination COPY column count differs')
+    return b'\t'.join(values[p] for p in positions)+b'\n'
+
+
 def plan_delta(conn,manifest,keys,directory,source_dir):
     backup=directory/'before';backup.mkdir(mode=0o700)
     before={'environment':manifest['environment'],'tables':{},'sequences':sequence_state(conn,SCHEMA,manifest),
@@ -58,6 +89,8 @@ def plan_delta(conn,manifest,keys,directory,source_dir):
     changes={};totals={'inserted':0,'updated':0,'deleted':0,'delta_bytes':0}
     for i,(source,t) in enumerate(manifest['tables'].items(),1):
         positions=[t['columns'].index(k) for k in keys[source]]
+        saved_columns=backup_columns(conn,manifest['environment'],source,t)
+        projection=[saved_columns.index(name) for name in t['columns']]
         source_file=source_dir/(source+'.copy')
         require(source_file.stat().st_size<512*1024*1024,'Table exceeds bounded local comparison memory budget')
         rows={}
@@ -68,14 +101,15 @@ def plan_delta(conn,manifest,keys,directory,source_dir):
                 rows[key]=line
         deleted=[];hashes=[];inserted=set(rows);updated=set()
         with gzip.open(backup/(source+'.copy.gz'),'wb') as out:
-            for line in copy_lines(conn,t['target'],t['columns']):
-                out.write(line);hashes.append(hashlib.sha256(line).digest())
+            for saved_line in copy_lines(conn,t['target'],saved_columns):
+                out.write(saved_line);hashes.append(hashlib.sha256(saved_line).digest())
+                line=saved_line if saved_columns==t['columns'] else project_copy_line(saved_line,projection,len(saved_columns))
                 key=keyed(line,positions)
                 if key not in rows:deleted.append(key+b'\n')
                 else:
                     inserted.discard(key)
                     if line!=rows[key]:updated.add(key)
-        hashes.sort();before['tables'][source]={**t,'rows':len(hashes),'sha256':hashlib.sha256(b''.join(hashes)).hexdigest()}
+        hashes.sort();before['tables'][source]={**t,'columns':saved_columns,'rows':len(hashes),'sha256':hashlib.sha256(b''.join(hashes)).hexdigest()}
         write_keys=inserted|updated
         if write_keys or deleted:
             with (directory/(source+'.delta')).open('wb') as out:

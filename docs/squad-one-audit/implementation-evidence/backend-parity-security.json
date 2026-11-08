@@ -1,0 +1,90 @@
+{
+  "measured_at": "2026-11-08T15:05:17.372349+00:00",
+  "through": "20261108144542",
+  "environments": {
+    "staging": {
+      "before": 199,
+      "after": 199,
+      "after_levels": {
+        "INFO": 12,
+        "WARN": 187
+      },
+      "removed": 0,
+      "added": []
+    },
+    "production": {
+      "before": 283,
+      "after": 199,
+      "after_levels": {
+        "INFO": 13,
+        "WARN": 186
+      },
+      "removed": 90,
+      "added": [
+        {
+          "name": "authenticated_security_definer_function_executable",
+          "level": "WARN",
+          "metadata": {
+            "schema": "canto_api",
+            "name": "dashboard",
+            "language": "plpgsql",
+            "arguments": "p_action text, p_args jsonb",
+            "security_definer": true
+          },
+          "already_reviewed_on_staging": true
+        },
+        {
+          "name": "function_search_path_mutable",
+          "level": "WARN",
+          "metadata": {
+            "schema": "sa_domain",
+            "name": "dashboard_breakdown_row",
+            "type": "function"
+          },
+          "already_reviewed_on_staging": true
+        },
+        {
+          "name": "function_search_path_mutable",
+          "level": "WARN",
+          "metadata": {
+            "schema": "sa_domain",
+            "name": "dashboard_number",
+            "type": "function"
+          },
+          "already_reviewed_on_staging": true
+        },
+        {
+          "name": "function_search_path_mutable",
+          "level": "WARN",
+          "metadata": {
+            "schema": "sa_domain",
+            "name": "filtered_orders",
+            "type": "function"
+          },
+          "already_reviewed_on_staging": true
+        },
+        {
+          "name": "function_search_path_mutable",
+          "level": "WARN",
+          "metadata": {
+            "schema": "sa_domain",
+            "name": "report_money",
+            "type": "function"
+          },
+          "already_reviewed_on_staging": true
+        },
+        {
+          "name": "function_search_path_mutable",
+          "level": "WARN",
+          "metadata": {
+            "schema": "sa_domain",
+            "name": "sales_rows",
+            "type": "function"
+          },
+          "already_reviewed_on_staging": true
+        }
+      ]
+    }
+  },
+  "review": "No ERROR-level findings. Production added six warnings already present in the reviewed staging backend. SQL helper inlining and the guarded dashboard definer boundary remain documented exceptions; pre-existing public/Auth warnings remain outside this parity release."
+}

@@ -1,0 +1,34 @@
+{
+  "environment": "production",
+  "mode": "apply",
+  "functions": [
+    "squad-account",
+    "squad-jobs",
+    "squad-webhooks"
+  ],
+  "buckets": [
+    "squad-uploads",
+    "squad-documents",
+    "squad-transfers"
+  ],
+  "schedules": [
+    "squad-jobs-minute",
+    "squad-documents-pump",
+    "squad-media-cleanup"
+  ],
+  "provider_writes_enabled": false,
+  "ownership_enabled": false,
+  "business_data_refresh": false,
+  "function_hashes": {
+    "squad-account": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d",
+    "squad-jobs": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176",
+    "squad-webhooks": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9"
+  },
+  "public_structure_unchanged": true,
+  "unrelated_schedules_unchanged": true,
+  "finished_at": "2026-11-08T15:17:49.873797+00:00",
+  "missing_deferred_configuration": [
+    "Uniware production credentials and provider acceptance",
+    "Squad webhook activation and validated callback configuration"
+  ]
+}

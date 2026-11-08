@@ -1,0 +1,38 @@
+{
+  "environment": "production",
+  "through": "20261108144542",
+  "migration_count": 111,
+  "applied_count": 111,
+  "source_tables_verified": 86,
+  "protected_data_unchanged_within_release": true,
+  "public_structure_unchanged": true,
+  "cutover": false,
+  "backend_artifact_sha256": "a58aa3f0a11745a55ed8a0f895ce185912dc31284eb54beab938fed634748cd4",
+  "aligned_legacy_collations": 155,
+  "added_companion_columns": [
+    "dashboard_reservation_id",
+    "order_source"
+  ],
+  "post_commit_followup": "Explicit recovery accepts only reviewed same-row-count dashboard presence heartbeat; all other protected data remains strict",
+  "baseline_recovery": "verified",
+  "reviewed_post_commit_operational_changes": [
+    "public.hr_user_presence"
+  ],
+  "final_release": {
+    "environment": "production",
+    "through": "20261108145821",
+    "mode": "applied",
+    "migrations": [
+      "20261108145821_squad_dashboard_rmp_search_projection.sql"
+    ],
+    "added_companion_columns": [],
+    "source_tables_verified": 86,
+    "protected_data_unchanged": true,
+    "aligned_legacy_collations": 0,
+    "reviewed_post_commit_operational_changes": [],
+    "public_structure_unchanged": true,
+    "cutover": false,
+    "staging_artifacts_sha256": "72b9166e383924890519822c5c4f83ef030fa50df6d92b86ce21084097310328"
+  },
+  "final_migration_count": 112
+}

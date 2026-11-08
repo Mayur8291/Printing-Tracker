@@ -1,0 +1,30 @@
+{
+  "measured_at": "2026-11-08T14:55:48.512373+00:00",
+  "scope": "Isolated synthetic PostgreSQL rebuild and complete backend regression suite",
+  "migration_through": "20261108144542",
+  "test_count": 2122,
+  "passed": 2122,
+  "failed": 0,
+  "seconds": 228.086,
+  "production_collation_preview": {
+    "columns": 155,
+    "passed": true,
+    "rolled_back": true
+  },
+  "staging_alignment": {
+    "rollback_preview_passed": true,
+    "applied": true,
+    "public_structure_unchanged": true,
+    "owned_schedules_restored": true
+  },
+  "business_data_refresh": false,
+  "followup_release": {
+    "migration_through": "20261108145821",
+    "commit": "e7215b4",
+    "full_regression_tests": 2124,
+    "failed": 0,
+    "dashboard_database_tests": 51,
+    "evidence": "staging-dashboard-reports.json",
+    "seconds": 226.456
+  }
+}
