@@ -34,8 +34,8 @@ Deno.test('failed claim produces safe retriable error',async()=>{
 });
 Deno.test('expired media files removed before acknowledgement',async()=>{
  const calls:string[]=[];const id='11111111-1111-4111-8111-111111111111';
- const h=createHandler('x'.repeat(48),async(name,args)=>{assert(name==='account_upload_cleanup');calls.push((args.p_completed as string[]).length?'ack':'list');return{uploads:[{id,path:'pending/'+id}]};},async(paths)=>{assert(paths[0]==='pending/'+id);calls.push('delete');});
- const r=await h(new Request('https://test.invalid/squad-jobs/media-cleanup',{method:'POST',headers:{Authorization:'Bearer '+'x'.repeat(48)},body:'{}'}));assert(r.status===200);assert(calls.join(',')==='list,delete,ack');
+ const h=createHandler('x'.repeat(48),async(name,args)=>{if(name==='squad_account_flow_cleanup'){calls.push('accounts');return{expired_flows:0,expired_grants:0};}assert(name==='account_upload_cleanup');calls.push((args.p_completed as string[]).length?'ack':'list');return{uploads:[{id,path:'pending/'+id}]};},async(paths)=>{assert(paths[0]==='pending/'+id);calls.push('delete');});
+ const r=await h(new Request('https://test.invalid/squad-jobs/media-cleanup',{method:'POST',headers:{Authorization:'Bearer '+'x'.repeat(48)},body:'{}'}));assert(r.status===200);assert(calls.join(',')==='list,delete,ack,accounts');
 });
 Deno.test('failed storage cleanup remains unacknowledged',async()=>{
  let ack=false;const id='11111111-1111-4111-8111-111111111111';const h=createHandler('x'.repeat(48),async(_name,args)=>{if((args.p_completed as string[]).length)ack=true;return{uploads:[{id,path:'pending/'+id}]};},async()=>{throw new Error('failed');});

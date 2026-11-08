@@ -8659,7 +8659,7 @@
       "sa_addresses",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=arw/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_app_configs",
@@ -9127,7 +9127,7 @@
       "sa_user_dealers",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=ard/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=ard/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_user_devices",

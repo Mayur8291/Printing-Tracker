@@ -1,0 +1,20 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T05:27:04.980868+00:00",
+  "warm_database_commands": {
+    "request": {
+      "samples": 10,
+      "p95_ms": 14.564
+    },
+    "prepare": {
+      "samples": 10,
+      "p95_ms": 9.896
+    },
+    "finish": {
+      "samples": 10,
+      "p95_ms": 9.223
+    }
+  },
+  "all_changes_and_sequences_rolled_back": true,
+  "scope": "Two warmups, ten measured EXPLAIN ANALYZE RPC executions on the existing controlled customer. Real mail/Auth/SDK latency is recorded separately. Not a concurrent-load SLA."
+}

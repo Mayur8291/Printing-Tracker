@@ -47,6 +47,15 @@
     ],
     [
       "sa_domain",
+      "account_flows",
+      "account_flow_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "account_requests",
       "account_requests_writer",
       "{sa_account_writer}",
@@ -254,6 +263,24 @@
     ],
     [
       "sa_domain",
+      "credential_states",
+      "credential_state_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "credential_transactions",
+      "credential_transaction_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "design_owners",
       "squad_design_owners",
       "{sa_executor}",
@@ -341,6 +368,15 @@
       "UPDATE",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_domain",
+      "invitation_grants",
+      "invitation_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_domain",
@@ -896,6 +932,24 @@
       "sa_add_ons",
       "squad_sales_guard",
       "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_addresses",
+      "account_address_insert",
+      "{sa_account_writer}",
+      "INSERT",
+      null,
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_addresses",
+      "account_address_read",
+      "{sa_account_writer}",
       "SELECT",
       "true",
       null
@@ -3198,6 +3252,24 @@
     [
       "sa_snapshot_20261019",
       "sa_user_dealers",
+      "account_dealer_insert",
+      "{sa_account_writer}",
+      "INSERT",
+      null,
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_user_dealers",
+      "account_dealer_read",
+      "{sa_account_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_user_dealers",
       "squad_dealer_link_delete",
       "{sa_executor}",
       "DELETE",
@@ -5019,27 +5091,27 @@
     [
       "sa_users",
       "approved",
-      "{sa_guard=r/postgres,sa_executor=arw/postgres,sa_account_writer=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=arw/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_users",
       "approved_at",
-      "{sa_executor=arw/postgres}"
+      "{sa_executor=arw/postgres,sa_account_writer=w/postgres}"
     ],
     [
       "sa_users",
       "auto_approve_customers",
-      "{sa_executor=rw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=rw/postgres,sa_guard=r/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_users",
       "confirmed_at",
-      "{sa_account_writer=r/postgres}"
+      "{sa_account_writer=arw/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_users",
       "created_at",
-      "{sa_executor=a/postgres,sa_guard=r/postgres}"
+      "{sa_executor=a/postgres,sa_guard=r/postgres,sa_account_writer=a/postgres}"
     ],
     [
       "sa_users",
@@ -5049,27 +5121,27 @@
     [
       "sa_users",
       "customer_company_name",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
       "customer_first_name",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
       "customer_last_name",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
       "customer_registered_by",
-      "{sa_executor=ar/postgres,sa_guard=r/postgres}"
+      "{sa_executor=ar/postgres,sa_guard=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
       "dealers_count",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_account_writer=rw/postgres}"
     ],
     [
       "sa_users",
@@ -5094,7 +5166,7 @@
     [
       "sa_users",
       "email",
-      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_account_writer=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
@@ -5119,12 +5191,12 @@
     [
       "sa_users",
       "gst_no",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
       "id",
-      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_media_writer=r/postgres,sa_account_writer=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_media_writer=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
@@ -5134,17 +5206,17 @@
     [
       "sa_users",
       "name",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
       "onboarded",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_users",
       "onboarded_at",
-      "{sa_executor=arw/postgres}"
+      "{sa_executor=arw/postgres,sa_account_writer=w/postgres}"
     ],
     [
       "sa_users",
@@ -5154,7 +5226,7 @@
     [
       "sa_users",
       "phone",
-      "{sa_executor=arw/postgres,sa_guard=r/postgres}"
+      "{sa_executor=arw/postgres,sa_guard=r/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
@@ -5164,12 +5236,12 @@
     [
       "sa_users",
       "rmp_price_type_id",
-      "{sa_guard=r/postgres,sa_executor=rw/postgres}"
+      "{sa_guard=r/postgres,sa_executor=rw/postgres,sa_account_writer=rw/postgres}"
     ],
     [
       "sa_users",
       "role",
-      "{sa_guard=r/postgres,sa_executor=arw/postgres,sa_account_writer=r/postgres}"
+      "{sa_guard=r/postgres,sa_executor=arw/postgres,sa_account_writer=ar/postgres}"
     ],
     [
       "sa_users",
@@ -5179,15 +5251,27 @@
     [
       "sa_users",
       "updated_at",
-      "{sa_executor=arw/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres,sa_account_writer=rw/postgres}"
+      "{sa_executor=arw/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_users",
       "zone_id",
-      "{sa_guard=r/postgres,sa_executor=rw/postgres}"
+      "{sa_guard=r/postgres,sa_executor=rw/postgres,sa_account_writer=rw/postgres}"
     ]
   ],
   [
+    [
+      "canto_api",
+      "account_invitation_authorize",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "d6e19d55eca9df10dfb94f1959a5731d"
+    ],
     [
       "canto_api",
       "account_master_capabilities",
@@ -5295,6 +5379,78 @@
       ],
       "{postgres=X/postgres,service_role=X/postgres}",
       "49c9ca8b89f0db50ce06049d628cc29a"
+    ],
+    [
+      "canto_api",
+      "squad_account_flow_cleanup",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "52c94a9d8781fde6c8b5a9a8fb8d1376"
+    ],
+    [
+      "canto_api",
+      "squad_account_flow_finish",
+      "p_id uuid, p_lease_token uuid, p_error text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "d643f339768281f89027ffaef80099bb"
+    ],
+    [
+      "canto_api",
+      "squad_account_flow_prepare",
+      "p_id uuid, p_purpose text, p_email text, p_code_hash text, p_password_fingerprint text, p_provider_available boolean",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "e932b1bba62513613dcd74efe662f10c"
+    ],
+    [
+      "canto_api",
+      "squad_account_flow_request",
+      "p_id uuid, p_purpose text, p_email text, p_payload jsonb, p_input_fingerprint text, p_code_hash text, p_code_cipher text, p_provider_available boolean, p_invitation_grant uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "0c2da557e1e987ad47e5819e3b1bbbbf"
+    ],
+    [
+      "canto_api",
+      "squad_account_mail_finish",
+      "p_id uuid, p_lease_token uuid, p_sent boolean, p_error text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "4352fef335426a017ffdc2f2ce6adde7"
+    ],
+    [
+      "canto_api",
+      "squad_account_mail_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "16d1e2250ff373973123147c917bddcf"
     ],
     [
       "canto_api",
@@ -6594,6 +6750,42 @@
     ],
     [
       "sa_domain",
+      "account_credential_capture",
+      "",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "d8dc8f338711c4b77c855795e6fd24ae"
+    ],
+    [
+      "sa_domain",
+      "account_credential_fence",
+      "",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "f91e38bc92f40cf92aee5edc69feadcd"
+    ],
+    [
+      "sa_domain",
+      "account_invitation_authorize",
+      "p_id bigint",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_app=X/sa_account_writer,authenticated=X/sa_account_writer}",
+      "a9f176dd329b093e0ac9d7332a728a86"
+    ],
+    [
+      "sa_domain",
       "account_master_capabilities",
       "",
       "sa_guard",
@@ -6746,7 +6938,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "eb7a7078650f434f1d4fbfc1b273016d"
+      "fe49a726f64da3d5cb5fd8c01a32e177"
     ],
     [
       "sa_domain",
@@ -6759,6 +6951,18 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "2e1c6e9a5e972d1dab795703b980d7dd"
+    ],
+    [
+      "sa_domain",
+      "address_rule_values",
+      "p_user_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_account_writer=X/sa_guard}",
+      "900e03d3f61c7ac02a650ee386a97aa9"
     ],
     [
       "sa_domain",
@@ -7070,7 +7274,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_account_writer=X/sa_guard}",
       "9efa064750ab92c1a0778e09984acbfd"
     ],
     [
@@ -7648,7 +7852,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
-      "78399d5dde61a91bcd2e3850f4c164f7"
+      "8b37df9548f48d936f7365de96468bf9"
     ],
     [
       "sa_domain",
@@ -7660,7 +7864,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
-      "aa35fa65b43c300d47fdbc40b595d6de"
+      "0c964976efc726f4fdbfb1dcb8108a28"
     ],
     [
       "sa_domain",
@@ -8563,7 +8767,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,sa_worker=X/sa_account_writer}",
-      "3f3b4810b83d13ed228a3a3695bf3827"
+      "2253aa12f291202fd4e7c246e7c9baf0"
     ],
     [
       "sa_domain",
@@ -8603,6 +8807,78 @@
     ],
     [
       "sa_domain",
+      "squad_account_flow_cleanup",
+      "",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "d39411d171a26bc4f931739d42eaf9b2"
+    ],
+    [
+      "sa_domain",
+      "squad_account_flow_finish",
+      "p_id uuid, p_lease_token uuid, p_error text",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "beee3c0dd2f621b8ea283d92123b939b"
+    ],
+    [
+      "sa_domain",
+      "squad_account_flow_prepare",
+      "p_id uuid, p_purpose text, p_email text, p_code_hash text, p_password_fingerprint text, p_provider_available boolean",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "24491aef7c6121144dfe80bc0172c835"
+    ],
+    [
+      "sa_domain",
+      "squad_account_flow_request",
+      "p_id uuid, p_purpose text, p_email text, p_payload jsonb, p_input_fingerprint text, p_code_hash text, p_code_cipher text, p_provider_available boolean, p_invitation_grant uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "6342ce7c4faa3251fe3cc1c42b925cac"
+    ],
+    [
+      "sa_domain",
+      "squad_account_mail_finish",
+      "p_id uuid, p_lease_token uuid, p_sent boolean, p_error text",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "1a85aa42a723b34a915194aeb38d7061"
+    ],
+    [
+      "sa_domain",
+      "squad_account_mail_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "fb4b37853d527861f921c98ef8ac3a73"
+    ],
+    [
+      "sa_domain",
       "squad_account_prepare",
       "p_id uuid, p_lease_token uuid",
       "sa_account_writer",
@@ -8623,7 +8899,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "c413babe8c0c6205e7cca5626d35f7a4"
+      "8bbc890747fa078b13aa3d0454936dbd"
     ],
     [
       "sa_domain",
@@ -9624,7 +9900,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "a8b9164fc99e652ae1a2d37b21267a8e"
+      "2c32766c59f574147c81b89281d0dcbb"
     ],
     [
       "sa_domain",
@@ -10145,8 +10421,20 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
       "dd5d8211857abf03a05793d75a1a12f7"
+    ],
+    [
+      "sa_domain",
+      "validate_registration",
+      "p_fields jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "d60c5c13fd2fdb63645f75a9b4ceb828"
     ],
     [
       "sa_domain",
@@ -10435,6 +10723,22 @@
     ],
     [
       "sa_domain",
+      "account_flows",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "account_flows_sequence_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_account_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
       "account_requests",
       "r",
       true,
@@ -10507,6 +10811,22 @@
     ],
     [
       "sa_domain",
+      "credential_states",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "credential_transactions",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
       "design_owners",
       "r",
       true,
@@ -10536,6 +10856,14 @@
       true,
       true,
       "{postgres=arwdDxtm/postgres,sa_executor=rw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "invitation_grants",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=arwd/postgres}"
     ],
     [
       "sa_domain",
@@ -10843,6 +11171,78 @@
       ],
       "{postgres=X/postgres}",
       "73c49ee99ef55ae41eac9f6f259a0e6c"
+    ]
+  ],
+  [
+    [
+      "sa_validate_scott_auth_state",
+      "O",
+      "CREATE CONSTRAINT TRIGGER sa_validate_scott_auth_state AFTER INSERT OR UPDATE ON auth.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION sa_identity.sa_validate_scott_auth_state()",
+      "sa_identity",
+      "sa_validate_scott_auth_state",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "e33ec76cc526c78e04ee58b38e2c4a8a"
+    ],
+    [
+      "squad_account_credential_fence",
+      "O",
+      "CREATE CONSTRAINT TRIGGER squad_account_credential_fence AFTER INSERT OR UPDATE OF encrypted_password, raw_app_meta_data, role ON auth.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION sa_domain.account_credential_fence()",
+      "sa_domain",
+      "account_credential_fence",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "f91e38bc92f40cf92aee5edc69feadcd"
+    ],
+    [
+      "squad_account_marker_capture",
+      "O",
+      "CREATE TRIGGER squad_account_marker_capture BEFORE INSERT OR UPDATE OF raw_app_meta_data ON auth.users FOR EACH ROW EXECUTE FUNCTION sa_domain.account_credential_capture('metadata')",
+      "sa_domain",
+      "account_credential_capture",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "d8dc8f338711c4b77c855795e6fd24ae"
+    ],
+    [
+      "squad_account_password_capture",
+      "O",
+      "CREATE TRIGGER squad_account_password_capture BEFORE INSERT OR UPDATE OF encrypted_password, role ON auth.users FOR EACH ROW EXECUTE FUNCTION sa_domain.account_credential_capture('password')",
+      "sa_domain",
+      "account_credential_capture",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "d8dc8f338711c4b77c855795e6fd24ae"
+    ],
+    [
+      "squad_auth_write_fence",
+      "O",
+      "CREATE TRIGGER squad_auth_write_fence BEFORE UPDATE OF encrypted_password, email, banned_until ON auth.users FOR EACH ROW EXECUTE FUNCTION sa_domain.auth_write_fence()",
+      "sa_domain",
+      "auth_write_fence",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "7a6dc6c861c05939787f00bc9ffaf246"
     ]
   ]
 ]

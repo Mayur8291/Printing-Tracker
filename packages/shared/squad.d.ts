@@ -2,6 +2,11 @@
 export type EntityId = string;
 export type Version = `${number}:${number}`;
 export type Persona = 0|1|2|3|4|7|8|9|10|11|12;
+export interface RegistrationProfile {first_name:string;last_name:string;company_name:string;phone:string;gst_no?:string|null;addresses:Array<{address:string;state:string;city:string;zip_code:string}>}
+/** Keep this request ID for completion and retries; never persist/log the code or password. */
+export interface AccountProof {requestId:string;email:string;code:string;password:string}
+export interface AccountProofRequest {request_id:string;accepted:true;expires_in:number}
+export interface AccountProofResult {completed:true;user_id:EntityId;email_confirmed:true;login_allowed:boolean;next:'sign_in'|'await_approval'}
 export interface Command { expectedVersion: Version; idempotencyKey: string }
 export interface CreateCommand { expectedVersion?: null; idempotencyKey: string }
 export interface SavedEntity { id: EntityId; version: Version }
@@ -30,7 +35,7 @@ export interface PersonDetail extends Person {
   designation:string|null;manager_id?:EntityId|null;parent_tailor_id?:EntityId|null;features?:FeatureGrant[];
   addresses?:Address[];gst_no?:string|null;coordinator_id?:EntityId|null;zone_id?:EntityId|null;price_type_id?:EntityId|null;
   direct_deal?:boolean;auto_approve_customers?:boolean;stock_visibility_percentage?:number;registered_by?:number;dealer_ids?:EntityId[];
-  archive_dependencies?:string[];account_request?:null|{id:string;state:'queued'|'processing'|'ready'|'failed'|'discarded';error_code:string|null};
+  email_confirmed?:boolean;invitation_required?:boolean;archive_dependencies?:string[];account_request?:null|{id:string;state:'queued'|'processing'|'ready'|'blocked'|'failed'|'discarded';error_code:string|null};
 }
 export interface PeopleFilters {
   role?:number;search?:string;approved?:Array<boolean|null>;onboarded?:boolean;disabled?:boolean;direct?:boolean;
@@ -293,6 +298,14 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   job(id:string):Promise<BackgroundJob & {recent_attempts:JobAttempt[]}>;
   retryJob(id:string,reason:string,command:Command):Promise<BackgroundJob>;
   audit(filters?:{kind?:string;entityId?:EntityId},page?:PageRequest):Promise<Page<AuditEntry>>;
+  requestRegistration(email:string,profile:RegistrationProfile,requestId:string):Promise<AccountProofRequest>;
+  completeRegistration(proof:AccountProof):Promise<AccountProofResult>;
+  requestConfirmation(email:string,requestId:string):Promise<AccountProofRequest>;
+  completeConfirmation(proof:AccountProof):Promise<AccountProofResult>;
+  requestRecovery(email:string,requestId:string):Promise<AccountProofRequest>;
+  completeRecovery(proof:AccountProof):Promise<AccountProofResult>;
+  invitePerson(id:EntityId,requestId:string):Promise<AccountProofRequest>;
+  acceptInvitation(proof:AccountProof):Promise<AccountProofResult>;
   me(): Promise<Me>;
   reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
   verifyMediaUpload(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached'}>;

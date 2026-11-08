@@ -1,4 +1,7 @@
 import {AccountError} from './errors.ts';
+import {accountFlow,type FlowDependencies} from './flows.ts';
+import {accountCrypto} from '../_shared/squad-account-crypto.ts';
+import {authAdmin,authEmailAvailable} from '../_shared/squad-auth.ts';
 export {AccountError} from './errors.ts';
 import {uploadRequest,finalizeRequest,type UploadDependencies} from './uploads.ts';
 import {verifyMedia} from './media-verification.ts';
@@ -10,6 +13,7 @@ export interface Dependencies {
  signMedia:(paths:string[],expiresIn:number)=>Promise<Array<{path:string;signedURL?:string;error?:string|null}>>;
  storageUrl:string;
  uploads?:UploadDependencies;
+ flows?:FlowDependencies;
  accountStatus?:(authorization:string,input:Record<string,unknown>)=>Promise<unknown>;
 }
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
@@ -30,11 +34,15 @@ export function createHandler(deps:Dependencies){
   if(req.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
   const path=new URL(req.url).pathname.replace(/\/+$/,'');
   const route=path.slice(path.lastIndexOf('/squad-account/')+15);
-  if(!['media/grants','media/uploads','media/finalize','media/verify','users/status'].includes(route))return response({error:'NOT_FOUND'},404);
+  if(!['media/grants','media/uploads','media/finalize','media/verify','users/status','register','confirm','recovery','users/invite'].includes(route))return response({error:'NOT_FOUND'},404);
   const authorization=req.headers.get('authorization')??'';
   if(!/^Bearer [^\s]+$/.test(authorization)||authorization.length>16384)return response({error:'SESSION_REQUIRED'},401);
   try{
    const input=await readBody(req);
+   if(['register','confirm','recovery','users/invite'].includes(route)){
+    if(!deps.flows)throw new AccountError('SERVICE_UNAVAILABLE',503);
+    return response(await accountFlow(deps.flows,authorization,route,input));
+   }
    if(route==='users/status'){
     if(Object.keys(input).some(k=>!['user_id','action','reason','expected_version','idempotency_key'].includes(k))
      ||typeof input.user_id!=='string'||!/^[1-9][0-9]{0,18}$/.test(input.user_id)
@@ -71,7 +79,7 @@ export function createHandler(deps:Dependencies){
   }catch(error){return error instanceof AccountError?response({error:error.code},error.status):response({error:'SERVICE_UNAVAILABLE'},503);}
  };
 }
-export function dependencies(url:string,anon:string,service:string):Dependencies{
+export function dependencies(url:string,anon:string,service:string,flowSecret?:string):Dependencies{
  const serviceHeaders={apikey:service,Authorization:`Bearer ${service}`};
  const storage=url+'/storage/v1';
  async function rpc(authorization:string,name:string,args:Record<string,unknown>,privileged=false){
@@ -89,6 +97,7 @@ export function dependencies(url:string,anon:string,service:string):Dependencies
  }
  return {
   storageUrl:url+'/storage/v1',
+  ...(flowSecret?{flows:{crypto:accountCrypto(flowSecret),auth:authAdmin(url,service),emailAvailable:authEmailAvailable(url,service),rpc:(name:string,args:Record<string,unknown>)=>rpc('',name,args,true),authorizeInvite:(authorization:string,id:string)=>rpc(authorization,'account_invitation_authorize',{p_id:id})}}:{}),
   accountStatus:(authorization,input)=>rpc(authorization,'account_user_status',{p_id:input.user_id,p_action:input.action,p_reason:input.reason,p_expected_version:input.expected_version,p_idempotency_key:input.idempotency_key}),
   resolveMedia:(authorization,references)=>rpc(authorization,'account_media_resolve',{p_references:references}),
   uploads:{

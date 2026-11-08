@@ -1,0 +1,23 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T05:27:52.049643+00:00",
+  "cutover": false,
+  "active_job": null,
+  "edit_revision": 167,
+  "synced_revision": 167,
+  "generation": 0,
+  "allow_test_writes": false,
+  "pending_jobs": 0,
+  "account_fixture_rows": {
+    "account_flows": 0,
+    "credential_states": 0,
+    "credential_transactions": 0,
+    "invitation_grants": 0
+  },
+  "schedules_active": true,
+  "refresh_access_fingerprint_verified": true,
+  "retired_test_identity": "9000000000000000",
+  "retired_identity_blocked_without_auth_or_business_rows": true,
+  "mail_delivery_restricted_to_existing_controlled_mailinator": true,
+  "new_domain_security_findings": 0
+}

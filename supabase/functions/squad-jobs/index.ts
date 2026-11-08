@@ -1,7 +1,13 @@
 import {createHandler,serviceRpc, storageCleanup} from './handler.ts';
 import {reconcileAccount,authAdmin} from './accounts.ts';
+import {accountMail} from './account-mail.ts';
+import {accountCrypto} from '../_shared/squad-account-crypto.ts';
+import {proofMailer} from '../_shared/squad-mail.ts';
 const url=Deno.env.get('SUPABASE_URL');
 const key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 if(!url || !key)throw new Error('Supabase service configuration missing');
 const rpc=serviceRpc(url,key);
-Deno.serve(createHandler(Deno.env.get('SQUAD_JOBS_SECRET'),rpc,storageCleanup(url,key),reconcileAccount(rpc,authAdmin(url,key))));
+const flowSecret=Deno.env.get('SQUAD_ACCOUNT_SECRET');
+const mailHost=Deno.env.get('SQUAD_SMTP_HOST');
+const mail=flowSecret&&mailHost?accountMail(rpc,accountCrypto(flowSecret),proofMailer({host:mailHost,port:Number(Deno.env.get('SQUAD_SMTP_PORT')??2525),username:Deno.env.get('SQUAD_SMTP_USERNAME')??'',password:Deno.env.get('SQUAD_SMTP_PASSWORD')??'',sender:Deno.env.get('SQUAD_SMTP_SENDER')??'',...(Deno.env.get('SQUAD_MAIL_ALLOWLIST')?{allowedRecipients:Deno.env.get('SQUAD_MAIL_ALLOWLIST')!.split(',').map(x=>x.trim().toLowerCase())}:{})})):undefined;
+Deno.serve(createHandler(Deno.env.get('SQUAD_JOBS_SECRET'),rpc,storageCleanup(url,key),reconcileAccount(rpc,authAdmin(url,key)),mail));

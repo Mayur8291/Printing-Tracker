@@ -29,7 +29,7 @@ async function boundedBody(req: Request): Promise<Record<string, unknown>> {
   if(!value || Array.isArray(value) || typeof value !== 'object')throw new Error('invalid_body');
   return value;
 }
-export function createHandler(secret: string | undefined, rpc: Rpc, removeUploads?: (paths:string[])=>Promise<void>, runAccount?: (job:ClaimedJob)=>Promise<Result>) {
+export function createHandler(secret: string | undefined, rpc: Rpc, removeUploads?: (paths:string[])=>Promise<void>, runAccount?: (job:ClaimedJob)=>Promise<Result>, runMail?: (job:ClaimedJob)=>Promise<Result>) {
   return async (req: Request): Promise<Response> => {
     if (req.method !== 'POST') return json({error:'METHOD_NOT_ALLOWED'},405);
     if (!secret || secret.length < 32) return json({error:'WORKER_NOT_CONFIGURED'},503);
@@ -45,7 +45,8 @@ export function createHandler(secret: string | undefined, rpc: Rpc, removeUpload
         const batch=await rpc('account_upload_cleanup',{p_completed:[]}) as {uploads:Array<{id:string;path:string}>};
         if(batch.uploads.length>100||batch.uploads.some(u=>!/^pending\/[a-f0-9-]{36}$/.test(u.path)||u.path!=='pending/'+u.id))throw new Error('invalid_cleanup_paths');
         if(batch.uploads.length){await removeUploads(batch.uploads.map(u=>u.path));await rpc('account_upload_cleanup',{p_completed:batch.uploads.map(u=>u.id)});}
-        return json({cleaned:batch.uploads.length});
+        const accounts=await rpc('squad_account_flow_cleanup',{});
+        return json({cleaned:batch.uploads.length,accounts});
       }catch{return json({error:'CLEANUP_UNAVAILABLE'},503);}
     }
     let limit: number;
@@ -61,7 +62,7 @@ export function createHandler(secret: string | undefined, rpc: Rpc, removeUpload
     for(const job of claim.jobs){
       if(performance.now()-started>45000)break; // Unstarted leases recover automatically.
       try {
-        const result=job.handler==='account_reconciliation'&&runAccount?await runAccount(job):job.handler==='local_amendment'
+        const result=job.handler==='account_mail'&&runMail?await runMail(job):job.handler==='account_reconciliation'&&runAccount?await runAccount(job):job.handler==='local_amendment'
           ?await rpc('squad_job_execute',{p_id:job.id,p_lease_token:job.lease_token}) as Result
           :(()=>{throw new Error('uninstalled_handler');})();
         results.push({id:job.id,state:result.state,...(result.error_code?{error_code:result.error_code}:{})});
@@ -76,7 +77,7 @@ export function createHandler(secret: string | undefined, rpc: Rpc, removeUpload
 }
 export function serviceRpc(url: string, key: string): Rpc {
   return async (name,args) => {
-    if(!['squad_job_claim','squad_job_execute','account_upload_cleanup','squad_account_prepare','squad_account_finish'].includes(name))throw new Error('unknown_rpc');
+    if(!['squad_job_claim','squad_job_execute','account_upload_cleanup','squad_account_prepare','squad_account_finish','squad_account_mail_prepare','squad_account_mail_finish','squad_account_flow_cleanup'].includes(name))throw new Error('unknown_rpc');
     const response=await fetch(`${url}/rest/v1/rpc/${name}`,{
       method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json','Content-Profile':'canto_api','Accept-Profile':'canto_api'},
       body:JSON.stringify(args),signal:AbortSignal.timeout(12000),

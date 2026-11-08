@@ -5,7 +5,7 @@ export class SquadError extends Error {
     this.name = "SquadError";
     this.code = error.code || "TRANSPORT_ERROR";
     this.kind = ({"28000":"session", "42501":"forbidden", "40001":"conflict",
-      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "VERSION_CONFLICT":"conflict", "WRITE_UNAVAILABLE":"unavailable", "UPLOAD_NOT_FOUND":"conflict", "QUOTA_EXCEEDED":"unavailable", "INVALID_MEDIA":"validation", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
+      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "VERSION_CONFLICT":"conflict", "WRITE_UNAVAILABLE":"unavailable", "UPLOAD_NOT_FOUND":"conflict", "QUOTA_EXCEEDED":"unavailable", "INVALID_MEDIA":"validation", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable", "INVALID_OR_EXPIRED_CODE":"validation", "ACCOUNT_REQUEST_CONFLICT":"conflict", "ACCOUNT_REQUEST_BUSY":"unavailable", "PROVIDER_UNAVAILABLE":"unavailable", "IDENTITY_CONFLICT":"conflict", "ACCOUNT_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
   }
 }
 
@@ -27,6 +27,14 @@ export function createSquadClient(supabase) {
     return data;
   }
   return Object.freeze({
+    requestRegistration: (email,profile,requestId) => account("register",{action:"request",request_id:requestId,email,profile}),
+    completeRegistration: (proof) => account("register",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
+    requestConfirmation: (email,requestId) => account("confirm",{action:"request",request_id:requestId,email}),
+    completeConfirmation: (proof) => account("confirm",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
+    requestRecovery: (email,requestId) => account("recovery",{action:"request",request_id:requestId,email}),
+    completeRecovery: (proof) => account("recovery",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
+    invitePerson: (id,requestId) => account("users/invite",{action:"request",request_id:requestId,user_id:id}),
+    acceptInvitation: (proof) => account("users/invite",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
     me: () => call("v1_me"),
     reserveMediaUpload: (target,file,command) => account("media/uploads",{target,file,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     verifyMediaUpload: (uploadId,command) => account("media/verify",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),

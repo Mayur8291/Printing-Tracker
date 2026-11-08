@@ -1,0 +1,19 @@
+{
+  "step": "complete",
+  "environment": "staging",
+  "actual_shared_sdk": true,
+  "email_code_received": true,
+  "new_auth_identity_created": true,
+  "stable_legacy_id": true,
+  "email_confirmation_separate_from_approval": true,
+  "unapproved_login_banned": true,
+  "idempotent_completion": true,
+  "proof_purpose_bound": true,
+  "completion_roundtrip_ms": 1806,
+  "measured_at": "2026-11-08T05:25:39.334423+00:00",
+  "fixture_business_and_auth_cleanup_verified": true,
+  "retained_blocked_test_identity": "9000000000000000",
+  "sequence_restored_with_exact_owned_range_check": true,
+  "public_structure_unchanged": true,
+  "mirror_restored": true
+}

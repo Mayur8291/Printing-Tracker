@@ -2,13 +2,8 @@
  * This handler never accepts credentials or target identities from a client. */
 import type {Rpc} from './handler.ts';
 export interface AccountTarget {superseded?:boolean;managed_subject?:boolean;auth_user_id:string;legacy_user_id:string;email:string;legacy_role_id:number;allowed:boolean;source_confirmed:boolean;password_hash?:string|null;}
-export interface AuthUser {id:string;email?:string;role?:string;email_confirmed_at?:string|null;banned_until?:string|null;app_metadata?:Record<string,unknown>;}
-export interface AuthAdmin {get:(id:string)=>Promise<AuthUser|null>;create:(body:Record<string,unknown>)=>Promise<AuthUser>;update:(id:string,body:Record<string,unknown>)=>Promise<AuthUser>;}
-export class AccountProviderError extends Error {constructor(readonly code:'PROVIDER_UNAVAILABLE'|'IDENTITY_CONFLICT'|'ACCOUNT_UNAVAILABLE'){super(code);}}
-function validateUser(user:AuthUser,target:AccountTarget){
- if(user.id!==target.auth_user_id||user.role!=='sa_app'||user.email?.trim().toLowerCase()!==target.email
- ||user.app_metadata?.application!=='canto'||String(user.app_metadata?.legacy_user_id)!==target.legacy_user_id)throw new AccountProviderError('IDENTITY_CONFLICT');
-}
+import {AccountProviderError,validateUser,type AuthAdmin} from '../_shared/squad-auth.ts';
+export {authAdmin,AccountProviderError,type AuthAdmin,type AuthUser} from '../_shared/squad-auth.ts';
 export function reconcileAccount(rpc:Rpc,auth:AuthAdmin){
  return async(job:{id:string;lease_token:string}):Promise<{id:string;state:string;error_code?:string}>=>{
   const args={p_id:job.id,p_lease_token:job.lease_token};
@@ -44,13 +39,4 @@ export function reconcileAccount(rpc:Rpc,auth:AuthAdmin){
   }catch(e){result={};error=e instanceof AccountProviderError?e.code:'PROVIDER_UNAVAILABLE';}
   return await rpc('squad_account_finish',{...args,p_result:result,p_error:error}) as any;
  };
-}
-export function authAdmin(url:string,key:string,transport:typeof fetch=fetch):AuthAdmin{
- async function request(path:string,method='GET',body?:Record<string,unknown>):Promise<AuthUser|null>{
-  let r:Response;try{r=await transport(url+'/auth/v1/admin/users'+path,{method,headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(12000)});}catch{throw new AccountProviderError('PROVIDER_UNAVAILABLE');}
-  if(r.status===404&&method==='GET'){await r.body?.cancel();return null;}
-  if(!r.ok){await r.body?.cancel();throw new AccountProviderError([400,409,422].includes(r.status)?'IDENTITY_CONFLICT':'PROVIDER_UNAVAILABLE');}
-  return await r.json() as AuthUser;
- }
- return{get:id=>request('/'+id),create:async body=>(await request('','POST',body))!,update:async(id,body)=>(await request('/'+id,'PUT',body))!};
 }

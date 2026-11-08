@@ -16,6 +16,7 @@ def access_catalog(conn):
       ,"SELECT n.nspname,c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity,c.relacl::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN('sa_domain','sa_media','sa_identity','sa_admin','sa_sync') AND c.relkind IN('r','p','S','v') ORDER BY 1,2"
       ,"SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname='storage' AND tablename='objects' AND (policyname LIKE 'canto_media_%' OR policyname LIKE 'canto_masters_%') ORDER BY 1,2,3"
       ,"SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_admin' ORDER BY 1,2,3"
+      ,"SELECT t.tgname,t.tgenabled,pg_get_triggerdef(t.oid),n.nspname,p.proname,pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid JOIN pg_namespace n ON n.oid=p.pronamespace WHERE t.tgrelid='auth.users'::regclass AND n.nspname IN('sa_identity','sa_domain') ORDER BY 1"
     ]
     return json.loads(json.dumps([conn.execute(q).fetchall() for q in queries]))
 
@@ -57,6 +58,13 @@ def after_publication(conn):
         requests=conn.execute("""UPDATE sa_domain.account_requests SET state='discarded',updated_at=now(),error_code='SOURCE_REFRESH_DISCARDED'
           WHERE generation<%s AND state IN('queued','processing','failed') RETURNING id""",(generation,)).fetchall()
         if requests:result['discarded_account_requests']=len(requests)
+    if conn.execute("SELECT to_regclass('sa_domain.account_flows')").fetchone()[0]:
+        flows=conn.execute("""UPDATE sa_domain.account_flows SET state=CASE WHEN state IN('pending','processing') THEN 'expired' ELSE state END,
+          code_cipher=NULL,payload='{}',password_fingerprint=NULL,lease_token=NULL,lease_until=NULL,updated_at=now()
+          WHERE generation<%s AND (state IN('pending','processing') OR code_cipher IS NOT NULL OR payload<>'{}') RETURNING id""",(generation,)).fetchall()
+        conn.execute('DELETE FROM sa_domain.invitation_grants WHERE generation<%s',(generation,))
+        conn.execute('UPDATE sa_domain.credential_states SET active_flow=NULL,last_completed_flow=NULL,lease_until=NULL,revision=revision+1,generation=%s WHERE generation<%s',(generation,generation))
+        if flows:result['discarded_account_flows']=len(flows)
     if conn.execute("SELECT to_regclass('sa_domain.media_uploads')").fetchone()[0]:
         rows=conn.execute("UPDATE sa_domain.media_uploads SET state='expired' WHERE generation<%s AND state IN('reserved','verified') RETURNING id",(generation,)).fetchall()
         if rows:result['discarded_media_uploads']=len(rows)

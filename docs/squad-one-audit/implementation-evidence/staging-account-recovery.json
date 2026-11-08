@@ -1,0 +1,19 @@
+{
+  "step": "complete",
+  "environment": "staging",
+  "actual_shared_sdk": true,
+  "email_code_received": true,
+  "email_dispatched_by_edge": true,
+  "old_access_rejected": true,
+  "old_refresh_rejected": true,
+  "old_password_rejected": true,
+  "new_password_login": true,
+  "retry_preserves_new_session": true,
+  "native_password_survives_replay": true,
+  "completion_roundtrip_ms": 1130,
+  "measured_at": "2026-11-08T05:20:28.297364+00:00",
+  "fixture_cleanup_verified": true,
+  "original_password_restored": true,
+  "public_structure_unchanged": true,
+  "mirror_restored": true
+}
