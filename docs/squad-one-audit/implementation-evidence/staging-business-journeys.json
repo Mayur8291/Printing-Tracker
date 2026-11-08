@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "run_id": "25ef1f70-d889-44d0-88ad-da39350c9955",
+  "run_id": "aaae09b2-daad-44d8-9831-2be196c28379",
   "auth_personas": [
     0,
     1,
@@ -28,44 +28,44 @@
       ],
       "entities": {
         "quoteIds": [
-          "f391b1b8-3a7e-4f6a-a560-255d973a4005",
-          "18cd2031-322e-4977-8355-7ad3d8981ffd",
-          "2e5b40db-6b2e-4bf8-a039-60b18128407c",
-          "34bd11fc-6c54-42e1-a6db-f944b2f2e75f"
+          "499d477b-6eb8-4df2-93d1-367e8bb810e8",
+          "49438952-33e4-4ad7-81f9-919a68715a8a",
+          "d2813a8e-963f-40b3-8fb4-7330c34b254e",
+          "1f6cbc50-d8f6-4a69-9cdf-fe8f0e898590"
         ],
         "orderIds": [
-          "55232",
-          "55233",
-          "55234"
+          "55239",
+          "55240",
+          "55241"
         ],
         "itemIds": [
-          "116013",
-          "116014",
-          "116015",
-          "116016"
+          "116021",
+          "116022",
+          "116023",
+          "116024"
         ],
         "ratingIds": [
-          "306",
-          "307",
-          "308"
+          "309",
+          "310",
+          "311"
         ],
-        "createdTeamId": "7695",
-        "accountRequestId": "ee951a7b-8fad-48db-b5e0-788c35428cc6",
-        "milestoneId": "109",
-        "responsibilityId": "709",
-        "presetId": "2021",
-        "factoryOrderId": "55232",
-        "amendmentId": "5ad93ce2-372e-432a-bce0-c90a8a631e4e",
-        "factoryItemId": "116014",
-        "workerOrderId": "55233",
-        "workerItemId": "116015",
-        "forceOrderId": "55234"
+        "createdTeamId": "7696",
+        "accountRequestId": "c9f118da-bbb3-4f75-8156-57f428aae2d4",
+        "milestoneId": "110",
+        "responsibilityId": "712",
+        "presetId": "2023",
+        "factoryOrderId": "55239",
+        "amendmentId": "7a81cc84-2bfb-4833-92cf-bc395261973b",
+        "factoryItemId": "116022",
+        "workerOrderId": "55240",
+        "workerItemId": "116023",
+        "forceOrderId": "55241"
       },
       "expected": {
         "factoryQuantity": 3,
         "factoryTotal": "1575",
         "paidAmount": "100",
-        "dueAt": "2026-11-22T11:28:50.041119+00:00"
+        "dueAt": "2026-11-22T11:40:58.512831+00:00"
       },
       "scope": "Commercial mutations via authenticated shared SDK; factory completion and ratings follow in finishJourney."
     },
@@ -76,12 +76,12 @@
         "dispatch_partial_twice_exact_retry_overrun_denial_and_completed_order"
       ],
       "entities": {
-        "orderId": "55232",
-        "itemId": "116014",
-        "quantityId": "268846",
+        "orderId": "55239",
+        "itemId": "116022",
+        "quantityId": "268854",
         "managedTailorIds": [
-          "1900000805",
-          "1900000806"
+          "1900001005",
+          "1900001006"
         ]
       },
       "finalProgress": {
@@ -106,46 +106,95 @@
       ],
       "entities": {
         "quoteIds": [
-          "f391b1b8-3a7e-4f6a-a560-255d973a4005",
-          "18cd2031-322e-4977-8355-7ad3d8981ffd",
-          "2e5b40db-6b2e-4bf8-a039-60b18128407c",
-          "34bd11fc-6c54-42e1-a6db-f944b2f2e75f"
+          "499d477b-6eb8-4df2-93d1-367e8bb810e8",
+          "49438952-33e4-4ad7-81f9-919a68715a8a",
+          "d2813a8e-963f-40b3-8fb4-7330c34b254e",
+          "1f6cbc50-d8f6-4a69-9cdf-fe8f0e898590"
         ],
         "orderIds": [
-          "55232",
-          "55233",
-          "55234"
+          "55239",
+          "55240",
+          "55241"
         ],
         "itemIds": [
-          "116013",
-          "116014",
-          "116015",
-          "116016"
+          "116021",
+          "116022",
+          "116023",
+          "116024"
         ],
         "ratingIds": [
-          "306",
-          "307",
-          "308"
+          "309",
+          "310",
+          "311"
         ],
-        "createdTeamId": "7695",
-        "accountRequestId": "ee951a7b-8fad-48db-b5e0-788c35428cc6",
-        "milestoneId": "109",
-        "responsibilityId": "709",
-        "presetId": "2021",
-        "factoryOrderId": "55232",
-        "amendmentId": "5ad93ce2-372e-432a-bce0-c90a8a631e4e",
-        "factoryItemId": "116014",
-        "workerOrderId": "55233",
-        "workerItemId": "116015",
-        "forceOrderId": "55234"
+        "createdTeamId": "7696",
+        "accountRequestId": "c9f118da-bbb3-4f75-8156-57f428aae2d4",
+        "milestoneId": "110",
+        "responsibilityId": "712",
+        "presetId": "2023",
+        "factoryOrderId": "55239",
+        "amendmentId": "7a81cc84-2bfb-4833-92cf-bc395261973b",
+        "factoryItemId": "116022",
+        "workerOrderId": "55240",
+        "workerItemId": "116023",
+        "forceOrderId": "55241"
       },
       "expected": {
         "factoryQuantity": 3,
         "factoryTotal": "1575",
         "paidAmount": "100",
-        "dueAt": "2026-11-22T11:28:50.041119+00:00"
+        "dueAt": "2026-11-22T11:40:58.512831+00:00"
       },
       "scope": "Commercial creation, amendment, payment, factory completion and rating chain via authenticated shared SDK. Staff enrollment delivery and external warehouse acceptance are not exercised."
+    },
+    "commercialExtras": {
+      "checks": [
+        "sc_mixed_quote_override_acceptance_preserves_money_one_order_and_two_typed_children",
+        "customer_coordinator_request_list_admin_rejection_retry_preserves_original_owner",
+        "dealer_customer_creation_retry_auto_approval_relationship_and_scoped_address_read"
+      ],
+      "entities": {
+        "presetId": "2024",
+        "quoteId": "e50e4df5-d6f4-42e1-8f44-a2f3e1f5bb5a",
+        "mixedOrderId": "55242",
+        "mixedItemIds": [
+          "116025",
+          "116026"
+        ],
+        "coordinatorRequestId": "21",
+        "createdCustomerId": "7697",
+        "accountRequestId": "ee093669-9ef5-4bab-baa0-bc8ab5888b33",
+        "addressId": "7486"
+      },
+      "scope": "Authenticated shared SDK; mixed integration and created-customer enrollment are queued only. No provider or Auth provisioning worker is invoked."
+    },
+    "workforceExtras": {
+      "checks": [
+        "factory_manager_managed_tailor_and_subtailor_creation_retry_relationship_and_no_auth_contact",
+        "partial_factory_work_exact_legacy_payroll_leaderboard_agreement_pagination_and_archive_guard",
+        "completed_managed_subject_rename_and_archive_preserve_work_ids_quantities_and_history",
+        "dispatch_destination_snapshots_and_selected_partial_dispatch_challan_request_retry",
+        "explicit_kolkata_weekly_payroll_document_queued_once_for_download_with_role_denial"
+      ],
+      "entities": {
+        "documentIds": [
+          "61bf0ab4-bbe4-46a4-b9dc-78c39803fc4a",
+          "1a865685-2ee9-4dc0-9391-c0cd82ab0c03"
+        ],
+        "tailorId": "7698",
+        "subtailorId": "7699",
+        "orderId": "55243",
+        "itemId": "116027",
+        "selectedDispatchId": "1452",
+        "selectedDispatchQuantity": 1
+      },
+      "expected": {
+        "quantity": 4,
+        "payrollAmount": "140",
+        "selectedDispatchQuantity": 1,
+        "documentsQueued": 2
+      },
+      "scope": "Shared-SDK managed subjects, work, payroll, leaderboard, destination and document-request contracts. No document rendering, delivery or Auth enrollment."
     },
     "collaboration": {
       "checks": [
@@ -159,65 +208,89 @@
       ],
       "entities": {
         "orderIds": [
-          "55235",
-          "55236",
-          "55237",
-          "55238"
+          "55244",
+          "55245",
+          "55246",
+          "55247"
         ],
         "itemIds": [
-          "116017",
-          "116018",
-          "116019",
-          "116020"
+          "116028",
+          "116029",
+          "116030",
+          "116031"
         ],
         "presetIds": [
-          "2022",
-          "2021"
+          "2025",
+          "2023"
         ],
         "quoteIds": [
-          "b3fc5464-b625-4293-ae6e-20816d4b1a0b",
-          "496cd4b8-b272-4451-b2b1-e32f7e2dc218",
-          "ebaca79a-5131-4d23-b773-62c7f88e395f"
+          "3685c7ca-cc31-46ed-ba66-513e9869c585",
+          "dcb113e6-2c38-49b7-95d5-078ece958edf",
+          "b81b4dee-c0e8-4f6c-9750-328b00eee07b"
         ],
         "taskIds": [
-          "1324",
-          "1325"
+          "1326",
+          "1327"
         ],
         "responsibilityIds": [
-          "710",
-          "711"
+          "713",
+          "714"
         ]
       },
       "scope": "Actual shared-SDK custom Dealer/Job Worker/Team commands, receipts, FIFO dispatch and backorder fulfillment. Ready-made provider fulfillment, notification delivery and UI are separate acceptance paths."
+    },
+    "capabilities": {
+      "checks": [
+        "role-11_products_and_pdf_default_denial_and_no_self_grant",
+        "role-11_browse_grant_does_not_imply_configuration_or_pdf",
+        "role-11_configuration_and_pdf_are_independent_with_retry_safe_owned_intents",
+        "role-12_products_and_pdf_default_denial_and_no_self_grant",
+        "role-12_browse_grant_does_not_imply_configuration_or_pdf",
+        "role-12_configuration_and_pdf_are_independent_with_retry_safe_owned_intents",
+        "role-11_document_owner_scope_and_current_session_revocation",
+        "role-12_document_owner_scope_and_current_session_revocation"
+      ],
+      "entities": {
+        "presetIds": [
+          "2026",
+          "2027"
+        ],
+        "documentIds": [
+          "3d697a17-7909-4219-9239-a0eb197c329f",
+          "08222da1-cfaa-423d-844e-d14ffd3a3bd6"
+        ]
+      },
+      "scope": "Shared Job Worker/Team product and PDF grants, immediate revocation, owner isolation and queued download intents. Rendering, Storage download and delivery are separate worker acceptance."
     }
   },
   "transport": {
-    "rpc_requests": 252,
+    "rpc_requests": 437,
     "application_conflicts": [
       {
         "rpc": "v1_order_due_save",
         "status": 409,
         "code": "PT409",
-        "elapsed_ms": 284.39
+        "elapsed_ms": 185.39
       },
       {
         "rpc": "v1_dispatch_record",
         "status": 409,
         "code": "PT409",
-        "elapsed_ms": 178.92
+        "elapsed_ms": 188.39
       }
     ],
     "conflict_response_bound_ms": 5000
   },
   "scope": "Actual staged Auth/shared-SDK business commands with workers paused; no provider, email, document rendering or cutover acceptance",
   "cleanup": {
-    "run_id": "25ef1f70-d889-44d0-88ad-da39350c9955",
-    "owned_commands": 79,
-    "removed_source_rows": 133,
+    "run_id": "aaae09b2-daad-44d8-9831-2be196c28379",
+    "owned_commands": 120,
+    "removed_source_rows": 199,
+    "removed_queued_documents": 4,
     "tables": {
-      "sa_users": 17,
+      "sa_users": 21,
       "sa_factories": 2,
-      "sa_addresses": 2,
+      "sa_addresses": 4,
       "sa_sizes": 1,
       "sa_base_product_types": 1,
       "sa_base_products": 1,
@@ -235,46 +308,73 @@
       "sa_add_on_parts": 1,
       "sa_add_on_base_products": 1,
       "sa_add_on_colors": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
       "sa_milestones": 1,
       "sa_responsibilities": 3,
-      "sa_products": 2,
-      "sa_orders": 7,
-      "sa_items": 7,
+      "sa_products": 5,
+      "sa_orders": 9,
+      "sa_items": 10,
       "sa_ratings": 3,
       "sa_tasks": 2,
       "sa_back_order_links": 1,
-      "sa_item_criteria": 21,
-      "sa_item_tailors": 2,
-      "sa_job_sheet_assign_dates": 1,
-      "sa_job_sheet_assign_quantities": 2,
-      "sa_job_sheet_assign_tailors": 2,
-      "sa_job_sheet_dispatched_dates": 5,
-      "sa_job_sheet_mark_tailors": 2,
-      "sa_job_sheet_tailor_mark_dates": 2,
-      "sa_mark_cuttings": 2,
-      "sa_mark_tailor_quantities": 2,
-      "sa_product_part_add_ons": 2,
-      "sa_product_parts": 2,
-      "sa_quantities": 7,
+      "sa_customer_requests": 1,
+      "sa_item_criteria": 27,
+      "sa_item_tailors": 4,
+      "sa_job_sheet_assign_dates": 2,
+      "sa_job_sheet_assign_quantities": 4,
+      "sa_job_sheet_assign_tailors": 4,
+      "sa_job_sheet_dispatched_dates": 7,
+      "sa_job_sheet_mark_tailors": 6,
+      "sa_job_sheet_tailor_mark_dates": 4,
+      "sa_mark_cuttings": 3,
+      "sa_mark_tailor_quantities": 6,
+      "sa_product_part_add_ons": 5,
+      "sa_product_parts": 5,
+      "sa_quantities": 10,
       "sa_stocks": 2,
       "sa_task_users": 1,
-      "sa_user_dealers": 1,
-      "sa_dispatched_quantities": 5,
-      "sa_item_tailor_quantities": 2,
-      "sa_mark_cutting_quantities": 2,
+      "sa_user_dealers": 2,
+      "sa_dispatched_quantities": 7,
+      "sa_item_tailor_quantities": 4,
+      "sa_mark_cutting_quantities": 3,
       "sa_stock_useds": 4
     },
-    "edit_revision_before": 247,
-    "edit_revision_after": 326,
-    "synced_revision_after": 326,
+    "edit_revision_before": 326,
+    "edit_revision_after": 446,
+    "synced_revision_after": 446,
     "audit_and_commands_retained": true,
     "jobs_terminalized": true,
     "source_content_restored": true
   },
-  "measured_at": "2026-11-08T11:31:12.941518+00:00",
+  "measured_at": "2026-11-08T11:43:59.290170+00:00",
   "cutover_unchanged": true,
   "cron_restored": true,
   "provider_requests": 0,
   "emails_sent": 0,
-  "migration_prefix": "20261108112012"
+  "migration_prefix": "20261108112012",
+  "distinct_group_count": 34,
+  "duplicate_projection_excluded_from_count": "commercialFinish",
+  "working_tree_sources_sha256": {
+    "packages/shared/squad.js": "743168928b04c01b51bed396f453508ea418dc2e1be087b91ea53e890ad2fad2",
+    "tools/squad/test_hosted_business_journeys.py": "36c33e79635f34daa91f07341247697b251eb3fec86b9db7ea1a45048973a56b",
+    "tools/squad/test_business_journeys_hosted_sdk.mjs": "650a29f21e4e1b5ec87e6ef7c814d9309c46abdc399773f040e024d7c147e2ee",
+    "tools/squad/business_cleanup_documents.py": "2928b685599f54eda97933a697fc644921b1364c775d3389e344e63a8c8135e5",
+    "tools/squad/business_fixture_commercial.py": "fb437ec37d08f8e549abecb0153df72b5435eef3e9d1d8859fc302fcf022f5db",
+    "tools/squad/business_fixture_commercial_extras.py": "17e6c821c4066c3591790b2e791b6e94d2139aaa9dbf6768a0544a7e69174a0d",
+    "tools/squad/business_journey_capabilities.mjs": "5e8677eaf5d4dbd9ff781289e75846e1cd43b63fb9b257c10348d8c086c51507",
+    "tools/squad/business_journey_collaboration.mjs": "02ce84d0c007c78242079762eddd498cb45c1a970a71084e85e0e123d61a2477",
+    "tools/squad/business_journey_commercial.mjs": "70137c8477665b87b87903c117065e8118c72d0e6dea2fdcaaa0d8613daceb19",
+    "tools/squad/business_journey_commercial_extras.mjs": "d4e69f59949c7b92864281d5dd3d1749f17f68b0dd62ba796d23908a9007f356",
+    "tools/squad/business_journey_factory.mjs": "0d7f22bc073eb1db1fc811a2b0ba5f5de47d2287a98da239c8debb501a9ca206",
+    "tools/squad/business_journey_workforce_extras.mjs": "f60863cf46d8e8dd234db916ae1d2cd52c4f2c4a9e127f09e707a8b528dcf7e8"
+  }
 }

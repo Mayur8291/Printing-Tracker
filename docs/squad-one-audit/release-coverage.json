@@ -19,9 +19,11 @@
     "successful_persona_run_blocked_reservations_retained": 11,
     "initial_failed_persona_run_blocked_reservations_retained": 11,
     "production_release_approved_by_this_index": false,
-    "hosted_business_composite_result": "passed_18_groups_11_login_roles_252_rpc_calls",
+    "hosted_business_composite_result": "passed_34_groups_11_login_roles_437_rpc_calls",
     "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
-    "hosted_business_remaining_scope": "Seven bounded additive persona scenario groups remain under iteration33; no blanket full-persona or provider acceptance claim."
+    "hosted_business_remaining_scope": "No further backend command/query composition gap identified; actual Uniware, weekly/challan document outputs, intended inbox delivery and automatic weekly enablement remain explicit runtime/provider acceptance.",
+    "expanded_composition_recovery_tests_passed": 34,
+    "expanded_composition_recovery_elapsed_seconds": 21.732
   },
   "scope_amendments": [
     {
@@ -15572,11 +15574,13 @@
         "test_work_management.WorkManagement.test_goal_admin_assign_self_complete",
         "test_order_lifecycle.Lifecycle.test_force_complete_admin_exception_does_not_invent_dispatched_quantities"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": null,
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Commercial review/link, staff grants, responsibility/report/force-close; actual signup separately proven.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Sales Coordinator",
@@ -15597,11 +15601,13 @@
         "test_order_acceptance.Orders.test_mixed_order_does_not_split",
         "test_quote_override.QuoteOverrides.test_override_recomputes_line_and_order_tax"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Custom and mixed quote/override/place, edits/payment, production and rating; mixed provider intent stays queued.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Production Coordinator",
@@ -15621,11 +15627,13 @@
         "test_production_allocation.Allocation.test_worker_cost_derived_not_client_total",
         "test_production_allocation.Allocation.test_worker_due_changes_preserve_assignment_baseline"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Criteria, factory/worker assignment, cost/due, progress and rating; pending-query scope separately proven.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Customer",
@@ -15647,11 +15655,13 @@
         "test_account_flows.AccountFlows.test_verified_registration_reserves_identity_and_blocks_unapproved_login",
         "test_relationships.Relationships.test_request_then_admin_decision_updates_pending"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Legacy/registration Auth separately proven; configure/order/history/feedback and coordinator request/rejection composed; catalogue output separately proven.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Factory Manager",
@@ -15670,11 +15680,13 @@
         "test_people.People.test_tailor_and_subtailor_have_no_auth_or_contact_email",
         "test_documents.TailorDocuments.test_report_reuses_formula_and_explicit_week"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Managed workforce creation, allocation/partial/balance/dispatch and weekly request; hosted weekly output remains DOC_OUTPUT.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Tailor",
@@ -15692,11 +15704,13 @@
         "test_work_reports.WorkReports.test_subtailors_are_separate_without_double_count",
         "test_people.People.test_archive_preserves_subject_row"
       ],
-      "composite_status": "managed_subject_hosted_work_composition_passed_lifecycle_report_additions_pending",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "no_standalone_login_managed_subject",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Managed partial completion, own/team earnings, leaderboard, pagination and rename consistency; no standalone login.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "SubTailor",
@@ -15713,11 +15727,13 @@
         "test_production_execution.Execution.test_assign_subtailor_same_factory_supported",
         "test_tailor_earnings.Earnings.test_subtailor_individual_report"
       ],
-      "composite_status": "managed_subject_hosted_work_composition_passed_lifecycle_report_additions_pending",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "no_standalone_login_managed_subject",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Managed parent attribution, partial/balance, unfinished-archive denial and retained completed history; no standalone login.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Dispatch Incharge",
@@ -15734,11 +15750,13 @@
         "test_deliveries.Deliveries.test_remaining_destination_change_does_not_rewrite_prior_dispatch",
         "test_documents.Challans.test_selected_dispatch_quantity_not_later_cumulative_total"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Partial dispatch/retry/completion, immutable destination snapshots and selected-partial challan request; hosted challan output remains DOC_OUTPUT.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Inspector",
@@ -15753,11 +15771,13 @@
         "test_production_execution.Execution.test_inspection_wrong_factory_denied",
         "test_production_execution.Execution.test_inspection_missing_history_fails_without_fabricating_assignments"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Own job sheet completion/pick/partial/balance rollups; foreign-factory denial separately proven.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Cutting Master",
@@ -15772,11 +15792,13 @@
         "test_production_execution.ConcurrentWork.test_competing_cut_commands_cannot_double_record",
         "test_production_execution.Execution.test_cut_over_remaining_denied"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": "test_persona_finance_parity.PersonaFinance.test_full_custom_order_money_quantity_and_rating_journey",
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Partial/balance/retry/overcut/history; assigned-only scopes separately proven.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Dealer",
@@ -15796,11 +15818,13 @@
         "test_stock_execution.StockExecution.test_fifo_allocation_fixes_legacy_subtraction_bug",
         "test_stock_execution.ConcurrentDealerDispatch.test_two_orders_cannot_consume_the_same_stock"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": null,
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Linked customer/address creation/approval, stock receipt, demand/backorder/FIFO/residual; new customer Auth enrollment intentionally queued.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Job Worker",
@@ -15820,11 +15844,13 @@
         "test_work_management.WorkManagement.test_worker_with_flag_can_create_own_task",
         "test_documents.Documents.test_document_does_not_enable_disabled_worker_capability"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": null,
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Assigned stages/due/notes/goals and shared products/PDF permission matrix; unrelated-order denial separately proven.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Team",
@@ -15840,11 +15866,13 @@
         "test_catalogue.Catalogue.test_configure_requires_child_feature",
         "test_persona_finance_parity.PersonaFinance.test_team_does_not_gain_order_projection"
       ],
-      "composite_status": "current_hosted_composition_passed_required_persona_variations_under_final_review",
+      "composite_status": "backend_command_query_coverage_with_named_scoped_artifacts",
       "hosted_identity_read_session_artifact": "docs/squad-one-audit/implementation-evidence/staging-personas-sdk.json",
       "login_expectation": "controlled_legacy_compatible_GoTrue_account",
       "existing_cross_persona_journey": null,
-      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json"
+      "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "composition_scope_note": "Independent notes/goals/products/PDF permissions; order/stock administration denials separately proven.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     },
     {
       "persona": "Printing Tracker admin (separate)",
@@ -15860,18 +15888,20 @@
         "test_cutover.Cutover.test_app_admin_is_not_platform_operator",
         "test_stock_reconciliation.StockReconciliation.test_platform_admin_has_same_operational_view"
       ],
-      "composite_status": "separate_staff_components_bound_full_composite_unattested",
+      "composite_status": "separate_existing_staff_acceptance_not_canto_composite",
       "hosted_identity_read_session_artifact": null,
       "login_expectation": "separate_authenticated_staff",
-      "existing_cross_persona_journey": null
+      "existing_cross_persona_journey": null,
+      "composition_scope_note": "Existing separate Masters/media/refresh acceptance; no Canto-admin substitution or new final-refresh claim.",
+      "output_and_provider_limits": "See DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE; UI and cutover remain separate."
     }
   ],
   "remaining_gates": {
     "JOURNEYS": {
-      "kind": "required_headless_composition_acceptance",
-      "priority": "implementation gate7; bounded persona additions pending",
+      "kind": "backend_command_query_composition_passed",
+      "priority": "implementation gate7 output/provider limits remain separate",
       "scope": "All 11 dashboard personas plus two managed subjects and separate Printing Tracker admin",
-      "remaining": "All 11 real-login personas passed Auth/read/session checks. The current 18-group hosted shared-SDK composition passed 252 RPC calls at112012, including commercial, factory, ratings, dealer backorders/FIFO, worker stages and Team grants. Seven bounded additions remain: SC mixed override, customer coordinator request, Dealer-created customer, managed workforce lifecycle/reporting, dispatch destination/challan, and shared worker/Team product-PDF capabilities. Separate scoped hosted artifacts cover underlying services. No UI or live provider acceptance is inferred."
+      "remaining": "The34-group real-GoTrue/shared-SDK composition passed437 RPCs at112012, including all11 login actors and managed Tailor/SubTailor work. Named separate Auth/scope/catalogue/document/PrintingTracker artifacts cover the14 required backend persona paths. No additional command/query composition gap was found. Queued PDF and warehouse intents are not output or provider completion; see DOC_OUTPUT, WAREHOUSE, SMTP and SCHEDULE_ACCEPTANCE."
     },
     "WAREHOUSE": {
       "kind": "external_acceptance_dependency",
@@ -15919,7 +15949,7 @@
       "kind": "release_evidence_assembly",
       "priority": "required before release",
       "scope": "All retained backend modules",
-      "remaining": "Staging is deployed through112012. Fresh rebuild and complete1,841-test SQL suite passed in99.846seconds with no skips;311 Edge tests and all three entrypoint typechecks passed. The18-group hosted composition and rollback profiler passed. Preserve exact source hashes and the remaining iteration33 persona additions; these results do not attest production or providers."
+      "remaining": "Staging runtime remains through112012, with1,841 clean-rebuild SQL tests and311 Edge tests previously passed. The expanded composition/recovery suite passed34 tests in21.732seconds, followed by34 hosted groups/437 RPCs and verified cleanup. No runtime changes were needed in iteration33. Remaining external/output acceptance is explicit; no production/cutover release is inferred."
     },
     "SECURITY_RELEASE": {
       "kind": "release_evidence_assembly",
@@ -15956,6 +15986,12 @@
       "priority": "not a launch blocker",
       "scope": "AUTH.06",
       "remaining": "Universal-password login-as is retired. Scoped impersonation is intentionally not implemented until an explicit support policy; do not treat guard tests as support-session functionality."
+    },
+    "DOC_OUTPUT": {
+      "kind": "hosted_output_acceptance",
+      "priority": "required before claiming complete document output acceptance",
+      "scope": "DOC.03\u201304; Factory Manager/Dispatch Incharge",
+      "remaining": "Challan selected-dispatch and weekly request/permission/payroll/snapshot contracts pass; the34-group hosted composition proves queued download intents only. Actual hosted weekly/challan render, private download and checksum verification remain. Catalogue rendering/download and automatic document Cron already have scoped proof. Use a reviewed mirror-safe worker harness; do not silently enable global cutover for a test."
     }
   },
   "tests": [
@@ -22482,7 +22518,7 @@
     },
     {
       "path": "tools/squad/test_business_journey_composition.py",
-      "sha256": "8904a1ba9c5cbec44e20ba4b342b2f59c321fc0f2ddb310c390d3403c720dc86",
+      "sha256": "d6b2fa487ebd27a0f02ecf664a945598a8f505166b0891a238720f425bc3445e",
       "evidence_kind": "iteration30_31_executable_test_or_acceptance_harness_source"
     },
     {
@@ -22502,12 +22538,12 @@
     },
     {
       "path": "tools/squad/test_hosted_business_journeys.py",
-      "sha256": "f8d2d69d2167f7a4db8b96157eec60057fae24d8dd727b16365ce5d40418dbab",
+      "sha256": "36c33e79635f34daa91f07341247697b251eb3fec86b9db7ea1a45048973a56b",
       "evidence_kind": "iteration30_31_executable_test_or_acceptance_harness_source"
     },
     {
       "path": "tools/squad/test_business_journeys_hosted_sdk.mjs",
-      "sha256": "7838f3c46505223e4a6029db6de3bf7fc76198ec9141f3309ab8bb9c24c7aa82",
+      "sha256": "650a29f21e4e1b5ec87e6ef7c814d9309c46abdc399773f040e024d7c147e2ee",
       "evidence_kind": "iteration30_31_executable_test_or_acceptance_harness_source"
     },
     {
@@ -22529,6 +22565,41 @@
       "path": "tools/squad/test_stock_allocation_scope.py",
       "sha256": "2879a38d03585d2144430bfc587ab5e3e721dc82feaeddea7ea75156c4572119",
       "evidence_kind": "iteration32_executable_regression_or_profiler_source"
+    },
+    {
+      "path": "tools/squad/business_cleanup_documents.py",
+      "sha256": "2928b685599f54eda97933a697fc644921b1364c775d3389e344e63a8c8135e5",
+      "evidence_kind": "iteration33_executable_composition_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/business_fixture_commercial_extras.py",
+      "sha256": "17e6c821c4066c3591790b2e791b6e94d2139aaa9dbf6768a0544a7e69174a0d",
+      "evidence_kind": "iteration33_executable_composition_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/business_journey_commercial_extras.mjs",
+      "sha256": "d4e69f59949c7b92864281d5dd3d1749f17f68b0dd62ba796d23908a9007f356",
+      "evidence_kind": "iteration33_executable_composition_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/business_journey_workforce_extras.mjs",
+      "sha256": "f60863cf46d8e8dd234db916ae1d2cd52c4f2c4a9e127f09e707a8b528dcf7e8",
+      "evidence_kind": "iteration33_executable_composition_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/business_journey_capabilities.mjs",
+      "sha256": "5e8677eaf5d4dbd9ff781289e75846e1cd43b63fb9b257c10348d8c086c51507",
+      "evidence_kind": "iteration33_executable_composition_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/test_business_document_cleanup.py",
+      "sha256": "96766fe4d99c8c94c7192fa0cc0c3ac0ab5aaaa332dd46587b57b6833ff3926c",
+      "evidence_kind": "iteration33_executable_composition_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/test_business_workforce_extras.py",
+      "sha256": "6c8579b129a16a47fcac6ee8b42fd2ef3f82095bdd563ea56b14a8d6b5362917",
+      "evidence_kind": "iteration33_executable_composition_or_recovery_source"
     }
   ],
   "existing_artifacts": [
@@ -22764,7 +22835,7 @@
     },
     {
       "path": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
-      "sha256": "cdd280e117fb05e2d8a8f75cd3bd06e9e114c4610ef115207ee928ba19de846b",
+      "sha256": "71980302c268d6a08de666a8e949c621fcf39e5cf556456d0ff27b15ceebf673",
       "evidence_kind": "scoped_iteration30_32_execution_or_review_artifact_read_result_and_scope"
     },
     {
@@ -22781,6 +22852,11 @@
       "path": "docs/squad-one-audit/implementation-evidence/local-dealer-dispatch-allocation-performance.json",
       "sha256": "55d9fd2c75a9eb5ccce24b76a9271886447c5827910c2baab911727b90527bf3",
       "evidence_kind": "scoped_iteration30_32_execution_or_review_artifact_read_result_and_scope"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/staging-business-final-state.json",
+      "sha256": "350b191d2c8d9ffe96af4a8a2f6d36514a3240b8b5ca2bbe358a82dbdf0d9d71",
+      "evidence_kind": "scoped_iteration33_postcleanup_verification"
     }
   ],
   "warehouse_read_probe_contract": {
@@ -22814,7 +22890,7 @@
     },
     {
       "path": "docs/squad-one-audit/BUSINESS_JOURNEY_HARNESS.md",
-      "sha256": "2ecae88d25ec3ed37081507ce01e6be738092f2a522d51657a4f7f49e4bdb3af",
+      "sha256": "5766c4841c4b0c945fdc5b1c1e937819701651563505e8e32a62cdb3bd48f2a3",
       "evidence_kind": "implementation_contract_and_execution_scope"
     },
     {

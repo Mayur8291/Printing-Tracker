@@ -7,6 +7,9 @@ import {createSquadClient} from '../../packages/shared/squad.js';
 import {runJourney as commercial,finishJourney} from './business_journey_commercial.mjs';
 import {runJourney as factory} from './business_journey_factory.mjs';
 import {runJourney as collaboration} from './business_journey_collaboration.mjs';
+import {runJourney as commercialExtras} from './business_journey_commercial_extras.mjs';
+import {runJourney as workforceExtras} from './business_journey_workforce_extras.mjs';
+import {runJourney as capabilities} from './business_journey_capabilities.mjs';
 
 const lines=readline.createInterface({input:process.stdin})[Symbol.asyncIterator]();
 const emit=value=>process.stdout.write(JSON.stringify(value)+'\n');
@@ -43,7 +46,13 @@ try{
  const factoryResult=await factory(ctx);
  phase='ratings';
  ctx.commercial=await finishJourney(ctx,ctx.commercial);
+ const extraResults={};
+ if(init.extraJourneys){
+  phase='commercial-extras';extraResults.commercialExtras=await commercialExtras(ctx);
+  phase='workforce-extras';extraResults.workforceExtras=await workforceExtras(ctx);
+ }
  phase='collaboration';
  const collaborationResult=await collaboration(ctx);
- emit({kind:'result',report:{commercial:ctx.commercial,factory:factoryResult,collaboration:collaborationResult},journal});
+ if(init.extraJourneys){phase='capabilities';extraResults.capabilities=await capabilities(ctx);}
+ emit({kind:'result',report:{commercial:ctx.commercial,factory:factoryResult,collaboration:collaborationResult,...extraResults},journal});
 }catch(error){emit({kind:'failed',error:{name:error.name,message:error.message,code:error.code,stack:error.stack}});process.exitCode=1;}

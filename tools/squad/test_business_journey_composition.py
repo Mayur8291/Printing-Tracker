@@ -98,7 +98,7 @@ def run_sdk(c,fixture,actors=None,run_id=None):
     process=subprocess.Popen(['node','tools/squad/business_journeys_local_bridge.mjs'],cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
     selector=selectors.DefaultSelector()
     try:
-        process.stdin.write(json.dumps({'roles':ROLES,'fixture':fixture,'run_id':run_id})+'\n');process.stdin.flush()
+        process.stdin.write(json.dumps({'roles':ROLES,'fixture':fixture,'run_id':run_id,'extraJourneys':True})+'\n');process.stdin.flush()
         selector.register(process.stdout,selectors.EVENT_READ)
         calls=0;denied=0;deadline=time.monotonic()+30
         while True:
@@ -129,7 +129,7 @@ class BusinessJourneyComposition(unittest.TestCase):
             try:
                 fixture=prepare_local(c)
                 process=subprocess.Popen(['node','tools/squad/business_journeys_local_bridge.mjs'],cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
-                process.stdin.write(json.dumps({'roles':ROLES,'fixture':fixture})+'\n');process.stdin.flush()
+                process.stdin.write(json.dumps({'roles':ROLES,'fixture':fixture,'extraJourneys':True})+'\n');process.stdin.flush()
                 selector=selectors.DefaultSelector();selector.register(process.stdout,selectors.EVENT_READ)
                 report=None;calls=0;denied=0;deadline=time.monotonic()+30
                 while report is None:
@@ -145,6 +145,9 @@ class BusinessJourneyComposition(unittest.TestCase):
                 self.assertEqual(len(report['commercial']['checks']),8)
                 self.assertEqual(len(report['factory']['checks']),3)
                 self.assertEqual(len(report['collaboration']['checks']),7)
+                self.assertEqual(len(report['commercialExtras']['checks']),3)
+                self.assertEqual(len(report['workforceExtras']['checks']),5)
+                self.assertEqual(len(report['capabilities']['checks']),8)
                 self.assertGreater(calls,100);self.assertGreater(denied,10)
                 self.assertEqual(report['factory']['finalProgress'],{'required':3,'cut':3,'assigned':3,'sewn':3,'dispatched':3,'order_completed':True})
                 # The deferred provider/email consumers never execute in this test.

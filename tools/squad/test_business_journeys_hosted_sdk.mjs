@@ -8,6 +8,9 @@ import {createSquadClient} from '../../packages/shared/squad.js';
 import {runJourney as commercial,finishJourney} from './business_journey_commercial.mjs';
 import {runJourney as factory} from './business_journey_factory.mjs';
 import {runJourney as collaboration} from './business_journey_collaboration.mjs';
+import {runJourney as commercialExtras} from './business_journey_commercial_extras.mjs';
+import {runJourney as workforceExtras} from './business_journey_workforce_extras.mjs';
+import {runJourney as capabilities} from './business_journey_capabilities.mjs';
 let input='';for await(const chunk of process.stdin)input+=chunk;const config=JSON.parse(input);input='';
 assert.equal(config.url,'https://scvojtvgnkmbupvyslmb.supabase.co');
 assert.match(config.run_id,/^[0-9a-f-]{36}$/);
@@ -49,12 +52,15 @@ try{
  journeys.commercial=ctx.commercial=await commercial(ctx);record('phase','commercial');
  journeys.factory=await factory(ctx);record('phase','factory');
  journeys.commercialFinish=await finishJourney(ctx,journeys.commercial);record('phase','commercial-finish');
+ journeys.commercialExtras=await commercialExtras(ctx);record('phase','commercial-extras');
+ journeys.workforceExtras=await workforceExtras(ctx);record('phase','workforce-extras');
  journeys.collaboration=await collaboration(ctx);record('phase','collaboration');
+ journeys.capabilities=await capabilities(ctx);record('phase','capabilities');
  const applicationConflicts=httpConflicts.filter(x=>x.code==='PT409');
  assert.ok(applicationConflicts.some(x=>x.rpc==='v1_order_due_save'),'Stale order version must return HTTP409/PT409');
  assert.ok(applicationConflicts.every(x=>x.elapsed_ms<5000),'Application conflicts must return within the 5-second hosted test bound');
  const report={environment:'staging',run_id:config.run_id,auth_personas:[...clients.keys()],journeys,transport:{rpc_requests:rpcRequests,application_conflicts:applicationConflicts,conflict_response_bound_ms:5000},scope:'Actual staged Auth/shared-SDK business commands with workers paused; no provider, email, document rendering or cutover acceptance'};
- record('complete',{phases:4});console.log(JSON.stringify(report));
+ record('complete',{phases:7});console.log(JSON.stringify(report));
 }finally{
  for(const {client} of clients.values())await client.auth.signOut({scope:'local'}).catch(()=>{});
  for(const actor of config.actors)actor.password='';fs.closeSync(fd);

@@ -8,6 +8,7 @@ import re
 import uuid
 
 from psycopg import sql
+from business_fixture_commercial_extras import plan_fixture as plan_extras
 
 SCHEMA = 'sa_snapshot_20261019'
 
@@ -60,7 +61,7 @@ def plan_fixture(state):
         (27,'add_on_colors',{'add_on_id':base+10,'color_id':base+8}),
     ]:
         rows(table,[{'id':base+offset,**fields}])
-    return {
+    result = {
         'label':label,'ids':{key:str(value) for key,value in ids.items()},
         'reviewCustomerId':str(base+3),
         'createdTeamEmail':f'squad-business-{run.hex[:12]}-created-team@mailinator.com',
@@ -69,6 +70,17 @@ def plan_fixture(state):
         'fixture_tables':table_rows,
         'optional_shared_criteria':[{'id':base+12,'name':'Fabric'},{'id':base+13,'name':'Trims'}],
     }
+    extras = plan_extras(state)
+    by_table = {entry['table']:entry for entry in table_rows}
+    for entry in extras['fixture_tables']:
+        if entry['table'] in by_table:
+            target = by_table[entry['table']]
+            assert not set(target['ids']) & set(entry['ids'])
+            target['ids'].extend(entry['ids']);target['rows'].extend(entry['rows'])
+        else:
+            table_rows.append(entry);by_table[entry['table']] = entry
+    result['commercialExtras'] = extras['commercialExtras']
+    return result
 
 
 def prepare_fixture(c,state):

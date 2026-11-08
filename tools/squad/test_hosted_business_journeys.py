@@ -18,6 +18,7 @@ from psycopg import sql
 from psycopg.types.json import Jsonb
 import test_hosted_personas as identities
 from business_fixture_commercial import plan_fixture,prepare_fixture
+from business_cleanup_documents import cleanup_documents
 
 ROOT=identities.ROOT
 PRIVATE=ROOT/'tools/squad/private'
@@ -50,6 +51,7 @@ def validate(state):
  assert len(state['source_before'])<=300 and all(k.startswith('sa_') and k.replace('_','').isalnum() for k in state['source_before'])
  expected=plan_fixture(state)
  assert state['fixture']['ids']==expected['ids'] and state['fixture']['customConfig']==expected['customConfig']
+ assert state['fixture']['commercialExtras']==expected['commercialExtras'],'Extra journey fixture changed'
  # Only deterministic planned rows may become cleanup roots. Optional criteria
  # are owned only at their reserved IDs; borrowed criteria are never roots.
  allowed={entry['table']:set(entry['ids']) for entry in expected['fixture_tables']}
@@ -212,6 +214,7 @@ def cleanup(c,state,journal_entries=None):
    assert not c.execute('SELECT 1 FROM auth.refresh_tokens WHERE user_id=ANY(%s::text[])',([str(a) for a in auths],)).fetchone(),'Fixture refresh token reappeared'
    assert not c.execute("SELECT 1 FROM sa_identity.sa_auth_identities WHERE auth_user_id=ANY(%s::uuid[]) AND enrollment_state<>'blocked'",(auths,)).fetchone(),'Fixture identity reservation reactivated'
    assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE actor_id=ANY(%s::uuid[]) AND status IN('pending','leased')",(auths,)).fetchone(),'Fixture job reactivated'
+   assert not c.execute('SELECT 1 FROM sa_domain.documents WHERE actor_id=ANY(%s::uuid[])',(auths,)).fetchone(),'Fixture document reappeared'
    assert identities.public_structure(c)==state['public_structure'] and identities.staff_auth(c)==state['staff_auth'],'Unrelated public/staff data changed'
    return old_cleanup[0]
   assert environment[4]==identity['synced_revision'],'Source watermark changed'
@@ -230,6 +233,7 @@ def cleanup(c,state,journal_entries=None):
   assert not c.execute('SELECT 1 FROM sa_domain.outbox WHERE actor_id=ANY(%s::uuid[]) AND (attempts<>0 OR status<>\'pending\') LIMIT 1',(auths,)).fetchone(),'Fixture background work unexpectedly executed'
   entity_entries=[{'kind':'entity','value':{'kind':kind,'id':str(entity_id)}} for _,_,_,kind,entity_id,_ in rows if kind in KIND_TABLE]
   graph,fks=source_graph(c,state,entity_entries,set(state.get('setup_xids',[]))|{int(row[-1]) for row in raw_rows})
+  removed_documents=cleanup_documents(c,state,rows,auths,{int(row[-1]) for row in raw_rows})
   c.execute("UPDATE sa_domain.outbox SET status='dead',last_error_code='REHEARSAL_CLEANUP',completed_at=now(),lease_token=NULL,lease_until=NULL WHERE actor_id=ANY(%s::uuid[]) AND status='pending'",(auths,))
   c.execute("UPDATE sa_domain.account_requests SET state='failed',error_code='REHEARSAL_CLEANUP',updated_at=now() WHERE actor_id=ANY(%s::uuid[])",(auths,))
   delete_graph(c,graph,fks)
@@ -239,7 +243,7 @@ def cleanup(c,state,journal_entries=None):
   c.execute('UPDATE sa_sync.environment_state SET synced_revision=synced_revision+%s WHERE singleton',(delta,))
   cleanup_identity=dict(identity,edit_revision=environment[3],synced_revision=environment[4]+delta)
   identities.cleanup(c,cleanup_identity)
-  result={'run_id':state['run_id'],'owned_commands':delta,'removed_source_rows':sum(map(len,graph.values())),'tables':{k:len(v) for k,v in graph.items()},'edit_revision_before':identity['edit_revision'],'edit_revision_after':environment[3],'synced_revision_after':environment[4]+delta,'audit_and_commands_retained':True,'jobs_terminalized':True,'source_content_restored':True}
+  result={'run_id':state['run_id'],'owned_commands':delta,'removed_source_rows':sum(map(len,graph.values())),'removed_queued_documents':removed_documents,'tables':{k:len(v) for k,v in graph.items()},'edit_revision_before':identity['edit_revision'],'edit_revision_after':environment[3],'synced_revision_after':environment[4]+delta,'audit_and_commands_retained':True,'jobs_terminalized':True,'source_content_restored':True}
   c.execute("INSERT INTO sa_domain.audit(actor_id,legacy_user_id,operation,kind,entity_id,command_key,changes) VALUES(%s,%s,'rehearsal.cleanup','rehearsal',%s,%s,%s)",(auths[0],identity['base'],state['data_base'],uuid.UUID(state['run_id']),Jsonb(result)))
   assert identities.public_structure(c)==state['public_structure'] and identities.staff_auth(c)==state['staff_auth'],'Unrelated public/staff data changed'
   return result
