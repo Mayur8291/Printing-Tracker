@@ -225,6 +225,15 @@ class Dashboard(unittest.TestCase):
   chosen=fast[0]
   filtered=self.query('rmp_order_reports',quick={'logic':'and','conditions':[{'field':'id','operator':'equals','value':chosen['id']}]})
   self.assertEqual(filtered['data'],[chosen]);self.assertEqual(filtered['totalCount'],1)
+ def test_rmp_search_matches_projected_boolean_and_timestamp_text(self):
+  self.raw('UPDATE sa_snapshot_20261019.sa_items SET rmp_brand_id=NULL WHERE id=1002')
+  rows=self.query('rmp_order_reports')['data']
+  for term in ('true','false','rue','alse','2026-10-26T'):
+   with self.subTest(term=term):
+    expected={r['id'] for r in rows if any(term.lower() in (json.dumps(v) if isinstance(v,bool) else str(v)).lower() for v in r.values() if v is not None)}
+    actual=self.query('rmp_order_reports',search=term)
+    self.assertEqual({r['id'] for r in actual['data']},expected)
+    self.assertEqual(actual['totalCount'],len(expected))
  def test_bulk_customer_projection_matches_detail(self):
   for row in self.query()['data']:self.assertEqual(row,self.call('customer_get',id=row['id']))
 

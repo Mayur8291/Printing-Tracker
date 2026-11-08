@@ -1,16 +1,16 @@
 {
   "environment": "staging",
-  "timestamp": "2026-11-08T13:54:18.213851+00:00",
+  "timestamp": "2026-11-08T15:05:46.403850+00:00",
   "migration_and_sessions_rolled_back": true,
   "public_structure_unchanged": true,
   "results": [
     {
       "report": "customers",
       "tab": "",
-      "cold_ms": 404.343,
+      "cold_ms": 418.689,
       "warm_ms": [
-        89.327,
-        92.15
+        87.038,
+        96.075
       ],
       "summary_cache": "none",
       "total": 6819,
@@ -20,10 +20,10 @@
     {
       "report": "order_reports",
       "tab": "",
-      "cold_ms": 825.495,
+      "cold_ms": 2824.837,
       "warm_ms": [
-        53.79,
-        50.488
+        93.556,
+        51.028
       ],
       "summary_cache": "none",
       "total": 1482,
@@ -33,10 +33,10 @@
     {
       "report": "rmp_order_reports",
       "tab": "",
-      "cold_ms": 405.699,
+      "cold_ms": 2623.683,
       "warm_ms": [
-        40.419,
-        36.473
+        37.929,
+        37.869
       ],
       "summary_cache": "revision_keyed_5_minutes",
       "total": 90336,
@@ -46,10 +46,10 @@
     {
       "report": "tailor_reports",
       "tab": "",
-      "cold_ms": 632.874,
+      "cold_ms": 715.249,
       "warm_ms": [
-        76.321,
-        69.49
+        69.994,
+        65.63
       ],
       "summary_cache": "none",
       "total": 1272,
@@ -59,10 +59,10 @@
     {
       "report": "order_tracking",
       "tab": "",
-      "cold_ms": 277.83,
+      "cold_ms": 372.464,
       "warm_ms": [
-        106.451,
-        105.994
+        107.291,
+        106.256
       ],
       "summary_cache": "none",
       "total": 13201,
@@ -72,10 +72,10 @@
     {
       "report": "rmp_sales",
       "tab": "overview",
-      "cold_ms": 135.148,
+      "cold_ms": 134.9,
       "warm_ms": [
-        132.54,
-        133.685
+        134.561,
+        136.034
       ],
       "summary_cache": "none",
       "total": 13127,
@@ -85,10 +85,10 @@
     {
       "report": "rmp_sales",
       "tab": "brand",
-      "cold_ms": 463.414,
+      "cold_ms": 390.2,
       "warm_ms": [
-        156.82,
-        156.351
+        164.582,
+        161.057
       ],
       "summary_cache": "none",
       "total": 112,
@@ -98,10 +98,10 @@
     {
       "report": "rmp_sales",
       "tab": "class",
-      "cold_ms": 170.559,
+      "cold_ms": 164.015,
       "warm_ms": [
-        165.759,
-        158.103
+        171.812,
+        168.021
       ],
       "summary_cache": "none",
       "total": 605,
@@ -111,10 +111,10 @@
     {
       "report": "rmp_sales",
       "tab": "coordinator",
-      "cold_ms": 156.864,
+      "cold_ms": 161.967,
       "warm_ms": [
-        155.194,
-        154.395
+        162.27,
+        161.384
       ],
       "summary_cache": "none",
       "total": 21,
@@ -124,10 +124,10 @@
     {
       "report": "customer_performance",
       "tab": "",
-      "cold_ms": 228.628,
+      "cold_ms": 237.56,
       "warm_ms": [
-        173.591,
-        173.456
+        172.972,
+        173.503
       ],
       "summary_cache": "none",
       "total": 6819,
@@ -137,10 +137,10 @@
     {
       "report": "unique_customers",
       "tab": "",
-      "cold_ms": 72.437,
+      "cold_ms": 82.138,
       "warm_ms": [
-        62.819,
-        63.758
+        63.839,
+        64.572
       ],
       "summary_cache": "none",
       "total": 1,
@@ -150,10 +150,10 @@
     {
       "report": "total_inventory",
       "tab": "",
-      "cold_ms": 164.153,
+      "cold_ms": 175.735,
       "warm_ms": [
-        116.563,
-        116.357
+        128.441,
+        129.896
       ],
       "summary_cache": "none",
       "total": 4134,
@@ -164,22 +164,27 @@
   "scenarios": [
     {
       "scenario": "rmp_deep_page",
-      "elapsed_ms": 246.89,
+      "elapsed_ms": 193.68,
       "count": 90336
     },
     {
       "scenario": "rmp_search",
-      "elapsed_ms": 3734.41,
+      "elapsed_ms": 2662.56,
       "count": 90336
     },
     {
+      "scenario": "rmp_boolean_search",
+      "elapsed_ms": 4440.12,
+      "count": 6007
+    },
+    {
       "scenario": "rmp_amount_sort",
-      "elapsed_ms": 2154.29,
+      "elapsed_ms": 1666.84,
       "count": 90336
     },
     {
       "scenario": "customer_search",
-      "elapsed_ms": 1381.61,
+      "elapsed_ms": 1350.36,
       "count": 54
     }
   ],

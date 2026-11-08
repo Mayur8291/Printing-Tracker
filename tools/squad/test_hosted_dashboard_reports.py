@@ -8,7 +8,7 @@ sys.path.insert(0,str(ROOT/'tools/canto-sync'))
 from database import connect,public_structure
 from delta_sync import check_catalog
 from deploy import statements
-MIGRATION=ROOT/'supabase/migrations/20261108125302_squad_dashboard_customers_reports.sql'
+MIGRATIONS=[ROOT/'supabase/migrations'/name for name in ('20261108125302_squad_dashboard_customers_reports.sql','20261108145821_squad_dashboard_rmp_search_projection.sql')]
 def run():
  results=[];scenarios=[];reconciliation=[]
  with connect('staging') as c:
@@ -19,8 +19,9 @@ def run():
    c.execute("SET LOCAL lock_timeout='3s'")
    assert c.execute('SELECT pg_try_advisory_xact_lock(20261107,1)').fetchone()[0],'Refresh/write active; retry later'
    assert c.execute('SELECT environment,active_job FROM sa_sync.environment_state').fetchone()==('staging',None)
-   if not c.execute("SELECT 1 FROM supabase_migrations.schema_migrations WHERE version='20261108125302'").fetchone():
-    c.execute(';'.join(statements(MIGRATION.read_text())))
+   for migration in MIGRATIONS:
+    if not c.execute('SELECT 1 FROM supabase_migrations.schema_migrations WHERE version=%s',(migration.name.split('_')[0],)).fetchone():
+     c.execute(';'.join(statements(migration.read_text())))
    assert public_structure(c)==before
    actor=c.execute("SELECT p.id FROM public.profiles p JOIN auth.users u ON u.id=p.id WHERE p.role='admin' AND u.role='authenticated' AND(u.banned_until IS NULL OR u.banned_until<now()) ORDER BY p.id LIMIT 1").fetchone()[0]
    sid=uuid.uuid4();c.execute('INSERT INTO auth.sessions(id,user_id,created_at,updated_at) VALUES(%s,%s,now(),now())',(sid,actor))
@@ -53,6 +54,7 @@ def run():
    for label,args in [
     ('rmp_deep_page',{'report':'rmp_order_reports','query':{'page':4000,'items':20}}),
     ('rmp_search',{'report':'rmp_order_reports','query':{'search':'OD-S-','items':20}}),
+    ('rmp_boolean_search',{'report':'rmp_order_reports','query':{'search':'true','items':20}}),
     ('rmp_amount_sort',{'report':'rmp_order_reports','query':{'sort':{'key':'total_amount','direction':'desc','numeric':True},'items':20}}),
     ('customer_search',{'report':'customers','query':{'search':'company','items':20}}),
    ]:
