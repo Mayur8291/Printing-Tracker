@@ -1,0 +1,72 @@
+{
+  "observed_at": "2026-11-08T12:02:37.221590+00:00",
+  "method": "Authorized DigitalOcean Safari web console; allowlisted .env/process metadata, read-only PostgreSQL settings transactions and source SHA256 checks. No Rails boot, file/config/database edits, credential values or provider mutations.",
+  "production": {
+    "droplet": "165.22.210.53",
+    "deployed_revision": "14277820c78e018e62be3da1a14cd8d716cdbf02",
+    "source_directory": "/var/www/scott-international-backend",
+    "dotenv_file": ".env",
+    "uniware_origin": "https://scottinternational.unicommerce.com",
+    "client_id": "my-trusted-client",
+    "one_day_facility": "WH1",
+    "three_day_facility": "WH2",
+    "database_use_dashboard": "false",
+    "source_sha256": {
+      "app/services/uni_commerce/auth_token_service.rb": "fbfb662e4502c4397cf2e3f538ce5ff8a11eb2fcfa1f3c3f18650584df5fd874",
+      "app/services/uni_commerce/cancel_order_params_service.rb": "55f45a827b7eedeb4fdcca3ec617bf58387380dfe9bc3a74063bb2003067416e",
+      "app/services/uni_commerce/cancel_order_service.rb": "78268937f592f1886c3982b14cf206dc9167bf01de2541226accb217a73ffe14",
+      "app/services/uni_commerce/create_or_update_customer_service.rb": "e660aabfb11ae6b8f668c2a9b8b8ffbddb4c4003c7025d758d21926c0c9ffa10",
+      "app/services/uni_commerce/create_order_service.rb": "bcb05bd8c84b71e39d4bf32db21050c5af552cecf9899a4ccd0772b6c84f6b09",
+      "app/services/uni_commerce/fetch_inventory_service.rb": "602bb5143ebc2d0cc4a585c036c858e7d0bf06dd617b56709f524dedd908271f",
+      "app/services/uni_commerce/order_info_service.rb": "e4ae7f7491b401f419953c0dfbb7152f0b0fbaa1e2995fed47be51c93f8f9157"
+    }
+  },
+  "staging": {
+    "droplet": "64.227.186.227",
+    "deployed_revision": "6819daa609507c9458e13ec03d3b3ff8f7bc9495",
+    "source_directory": "/var/www/scott-international-backend",
+    "dotenv_file": ".env",
+    "uniware_origin": "https://scottinternational.unicommerce.com",
+    "client_id": "my-trusted-client",
+    "one_day_facility": "WH1",
+    "three_day_facility": "WH2",
+    "dashboard_one_day_facility": "SCOTT_1DAY_01",
+    "dashboard_three_day_facility": "SCOTT_3DAY_01",
+    "database_use_dashboard": "true",
+    "router_sha256": "b09ee81b8e522557bad2585c67e7dfc0a2b809f36634d0b07bbd787cf18a9ed4",
+    "source_sha256": {
+      "app/services/uni_commerce/auth_token_service.rb": "fbfb662e4502c4397cf2e3f538ce5ff8a11eb2fcfa1f3c3f18650584df5fd874",
+      "app/services/uni_commerce/cancel_order_params_service.rb": "55f45a827b7eedeb4fdcca3ec617bf58387380dfe9bc3a74063bb2003067416e",
+      "app/services/uni_commerce/cancel_order_service.rb": "78268937f592f1886c3982b14cf206dc9167bf01de2541226accb217a73ffe14",
+      "app/services/uni_commerce/create_or_update_customer_service.rb": "e660aabfb11ae6b8f668c2a9b8b8ffbddb4c4003c7025d758d21926c0c9ffa10",
+      "app/services/uni_commerce/create_order_service.rb": "0a5a0352b0613d7edddea73b8a893e3fde2a4c95a51749a5641accc45f0765e9",
+      "app/services/uni_commerce/fetch_inventory_service.rb": "602bb5143ebc2d0cc4a585c036c858e7d0bf06dd617b56709f524dedd908271f",
+      "app/services/uni_commerce/order_info_service.rb": "e4ae7f7491b401f419953c0dfbb7152f0b0fbaa1e2995fed47be51c93f8f9157"
+    },
+    "only_create_order_worktree_difference": {
+      "field": "PICKUPDATE",
+      "committed_format": "%d/%m/%y",
+      "deployed_staging_format": "%d %b,%Y %I:%M:%S %p"
+    }
+  },
+  "source_observation_limits": [
+    "Process environment did not expose allowlisted values; facilities above are .env observations in the live processes working directory.",
+    "Database route selection is observed; the source FeatureFlags cache has a five-minute TTL.",
+    "Credentials were neither printed nor byte-compared. Existing Supabase credentials successfully authenticate/read the same tenant and both source facilities."
+  ],
+  "staging_supabase_change": {
+    "SQUAD_WAREHOUSE_FACILITIES": "WH1,WH2",
+    "legacy_UNIWARE_FACILITY_unchanged": true,
+    "selected_warehouse_provider_unchanged": "dashboard",
+    "warehouse_enabled": false,
+    "warehouse_writes_enabled": false,
+    "production_supabase_changed": false
+  },
+  "provider_acceptance": {
+    "both_facility_inventory_reads_verified": true,
+    "historical_order_read_verified": true,
+    "custom_field_write_acceptance": false,
+    "customer_submit_amend_reconcile_cancel_acceptance": false
+  },
+  "parity_decision": "Preserve environment router selection and user-approved local develop/production formatter. Do not copy the uncommitted staging date-format drift or switch staging provider implicitly."
+}

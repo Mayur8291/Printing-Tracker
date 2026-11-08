@@ -3,7 +3,7 @@
 import {AccountProviderError} from './accounts.ts';
 type ClaimedJob = { id: string; lease_token: string; handler: string };
 type Result = { id: string; state: string; error_code?: string };
-type DomainWorkers = {warehouseCheck?:(skus:string[],orderCode?:string)=>Promise<unknown>;heartbeat?:()=>Promise<unknown>;airtableReport?:(job:ClaimedJob)=>Promise<Result>;warehouse?:(job:ClaimedJob)=>Promise<Result>;businessMail?:(job:ClaimedJob)=>Promise<Result>;airtable?:(job:ClaimedJob)=>Promise<Result>};
+type DomainWorkers = {documentRehearsalProjectRef?:string;warehouseCheck?:(skus:string[],orderCode?:string)=>Promise<unknown>;heartbeat?:()=>Promise<unknown>;airtableReport?:(job:ClaimedJob)=>Promise<Result>;warehouse?:(job:ClaimedJob)=>Promise<Result>;businessMail?:(job:ClaimedJob)=>Promise<Result>;airtable?:(job:ClaimedJob)=>Promise<Result>};
 export type Rpc = (name: string, args: Record<string, unknown>) => Promise<unknown>;
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), {
   status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
@@ -37,6 +37,31 @@ export function createHandler(secret: string | undefined, rpc: Rpc, removeUpload
     const authorization = req.headers.get('authorization') ?? '';
     if (authorization.length > 1024 || !await sameSecret(authorization,`Bearer ${secret}`)) return json({error:'UNAUTHORIZED'},401);
     const path = new URL(req.url).pathname.replace(/\/+$/,'');
+    if(path.endsWith('/squad-jobs/document-rehearsal')){
+      // The database grants only an exact, expiring, download-only document
+      // lease. This route never invokes generic claims, maintenance or mail.
+      if(domain.documentRehearsalProjectRef!=='scvojtvgnkmbupvyslmb'||!documents)return json({error:'WORKER_NOT_CONFIGURED'},503);
+      const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+      let id:string;
+      try{
+        if(!/^application\/json(?:\s*;|$)/i.test(req.headers.get('content-type')??''))return json({error:'INVALID_REQUEST'},400);
+        const body=await boundedBody(req);
+        if(Object.keys(body).length!==1||typeof body.job_id!=='string'||!uuid.test(body.job_id))return json({error:'INVALID_REQUEST'},400);
+        id=body.job_id;
+      }catch{return json({error:'INVALID_REQUEST'},400);}
+      let claim:{jobs:ClaimedJob[];paused?:boolean};
+      try{
+        claim=await rpc('squad_document_rehearsal_claim',{p_id:id}) as typeof claim;
+        if(!claim||!Array.isArray(claim.jobs)||claim.jobs.length>1||
+          (claim.paused!==undefined&&typeof claim.paused!=='boolean')||
+          (claim.paused&&claim.jobs.length)||claim.jobs.some(job=>!job||job.id!==id||job.handler!=='document_render'||typeof job.lease_token!=='string'||!uuid.test(job.lease_token)))throw new Error('invalid_rehearsal_claim');
+      }catch{return json({error:'DOCUMENT_REHEARSAL_UNAVAILABLE'},503);}
+      if(!claim.jobs.length)return json({paused:claim.paused??false,results:[]});
+      try{
+        const result=await documents.run(claim.jobs[0]);
+        return json({paused:false,results:[{id,state:result.state,...(result.error_code?{error_code:result.error_code}:{})}]});
+      }catch{return json({paused:false,results:[{id,state:'unconfirmed'}]});}
+    }
     if(path.endsWith('/squad-jobs/warehouse-check')){
       let skus:string[];let orderCode:string|undefined;
       try{
@@ -117,7 +142,7 @@ export async function scheduledMaintenance(rpc:Rpc){
 }
 export function serviceRpc(url: string, key: string): Rpc {
   return async (name,args) => {
-    if(!['squad_warehouse_heartbeat','squad_weekly_tailor_heartbeat','squad_airtable_report_prepare','squad_airtable_report_finish','squad_airtable_work','squad_warehouse_prepare','squad_warehouse_finish','squad_warehouse_webhook','squad_business_mail_prepare','squad_business_mail_finish','squad_transfer_cleanup','squad_transfer_work','squad_job_claim','squad_job_execute','account_upload_cleanup','squad_account_prepare','squad_account_finish','squad_account_mail_prepare','squad_account_mail_finish','squad_account_flow_cleanup','squad_notification_fanout','squad_notification_prepare','squad_notification_finish','squad_document_prepare','squad_document_finish','squad_document_mail_prepare','squad_document_mail_finish','squad_document_cleanup'].includes(name))throw new Error('unknown_rpc');
+    if(!['squad_document_rehearsal_claim','squad_warehouse_heartbeat','squad_weekly_tailor_heartbeat','squad_airtable_report_prepare','squad_airtable_report_finish','squad_airtable_work','squad_warehouse_prepare','squad_warehouse_finish','squad_warehouse_webhook','squad_business_mail_prepare','squad_business_mail_finish','squad_transfer_cleanup','squad_transfer_work','squad_job_claim','squad_job_execute','account_upload_cleanup','squad_account_prepare','squad_account_finish','squad_account_mail_prepare','squad_account_mail_finish','squad_account_flow_cleanup','squad_notification_fanout','squad_notification_prepare','squad_notification_finish','squad_document_prepare','squad_document_finish','squad_document_mail_prepare','squad_document_mail_finish','squad_document_cleanup'].includes(name))throw new Error('unknown_rpc');
     const response=await fetch(`${url}/rest/v1/rpc/${name}`,{
       method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json','Content-Profile':'canto_api','Accept-Profile':'canto_api'},
       body:JSON.stringify(args),signal:AbortSignal.timeout(12000),

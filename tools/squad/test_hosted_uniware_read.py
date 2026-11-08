@@ -5,7 +5,7 @@ script sends two existing SKU codes and optionally one source-linked order code;
 it never receives credentials, quantities, customer data or custom-field values.
 It does not prove order mutation acceptance or Rails facility parity.
 """
-import argparse,json,sys,time,urllib.error,urllib.request
+import argparse,datetime,json,sys,time,urllib.error,urllib.request
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools/canto-sync'))
@@ -40,7 +40,7 @@ def run(order=False):
   assert public_structure(c)==before
   assert c.execute('SELECT environment,cutover,active_job FROM sa_sync.environment_state').fetchone()==state
   assert c.execute('SELECT count(*) FROM sa_domain.outbox').fetchone()[0]==count
-  evidence={'environment':'staging','real_provider':True,'duration_ms':elapsed,'http_status':status,'result':result,'provider_business_writes':0,'database_business_writes':0,'public_structure_unchanged':True,'mirror_unchanged':True,'credential_values_returned':False,'rails_configuration_parity_verified':False,'order_mutations_verified':False}
+  evidence={'measured_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'environment':'staging','real_provider':True,'duration_ms':elapsed,'http_status':status,'result':result,'provider_business_writes':0,'database_business_writes':0,'public_structure_unchanged':True,'mirror_unchanged':True,'credential_values_returned':False,'rails_configuration_parity_verified':False,'order_mutations_verified':False}
   if order:evidence['source_reference_prefix']=payload['order_code'][:2]
   path=ROOT/'docs/squad-one-audit/implementation-evidence'/('staging-uniware-order-read.json' if order else 'staging-uniware-read.json')
   path.write_text(json.dumps(evidence,indent=2)+'\n')

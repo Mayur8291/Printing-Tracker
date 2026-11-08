@@ -1,7 +1,7 @@
 {
   "environment": "staging",
   "real_provider": true,
-  "duration_ms": 302.1,
+  "duration_ms": 304.28,
   "http_status": 200,
   "result": {
     "state": "verified",
@@ -11,7 +11,13 @@
     "authentication_style": "legacy_query",
     "facilities": [
       {
-        "facility": "scottinternational",
+        "facility": "WH1",
+        "code": "CONFIRMED",
+        "known_skus": 2,
+        "requested_skus": 2
+      },
+      {
+        "facility": "WH2",
         "code": "CONFIRMED",
         "known_skus": 2,
         "requested_skus": 2
@@ -20,6 +26,10 @@
     "requests": [
       {
         "stage": "authentication",
+        "status": 200
+      },
+      {
+        "stage": "inventory",
         "status": 200
       },
       {
@@ -35,5 +45,9 @@
   "mirror_unchanged": true,
   "credential_values_returned": false,
   "rails_configuration_parity_verified": false,
-  "order_mutations_verified": false
+  "order_mutations_verified": false,
+  "source_configuration_evidence": "legacy-warehouse-configuration.json",
+  "observed_in_iteration": 34,
+  "source_facilities_match": true,
+  "configuration_parity_limits": "Source dotenv tenant/client/facilities verified; credential byte equality and full provider mutation/custom-field write acceptance are not asserted. Staging selects Dashboard; Uniware probe does not change that routing."
 }

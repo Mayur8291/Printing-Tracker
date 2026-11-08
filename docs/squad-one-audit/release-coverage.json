@@ -2,17 +2,17 @@
   "format": "squad-release-coverage-index/v1",
   "purpose": "Traceability index only. NOT an acceptance report, NOT a cutover input, NOT a release authorization.",
   "reviewed_at": "2026-11-08",
-  "reviewed_migration_ceiling": "20261108112012",
-  "hosted_deployment_state": "Staging applied through 20261108112012; no production deployment or ownership cutover.",
+  "reviewed_migration_ceiling": "20261108115936",
+  "hosted_deployment_state": "Staging applied through20261108115936; no production deployment or ownership cutover.",
   "execution_claim": "Only explicitly listed audit-run tests were run by this review. Other references identify executable assertions, scoped saved artifacts or clearly labeled integrator reports. A file hash is a source binding, not a passing runtime claim.",
   "integrator_reported_status": {
-    "staging_sql_prefix": "20261108112012",
-    "three_edge_suite_tests_passed": 311,
+    "staging_sql_prefix": "20261108115936",
+    "three_edge_suite_tests_passed": 323,
     "new_hosted_advisor_findings": 0,
-    "full_sql_suite_tests_passed": 1841,
-    "full_sql_suite_elapsed_seconds": 99.846,
+    "full_sql_suite_tests_passed": 1895,
+    "full_sql_suite_elapsed_seconds": 203.976,
     "full_sql_suite_skips": 0,
-    "full_sql_suite_scope_note": "Fresh isolated rebuild through 112012 and complete discovery, including conflict, scoped stock authorization and profiler recovery regressions.",
+    "full_sql_suite_scope_note": "Fresh isolated rebuild through115936; one excluded Airtable timing check failed under concurrent load. The same test passed in isolation with594.3ms maximum SQL batch against2000ms. All functional assertions passed.",
     "latest_persona_harness_tests_passed": 7,
     "latest_persona_harness_elapsed_seconds": 3.325,
     "all11_persona_hosted_result": "passed_auth_read_session_only",
@@ -21,9 +21,14 @@
     "production_release_approved_by_this_index": false,
     "hosted_business_composite_result": "passed_34_groups_11_login_roles_437_rpc_calls",
     "hosted_business_composite_artifact": "docs/squad-one-audit/implementation-evidence/staging-business-journeys.json",
-    "hosted_business_remaining_scope": "No further backend command/query composition gap identified; actual Uniware, weekly/challan document outputs, intended inbox delivery and automatic weekly enablement remain explicit runtime/provider acceptance.",
+    "hosted_business_remaining_scope": "Actual Uniware customer/order/amendment lifecycle, intended inbox delivery and automatic weekly execution remain explicit runtime/provider acceptance.",
     "expanded_composition_recovery_tests_passed": 34,
-    "expanded_composition_recovery_elapsed_seconds": 21.732
+    "expanded_composition_recovery_elapsed_seconds": 21.732,
+    "full_sql_suite_tests_run": 1896,
+    "full_sql_suite_failures": 1,
+    "isolated_failed_test_rerun_passed": true,
+    "hosted_document_outputs": "passed_actual_weekly_and_partial_challan_private_PDF_download_content_hash_visual_and_cleanup",
+    "hosted_document_outputs_artifact": "docs/squad-one-audit/implementation-evidence/staging-document-outputs.json"
   },
   "scope_amendments": [
     {
@@ -585,6 +590,11 @@
     {
       "path": "supabase/migrations/20261108112012_squad_stock_allocation_scope.sql",
       "sha256": "8bdc92dc1e2f4b42f8ad8ce6422d5f310f1db310f63742ff137c41a537bd959b",
+      "evidence_kind": "migration_source"
+    },
+    {
+      "path": "supabase/migrations/20261108115936_squad_document_rehearsal.sql",
+      "sha256": "231274effc789138ecdeee66de082584d92c53e4a574ceda4e8dd61352b1f079",
       "evidence_kind": "migration_source"
     }
   ],
@@ -15907,7 +15917,7 @@
       "kind": "external_acceptance_dependency",
       "priority": "required for enabled legacy warehouse behavior",
       "scope": "INTEGRATE.01\u201304, ORD-03/04",
-      "remaining": "Actual staging Uniware password grant and inventory read succeeded for 2 of 2 requested SKUs through the existing legacy bridge, with zero business writes. The historical order reference returned PROVIDER_ORDER_NOT_FOUND. Neither artifact verifies Rails configuration parity or order mutations. Confirm the intended source tenant/facility and execute reviewed controlled customer\u2192submit\u2192amend\u2192reconcile\u2192cancel acceptance when an appropriate provider fixture is available. Existing SQL and mocked transport contracts remain passing implementation evidence."
+      "remaining": "Both original DigitalOcean Rails tenants/facilities were read-only verified; production selects Uniware, staging selects Dashboard. Rebuild-only Uniware reads now use WH1/WH2:2/2 sampled SKUs found in each and historical order read succeeds. Existing provider selection/write flags remain unchanged. Controlled synthetic customer\u2192submit\u2192amend\u2192reconcile\u2192cancel acceptance remains; no real provider business write is claimed."
     },
     "TIMEZONE": {
       "kind": "source_fact_dependency",
@@ -15955,7 +15965,7 @@
       "kind": "release_evidence_assembly",
       "priority": "required before release",
       "scope": "SEC-09/10, REF-03",
-      "remaining": "No new hosted advisor findings at112012 (195 pre-existing findings retained). Direct API boundaries, private roles/grants, refresh fingerprints and public-schema invariance were verified; production is unchanged."
+      "remaining": "No new hosted advisor findings at115936 (195 pre-existing findings retained). Exact staging document capability, receipt provenance, two-connection foreign-edit race and recovery were verified; refresh fingerprints and public structure match. Production is unchanged."
     },
     "FINAL_REFRESH": {
       "kind": "fresh_evidence_dependency",
@@ -15988,10 +15998,10 @@
       "remaining": "Universal-password login-as is retired. Scoped impersonation is intentionally not implemented until an explicit support policy; do not treat guard tests as support-session functionality."
     },
     "DOC_OUTPUT": {
-      "kind": "hosted_output_acceptance",
-      "priority": "required before claiming complete document output acceptance",
+      "kind": "hosted_output_acceptance_passed",
+      "priority": "passed for catalogue, selected challan and nonempty weekly PDF output",
       "scope": "DOC.03\u201304; Factory Manager/Dispatch Incharge",
-      "remaining": "Challan selected-dispatch and weekly request/permission/payroll/snapshot contracts pass; the34-group hosted composition proves queued download intents only. Actual hosted weekly/challan render, private download and checksum verification remain. Catalogue rendering/download and automatic document Cron already have scoped proof. Use a reviewed mirror-safe worker harness; do not silently enable global cutover for a test."
+      "remaining": "At115936/jobs36 both actual weekly and selected-partial challan PDFs passed deployed renderer, real requester Auth/shared-SDK private download, SHA256/byte count, extracted content, visual review and foreign/anonymous/public denial. Exact output/source/Auth cleanup passed. Automatic weekly scheduling and recipient inbox delivery remain separate gates."
     }
   },
   "tests": [
@@ -22538,7 +22548,7 @@
     },
     {
       "path": "tools/squad/test_hosted_business_journeys.py",
-      "sha256": "36c33e79635f34daa91f07341247697b251eb3fec86b9db7ea1a45048973a56b",
+      "sha256": "89ceace1245947ab51bdbb6be54f3cf70491f25c459aa57b7b79769499d2ca3d",
       "evidence_kind": "iteration30_31_executable_test_or_acceptance_harness_source"
     },
     {
@@ -22600,6 +22610,41 @@
       "path": "tools/squad/test_business_workforce_extras.py",
       "sha256": "6c8579b129a16a47fcac6ee8b42fd2ef3f82095bdd563ea56b14a8d6b5362917",
       "evidence_kind": "iteration33_executable_composition_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/document_output_recovery.py",
+      "sha256": "fb134bd5ca18dd071eb53a37c2cc6b6d73e88215a67a24fe605dbdddbc99a369",
+      "evidence_kind": "iteration34_executable_output_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/test_document_output_recovery.py",
+      "sha256": "233cb6cf0b4b9c40b60383966daf23fe8be528d7f67461ac6de4fe41abb6c959",
+      "evidence_kind": "iteration34_executable_output_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/test_document_outputs_sdk.mjs",
+      "sha256": "a26a02c18989f2ecd65c61d5956b95594cbb36ca04761f6280b2530a9cc74b77",
+      "evidence_kind": "iteration34_executable_output_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/test_document_rehearsal.py",
+      "sha256": "a9d2662b429519629a5bc2fec6b9287cd6afc8ef716bd213a41c59e078190012",
+      "evidence_kind": "iteration34_executable_output_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/test_hosted_document_outputs.py",
+      "sha256": "5a1d209923fae59b2a2542aaf1b2153803ad122044846520358ca86e17df169a",
+      "evidence_kind": "iteration34_executable_output_or_recovery_source"
+    },
+    {
+      "path": "tools/squad/verify_document_output_pdf.py",
+      "sha256": "94e7da45a5aa1c27365884a1c650d743df6311cd68860846d8c989324917be1f",
+      "evidence_kind": "iteration34_executable_output_or_recovery_source"
+    },
+    {
+      "path": "supabase/functions/squad-jobs/document-rehearsal_test.ts",
+      "sha256": "b5a2aa72f1a7b2df0a5884402a22dc7f35fad0a0b57bd1e25bbbb5db87568c32",
+      "evidence_kind": "iteration34_executable_output_or_recovery_source"
     }
   ],
   "existing_artifacts": [
@@ -22800,12 +22845,12 @@
     },
     {
       "path": "docs/squad-one-audit/implementation-evidence/staging-uniware-order-read.json",
-      "sha256": "880b6045de86c15a1d65e23e764cef0a11bb630ce6aea2de9922869db8ee00d8",
+      "sha256": "e641f96c86cf3dd389a75630b4277247360ca784365c801f4bee301af9809c67",
       "evidence_kind": "previous_scoped_execution_artifact_not_blanket_release_pass"
     },
     {
       "path": "docs/squad-one-audit/implementation-evidence/staging-uniware-read.json",
-      "sha256": "3ef32e5443a8c706d1c5b1990a689fa701217f65e38c4e4c70c957dff9c46a49",
+      "sha256": "063b1c3fa0d2520d1c9972f70efd5652e5e7cdf410f80210dc543b80ef980925",
       "evidence_kind": "previous_scoped_execution_artifact_not_blanket_release_pass"
     },
     {
@@ -22857,6 +22902,36 @@
       "path": "docs/squad-one-audit/implementation-evidence/staging-business-final-state.json",
       "sha256": "350b191d2c8d9ffe96af4a8a2f6d36514a3240b8b5ca2bbe358a82dbdf0d9d71",
       "evidence_kind": "scoped_iteration33_postcleanup_verification"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/legacy-warehouse-configuration.json",
+      "sha256": "bce1efd48c042c72c9730238583aac0ac03088902ba104b2d03b47e91e8b41ed",
+      "evidence_kind": "scoped_iteration34_execution_or_configuration_evidence"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/staging-document-outputs.json",
+      "sha256": "047fc27c86d6c7eabaadf0f1596819c8a7a2ffceed7f354c086b350a3c5582db",
+      "evidence_kind": "scoped_iteration34_execution_or_configuration_evidence"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/staging-document-final-state.json",
+      "sha256": "024681127518b44c3b23b2284c3f4e40fa87dc7abb4f4c640eedc22092e0d14b",
+      "evidence_kind": "scoped_iteration34_execution_or_configuration_evidence"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/iteration34-release-verification.json",
+      "sha256": "5596a0ac9807e4f3cd11350b2935ba07b4af29f7465b1f45c6f10b31e81843a9",
+      "evidence_kind": "scoped_iteration34_execution_or_configuration_evidence"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/staging-uniware-order-read-before-facility-verification.json",
+      "sha256": "880b6045de86c15a1d65e23e764cef0a11bb630ce6aea2de9922869db8ee00d8",
+      "evidence_kind": "scoped_iteration34_execution_or_configuration_evidence"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/staging-uniware-read-before-facility-verification.json",
+      "sha256": "3ef32e5443a8c706d1c5b1990a689fa701217f65e38c4e4c70c957dff9c46a49",
+      "evidence_kind": "scoped_iteration34_execution_or_configuration_evidence"
     }
   ],
   "warehouse_read_probe_contract": {
@@ -22870,7 +22945,7 @@
     "operations": "Read inventory and optionally inspect one order; business writes forcibly disabled; no business RPC or queue maintenance.",
     "auth_style": "headers by default; explicit legacy_query is supported because the actual existing provider grant requires query credentials. Redirects are refused and credential URL/header/body values are never returned.",
     "response": "Fixed status/error categories, requested/known SKU counts and optional allowlisted custom-field names/presence/item counts; no order code, customer values, raw provider body or credentials.",
-    "actual_result": "legacy_bridge plus legacy_query yielded authentication/inventory success; the optional historical order read remained PROVIDER_ORDER_NOT_FOUND."
+    "actual_result": "Verified legacy tenant with WH1/WH2: authentication and2/2 sampledSKUs per facility pass; optional historical order is OBSERVED. No provider business mutation. Credential bytes were not printed or byte-compared."
   },
   "source_review_artifacts": [
     {

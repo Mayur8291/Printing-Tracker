@@ -190,7 +190,7 @@ def delete_graph(c,graph,keys):
    c.execute(sql.SQL('DELETE FROM {}.{} WHERE id=ANY(%s::bigint[])').format(sql.Identifier(SCHEMA),sql.Identifier(table)),(list(graph[table]),));pending.remove(table)
 
 
-def cleanup(c,state,journal_entries=None):
+def cleanup(c,state,journal_entries=None,document_cleanup=None):
  """Exact-owned cleanup, or atomic refusal. Never discards foreign writes."""
  validate(state);entries=journal(state) if journal_entries is None else journal_entries;identity=state['identity']
  auths=[uuid.UUID(a['auth_id']) for a in identity['actors']]
@@ -228,12 +228,25 @@ def cleanup(c,state,journal_entries=None):
   delta=environment[3]-identity['edit_revision'];assert delta==len(rows),'Business revision differs from owned audited commands'
   for entry in entries:
    if entry.get('kind')=='command':assert uuid.UUID(entry['value']['key'])==uuid.uuid5(uuid.UUID(state['run_id']),entry['value']['label']),'Journal command key changed'
-  # Nothing may have executed from the queue: this rehearsal proves contracts,
-  # not SMTP, provider or notification transport delivery.
-  assert not c.execute('SELECT 1 FROM sa_domain.outbox WHERE actor_id=ANY(%s::uuid[]) AND (attempts<>0 OR status<>\'pending\') LIMIT 1',(auths,)).fetchone(),'Fixture background work unexpectedly executed'
+  # The default rehearsal executes no workers. A separate, reviewed document
+  # output harness can clean exact audit-bound document jobs and return only
+  # those IDs. No journal entry alone is authority to exempt a job.
+  executed=[];removed_documents=None;processed_documents=0
+  if document_cleanup is not None:
+   proof=document_cleanup(c,state,rows,auths,{int(row[-1]) for row in raw_rows})
+   executed=list(map(uuid.UUID,map(str,proof['executed_job_ids'])))
+   assert len(executed)<=2 and len(set(executed))==len(executed),'Unbounded document worker exception'
+   for job_id in executed:
+    job=c.execute('SELECT actor_id,command_key,event_type,aggregate_kind,aggregate_id,payload,status,lease_until FROM sa_domain.outbox WHERE id=%s',(job_id,)).fetchone()
+    assert job and job[2:4]==('document.requested','document') and job[6] in ('done','dead','pending') and job[7] is None,'Document worker is not settled'
+    assert any(a==job[0] and k==job[1] and op=='document.requested' and kind=='document' and entity==job[4] and changes.get('document_id')==job[5].get('document_id') for a,k,op,kind,entity,changes in rows),'Document worker is not audit-bound'
+    assert not c.execute("SELECT 1 FROM sa_domain.job_attempts WHERE job_id=%s AND (state NOT IN('done','failed','expired') OR finished_at IS NULL)",(job_id,)).fetchone(),'Document attempt is not settled'
+   removed_documents=proof['removed_documents'];processed_documents=proof.get('processed_documents',0)
+   assert type(removed_documents) is int and type(processed_documents) is int and 0<=processed_documents<=2 and processed_documents<=removed_documents<=32,'Invalid document cleanup counts'
+  assert not c.execute('SELECT 1 FROM sa_domain.outbox WHERE actor_id=ANY(%s::uuid[]) AND NOT(id=ANY(%s::uuid[])) AND (attempts<>0 OR status<>\'pending\') LIMIT 1',(auths,executed)).fetchone(),'Fixture background work unexpectedly executed'
   entity_entries=[{'kind':'entity','value':{'kind':kind,'id':str(entity_id)}} for _,_,_,kind,entity_id,_ in rows if kind in KIND_TABLE]
   graph,fks=source_graph(c,state,entity_entries,set(state.get('setup_xids',[]))|{int(row[-1]) for row in raw_rows})
-  removed_documents=cleanup_documents(c,state,rows,auths,{int(row[-1]) for row in raw_rows})
+  if removed_documents is None:removed_documents=cleanup_documents(c,state,rows,auths,{int(row[-1]) for row in raw_rows})
   c.execute("UPDATE sa_domain.outbox SET status='dead',last_error_code='REHEARSAL_CLEANUP',completed_at=now(),lease_token=NULL,lease_until=NULL WHERE actor_id=ANY(%s::uuid[]) AND status='pending'",(auths,))
   c.execute("UPDATE sa_domain.account_requests SET state='failed',error_code='REHEARSAL_CLEANUP',updated_at=now() WHERE actor_id=ANY(%s::uuid[])",(auths,))
   delete_graph(c,graph,fks)
@@ -243,7 +256,7 @@ def cleanup(c,state,journal_entries=None):
   c.execute('UPDATE sa_sync.environment_state SET synced_revision=synced_revision+%s WHERE singleton',(delta,))
   cleanup_identity=dict(identity,edit_revision=environment[3],synced_revision=environment[4]+delta)
   identities.cleanup(c,cleanup_identity)
-  result={'run_id':state['run_id'],'owned_commands':delta,'removed_source_rows':sum(map(len,graph.values())),'removed_queued_documents':removed_documents,'tables':{k:len(v) for k,v in graph.items()},'edit_revision_before':identity['edit_revision'],'edit_revision_after':environment[3],'synced_revision_after':environment[4]+delta,'audit_and_commands_retained':True,'jobs_terminalized':True,'source_content_restored':True}
+  result={'run_id':state['run_id'],'owned_commands':delta,'removed_source_rows':sum(map(len,graph.values())),'removed_documents':removed_documents,'removed_queued_documents':removed_documents-processed_documents,'removed_processed_documents':processed_documents,'tables':{k:len(v) for k,v in graph.items()},'edit_revision_before':identity['edit_revision'],'edit_revision_after':environment[3],'synced_revision_after':environment[4]+delta,'audit_and_commands_retained':True,'jobs_terminalized':True,'source_content_restored':True}
   c.execute("INSERT INTO sa_domain.audit(actor_id,legacy_user_id,operation,kind,entity_id,command_key,changes) VALUES(%s,%s,'rehearsal.cleanup','rehearsal',%s,%s,%s)",(auths[0],identity['base'],state['data_base'],uuid.UUID(state['run_id']),Jsonb(result)))
   assert identities.public_structure(c)==state['public_structure'] and identities.staff_auth(c)==state['staff_auth'],'Unrelated public/staff data changed'
   return result

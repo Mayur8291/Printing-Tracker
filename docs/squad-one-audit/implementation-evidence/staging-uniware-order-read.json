@@ -1,21 +1,33 @@
 {
   "environment": "staging",
   "real_provider": true,
-  "duration_ms": 375.71,
+  "duration_ms": 407.1,
   "http_status": 200,
   "result": {
-    "state": "unconfirmed",
+    "state": "verified",
     "environment": "staging",
     "provider": "unicommerce",
     "configuration_source": "legacy_bridge",
     "authentication_style": "legacy_query",
     "order_read": {
-      "code": "UNCONFIRMED",
-      "error_code": "PROVIDER_ORDER_NOT_FOUND"
+      "code": "OBSERVED",
+      "shape": {
+        "order_custom_fields_present": true,
+        "order_field_names": [],
+        "item_count": 3,
+        "items_with_custom_fields": 3,
+        "items_with_comment_field": 0
+      }
     },
     "facilities": [
       {
-        "facility": "scottinternational",
+        "facility": "WH1",
+        "code": "CONFIRMED",
+        "known_skus": 2,
+        "requested_skus": 2
+      },
+      {
+        "facility": "WH2",
         "code": "CONFIRMED",
         "known_skus": 2,
         "requested_skus": 2
@@ -24,6 +36,10 @@
     "requests": [
       {
         "stage": "authentication",
+        "status": 200
+      },
+      {
+        "stage": "inventory",
         "status": 200
       },
       {
@@ -44,5 +60,9 @@
   "credential_values_returned": false,
   "rails_configuration_parity_verified": false,
   "order_mutations_verified": false,
-  "source_reference_prefix": "P-"
+  "source_reference_prefix": "P-",
+  "source_configuration_evidence": "legacy-warehouse-configuration.json",
+  "observed_in_iteration": 34,
+  "source_facilities_match": true,
+  "configuration_parity_limits": "Source dotenv tenant/client/facilities verified; credential byte equality and full provider mutation/custom-field write acceptance are not asserted. Staging selects Dashboard; Uniware probe does not change that routing."
 }

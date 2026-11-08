@@ -1,0 +1,41 @@
+{
+  "iteration": 34,
+  "migration_prefix": "20261108115936",
+  "environment": "staging",
+  "migration_rollback_verified": true,
+  "migration_applied": true,
+  "public_structure_unchanged": true,
+  "prior_cron_states_restored": true,
+  "security_advisors": {
+    "before_findings": 195,
+    "after_findings": 195,
+    "new_findings": 0,
+    "removed_findings": 0
+  },
+  "edge": {
+    "name": "squad-jobs",
+    "version": 36,
+    "ezbr_sha256": "e7fdafb88c329371ff184bf602d05facd376c92e1a40ae3abdf13a0187c23c97",
+    "tests_passed": 323,
+    "entrypoints_typechecked": 3
+  },
+  "python_full_run": {
+    "tests_run": 1896,
+    "passed": 1895,
+    "failures": 1,
+    "errors": 0,
+    "skips": 0,
+    "seconds": 203.976,
+    "failure": "Excluded Airtable1000price SQL batch2.456seconds exceeded2secondlimit under concurrent local workload."
+  },
+  "isolated_failure_rerun": {
+    "tests_passed": 1,
+    "seconds": 11.943,
+    "maximum_sql_batch_ms": 594.3,
+    "budget_ms": 2000,
+    "result": "passed"
+  },
+  "focused_document_sql_tests": 92,
+  "production_changed": false,
+  "digitalocean_changed": false
+}

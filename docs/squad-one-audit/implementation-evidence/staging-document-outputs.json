@@ -1,0 +1,163 @@
+{
+  "documents": [
+    {
+      "kind": "delivery_challan",
+      "document_id": "6fa11825-1ade-4a1b-be74-f3a042934305",
+      "job_id": "5bd11fa4-56ac-4970-8aad-4549f1e4d637",
+      "bytes": 14052,
+      "sha256": "92a81a56c682da13815714577180deca0e59bd58e6d53cc38ce908255e14d74e",
+      "pages": 1,
+      "private_storage": true,
+      "download_expiry_seconds": 120,
+      "foreign_authenticated_denied": true,
+      "unauthenticated_denied": true,
+      "public_storage_denied": true,
+      "timings": [
+        {
+          "step": 0,
+          "wall_ms": 5235,
+          "states": [
+            "done"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "tailor_weekly",
+      "document_id": "80a26923-5507-411f-94ca-c0fd2423c905",
+      "job_id": "90193541-aabd-4c65-85d3-a343cad8f1d7",
+      "bytes": 13594,
+      "sha256": "4e749661c53e679f2d0992584d8ca192faad06fcd2ba781a5f7efef500d86928",
+      "pages": 1,
+      "private_storage": true,
+      "download_expiry_seconds": 120,
+      "foreign_authenticated_denied": true,
+      "unauthenticated_denied": true,
+      "public_storage_denied": true,
+      "timings": [
+        {
+          "step": 0,
+          "wall_ms": 1624,
+          "states": [
+            "done"
+          ]
+        }
+      ]
+    }
+  ],
+  "actual_sdk_download": true,
+  "deployed_renderer": true,
+  "emails_sent": 0,
+  "inbox_delivery_asserted": false,
+  "automatic_cron_asserted": false,
+  "pdf_content": [
+    {
+      "kind": "delivery_challan",
+      "pages": 1,
+      "content_verified": true,
+      "text_characters": 711
+    },
+    {
+      "kind": "tailor_weekly",
+      "pages": 1,
+      "content_verified": true,
+      "text_characters": 657
+    }
+  ],
+  "visual_review_required": false,
+  "private_artifact_directory": "tools/squad/private/document-outputs/e8f249c4-4895-4d27-bd02-98860d0f3ddb",
+  "business_rpc_requests": 437,
+  "cleanup": {
+    "run_id": "e8f249c4-4895-4d27-bd02-98860d0f3ddb",
+    "owned_commands": 120,
+    "removed_source_rows": 199,
+    "removed_documents": 4,
+    "removed_queued_documents": 2,
+    "removed_processed_documents": 2,
+    "tables": {
+      "sa_users": 21,
+      "sa_factories": 2,
+      "sa_addresses": 4,
+      "sa_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
+      "sa_milestones": 1,
+      "sa_responsibilities": 3,
+      "sa_products": 5,
+      "sa_orders": 9,
+      "sa_items": 10,
+      "sa_ratings": 3,
+      "sa_tasks": 2,
+      "sa_back_order_links": 1,
+      "sa_customer_requests": 1,
+      "sa_item_criteria": 27,
+      "sa_item_tailors": 4,
+      "sa_job_sheet_assign_dates": 2,
+      "sa_job_sheet_assign_quantities": 4,
+      "sa_job_sheet_assign_tailors": 4,
+      "sa_job_sheet_dispatched_dates": 7,
+      "sa_job_sheet_mark_tailors": 6,
+      "sa_job_sheet_tailor_mark_dates": 4,
+      "sa_mark_cuttings": 3,
+      "sa_mark_tailor_quantities": 6,
+      "sa_product_part_add_ons": 5,
+      "sa_product_parts": 5,
+      "sa_quantities": 10,
+      "sa_stocks": 2,
+      "sa_task_users": 1,
+      "sa_user_dealers": 2,
+      "sa_dispatched_quantities": 7,
+      "sa_item_tailor_quantities": 4,
+      "sa_mark_cutting_quantities": 3,
+      "sa_stock_useds": 4
+    },
+    "edit_revision_before": 446,
+    "edit_revision_after": 566,
+    "synced_revision_after": 566,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true
+  },
+  "cutover_unchanged": true,
+  "cron_restored": true,
+  "source_content_restored": true,
+  "immutable_audits_retained": true,
+  "environment": "staging",
+  "measured_at": "2026-11-08T12:22:10.229892+00:00",
+  "business_checks": 42,
+  "visual_review": {
+    "result": "passed",
+    "pages_reviewed": 2,
+    "checks": [
+      "legible labels and values",
+      "no clipping or overlapping text",
+      "one-piece dispatch and INR525 total",
+      "three completed pieces and INR105 total"
+    ],
+    "image_absence": "Synthetic fixture deliberately has no product image; unavailable placeholder is explicit."
+  }
+}

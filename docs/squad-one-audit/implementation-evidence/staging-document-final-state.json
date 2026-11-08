@@ -1,0 +1,29 @@
+{
+  "measured_at": "2026-11-08T12:22:43.300801+00:00",
+  "environment": "staging",
+  "migration_prefix": "20261108115936",
+  "cutover": false,
+  "active_refresh": null,
+  "edit_revision": 566,
+  "synced_revision": 566,
+  "generation": 0,
+  "test_write_scope_cleared": true,
+  "pending_or_leased_jobs": 0,
+  "remaining_synthetic_auth_users": 0,
+  "remaining_rehearsal_documents": 0,
+  "blocked_test_identity_reservations_retained": 78,
+  "cron_active": {
+    "squad-jobs-minute": true,
+    "squad-media-cleanup": true,
+    "squad-documents-pump": true
+  },
+  "refresh_fingerprints_verified": true,
+  "public_structure_sha256": "05d34e00e8e4e1d5bfa9b23212717e898bd58d0c3e13888ebcaf1eceae6997fa",
+  "public_structure_matches_prior_baseline": true,
+  "source_content_restoration": "Exact 86-table prefixture checksums verified inside committed cleanup; see staging-document-outputs.json",
+  "production_changed": false,
+  "digitalocean_changed": false,
+  "provider_operations_in_composite": 0,
+  "emails_in_composite": 0,
+  "remaining_document_capabilities": 0
+}
