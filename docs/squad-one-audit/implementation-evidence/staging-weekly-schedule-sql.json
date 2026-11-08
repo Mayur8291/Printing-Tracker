@@ -1,0 +1,42 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T10:08:32.262319+00:00",
+  "migration_prefix": "20261108094744",
+  "scope": "rollback-only SQL scheduler and document preparation acceptance; not Cron, PDF output, SMTP or inbox delivery",
+  "function_sha256": {
+    "sa_domain.squad_weekly_tailor_heartbeat(integer)": "de224f769639d93efd6fc6d2e7f9a67a443af0b386b08b438a9567e202812522",
+    "sa_domain.v1_weekly_tailor_schedule_configure(boolean,text,uuid)": "21f83447dde7fce1a48533abb53089230ff0d4349441fd072a4426cf1167d95c",
+    "sa_domain.squad_document_prepare(uuid,uuid)": "333c173ca4d44eaa2690d730cb252bd968865dbe77ceb4523176266351759a2e"
+  },
+  "checks": [
+    "mirror blocks automatic effects",
+    "concurrent schedule row lock returns bounded busy",
+    "latest completed Kolkata week; idempotent self-delegation",
+    "bounded one-Tailor document and job use exact owner, period, delivery and run",
+    "entire current Tailor cohort enumerates in bounded pages; natural final page waits without duplicates",
+    "real document worker prepares the authorized weekly snapshot; no READY or SMTP fabricated",
+    "disabling delegation revokes queued rendering before any mail job",
+    "current owner, current recipient configuration and generation gates remain live",
+    "sa_app cannot invoke service heartbeat"
+  ],
+  "heartbeat_wall_ms": [
+    53.966,
+    53.398,
+    49.003,
+    97.1,
+    113.0,
+    141.066,
+    70.607,
+    85.398,
+    51.603
+  ],
+  "root_tailors_present": 22,
+  "fixture_window": "complete current root-Tailor cohort, bounded to100; normal immutable cursor and ceiling behavior",
+  "actor_legacy_id": "144",
+  "all_rows_rolled_back": true,
+  "sequences_restored_under_exclusive_fence": true,
+  "cron_unchanged": true,
+  "public_structure_unchanged": true,
+  "real_messages": 0,
+  "provider_requests": 0
+}

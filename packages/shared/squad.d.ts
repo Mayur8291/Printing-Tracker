@@ -1,6 +1,13 @@
 /** Decimal database IDs are strings to avoid JavaScript integer truncation. */
 export type EntityId = string;
+export interface LegacyImportHistory {id:EntityId;legacy:true;kind:'airtable'|'prices';source_state:'pending'|'processing'|'completed'|'failed'|'unknown';created_at:string|null;updated_at:string|null;sync_time?:string|null;has_errors:boolean;resumable:false;total_rows?:number|null;inserted_rows?:number|null;updated_rows?:number|null;skipped_rows?:number|null;duplicate_rows?:number|null;failed_rows?:number|null;source_file_present?:boolean}
+export interface IntegrationProgress {id:string;job_id:string;provider:'dashboard'|'unicommerce';scope:'orders'|'inventory'|'all';generation:string;state:'queued'|'running'|'completed'|'failed'|'expired';enumeration_done:boolean;processed:number;total:number;pending:number;errors:number;changed:number;created_at:string;completed_at:string|null}
+export interface CutoverPreview {ready:boolean;version:string;checks:Record<string,boolean>;blockers:string[];facts:Record<string,unknown>;acceptance:Record<string,unknown>|null;as_of:string}
 export type Version = `${number}:${number}`;
+export interface WarehouseSchedule {enabled:boolean;owner_user_id:EntityId|null;generation:string|null;current_generation:string;provider:'dashboard'|'unicommerce'|null;inventory_interval_seconds:120;orders_interval_seconds:300;next_inventory_at:string|null;next_orders_at:string|null;inventory_overdue_seconds:number;orders_overdue_seconds:number;error_code:string|null;version:Version;runs:Array<{id:string;scope:'inventory'|'orders';started_at:string;state:'queued'|'running'|'completed'|'failed'|'expired';processed:string;errors:string;completed_at:string|null}>}
+export interface WeeklyTailorSchedule {enabled:boolean;owner_user_id:EntityId|null;generation:string|null;current_generation:string;next_week_start:string|null;timezone:'Asia/Kolkata';schedule:'Saturday 00:01';error_code:string|null;version:Version;runs:Array<{id:string;generation:string;week_start:string;week_end:string;state:'running'|'queued';queued:number;created_at:string;completed_at:string|null}>}
+export type MailPurpose='price_alert'|'bulk_price_result'|'tailor_weekly';
+export interface MailSetting {kind:MailPurpose;recipient_ids:EntityId[];configured:boolean;version:Version}
 export type Persona = 0|1|2|3|4|7|8|9|10|11|12;
 export interface RegistrationProfile {first_name:string;last_name:string;company_name:string;phone:string;gst_no?:string|null;addresses:Array<{address:string;state:string;city:string;zip_code:string}>}
 /** Keep this request ID for completion and retries; never persist/log the code or password. */
@@ -145,7 +152,7 @@ export interface ReadyMadeClass {id:EntityId;name:string;color_id:EntityId;posit
 export interface Price {price_id:EntityId;unit_price:string;mrp:string|null;price_type_id:EntityId;fallback:boolean}
 export interface ReadyMadeVariant {
   id:EntityId;name:string;size_id:EntityId;size_name:string;size_position:number|null;brand_id:EntityId;category_id:EntityId;price:Price|null;
-  availability:{status:'not_loaded';one_day:null;three_day:null;as_of:null};
+  availability:{status:'ready'|'partial'|'stale'|'not_loaded';one_day:number|null;three_day:number|null;as_of:string|null};
 }
 export type ConfiguratorKind='categories'|'fabrics'|'fabric_colors'|'parts'|'part_colors'|'addons'|'addon_colors'|'size_types'|'assets';
 export interface Preset extends SavedEntity {name:string;style_number:string;base_product_id:EntityId;fabric_id:EntityId;category_id:EntityId;branding_enabled:boolean;comment?:string;configuration?:Configuration}
@@ -318,12 +325,26 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   verifyTransferUpload(id:string):Promise<{id:string;state:'verified'|'used'}>;
   requestImport(kind:CsvImportKind,request:ImportRequest,idempotencyKey:string):Promise<Transfer>;
   transfers(page?:PageRequest):Promise<Page<Transfer> & {generation:string;as_of:string}>;
+  legacyImportHistory(kind:'airtable'|'prices',page?:PageRequest):Promise<Page<LegacyImportHistory> & {generation:string;as_of:string;origin:'legacy_snapshot';timestamp_basis:'legacy_naive'}>;
   transfer(id:string,page?:PageRequest):Promise<Transfer & {rows:Page<TransferRow>;as_of:string}>;
   requestExport(resource:string,request:ExportRequest,idempotencyKey:string):Promise<Transfer>;
   downloadTransfer(id:string):Promise<{id:string;url:string;expires_in:120;generation:string;bytes:string;sha256:string}>;
   reviewStock(dealerId:EntityId,filters?:{receipt_id?:EntityId;order_id?:EntityId;item_id?:EntityId;size_id?:EntityId},page?:PageRequest):Promise<Page<StockReconciliationRow> & {as_of:string;data_revision:string;dealer_id:EntityId;summary_scope:'current_page';requires_review:number}>;
   rebuildStockCounters(dealerId:EntityId,receipts:Array<{id:EntityId;expectedVersion:StockEvidenceVersion}>,reason:string,idempotencyKey:string):Promise<{dealer_id:EntityId;state:'completed';repairs:StockCounterRepair[];data_revision:string}>;
   stockReconciliationHistory(dealerId:EntityId,receiptId?:EntityId|null,page?:PageRequest):Promise<Page<StockCounterHistory> & {as_of:string}>;
+  reconcileIntegration(provider:'dashboard'|'unicommerce',scope:'orders'|'inventory'|'all',idempotencyKey:string,cursor?:string|null):Promise<{id:string;job_id:string;provider:'dashboard'|'unicommerce';scope:'orders'|'inventory'|'all';state:'queued'}>;
+  integrationProgress(id:string):Promise<IntegrationProgress>;
+  mailSettings():Promise<{data:MailSetting[]}>;
+  saveMailSettings(kind:MailPurpose,recipientIds:EntityId[],command:Command):Promise<Omit<MailSetting,'configured'>>;
+  warehouseSchedule():Promise<WarehouseSchedule>;
+  configureWarehouseSchedule(enabled:boolean,command:Command):Promise<WarehouseSchedule>;
+  weeklyTailorSchedule():Promise<WeeklyTailorSchedule>;
+  configureWeeklyTailorSchedule(enabled:boolean,command:Command):Promise<WeeklyTailorSchedule>;
+  airtableReports():Promise<{enabled:boolean;version:string;provider_configuration_required:true}>;
+  configureAirtableReports(enabled:boolean,command:Command):Promise<{enabled:boolean;version:string}>;
+  requestAirtableReports(family:'order'|'item'|'customer'|'tailor_pick',ids:EntityId[],idempotencyKey:string):Promise<{id:string;state:'queued';requested:number}>;
+  previewCutover(acceptanceId?:string|null):Promise<CutoverPreview>;
+  commitCutover(acceptanceId:string,expectedVersion:string,idempotencyKey:string):Promise<{id:string;environment:'staging'|'production';owned:true;generation:string;activated_at:string;source_run_id:string;source_watermark:string;acceptance_id:string;old_source_refresh_enabled:false}>;
   requestDocument<K extends DocumentKind>(kind:K,request:DocumentRequestByKind[K],idempotencyKey:string):Promise<{id:string;kind:K;state:'queued';generation:string}>;
   documents(filters?:{kind?:DocumentKind;state?:DocumentState;legacy?:boolean},page?:PageRequest):Promise<Page<GeneratedDocument>>;
   document(id:string):Promise<GeneratedDocument>;

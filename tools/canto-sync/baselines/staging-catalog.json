@@ -7195,6 +7195,11 @@
       "CREATE UNIQUE INDEX sa_add_ons_pkey ON sa_snapshot_20261019.sa_add_ons USING btree (id)"
     ],
     [
+      "sa_add_ons",
+      "squad_airtable_identity_add_ons",
+      "CREATE INDEX squad_airtable_identity_add_ons ON sa_snapshot_20261019.sa_add_ons USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_addresses",
       "sa_addresses_pkey",
       "CREATE UNIQUE INDEX sa_addresses_pkey ON sa_snapshot_20261019.sa_addresses USING btree (id)"
@@ -7225,6 +7230,11 @@
       "CREATE UNIQUE INDEX sa_asset_infos_pkey ON sa_snapshot_20261019.sa_asset_infos USING btree (id)"
     ],
     [
+      "sa_asset_infos",
+      "squad_airtable_identity_asset_infos",
+      "CREATE INDEX squad_airtable_identity_asset_infos ON sa_snapshot_20261019.sa_asset_infos USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_assigned_brands",
       "sa_assigned_brands_pkey",
       "CREATE UNIQUE INDEX sa_assigned_brands_pkey ON sa_snapshot_20261019.sa_assigned_brands USING btree (id)"
@@ -7253,6 +7263,11 @@
       "sa_authorized_brands",
       "sa_index_authorized_brands_on_name",
       "CREATE UNIQUE INDEX sa_index_authorized_brands_on_name ON sa_snapshot_20261019.sa_authorized_brands USING btree (name)"
+    ],
+    [
+      "sa_authorized_brands",
+      "squad_airtable_identity_authorized_brands",
+      "CREATE INDEX squad_airtable_identity_authorized_brands ON sa_snapshot_20261019.sa_authorized_brands USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_back_order_links",
@@ -7350,6 +7365,11 @@
       "CREATE UNIQUE INDEX sa_base_product_types_pkey ON sa_snapshot_20261019.sa_base_product_types USING btree (id)"
     ],
     [
+      "sa_base_product_types",
+      "squad_airtable_identity_base_product_types",
+      "CREATE INDEX squad_airtable_identity_base_product_types ON sa_snapshot_20261019.sa_base_product_types USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_base_products",
       "sa_base_products_pkey",
       "CREATE UNIQUE INDEX sa_base_products_pkey ON sa_snapshot_20261019.sa_base_products USING btree (id)"
@@ -7358,6 +7378,11 @@
       "sa_base_products",
       "sa_index_base_products_on_asset_info_id",
       "CREATE INDEX sa_index_base_products_on_asset_info_id ON sa_snapshot_20261019.sa_base_products USING btree (asset_info_id)"
+    ],
+    [
+      "sa_base_products",
+      "squad_airtable_identity_base_products",
+      "CREATE INDEX squad_airtable_identity_base_products ON sa_snapshot_20261019.sa_base_products USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_base_products",
@@ -7450,6 +7475,11 @@
       "CREATE INDEX sa_index_colors_on_created_by_id ON sa_snapshot_20261019.sa_colors USING btree (created_by_id)"
     ],
     [
+      "sa_colors",
+      "squad_airtable_identity_colors",
+      "CREATE INDEX squad_airtable_identity_colors ON sa_snapshot_20261019.sa_colors USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_criteria",
       "sa_criteria_pkey",
       "CREATE UNIQUE INDEX sa_criteria_pkey ON sa_snapshot_20261019.sa_criteria USING btree (id)"
@@ -7523,6 +7553,11 @@
       "sa_fabrics",
       "sa_fabrics_pkey",
       "CREATE UNIQUE INDEX sa_fabrics_pkey ON sa_snapshot_20261019.sa_fabrics USING btree (id)"
+    ],
+    [
+      "sa_fabrics",
+      "squad_airtable_identity_fabrics",
+      "CREATE INDEX squad_airtable_identity_fabrics ON sa_snapshot_20261019.sa_fabrics USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_factories",
@@ -7925,6 +7960,16 @@
       "CREATE INDEX squad_sales_created_on ON sa_snapshot_20261019.sa_orders USING btree (created_on, id) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],
     [
+      "sa_orders",
+      "squad_warehouse_active_poll",
+      "CREATE INDEX squad_warehouse_active_poll ON sa_snapshot_20261019.sa_orders USING btree (COALESCE(order_source, 'unicommerce'::character varying), id) WHERE ((deleted_at IS NULL) AND (is_deleted IS NOT TRUE) AND (NULLIF((uc_order_id)::text, ''::text) IS NOT NULL) AND ((COALESCE(uc_status, ''::character varying))::text <> ALL ((ARRAY['COMPLETE'::character varying, 'CANCELLED'::character varying, 'FAILED'::character varying])::text[])))"
+    ],
+    [
+      "sa_orders",
+      "squad_warehouse_uniware_failed_poll",
+      "CREATE INDEX squad_warehouse_uniware_failed_poll ON sa_snapshot_20261019.sa_orders USING btree (id) WHERE ((deleted_at IS NULL) AND (is_deleted IS NOT TRUE) AND (NULLIF((uc_order_id)::text, ''::text) IS NOT NULL) AND ((COALESCE(order_source, 'unicommerce'::character varying))::text = 'unicommerce'::text) AND ((uc_status)::text = 'FAILED'::text))"
+    ],
+    [
       "sa_part_colors",
       "sa_index_part_colors_on_color_id",
       "CREATE INDEX sa_index_part_colors_on_color_id ON sa_snapshot_20261019.sa_part_colors USING btree (color_id)"
@@ -7943,6 +7988,11 @@
       "sa_parts",
       "sa_parts_pkey",
       "CREATE UNIQUE INDEX sa_parts_pkey ON sa_snapshot_20261019.sa_parts USING btree (id)"
+    ],
+    [
+      "sa_parts",
+      "squad_airtable_identity_parts",
+      "CREATE INDEX squad_airtable_identity_parts ON sa_snapshot_20261019.sa_parts USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_product_images",
@@ -8055,6 +8105,11 @@
       "CREATE UNIQUE INDEX sa_profit_margins_pkey ON sa_snapshot_20261019.sa_profit_margins USING btree (id)"
     ],
     [
+      "sa_profit_margins",
+      "squad_airtable_identity_profit_margins",
+      "CREATE INDEX squad_airtable_identity_profit_margins ON sa_snapshot_20261019.sa_profit_margins USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_promotional_banners",
       "sa_index_promotional_banners_on_rmp_brand_id",
       "CREATE INDEX sa_index_promotional_banners_on_rmp_brand_id ON sa_snapshot_20261019.sa_promotional_banners USING btree (rmp_brand_id)"
@@ -8076,6 +8131,11 @@
     ],
     [
       "sa_promotional_banners",
+      "squad_airtable_identity_promotional_banners",
+      "CREATE INDEX squad_airtable_identity_promotional_banners ON sa_snapshot_20261019.sa_promotional_banners USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
+      "sa_promotional_banners",
       "squad_banner_page",
       "CREATE INDEX squad_banner_page ON sa_snapshot_20261019.sa_promotional_banners USING btree (sa_domain.catalog_sort(\"position\"), id) WHERE (is_deleted IS NOT TRUE)"
     ],
@@ -8083,6 +8143,11 @@
       "sa_promotions",
       "sa_promotions_pkey",
       "CREATE UNIQUE INDEX sa_promotions_pkey ON sa_snapshot_20261019.sa_promotions USING btree (id)"
+    ],
+    [
+      "sa_promotions",
+      "squad_airtable_identity_promotions",
+      "CREATE INDEX squad_airtable_identity_promotions ON sa_snapshot_20261019.sa_promotions USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_promotions",
@@ -8185,9 +8250,19 @@
       "CREATE UNIQUE INDEX sa_rmp_brands_pkey ON sa_snapshot_20261019.sa_rmp_brands USING btree (id)"
     ],
     [
+      "sa_rmp_brands",
+      "squad_airtable_identity_rmp_brands",
+      "CREATE INDEX squad_airtable_identity_rmp_brands ON sa_snapshot_20261019.sa_rmp_brands USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_rmp_categories",
       "sa_rmp_categories_pkey",
       "CREATE UNIQUE INDEX sa_rmp_categories_pkey ON sa_snapshot_20261019.sa_rmp_categories USING btree (id)"
+    ],
+    [
+      "sa_rmp_categories",
+      "squad_airtable_identity_rmp_categories",
+      "CREATE INDEX squad_airtable_identity_rmp_categories ON sa_snapshot_20261019.sa_rmp_categories USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_rmp_category_brands",
@@ -8215,9 +8290,19 @@
       "CREATE UNIQUE INDEX sa_rmp_classes_pkey ON sa_snapshot_20261019.sa_rmp_classes USING btree (id)"
     ],
     [
+      "sa_rmp_classes",
+      "squad_airtable_identity_rmp_classes",
+      "CREATE INDEX squad_airtable_identity_rmp_classes ON sa_snapshot_20261019.sa_rmp_classes USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_rmp_colors",
       "sa_rmp_colors_pkey",
       "CREATE UNIQUE INDEX sa_rmp_colors_pkey ON sa_snapshot_20261019.sa_rmp_colors USING btree (id)"
+    ],
+    [
+      "sa_rmp_colors",
+      "squad_airtable_identity_rmp_colors",
+      "CREATE INDEX squad_airtable_identity_rmp_colors ON sa_snapshot_20261019.sa_rmp_colors USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_rmp_min_infos",
@@ -8245,6 +8330,11 @@
       "CREATE UNIQUE INDEX sa_rmp_price_types_pkey ON sa_snapshot_20261019.sa_rmp_price_types USING btree (id)"
     ],
     [
+      "sa_rmp_price_types",
+      "squad_airtable_identity_rmp_price_types",
+      "CREATE INDEX squad_airtable_identity_rmp_price_types ON sa_snapshot_20261019.sa_rmp_price_types USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_rmp_prices",
       "sa_index_rmp_prices_on_rmp_price_type_id",
       "CREATE INDEX sa_index_rmp_prices_on_rmp_price_type_id ON sa_snapshot_20261019.sa_rmp_prices USING btree (rmp_price_type_id)"
@@ -8260,9 +8350,19 @@
       "CREATE UNIQUE INDEX sa_rmp_prices_pkey ON sa_snapshot_20261019.sa_rmp_prices USING btree (id)"
     ],
     [
+      "sa_rmp_prices",
+      "squad_airtable_identity_rmp_prices",
+      "CREATE INDEX squad_airtable_identity_rmp_prices ON sa_snapshot_20261019.sa_rmp_prices USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
       "sa_rmp_sizes",
       "sa_rmp_sizes_pkey",
       "CREATE UNIQUE INDEX sa_rmp_sizes_pkey ON sa_snapshot_20261019.sa_rmp_sizes USING btree (id)"
+    ],
+    [
+      "sa_rmp_sizes",
+      "squad_airtable_identity_rmp_sizes",
+      "CREATE INDEX squad_airtable_identity_rmp_sizes ON sa_snapshot_20261019.sa_rmp_sizes USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_rmp_sku_prices",
@@ -8311,6 +8411,11 @@
     ],
     [
       "sa_rmp_skus",
+      "squad_airtable_identity_rmp_skus",
+      "CREATE INDEX squad_airtable_identity_rmp_skus ON sa_snapshot_20261019.sa_rmp_skus USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
+      "sa_rmp_skus",
       "squad_rmp_sku_catalog",
       "CREATE INDEX squad_rmp_sku_catalog ON sa_snapshot_20261019.sa_rmp_skus USING btree (rmp_class_id, rmp_brand_id, rmp_category_id, id DESC) WHERE (is_deleted IS NOT TRUE)"
     ],
@@ -8323,6 +8428,11 @@
       "sa_sc_sizes",
       "sa_sc_sizes_pkey",
       "CREATE UNIQUE INDEX sa_sc_sizes_pkey ON sa_snapshot_20261019.sa_sc_sizes USING btree (id)"
+    ],
+    [
+      "sa_sc_sizes",
+      "squad_airtable_identity_sc_sizes",
+      "CREATE INDEX squad_airtable_identity_sc_sizes ON sa_snapshot_20261019.sa_sc_sizes USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_schema_migrations",
@@ -8338,6 +8448,11 @@
       "sa_size_types",
       "sa_size_types_pkey",
       "CREATE UNIQUE INDEX sa_size_types_pkey ON sa_snapshot_20261019.sa_size_types USING btree (id)"
+    ],
+    [
+      "sa_size_types",
+      "squad_airtable_identity_size_types",
+      "CREATE INDEX squad_airtable_identity_size_types ON sa_snapshot_20261019.sa_size_types USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
     ],
     [
       "sa_sizes",
@@ -8635,6 +8750,11 @@
       "CREATE INDEX squad_people_parent_tailor ON sa_snapshot_20261019.sa_users USING btree (parent_tailor_id, id) WHERE (deleted_at IS NULL)"
     ],
     [
+      "sa_users",
+      "squad_weekly_tailors_scan",
+      "CREATE INDEX squad_weekly_tailors_scan ON sa_snapshot_20261019.sa_users USING btree (id) WHERE ((role = 5) AND (deleted_at IS NULL))"
+    ],
+    [
       "sa_zones",
       "sa_zones_pkey",
       "CREATE UNIQUE INDEX sa_zones_pkey ON sa_snapshot_20261019.sa_zones USING btree (id)"
@@ -8663,7 +8783,7 @@
       "sa_add_ons",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_addresses",
@@ -8687,7 +8807,7 @@
       "sa_asset_infos",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_assigned_brands",
@@ -8699,7 +8819,7 @@
       "sa_authorized_brands",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_back_order_links",
@@ -8711,7 +8831,7 @@
       "sa_base_product_asset_infos",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_base_product_categories",
@@ -8735,13 +8855,13 @@
       "sa_base_product_types",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_base_products",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_base_size_types",
@@ -8771,7 +8891,7 @@
       "sa_categories",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_cities",
@@ -8783,7 +8903,7 @@
       "sa_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_criteria",
@@ -8819,7 +8939,7 @@
       "sa_fabrics",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_factories",
@@ -8837,7 +8957,7 @@
       "sa_item_tailor_quantities",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_item_tailors",
@@ -8933,7 +9053,7 @@
       "sa_parts",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_product_images",
@@ -8963,19 +9083,19 @@
       "sa_profit_margins",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_promotional_banners",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_promotions",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_quantities",
@@ -9005,13 +9125,13 @@
       "sa_rmp_brands",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_categories",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_category_brands",
@@ -9023,13 +9143,13 @@
       "sa_rmp_classes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_colors",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_min_infos",
@@ -9053,7 +9173,7 @@
       "sa_rmp_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_rmp_sku_prices",
@@ -9071,7 +9191,7 @@
       "sa_sc_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_schema_migrations",
@@ -9089,13 +9209,13 @@
       "sa_size_types",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_stock_infos",
@@ -9149,7 +9269,7 @@
       "sa_users",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_integrator=r/postgres}"
     ],
     [
       "sa_zones",

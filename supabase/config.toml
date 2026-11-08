@@ -64,3 +64,7 @@ verify_jwt = false
 # User routes forward the JWT to scoped RPCs before any privileged Storage call.
 [functions.squad-account]
 verify_jwt = false
+
+# Provider ingress verifies the exact raw-body HMAC and durable environment gate.
+[functions.squad-webhooks]
+verify_jwt = false

@@ -1,0 +1,83 @@
+{
+  "scope": "local synthetic rollback transactions; actual SQL publication, simulated provider acknowledgments",
+  "migration_sha256": "4f7b19b84aa9c5f4d383e611948aa67f4375089452a6039497c0fb9f1c90534f",
+  "lines": 50,
+  "pieces": 2000,
+  "runs": 7,
+  "samples": {
+    "dashboard": {
+      "prepare_initial": {
+        "p50_ms": 6.903,
+        "p95_ms": 7.136,
+        "max_ms": 7.136,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "finish_inspect": {
+        "p50_ms": 4.587,
+        "p95_ms": 4.699,
+        "max_ms": 4.699,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "prepare_mutation": {
+        "p50_ms": 3.79,
+        "p95_ms": 3.805,
+        "max_ms": 3.805,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "finish_publish": {
+        "p50_ms": 195.164,
+        "p95_ms": 197.028,
+        "max_ms": 197.028,
+        "budget_ms": 500,
+        "pass": true
+      }
+    },
+    "unicommerce": {
+      "prepare_initial": {
+        "p50_ms": 46.99,
+        "p95_ms": 47.164,
+        "max_ms": 47.164,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "finish_inspect": {
+        "p50_ms": 8.491,
+        "p95_ms": 8.712,
+        "max_ms": 8.712,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "prepare_mutation": {
+        "p50_ms": 5.243,
+        "p95_ms": 5.335,
+        "max_ms": 5.335,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "finish_cancel": {
+        "p50_ms": 10.755,
+        "p95_ms": 11.16,
+        "max_ms": 11.16,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "prepare_replacement": {
+        "p50_ms": 11.861,
+        "p95_ms": 15.762,
+        "max_ms": 15.762,
+        "budget_ms": 500,
+        "pass": true
+      },
+      "finish_publish": {
+        "p50_ms": 239.78,
+        "p95_ms": 242.645,
+        "max_ms": 242.645,
+        "budget_ms": 500,
+        "pass": true
+      }
+    }
+  }
+}

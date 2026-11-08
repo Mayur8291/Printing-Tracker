@@ -110,6 +110,240 @@
     ],
     [
       "sa_domain",
+      "airtable_assets",
+      "airtable_assets_owner",
+      "{sa_media_writer}",
+      "SELECT",
+      "(row_id IN ( SELECT airtable_rows.id\n   FROM sa_domain.airtable_rows))",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_assets",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_assets",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_master_context",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_master_context",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_pages",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_pages",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_report_config",
+      "report_config_admin",
+      "{sa_executor}",
+      "ALL",
+      "(((sa_domain.ops_context() ->> 'admin'::text))::boolean OR ((sa_domain.ops_context() ->> 'platform'::text))::boolean)",
+      "(((sa_domain.ops_context() ->> 'admin'::text))::boolean OR ((sa_domain.ops_context() ->> 'platform'::text))::boolean)"
+    ],
+    [
+      "sa_domain",
+      "airtable_report_config",
+      "report_config_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_report_config",
+      "report_config_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_report_operations",
+      "report_operations_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_report_operations",
+      "report_operations_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_resources",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_resources",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_retirements",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_retirements",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_rows",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_rows",
+      "airtable_rows_owner",
+      "{sa_media_writer}",
+      "SELECT",
+      "(transfer_id IN ( SELECT transfers.id\n   FROM sa_domain.transfers))",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_rows",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_runs",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_runs",
+      "airtable_runs_owner",
+      "{sa_media_writer}",
+      "SELECT",
+      "(transfer_id IN ( SELECT transfers.id\n   FROM sa_domain.transfers))",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_runs",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_statistics",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_statistics",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "airtable_tables",
+      "airtable_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "airtable_tables",
+      "airtable_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "app_releases",
       "squad_release_read",
       "{sa_executor}",
@@ -251,6 +485,51 @@
       "ALL",
       "(actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id))",
       "(actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id))"
+    ],
+    [
+      "sa_domain",
+      "business_mail_deliveries",
+      "business_mail_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "business_mail_deliveries",
+      "business_mail_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "business_mail_settings",
+      "mail_settings_admin",
+      "{sa_executor}",
+      "ALL",
+      "(((sa_domain.ops_context() ->> 'admin'::text))::boolean OR ((sa_domain.ops_context() ->> 'platform'::text))::boolean)",
+      "(((sa_domain.ops_context() ->> 'admin'::text))::boolean OR ((sa_domain.ops_context() ->> 'platform'::text))::boolean)"
+    ],
+    [
+      "sa_domain",
+      "business_mail_settings",
+      "mail_settings_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "business_mail_settings",
+      "mail_settings_worker",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_domain",
@@ -426,6 +705,15 @@
     [
       "sa_domain",
       "documents",
+      "business_mail_document_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "documents",
       "document_owner",
       "{sa_executor}",
       "ALL",
@@ -507,11 +795,47 @@
     [
       "sa_domain",
       "integration_context",
+      "integration_context_self",
+      "{sa_integrator}",
+      "SELECT",
+      "((backend_pid = pg_backend_pid()) AND (transaction_id = txid_current()))",
+      null
+    ],
+    [
+      "sa_domain",
+      "integration_context",
       "integration_context_worker",
       "{sa_worker}",
       "ALL",
       "true",
       "true"
+    ],
+    [
+      "sa_domain",
+      "integration_customer_context",
+      "warehouse_customer_context_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "integration_customer_context",
+      "warehouse_customer_context_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "integration_preferences",
+      "airtable_preferences_worker",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_domain",
@@ -601,6 +925,15 @@
       "{sa_executor}",
       "SELECT",
       "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items)))",
+      null
+    ],
+    [
+      "sa_domain",
+      "line_receipts",
+      "warehouse_line_receipt_read",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -794,6 +1127,15 @@
     ],
     [
       "sa_domain",
+      "order_requests",
+      "warehouse_cancel_request_finish",
+      "{sa_executor}",
+      "UPDATE",
+      "((id = ( SELECT sa_domain.warehouse_change_request_id() AS warehouse_change_request_id)) AND (actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (kind = 'cancel'::text))",
+      "((id = ( SELECT sa_domain.warehouse_change_request_id() AS warehouse_change_request_id)) AND (actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (kind = 'cancel'::text))"
+    ],
+    [
+      "sa_domain",
       "outbox",
       "account_outbox",
       "{sa_account_writer}",
@@ -804,11 +1146,47 @@
     [
       "sa_domain",
       "outbox",
+      "airtable_cancel_queue",
+      "{sa_media_writer}",
+      "UPDATE",
+      "((actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (event_type = ANY (ARRAY['airtable.validate'::text, 'airtable.apply'::text])))",
+      "((actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (event_type = ANY (ARRAY['airtable.validate'::text, 'airtable.apply'::text])))"
+    ],
+    [
+      "sa_domain",
+      "outbox",
+      "airtable_read_queue",
+      "{sa_media_writer}",
+      "SELECT",
+      "((actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (event_type = ANY (ARRAY['airtable.validate'::text, 'airtable.apply'::text])))",
+      null
+    ],
+    [
+      "sa_domain",
+      "outbox",
       "executor_events",
       "{sa_executor}",
       "INSERT",
       null,
       "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "outbox",
+      "integration_job_self",
+      "{sa_integrator}",
+      "SELECT",
+      "(id IN ( SELECT integration_context.job_id\n   FROM sa_domain.integration_context))",
+      null
+    ],
+    [
+      "sa_domain",
+      "outbox",
+      "integration_status_event",
+      "{sa_integrator}",
+      "INSERT",
+      null,
+      "((event_type = 'warehouse.status_changed'::text) AND (aggregate_kind = 'order'::text) AND (aggregate_id = ( SELECT sa_domain.integration_order_id() AS integration_order_id)))"
     ],
     [
       "sa_domain",
@@ -908,6 +1286,15 @@
       "ALL",
       "(actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id))",
       "(actor_id = ( SELECT (sa_domain.actor()).auth_id AS auth_id))"
+    ],
+    [
+      "sa_domain",
+      "rating_moderation",
+      "airtable_report_moderation",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_domain",
@@ -1199,6 +1586,15 @@
     ],
     [
       "sa_domain",
+      "warehouse_inventory_watermarks",
+      "inventory_watermark_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "warehouse_links",
       "integration_link",
       "{sa_integrator}",
@@ -1219,6 +1615,33 @@
       "sa_domain",
       "warehouse_links",
       "warehouse_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "warehouse_operations",
+      "integration_change_operation",
+      "{sa_integrator}",
+      "SELECT",
+      "(order_id = ( SELECT sa_domain.integration_order_id() AS integration_order_id))",
+      null
+    ],
+    [
+      "sa_domain",
+      "warehouse_operations",
+      "warehouse_operation_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "warehouse_operations",
+      "warehouse_operation_worker",
       "{sa_worker}",
       "ALL",
       "true",
@@ -1264,6 +1687,159 @@
       "sa_domain",
       "warehouse_reconciliations",
       "warehouse_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "warehouse_schedule",
+      "warehouse_schedule_admin",
+      "{sa_executor}",
+      "SELECT",
+      "((sa_domain.actor()).role_id = 0)",
+      null
+    ],
+    [
+      "sa_domain",
+      "warehouse_schedule",
+      "warehouse_schedule_admin_write",
+      "{sa_executor}",
+      "UPDATE",
+      "((sa_domain.actor()).role_id = 0)",
+      "((sa_domain.actor()).role_id = 0)"
+    ],
+    [
+      "sa_domain",
+      "warehouse_schedule",
+      "warehouse_schedule_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "warehouse_schedule",
+      "warehouse_schedule_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "warehouse_scheduled_runs",
+      "warehouse_schedule_admin",
+      "{sa_executor}",
+      "SELECT",
+      "((sa_domain.actor()).role_id = 0)",
+      null
+    ],
+    [
+      "sa_domain",
+      "warehouse_scheduled_runs",
+      "warehouse_schedule_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "warehouse_scheduled_runs",
+      "warehouse_schedule_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_entries",
+      "weekly_admin_read",
+      "{sa_executor}",
+      "SELECT",
+      "((sa_domain.actor()).role_id = 0)",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_entries",
+      "weekly_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_entries",
+      "weekly_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_runs",
+      "weekly_admin_read",
+      "{sa_executor}",
+      "SELECT",
+      "((sa_domain.actor()).role_id = 0)",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_runs",
+      "weekly_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_runs",
+      "weekly_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_schedule",
+      "weekly_admin_read",
+      "{sa_executor}",
+      "SELECT",
+      "((sa_domain.actor()).role_id = 0)",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_schedule",
+      "weekly_admin_write",
+      "{sa_executor}",
+      "UPDATE",
+      "((sa_domain.actor()).role_id = 0)",
+      "((sa_domain.actor()).role_id = 0)"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_schedule",
+      "weekly_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_schedule",
+      "weekly_worker",
       "{sa_worker}",
       "ALL",
       "true",
@@ -1443,6 +2019,24 @@
     [
       "sa_snapshot_20261019",
       "sa_add_ons",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_add_ons",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_add_ons",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -1515,6 +2109,15 @@
     [
       "sa_snapshot_20261019",
       "sa_addresses",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_addresses",
       "squad_address_insert",
       "{sa_executor}",
       "INSERT",
@@ -1555,6 +2158,15 @@
       "{sa_executor}",
       "SELECT",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_asset_infos",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -1616,6 +2228,15 @@
       "sa_assigned_brands",
       "squad_catalog_guard",
       "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_authorized_brands",
+      "airtable_worker_catalog",
+      "{sa_worker}",
       "SELECT",
       "true",
       null
@@ -1686,6 +2307,15 @@
     [
       "sa_snapshot_20261019",
       "sa_base_product_asset_infos",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_product_asset_infos",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -1731,6 +2361,15 @@
     [
       "sa_snapshot_20261019",
       "sa_base_product_types",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_product_types",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -1754,6 +2393,24 @@
       "ALL",
       "true",
       "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_products",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_products",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_snapshot_20261019",
@@ -1920,6 +2577,15 @@
     [
       "sa_snapshot_20261019",
       "sa_bulk_uploads",
+      "squad_import_history",
+      "{sa_media_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_bulk_uploads",
       "squad_media_guard",
       "{sa_guard}",
       "SELECT",
@@ -1940,6 +2606,15 @@
       "sa_catalogues",
       "squad_media_guard",
       "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_categories",
+      "airtable_worker_catalog",
+      "{sa_worker}",
       "SELECT",
       "true",
       null
@@ -2024,6 +2699,15 @@
       "ALL",
       "(sa_domain.worker_actor_id() IS NOT NULL)",
       "(sa_domain.worker_actor_id() IS NOT NULL)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_colors",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_snapshot_20261019",
@@ -2167,7 +2851,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "((job_sheet_dispatched_date_id IN ( SELECT sa_domain.work_scope_ids('dispatch'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))"
+      "(sa_domain.work_parent_visible('dispatch'::text, job_sheet_dispatched_date_id) AND sa_domain.work_parent_visible('quantity'::text, quantity_id))"
     ],
     [
       "sa_snapshot_20261019",
@@ -2175,7 +2859,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "((job_sheet_dispatched_date_id IN ( SELECT sa_domain.work_scope_ids('dispatch'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))",
+      "(sa_domain.work_parent_visible('dispatch'::text, job_sheet_dispatched_date_id) AND sa_domain.work_parent_visible('quantity'::text, quantity_id))",
       null
     ],
     [
@@ -2235,6 +2919,24 @@
     [
       "sa_snapshot_20261019",
       "sa_fabrics",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_fabrics",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_fabrics",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -2272,6 +2974,15 @@
       "sa_snapshot_20261019",
       "sa_fabrics",
       "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_factories",
+      "airtable_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -2379,6 +3090,15 @@
     [
       "sa_snapshot_20261019",
       "sa_item_tailor_quantities",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailor_quantities",
       "squad_guard_work_parent",
       "{sa_guard}",
       "SELECT",
@@ -2392,7 +3112,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "((item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))"
+      "(sa_domain.work_parent_visible('tailor'::text, item_tailor_id) AND sa_domain.work_parent_visible('quantity'::text, quantity_id))"
     ],
     [
       "sa_snapshot_20261019",
@@ -2400,7 +3120,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "((item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))",
+      "(sa_domain.work_parent_visible('tailor'::text, item_tailor_id) AND sa_domain.work_parent_visible('quantity'::text, quantity_id))",
       null
     ],
     [
@@ -2409,8 +3129,17 @@
       "squad_work_update",
       "{sa_executor}",
       "UPDATE",
-      "(item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids))",
-      "(item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids))"
+      "sa_domain.work_parent_visible('tailor'::text, item_tailor_id)",
+      "sa_domain.work_parent_visible('tailor'::text, item_tailor_id)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_item_tailors",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_snapshot_20261019",
@@ -2437,7 +3166,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2445,7 +3174,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "sa_domain.can_item(item_id)",
       null
     ],
     [
@@ -2454,8 +3183,8 @@
       "squad_work_update",
       "{sa_executor}",
       "UPDATE",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)",
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2554,7 +3283,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2562,7 +3291,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "sa_domain.can_item(item_id)",
       null
     ],
     [
@@ -2599,7 +3328,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2607,7 +3336,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "sa_domain.can_item(item_id)",
       null
     ],
     [
@@ -2616,8 +3345,8 @@
       "squad_work_update",
       "{sa_executor}",
       "UPDATE",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)",
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2626,7 +3355,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "((job_sheet_assign_date_id IN ( SELECT sa_domain.work_scope_ids('assignment'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))"
+      "(sa_domain.work_parent_visible('assignment'::text, job_sheet_assign_date_id) AND sa_domain.work_parent_visible('tailor'::text, item_tailor_id))"
     ],
     [
       "sa_snapshot_20261019",
@@ -2634,7 +3363,16 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "((job_sheet_assign_date_id IN ( SELECT sa_domain.work_scope_ids('assignment'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))",
+      "(sa_domain.work_parent_visible('assignment'::text, job_sheet_assign_date_id) AND sa_domain.work_parent_visible('tailor'::text, item_tailor_id))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_dispatched_dates",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -2671,7 +3409,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2679,7 +3417,16 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "sa_domain.can_item(item_id)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_mark_tailors",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -2707,7 +3454,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "((job_sheet_tailor_mark_date_id IN ( SELECT sa_domain.work_scope_ids('inspection'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))"
+      "(sa_domain.work_parent_visible('inspection'::text, job_sheet_tailor_mark_date_id) AND sa_domain.work_parent_visible('tailor'::text, item_tailor_id))"
     ],
     [
       "sa_snapshot_20261019",
@@ -2715,7 +3462,16 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "((job_sheet_tailor_mark_date_id IN ( SELECT sa_domain.work_scope_ids('inspection'::text) AS work_scope_ids)) AND (item_tailor_id IN ( SELECT sa_domain.work_scope_ids('tailor'::text) AS work_scope_ids)))",
+      "(sa_domain.work_parent_visible('inspection'::text, job_sheet_tailor_mark_date_id) AND sa_domain.work_parent_visible('tailor'::text, item_tailor_id))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_job_sheet_tailor_mark_dates",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -2752,7 +3508,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2760,7 +3516,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "sa_domain.can_item(item_id)",
       null
     ],
     [
@@ -2779,7 +3535,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "((mark_cutting_id IN ( SELECT sa_domain.work_scope_ids('cut'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))"
+      "(sa_domain.work_parent_visible('cut'::text, mark_cutting_id) AND sa_domain.work_parent_visible('quantity'::text, quantity_id))"
     ],
     [
       "sa_snapshot_20261019",
@@ -2787,7 +3543,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "((mark_cutting_id IN ( SELECT sa_domain.work_scope_ids('cut'::text) AS work_scope_ids)) AND (quantity_id IN ( SELECT sa_domain.work_scope_ids('quantity'::text) AS work_scope_ids)))",
+      "(sa_domain.work_parent_visible('cut'::text, mark_cutting_id) AND sa_domain.work_parent_visible('quantity'::text, quantity_id))",
       null
     ],
     [
@@ -2815,7 +3571,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)"
     ],
     [
       "sa_snapshot_20261019",
@@ -2823,7 +3579,16 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "sa_domain.can_item(item_id)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_mark_tailor_quantities",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -2842,7 +3607,7 @@
       "{sa_executor}",
       "INSERT",
       null,
-      "((job_sheet_mark_tailor_id IN ( SELECT sa_domain.work_scope_ids('mark_tailor'::text) AS work_scope_ids)) AND (item_tailor_quantity_id IN ( SELECT sa_domain.work_scope_ids('tailor_quantity'::text) AS work_scope_ids)))"
+      "(sa_domain.work_parent_visible('mark_tailor'::text, job_sheet_mark_tailor_id) AND sa_domain.work_parent_visible('tailor_quantity'::text, item_tailor_quantity_id))"
     ],
     [
       "sa_snapshot_20261019",
@@ -2850,7 +3615,7 @@
       "squad_work_read",
       "{sa_executor}",
       "SELECT",
-      "((job_sheet_mark_tailor_id IN ( SELECT sa_domain.work_scope_ids('mark_tailor'::text) AS work_scope_ids)) AND (item_tailor_quantity_id IN ( SELECT sa_domain.work_scope_ids('tailor_quantity'::text) AS work_scope_ids)))",
+      "(sa_domain.work_parent_visible('mark_tailor'::text, job_sheet_mark_tailor_id) AND sa_domain.work_parent_visible('tailor_quantity'::text, item_tailor_quantity_id))",
       null
     ],
     [
@@ -2982,6 +3747,15 @@
     [
       "sa_snapshot_20261019",
       "sa_parts",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_parts",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -3045,6 +3819,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_part_add_ons",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_part_add_ons",
       "squad_detail_guard",
       "{sa_guard}",
       "SELECT",
@@ -3090,6 +3873,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_parts",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_parts",
       "squad_detail_guard",
       "{sa_guard}",
       "SELECT",
@@ -3127,6 +3919,15 @@
       "sa_snapshot_20261019",
       "sa_product_parts",
       "squad_sales_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_products",
+      "airtable_report_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -3207,6 +4008,24 @@
     [
       "sa_snapshot_20261019",
       "sa_profit_margins",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_profit_margins",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_profit_margins",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -3218,6 +4037,15 @@
       "sa_profit_margins",
       "squad_sales_guard",
       "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_promotional_banners",
+      "airtable_worker_catalog",
+      "{sa_worker}",
       "SELECT",
       "true",
       null
@@ -3252,6 +4080,15 @@
     [
       "sa_snapshot_20261019",
       "sa_promotions",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_promotions",
       "squad_media_guard",
       "{sa_guard}",
       "SELECT",
@@ -3279,6 +4116,15 @@
     [
       "sa_snapshot_20261019",
       "sa_quantities",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_quantities",
       "integration_quantity_read",
       "{sa_integrator}",
       "SELECT",
@@ -3300,7 +4146,7 @@
       "squad_executor_quantities_read",
       "{sa_executor}",
       "SELECT",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
+      "sa_domain.can_item(item_id)",
       null
     ],
     [
@@ -3336,8 +4182,17 @@
       "squad_quantities_update",
       "{sa_executor}",
       "UPDATE",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))",
-      "(item_id IN ( SELECT sa_domain.scope_item_ids() AS scope_item_ids))"
+      "sa_domain.can_item(item_id)",
+      "sa_domain.can_item(item_id)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_ratings",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_snapshot_20261019",
@@ -3414,6 +4269,24 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_brands",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_brands",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_brands",
       "squad_catalog_guard",
       "{sa_guard}",
       "SELECT",
@@ -3446,6 +4319,24 @@
       "ALL",
       "true",
       "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_categories",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_categories",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_snapshot_20261019",
@@ -3499,6 +4390,24 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_classes",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_classes",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -3558,6 +4467,24 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_colors",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_colors",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_colors",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -3580,6 +4507,24 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_price_types",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_price_types",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -3612,6 +4557,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_prices",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_prices",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
@@ -3622,6 +4576,24 @@
       "sa_snapshot_20261019",
       "sa_rmp_prices",
       "transfer_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_sizes",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_sizes",
+      "airtable_worker_catalog",
       "{sa_worker}",
       "SELECT",
       "true",
@@ -3676,6 +4648,24 @@
       "sa_snapshot_20261019",
       "sa_rmp_sku_prices",
       "transfer_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_skus",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_skus",
+      "airtable_worker_catalog",
       "{sa_worker}",
       "SELECT",
       "true",
@@ -3737,6 +4727,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_sc_sizes",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_settings",
       "squad_provider_setting",
       "{sa_executor}",
@@ -3765,10 +4764,46 @@
     [
       "sa_snapshot_20261019",
       "sa_size_types",
+      "airtable_worker_catalog",
+      "{sa_worker}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_size_types",
       "squad_catalog_read",
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_sizes",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_sizes",
+      "airtable_size_position_worker",
+      "{sa_worker}",
+      "UPDATE",
+      "((sa_domain.airtable_context_info() ->> 'resource'::text) = 'rmp_sizes'::text)",
+      "((sa_domain.airtable_context_info() ->> 'resource'::text) = 'rmp_sizes'::text)"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_sizes",
+      "airtable_worker_sizes",
+      "{sa_worker}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -3935,6 +4970,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_sync_airtables",
+      "squad_import_history",
+      "{sa_media_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_task_users",
       "squad_guard_task_users",
       "{sa_guard}",
@@ -4080,6 +5124,24 @@
     [
       "sa_snapshot_20261019",
       "sa_users",
+      "integration_customer_read",
+      "{sa_integrator}",
+      "SELECT",
+      "(id = ( SELECT sa_domain.integration_customer_id() AS integration_customer_id))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_users",
+      "integration_customer_write",
+      "{sa_integrator}",
+      "UPDATE",
+      "(id = ( SELECT sa_domain.integration_customer_id() AS integration_customer_id))",
+      "(id = ( SELECT sa_domain.integration_customer_id() AS integration_customer_id))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_users",
       "squad_executor_people_read",
       "{sa_executor}",
       "SELECT",
@@ -4161,6 +5223,15 @@
     [
       "sa_snapshot_20261019",
       "sa_zones",
+      "airtable_report_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_zones",
       "squad_guard_commercial_zones",
       "{sa_guard}",
       "SELECT",
@@ -4220,6 +5291,15 @@
       "ALL",
       "singleton",
       "singleton"
+    ],
+    [
+      "sa_sync",
+      "environment_state",
+      "integration_customer_environment",
+      "{sa_integrator}",
+      "SELECT",
+      "singleton",
+      null
     ],
     [
       "sa_sync",
@@ -4562,13 +5642,68 @@
     ],
     [
       "sa_bulk_uploads",
+      "created_at",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "duplicates",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "error_details",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "failed_count",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
       "file",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_bulk_uploads",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "inserted",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "skipped",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "status",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "total",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "updated",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "updated_at",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "upload_type",
+      "{sa_media_writer=r/postgres}"
     ],
     [
       "sa_bulk_uploads",
@@ -4817,6 +5952,11 @@
     ],
     [
       "sa_items",
+      "calculated_per_piece_amount",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
       "cgst_amount",
       "{sa_guard=r/postgres}"
     ],
@@ -4923,6 +6063,11 @@
     [
       "sa_items",
       "rmp_class_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_items",
+      "rmp_override_price",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -5348,7 +6493,7 @@
     [
       "sa_orders",
       "uc_order_id",
-      "{sa_integrator=w/postgres}"
+      "{sa_integrator=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -5856,6 +7001,16 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_sizes",
+      "position",
+      "{sa_worker=w/postgres}"
+    ],
+    [
+      "sa_sizes",
+      "updated_at",
+      "{sa_worker=w/postgres}"
+    ],
+    [
       "sa_stock_useds",
       "created_at",
       "{sa_guard=r/postgres}"
@@ -5959,6 +7114,36 @@
       "sa_stocks",
       "user_id",
       "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_sync_airtables",
+      "created_at",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_sync_airtables",
+      "id",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_sync_airtables",
+      "sync_errors",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_sync_airtables",
+      "sync_status",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_sync_airtables",
+      "sync_time",
+      "{sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_sync_airtables",
+      "updated_at",
+      "{sa_media_writer=r/postgres}"
     ],
     [
       "sa_tasks",
@@ -6167,8 +7352,13 @@
     ],
     [
       "sa_users",
+      "uc_customer_id",
+      "{sa_integrator=w/postgres}"
+    ],
+    [
+      "sa_users",
       "updated_at",
-      "{sa_executor=arw/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres,sa_account_writer=arw/postgres,sa_worker=w/postgres}"
+      "{sa_executor=arw/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres,sa_account_writer=arw/postgres,sa_worker=w/postgres,sa_integrator=w/postgres}"
     ],
     [
       "sa_users",
@@ -6443,6 +7633,66 @@
     ],
     [
       "canto_api",
+      "squad_airtable_report_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "ebc3c7047d40820d9374d75e3c4b3a5f"
+    ],
+    [
+      "canto_api",
+      "squad_airtable_report_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "ffd5ce0f57551948c6971fbf4d3d35d4"
+    ],
+    [
+      "canto_api",
+      "squad_airtable_work",
+      "p_id uuid, p_lease_token uuid, p_action text, p_input jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "772559b8d91d4c698cbb96c65936743d"
+    ],
+    [
+      "canto_api",
+      "squad_business_mail_finish",
+      "p_id uuid, p_lease_token uuid, p_code text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "69c87df273b6b2bc53d13a63a05a7370"
+    ],
+    [
+      "canto_api",
+      "squad_business_mail_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "7f158be2876d0528109960902915e0ba"
+    ],
+    [
+      "canto_api",
       "squad_cutover_acceptance_register",
       "p_evidence jsonb",
       "postgres",
@@ -6599,6 +7849,42 @@
     ],
     [
       "canto_api",
+      "squad_warehouse_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "c6337faaa8342da80ddb1d3412499a76"
+    ],
+    [
+      "canto_api",
+      "squad_warehouse_heartbeat",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "8c203a6bd0237338cc19f1143f365f58"
+    ],
+    [
+      "canto_api",
+      "squad_warehouse_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "3e1d9caa68981adbcbf0d11bee4267a1"
+    ],
+    [
+      "canto_api",
       "squad_warehouse_webhook",
       "p_id uuid, p_lease_token uuid",
       "postgres",
@@ -6623,6 +7909,18 @@
     ],
     [
       "canto_api",
+      "squad_weekly_tailor_heartbeat",
+      "p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "909e2859bd3bcaaad79cb8a86164938c"
+    ],
+    [
+      "canto_api",
       "v1_address_archive",
       "p_id bigint, p_user_id bigint, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -6644,6 +7942,42 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "6fbe30450736a2194ee0a1fca80d0d36"
+    ],
+    [
+      "canto_api",
+      "v1_airtable_reports_configure",
+      "p_enabled boolean, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "e60e0831027dc71b04ebe4a6c93319c9"
+    ],
+    [
+      "canto_api",
+      "v1_airtable_reports_request",
+      "p_family text, p_ids bigint[], p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "e0c0fbb477c88c39b2ddae59f7dcb3a2"
+    ],
+    [
+      "canto_api",
+      "v1_airtable_reports_status",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "b80e7c01ae099f3b2f2331fd2fa77f7b"
     ],
     [
       "canto_api",
@@ -7171,19 +8505,31 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
-      "9e97a92ea7b51c84271b91a59b0e5c0b"
+      "33eeb9a90eed4f3e719c5b70d66f9577"
     ],
     [
       "canto_api",
       "v1_import_status",
-      "p_id uuid, p_cursor text, p_limit integer",
+      "p_id uuid, p_cursor text, p_limit integer, p_legacy_kind text",
       "postgres",
       false,
       [
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
-      "6b8713a4e957d3490338b51cdeabd2c4"
+      "6706e3d0e3550984d8a162211d4f2a5b"
+    ],
+    [
+      "canto_api",
+      "v1_integration_get",
+      "p_id uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "bb2d8efee6a32f931e812885f20142a3"
     ],
     [
       "canto_api",
@@ -7304,6 +8650,30 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "abeabc97ec0926851c343af708af405d"
+    ],
+    [
+      "canto_api",
+      "v1_mail_settings_read",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "069acf9f263d606313cc2aaf405c3ce8"
+    ],
+    [
+      "canto_api",
+      "v1_mail_settings_save",
+      "p_kind text, p_recipient_ids bigint[], p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "2945f8066854f67627007035ddd79583"
     ],
     [
       "canto_api",
@@ -8003,6 +9373,54 @@
     ],
     [
       "canto_api",
+      "v1_warehouse_schedule_configure",
+      "p_enabled boolean, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "1b024a85b74a775d20bd279048ab3aee"
+    ],
+    [
+      "canto_api",
+      "v1_warehouse_schedule_status",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "cd4e16760365cb3084da1a3d59da02e9"
+    ],
+    [
+      "canto_api",
+      "v1_weekly_tailor_schedule_configure",
+      "p_enabled boolean, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "af0a1e869224b9b7600356c4730bf053"
+    ],
+    [
+      "canto_api",
+      "v1_weekly_tailor_schedule_status",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "dd8ffe0df3450d391fb9fbaee3ad8f78"
+    ],
+    [
+      "canto_api",
       "v1_work_metrics",
       "p_from date, p_before date, p_subject_id bigint, p_factory_id bigint",
       "postgres",
@@ -8339,6 +9757,235 @@
     ],
     [
       "sa_domain",
+      "airtable_apply_batch",
+      "p_transfer uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "251bc38206304ef4b4bfd8cec9c9baed"
+    ],
+    [
+      "sa_domain",
+      "airtable_call_master",
+      "p_transfer uuid, p_row bigint, p_resource text, p_action text, p_payload jsonb, p_dry boolean, p_airtable_id text",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "35703c1a51747428e69fb84dcfa500c4"
+    ],
+    [
+      "sa_domain",
+      "airtable_capture_page",
+      "p_transfer uuid, p_input jsonb",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "471ebe42588dff47c075b33e46af43f6"
+    ],
+    [
+      "sa_domain",
+      "airtable_clear_context",
+      "",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "410fda5820c5bef59e22b33abbce6cb8"
+    ],
+    [
+      "sa_domain",
+      "airtable_context_info",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "f7bd8f313f0f21abea7f5aa62a2448dc"
+    ],
+    [
+      "sa_domain",
+      "airtable_ensure_enabled",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard,sa_worker=X/sa_guard}",
+      "b678f7ac7958d118da7496effc51c5cd"
+    ],
+    [
+      "sa_domain",
+      "airtable_expire",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,sa_media_writer=X/sa_worker}",
+      "8c4dc93250ef91197f10507d0f46d83c"
+    ],
+    [
+      "sa_domain",
+      "airtable_initialize",
+      "p_id uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,sa_media_writer=X/sa_worker}",
+      "94d4ffe3d1e7bb2bd21665878d6c0349"
+    ],
+    [
+      "sa_domain",
+      "airtable_input",
+      "p_transfer uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "ab9f9b3af1aab38ab13aec8b4e49d92d"
+    ],
+    [
+      "sa_domain",
+      "airtable_master_authority",
+      "p_resource text, p_action text, p_payload jsonb, p_dry boolean",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "77f46f579b3360194ccc84a3b9154b55"
+    ],
+    [
+      "sa_domain",
+      "airtable_match_row",
+      "p_row bigint",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "632ff55dd013928e09cc83a9f0d1ea9d"
+    ],
+    [
+      "sa_domain",
+      "airtable_media_apply",
+      "p_row bigint, p_record bigint",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_worker=X/sa_media_writer}",
+      "7f5351ee591ec441505f008aeb60ac9a"
+    ],
+    [
+      "sa_domain",
+      "airtable_media_register",
+      "p_asset uuid, p_manifest jsonb",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_worker=X/sa_media_writer}",
+      "05488c9864717b41fb307a5f008a08db"
+    ],
+    [
+      "sa_domain",
+      "airtable_queue_statistics",
+      "p_transfer uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,sa_media_writer=X/sa_worker}",
+      "b3405a9dbc7b22913b6963219bf1694a"
+    ],
+    [
+      "sa_domain",
+      "airtable_report_projection",
+      "p_job sa_domain.outbox, p_family text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "4261b148cd4045354b4dd21c91ac0d70"
+    ],
+    [
+      "sa_domain",
+      "airtable_size_position",
+      "p_row bigint",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,sa_media_writer=X/sa_worker}",
+      "d998060ef71da5f219d23713dfb6b693"
+    ],
+    [
+      "sa_domain",
+      "airtable_validate_batch",
+      "p_transfer uuid",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "90a6c0c6b07a57c2ee6c757815156f1a"
+    ],
+    [
+      "sa_domain",
+      "airtable_values",
+      "p_row bigint, p_virtual boolean",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "576d3fc08bf759b61367e87b035f83a3"
+    ],
+    [
+      "sa_domain",
+      "airtable_virtual_reference",
+      "p_resource text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "57eeb8fb169cd34d27955504a40eac16"
+    ],
+    [
+      "sa_domain",
       "allocate_order_payment",
       "p_groups jsonb, p_paid numeric, p_total numeric",
       "postgres",
@@ -8444,7 +10091,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "6bb683072a3b7edd42703d7e6d7d067e"
+      "96f734ccbc06a1b344407f0927eb7d67"
     ],
     [
       "sa_domain",
@@ -8467,8 +10114,32 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_account_writer=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_account_writer=X/postgres,sa_media_writer=X/postgres}",
       "f166e680dbb4645b804f66e26a8fd7c9"
+    ],
+    [
+      "sa_domain",
+      "assert_warehouse_amendable",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard}",
+      "d041fd7a1e4305030ca73f7a7f119eba"
+    ],
+    [
+      "sa_domain",
+      "assert_warehouse_idle",
+      "p_order bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_integrator=X/sa_guard}",
+      "efa9438afa4024a862a39bfa012d4d89"
     ],
     [
       "sa_domain",
@@ -8604,6 +10275,55 @@
     ],
     [
       "sa_domain",
+      "business_mail_content",
+      "p_delivery sa_domain.business_mail_deliveries",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "b11c9b6da4ad3babfc3d4129d6ff590e"
+    ],
+    [
+      "sa_domain",
+      "business_mail_fanout",
+      "p_job sa_domain.outbox",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "60e5227b5f3a6cb9a4af2ed711989f6c"
+    ],
+    [
+      "sa_domain",
+      "business_mail_settle",
+      "p_job sa_domain.outbox, p_code text, p_result jsonb",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "d19a19e38c45e74fa2b3312f81992428"
+    ],
+    [
+      "sa_domain",
+      "business_mail_targets",
+      "p_job sa_domain.outbox",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "9fc662760c15f86f20d7296aea7b7c93"
+    ],
+    [
+      "sa_domain",
       "calculate_quote",
       "p_request jsonb, p_catalog boolean",
       "postgres",
@@ -8636,7 +10356,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "d162d6bd6f30d51ec5ad1932c2ff0997"
+      "c7da6a08d65e774a80ea327acc9d3bc3"
     ],
     [
       "sa_domain",
@@ -8700,6 +10420,54 @@
     ],
     [
       "sa_domain",
+      "capture_airtable_report",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "c5d9d2f88d778142a2b84fd01bac11dc"
+    ],
+    [
+      "sa_domain",
+      "capture_airtable_report_failure",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "afec25d767580e9409f45ce81a0c82d6"
+    ],
+    [
+      "sa_domain",
+      "capture_business_mail",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "77cf7aff12de5e57b66cedbc58723ff6"
+    ],
+    [
+      "sa_domain",
+      "capture_business_mail_failure",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "5959bbcd4fad3d28fa1ef7b4b4b72dc3"
+    ],
+    [
+      "sa_domain",
       "capture_dispatch_receipt",
       "p_dispatch_id bigint",
       "sa_executor",
@@ -8720,7 +10488,19 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "26b48fb488aa18afd76fd00ee9b38f23"
+      "cbc6d78e8beebb19a40a9adf49c7f0ac"
+    ],
+    [
+      "sa_domain",
+      "capture_transfer_mail",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "316bd35b36d2fc990543b80c55f29f60"
     ],
     [
       "sa_domain",
@@ -9104,8 +10884,8 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_executor=X/sa_executor}",
-      "c28abc594c8fd60541d5f0a6a0ed89dd"
+      "{sa_executor=X/sa_executor,sa_guard=X/sa_executor}",
+      "86e41c45e311c0678a1569abe5a9d027"
     ],
     [
       "sa_domain",
@@ -9361,6 +11141,30 @@
     ],
     [
       "sa_domain",
+      "import_request_csv",
+      "p_kind text, p_request jsonb, p_idempotency_key uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer}",
+      "17b5bbf2200281975fc7ccaa40b8c4cc"
+    ],
+    [
+      "sa_domain",
+      "import_status_current",
+      "p_id uuid, p_cursor text, p_limit integer",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer}",
+      "3737fc76e339380ab709c0cf4ba870b1"
+    ],
+    [
+      "sa_domain",
       "input_id",
       "p_value jsonb",
       "postgres",
@@ -9385,6 +11189,18 @@
     ],
     [
       "sa_domain",
+      "integration_customer_id",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_integrator=X/sa_guard}",
+      "1d56542482d12d388c58cc623a3d46b2"
+    ],
+    [
+      "sa_domain",
       "integration_order_id",
       "",
       "sa_guard",
@@ -9393,7 +11209,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_integrator=X/sa_guard,sa_worker=X/sa_guard}",
-      "f1d69776955b508d31fe331f62c1f301"
+      "c6d7e1dfd3763f69df4c8da927d64cfe"
     ],
     [
       "sa_domain",
@@ -9405,7 +11221,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "642b3422fd35bf12859f0ca8be165d30"
+      "e62a9990c2666ee18beae9c4f375bcf4"
     ],
     [
       "sa_domain",
@@ -9429,7 +11245,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "cbc799580970271013cc7d1e29a8c1ff"
+      "5086c02b7dceb3e252966f59bb6e6b1f"
     ],
     [
       "sa_domain",
@@ -9440,8 +11256,8 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
-      "0fdeffa93bce0ee22abc4f618320f83f"
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres,sa_integrator=X/postgres}",
+      "eb0690da59ce1a93d1da527abec3b984"
     ],
     [
       "sa_domain",
@@ -9453,7 +11269,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
-      "b05f791d90d1932554326f179d7abf80"
+      "0730d411872622009dbcfa7dc76c255e"
     ],
     [
       "sa_domain",
@@ -9501,7 +11317,43 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_integrator=X/postgres}",
-      "62c1f602b3bb29de3808b862c0015b89"
+      "aaf0bfab26b41e60c062eb3e5669d676"
+    ],
+    [
+      "sa_domain",
+      "mail_config_candidates",
+      "p_kind text, p_ids bigint[]",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
+      "32a7b8997d01fc486722175dd314510a"
+    ],
+    [
+      "sa_domain",
+      "mail_order_price_difference",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "77bbbe281db8009868826c3e41df855b"
+    ],
+    [
+      "sa_domain",
+      "mail_setting_id",
+      "p_kind text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "7163fbe59803457bbab4a2447cdec3fb"
     ],
     [
       "sa_domain",
@@ -9729,7 +11581,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
-      "62864c2af8311b7120a37dd7eb85f773"
+      "d1dc44b93c77a1ff318fbbf3c9818f96"
     ],
     [
       "sa_domain",
@@ -9861,7 +11713,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "4e326726c86509bae1b057ae57704d64"
+      "ccde5706e331ecdae8fc0138b94cd1f0"
     ],
     [
       "sa_domain",
@@ -9896,7 +11748,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_executor=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_executor=X/sa_guard,sa_media_writer=X/sa_guard}",
       "1e1f64eb7d9fc5f6804eab6eadcebd9a"
     ],
     [
@@ -10216,6 +12068,30 @@
     ],
     [
       "sa_domain",
+      "report_authorized",
+      "p_job sa_domain.outbox, p_order bigint, p_customer bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "6d23572a3f3ffd1517a7a262c31709ff"
+    ],
+    [
+      "sa_domain",
+      "report_children",
+      "p_job sa_domain.outbox",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "1ee1fe6ffc551fd539417359334ae54e"
+    ],
+    [
+      "sa_domain",
       "report_context",
       "p_resource text, p_filters jsonb",
       "postgres",
@@ -10225,6 +12101,30 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "218e36f0e27f49a7f208209e53b39c3f"
+    ],
+    [
+      "sa_domain",
+      "report_enqueue",
+      "p_source sa_domain.outbox, p_family text, p_id bigint",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,sa_executor=X/sa_worker}",
+      "613ac6ef850cfcc87a7eab05eeae591f"
+    ],
+    [
+      "sa_domain",
+      "report_is_customer",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "055c45945720c48243a8bca7a248bb56"
     ],
     [
       "sa_domain",
@@ -10249,6 +12149,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
       "e52caea06394c3a747d9f9d24546cfb2"
+    ],
+    [
+      "sa_domain",
+      "report_settle",
+      "p_job sa_domain.outbox, p_state text, p_code text, p_delay integer, p_result jsonb",
+      "sa_worker",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "c0900b4b5e5e5bdde956f72232f49e59"
     ],
     [
       "sa_domain",
@@ -10444,6 +12356,18 @@
     ],
     [
       "sa_domain",
+      "selling_price_visible",
+      "p_role integer",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "aa4f3e5094b3dcd2bcbb17daad9bf5ab"
+    ],
+    [
+      "sa_domain",
       "setting_dependencies",
       "p_group text, p_id bigint",
       "sa_guard",
@@ -10477,6 +12401,18 @@
       ],
       "{sa_account_writer=X/sa_account_writer,sa_worker=X/sa_account_writer}",
       "7f192f19dc2c6c48c05d6b835451d55e"
+    ],
+    [
+      "sa_domain",
+      "settle_warehouse_reconciliations",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_worker=X/postgres}",
+      "d3cb9afa0e981579fd28f5d136ea0d07"
     ],
     [
       "sa_domain",
@@ -10600,6 +12536,66 @@
     ],
     [
       "sa_domain",
+      "squad_airtable_report_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "547b0f75db740906e0cd2917c9fb4fed"
+    ],
+    [
+      "sa_domain",
+      "squad_airtable_report_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "de05a5da93ca6efaf55f85c70d263c45"
+    ],
+    [
+      "sa_domain",
+      "squad_airtable_work",
+      "p_id uuid, p_lease_token uuid, p_action text, p_input jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "41ab94418852a3538d8d98d5ea1b85c0"
+    ],
+    [
+      "sa_domain",
+      "squad_business_mail_finish",
+      "p_id uuid, p_lease_token uuid, p_code text",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "4493e0923aca8675eb5e0f226bd888f3"
+    ],
+    [
+      "sa_domain",
+      "squad_business_mail_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "25807c29b147b06763a160ad798a8189"
+    ],
+    [
+      "sa_domain",
       "squad_cutover_acceptance_register",
       "p_evidence jsonb",
       "sa_worker",
@@ -10656,7 +12652,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "18315dff8273a397565342e2e307b554"
+      "cc8a69e967ea8b5d6d5cbc9b2ba1a8b4"
     ],
     [
       "sa_domain",
@@ -10680,7 +12676,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "f02885e09d4f0238e408922e5a2148ae"
+      "7b3b38d8faeaa6d59e8cc2210d517a60"
     ],
     [
       "sa_domain",
@@ -10740,7 +12736,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "f89c9dd1fd9a0c7fb017558cae458e94"
+      "e9faee409e63d8b5d1d3523fc6343650"
     ],
     [
       "sa_domain",
@@ -10756,6 +12752,42 @@
     ],
     [
       "sa_domain",
+      "squad_warehouse_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "5d807da1c01db099ba7ae8919578618e"
+    ],
+    [
+      "sa_domain",
+      "squad_warehouse_heartbeat",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "384a9ac0eb8dfe42caf076801b5b21ff"
+    ],
+    [
+      "sa_domain",
+      "squad_warehouse_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "eeb98d3389be1d53c9da4c544ed8af83"
+    ],
+    [
+      "sa_domain",
       "squad_warehouse_webhook",
       "p_id uuid, p_lease_token uuid",
       "sa_worker",
@@ -10764,7 +12796,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "d7440c1bc2b0d3e547000f4b35a51aa7"
+      "6d7e1b7536ab533e44358f0d83085f08"
     ],
     [
       "sa_domain",
@@ -10777,6 +12809,18 @@
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
       "d0402edcee77c152fa4befe1dd4783bf"
+    ],
+    [
+      "sa_domain",
+      "squad_weekly_tailor_heartbeat",
+      "p_limit integer",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "38bfd76db05be367517c93b424435ce8"
     ],
     [
       "sa_domain",
@@ -11016,8 +13060,44 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
       "8d8f468b27f8ab1bd002c0455cc271bc"
+    ],
+    [
+      "sa_domain",
+      "uniware_custom_fields",
+      "p_name text, p_due timestamp with time zone, p_comments jsonb",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard}",
+      "f6b8b91b3617e98247dd612934ff0c63"
+    ],
+    [
+      "sa_domain",
+      "uniware_legacy_failure_recoverable",
+      "p_order bigint, p_provider text, p_external_id text, p_external_code text, p_status text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_integrator=X/sa_guard}",
+      "6da3127e6f9df45a5c797d8cbc2430fd"
+    ],
+    [
+      "sa_domain",
+      "uniware_piece_comment",
+      "p_comment text",
+      "sa_guard",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard}",
+      "a1e660efb088762aa35cdcb30e067e69"
     ],
     [
       "sa_domain",
@@ -11042,6 +13122,42 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "2b37b20c93c9647bc55d9e9be39cdf96"
+    ],
+    [
+      "sa_domain",
+      "v1_airtable_reports_configure",
+      "p_enabled boolean, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "c534b678980e6cc41e8aa2ae4bb7a7cd"
+    ],
+    [
+      "sa_domain",
+      "v1_airtable_reports_request",
+      "p_family text, p_ids bigint[], p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "54221ea4be4f6fbffa257b8af1ff7e2b"
+    ],
+    [
+      "sa_domain",
+      "v1_airtable_reports_status",
+      "",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "03979a45300431c1f8503416d6086eb7"
     ],
     [
       "sa_domain",
@@ -11077,7 +13193,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "c39f8805ae05b9d7447a5bef1ddcd7dd"
+      "c7afdde83805935426e0b082e13a99ec"
     ],
     [
       "sa_domain",
@@ -11346,7 +13462,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "4ed0b6d411fbb833caf142b17baaca79"
+      "9b1cfb6ebfd61c5a681aafa5cee85929"
     ],
     [
       "sa_domain",
@@ -11575,20 +13691,32 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "5f5881078f2c7bb476015b7a4e646df0"
+      "{sa_media_writer=X/sa_media_writer,authenticated=X/sa_media_writer,sa_app=X/sa_media_writer}",
+      "a058dc1bacc6da486014d3451d54515d"
     ],
     [
       "sa_domain",
       "v1_import_status",
-      "p_id uuid, p_cursor text, p_limit integer",
+      "p_id uuid, p_cursor text, p_limit integer, p_legacy_kind text",
       "sa_media_writer",
       true,
       [
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "22917fda1362d8c2bdabca2fad68d5a4"
+      "7a14361865c701ec701ab503545a43d0"
+    ],
+    [
+      "sa_domain",
+      "v1_integration_get",
+      "p_id uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
+      "677afbfe49214b9b05ff9568c83c7572"
     ],
     [
       "sa_domain",
@@ -11600,7 +13728,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "920303527ae7b84280d5c59f666e6778"
+      "4fce0c37c76a5d2118879cf6d1724337"
     ],
     [
       "sa_domain",
@@ -11662,7 +13790,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,sa_executor=X/sa_worker,sa_app=X/sa_worker,authenticated=X/sa_worker}",
-      "1296b516537559708694a37db649e0ef"
+      "0925d6c19307c26f263924ed17aefe57"
     ],
     [
       "sa_domain",
@@ -11714,6 +13842,30 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "4bcd60e8b415ead4a80a89607cb5a548"
+    ],
+    [
+      "sa_domain",
+      "v1_mail_settings_read",
+      "",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "f68ffaec69c35775743178f83ff4db8f"
+    ],
+    [
+      "sa_domain",
+      "v1_mail_settings_save",
+      "p_kind text, p_recipient_ids bigint[], p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor,authenticated=X/sa_executor}",
+      "39b75d81e751f94e4cdd5bfc824ab872"
     ],
     [
       "sa_domain",
@@ -12255,7 +14407,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "8299a9254086591c9b9f3c8d942c3807"
+      "9fbfb9681b209d433d5c716c6324c84a"
     ],
     [
       "sa_domain",
@@ -12445,6 +14597,54 @@
     ],
     [
       "sa_domain",
+      "v1_warehouse_schedule_configure",
+      "p_enabled boolean, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "e8d7c2d75596372d6356d71ba2c5f26d"
+    ],
+    [
+      "sa_domain",
+      "v1_warehouse_schedule_status",
+      "",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "578603c3758e5a86fc8fead193b857f0"
+    ],
+    [
+      "sa_domain",
+      "v1_weekly_tailor_schedule_configure",
+      "p_enabled boolean, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "c9a5bc71591f24513f2a33ac3969566c"
+    ],
+    [
+      "sa_domain",
+      "v1_weekly_tailor_schedule_status",
+      "",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "ab87deca63138ca7680ba3c502af77ed"
+    ],
+    [
+      "sa_domain",
       "v1_work_metrics",
       "p_from date, p_before date, p_subject_id bigint, p_factory_id bigint",
       "sa_executor",
@@ -12592,6 +14792,103 @@
     ],
     [
       "sa_domain",
+      "warehouse_amendment_payload",
+      "p_request uuid, p_provider text, p_facility text, p_code text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "026aac84810359821a3257c3ad45efd1"
+    ],
+    [
+      "sa_domain",
+      "warehouse_availability",
+      "p_ids bigint[]",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "7a938b5520431e462f21157670be7210"
+    ],
+    [
+      "sa_domain",
+      "warehouse_change_advance",
+      "p_job sa_domain.outbox, p_op sa_domain.warehouse_operations, p_phase text, p_payload jsonb, p_result jsonb, p_code text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_worker=X/postgres}",
+      "d7a58bf1f5b6d8d2312fb87e9f7ed5f7"
+    ],
+    [
+      "sa_domain",
+      "warehouse_change_info",
+      "p_request uuid",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "99f60169aa766698654adbd4b330835a"
+    ],
+    [
+      "sa_domain",
+      "warehouse_change_pending",
+      "p_order bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_integrator=X/sa_guard}",
+      "e257192e7e0763ca33bcf85c91a90473"
+    ],
+    [
+      "sa_domain",
+      "warehouse_change_publish",
+      "p_request uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor}",
+      "e9e0016761db1fe16dd9dec2adda0861"
+    ],
+    [
+      "sa_domain",
+      "warehouse_change_reference",
+      "p_request uuid, p_external_id text, p_external_code text, p_status text",
+      "sa_integrator",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_integrator=X/sa_integrator,sa_worker=X/sa_integrator}",
+      "ee5533123731f0afb8569ccd283c18c7"
+    ],
+    [
+      "sa_domain",
+      "warehouse_change_request_id",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_executor=X/sa_guard}",
+      "990690b44f04363c05b31221c9467067"
+    ],
+    [
+      "sa_domain",
       "warehouse_configuration",
       "",
       "sa_guard",
@@ -12599,8 +14896,201 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard,sa_executor=X/sa_guard}",
       "0abb0a8a3aacb8e919d965a6ee384e21"
+    ],
+    [
+      "sa_domain",
+      "warehouse_customer_apply",
+      "p_id bigint, p_code text",
+      "sa_integrator",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_integrator=X/sa_integrator,sa_worker=X/sa_integrator}",
+      "a145a27145ff459442b366c17f9e51e2"
+    ],
+    [
+      "sa_domain",
+      "warehouse_customer_fanout",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "6b161635f85ef1996910e1305c1c2c95"
+    ],
+    [
+      "sa_domain",
+      "warehouse_customer_payload",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "ce5ab9bcb464e9eca109382ac7a383d6"
+    ],
+    [
+      "sa_domain",
+      "warehouse_fanout",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "d8344b3fd9004996595de21595464744"
+    ],
+    [
+      "sa_domain",
+      "warehouse_finish_base",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "117653ec260b093ca0ba59a9275e894a"
+    ],
+    [
+      "sa_domain",
+      "warehouse_finish_customer_base",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "e0e49d0e7fd0fb010c9e96219d0797ad"
+    ],
+    [
+      "sa_domain",
+      "warehouse_finish_dispatch",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "3801f2397c69a3d3ecd85fe40ebbea7e"
+    ],
+    [
+      "sa_domain",
+      "warehouse_inventory_invalidate",
+      "p_generation bigint, p_provider text, p_facility text, p_received_at timestamp with time zone, p_rows jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "d2c1fd2c128067eb77c11791d1985755"
+    ],
+    [
+      "sa_domain",
+      "warehouse_inventory_receipt_capture",
+      "",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "2020ae3280d8130d5d9227cc5b52f50e"
+    ],
+    [
+      "sa_domain",
+      "warehouse_inventory_request_start",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "6193a78e44fe8e6503c8bd9954243cbb"
+    ],
+    [
+      "sa_domain",
+      "warehouse_inventory_store",
+      "p_operation uuid, p_lease_token uuid, p_sku bigint, p_available numeric",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "a7e5fff881df707d785c43daab43c0d8"
+    ],
+    [
+      "sa_domain",
+      "warehouse_is_customer",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "31b33901c62d26bca15e46dbb3a7825a"
+    ],
+    [
+      "sa_domain",
+      "warehouse_job_settle",
+      "p_job sa_domain.outbox, p_result jsonb, p_error text, p_retry boolean",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_worker=X/postgres}",
+      "068128decce73944f983eb1543c7a61b"
+    ],
+    [
+      "sa_domain",
+      "warehouse_order_customer",
+      "p_order bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "08b86199cf4cbd756b80d8dc611cd7ae"
+    ],
+    [
+      "sa_domain",
+      "warehouse_order_info",
+      "p_order bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "dd19000905974853c4df4c05aa5ee29f"
+    ],
+    [
+      "sa_domain",
+      "warehouse_order_payload",
+      "p_order bigint, p_provider text, p_facility text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "938e6be90faad2c3dc4ad33129231773"
     ],
     [
       "sa_domain",
@@ -12616,6 +15106,126 @@
     ],
     [
       "sa_domain",
+      "warehouse_prepare_base",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "e61913adac6554bdad327de5f78a2c94"
+    ],
+    [
+      "sa_domain",
+      "warehouse_prepare_customer_base",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "3b701e5766d130ecabf7426234ef8d6b"
+    ],
+    [
+      "sa_domain",
+      "warehouse_prepare_schedule_base",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "257b9ec29c8a521b905ad9a8771567f9"
+    ],
+    [
+      "sa_domain",
+      "warehouse_reconcile_blocker",
+      "p_generation bigint, p_provider text, p_scope text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard,sa_worker=X/sa_guard}",
+      "cf6e5ac93a5d478404810861b57f5b7f"
+    ],
+    [
+      "sa_domain",
+      "warehouse_reconcile_counts",
+      "p_id uuid",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard,sa_worker=X/sa_guard}",
+      "3da41d2038ef54771e33d2e190471ffd"
+    ],
+    [
+      "sa_domain",
+      "warehouse_reconcile_enumerate",
+      "p_job sa_domain.outbox, p_cfg jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_worker=X/postgres}",
+      "23218981bd0f908f9170aab62c8835eb"
+    ],
+    [
+      "sa_domain",
+      "warehouse_reconcile_page",
+      "p_phase text, p_cursor bigint, p_ceiling bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "7b4f6c14ebc1a068d5f6d6d992092da8"
+    ],
+    [
+      "sa_domain",
+      "warehouse_reconcile_page_manual",
+      "p_phase text, p_cursor bigint, p_ceiling bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "909932b94eba0383af08fa54436ad347"
+    ],
+    [
+      "sa_domain",
+      "warehouse_schedule_projection",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "11766e1e24616b6833640e4b84ba7f4c"
+    ],
+    [
+      "sa_domain",
+      "warehouse_state_code",
+      "p_state text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_worker=X/postgres}",
+      "7c4d4113cdc563b09b790e39705835a8"
+    ],
+    [
+      "sa_domain",
       "warehouse_status_apply",
       "p_order bigint, p_provider text, p_external_id text, p_external_code text, p_status text, p_event_at timestamp with time zone, p_event_id text",
       "sa_integrator",
@@ -12625,7 +15235,55 @@
         "TimeZone=UTC"
       ],
       "{sa_integrator=X/sa_integrator,sa_worker=X/sa_integrator}",
-      "2a0b526566673868532f016f508d8829"
+      "042a40fa57882d3b5c26a8d3ebc4841b"
+    ],
+    [
+      "sa_domain",
+      "weekly_document_allowed",
+      "p_id uuid",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
+      "bf3c2bdf7d4273b210fbb11349102746"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_ceiling",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "af4bab63c3855efad91d1846f59c341a"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_latest_week",
+      "p_at timestamp with time zone",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_worker=X/postgres,sa_executor=X/postgres}",
+      "acfaea050c8d45891891e094bf96afbf"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_page",
+      "p_after bigint, p_ceiling bigint, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_worker=X/sa_guard}",
+      "ca0ca9d85d6e96d08fd3899867ce3483"
     ],
     [
       "sa_domain",
@@ -12699,6 +15357,18 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "494b773512cb708a27c8c20a61702d89"
+    ],
+    [
+      "sa_domain",
+      "work_parent_visible",
+      "p_kind text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "80537b0ce1685f4da44dcf04df27cb67"
     ],
     [
       "sa_domain",
@@ -12921,6 +15591,102 @@
     ],
     [
       "sa_domain",
+      "airtable_assets",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres,sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_master_context",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_pages",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_report_config",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=rw/postgres,sa_executor=rw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_report_operations",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_resources",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_retirements",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_rows",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres,sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_rows_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_worker=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_runs",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres,sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_statistics",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "airtable_tables",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
       "app_releases",
       "r",
       true,
@@ -12966,6 +15732,22 @@
       true,
       true,
       "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "business_mail_deliveries",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "business_mail_settings",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=r/postgres,sa_executor=rw/postgres}"
     ],
     [
       "sa_domain",
@@ -13053,7 +15835,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_worker=rw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_worker=arw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_domain",
@@ -13061,7 +15843,7 @@
       "S",
       false,
       false,
-      "{postgres=rwU/postgres,sa_executor=U/postgres}"
+      "{postgres=rwU/postgres,sa_executor=U/postgres,sa_worker=U/postgres}"
     ],
     [
       "sa_domain",
@@ -13077,6 +15859,14 @@
       "r",
       true,
       true,
+      "{postgres=arwdDxtm/postgres,sa_worker=ard/postgres,sa_guard=r/postgres,sa_integrator=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "integration_customer_context",
+      "r",
+      true,
+      true,
       "{postgres=arwdDxtm/postgres,sa_worker=ard/postgres,sa_guard=r/postgres}"
     ],
     [
@@ -13085,7 +15875,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=rw/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=rw/postgres,sa_guard=r/postgres,sa_worker=r/postgres}"
     ],
     [
       "sa_domain",
@@ -13117,7 +15907,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_domain",
@@ -13189,7 +15979,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=r/postgres,sa_integrator=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=r/postgres,sa_integrator=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_domain",
@@ -13197,7 +15987,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=arw/postgres,sa_media_writer=arw/postgres,sa_account_writer=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=arw/postgres,sa_media_writer=arw/postgres,sa_account_writer=arw/postgres,sa_integrator=ar/postgres}"
     ],
     [
       "sa_domain",
@@ -13205,7 +15995,7 @@
       "S",
       false,
       false,
-      "{postgres=rwU/postgres,sa_worker=U/postgres,sa_executor=U/postgres,sa_media_writer=U/postgres,sa_account_writer=U/postgres}"
+      "{postgres=rwU/postgres,sa_worker=U/postgres,sa_executor=U/postgres,sa_media_writer=U/postgres,sa_account_writer=U/postgres,sa_integrator=U/postgres}"
     ],
     [
       "sa_domain",
@@ -13345,11 +16135,27 @@
     ],
     [
       "sa_domain",
+      "warehouse_inventory_watermarks",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
       "warehouse_links",
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arw/postgres,sa_integrator=arw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_worker=arw/postgres,sa_integrator=arwd/postgres}"
+    ],
+    [
+      "sa_domain",
+      "warehouse_operations",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres,sa_guard=r/postgres,sa_integrator=r/postgres}"
     ],
     [
       "sa_domain",
@@ -13382,6 +16188,46 @@
       false,
       false,
       "{postgres=rwU/postgres,sa_worker=U/postgres,sa_media_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "warehouse_schedule",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=rw/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "warehouse_scheduled_runs",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_entries",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_runs",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "weekly_tailor_schedule",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_executor=rw/postgres,sa_worker=arw/postgres}"
     ],
     [
       "sa_domain",
@@ -13445,7 +16291,7 @@
       "r",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres,sa_account_writer=r/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres,sa_account_writer=r/postgres,sa_guard=r/postgres,sa_integrator=r/postgres}"
     ],
     [
       "sa_sync",
@@ -13524,7 +16370,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,authenticated=X/postgres,sa_media_writer=X/postgres,sa_worker=X/postgres}",
-      "47f4d9298362ab0236e6c68056011251"
+      "22e88352c3b9376dd24b3bb83ee95bf4"
     ],
     [
       "sa_admin",
@@ -13547,8 +16393,20 @@
       [
         "search_path=pg_catalog"
       ],
+      "{postgres=X/postgres,sa_worker=X/postgres}",
+      "83945e2be9727da1642d8169fa3dbe8d"
+    ],
+    [
+      "sa_admin",
+      "refresh_min_stats_base",
+      "p_classes bigint[]",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
       "{postgres=X/postgres}",
-      "979d69260cffa3d2e10472c3e625eb39"
+      "2f6bae9ab59469fcaa6dbaa85dad9b63"
     ],
     [
       "sa_admin",
@@ -13635,6 +16493,62 @@
       "7a6dc6c861c05939787f00bc9ffaf246"
     ],
     [
+      "squad_capture_airtable_report",
+      "O",
+      "CREATE TRIGGER squad_capture_airtable_report AFTER INSERT ON sa_domain.outbox FOR EACH ROW EXECUTE FUNCTION sa_domain.capture_airtable_report()",
+      "sa_domain",
+      "capture_airtable_report",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "c5d9d2f88d778142a2b84fd01bac11dc"
+    ],
+    [
+      "squad_capture_airtable_report_failure",
+      "O",
+      "CREATE TRIGGER squad_capture_airtable_report_failure AFTER UPDATE OF status ON sa_domain.outbox FOR EACH ROW WHEN (((new.status = 'dead'::text) AND (old.status IS DISTINCT FROM 'dead'::text) AND (new.event_type = ANY (ARRAY['airtable.report_order'::text, 'airtable.report_item'::text, 'airtable.report_customer'::text, 'airtable.report_tailor_item'::text, 'airtable.report_tailor_pick'::text])))) EXECUTE FUNCTION sa_domain.capture_airtable_report_failure()",
+      "sa_domain",
+      "capture_airtable_report_failure",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "afec25d767580e9409f45ce81a0c82d6"
+    ],
+    [
+      "squad_capture_business_mail",
+      "O",
+      "CREATE TRIGGER squad_capture_business_mail AFTER INSERT ON sa_domain.outbox FOR EACH ROW EXECUTE FUNCTION sa_domain.capture_business_mail()",
+      "sa_domain",
+      "capture_business_mail",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "77cf7aff12de5e57b66cedbc58723ff6"
+    ],
+    [
+      "squad_capture_business_mail_failure",
+      "O",
+      "CREATE TRIGGER squad_capture_business_mail_failure AFTER UPDATE OF status ON sa_domain.outbox FOR EACH ROW WHEN (((new.status = 'dead'::text) AND (old.status IS DISTINCT FROM 'dead'::text) AND (new.event_type = ANY (ARRAY['business.mail_delivery'::text, 'document.mail'::text])))) EXECUTE FUNCTION sa_domain.capture_business_mail_failure()",
+      "sa_domain",
+      "capture_business_mail_failure",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "5959bbcd4fad3d28fa1ef7b4b4b72dc3"
+    ],
+    [
       "squad_capture_notification_event",
       "O",
       "CREATE TRIGGER squad_capture_notification_event AFTER INSERT ON sa_domain.outbox FOR EACH ROW EXECUTE FUNCTION sa_domain.capture_notification_event()",
@@ -13646,7 +16560,35 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "26b48fb488aa18afd76fd00ee9b38f23"
+      "cbc6d78e8beebb19a40a9adf49c7f0ac"
+    ],
+    [
+      "warehouse_customer_fanout",
+      "O",
+      "CREATE TRIGGER warehouse_customer_fanout AFTER INSERT ON sa_domain.outbox FOR EACH ROW WHEN ((new.event_type = ANY (ARRAY['profile.saved'::text, 'person.saved'::text, 'address.saved'::text, 'address.archived'::text, 'customer.reviewed'::text, 'account.status_changed'::text, 'person.archived'::text]))) EXECUTE FUNCTION sa_domain.warehouse_customer_fanout()",
+      "sa_domain",
+      "warehouse_customer_fanout",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "6b161635f85ef1996910e1305c1c2c95"
+    ],
+    [
+      "warehouse_order_fanout",
+      "O",
+      "CREATE TRIGGER warehouse_order_fanout AFTER INSERT ON sa_domain.outbox FOR EACH ROW WHEN ((new.event_type = 'orders.placed'::text)) EXECUTE FUNCTION sa_domain.warehouse_fanout()",
+      "sa_domain",
+      "warehouse_fanout",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker}",
+      "d8344b3fd9004996595de21595464744"
     ]
   ]
 ]

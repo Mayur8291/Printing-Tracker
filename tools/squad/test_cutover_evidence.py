@@ -117,6 +117,8 @@ class MachineChecks(unittest.TestCase):
   with self.assertRaisesRegex(RuntimeError,'stock issues'):ce.verify_stock(self.c)
   self.assertEqual(self.c.execute('SELECT quantity FROM sa_snapshot_20261019.sa_stocks').fetchone()[0],10)
  def test_sequence_high_water_checks_actual_ids_not_only_copied_state(self):
+  # Make this deliberate collision independent of earlier nextval-heavy tests.
+  self.c.execute('ALTER SEQUENCE sa_snapshot_20261019.sa_orders_id_seq RESTART WITH 1')
   names=[r[0] for r in self.c.execute("SELECT sequencename FROM pg_sequences WHERE schemaname='sa_snapshot_20261019'")]
   manifest={'sequences':{n:{'target':n} for n in names}}
   states=ce.sequence_state(self.c,ce.SCHEMA,manifest);manifest={'sequences':states}

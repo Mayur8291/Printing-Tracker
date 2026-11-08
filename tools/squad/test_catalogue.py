@@ -2,7 +2,7 @@ import unittest,json
 import psycopg
 from psycopg.types.json import Jsonb
 from local_db import connect
-from fixtures import seed_orders,session,rpc
+from fixtures import seed_orders,session,rpc,advance_fixture_sequences
 
 FEATURES=[{'key':'3','checked':'true','children':[{'key':'3.3','checked':'true'}]}]
 def seed_catalogue(c):
@@ -49,6 +49,7 @@ def seed_catalogue(c):
    UPDATE sa_snapshot_20261019.sa_users SET zone_id=1 WHERE id=103;
    UPDATE sa_snapshot_20261019.sa_users SET rmp_price_type_id=3 WHERE id=203;
   """)
+  advance_fixture_sequences(c)
 class Catalogue(unittest.TestCase):
  @classmethod
  def setUpClass(cls):

@@ -1,0 +1,498 @@
+{
+  "promotions": {
+    "base": "custom",
+    "table": "tblaG88ilnwLrZGRU",
+    "fields": {
+      "name": "Name",
+      "upload_date": "Upload Date",
+      "link": "Link",
+      "category": "Category"
+    },
+    "media": {
+      "thumbnail": {
+        "field": "Thumbnail",
+        "variant": "original"
+      }
+    },
+    "derived": {
+      "file_size": "attachment_size"
+    }
+  },
+  "asset_infos": {
+    "base": "custom",
+    "table": "tblg8FuURZGHxzWRh",
+    "fields": {
+      "dX": "dX",
+      "dY": "dY",
+      "mirrorDX": "mirrorDX",
+      "assetHeightRespToBox": "assetHeightRespToBox"
+    },
+    "media": {
+      "asset": {
+        "field": "asset",
+        "variant": "original"
+      }
+    }
+  },
+  "colors": {
+    "base": "custom",
+    "table": "tblEdzGZ3AvI24omA",
+    "fields": {
+      "name": "Name",
+      "hex_code": "Hex Code"
+    }
+  },
+  "authorized_brands": {
+    "base": "ready_stock",
+    "table": "tblKsbCdhULGxMO7m",
+    "fields": {
+      "name": "Name"
+    }
+  },
+  "profit_margins": {
+    "base": "custom",
+    "table": "tbl6feEno9n4IxO7t",
+    "fields": {
+      "name": "Name",
+      "min_range": "Min Range",
+      "max_range": "Max Range",
+      "margin_percentage": "Margin Percentage",
+      "branding_embroidery": "Branding Embroidery",
+      "branding_print": "Branding Print"
+    },
+    "defaults": {
+      "margin_percentage": 0,
+      "branding_embroidery": 0
+    }
+  },
+  "size_types": {
+    "base": "custom",
+    "table": "tblA4OKX2RSUSYV1m",
+    "fields": {
+      "name": "Size Type"
+    }
+  },
+  "base_product_types": {
+    "base": "custom",
+    "table": "tbltnk0XfwG56hDlJ",
+    "fields": {
+      "name": "Name",
+      "position": "Position"
+    },
+    "media": {
+      "image": {
+        "field": "Image",
+        "variant": "original"
+      }
+    }
+  },
+  "base_products": {
+    "base": "custom",
+    "table": "tblmpXRvwZfRky0k5",
+    "fields": {
+      "name": "Base Product",
+      "base_of": "Base OF",
+      "base_sn": "Base SN",
+      "tims_cost": "Trims Cost",
+      "adult_consumption": "Adult Consumption",
+      "kids_consumption": "Kids Consumption",
+      "over_header_percentage": "Overheader Percentage",
+      "sample_rate": "Sample Rate",
+      "position": "Sort",
+      "calculator": "Calculator",
+      "branding_sides": "branding Sides"
+    },
+    "references": {
+      "base_product_type_id": {
+        "resource": "base_product_types",
+        "field": "Base Product Type"
+      },
+      "asset_info_id": {
+        "resource": "asset_infos",
+        "field": "Asset Info"
+      }
+    },
+    "relations": {
+      "size_types": {
+        "field": "Size Type",
+        "by": "airtable_id"
+      },
+      "categories": {
+        "field": "Product Categories",
+        "by": "name"
+      },
+      "fabrics": {
+        "field": "Fabric",
+        "by": "airtable_id"
+      },
+      "parts": {
+        "field": "Parts",
+        "by": "airtable_id"
+      }
+    },
+    "media": {
+      "image": {
+        "field": "Image",
+        "variant": "original"
+      }
+    },
+    "identity": {
+      "fallback": "name"
+    }
+  },
+  "add_ons": {
+    "base": "custom",
+    "table": "tbljcmwdsGCkXVl5t",
+    "fields": {
+      "add_on": "Add On",
+      "add_on_price": "Add On Price",
+      "add_on_of": "Add On OF",
+      "add_on_sn": "Add On SN",
+      "has_color": "hasColour",
+      "select_type": "Select Type",
+      "group_name": "groupName",
+      "position": "Position",
+      "layer_sort": "Layer Sort"
+    },
+    "transforms": {
+      "has_color": "boolean"
+    },
+    "relations": {
+      "colors": {
+        "field": "Colours",
+        "by": "airtable_id"
+      },
+      "base_products": {
+        "field": "Base Product",
+        "by": "airtable_id"
+      }
+    },
+    "media": {
+      "image": {
+        "field": "Image",
+        "variant": "original"
+      }
+    },
+    "identity": {
+      "fallback": "add_on"
+    }
+  },
+  "parts": {
+    "base": "custom",
+    "table": "tblovw4t42XwbqT0Z",
+    "fields": {
+      "name": "Name",
+      "position": "Position",
+      "order_criteria": "Order Criteria"
+    },
+    "transforms": {
+      "order_criteria": "boolean"
+    },
+    "relations": {
+      "colors": {
+        "field": "Colour",
+        "by": "airtable_id"
+      },
+      "add_ons": {
+        "field": "Add Ons",
+        "by": "airtable_id"
+      }
+    },
+    "identity": {
+      "fallback": "name"
+    }
+  },
+  "fabrics": {
+    "base": "custom",
+    "table": "tblPvwbVyHIa8CDxm",
+    "fields": {
+      "name": "Fabric Name",
+      "fabric_type": "Fabric Type",
+      "price": "Price",
+      "uom": "UOM",
+      "gsm": "GSM"
+    },
+    "defaults": {
+      "uom": ""
+    },
+    "transforms": {
+      "fabric_type": "fabric_type"
+    },
+    "relations": {
+      "colors": {
+        "field": "Colour",
+        "by": "airtable_id"
+      }
+    },
+    "media": {
+      "image": {
+        "field": "Image",
+        "variant": "original"
+      }
+    }
+  },
+  "sc_sizes": {
+    "base": "custom",
+    "table": "tblfzvMnsQg5RlxBj",
+    "fields": {
+      "name": "Size",
+      "position": "Position"
+    },
+    "references": {
+      "size_type_id": {
+        "resource": "size_types",
+        "field": "Size Type"
+      }
+    }
+  },
+  "rmp_categories": {
+    "base": "ready_stock",
+    "table": "tblVTL7LsgQ0nLWZR",
+    "fields": {
+      "name": "Category",
+      "position": "Sort"
+    },
+    "media": {
+      "image": {
+        "field": "image",
+        "variant": "original"
+      }
+    }
+  },
+  "rmp_brands": {
+    "base": "ready_stock",
+    "table": "tblLT2Qlp4xPhKfme",
+    "fields": {
+      "name": "Brand",
+      "position": "Position",
+      "main_category": "Parent"
+    },
+    "defaults": {
+      "position": 0
+    },
+    "references": {
+      "authorized_brand_id": {
+        "resource": "authorized_brands",
+        "field": "Authorized Brand"
+      }
+    },
+    "relations": {
+      "rmp_categories": {
+        "field": "Category",
+        "by": "airtable_id"
+      }
+    }
+  },
+  "rmp_sizes": {
+    "base": "ready_stock",
+    "table": "tblu9N1fI0w0Mvy3b",
+    "fields": {
+      "name": "Size",
+      "size_type": "Size Type",
+      "position": "Position"
+    },
+    "transforms": {
+      "size_type": "parameterize"
+    },
+    "derived": {
+      "canonical_size_position": "case_insensitive_name"
+    }
+  },
+  "rmp_colors": {
+    "base": "ready_stock",
+    "table": "tblqlndlEEvhOzu1i",
+    "fields": {
+      "name": "Colour",
+      "code": "Color Code"
+    }
+  },
+  "rmp_classes": {
+    "base": "ready_stock",
+    "table": "tblH5zIvbwIXfMdAf",
+    "fields": {
+      "name": "Class",
+      "position": "Position",
+      "embeded_video": "embeded video"
+    },
+    "defaults": {
+      "position": 0
+    },
+    "references": {
+      "rmp_color_id": {
+        "resource": "rmp_colors",
+        "field": "Colours"
+      }
+    },
+    "media": {
+      "image_1": {
+        "field": "Image1",
+        "variant": "original"
+      },
+      "image_2": {
+        "field": "Image2",
+        "variant": "original"
+      },
+      "image_3": {
+        "field": "Image3",
+        "variant": "original"
+      },
+      "image_4": {
+        "field": "Image4",
+        "variant": "original"
+      },
+      "image_5": {
+        "field": "Image5",
+        "variant": "original"
+      },
+      "image_1_thumb": {
+        "field": "Image1",
+        "variant": "large"
+      },
+      "image_2_thumb": {
+        "field": "Image2",
+        "variant": "large"
+      },
+      "image_3_thumb": {
+        "field": "Image3",
+        "variant": "large"
+      },
+      "image_4_thumb": {
+        "field": "Image4",
+        "variant": "large"
+      },
+      "image_5_thumb": {
+        "field": "Image5",
+        "variant": "large"
+      }
+    }
+  },
+  "rmp_skus": {
+    "base": "ready_stock",
+    "table": "tble9bCsRd13Ztr84",
+    "fields": {
+      "name": "SKU",
+      "cgst": "CGST",
+      "igst": "IGST",
+      "sgst": "SGST"
+    },
+    "defaults": {
+      "cgst": 0,
+      "igst": 0,
+      "sgst": 0
+    },
+    "references": {
+      "rmp_size_id": {
+        "resource": "rmp_sizes",
+        "field": "Size"
+      },
+      "rmp_class_id": {
+        "resource": "rmp_classes",
+        "field": "Class Name"
+      },
+      "rmp_brand_id": {
+        "resource": "rmp_brands",
+        "field": "Brand"
+      },
+      "rmp_category_id": {
+        "resource": "rmp_categories",
+        "field": "Category"
+      }
+    }
+  },
+  "rmp_price_types": {
+    "base": "ready_stock",
+    "table": "tblVxmOSnctLtEEeR",
+    "fields": {
+      "name": "Price Type",
+      "price_for": "Price For"
+    },
+    "transforms": {
+      "name": "trim"
+    },
+    "derived": {
+      "zone_id": "zone_price_type_name"
+    }
+  },
+  "rmp_prices": {
+    "base": "ready_stock",
+    "table": "tbldoRT49rKEVXDqL",
+    "fields": {
+      "name": "Price Prefix",
+      "price": "Price",
+      "mrp": "MRP"
+    },
+    "defaults": {
+      "mrp": 0
+    },
+    "references": {
+      "rmp_sku_id": {
+        "resource": "rmp_skus",
+        "field": "SKU"
+      },
+      "rmp_price_type_id": {
+        "resource": "rmp_price_types",
+        "field": "Price Type"
+      }
+    }
+  },
+  "base_product_asset_infos": {
+    "base": "custom",
+    "table": "tblqcrivFGVZTgUl2",
+    "fields": {},
+    "references": {
+      "base_product_id": {
+        "resource": "base_products",
+        "field": "Base Product"
+      },
+      "asset_info_id": {
+        "resource": "asset_infos",
+        "field": "Asset Info"
+      },
+      "add_on_id": {
+        "resource": "add_ons",
+        "field": "Add On"
+      },
+      "part_id": {
+        "resource": "parts",
+        "field": "Part"
+      }
+    },
+    "identity": {
+      "composite": [
+        "base_product_id",
+        "asset_info_id",
+        "add_on_id",
+        "part_id"
+      ]
+    }
+  },
+  "promotional_banners": {
+    "base": "ready_stock",
+    "table": "tbl30ag7cuvGfTgE9",
+    "fields": {
+      "status": "Status",
+      "position": "Position",
+      "title": "Title"
+    },
+    "references": {
+      "rmp_category_id": {
+        "resource": "rmp_categories",
+        "field": "Product Category"
+      },
+      "rmp_class_id": {
+        "resource": "rmp_classes",
+        "field": "Class"
+      },
+      "rmp_brand_id": {
+        "resource": "rmp_brands",
+        "field": "Brand"
+      }
+    },
+    "media": {
+      "image": {
+        "field": "Image",
+        "variant": "original"
+      }
+    }
+  }
+}

@@ -34,6 +34,14 @@ class Backorders(unittest.TestCase):
   self.assertEqual(self.raw('SELECT customer_id,customer_dealer_id,address_id FROM sa_snapshot_20261019.sa_orders WHERE id=%s',(back,)),[(110,None,9999)])
  def test_retry_same_command_returns_original_links(self):
   p=self.preview();key=uuid.uuid4();r=self.place(p,key);self.assertEqual(r,self.place(p,key));self.assertEqual(self.raw('SELECT count(*) FROM sa_snapshot_20261019.sa_back_order_links'),[(2,)])
+ def test_nested_purchase_has_one_notification_and_mail_source(self):
+  p=self.preview();result=self.place(p);back=int(result['orders'][0]['id'])
+  placed=self.raw("SELECT id,command_key FROM sa_domain.outbox WHERE event_type='orders.placed' AND payload->'order_ids' ? %s",(str(back),))[0]
+  parent=self.raw("SELECT id,payload FROM sa_domain.outbox WHERE event_type='backorder.placed' AND aggregate_id=%s",(back,))[0]
+  self.assertEqual(parent[1]['placement_command_key'],str(placed[1]))
+  self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE parent_id=%s AND event_type IN('notification.fanout','business.mail_fanout')",(parent[0],)),[(0,)])
+  self.assertGreater(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE parent_id=%s AND event_type='notification.fanout'",(placed[0],))[0][0],0)
+  self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE event_type='business.mail_fanout' AND aggregate_id=%s",(back,)),[(1,)])
  def test_new_key_cannot_reuse_accepted_preview(self):
   p=self.preview();self.place(p)
   with self.assertRaises(psycopg.errors.SerializationFailure):self.place(p)
@@ -122,6 +130,7 @@ class ConcurrentBackorders(unittest.TestCase):
     keys += [x[0] for x in c.execute("SELECT command_key FROM sa_domain.audit WHERE kind IN('order','order_batch') AND entity_id=ANY(%s)",(back,))]
     c.execute('DELETE FROM sa_snapshot_20261019.sa_back_order_links WHERE order_id=ANY(%s)',(ids,))
     c.execute('DELETE FROM sa_domain.order_receipts WHERE order_id=ANY(%s)',(back,))
+    c.execute('DELETE FROM sa_domain.line_receipts WHERE order_id=ANY(%s)',(back,))
     for table in ['extra_quantities','quantities','item_criteria']:c.execute(f'DELETE FROM sa_snapshot_20261019.sa_{table} WHERE item_id=ANY(%s)',(item_ids,))
     c.execute('DELETE FROM sa_snapshot_20261019.sa_items WHERE id=ANY(%s)',(item_ids,));c.execute('DELETE FROM sa_snapshot_20261019.sa_orders WHERE id=ANY(%s)',(all_orders,));c.execute('DELETE FROM sa_snapshot_20261019.sa_addresses WHERE id=9999')
     c.execute("DELETE FROM sa_domain.entity_versions WHERE (kind='order' AND entity_id=ANY(%s)) OR (kind='item' AND entity_id=ANY(%s))",(all_orders,item_ids))
@@ -129,5 +138,6 @@ class ConcurrentBackorders(unittest.TestCase):
     c.execute('DELETE FROM sa_domain.commands WHERE key=ANY(%s)',(keys,))
     c.execute('DELETE FROM sa_domain.backorder_previews WHERE id=ANY(%s)',([uuid.UUID(p['preview_id']) for p in previews],));c.execute('DELETE FROM sa_domain.quotes WHERE id=ANY(%s)',([uuid.UUID(p['quote']['quote_id']) for p in previews],))
     c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=false');c.execute('UPDATE sa_sync.environment_state SET edit_revision=%s,synced_revision=%s',before)
+    self.assertEqual(c.execute('SELECT count(*) FROM sa_domain.line_receipts WHERE order_id=ANY(%s)',(back,)).fetchone()[0],0)
 
 if __name__=='__main__':unittest.main(verbosity=2)

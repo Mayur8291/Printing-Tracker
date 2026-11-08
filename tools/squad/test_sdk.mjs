@@ -20,6 +20,9 @@ if(error)throw new Error(`Controlled test login failed: ${error.code || error.st
 try {
   const sdk=createSquadClient(client),me=await sdk.me();
   assert.equal(me.role,3);
+  for(const read of [()=>sdk.warehouseSchedule(),()=>sdk.weeklyTailorSchedule(),()=>sdk.mailSettings(),()=>sdk.airtableReports(),()=>sdk.previewCutover()]) {
+    await assert.rejects(read,e=>e instanceof SquadError&&e.kind==='forbidden');
+  }
   const documents=await sdk.documents({}, {limit:2});assert.ok(documents.data.length<=2);
   const legacyDocuments=await sdk.documents({legacy:true}, {limit:2});assert.ok(legacyDocuments.data.every(d=>d.id.startsWith('legacy:')));
   await assert.rejects(sdk.requestDocument('catalogue',{},crypto.randomUUID()),e=>e instanceof SquadError&&e.kind==='unavailable');

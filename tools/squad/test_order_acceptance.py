@@ -182,11 +182,13 @@ class ConcurrentOrders(unittest.TestCase):
     ids=[r[0] for r in c.execute('SELECT order_id FROM sa_domain.order_receipts WHERE quote_id=%s',(uuid.UUID(q['quote_id']),))]
     c.execute('DELETE FROM sa_snapshot_20261019.sa_quantities WHERE item_id IN(SELECT id FROM sa_snapshot_20261019.sa_items WHERE order_id=ANY(%s))',(ids,))
     c.execute('DELETE FROM sa_snapshot_20261019.sa_items WHERE order_id=ANY(%s)',(ids,))
+    c.execute('DELETE FROM sa_domain.line_receipts WHERE order_id=ANY(%s)',(ids,))
     c.execute('DELETE FROM sa_domain.order_receipts WHERE order_id=ANY(%s)',(ids,));c.execute('DELETE FROM sa_snapshot_20261019.sa_orders WHERE id=ANY(%s)',(ids,))
     c.execute("DELETE FROM sa_domain.entity_versions WHERE kind='order' AND entity_id=ANY(%s)",(ids,))
     c.execute('DELETE FROM sa_domain.quotes WHERE id=%s',(uuid.UUID(q['quote_id']),))
     for table in ['outbox','audit']:c.execute(f'DELETE FROM sa_domain.{table} WHERE command_key=ANY(%s)',(keys,))
     c.execute('DELETE FROM sa_domain.commands WHERE key=ANY(%s)',(keys,));c.execute('UPDATE sa_domain.runtime_state SET allow_test_writes=false')
     c.execute('UPDATE sa_sync.environment_state SET edit_revision=%s,synced_revision=%s',original)
+    self.assertEqual(c.execute('SELECT count(*) FROM sa_domain.line_receipts WHERE order_id=ANY(%s)',(ids,)).fetchone()[0],0)
 
 if __name__=='__main__':unittest.main(verbosity=2)

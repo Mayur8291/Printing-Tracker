@@ -31,6 +31,10 @@ def deploy(check=True,through=None):
         with c.transaction():
             c.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
             require(c.execute('SELECT pg_try_advisory_xact_lock(20261107,1)').fetchone()[0],'Refresh or writes active')
+            # Cleanup reads environment_state before the outbox. Acquire the
+            # strongest required lock in that same order before changing RLS,
+            # avoiding an AccessShare -> AccessExclusive upgrade deadlock.
+            c.execute('LOCK TABLE sa_sync.environment_state IN ACCESS EXCLUSIVE MODE')
             require(c.execute('SELECT environment FROM sa_sync.environment_state WHERE singleton').fetchone()[0]=='staging','Unexpected environment')
             before=public_structure(c)
             applied=[]

@@ -108,7 +108,7 @@ class Documents(unittest.TestCase):
  def cleanup(self,paths=None):
   self.worker();return self.c.execute('SELECT canto_api.squad_document_cleanup(%s)',(paths or [],)).fetchone()[0]
  def mail(self):
-  r=self.request(spec={'delivery':'email'});j,p=self.prepare(r);self.finish(j);mail=self.claim('document_mail')[0];return r,mail,self.call('squad_document_mail_prepare',mail)
+  r=self.request(spec={'delivery':'email'});j,p=self.prepare(r);self.finish(j);fanout=self.claim('document_mail')[0];self.assertEqual(self.call('squad_document_mail_prepare',fanout)['state'],'done');mail=self.claim('business_mail')[0];return r,mail,self.call('squad_business_mail_prepare',mail)
  def test_large_document_has_bounded_parts_then_merge(self):
   r,j,p=self.large();self.assertEqual((p['phase'],p['part_index'],len(p['snapshot']['rows'])),('part',0,100))
   for index in range(3):
@@ -139,15 +139,15 @@ class Documents(unittest.TestCase):
  def test_generated_cleanup_is_service_only(self):
   with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT canto_api.squad_document_cleanup()')
  def test_email_uses_current_auth_recipient_and_fixed_output(self):
-  r,j,p=self.mail();self.assertEqual(p['email'],'persona-103@squad.invalid');self.assertEqual(p['document_id'],r['id']);self.assertTrue(p['path'].endswith('/document.pdf'));self.assertEqual(self.call('squad_document_mail_finish',j,'SENT')['state'],'done');self.actor_as(103);self.assertEqual(rpc(self.c,'v1_document_get',(r['id'],))['delivery_state'],'sent')
+  r,j,p=self.mail();self.assertEqual(p['email'],'persona-103@squad.invalid');self.assertEqual(p['data']['document_id'],r['id']);self.assertTrue(p['attachment']['path'].endswith('/document.pdf'));self.assertEqual(self.call('squad_business_mail_finish',j,'SENT')['state'],'done');self.actor_as(103);self.assertEqual(rpc(self.c,'v1_document_get',(r['id'],))['delivery_state'],'sent')
  def test_document_email_not_queued_for_download(self):
   j,p=self.prepare();self.finish(j);self.assertEqual(self.claim('document_mail'),[])
  def test_email_finish_replay_does_not_duplicate(self):
-  r,j,p=self.mail();self.call('squad_document_mail_finish',j,'SENT');self.assertTrue(self.call('squad_document_mail_finish',j,'SENT')['replayed']);self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE event_type='document.mail'"),[(1,)])
+  r,j,p=self.mail();self.call('squad_business_mail_finish',j,'SENT');self.assertTrue(self.call('squad_business_mail_finish',j,'SENT')['replayed']);self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.outbox WHERE event_type='document.mail'"),[(1,)])
  def test_failed_email_preserves_downloadable_document(self):
-  r,j,p=self.mail();self.call('squad_document_mail_finish',j,'MAIL_NOT_ENABLED');self.actor_as(103);value=rpc(self.c,'v1_document_get',(r['id'],));self.assertEqual((value['state'],value['delivery_state']),('ready','failed'))
+  r,j,p=self.mail();self.call('squad_business_mail_finish',j,'MAIL_NOT_ENABLED');self.actor_as(103);value=rpc(self.c,'v1_document_get',(r['id'],));self.assertEqual((value['state'],value['delivery_state']),('ready','failed'))
  def test_email_transient_failure_is_retried(self):
-  r,j,p=self.mail();self.assertEqual(self.call('squad_document_mail_finish',j,'PROVIDER_UNAVAILABLE')['state'],'pending');self.assertEqual(self.raw('SELECT delivery_state FROM sa_domain.documents'),[('pending',)])
+  r,j,p=self.mail();self.assertEqual(self.call('squad_business_mail_finish',j,'PROVIDER_UNAVAILABLE')['state'],'pending');self.assertEqual(self.raw('SELECT delivery_state FROM sa_domain.documents'),[('pending',)])
  def test_email_role_revocation_checked_before_send(self):
   r=self.request(spec={'delivery':'email'});j,p=self.prepare(r);self.finish(j);self.raw('UPDATE sa_snapshot_20261019.sa_users SET role=10 WHERE id=103');j=self.claim('document_mail')[0];self.assertEqual(self.call('squad_document_mail_prepare',j)['state'],'dead')
  def test_request_hourly_quota(self):
@@ -179,7 +179,7 @@ class Documents(unittest.TestCase):
   j,p=self.prepare();self.raw('UPDATE sa_domain.outbox SET attempts=5 WHERE id=%s',(uuid.UUID(j['id']),));self.finish(j,'STORAGE_UNAVAILABLE');self.raw("UPDATE sa_domain.documents SET created_at=now()-interval '23 hours'")
   with self.assertRaises(psycopg.errors.ObjectNotInPrerequisiteState):self.retry_failed(j)
  def test_operator_mail_retry_restores_pending_delivery_without_re_render(self):
-  r,j,p=self.mail();self.raw('UPDATE sa_domain.outbox SET attempts=5 WHERE id=%s',(uuid.UUID(j['id']),));self.call('squad_document_mail_finish',j,'PROVIDER_UNAVAILABLE');self.assertEqual(self.retry_failed(j)['state'],'pending');self.assertEqual(self.raw('SELECT state,delivery_state FROM sa_domain.documents'),[('ready','pending')])
+  r,j,p=self.mail();self.raw('UPDATE sa_domain.outbox SET attempts=5 WHERE id=%s',(uuid.UUID(j['id']),));self.call('squad_business_mail_finish',j,'PROVIDER_UNAVAILABLE');self.assertEqual(self.retry_failed(j)['state'],'pending');self.assertEqual(self.raw('SELECT state,delivery_state FROM sa_domain.documents'),[('ready','pending')])
 
 class Challans(unittest.TestCase):
  setUpClass=work.Execution.__dict__['setUpClass'];setUp=work.Execution.setUp;tearDown=work.Execution.tearDown

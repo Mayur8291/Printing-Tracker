@@ -41,6 +41,23 @@ def rpc(c,name,args=()):
     params=sql.SQL(',').join(sql.Placeholder() for _ in args)
     return c.execute(sql.SQL('SELECT canto_api.{}({})').format(sql.Identifier(name),params),args).fetchone()[0]
 
+def advance_fixture_sequences(c):
+    """Explicit synthetic seed IDs need the same high-water rule as a refresh.
+
+    Only advance; fixture cleanup must never make later IDs collide. Called
+    when the catalogue seed is first created, not before each tested command.
+    """
+    rows=c.execute("""SELECT seq.relname,t.relname,a.attname FROM pg_class seq
+      JOIN pg_namespace n ON n.oid=seq.relnamespace
+      JOIN pg_depend d ON d.objid=seq.oid AND d.classid='pg_class'::regclass AND d.refclassid='pg_class'::regclass AND d.deptype IN('a','i')
+      JOIN pg_class t ON t.oid=d.refobjid JOIN pg_attribute a ON a.attrelid=t.oid AND a.attnum=d.refobjsubid
+      WHERE n.nspname='sa_snapshot_20261019' AND seq.relkind='S'""").fetchall()
+    for name,table,column in rows:
+        top=c.execute(sql.SQL('SELECT max({}) FROM sa_snapshot_20261019.{}').format(sql.Identifier(column),sql.Identifier(table))).fetchone()[0]
+        value,called=c.execute(sql.SQL('SELECT last_value,is_called FROM sa_snapshot_20261019.{}').format(sql.Identifier(name))).fetchone()
+        if top is not None and (value<top or (value==top and not called)):
+            c.execute('SELECT setval(%s::regclass,%s,true)',('sa_snapshot_20261019.'+name,top))
+
 def seed_orders(c):
     seed(c)
     if c.execute('SELECT 1 FROM sa_snapshot_20261019.sa_orders WHERE id=1001').fetchone():return
@@ -58,3 +75,13 @@ def seed_orders(c):
                 c.execute("""INSERT INTO sa_snapshot_20261019.sa_items(id,order_id,cutting_master_id,total_quantity,per_piece_amount,total_amount,
                   worker_per_piece_amount,worker_total_amount,created_at,updated_at) VALUES(%s,%s,%s,10,100,1000,40,400,now(),now())""",(n,n,group+9))
                 c.execute("INSERT INTO sa_snapshot_20261019.sa_quantities(item_id,size_id,quantity,created_at,updated_at) VALUES(%s,1,10,now(),now())",(n,))
+
+
+def claim_test_workers(c,handler):
+    """Simulate consecutive consumers; production leases slow work one at a time."""
+    result=[]
+    for _ in range(100):
+        batch=c.execute('SELECT canto_api.squad_job_claim(10)').fetchone()[0]['jobs']
+        if not batch:return result
+        result.extend(j for j in batch if j['handler']==handler)
+    raise AssertionError('Synthetic queue exceeded bounded consumer rounds')

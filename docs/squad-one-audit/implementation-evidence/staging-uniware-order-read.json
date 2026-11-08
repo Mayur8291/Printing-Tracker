@@ -1,0 +1,48 @@
+{
+  "environment": "staging",
+  "real_provider": true,
+  "duration_ms": 375.71,
+  "http_status": 200,
+  "result": {
+    "state": "unconfirmed",
+    "environment": "staging",
+    "provider": "unicommerce",
+    "configuration_source": "legacy_bridge",
+    "authentication_style": "legacy_query",
+    "order_read": {
+      "code": "UNCONFIRMED",
+      "error_code": "PROVIDER_ORDER_NOT_FOUND"
+    },
+    "facilities": [
+      {
+        "facility": "scottinternational",
+        "code": "CONFIRMED",
+        "known_skus": 2,
+        "requested_skus": 2
+      }
+    ],
+    "requests": [
+      {
+        "stage": "authentication",
+        "status": 200
+      },
+      {
+        "stage": "inventory",
+        "status": 200
+      },
+      {
+        "stage": "order_read",
+        "status": 200
+      }
+    ],
+    "writes": 0
+  },
+  "provider_business_writes": 0,
+  "database_business_writes": 0,
+  "public_structure_unchanged": true,
+  "mirror_unchanged": true,
+  "credential_values_returned": false,
+  "rails_configuration_parity_verified": false,
+  "order_mutations_verified": false,
+  "source_reference_prefix": "P-"
+}

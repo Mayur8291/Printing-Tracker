@@ -20,5 +20,20 @@ Deno.test('unconfirmed mail finish never sends again inside an invocation',async
  let sent=0,finish=0;try{await documentMailWorker(async(name)=>{if(name.endsWith('prepare'))return message;finish++;throw new Error('network');},storage,async()=>{sent++;})(job);}catch{}assert(sent===1&&finish===1);
 });
 Deno.test('configured staging allowlist rejects recipients before opening SMTP',async()=>{
- const send=documentMailer({host:'smtp.invalid',port:2525,username:'x',password:'x',sender:'sender@squad.invalid',allowedRecipients:['different@squad.invalid']});try{await send(message);throw new Error('accepted');}catch(e){assert(e instanceof Error&&e.message==='mail_recipient_not_enabled');}
+ const send=documentMailer({projectRef:'scvojtvgnkmbupvyslmb',host:'smtp.invalid',port:2525,username:'x',password:'x',sender:'sender@squad.invalid',allowedRecipients:['different@squad.invalid']});try{await send(message);throw new Error('accepted');}catch(e){assert(e instanceof Error&&e.message==='mail_recipient_not_enabled');}
+});
+
+Deno.test('legacy document sender keeps partial config lazy and requires staging Mailinator allowlist',async()=>{
+ let opened=0;const factory=()=>{opened++;throw new Error('unexpected SMTP');};
+ for(const config of [
+  {projectRef:'scvojtvgnkmbupvyslmb',host:'',port:2525,username:'',password:'',sender:''},
+  {projectRef:'scvojtvgnkmbupvyslmb',host:'smtp.invalid',port:2525,username:'fixture',password:'fixture',sender:'sender@squad.invalid'},
+  {projectRef:'scvojtvgnkmbupvyslmb',host:'smtp.invalid',port:2525,username:'fixture',password:'fixture',sender:'sender@squad.invalid',allowedRecipients:[message.email]},
+ ]){const send=documentMailer(config,factory);try{await send(message);throw new Error('accepted');}catch(error){assert(error instanceof Error&&error.message==='mail_recipient_not_enabled');}}
+ assert(opened===0);
+});
+Deno.test('legacy document sender shares verified bounded transport and sends allowed PDF only',async()=>{
+ const email='squad-pdf@mailinator.com';let closed=0,sent=0;
+ const send=documentMailer({projectRef:'scvojtvgnkmbupvyslmb',host:'smtp.invalid',port:465,username:'fixture',password:'fixture',sender:'sender@squad.invalid',allowedRecipients:[email]},options=>{assert(options.secure===true&&options.disableUrlAccess===true);return{sendMail:async m=>{sent++;assert((m.to as {address:string}).address===email);assert(Array.isArray(m.attachments)&&m.attachments.length===1);return{accepted:[email]};},close:()=>{closed++;}};});
+ await send({...message,email},new Uint8Array(100));assert(sent===1&&closed===1);
 });

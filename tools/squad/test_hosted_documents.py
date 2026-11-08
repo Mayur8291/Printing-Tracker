@@ -54,14 +54,18 @@ def run(synthetic_media=False,cron_mode=False):
      c.execute('UPDATE sa_sync.environment_state SET cutover=false')
     docs=c.execute('SELECT d.id,d.job_id,d.next_part,d.state FROM sa_domain.documents d JOIN sa_domain.outbox j ON j.id=d.job_id WHERE j.command_key=%s AND d.actor_id=%s',(command,uuid.UUID(state['actor']))).fetchall()
     for id_,job,parts,doc_state in docs:
-     assert not c.execute("SELECT FROM sa_domain.outbox WHERE(id=%s OR parent_id=%s) AND status='leased' AND lease_until>now()",(job,job)).fetchone(),'Live document lease: keep checkpoint until worker settles'
+     # Delivery now fans out to grandchildren. Ownership comes from the exact
+     # request root, never from a broad actor/date match that could delete work.
+     owned=[r[0] for r in c.execute('WITH RECURSIVE owned(id) AS(SELECT id FROM sa_domain.outbox WHERE id=%s UNION SELECT j.id FROM sa_domain.outbox j JOIN owned o ON j.parent_id=o.id) SELECT id FROM owned',(job,))]
+     assert not c.execute("SELECT FROM sa_domain.outbox WHERE id=ANY(%s) AND status='leased' AND lease_until>now()",(owned,)).fetchone(),'Live document lease: keep checkpoint until worker settles'
      prefix='g'+str(state['generation'])+'/'+state['actor']+'/'+str(id_)+'/'
      paths=[prefix+'document.pdf']+[prefix+'part-'+str(i).zfill(4)+'.pdf' for i in range(parts+1)]
      request=urllib.request.Request('https://scvojtvgnkmbupvyslmb.supabase.co/storage/v1/object/squad-documents',data=json.dumps({'prefixes':paths}).encode(),headers={'apikey':service,'Authorization':'Bearer '+service,'Content-Type':'application/json'},method='DELETE')
      with urllib.request.urlopen(request,timeout=60) as r:assert r.status==200
      with c.transaction():
+      c.execute('DELETE FROM sa_domain.business_mail_deliveries WHERE job_id=ANY(%s) AND document_id=%s',(owned,id_))
       c.execute('DELETE FROM sa_domain.document_cleanup WHERE document_id=%s',(id_,));c.execute('DELETE FROM sa_domain.documents WHERE id=%s AND actor_id=%s',(id_,uuid.UUID(state['actor'])))
-      c.execute('DELETE FROM sa_domain.job_attempts WHERE job_id IN(SELECT id FROM sa_domain.outbox WHERE id=%s OR parent_id=%s)',(job,job));c.execute('DELETE FROM sa_domain.outbox WHERE id=%s OR parent_id=%s',(job,job))
+      c.execute('DELETE FROM sa_domain.job_attempts WHERE job_id=ANY(%s)',(owned,));c.execute('DELETE FROM sa_domain.outbox WHERE id=ANY(%s)',(owned,))
     if files:
      from document_media_fixture import cleanup
      cleanup(c,files,service)

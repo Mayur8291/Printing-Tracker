@@ -1,0 +1,25 @@
+# Automatic warehouse reconciliation
+
+Migration `20261108093125_squad_warehouse_schedule.sql` supplies the recurring producer required by CAT.03, INTEGRATE.04 and OPS.03. It reuses the existing provider reconciliation jobs and adapters. It creates no warehouse order, stock reservation or separate stock ledger.
+
+## Schedule and delegation
+
+The schedule defaults off. A current role 0 administrator explicitly delegates under their own identity through `v1_warehouse_schedule_configure(enabled,expected_version,idempotency_key)`. Enabling requires the existing verified warehouse ownership epoch and ready provider configuration. The saved owner, provider and generation are fixed server-side; callers cannot supply another actor, URL, facility or credentials.
+
+`v1_warehouse_schedule_status()` returns the delegated owner, configured/current generation, provider, due times, overdue durations, last scheduler error, optimistic version and ten recent scheduled runs with their actual reconciliation status. `queued` is a job state, not proof that provider data has been refreshed.
+
+Service-only `canto_api.squad_warehouse_heartbeat()` runs from the existing jobs heartbeat. Inventory is due every two minutes and existing-order status every five minutes. One invocation creates at most one reconciliation. Follow-up migration `94744` admits one active orders run and one active inventory run per provider and generation; manual `all` occupies both resources. Two overlapping partial unique indexes enforce these rules under races, and a shared private admission helper checks conflicts across actors behind the existing provider advisory lock. The heartbeat returns `busy` during concurrent admission and tries the other due scope when its preferred scope is occupied. An order poll on a long provider cooldown therefore cannot prevent an independent inventory round. Long outages coalesce to one current refresh; there is no queue of historical polling intervals. When both scopes are free and overdue, the last scope alternates. This policy does not promise fresh inventory while the inventory provider itself is unavailable or processing capacity is exhausted.
+
+Each reconciliation retains the existing bounded enumeration: at most 100 SKUs per inventory batch and 50 orders per order page, fixed initial ID ceilings, fixed configured facilities and current-generation worker leases. Scheduled order pages include active linked external orders for the selected provider only. Terminal, deleted, unlinked and other-provider orders are excluded. Manual reconciliation retains its broader historical coverage. The filter is inferred from the current leased scheduled job, never a caller-supplied bypass flag. A partial index supports the active-order scan.
+
+## Authority and availability
+
+Mirror mode, active refresh, changed generation, changed/disabled provider ownership and a revoked configured owner prevent new automatic runs. A new generation needs explicit re-enablement. The existing worker rechecks current owner Supabase Auth and administrator scope before provider work, including bans. Disabling the schedule also rejects its queued enumeration and provider children; manual reconciliation is unaffected. Provider responses already in flight retain the existing evidence reconciliation behavior.
+
+The five-minute availability TTL is unchanged. Overdue or invalidated stock remains explicitly stale/unknown until a current read succeeds. A large provider dataset or slow/throttled provider can exceed a polling interval; the API exposes lag rather than claiming continuous freshness. Hosted throughput, isolated provider credentials and verified facility configuration remain activation prerequisites. No provider was contacted by this implementation lane.
+
+## Verification
+
+18 focused SQL tests pass. A clean isolated rebuild through this migration succeeded. A combined 380-test run passed across warehouse scheduling, warehouse receipts/outbound workers, weekly reports, Airtable reports, business mail, documents, notifications, account flows and tailor earnings. Tests cover real synthetic inventory preparation/finish, selected facilities, automatic alternation, missed interval coalescing, manual-run exclusion, nonblocking provider locks, mirror/ownership/generation/owner gates, post-queue and post-enumeration disable, current Auth bans, active-order filtering, manual terminal-history reconciliation and honest run status. Tests use synthetic local data and no provider HTTP or messages.
+
+The follow-up migration `20261108094123_squad_inventory_watermarks.sql` closes the inventory GET versus callback race with durable database-receipt watermarks, preserved request-start times, and deterministic per-SKU locking. First-seen delayed events conservatively invalidate; duplicate delivery and delayed worker execution do not invalidate a later successful poll again. The 20 focused tests include cold caches, provider clock lag, both poll/event orderings, private access, expired leases, and real two-connection serialization. Real-provider throughput and lifecycle acceptance remain required.

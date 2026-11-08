@@ -1,0 +1,3626 @@
+{
+  "environment": "local_synthetic",
+  "measured_at": "2026-11-08T09:24:22.434179+00:00",
+  "database": "squad_test_stock",
+  "connections": 4,
+  "method": "One MATERIALIZED start-clock CTE, one actual public RPC evaluation, then server end-clock; client timer surrounds execute/fetch. Server elapsed includes waits/execution, excludes parse/plan and network. Not HTTP latency.",
+  "source_data": "Synthetic catalog/identities; 100% invented rows, no customer dumps",
+  "providers_called": 0,
+  "http_requests": 0,
+  "warmup_calls": 40,
+  "measured_calls_expected": 400,
+  "synthetic_orders": 100000,
+  "synthetic_items": 110000,
+  "shape": "70% custom,20% ready-made,10% mixed; two items on mixed orders; 10% customer103/SC101/factory104 scope across all order types; two-year creation span; 1/3 completed; 1/37 canceled. This deterministic synthetic mix is not an assertion about the real production distribution.",
+  "verification": "Untimed replay/scope/money/quantity assertions follow calls inside the same transaction. Command/quote sample transactions roll back. Hot-record tests commit own rows.",
+  "declared_rebuild_migration_through": "20261108090719",
+  "source_migration_file_sha256": {
+    "20261107130905_squad_domain_foundation.sql": "26dbdabe9cb4401fd47c2cf4a03d828cfcdcf2760105739ef702c49cb8a4e760",
+    "20261107131817_squad_auth_write_fence.sql": "ff32d71674368e0ecca0b0ada18595890dfd27396776c9fc528130ea0983846a",
+    "20261107132520_squad_hosted_auth_boundary.sql": "33e7ae7d902d29d0bcf488e708e4eb543148ebd3239c8e53824d65a4bcde68df",
+    "20261107132809_squad_scoped_reads.sql": "3c8dd98a9f3d0f4962f25ba8698e6a8caf6480c603e98da1487c790bfd04b77c",
+    "20261107133835_squad_work_management.sql": "c6e95ce599441b184ede535fbb8c4ba3ad390dbbd9302d1010d94515867148fe",
+    "20261107134743_squad_sales_targets.sql": "d4150630997b01ee2ae3c7118bfe8880d7121115f757006e7d2bacbed50ce0c2",
+    "20261107135733_squad_contract_review_fixes.sql": "5a408b1ae2858379065e0843f4e980dc2d36cd26b36ad5afd2f8bdea9db305d8",
+    "20261107140656_squad_catalogue_contracts.sql": "acb14ea25ad4219752a05b018f37fe0879777fac9ee3ceb729e552231e006199",
+    "20261107141231_squad_pricing_engine.sql": "fb5fbba2e16cac9fa3f5c621aa25d171e2709e80f7d95680faa81985ae0f42f8",
+    "20261107142136_squad_catalogue_query_review.sql": "50bd1a76f6dd34460710b472183314f3742c94513a32c3726b5f8e589243b3a0",
+    "20261107142746_squad_presets_and_quote_review.sql": "c9cdd5d79fb061ce535a4ae281b675da5f637eedcb22dd6b256ea5ca11f6c14c",
+    "20261107144141_squad_order_acceptance.sql": "3f0b756453973a233e5548c86be21d0d7b48e5766c3afcea4524f56ac25418da",
+    "20261107150240_squad_order_lifecycle.sql": "508762a860df398f4a3dd14c1f9f74b5d5062303811814c87bb92517a6214177",
+    "20261107151152_squad_order_acceptance_performance.sql": "8987ba724f5b2480b84efcb19f16f4a485d50dfefa72e734440b9d6de84795e7",
+    "20261107151402_squad_production_allocation.sql": "8a513e6cee6cb5fd1f101d2fc54430ce17c53b1952606348865afed3783662a5",
+    "20261107152340_squad_factory_relationship_review.sql": "f88d0565e8a7123e8409d88ebd0364c78b2abeb5b28012437fac042ce62505b2",
+    "20261107152811_squad_production_query_review.sql": "5d29830736978fae9abe34b6181bd196da9c0e0bdfccb842ac7ac9e8b35da571",
+    "20261107153720_squad_production_execution.sql": "3776ab09ef22065ea2359c8c7d75d10f7c95d62a11d953462a1fe63639d455d4",
+    "20261107154723_squad_work_scope_query_review.sql": "f686dd137437a5204ba295fbd2921a19ed0dd89196903600cce20a6ad0cd79c9",
+    "20261107155042_squad_work_scope_index_paths.sql": "3d96452fb1638690747e9d6be3645aef96ab453c26ed0136bd4ef7ae34d4d9e1",
+    "20261107155302_squad_assignment_progress_semantics.sql": "4f128e6882015ad7b307572cd0b19ed5dad9606a0ba1eb178b767473cc15838c",
+    "20261107160045_squad_dealer_stock_balances.sql": "1f38e5c48d106512c8f63ed26b7d6105129b87c72ec3e03d0d0f5f1d2df0cf81",
+    "20261107160838_squad_dealer_stock_execution.sql": "f51fb93518402bad84d5c3ba0c7ea4da91e865da47a8a2e209b7f19e4038e138",
+    "20261107162742_squad_historical_preset_reorders.sql": "1e954acc373b22f3551a83a2dece8a438ca9343198dc82a021cfc5426b12a37f",
+    "20261107163208_squad_dealer_backorders.sql": "cd9576414e1e2e2af0a03f496d98b33027f56b05947718b6412c7edfa252d2aa",
+    "20261107163542_squad_stock_query_review.sql": "1699a7a7dcd4eb596088fbc00890b5f1ba91439e5fd4f4f88749609813a74d27",
+    "20261107164109_squad_delivery_contracts.sql": "408d0ef2196b333658754320e72a14bffd005e8bccfd5528abca6c0c0cadf060",
+    "20261107164500_squad_tailor_earnings.sql": "5911034b136b64b86c7af5a6c397db93c57633d9b5987e2664f81ed8e7abef16",
+    "20261107165430_squad_people_and_addresses.sql": "88f891c608aa382270197eba939ac78e535ed9404eca97c625116e6afcef6217",
+    "20261107171159_squad_people_dependency_queries.sql": "168fbb1d3c83c787861dd42089038fe40f33a3762a50730ba490032fa2a8266f",
+    "20261107171508_squad_customer_relationships.sql": "7d17f6ee5e5d67e6d78d5622be5e0d3054131b1747d8aebdfe9f3d46c639994b",
+    "20261107172446_squad_people_filters.sql": "b458461f6dd567fca911c21fb29240ded2cce75aacade7e4de2197ba151ff6e4",
+    "20261107173303_squad_relationship_batch_performance.sql": "322231e935b96cc1aa9881530410d6dea8e34b3519e0a960a170208d5b3e4cbe",
+    "20261107173834_squad_app_content_and_settings.sql": "e9f6d7fa84370a638299aab1a50616ffc4792c68f658028347aad337fc6dfb68",
+    "20261107175132_squad_content_selector_review.sql": "57c6306abcbf853566317808d1ea0a54120101f606d0eddd6d1507ffd6d75f77",
+    "20261107175250_squad_ratings_and_moderation.sql": "9995e9a49e5a6226d79e571668a398c785686dfefca1f363c4ec3e1787beb235",
+    "20261107180159_squad_work_reports.sql": "cee3a3a7952737b9761e05358eaad3b50811cc3ebabab40989b1d0204fda2c65",
+    "20261107180931_squad_work_report_scope_review.sql": "7cc4715ed225c9ad2c4ab215cec64d7892449a9bb87eb02a676b8d4c6951396f",
+    "20261107181440_squad_sales_reports.sql": "1126a4b690cafe0bd2065c40f703895e9e21d38c371fd31fb79b8967177fac47",
+    "20261107182955_squad_sales_report_query_review.sql": "3db129eaddca78b6309e131fc35035c75d8eed2c8f11a4744766b62d37a8af14",
+    "20261107183250_squad_sales_report_plan_review.sql": "8c15b9e05871bfe1d2004b7d839668e4884c14268cf4c2c98ea2eaca3ddf634e",
+    "20261107183622_squad_sales_report_statistics.sql": "cc111beda3b68fcd7e8d14166cbe0a671381f33878b440a7730bcb1ef7613195",
+    "20261107184051_squad_sales_numeric_validation.sql": "357612a00971ac276eacd13d9aacf89ca5c812fe7049487f391ac2e9572d03e6",
+    "20261107184305_squad_sales_report_labels.sql": "d3f31d284518cc1238123f648d1a12d082ac898b369cbc7abde053c3f3ccb98a",
+    "20261107184505_squad_order_amendments.sql": "348ebda3f0261ea95ad6d99629153a4f2a262f603d9d361e1ec63df7998a9c6c",
+    "20261107185947_squad_order_detail_contracts.sql": "c324b8fa3951ca1fae17335168fb134d0a5c0bfcb821b297ef96534a50bd0486",
+    "20261107190922_squad_order_detail_query_review.sql": "a8234f164b84b8992e7b02cc965fd0431abffb4f3b76257d6b661f4378f40266",
+    "20261107191401_squad_order_write_policy_review.sql": "2035957651493bfd8714d55a2d0b49e59405ecfe1df9d8b5345fa16f50eed960",
+    "20261107191618_squad_order_batch_acceptance.sql": "95e27fab551356dc699dda5386bc97a4249958ad2af35cf1a4b5d3347ad15dd1",
+    "20261107191849_squad_order_detail_batches.sql": "8c596b6a698afbfb7d1f0b0c4837dee499c8fc50d97efb665f491a3c8e406b40",
+    "20261108022247_squad_bounded_amendment_execution.sql": "87cd0e68f16ae06e8224a28fc10216d448deaef167f685a019aa882161226fd8",
+    "20261108022829_squad_batch_preset_validation.sql": "fbd4e1ae424e6e48f42c17c60bddb2c4eb524d24ab246c343d7ebc5986902554",
+    "20261108023249_squad_request_pricing_reuse.sql": "9705d24d97e787be269d49dea12cca2d4e270fcee17043a6bb82db34a1fa6e0c",
+    "20261108023920_squad_durable_jobs.sql": "43d89ec7fe38cda32f4f00d5cbda98b5ca7759e2a203b5fc3cc17de033b6ec54",
+    "20261108025016_squad_job_scheduler_transport.sql": "4cb78ca070cc8c3414e3b57663e0e21098ce25337405e7fe83a611709b465fec",
+    "20261108025916_squad_scoped_media_grants.sql": "94c9741054a6d403c7e7d2a06da4d3d19eed975a81b68793714e27915409d35c",
+    "20261108031300_squad_order_media_inheritance.sql": "1eb213d885e395896fc16a06d349a10e1f987fb0a9601a1aab1f31c6acc3e1a1",
+    "20261108031703_squad_verified_media_uploads.sql": "faa718e8ac5c292de1f065347d597c0630a4d59497682cb434a66a9fba65134c",
+    "20261108033220_squad_expired_upload_cleanup.sql": "6499263ac4b4f62600f1dad36eacd0eea7ffcde8442f3ca2a47c316f45572f61",
+    "20261108034426_squad_atomic_master_media.sql": "506580047b4cfaadacefff59b5f64d6cbe3a2c8845c0b30fdcb431cb48e93364",
+    "20261108041430_squad_account_reconciliation.sql": "3cd2854aee120a6073777f6e7d2aecae22c69f79be0aba9b6b22c34f6c686b63",
+    "20261108043442_squad_account_recovery_review.sql": "cc552be8dfd21b1907b7f58feca96b179835a575896cc855d5d798239c490101",
+    "20261108044248_squad_account_email_flows.sql": "0f53e10f149130f7930d362ce82bd7261ccc0e127559ffd2f764cf8289826de0",
+    "20261108052301_squad_account_creation_review.sql": "aa7593d2c33b174c706dbdd1d0bc30074e679d7e43cb00e02edf5007a1e832c4",
+    "20261108053948_squad_notification_contracts.sql": "72e8f4af6d5f06d6c11b5e4bb219ded1594c64c9642007ca0210d72de45243c0",
+    "20261108060519_squad_notification_routing_review.sql": "42b046dc0e62bc895b640478360fad7442a801fae4ef60e2a7076a4a3bdda4df",
+    "20261108061117_squad_notification_event_parity.sql": "4032921d13a3b59f195e22b28dfe7e969edc833612e324808ef6217bb1e963d8",
+    "20261108061754_squad_notification_delivery_review.sql": "2a3e9744b7b3db9a1912cdeb4edb0e1fba5dd8b8d6a5f5518ad1a1d76e0c706a",
+    "20261108063322_squad_document_snapshots.sql": "a1cf278e8f7dd966aec1e0d9caf29bc4a075686a92cc5788219a2932cde7b692",
+    "20261108063818_squad_document_capture.sql": "f37c5e15279318f7b19e11104a309aae138bae458a4ffdaa1b3045cff99209a0",
+    "20261108064009_squad_document_worker.sql": "ffac5b26002c35e3e33705afe7758b49ad41769c196ea0f8289c2fcab35acf58",
+    "20261108065733_squad_document_delivery.sql": "0988387de8f5f161b6cb8f2723077f5ee5c8a6a404bf62721579a24aec1808ef",
+    "20261108072339_squad_document_retry_review.sql": "324d99db7ad12e26932e2bdc9711172de71a1ad6cdad5e8e0242113c28af1f1c",
+    "20261108073331_squad_transfer_jobs.sql": "98379761ec4aa2f50272c7aae918ce7033b6e327ad8481c9ce71824298979ce5",
+    "20261108074142_squad_transfer_contracts.sql": "b31fffd419a42793eae19725f41d9e768c9ec979b46180ccec14c7453815bcf5",
+    "20261108074850_squad_transfer_worker.sql": "59387e709ec09c798a2e155334e8e01a1e784e0766dcfc2b613dca47ab1837a0",
+    "20261108075017_squad_stock_reconciliation.sql": "2e499af5e27bbd1d6be17577a8091cc7ac8d762f61a45ebb5a494d43d087cbdb",
+    "20261108075418_squad_transfer_retention.sql": "14ac5a55d4e8c61186d300bbd630df449200fc9beb77aa3d859f4a7d0c390bf2",
+    "20261108080502_squad_cutover_contracts.sql": "f9fa3a1ccb0c8bf8593e794672a60c93b81e822230c57b40f2dd0cf11e7d3a1b",
+    "20261108080718_squad_warehouse_receipts.sql": "30058e07611d951136acf486b3db6df4fbf22707ff546f2d0ddb7acb0f755600",
+    "20261108081450_squad_warehouse_effects.sql": "9c08a99fe3ce76eb72231dc2f0313a7848d97cb821f19b53aecafe79d9d14f78",
+    "20261108081816_squad_stock_reconciliation_plans.sql": "9a8fd0b1eb01702374eb1c26e7a4961d1c9915d15a05399e68ffc4aa70ff2ce8",
+    "20261108082157_squad_warehouse_outbound.sql": "1aade94ebafff60a0331bbe3d39e97fe33dc284023993cc5cfe42e9a45a4c90b",
+    "20261108083005_squad_transfer_legacy_history.sql": "03a1442e23f163b652413347d12e76909087b6b8b5477ee821f14caa461b7b38",
+    "20261108083543_squad_warehouse_customers.sql": "d0163a32716dc29e1fc534834a47cc6ef4aca209313e8b0073c56bf69b27bab7",
+    "20261108084219_squad_airtable_capture.sql": "53726a3d108ffa631a93607f62b58c2cf557acf6e70687f83e32167caa51ac83",
+    "20261108084246_squad_warehouse_amendments.sql": "4f7b19b84aa9c5f4d383e611948aa67f4375089452a6039497c0fb9f1c90534f",
+    "20261108085147_squad_airtable_master_bridge.sql": "0b347ed1808db5d80e9773dac825db7b0bc401fbb55d91e52694909572490935",
+    "20261108085317_squad_warehouse_notifications.sql": "dc96f7f92ab0fdc8d5adc34be61f5cfd10645e5be3412d1cb19247e11ef87ce5",
+    "20261108085403_squad_airtable_worker.sql": "0faa83890dd068f7ef15927d5715ed76e4ed24b5aed96da585cdc097b1d23926",
+    "20261108085500_squad_business_mail.sql": "341f3646f30deab3ab02854e26590428a107584d34f95f86844b786aa97d71cf",
+    "20261108085643_squad_airtable_reports.sql": "5f38329b9a82f3f6175fad52b9a20cc9c4b0c3bc20e63f65c380351fe2560e96",
+    "20261108090117_squad_worker_review.sql": "74738d4d359eb77a9e9e9ea8e8fc5876dca94490981e191209e0479de9d2f57a",
+    "20261108090719_squad_persona_finance_parity.sql": "564b010d49ea3a2e21726bada1213bc3a45a6964635e0a93d10a1c0ffcd13433"
+  },
+  "actual_database_function_sha256": "190246f406a6b30957fa709836b88a2413eacdf9d97fd2f0cecd8ae7319d4bc3",
+  "samples": 400,
+  "wall_seconds_including_warmup_and_verification": 30.849,
+  "measured_wall_seconds_including_verification": 28.179,
+  "rpc_results": {
+    "v1_cutting_record": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 272.513,
+        "p95_ms": 314.839,
+        "max_ms": 363.175
+      },
+      "client": {
+        "p50_ms": 272.796,
+        "p95_ms": 315.258,
+        "max_ms": 363.511
+      },
+      "target_ms": 500
+    },
+    "v1_dashboard": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 26.536,
+        "p95_ms": 29.17,
+        "max_ms": 38.069
+      },
+      "client": {
+        "p50_ms": 26.853,
+        "p95_ms": 29.414,
+        "max_ms": 38.481
+      },
+      "target_ms": 200
+    },
+    "v1_dispatch_record": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 602.349,
+        "p95_ms": 638.232,
+        "max_ms": 772.533
+      },
+      "client": {
+        "p50_ms": 602.608,
+        "p95_ms": 638.55,
+        "max_ms": 772.928
+      },
+      "target_ms": 500
+    },
+    "v1_jobsheet_assign": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 759.398,
+        "p95_ms": 805.253,
+        "max_ms": 924.825
+      },
+      "client": {
+        "p50_ms": 759.684,
+        "p95_ms": 805.539,
+        "max_ms": 925.138
+      },
+      "target_ms": 500
+    },
+    "v1_jobsheet_inspect": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 1007.529,
+        "p95_ms": 1045.336,
+        "max_ms": 1061.923
+      },
+      "client": {
+        "p50_ms": 1007.78,
+        "p95_ms": 1045.637,
+        "max_ms": 1062.283
+      },
+      "target_ms": 500
+    },
+    "v1_order_get": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 25.637,
+        "p95_ms": 74.409,
+        "max_ms": 89.251
+      },
+      "client": {
+        "p50_ms": 25.969,
+        "p95_ms": 74.731,
+        "max_ms": 89.641
+      },
+      "target_ms": 200
+    },
+    "v1_order_payment_record": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 3.119,
+        "p95_ms": 3.695,
+        "max_ms": 4.189
+      },
+      "client": {
+        "p50_ms": 3.352,
+        "p95_ms": 4.078,
+        "max_ms": 4.434
+      },
+      "target_ms": 500
+    },
+    "v1_order_place": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 13.893,
+        "p95_ms": 19.455,
+        "max_ms": 21.794
+      },
+      "client": {
+        "p50_ms": 14.192,
+        "p95_ms": 19.913,
+        "max_ms": 21.994
+      },
+      "target_ms": 500
+    },
+    "v1_orders_list": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 3.234,
+        "p95_ms": 4.225,
+        "max_ms": 5.852
+      },
+      "client": {
+        "p50_ms": 3.628,
+        "p95_ms": 4.679,
+        "max_ms": 6.361
+      },
+      "target_ms": 200
+    },
+    "v1_quote": {
+      "samples": 40,
+      "server": {
+        "p50_ms": 4.049,
+        "p95_ms": 4.774,
+        "max_ms": 6.577
+      },
+      "client": {
+        "p50_ms": 4.316,
+        "p95_ms": 5.16,
+        "max_ms": 7.042
+      },
+      "target_ms": 500
+    }
+  },
+  "worker_retryable_errors": {
+    "0": {},
+    "1": {},
+    "2": {},
+    "3": {}
+  },
+  "failed_attempts": [],
+  "deadlocks": 0,
+  "samples_raw": [
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 2.918,
+      "client_elapsed_ms": 3.3172079999985726,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 12.699,
+      "client_elapsed_ms": 12.95054099998083,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 22.488,
+      "client_elapsed_ms": 22.70008299998949,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.033,
+      "client_elapsed_ms": 4.23733299999185,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.065,
+      "client_elapsed_ms": 13.346917000006897,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.799,
+      "client_elapsed_ms": 3.0071669999927053,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 252.804,
+      "client_elapsed_ms": 253.05587500000115,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 745.224,
+      "client_elapsed_ms": 745.4981250000117,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1014.778,
+      "client_elapsed_ms": 1015.0826659999836,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 589.156,
+      "client_elapsed_ms": 589.4356659999858,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.256,
+      "client_elapsed_ms": 3.6505410000131633,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 13.455,
+      "client_elapsed_ms": 13.709542000015063,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.178,
+      "client_elapsed_ms": 25.443166999991718,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.484,
+      "client_elapsed_ms": 3.7283750000085547,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 21.794,
+      "client_elapsed_ms": 21.993957999995928,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.411,
+      "client_elapsed_ms": 3.6349169999994047,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 263.44,
+      "client_elapsed_ms": 263.7801249999825,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 734.15,
+      "client_elapsed_ms": 734.4850829999814,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 995.322,
+      "client_elapsed_ms": 995.5607079999993,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 597.684,
+      "client_elapsed_ms": 597.9345830000113,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.269,
+      "client_elapsed_ms": 3.66641700000514,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 13.989,
+      "client_elapsed_ms": 14.319917000022997,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.148,
+      "client_elapsed_ms": 27.385417000004963,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.296,
+      "client_elapsed_ms": 4.5850410000127795,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.4,
+      "client_elapsed_ms": 13.671875,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.439,
+      "client_elapsed_ms": 3.6836250000078508,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 270.148,
+      "client_elapsed_ms": 270.44341699999563,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 742.953,
+      "client_elapsed_ms": 743.210457999993,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 978.93,
+      "client_elapsed_ms": 979.2071659999806,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 609.691,
+      "client_elapsed_ms": 609.9665830000163,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.49,
+      "client_elapsed_ms": 3.915959000011071,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 13.922,
+      "client_elapsed_ms": 14.187916999986783,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.171,
+      "client_elapsed_ms": 25.421790999985205,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.849,
+      "client_elapsed_ms": 4.156875000006721,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.044,
+      "client_elapsed_ms": 14.427417000007381,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.059,
+      "client_elapsed_ms": 3.339250000010452,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 261.913,
+      "client_elapsed_ms": 262.1844580000072,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 751.718,
+      "client_elapsed_ms": 752.0120419999898,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1040.208,
+      "client_elapsed_ms": 1040.5047080000145,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 599.331,
+      "client_elapsed_ms": 599.6120830000109,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.815,
+      "client_elapsed_ms": 4.217332999985501,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 13.632,
+      "client_elapsed_ms": 13.900415999984261,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.769,
+      "client_elapsed_ms": 26.06116699999461,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 5.509,
+      "client_elapsed_ms": 5.819375000015725,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.934,
+      "client_elapsed_ms": 14.33504199999902,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.162,
+      "client_elapsed_ms": 3.3820829999910984,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 273.303,
+      "client_elapsed_ms": 273.5740419999786,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 805.253,
+      "client_elapsed_ms": 805.5388749999963,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1005.929,
+      "client_elapsed_ms": 1006.2199169999815,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 595.317,
+      "client_elapsed_ms": 595.6055000000049,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.305,
+      "client_elapsed_ms": 3.7707079999904636,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.277,
+      "client_elapsed_ms": 14.556040999991637,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.766,
+      "client_elapsed_ms": 26.01874999999154,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.198,
+      "client_elapsed_ms": 4.474708999993027,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 12.931,
+      "client_elapsed_ms": 13.230999999990445,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.084,
+      "client_elapsed_ms": 3.340500000007296,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 267.885,
+      "client_elapsed_ms": 268.1697090000057,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 791.085,
+      "client_elapsed_ms": 791.3590420000105,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1013.331,
+      "client_elapsed_ms": 1013.6210419999827,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 600.788,
+      "client_elapsed_ms": 601.0711250000043,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.508,
+      "client_elapsed_ms": 3.938457999993261,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.216,
+      "client_elapsed_ms": 14.496291000000383,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.744,
+      "client_elapsed_ms": 26.98191700000052,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.818,
+      "client_elapsed_ms": 4.102958000004264,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.237,
+      "client_elapsed_ms": 13.537457999973412,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.946,
+      "client_elapsed_ms": 3.1322920000036447,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 268.696,
+      "client_elapsed_ms": 268.9506669999844,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 756.538,
+      "client_elapsed_ms": 756.8287499999826,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1018.127,
+      "client_elapsed_ms": 1018.3905829999844,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 607.836,
+      "client_elapsed_ms": 608.1569589999845,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.135,
+      "client_elapsed_ms": 3.575500000010834,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.554,
+      "client_elapsed_ms": 14.847416000009162,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.187,
+      "client_elapsed_ms": 26.47858299999939,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.838,
+      "client_elapsed_ms": 4.110708999974122,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.958,
+      "client_elapsed_ms": 14.254415999999992,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.939,
+      "client_elapsed_ms": 3.139374999989286,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 273.994,
+      "client_elapsed_ms": 274.27249999999503,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 772.047,
+      "client_elapsed_ms": 772.3290000000134,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1011.599,
+      "client_elapsed_ms": 1011.8881669999951,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 630.467,
+      "client_elapsed_ms": 630.7669999999916,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.997,
+      "client_elapsed_ms": 4.447959000003721,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 16.051,
+      "client_elapsed_ms": 16.435707999988836,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 31.359,
+      "client_elapsed_ms": 31.76054200000067,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.757,
+      "client_elapsed_ms": 5.1597499999900265,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 19.455,
+      "client_elapsed_ms": 19.912791999985302,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.461,
+      "client_elapsed_ms": 3.680290999994895,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 363.175,
+      "client_elapsed_ms": 363.51083400001016,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 856.367,
+      "client_elapsed_ms": 857.1194579999997,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1013.458,
+      "client_elapsed_ms": 1013.7870840000005,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 614.576,
+      "client_elapsed_ms": 614.8975000000121,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.734,
+      "client_elapsed_ms": 4.170874999999796,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.501,
+      "client_elapsed_ms": 14.74891699999148,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.65,
+      "client_elapsed_ms": 25.96258399998419,
+      "kind": "read",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.203,
+      "client_elapsed_ms": 4.469708000016226,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.643,
+      "client_elapsed_ms": 13.942541999995228,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.738,
+      "client_elapsed_ms": 2.9344579999985854,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 273.965,
+      "client_elapsed_ms": 274.2355000000032,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 793.055,
+      "client_elapsed_ms": 793.3757910000168,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1006.398,
+      "client_elapsed_ms": 1006.6941249999957,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 621.915,
+      "client_elapsed_ms": 622.1854169999972,
+      "kind": "command",
+      "worker": 0,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.072,
+      "client_elapsed_ms": 4.255083000003879,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.278,
+      "client_elapsed_ms": 13.548165999992534,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.773,
+      "client_elapsed_ms": 2.974874999978283,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 247.13,
+      "client_elapsed_ms": 247.38141700001393,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 742.694,
+      "client_elapsed_ms": 742.9873749999842,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 996.69,
+      "client_elapsed_ms": 997.0074169999918,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 589.282,
+      "client_elapsed_ms": 589.5789580000041,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 2.944,
+      "client_elapsed_ms": 3.368499999993446,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 68.609,
+      "client_elapsed_ms": 68.78366699999106,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.831,
+      "client_elapsed_ms": 25.983833999987382,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.55,
+      "client_elapsed_ms": 3.7439580000011574,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.352,
+      "client_elapsed_ms": 14.574417000005724,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.835,
+      "client_elapsed_ms": 3.062959000004639,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 254.46,
+      "client_elapsed_ms": 254.7691249999957,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 751.369,
+      "client_elapsed_ms": 751.712083000001,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 995.796,
+      "client_elapsed_ms": 996.1057499999981,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 591.622,
+      "client_elapsed_ms": 591.8725829999971,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.173,
+      "client_elapsed_ms": 3.52287499998738,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 69.414,
+      "client_elapsed_ms": 69.65424999998504,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.458,
+      "client_elapsed_ms": 27.689709000014773,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.846,
+      "client_elapsed_ms": 4.121792000006508,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.012,
+      "client_elapsed_ms": 14.5358329999965,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.121,
+      "client_elapsed_ms": 3.328207999999222,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 265.687,
+      "client_elapsed_ms": 265.98829200000296,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 736.046,
+      "client_elapsed_ms": 736.3419159999864,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 994.172,
+      "client_elapsed_ms": 994.4326250000017,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 594.507,
+      "client_elapsed_ms": 594.8042500000099,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.06,
+      "client_elapsed_ms": 3.4520000000100026,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 69.662,
+      "client_elapsed_ms": 69.90174999998544,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.509,
+      "client_elapsed_ms": 27.72891699999036,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.671,
+      "client_elapsed_ms": 3.9147079999963807,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.086,
+      "client_elapsed_ms": 14.427500000010696,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.122,
+      "client_elapsed_ms": 3.357291999975587,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 271.498,
+      "client_elapsed_ms": 271.82024999999044,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 739.029,
+      "client_elapsed_ms": 739.2967500000225,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1045.336,
+      "client_elapsed_ms": 1045.6367920000105,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 609.241,
+      "client_elapsed_ms": 609.4491249999976,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.024,
+      "client_elapsed_ms": 3.3651660000089123,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 79.257,
+      "client_elapsed_ms": 79.50933399999371,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.299,
+      "client_elapsed_ms": 27.534624999987045,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.317,
+      "client_elapsed_ms": 4.575708000004397,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.135,
+      "client_elapsed_ms": 14.408416999998508,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.425,
+      "client_elapsed_ms": 3.6632080000060796,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 272.059,
+      "client_elapsed_ms": 272.34766699999113,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 784.834,
+      "client_elapsed_ms": 785.1280839999788,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 996.688,
+      "client_elapsed_ms": 996.9747089999998,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 601.849,
+      "client_elapsed_ms": 602.0896250000192,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.552,
+      "client_elapsed_ms": 3.9492079999945418,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 73.455,
+      "client_elapsed_ms": 73.71374999999603,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.369,
+      "client_elapsed_ms": 27.613375000015594,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.131,
+      "client_elapsed_ms": 4.409458999987237,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 12.915,
+      "client_elapsed_ms": 13.211042000023099,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.919,
+      "client_elapsed_ms": 3.312374999978829,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 292.592,
+      "client_elapsed_ms": 292.9239999999993,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 793.352,
+      "client_elapsed_ms": 793.6782920000098,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1018.7,
+      "client_elapsed_ms": 1018.9953750000029,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 607.333,
+      "client_elapsed_ms": 607.5883329999954,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.342,
+      "client_elapsed_ms": 3.7594590000082917,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 73.049,
+      "client_elapsed_ms": 73.32249999998908,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.722,
+      "client_elapsed_ms": 27.982374999993453,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.864,
+      "client_elapsed_ms": 4.136999999985846,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.446,
+      "client_elapsed_ms": 13.704291999999896,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.229,
+      "client_elapsed_ms": 3.520541000000321,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 277.101,
+      "client_elapsed_ms": 277.3660409999934,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 750.853,
+      "client_elapsed_ms": 751.1255409999933,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1002.533,
+      "client_elapsed_ms": 1002.8513339999847,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 609.848,
+      "client_elapsed_ms": 610.1197499999955,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.177,
+      "client_elapsed_ms": 3.5614169999860223,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 74.409,
+      "client_elapsed_ms": 74.73079100000746,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 28.957,
+      "client_elapsed_ms": 29.326749999995627,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.851,
+      "client_elapsed_ms": 4.124458000006825,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 12.673,
+      "client_elapsed_ms": 13.025166999995008,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.098,
+      "client_elapsed_ms": 3.3550829999740017,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 278.666,
+      "client_elapsed_ms": 278.97641699999554,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 764.891,
+      "client_elapsed_ms": 765.1674999999898,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1016.661,
+      "client_elapsed_ms": 1016.9263330000149,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 720.819,
+      "client_elapsed_ms": 721.2660000000142,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 4.225,
+      "client_elapsed_ms": 4.8645410000176526,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 89.251,
+      "client_elapsed_ms": 89.64129200001025,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 38.069,
+      "client_elapsed_ms": 38.48125000001801,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.079,
+      "client_elapsed_ms": 4.523082999980943,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 15.552,
+      "client_elapsed_ms": 16.019666999994797,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.695,
+      "client_elapsed_ms": 4.0777090000005956,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 323.659,
+      "client_elapsed_ms": 324.12400000001185,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 759.396,
+      "client_elapsed_ms": 759.6761249999986,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1039.16,
+      "client_elapsed_ms": 1039.4119159999775,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 614.855,
+      "client_elapsed_ms": 615.1262079999924,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 2.988,
+      "client_elapsed_ms": 3.413875000006783,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 73.772,
+      "client_elapsed_ms": 74.04120800001124,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 29.17,
+      "client_elapsed_ms": 29.414041999984875,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.774,
+      "client_elapsed_ms": 5.057457999981807,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.48,
+      "client_elapsed_ms": 13.787958999984085,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.263,
+      "client_elapsed_ms": 3.5016250000126092,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 282.861,
+      "client_elapsed_ms": 283.1459999999879,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 761.547,
+      "client_elapsed_ms": 761.8378329999871,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1019.235,
+      "client_elapsed_ms": 1019.541916999998,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 533.432,
+      "client_elapsed_ms": 533.6933749999844,
+      "kind": "command",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 2.51,
+      "client_elapsed_ms": 2.818708000006609,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 59.246,
+      "client_elapsed_ms": 59.480665999984694,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 23.963,
+      "client_elapsed_ms": 24.170583999989503,
+      "kind": "read",
+      "worker": 1,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 251.503,
+      "client_elapsed_ms": 251.7591669999888,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 750.539,
+      "client_elapsed_ms": 750.8137499999918,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 986.165,
+      "client_elapsed_ms": 986.45424999998,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 583.602,
+      "client_elapsed_ms": 583.9114580000171,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.206,
+      "client_elapsed_ms": 3.6063750000039363,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.399,
+      "client_elapsed_ms": 14.683916999985058,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 23.856,
+      "client_elapsed_ms": 24.025584000014533,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.578,
+      "client_elapsed_ms": 4.768041999994921,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.133,
+      "client_elapsed_ms": 14.43066600000975,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.059,
+      "client_elapsed_ms": 3.299209000005021,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 254.412,
+      "client_elapsed_ms": 254.66533400000912,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 730.414,
+      "client_elapsed_ms": 730.6672090000177,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 987.701,
+      "client_elapsed_ms": 987.9767909999941,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 580.57,
+      "client_elapsed_ms": 580.8875000000171,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.056,
+      "client_elapsed_ms": 3.4714159999964522,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.144,
+      "client_elapsed_ms": 14.430333000007067,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.046,
+      "client_elapsed_ms": 25.3090420000035,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.004,
+      "client_elapsed_ms": 4.325042000004942,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.811,
+      "client_elapsed_ms": 15.12258300002145,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.118,
+      "client_elapsed_ms": 3.339000000011083,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 266.542,
+      "client_elapsed_ms": 266.80920799998376,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 739.139,
+      "client_elapsed_ms": 739.4184160000066,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 985.665,
+      "client_elapsed_ms": 985.9529160000022,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 601.321,
+      "client_elapsed_ms": 601.694416000015,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.211,
+      "client_elapsed_ms": 3.606416999986095,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 15.534,
+      "client_elapsed_ms": 15.809958999994933,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.417,
+      "client_elapsed_ms": 25.765040999999655,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.952,
+      "client_elapsed_ms": 4.293582999991941,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.897,
+      "client_elapsed_ms": 14.20054199999754,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.085,
+      "client_elapsed_ms": 3.348041000009516,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 270.665,
+      "client_elapsed_ms": 270.93091699998695,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 752.136,
+      "client_elapsed_ms": 752.42424999999,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1041.126,
+      "client_elapsed_ms": 1041.4551249999988,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 617.637,
+      "client_elapsed_ms": 618.022499999995,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.449,
+      "client_elapsed_ms": 3.919542000005549,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 13.982,
+      "client_elapsed_ms": 14.27345900000887,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 24.899,
+      "client_elapsed_ms": 25.18945799999983,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.923,
+      "client_elapsed_ms": 4.183709000017188,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.29,
+      "client_elapsed_ms": 14.55108299998642,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.133,
+      "client_elapsed_ms": 3.367916999991394,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 269.232,
+      "client_elapsed_ms": 269.51429199999666,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 774.168,
+      "client_elapsed_ms": 774.6051249999937,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1016.099,
+      "client_elapsed_ms": 1016.4192910000054,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 593.341,
+      "client_elapsed_ms": 593.6150830000031,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.814,
+      "client_elapsed_ms": 4.266416999996636,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.354,
+      "client_elapsed_ms": 15.369374999977481,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.689,
+      "client_elapsed_ms": 25.96070800001371,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.139,
+      "client_elapsed_ms": 4.402416000004905,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.352,
+      "client_elapsed_ms": 14.632250000005342,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.507,
+      "client_elapsed_ms": 3.753584000008914,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 272.967,
+      "client_elapsed_ms": 273.2434999999782,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 791.314,
+      "client_elapsed_ms": 791.5928330000099,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1006.818,
+      "client_elapsed_ms": 1007.1302499999888,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 600.603,
+      "client_elapsed_ms": 600.8825840000043,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.171,
+      "client_elapsed_ms": 3.5733330000198293,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.924,
+      "client_elapsed_ms": 15.236874999999372,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.118,
+      "client_elapsed_ms": 27.3697499999912,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.976,
+      "client_elapsed_ms": 4.264082999981156,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.474,
+      "client_elapsed_ms": 13.748124999978018,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.13,
+      "client_elapsed_ms": 3.513040999990835,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 273.516,
+      "client_elapsed_ms": 273.8055830000121,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 749.294,
+      "client_elapsed_ms": 749.5789169999796,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 990.409,
+      "client_elapsed_ms": 990.6764579999958,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 595.721,
+      "client_elapsed_ms": 596.0322500000075,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.304,
+      "client_elapsed_ms": 3.7221249999959127,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.376,
+      "client_elapsed_ms": 14.717042000000902,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.501,
+      "client_elapsed_ms": 25.741166999978304,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.817,
+      "client_elapsed_ms": 4.12683300001504,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.197,
+      "client_elapsed_ms": 13.499583999987408,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.0,
+      "client_elapsed_ms": 3.223416999986739,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 274.448,
+      "client_elapsed_ms": 274.71591600001943,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 768.065,
+      "client_elapsed_ms": 768.3319170000118,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1007.412,
+      "client_elapsed_ms": 1007.6725419999946,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 605.572,
+      "client_elapsed_ms": 605.8488749999924,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.205,
+      "client_elapsed_ms": 3.6032499999976153,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.443,
+      "client_elapsed_ms": 14.753291999994644,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 25.593,
+      "client_elapsed_ms": 25.947417000026007,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.709,
+      "client_elapsed_ms": 5.121916999996756,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 19.954,
+      "client_elapsed_ms": 20.44370800001616,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 4.119,
+      "client_elapsed_ms": 4.371958000007226,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 300.816,
+      "client_elapsed_ms": 301.14137499998606,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 924.825,
+      "client_elapsed_ms": 925.1380830000073,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1027.573,
+      "client_elapsed_ms": 1027.844000000016,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 631.404,
+      "client_elapsed_ms": 631.7212499999982,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.55,
+      "client_elapsed_ms": 3.968374999999469,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.245,
+      "client_elapsed_ms": 14.50120900000229,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.722,
+      "client_elapsed_ms": 26.999249999988706,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.065,
+      "client_elapsed_ms": 4.371834000011177,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.889,
+      "client_elapsed_ms": 14.18354200001204,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.499,
+      "client_elapsed_ms": 3.744874999995318,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 280.59,
+      "client_elapsed_ms": 280.8543749999899,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 784.605,
+      "client_elapsed_ms": 784.8266660000149,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1028.676,
+      "client_elapsed_ms": 1028.9591659999928,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 638.232,
+      "client_elapsed_ms": 638.5500829999842,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.184,
+      "client_elapsed_ms": 3.5742909999783024,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 14.937,
+      "client_elapsed_ms": 15.202166999984001,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.154,
+      "client_elapsed_ms": 26.426749999984622,
+      "kind": "read",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.138,
+      "client_elapsed_ms": 4.430000000013479,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.849,
+      "client_elapsed_ms": 14.146374999995714,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.981,
+      "client_elapsed_ms": 3.1966659999795866,
+      "kind": "command",
+      "worker": 2,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 573.621,
+      "client_elapsed_ms": 574.0004580000004,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 4.271,
+      "client_elapsed_ms": 4.678582999986247,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 41.629,
+      "client_elapsed_ms": 42.02033300001062,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.516,
+      "client_elapsed_ms": 26.896666999988383,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 6.577,
+      "client_elapsed_ms": 7.042250000012018,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.144,
+      "client_elapsed_ms": 14.570499999990716,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.938,
+      "client_elapsed_ms": 3.1389160000117045,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 264.103,
+      "client_elapsed_ms": 264.39541599998506,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 743.619,
+      "client_elapsed_ms": 743.9064589999873,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1007.646,
+      "client_elapsed_ms": 1007.8869159999897,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 596.936,
+      "client_elapsed_ms": 597.1981669999877,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 2.942,
+      "client_elapsed_ms": 3.2713749999970787,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 37.66,
+      "client_elapsed_ms": 37.98183300000346,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.17,
+      "client_elapsed_ms": 26.431166999998368,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.389,
+      "client_elapsed_ms": 4.710291000009192,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.68,
+      "client_elapsed_ms": 15.023084000006293,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.217,
+      "client_elapsed_ms": 3.4628749999967567,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 262.367,
+      "client_elapsed_ms": 262.6422919999811,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 748.186,
+      "client_elapsed_ms": 748.6360000000047,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 971.084,
+      "client_elapsed_ms": 971.3322080000069,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 602.849,
+      "client_elapsed_ms": 603.1263330000058,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.045,
+      "client_elapsed_ms": 3.3843749999959982,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 35.223,
+      "client_elapsed_ms": 35.502708000024086,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.389,
+      "client_elapsed_ms": 26.639833000018598,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.925,
+      "client_elapsed_ms": 4.187415999979294,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.267,
+      "client_elapsed_ms": 13.546832999992375,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.167,
+      "client_elapsed_ms": 3.4481670000161557,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 264.051,
+      "client_elapsed_ms": 264.3055409999988,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 749.992,
+      "client_elapsed_ms": 750.2563750000206,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 989.531,
+      "client_elapsed_ms": 989.7823750000043,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 582.191,
+      "client_elapsed_ms": 582.4830840000175,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.059,
+      "client_elapsed_ms": 3.4342919999801325,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 37.307,
+      "client_elapsed_ms": 37.7030000000218,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.085,
+      "client_elapsed_ms": 27.359375000003183,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.757,
+      "client_elapsed_ms": 4.046958999992967,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 14.478,
+      "client_elapsed_ms": 14.784375000004957,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 4.189,
+      "client_elapsed_ms": 4.434166999999434,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 269.744,
+      "client_elapsed_ms": 270.057458999986,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 771.614,
+      "client_elapsed_ms": 772.0001250000053,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1014.441,
+      "client_elapsed_ms": 1014.7286250000036,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 600.913,
+      "client_elapsed_ms": 601.1689579999882,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.576,
+      "client_elapsed_ms": 3.9672499999880984,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 38.362,
+      "client_elapsed_ms": 38.63204199998904,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.557,
+      "client_elapsed_ms": 26.810249999982716,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.931,
+      "client_elapsed_ms": 4.19279199999778,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.801,
+      "client_elapsed_ms": 14.127708000017947,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.187,
+      "client_elapsed_ms": 3.4415419999902497,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 314.839,
+      "client_elapsed_ms": 315.2580420000106,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 776.806,
+      "client_elapsed_ms": 777.1452090000253,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 990.262,
+      "client_elapsed_ms": 990.5315830000063,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 620.752,
+      "client_elapsed_ms": 621.0372080000184,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.213,
+      "client_elapsed_ms": 3.577833000008468,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 38.993,
+      "client_elapsed_ms": 39.235500000017964,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 28.321,
+      "client_elapsed_ms": 28.566374999996924,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.302,
+      "client_elapsed_ms": 4.5943750000105865,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.088,
+      "client_elapsed_ms": 13.429250000001502,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.945,
+      "client_elapsed_ms": 3.1252919999928963,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 274.044,
+      "client_elapsed_ms": 274.2861669999854,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 773.919,
+      "client_elapsed_ms": 774.2070000000183,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1005.928,
+      "client_elapsed_ms": 1006.1772089999863,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 612.329,
+      "client_elapsed_ms": 612.6067499999976,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.415,
+      "client_elapsed_ms": 3.8069579999842063,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 37.992,
+      "client_elapsed_ms": 38.280667000009316,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 28.143,
+      "client_elapsed_ms": 28.39312499997959,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.076,
+      "client_elapsed_ms": 4.34154100000228,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.514,
+      "client_elapsed_ms": 13.794665999995459,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.841,
+      "client_elapsed_ms": 3.014624999991611,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 273.912,
+      "client_elapsed_ms": 274.20308400002114,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 761.597,
+      "client_elapsed_ms": 761.8992090000063,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1014.35,
+      "client_elapsed_ms": 1014.5698750000065,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 607.104,
+      "client_elapsed_ms": 607.459208999984,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.089,
+      "client_elapsed_ms": 3.4617919999959668,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 38.975,
+      "client_elapsed_ms": 39.266709000003175,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 26.651,
+      "client_elapsed_ms": 26.907915999998977,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.025,
+      "client_elapsed_ms": 4.307583000013437,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.005,
+      "client_elapsed_ms": 13.296707999984392,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 2.853,
+      "client_elapsed_ms": 3.05970800002342,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 274.349,
+      "client_elapsed_ms": 274.620791999979,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 750.295,
+      "client_elapsed_ms": 750.700457999983,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1061.923,
+      "client_elapsed_ms": 1062.2829580000257,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 772.533,
+      "client_elapsed_ms": 772.9279170000041,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 5.852,
+      "client_elapsed_ms": 6.36112500001218,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 39.52,
+      "client_elapsed_ms": 39.87837500000069,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.587,
+      "client_elapsed_ms": 27.868500000010954,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 3.946,
+      "client_elapsed_ms": 4.225625000003674,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.922,
+      "client_elapsed_ms": 14.253749999994625,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.509,
+      "client_elapsed_ms": 3.836874999990414,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 279.267,
+      "client_elapsed_ms": 279.5733340000197,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 759.399,
+      "client_elapsed_ms": 759.6926250000138,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1046.242,
+      "client_elapsed_ms": 1046.5046660000041,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "server_elapsed_ms": 613.798,
+      "client_elapsed_ms": 614.0614999999912,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_orders_list",
+      "server_elapsed_ms": 3.701,
+      "client_elapsed_ms": 4.177625000011176,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_get",
+      "server_elapsed_ms": 39.324,
+      "client_elapsed_ms": 39.691207999993594,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_dashboard",
+      "server_elapsed_ms": 27.752,
+      "client_elapsed_ms": 28.066209000002118,
+      "kind": "read",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_quote",
+      "server_elapsed_ms": 4.303,
+      "client_elapsed_ms": 4.589374999994789,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_place",
+      "server_elapsed_ms": 13.198,
+      "client_elapsed_ms": 13.475709000005054,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_order_payment_record",
+      "server_elapsed_ms": 3.063,
+      "client_elapsed_ms": 3.3353750000060245,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_cutting_record",
+      "server_elapsed_ms": 279.213,
+      "client_elapsed_ms": 279.56404200000406,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_assign",
+      "server_elapsed_ms": 761.511,
+      "client_elapsed_ms": 761.8093339999916,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    },
+    {
+      "rpc": "v1_jobsheet_inspect",
+      "server_elapsed_ms": 1002.551,
+      "client_elapsed_ms": 1002.7929590000042,
+      "kind": "command",
+      "worker": 3,
+      "attempt": 1
+    }
+  ],
+  "contention": [
+    {
+      "rpc": "v1_cutting_record",
+      "same_key_successes": 4,
+      "same_key_effects": 1,
+      "competing_results": {
+        "40001": 3,
+        "success": 1
+      },
+      "expected_conflict_client_elapsed_ms": [
+        431.583,
+        339.919,
+        522.759
+      ],
+      "reload_retry_successes": 1,
+      "over_capacity_sqlstate": "22023",
+      "balances": [
+        6,
+        6,
+        0,
+        0,
+        0
+      ],
+      "same_key_timing": {
+        "samples": 4,
+        "server": {
+          "p50_ms": 238.546,
+          "p95_ms": 238.949,
+          "max_ms": 238.949
+        },
+        "client": {
+          "p50_ms": 238.851,
+          "p95_ms": 239.298,
+          "max_ms": 239.298
+        }
+      },
+      "successful_competing_timing": {
+        "samples": 1,
+        "server": {
+          "p50_ms": 246.485,
+          "p95_ms": 246.485,
+          "max_ms": 246.485
+        },
+        "client": {
+          "p50_ms": 246.915,
+          "p95_ms": 246.915,
+          "max_ms": 246.915
+        }
+      }
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "same_key_successes": 4,
+      "same_key_effects": 1,
+      "competing_results": {
+        "40001": 3,
+        "success": 1
+      },
+      "expected_conflict_client_elapsed_ms": [
+        873.352,
+        1181.764,
+        1538.407
+      ],
+      "reload_retry_successes": 1,
+      "over_capacity_sqlstate": "55000",
+      "balances": [
+        6,
+        6,
+        6,
+        6,
+        6
+      ],
+      "same_key_timing": {
+        "samples": 4,
+        "server": {
+          "p50_ms": 499.814,
+          "p95_ms": 500.199,
+          "max_ms": 500.199
+        },
+        "client": {
+          "p50_ms": 500.138,
+          "p95_ms": 500.584,
+          "max_ms": 500.584
+        }
+      },
+      "successful_competing_timing": {
+        "samples": 1,
+        "server": {
+          "p50_ms": 565.623,
+          "p95_ms": 565.623,
+          "max_ms": 565.623
+        },
+        "client": {
+          "p50_ms": 566.096,
+          "p95_ms": 566.096,
+          "max_ms": 566.096
+        }
+      }
+    },
+    {
+      "rpc": "v1_order_place",
+      "same_key_successes": 4,
+      "same_key_order_sets": 1,
+      "accepted_total": "1205.88",
+      "timing": {
+        "samples": 4,
+        "server": {
+          "p50_ms": 31.121,
+          "p95_ms": 31.486,
+          "max_ms": 31.486
+        },
+        "client": {
+          "p50_ms": 31.481,
+          "p95_ms": 31.801,
+          "max_ms": 31.801
+        }
+      }
+    },
+    {
+      "rpc": "v1_dispatch_record",
+      "scenario": "four independent orders compete for one dealer stock variant",
+      "results": {
+        "55000": 3,
+        "success": 1
+      },
+      "received": 10,
+      "consumed": 7,
+      "available": 3,
+      "sum_customer_dispatches": 7,
+      "sum_stock_ledger": 7,
+      "expected_insufficient_client_elapsed_ms": [
+        35.708,
+        39.563,
+        37.552
+      ],
+      "successful_timing": {
+        "samples": 1,
+        "server": {
+          "p50_ms": 32.811,
+          "p95_ms": 32.811,
+          "max_ms": 32.811
+        },
+        "client": {
+          "p50_ms": 33.304,
+          "p95_ms": 33.304,
+          "max_ms": 33.304
+        }
+      }
+    }
+  ],
+  "budgets_pass": false,
+  "cleanup": {
+    "tables_verified": 154,
+    "all_baseline_row_fingerprints_restored": true,
+    "environment_revisions_restored": true,
+    "sequence_gaps_retained": true
+  }
+}

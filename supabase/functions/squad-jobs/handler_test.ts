@@ -1,4 +1,4 @@
-import {createHandler,type Rpc} from './handler.ts';
+import {scheduledMaintenance,createHandler,type Rpc} from './handler.ts';
 const secret='test-only-not-a-real-secret-1234567890';
 function assert(value:unknown,message='assertion failed'):asserts value {if(!value)throw new Error(message);}
 function request(body:unknown={},token=secret,path='/functions/v1/squad-jobs/run'){
@@ -47,4 +47,44 @@ Deno.test('cleanup refuses paths outside reserved upload bucket',async()=>{
 Deno.test('account reconciliation uses the installed handler and retains lease secrecy',async()=>{
  let seen=false;const rpc:Rpc=async()=>({paused:false,jobs:[{id:'account',lease_token:'private',handler:'account_reconciliation'}]});
  const h=createHandler(secret,rpc,undefined,async j=>{assert(j.id==='account'&&j.lease_token==='private');seen=true;return{id:j.id,state:'done'};});const body=await(await h(request())).text();assert(seen&&body.includes('done')&&!body.includes('private'));
+});
+Deno.test('domain worker routing uses only fixed installed handlers and exact leases',async()=>{
+ const seen:string[]=[],pending=['warehouse','airtable','business_mail','airtable_report','warehouse_webhook'];const rpc:Rpc=async(name,args)=>{
+  if(name==='squad_job_claim'){assert(args.p_limit===1);const handler=pending.shift();return{paused:false,jobs:handler?[{id:handler,lease_token:'private',handler}]:[]};}
+  assert(name==='squad_warehouse_webhook'&&args.p_id==='warehouse_webhook'&&args.p_lease_token==='private');seen.push('warehouse_webhook');return{state:'done'};
+ };
+ const run=async(j:{id:string;lease_token:string})=>{assert(j.lease_token==='private');seen.push(j.id);return{id:j.id,state:'done'};};
+ const h=createHandler(secret,rpc,undefined,undefined,undefined,undefined,undefined,undefined,{warehouse:run,airtable:run,businessMail:run,airtableReport:run});
+ const body=await(await h(request({limit:5}))).text();assert(seen.join(',')==='warehouse,airtable,business_mail,airtable_report,warehouse_webhook');assert(!body.includes('private'));
+});
+Deno.test('uninstalled or unknown domain handler retains recoverable lease',async()=>{
+ const rpc:Rpc=async(name)=>{assert(name==='squad_job_claim');return{paused:false,jobs:[{id:'x',lease_token:'private',handler:'arbitrary_name'}]};};
+ const body=await(await createHandler(secret,rpc)(request())).json();assert(body.results[0].state==='unconfirmed');
+});
+
+Deno.test('queue drains fast jobs without leasing work ahead of execution',async()=>{
+ const calls:string[]=[];let id=0;
+ const rpc:Rpc=async(name,args)=>{if(name==='squad_job_claim'){assert(args.p_limit===1);calls.push('claim');return{paused:false,jobs:[{id:String(++id),lease_token:'private',handler:'local_amendment'}]};}calls.push('run:'+args.p_id);return{state:'done'};};
+ const result=await(await createHandler(secret,rpc)(request({limit:3}))).json();
+ assert(result.results.length===3&&calls.join(',')==='claim,run:1,claim,run:2,claim,run:3');
+});
+Deno.test('uncertain job never preclaims another work item',async()=>{
+ let claims=0;const rpc:Rpc=async(name)=>{if(name==='squad_job_claim'){claims++;return{paused:false,jobs:[{id:'1',lease_token:'private',handler:'local_amendment'}]};}throw new Error('uncertain commit');};
+ const result=await(await createHandler(secret,rpc)(request({limit:5}))).json();assert(claims===1&&result.results[0].state==='unconfirmed');
+});
+Deno.test('scheduled maintenance runs only after authorization and input validation',async()=>{
+ let count=0;const h=createHandler(secret,async()=>({paused:true,jobs:[]}),undefined,undefined,undefined,undefined,undefined,undefined,{heartbeat:async()=>{count++;}});
+ await h(request({},'wrong'));await h(request({arbitrary:'command'}));assert(count===0);
+ const result=await(await h(request())).json();assert(Number(count)===1&&result.paused&&result.results.length===0);
+});
+Deno.test('scheduler failure is visible without blocking existing queued work',async()=>{
+ const rpc:Rpc=async(name)=>name==='squad_job_claim'?{paused:false,jobs:[{id:'job',lease_token:'private',handler:'local_amendment'}]}:{state:'done'};
+ const h=createHandler(secret,rpc,undefined,undefined,undefined,undefined,undefined,undefined,{heartbeat:async()=>{throw new Error('private failure');}});
+ const result=await(await h(request({limit:1}))).json();assert(result.maintenance==='unconfirmed'&&result.results[0].state==='done'&&!JSON.stringify(result).includes('private'));
+});
+
+Deno.test('maintenance independently attempts both fixed schedules despite one failure',async()=>{
+ const calls:string[]=[];let rejected=false;
+ try{await scheduledMaintenance(async(name,args)=>{calls.push(name);if(name==='squad_weekly_tailor_heartbeat'){assert(args.p_limit===25);throw new Error('private');}assert(name==='squad_warehouse_heartbeat'&&Object.keys(args).length===0);return{state:'disabled'};});}catch(error){rejected=error instanceof Error&&error.message==='maintenance_unconfirmed';}
+ assert(rejected&&calls.join(',')==='squad_weekly_tailor_heartbeat,squad_warehouse_heartbeat');
 });

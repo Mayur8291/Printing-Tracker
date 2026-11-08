@@ -58,7 +58,8 @@ class ScopedReads(unittest.TestCase):
         self.assertTrue(order['created_at'].endswith('Z'))
     def test_production_order_fields_redacted(self):
         session(self.c,102);order=rpc(self.c,'v1_order_get',(1001,))
-        self.assertNotIn('total_amount',order);self.assertEqual(order['items']['data'][0]['worker_unit_cost'],'40')
+        self.assertIn('total_amount',order);self.assertNotIn('paid_amount',order);self.assertNotIn('payment_status',order)
+        self.assertEqual(order['items']['data'][0]['worker_unit_cost'],'40')
     def test_foreign_order_detail_denied(self):
         session(self.c,103)
         with self.assertRaises(psycopg.errors.NoDataFound):rpc(self.c,'v1_order_get',(2001,))

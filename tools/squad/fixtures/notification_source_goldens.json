@@ -1,0 +1,3443 @@
+{
+  "format": "squad-notification-source-goldens/v1",
+  "source_commit": "14277820c78e018e62be3da1a14cd8d716cdbf02",
+  "flutter_commit": "5d55d9461af18b94a867dce07dee7c4b76f1e51f",
+  "provenance": "Manually reviewed Ruby recipient helper groups and source dispatch branches. Literal synthetic expected recipients; not generated from the runtime SQL or routing registry.",
+  "shared_source_anchors": [
+    {
+      "path": "controllers/api/v1/customers_controller.rb",
+      "sha256": "413d43d51d18a3b03d65b8a2f58902aad5f7259a4593965eacea8382d0ad6fef"
+    },
+    {
+      "path": "controllers/api/v1/dispatch_incharges_controller.rb",
+      "sha256": "8c3825d25c9f943db0a6bbecf7517ae9883853ba06f27dab0c7f2d868e3f59a2"
+    },
+    {
+      "path": "controllers/api/v1/factory_managers_controller.rb",
+      "sha256": "a8111c52f873115a9f42ae20a0a6d30237b0a6a05d623558c01bfc5c4cea65dd"
+    },
+    {
+      "path": "controllers/api/v1/inspectors_controller.rb",
+      "sha256": "0c26b6ea14d440c1f104e01dccab1dca30e940c5c82f6d42eae65f18d5161574"
+    },
+    {
+      "path": "controllers/api/v1/items_controller.rb",
+      "sha256": "e7e9d3ba3b4ff23df1d97ea58b0ca380168083886aef5b8e33fb15ac4237645f"
+    },
+    {
+      "path": "controllers/api/v1/orders_controller.rb",
+      "sha256": "33785e1f32262cab0af172aa71838412a0b192a27ed7ca6871f49acd842cc2bf"
+    },
+    {
+      "path": "controllers/api/v1/ratings_controller.rb",
+      "sha256": "438becf513d4f3a40a4f6cd24d59076ba6718b996a0ac7459788bc401036c554"
+    },
+    {
+      "path": "controllers/api/v1/tasks_controller.rb",
+      "sha256": "6ac9caa0b904a7796259c9b625f1515489a72d1342f544f09ebf27fd474a15cf"
+    },
+    {
+      "path": "services/check_item_prices_service.rb",
+      "sha256": "b91edc0da2ad6beb570dcabfeb86ad8d7ca77e641f4cdb10187fab8f5d2a816b"
+    },
+    {
+      "path": "services/notifications/base_strategy.rb",
+      "sha256": "305608f31863dd74c8d3b3a82356047602a09c04b70a1d37973abefd574e52ae"
+    },
+    {
+      "path": "services/notifications/order_notification_strategy.rb",
+      "sha256": "de404a09f52b887261bc1689ce120945a01668d0cfa8a0fd72bedbc5593f2e5e"
+    },
+    {
+      "path": "services/notifications/order_notification_trigger_service.rb",
+      "sha256": "d38c0395c1fc77315f4b8495f0444dc5cafb7c990d95668d69742b2e7b7dd260"
+    },
+    {
+      "path": "services/notifications/strategies/customer_partial_pickup_completed_strategy.rb",
+      "sha256": "0c64436006a587759aab0b160c49294a28c5a05d8f9d5f4b72e73c6c93adf871"
+    },
+    {
+      "path": "services/notifications/strategies/dealer_customer_order_partially_ready_strategy.rb",
+      "sha256": "1fab47f6e295b40000c90e998e12cbb6bb6f0a420abc6da367e947ba573b02a5"
+    },
+    {
+      "path": "services/notifications/update_notification_order_service.rb",
+      "sha256": "371410d4f9dea3851e6837a2474338ebd0db6addc77b4c98f8f2bff244f3ae48"
+    },
+    {
+      "path": "services/notifications/user_notification_strategy.rb",
+      "sha256": "0e50bd8760161a8352cff2028b4c1eededa6c17688b541d70a563fee97d1e7b1"
+    },
+    {
+      "path": "services/update_order_cutting_status_service.rb",
+      "sha256": "ad512c6267b5df7d3d540d8446554ae316127e4b16df860551b56c6fb0501ac9"
+    },
+    {
+      "path": "services/update_order_status_service.rb",
+      "sha256": "989879a1b676a4a750e9b543bcc69fa3720f9c51f9e9790ae6ff67c540dd52bb"
+    },
+    {
+      "path": "services/update_uc_order_status_service.rb",
+      "sha256": "be5a76c34030bfddd5a98ccf46dea7374c9f92f9fced18cfa296720ad473501f"
+    }
+  ],
+  "strategy_contracts": [
+    {
+      "type": 1,
+      "strategy": "NewCustomerRegisteredStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/new_customer_registered_strategy.rb",
+      "source_line": 14,
+      "source_sha256": "6354dc38b76849331e54a536129ebcea8aecf401992f5f5fb4534c0b5a495b07",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 2,
+      "strategy": "SalesCoordinatorAssignedCustomerStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_assigned_customer_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "9e0da3f8547c2a743f346810f43e657ebbb25a25e6505ffd4470dfd1461c0428",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 3,
+      "strategy": "RmpOrderPlacedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/rmp_order_placed_strategy.rb",
+      "source_line": 15,
+      "source_sha256": "aaa481196a75d87fed8dc5e287dc4468da79b0070f1bb7e09b6c495e10d8bbff",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 4,
+      "strategy": "AdminRmpOrderPlacedStrategy",
+      "recipient_helpers": [
+        "admin",
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/admin_rmp_order_placed_strategy.rb",
+      "source_line": 28,
+      "source_sha256": "979a1457636218ff08600f8ac47f385a80d6a38a5e5379de865c0dde3e7f5295",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 5,
+      "strategy": "DealerOrderPlacedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealer_order_placed_strategy.rb",
+      "source_line": 15,
+      "source_sha256": "1b1c1db8f3bb56db7af756fe848d3cc35219997fd4474ddeba0a4804b3313cb6",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 6,
+      "strategy": "AdminDealerOrderPlacedStrategy",
+      "recipient_helpers": [
+        "admin",
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/admin_dealer_order_placed_strategy.rb",
+      "source_line": 29,
+      "source_sha256": "b3fbc276fcf3580b4c2b1846df069b88fddb349acc2b78681e9470e6f5c4913b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 7,
+      "strategy": "DealerCustomOrderPlacedStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_custom_order_placed_strategy.rb",
+      "source_line": 15,
+      "source_sha256": "89000b119a4247cfff1b890d847440b027c0b1d3a4f3c8cc62ab076d192521c3",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 8,
+      "strategy": "AdminDealerCustomOrderPlacedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/admin_dealer_custom_order_placed_strategy.rb",
+      "source_line": 18,
+      "source_sha256": "336824bc3ef67a899bd952c44de553ae8fdb638939e68eca8e39cdb400a2ff20",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 9,
+      "strategy": "SalesCoordinatorCustomerOrderPlacedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_customer_order_placed_strategy.rb",
+      "source_line": 28,
+      "source_sha256": "5e96694442a6393e6d3ed24a0cb013880dc6f4d755efea0dbd6f9c8a75800360",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 10,
+      "strategy": "AdminSalesCoordinatorCustomerOrderPlacedStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_sales_coordinator_customer_order_placed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "dcbf5967f56b003df70660a1f8c49ce1aaddde78b36245a07299c9697a26236f",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 11,
+      "strategy": "SalesCoordinatorDealerOrderPlacedStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_dealer_order_placed_strategy.rb",
+      "source_line": 31,
+      "source_sha256": "790d124be87f0d65fdbf3aea3afb000214072afa371887a63c48bf18862ad4b5",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 12,
+      "strategy": "AdminSalesCoordinatorDealerOrderPlacedStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_sales_coordinator_dealer_order_placed_strategy.rb",
+      "source_line": 32,
+      "source_sha256": "fa7b81aceeffcda61a4218a622cf32830933423570c375d6eb3ac27ca8ea7e3f",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 14,
+      "strategy": "CustomOrderPlacedStrategy",
+      "recipient_helpers": [
+        "customer_when_actor_customer",
+        "dealer_when_actor_dealer"
+      ],
+      "source": "services/notifications/strategies/custom_order_placed_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "8772865a729d7b0cf8b4bd558bb1de40305cf84aff321e74802566b42d4ea6f4",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 15,
+      "strategy": "AdminCustomOrderPlacedStrategy",
+      "recipient_helpers": [
+        "admin",
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/admin_custom_order_placed_strategy.rb",
+      "source_line": 21,
+      "source_sha256": "f8dfeb3c7e722a6c4b767de8eebbe90b8ca483add88a767cd0e6a222cc331ace",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 16,
+      "strategy": "CustomerRmpOrderProcessingStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_rmp_order_processing_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "ed659bb1aee371def966cde7dc5c8893c3cef326e3b2367ea67cb85c4eac0834",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 17,
+      "strategy": "SalesCoordinatorRmpOrderProcessingStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_rmp_order_processing_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "25a4a9468418cf303cedc63ef0bd3f87801b87645dc25f55639452bce61d1f12",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 18,
+      "strategy": "CustomerRmpOrderCancellationStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_rmp_order_cancellation_strategy.rb",
+      "source_line": 19,
+      "source_sha256": "aeb3a6fdea358b4dd4136312aed5ee2d94ef6898b4c5befab1aa93dfb0ac46ab",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 19,
+      "strategy": "SalesCoordinatorRmpOrderCancellationStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_rmp_order_cancellation_strategy.rb",
+      "source_line": 19,
+      "source_sha256": "b0cf05a9be7271d6842dab1225a2df2ced556e2031970387a93cf93ca8c5a58b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 20,
+      "strategy": "CustomerPartialPickupCompletedStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/customer_partial_pickup_completed_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "0c64436006a587759aab0b160c49294a28c5a05d8f9d5f4b72e73c6c93adf871",
+      "source_status": "no_source_callsite",
+      "correction": null
+    },
+    {
+      "type": 21,
+      "strategy": "SalesCoordinatorPartialPickupCompletedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_partial_pickup_completed_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "d3d36c4a2d4757220cc8c8ffb9dd76c483d2d9364586518add34b74fdd8755fc",
+      "source_status": "no_source_callsite",
+      "correction": null
+    },
+    {
+      "type": 22,
+      "strategy": "CustomerRmpOrderCompletedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_rmp_order_completed_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "c3d72534dac36dfdc8471a42b8c128cb26b1027fdf04e07fccb31f8b795b649e",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 23,
+      "strategy": "SalesCoordinatorRmpOrderCompletedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_rmp_order_completed_strategy.rb",
+      "source_line": 21,
+      "source_sha256": "fa04d5c16bd6d0cb914c4ce1239935b01b961441f7fe9c596e082ea2b46c12bd",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 24,
+      "strategy": "DealerCustomerOrderPartiallyReadyStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealer_customer_order_partially_ready_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "1fab47f6e295b40000c90e998e12cbb6bb6f0a420abc6da367e947ba573b02a5",
+      "source_status": "no_source_callsite",
+      "correction": null
+    },
+    {
+      "type": 26,
+      "strategy": "CustomerCustomOrderDueDateChangedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_custom_order_due_date_changed_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "ed3c78cea3e5d90838594411a8d0ff6051f2620ee87dc588f500f546600c9b55",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 27,
+      "strategy": "SalesCoordinatorCustomOrderDueDateChangedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_custom_order_due_date_changed_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "8a5c538128dc5353056843111d732331fd0121d118e438bb0ba23afeb49bc770",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 28,
+      "strategy": "ProductionCoordinatorCustomOrderDueDateChangedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_custom_order_due_date_changed_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "71b0420071e1e786cff1cfeb4ddfef30f474defa1737cba3259b36156558193d",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 29,
+      "strategy": "CustomerCustomOrderFactoryAssignedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_custom_order_factory_assigned_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "b563c801e05f63c022669fe0832b3acf4372db4ce7bbb1937848ac503c3c4840",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 30,
+      "strategy": "SalesCoordinatorCustomerOrderFactoryAssignedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_customer_order_factory_assigned_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "67df161098181243270927322e7e6b49827fafbae970e75907aa261637368b1b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 31,
+      "strategy": "ProductionCoordinatorCustomOrderFactoryAssignedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_custom_order_factory_assigned_strategy.rb",
+      "source_line": 26,
+      "source_sha256": "f7d81ba3a2af82ede5c73c2cf08bed52747e533348f7226e465bd4b001f8d13d",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 32,
+      "strategy": "FactoryManagerCustomOrderAssignedStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/factory_manager_custom_order_assigned_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "ec634cfdcc3cff9319c64018eed86c8439212c22c0086b7bcf9d3748538fa5dd",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 33,
+      "strategy": "FactoryManagerCuttingMasterAssignedStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/factory_manager_cutting_master_assigned_strategy.rb",
+      "source_line": 26,
+      "source_sha256": "de2ace103c7807b655502c1ceabadda3d33c5e93e657de3050f14853943d7cfe",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 34,
+      "strategy": "SalesCoordinatorCuttingMasterAssignedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_cutting_master_assigned_strategy.rb",
+      "source_line": 26,
+      "source_sha256": "21cdee6e0b6bcb610d5e8d25de546f349c19ecce1d7f09bbe037c77727bad50c",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 35,
+      "strategy": "ProductionCoordinatorCuttingMasterAssignedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_cutting_master_assigned_strategy.rb",
+      "source_line": 28,
+      "source_sha256": "63d601eb81d992c2e547ca2e95fb75f9ddc6297cc571a1374d609558affb0aae",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 36,
+      "strategy": "CuttingMasterAssignedStrategy",
+      "recipient_helpers": [
+        "cutting_master"
+      ],
+      "source": "services/notifications/strategies/cutting_master_assigned_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "c9fc46ed0c8a3dc0781a39f2001c09292102d92978bc95f03371aadca83aa2ff",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 37,
+      "strategy": "CuttingMasterPartialCuttingSelfStrategy",
+      "recipient_helpers": [
+        "cutting_master"
+      ],
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_self_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "e347a8dca3bc22dbd9f75861f54b5d9a0bc1d2216e6acdfab080aab2e522b376",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 38,
+      "strategy": "CuttingMasterPartialCuttingFactoryManagerStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_factory_manager_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "ad239698612d41e6cfd7d66e7332282bcbe0eadc5ab4d6158d0e070b54ee2c03",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 39,
+      "strategy": "CuttingMasterPartialCuttingSalesCoordinatorStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_sales_coordinator_strategy.rb",
+      "source_line": 26,
+      "source_sha256": "453ca9737a1e0833f35d8755f278402ede4672a8886535c6fabf5533ff53cb2f",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 40,
+      "strategy": "CuttingMasterPartialCuttingProductionCoordinatorStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/cutting_master_partial_cutting_production_coordinator_strategy.rb",
+      "source_line": 29,
+      "source_sha256": "ce1af497c62fc98c31ef471bea636a284f89b7da0e5195d124c001dd70023bc0",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 41,
+      "strategy": "CuttingMasterFullCuttingSelfStrategy",
+      "recipient_helpers": [
+        "cutting_master"
+      ],
+      "source": "services/notifications/strategies/cutting_master_full_cutting_self_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "4ed1f837fe7c6316946ccaceeed43c933ca5bfe3295f189ed8270460b91515ad",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 42,
+      "strategy": "CuttingMasterFullCuttingFactoryManagerStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/cutting_master_full_cutting_factory_manager_strategy.rb",
+      "source_line": 26,
+      "source_sha256": "2f44ce81064c2b423e346ea9948af9eff68b85b8bb447c744af08d268b084c7a",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 43,
+      "strategy": "CuttingMasterFullCuttingSalesCoordinatorStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/cutting_master_full_cutting_sales_coordinator_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "ad8fa820867161ca2d54a9b094f0b9e7b5e729a5887b5024579f39c2e01e12cd",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 44,
+      "strategy": "CuttingMasterFullCuttingProductionCoordinatorStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/cutting_master_full_cutting_production_coordinator_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "116f5187e8698e2ad34c1983b90b0dcd7976aa56b0f0dd1c97a0f8e734bf50e3",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 45,
+      "strategy": "FactoryManagerTailorAssignedStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/factory_manager_tailor_assigned_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "71519e9076bda6d8eda695e4b192299b8a29b85f3b6c0cf952b6646d8a7140c7",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 46,
+      "strategy": "SalesCoordinatorTailorAssignedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_tailor_assigned_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "ba6426ccfe8714050ee4db0d321faf9605785fa512eccf87e7da4663e5b0b0f7",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 47,
+      "strategy": "ProductionCoordinatorTailorAssignedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_tailor_assigned_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "92cee88477318e52b434f9c546541c437a0796a7e5ca4048bcedb0c43df08e1d",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 48,
+      "strategy": "InspectorTailorAssignedStrategy",
+      "recipient_helpers": [
+        "inspectors"
+      ],
+      "source": "services/notifications/strategies/inspector_tailor_assigned_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "927e1dd341588a83c64d42de39a28ac27c077bc2224255ff59df5df336efe3c4",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 49,
+      "strategy": "InspectorPartialPickupCompletedStrategy",
+      "recipient_helpers": [
+        "inspectors"
+      ],
+      "source": "services/notifications/strategies/inspector_partial_pickup_completed_strategy.rb",
+      "source_line": 29,
+      "source_sha256": "249ae1792ee8a2ee432bf4b545ab25f04aeaea14e90a53dfc849f83f3612179f",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 50,
+      "strategy": "FactoryManagerPartialPickupDoneStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/factory_manager_partial_pickup_done_strategy.rb",
+      "source_line": 29,
+      "source_sha256": "ea58fb9063f06ac7e64ec5c0a564dc6581754602d70ed76bd53b134886f26612",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 51,
+      "strategy": "SalesCoordinatorPartialStitchingCompletedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_partial_stitching_completed_strategy.rb",
+      "source_line": 26,
+      "source_sha256": "083c9152732f57ebb0362eb609cdadb185bb4d1b21ca9dbaf2dcf41cf928a4f0",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 52,
+      "strategy": "ProductionCoordinatorPartialStitchingCompletedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_partial_stitching_completed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "72f0c643bbf33cef7f313e552d7da2d543e2e97295ac8a0360b74a09c9f9651b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 53,
+      "strategy": "CustomerStitchingCompletedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_stitching_completed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "2067c77b1adee53861184a040a942d4837c5006de91a9d41a8d285230315519a",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 54,
+      "strategy": "InspectorAllPiecesPickedStrategy",
+      "recipient_helpers": [
+        "inspectors"
+      ],
+      "source": "services/notifications/strategies/inspector_all_pieces_picked_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "f825bdfa12712168c8f6c28b876dec570f3b87f31d9f237482a401f660a8b6ec",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 55,
+      "strategy": "FactoryManagerFullPickupCompletedStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/factory_manager_full_pickup_completed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "d489af0534a9f7a0cd565cc756eed5ad9bc1b67f765a7f5f230a3a155d6f9649",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 56,
+      "strategy": "SalesCoordinatorFullStitchingCompletedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_full_stitching_completed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "5734910d165fd84d4c347b0d43511d31bd1cab21d1e5362692e09d1ebf6ced8c",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 57,
+      "strategy": "ProductionCoordinatorFullStitchingCompletedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_full_stitching_completed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "88237b6168921321c223f8181231190509f364ed806ee60616b26d71884c88d5",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 58,
+      "strategy": "FactoryManagerPartialDispatchCompletedStrategy",
+      "recipient_helpers": [
+        "factory_manager"
+      ],
+      "source": "services/notifications/strategies/factory_manager_partial_dispatch_completed_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "76e3b8be338ea1419aeb43add65537ccd0c49282b06ae33d22dc56eb8bb4be8b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 59,
+      "strategy": "SalesCoordinatorPartialDispatchCompletedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_partial_dispatch_completed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "88876e7b0b1b6a0f946f9af7672a12a9b175bbe45ffb638700659f9b587c2da3",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 60,
+      "strategy": "ProductionCoordinatorPartialDispatchCompletedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_partial_dispatch_completed_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "8e8b90425ff3bdd6f9043682ea7d1c82b35f095aadbceacf59fc00c31539844b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 61,
+      "strategy": "ProductionCoordinatorJobworkerAssignedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_jobworker_assigned_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "11c5b9d932e7b2d79adea19f80de31862a7be04d48f74688fbb65ff1a9b3172c",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 62,
+      "strategy": "SalesCoordinatorJobworkerAssignedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_jobworker_assigned_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "35b6d88e9aa683a94e8f56c7d0ef926eec9759ba37370b64e85cd174e7bafeef",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 63,
+      "strategy": "JobworkerNewProductionOrderAssignedStrategy",
+      "recipient_helpers": [
+        "jobworker"
+      ],
+      "source": "services/notifications/strategies/jobworker_new_production_order_assigned_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "a18b9953dff15f03b54af500a150035e305225971e36f4ca3332ed86827ddc83",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 64,
+      "strategy": "CustomerOrderNowInProductionStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_order_now_in_production_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "68ed878136cb4a43de4dee76392c8db8d80202eab5be3c28d6caa34ad3fcd30a",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 65,
+      "strategy": "ProductionCoordinatorPriceAssignedForJobworkerStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_price_assigned_for_jobworker_strategy.rb",
+      "source_line": 26,
+      "source_sha256": "270d1cf6e4e33fc56ba9abf44845f0fc258efdaa04a1359923eabc02ca844591",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 66,
+      "strategy": "JobworkerPriceUpdatedStrategy",
+      "recipient_helpers": [
+        "jobworker"
+      ],
+      "source": "services/notifications/strategies/jobworker_price_updated_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "35e49e6f947dff483b3367be6574ba14b23131cb0186f19eedc652248a794a0e",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 67,
+      "strategy": "SalesCoordinatorFabricOrderedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_fabric_ordered_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "2f6122d0b25035abb6b78473405b12b2ebbcf9f161a1b9e9931fab6388518197",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 68,
+      "strategy": "ProductionCoordinatorFabricOrderedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_fabric_ordered_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "ae725a86db72dcc933a40e29bb4ee2140b486f91343450f48e1a257e129c5da4",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 69,
+      "strategy": "SalesCoordinatorCuttingStartedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_cutting_started_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "5f75a0cc46e73e97542aeef8d9894a8b12c695102dcd584219ff9f0dc7ff0896",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 70,
+      "strategy": "ProductionCoordinatorCuttingStartedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_cutting_started_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "47a79110a2f6e3aace0557316641d703f778c7ef55bf16376d7cec9373dba39e",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 71,
+      "strategy": "CustomerDealerStitchingStartedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_dealer_stitching_started_strategy.rb",
+      "source_line": 21,
+      "source_sha256": "e03c99b54c49332769a65c870b727b6f9517f8543cc320116ad94814bd2b9a44",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 72,
+      "strategy": "SalesCoordinatorStitchingStartedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_stitching_started_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "c835c14eb7d1a3ec95260ed19e57c5bc181cd5cdde2e8c52335e83a44c613f5d",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 73,
+      "strategy": "ProductionCoordinatorStitchingStartedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_stitching_started_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "a68d32ff372355ebeabab833dd190aa20f964a56cd37dcef2f16e77ab789e7cd",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 74,
+      "strategy": "CustomerPriceUpdatedStrategy",
+      "recipient_helpers": [
+        "customer",
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/customer_price_updated_strategy.rb",
+      "source_line": 17,
+      "source_sha256": "ecddad541e590310f6446c4e2025e823521831f25ddb368101bb7e9aaee72cc3",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 75,
+      "strategy": "SalesCoordinatorPriceUpdatedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_price_updated_strategy.rb",
+      "source_line": 17,
+      "source_sha256": "14f4287899d61d3b57389e260530e1c54862d384e1d168e18634a51c425f4de3",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 76,
+      "strategy": "ProductionCoordinatorPriceChangedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_price_changed_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "f4207463f96b0a07b76647c2011135b80518efae472957f8ec5452ab1384904e",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 77,
+      "strategy": "AdminPriceChangeAlertStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_price_change_alert_strategy.rb",
+      "source_line": 18,
+      "source_sha256": "43a6bb72e51918b4d474f2ce9ddc5e507dcb9259318209c4c208664aa14f2676",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 78,
+      "strategy": "CustomerOrderEditedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_order_edited_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "af8896345c8891bf56dffcef87e8e926d22d0a9fddfac7cfa3cfbc9d225a8605",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 79,
+      "strategy": "SalesCoordinatorCustomerOrderEditedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_customer_order_edited_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "89d6786e09935d68fc76e030267b6f59abc59ba1f5a4f6cb2ed9f627b95d5b91",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 80,
+      "strategy": "AdminCustomerOrderEditedStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_customer_order_edited_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "6522a0bd8972b38d0f6322f80bf865fe2bda09141c682e450e0b5b6c76c9cac8",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 81,
+      "strategy": "DealerOrderEditedStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_order_edited_strategy.rb",
+      "source_line": 21,
+      "source_sha256": "ae177f566448115ae0b299c33153ed2cba266f8582516ac13a92e8a312b2faaf",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 82,
+      "strategy": "SalesCoordinatorDealerOrderEditedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_dealer_order_edited_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "dd5d6fb54be8fa42b29a9a4adbb7e7a3b639904f7f46a737382cdcabb9987e35",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 83,
+      "strategy": "AdminDealerOrderEditedStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_dealer_order_edited_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "1f1398340b68f2dd742c7261701990ae788695b58ce0862401fcbb86ccb7e1e5",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 84,
+      "strategy": "DealerCustomerOrderEditedStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_customer_order_edited_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "b5b7caff64577927cb9717ddbb651f7dbf1d31199d62c77d8ec6ce2e469fd17b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 85,
+      "strategy": "DealersCustomerOrderEditedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealers_customer_order_edited_strategy.rb",
+      "source_line": 21,
+      "source_sha256": "d77379d9e7a2562160492b881fe0038dd0d7d143ed1ddf3c84e5a77236b46564",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 86,
+      "strategy": "CustomerOrderEditedByScStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_order_edited_by_sc_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "8ae4acc860c9542de7bcf1964612f7b6745923576f9be6c22a0a1008c83193d8",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 87,
+      "strategy": "AdminCustomerOrderEditedByScStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_customer_order_edited_by_sc_strategy.rb",
+      "source_line": 27,
+      "source_sha256": "c739ac59703023abd486d2d9f70b38bb23da8df9042276daf2a5577d321d65e9",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 88,
+      "strategy": "DealerOrderEditedByScStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealer_order_edited_by_sc_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "f15674940b5afb8c1f252ce7e277cc6fd3eb968c9367a49e3477bb97a75188f8",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 89,
+      "strategy": "CustomerDealerCustomOrderEditedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_dealer_custom_order_edited_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "b1959b40ee293cbc2aed44b203010f90f0faf598c80dedf6f36317dd0d260b6a",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 90,
+      "strategy": "SalesCoordinatorCustomOrderEditedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_custom_order_edited_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "a3e6723c52f2047ee614944203b3c65b4320bf823424dc716b0678f02d86be59",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 91,
+      "strategy": "ProductionCoordinatorCustomOrderEditedStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_custom_order_edited_strategy.rb",
+      "source_line": 22,
+      "source_sha256": "11827de158880253a83322b369196b103193f72a21c12d8d02a033173d1998f8",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 92,
+      "strategy": "DealerCustomerCustomOrderEditedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealer_customer_custom_order_edited_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "12a4ea982b167aeeb4cb630e229e1e530ab06dd14c28f03a7e0255501862c835",
+      "source_status": "source_invoked",
+      "correction": "undefined helper resolved to order customer, with current authorization"
+    },
+    {
+      "type": 93,
+      "strategy": "DealerCustomOrderEditedStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_custom_order_edited_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "48b1d01c4ad5043eece3e3e031a137682b88a29a00f11adb45b8726e1dfe1644",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 94,
+      "strategy": "ScCustomOrderEditedStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sc_custom_order_edited_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "9d1b0ee13a810bbabfc6aeee37aa07c63af2d503be09e138c216237011134030",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 95,
+      "strategy": "CustomerDealerCustomOrderEditedByScStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_dealer_custom_order_edited_by_sc_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "a58a58c0a0e708ca7544728925560c73e0114706e546ed7c3dbfb805cfbc4dbd",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 96,
+      "strategy": "ProductionCoordinatorCustomOrderEditedByScStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_custom_order_edited_by_sc_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "e5072b6ba201f4e2a059afe300b7162726ed0ad31e879e4ea62dcf5acf2e60a2",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 97,
+      "strategy": "RmpPriceEditCustomerStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/rmp_price_edit_customer_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "4849e006fe37d00d7dd2d78513cb14676390a6e451ee0c7b34ff9c102613a14c",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 98,
+      "strategy": "RmpPriceEditDealerStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/rmp_price_edit_dealer_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "47b37002102eeb5a012367202c3b122674158deb235329fb1fc3c4dbf5077e41",
+      "source_status": "no_source_callsite",
+      "correction": null
+    },
+    {
+      "type": 99,
+      "strategy": "RmpPriceEditAdminStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/rmp_price_edit_admin_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "5a17771c41b8ef1df82461b93fe5fdff1ab8d13e0bb74641084a22e2bd487a24",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 100,
+      "strategy": "CustomOrderCancelledCustomerStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/custom_order_cancelled_customer_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "8d94003d32cc892aeb8114a8570f943da89660a67f429508027a1ee432a553e5",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 101,
+      "strategy": "CustomOrderCancelledSalesCoordinatorStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/custom_order_cancelled_sales_coordinator_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "a2acec595767fda31607d7c75594f02e4bbd7fc3591dc3c27747b769a4fe009d",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 102,
+      "strategy": "CustomOrderCancelledProductionCoordinatorStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/custom_order_cancelled_production_coordinator_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "0cf202b93ad0cae02eefa2b1d0f0cb3d18d62a9711acdd5732780087dc5ebdf2",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 103,
+      "strategy": "CustomOrderCancelledAdminStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/custom_order_cancelled_admin_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "b4b84b61ef21213ebed22227c75481cda7a1a35415f7ffdd2c866a46e51a5815",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 104,
+      "strategy": "DealerCancelledCustomOrderCustomerStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealer_cancelled_custom_order_customer_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "3f73825ea3833b1111975e9f89dd13f0d122b7343cdd6511b6c86ffa3bf2ac49",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 105,
+      "strategy": "DealerCancelledCustomOrderDealerStrategy",
+      "recipient_helpers": [
+        "actor"
+      ],
+      "source": "services/notifications/strategies/dealer_cancelled_custom_order_dealer_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "5cd547a0a7c8df064d028610d12843c994b4cc2fe9e5bd97c52775fed5a788be",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 106,
+      "strategy": "DealerCustomerRmpOrderPlacedStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_customer_rmp_order_placed_strategy.rb",
+      "source_line": 28,
+      "source_sha256": "2a4584d2d128d47a5e759b76b623aec795c5f7fa1e84517695b94c00c7b345f0",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 107,
+      "strategy": "ProductionCoordinatorCustomOrderCreatedByCustomerStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_custom_order_created_by_customer_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "6bc15d90329bd0630f6aef7114533f141e6b52c9fcee1959bccd9e8eba6bc637",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 108,
+      "strategy": "AdminCustomOrderCreatedByCustomerStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_custom_order_created_by_customer_strategy.rb",
+      "source_line": 33,
+      "source_sha256": "c1c44a38476e24efe6e5a0448ad2d55ef9bfd4e39a7357d94cc1a825d9d8909b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 109,
+      "strategy": "CustomerCustomOrderCreatedByScStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/customer_custom_order_created_by_sc_strategy.rb",
+      "source_line": 21,
+      "source_sha256": "9a33c6985687f59cea61d2a10b6a99d2871f01fa0ce883e20e123fd51ccf3b3d",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 110,
+      "strategy": "ProductionCoordinatorCustomOrderCreatedByScStrategy",
+      "recipient_helpers": [
+        "production_coordinator"
+      ],
+      "source": "services/notifications/strategies/production_coordinator_custom_order_created_by_sc_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "0672060e48dcf833dac0aa484b855491384daed45e512950a2d0406df669eeb0",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 111,
+      "strategy": "AdminCustomOrderCreatedByScStrategy",
+      "recipient_helpers": [
+        "admin"
+      ],
+      "source": "services/notifications/strategies/admin_custom_order_created_by_sc_strategy.rb",
+      "source_line": 33,
+      "source_sha256": "6ca4998e168232c29a340b8762dd1411c9597e010ea46b2e0063ec88a9051905",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 112,
+      "strategy": "SalesCoordinatorCustomOrderCreatedByScStrategy",
+      "recipient_helpers": [
+        "sales_coordinator"
+      ],
+      "source": "services/notifications/strategies/sales_coordinator_custom_order_created_by_sc_strategy.rb",
+      "source_line": 23,
+      "source_sha256": "9801808459c7f36b346d51f2f158c42ce38e4947dd3119cd74d93cf65a5724a9",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 113,
+      "strategy": "DealerCustomOrderCreatedByDealersCustomerStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_custom_order_created_by_dealers_customer_strategy.rb",
+      "source_line": 24,
+      "source_sha256": "ddf2d199ad6c15d1891f485526e426d2eb4b33a78f3df79d09e2612b50a0128b",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 114,
+      "strategy": "DealersCustomerCustomOrderCreatedByDealerStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealers_customer_custom_order_created_by_dealer_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "cf158035a14ab8db19efa3371da30b34436043d91c53adcab8618740bc29cfcb",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 115,
+      "strategy": "DealerCustomOrderCreatedByDealerStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_custom_order_created_by_dealer_strategy.rb",
+      "source_line": 20,
+      "source_sha256": "c719c5001e150b812878f217e008daa0a4c50b4a3d2bb87f963541190441855d",
+      "source_status": "no_source_callsite",
+      "correction": null
+    },
+    {
+      "type": 116,
+      "strategy": "DealerCustomerCustomOrderCreatedStrategy",
+      "recipient_helpers": [
+        "customer"
+      ],
+      "source": "services/notifications/strategies/dealer_customer_custom_order_created_strategy.rb",
+      "source_line": 21,
+      "source_sha256": "d86be33818f3305e3265e09974dae714544724c2c7be747e9156c31ea0fbc796",
+      "source_status": "source_invoked",
+      "correction": null
+    },
+    {
+      "type": 117,
+      "strategy": "DealerNotifiedOfCustomerCustomOrderStrategy",
+      "recipient_helpers": [
+        "dealer"
+      ],
+      "source": "services/notifications/strategies/dealer_notified_of_customer_custom_order_strategy.rb",
+      "source_line": 25,
+      "source_sha256": "b6eab563286aae975abc1a8eb8873c1a2eea316c1ff0fe9ac83b5748b2873cb6",
+      "source_status": "source_invoked",
+      "correction": null
+    }
+  ],
+  "cases": [
+    {
+      "name": "place_0_103_direct",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 103,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        3,
+        4
+      ],
+      "expected_recipients": {
+        "100": [
+          4
+        ],
+        "101": [
+          4
+        ],
+        "103": [
+          3
+        ],
+        "200": [
+          4
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_0_103_dealer",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 103,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        3,
+        106
+      ],
+      "expected_recipients": {
+        "103": [
+          3
+        ],
+        "110": [
+          106
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_0_110_direct",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 110,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        5,
+        6
+      ],
+      "expected_recipients": {
+        "100": [
+          6
+        ],
+        "101": [
+          6
+        ],
+        "110": [
+          5
+        ],
+        "200": [
+          6
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_0_110_dealer",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        5,
+        6
+      ],
+      "expected_recipients": {
+        "100": [
+          6
+        ],
+        "101": [
+          6
+        ],
+        "103": [
+          5
+        ],
+        "200": [
+          6
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_0_101_direct",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        9,
+        10
+      ],
+      "expected_recipients": {
+        "100": [
+          10
+        ],
+        "103": [
+          9
+        ],
+        "200": [
+          10
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_0_101_dealer",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        11,
+        12
+      ],
+      "expected_recipients": {
+        "100": [
+          12
+        ],
+        "110": [
+          11
+        ],
+        "200": [
+          12
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_1_103_direct",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 103,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        14,
+        15,
+        107,
+        108
+      ],
+      "expected_recipients": {
+        "100": [
+          15,
+          108
+        ],
+        "101": [
+          15
+        ],
+        "102": [
+          107
+        ],
+        "103": [
+          14
+        ],
+        "200": [
+          15,
+          108
+        ],
+        "202": [
+          107
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_1_103_dealer",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 103,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        116,
+        117
+      ],
+      "expected_recipients": {
+        "103": [
+          116
+        ],
+        "110": [
+          117
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_1_110_direct",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 110,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        7,
+        8
+      ],
+      "expected_recipients": {
+        "101": [
+          8
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_1_110_dealer",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        113,
+        114
+      ],
+      "expected_recipients": {
+        "103": [
+          114
+        ],
+        "110": [
+          113
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_1_101_direct",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        109,
+        110,
+        111,
+        112
+      ],
+      "expected_recipients": {
+        "100": [
+          111
+        ],
+        "101": [
+          112
+        ],
+        "102": [
+          110
+        ],
+        "103": [
+          109
+        ],
+        "200": [
+          111
+        ],
+        "202": [
+          110
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "place_1_101_dealer",
+      "event": "orders.placed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "order_ids": [
+          "1001"
+        ]
+      },
+      "expected_strategy_types": [
+        11,
+        12
+      ],
+      "expected_recipients": {
+        "100": [
+          12
+        ],
+        "110": [
+          11
+        ],
+        "200": [
+          12
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/order_notification_trigger_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_rmp_customer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 103,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        78,
+        79,
+        80
+      ],
+      "expected_recipients": {
+        "100": [
+          80
+        ],
+        "101": [
+          79
+        ],
+        "103": [
+          78
+        ],
+        "200": [
+          80
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_rmp_dealer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 110,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        81,
+        82,
+        83
+      ],
+      "expected_recipients": {
+        "100": [
+          83
+        ],
+        "101": [
+          82
+        ],
+        "200": [
+          83
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_rmp_dealer_customer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 103,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        84,
+        85
+      ],
+      "expected_recipients": {
+        "103": [
+          85
+        ],
+        "110": [
+          84
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_rmp_sc_customer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        86,
+        87
+      ],
+      "expected_recipients": {
+        "100": [
+          87
+        ],
+        "103": [
+          86
+        ],
+        "200": [
+          87
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_rmp_sc_dealer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 110,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        88
+      ],
+      "expected_recipients": {
+        "110": [
+          88
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_custom_customer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 103,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        89,
+        90,
+        91
+      ],
+      "expected_recipients": {
+        "101": [
+          90
+        ],
+        "102": [
+          91
+        ],
+        "103": [
+          89
+        ],
+        "202": [
+          91
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_custom_dealer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 110,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        89,
+        90,
+        91
+      ],
+      "expected_recipients": {
+        "101": [
+          90
+        ],
+        "102": [
+          91
+        ],
+        "110": [
+          89
+        ],
+        "202": [
+          91
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_custom_dealer_customer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        92,
+        93
+      ],
+      "expected_recipients": {
+        "103": [
+          92
+        ],
+        "110": [
+          93
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "edit_custom_sc_customer",
+      "event": "order.edited",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        94,
+        95,
+        96
+      ],
+      "expected_recipients": {
+        "101": [
+          94
+        ],
+        "102": [
+          96
+        ],
+        "103": [
+          95
+        ],
+        "202": [
+          96
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/update_notification_order_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "registration",
+      "event": "account.registration_completed",
+      "aggregate_kind": "person",
+      "aggregate_id": 103,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        1
+      ],
+      "expected_recipients": {
+        "100": [
+          1
+        ],
+        "200": [
+          1
+        ]
+      },
+      "expected_target": {
+        "kind": "person",
+        "id": "103"
+      },
+      "source_anchor": "controllers/api/v1/customers_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "coordinator_assigned",
+      "event": "customer.links_saved",
+      "aggregate_kind": "person",
+      "aggregate_id": 103,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        2
+      ],
+      "expected_recipients": {
+        "101": [
+          2
+        ]
+      },
+      "expected_target": {
+        "kind": "person",
+        "id": "103"
+      },
+      "source_anchor": "services/notifications/user_notification_strategy.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "due",
+      "event": "order.due_changed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        26,
+        27,
+        28
+      ],
+      "expected_recipients": {
+        "101": [
+          27
+        ],
+        "102": [
+          28
+        ],
+        "103": [
+          26
+        ],
+        "202": [
+          28
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/orders_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "factory",
+      "event": "order.factory_assigned",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        29,
+        30,
+        31,
+        32
+      ],
+      "expected_recipients": {
+        "101": [
+          30
+        ],
+        "102": [
+          31
+        ],
+        "103": [
+          29
+        ],
+        "104": [
+          32
+        ],
+        "202": [
+          31
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/orders_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "cutter",
+      "event": "item.cutter_assigned",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        33,
+        34,
+        35,
+        36
+      ],
+      "expected_recipients": {
+        "101": [
+          34
+        ],
+        "102": [
+          35
+        ],
+        "104": [
+          33
+        ],
+        "109": [
+          36
+        ],
+        "202": [
+          35
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/factory_managers_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "cut_partial",
+      "event": "item.cut",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        37,
+        38,
+        39,
+        40
+      ],
+      "expected_recipients": {
+        "101": [
+          39
+        ],
+        "102": [
+          40
+        ],
+        "104": [
+          38
+        ],
+        "109": [
+          37
+        ],
+        "202": [
+          40
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/update_order_cutting_status_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "sew_assigned",
+      "event": "item.work_assigned",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        45,
+        46,
+        47,
+        48
+      ],
+      "expected_recipients": {
+        "101": [
+          46
+        ],
+        "102": [
+          47
+        ],
+        "104": [
+          45
+        ],
+        "108": [
+          48
+        ],
+        "202": [
+          47
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/factory_managers_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "inspect_partial",
+      "event": "item.inspected",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        49,
+        50,
+        51,
+        52
+      ],
+      "expected_recipients": {
+        "101": [
+          51
+        ],
+        "102": [
+          52
+        ],
+        "104": [
+          50
+        ],
+        "108": [
+          49
+        ],
+        "202": [
+          52
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/inspectors_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "dispatch",
+      "event": "item.dispatched",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        58,
+        59,
+        60
+      ],
+      "expected_recipients": {
+        "101": [
+          59
+        ],
+        "102": [
+          60
+        ],
+        "104": [
+          58
+        ],
+        "202": [
+          60
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/dispatch_incharges_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "cut_complete",
+      "event": "item.cut",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 1,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        41,
+        42,
+        43,
+        44
+      ],
+      "expected_recipients": {
+        "101": [
+          43
+        ],
+        "102": [
+          44
+        ],
+        "104": [
+          42
+        ],
+        "109": [
+          41
+        ],
+        "202": [
+          44
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/update_order_cutting_status_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "inspect_complete",
+      "event": "item.inspected",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 1
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        53,
+        54,
+        55,
+        56,
+        57
+      ],
+      "expected_recipients": {
+        "101": [
+          56
+        ],
+        "102": [
+          57
+        ],
+        "103": [
+          53
+        ],
+        "104": [
+          55
+        ],
+        "108": [
+          54
+        ],
+        "202": [
+          57
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/inspectors_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "worker_assigned",
+      "event": "order.worker_assigned",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": null,
+        "assigned_worker_id": 111,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        61,
+        62,
+        63,
+        64
+      ],
+      "expected_recipients": {
+        "101": [
+          62
+        ],
+        "102": [
+          61
+        ],
+        "103": [
+          64
+        ],
+        "111": [
+          63
+        ],
+        "202": [
+          61
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/orders_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "worker_cost",
+      "event": "item.worker_cost_changed",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": null,
+        "assigned_worker_id": 111,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        65,
+        66
+      ],
+      "expected_recipients": {
+        "102": [
+          65
+        ],
+        "111": [
+          66
+        ],
+        "202": [
+          65
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/items_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "worker_stage_0",
+      "event": "item.worker_stage_changed",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 111,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": null,
+        "assigned_worker_id": 111,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "after": 0
+      },
+      "expected_strategy_types": [
+        67,
+        68
+      ],
+      "expected_recipients": {
+        "101": [
+          67
+        ],
+        "102": [
+          68
+        ],
+        "202": [
+          68
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/items_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "worker_stage_1",
+      "event": "item.worker_stage_changed",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 111,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": null,
+        "assigned_worker_id": 111,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "after": 1
+      },
+      "expected_strategy_types": [
+        69,
+        70
+      ],
+      "expected_recipients": {
+        "101": [
+          69
+        ],
+        "102": [
+          70
+        ],
+        "202": [
+          70
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/items_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "worker_stage_3",
+      "event": "item.worker_stage_changed",
+      "aggregate_kind": "item",
+      "aggregate_id": 1001,
+      "actor": 111,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": null,
+        "assigned_worker_id": 111,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "after": 3
+      },
+      "expected_strategy_types": [
+        71,
+        72,
+        73
+      ],
+      "expected_recipients": {
+        "101": [
+          72
+        ],
+        "102": [
+          73
+        ],
+        "103": [
+          71
+        ],
+        "202": [
+          73
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/items_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "custom_price",
+      "event": "order.price_changed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        74,
+        75,
+        76,
+        77
+      ],
+      "expected_recipients": {
+        "100": [
+          77
+        ],
+        "101": [
+          75
+        ],
+        "102": [
+          76
+        ],
+        "103": [
+          74
+        ],
+        "110": [
+          74
+        ],
+        "200": [
+          77
+        ],
+        "202": [
+          76
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/check_item_prices_service.rb",
+      "producer_scope": "source_dispatch_branch",
+      "expected_authority_denials": {
+        "102": "42501",
+        "202": "42501"
+      },
+      "authority_note": "Legacy PC nomination is suppressed because the modern PC scope excludes dealer-linked fulfillment."
+    },
+    {
+      "name": "rmp_price_private_98",
+      "event": "order.price_changed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        97,
+        98,
+        99
+      ],
+      "expected_recipients": {
+        "100": [
+          99
+        ],
+        "103": [
+          97
+        ],
+        "110": [
+          98
+        ],
+        "200": [
+          99
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/check_item_prices_service.rb",
+      "producer_scope": "private_route_only_no_original_callsite"
+    },
+    {
+      "name": "provider_processing",
+      "event": "order.provider_processing",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        16,
+        17
+      ],
+      "expected_recipients": {
+        "101": [
+          17
+        ],
+        "103": [
+          16
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/update_uc_order_status_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "provider_cancel",
+      "event": "order.provider_cancelled",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 0,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        18,
+        19
+      ],
+      "expected_recipients": {
+        "101": [
+          19
+        ],
+        "103": [
+          18
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/update_uc_order_status_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "custom_cancel",
+      "event": "order.cancellation_requested",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "provider_confirmation_required": false
+      },
+      "expected_strategy_types": [
+        100,
+        101,
+        102,
+        103
+      ],
+      "expected_recipients": {
+        "100": [
+          103
+        ],
+        "101": [
+          101
+        ],
+        "102": [
+          102
+        ],
+        "103": [
+          100
+        ],
+        "200": [
+          103
+        ],
+        "202": [
+          102
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/orders_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "dealer_cancel",
+      "event": "order.cancellation_requested",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 110,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {
+        "provider_confirmation_required": false
+      },
+      "expected_strategy_types": [
+        104,
+        105
+      ],
+      "expected_recipients": {
+        "103": [
+          104
+        ],
+        "110": [
+          105
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "controllers/api/v1/orders_controller.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "complete",
+      "event": "order.completed",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": null,
+        "status": 1,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        22,
+        23
+      ],
+      "expected_recipients": {
+        "101": [
+          23
+        ],
+        "103": [
+          22
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/update_order_status_service.rb",
+      "producer_scope": "source_dispatch_branch"
+    },
+    {
+      "name": "pickup_private",
+      "event": "order.pickup_partial",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        20,
+        21
+      ],
+      "expected_recipients": {
+        "101": [
+          21
+        ],
+        "110": [
+          20
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/strategies/customer_partial_pickup_completed_strategy.rb",
+      "producer_scope": "private_route_only_no_original_callsite"
+    },
+    {
+      "name": "dealer_ready_private",
+      "event": "order.dealer_ready",
+      "aggregate_kind": "order",
+      "aggregate_id": 1001,
+      "actor": 101,
+      "fixture": {
+        "order_item_type": 1,
+        "customer_id": 103,
+        "customer_dealer_id": 110,
+        "status": 0,
+        "cutting_status": 0,
+        "assigned_to_id": 104,
+        "assigned_worker_id": null,
+        "completed_by_tailor_quantity_status": 0
+      },
+      "changes": {},
+      "expected_strategy_types": [
+        24
+      ],
+      "expected_recipients": {
+        "103": [
+          24
+        ]
+      },
+      "expected_target": {
+        "kind": "order",
+        "id": "1001"
+      },
+      "source_anchor": "services/notifications/strategies/dealer_customer_order_partially_ready_strategy.rb",
+      "producer_scope": "private_route_only_no_original_callsite"
+    }
+  ],
+  "unproduced_strategy_types": [
+    115
+  ],
+  "dormant_original_strategy_types": [
+    20,
+    21,
+    24,
+    98,
+    115
+  ],
+  "deep_link_policy": "Person for registration/assignment; current-authorized order for order events. Original template rating/milestone actions differ from actual Flutter order navigation. Item-specific Flutter links lack item_Id in original strategy payloads; do not fabricate missing historical item IDs.",
+  "flutter_navigation_source": {
+    "path": "lib/services/notifications_config.dart",
+    "sha256": "f9fc362ea61bb26dee52840509e936fda61eb5613d9f8c94b87305e1aec40c19"
+  }
+}

@@ -72,13 +72,13 @@ class WarehouseReceipts(unittest.TestCase):
 
 class WarehouseEffects(WarehouseReceipts):
  def claim(self):
-  self.service();jobs=self.c.execute('SELECT canto_api.squad_job_claim(10)').fetchone()[0]['jobs'];self.assertEqual(len(jobs),1);self.assertEqual(jobs[0]['handler'],'warehouse_webhook');return jobs[0]
+  self.service();claimed=self.c.execute('SELECT canto_api.squad_job_claim(10)').fetchone()[0]['jobs'];self.assertTrue(all(j['handler'] in ('warehouse_webhook','notification_fanout') for j in claimed));jobs=[j for j in claimed if j['handler']=='warehouse_webhook'];self.assertEqual(len(jobs),1);return jobs[0]
  def execute(self,j):
   self.service();return self.c.execute('SELECT canto_api.squad_warehouse_webhook(%s,%s)',(uuid.UUID(j['id']),uuid.UUID(j['lease_token']))).fetchone()[0]
  def event(self,status='PROCESSING'):
   p=self.payload(status);r=self.accept(p);j=self.claim();return self.execute(j),j,p
  def test_provider_status_updates_shared_progress_once(self):
-  self.raw('UPDATE sa_snapshot_20261019.sa_items SET item_type=1 WHERE order_id=1001');r,j,p=self.event();self.assertEqual(r['result']['state'],'applied');self.assertEqual(self.raw('SELECT uc_status FROM sa_snapshot_20261019.sa_orders WHERE id=1001'),[('PROCESSING',)]);self.assertTrue(self.execute(j)['replayed']);self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.audit WHERE operation='warehouse.event_applied'"),[(1,)])
+  self.raw('UPDATE sa_snapshot_20261019.sa_items SET item_type=1 WHERE order_id=1001');r,j,p=self.event();self.assertEqual(r['result']['state'],'applied');self.assertEqual(self.raw('SELECT uc_status FROM sa_snapshot_20261019.sa_orders WHERE id=1001'),[('PROCESSING',)]);self.assertTrue(self.execute(j)['replayed']);self.assertEqual(self.raw("SELECT count(*) FROM sa_domain.audit WHERE operation='warehouse.event_applied'"),[(1,)]);self.assertEqual(self.raw("SELECT payload->'types' FROM sa_domain.outbox WHERE event_type='notification.fanout'"),[([16,17],)])
  def test_disabled_original_user_does_not_discard_provider_truth(self):
   self.raw('UPDATE sa_snapshot_20261019.sa_users SET disabled=true WHERE id=103');r,j,p=self.event();self.assertEqual(r['result']['state'],'applied')
  def test_terminal_cannot_regress_or_switch(self):
