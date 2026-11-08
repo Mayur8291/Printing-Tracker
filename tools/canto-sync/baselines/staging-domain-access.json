@@ -2,6 +2,42 @@
   [
     [
       "sa_admin",
+      "master_contracts",
+      "squad_master_contract_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_admin",
+      "master_contracts",
+      "squad_master_contract_media",
+      "{sa_media_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_admin",
+      "media",
+      "media_override_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_admin",
+      "media",
+      "media_writer_override_insert",
+      "{sa_media_writer}",
+      "INSERT",
+      null,
+      "true"
+    ],
+    [
+      "sa_admin",
       "media",
       "media_writer_overrides",
       "{sa_media_writer}",
@@ -2612,6 +2648,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_rmp_brands",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_rmp_categories",
       "squad_catalog_read",
       "{sa_executor}",
@@ -2784,6 +2829,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_sizes",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_sizes",
       "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
@@ -2825,6 +2879,15 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_skus",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_snapshot_20261019",
@@ -4407,7 +4470,7 @@
     [
       "sa_promotions",
       "link",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=w/postgres}"
     ],
     [
       "sa_promotions",
@@ -4537,12 +4600,17 @@
     [
       "sa_rmp_brands",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_rmp_brands",
       "name",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_brands",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_categories",
@@ -4652,7 +4720,7 @@
     [
       "sa_rmp_sizes",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_rmp_sizes",
@@ -4660,9 +4728,14 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_rmp_sizes",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
+    ],
+    [
       "sa_rmp_skus",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_rmp_skus",
@@ -4692,7 +4765,7 @@
     [
       "sa_rmp_skus",
       "updated_at",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_settings",
@@ -5006,6 +5079,30 @@
     ]
   ],
   [
+    [
+      "canto_api",
+      "account_master_capabilities",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,authenticated=X/postgres}",
+      "459c5576b5397fd59d047e520aa2f561"
+    ],
+    [
+      "canto_api",
+      "account_master_save",
+      "p_resource text, p_action text, p_payload jsonb, p_upload_ids uuid[], p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,authenticated=X/postgres}",
+      "a4242ad430f93b8ca2f710486964ca29"
+    ],
     [
       "canto_api",
       "account_media_resolve",
@@ -6352,6 +6449,30 @@
     ],
     [
       "sa_domain",
+      "account_master_capabilities",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,authenticated=X/sa_guard}",
+      "7311ff36d710c2d42680c89588fa3893"
+    ],
+    [
+      "sa_domain",
+      "account_master_save",
+      "p_resource text, p_action text, p_payload jsonb, p_upload_ids uuid[], p_idempotency_key uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,authenticated=X/sa_media_writer}",
+      "55dbb5c06f1bdb832088fc1f38e07120"
+    ],
+    [
+      "sa_domain",
       "account_media_resolve",
       "p_references jsonb",
       "sa_guard",
@@ -6360,7 +6481,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard}",
-      "06d83401a4772a1e9ac6e7872cd50850"
+      "2ecbcff5ab18e8d3a0e249c7b1a33090"
     ],
     [
       "sa_domain",
@@ -6384,7 +6505,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard}",
-      "f5027169c70972df03ae9534aac9e1f5"
+      "c0182b34d44767c39f617044131bef67"
     ],
     [
       "sa_domain",
@@ -6396,7 +6517,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "2271f509cc7194e7ea29f2f388f97a4a"
+      "73cdcb5828d4eb4c5421449d97047acb"
     ],
     [
       "sa_domain",
@@ -6709,7 +6830,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_media_writer=X/postgres}",
-      "7d0d0d5189d663e707b318d4c319c66f"
+      "2bfd8744facce620dd29d89104962b8e"
     ],
     [
       "sa_domain",
@@ -7434,6 +7555,30 @@
     ],
     [
       "sa_domain",
+      "master_storage_path",
+      "p_path text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,authenticated=X/sa_guard}",
+      "ef549ef4d170122132eca7046542dc43"
+    ],
+    [
+      "sa_domain",
+      "master_upload_draft",
+      "p_resource text, p_field text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "d566de855a244368563685b8d94e351a"
+    ],
+    [
+      "sa_domain",
       "media_allowed",
       "p_resource text, p_id bigint",
       "sa_guard",
@@ -7442,7 +7587,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "eb3c818a9f4c54417778860b3ffaebe6"
+      "d2a76d0a364a32456de9690a60bd5f14"
     ],
     [
       "sa_domain",
@@ -7454,7 +7599,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
-      "0da4d273b77b9c01c32131acec9e3304"
+      "42639ccaf58ca0386277a3020104f570"
     ],
     [
       "sa_domain",
@@ -7478,7 +7623,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard}",
-      "951d776fed068fd8271a9a83e4cf76ce"
+      "0a8d879708b262146028fbb2137a480c"
     ],
     [
       "sa_domain",
@@ -7490,7 +7635,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_media_writer=X/postgres,sa_guard=X/postgres}",
-      "7034f1901818f09e03c80bfb64b51e11"
+      "31a64a9a003d6d0c1d2283de381a60c1"
     ],
     [
       "sa_domain",
@@ -9978,7 +10123,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_media_writer=X/postgres}",
-      "05e8acee9865a8091b8a39cb506f8126"
+      "d9361e1050f1e2719ef5056b23246f25"
     ]
   ],
   [
@@ -10034,7 +10179,7 @@
       "r",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_admin",
@@ -10042,7 +10187,7 @@
       "r",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_media_writer=rd/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_media_writer=arwd/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_admin",
@@ -10371,6 +10516,97 @@
       true,
       false,
       "{postgres=arwdDxtm/postgres}"
+    ]
+  ],
+  [
+    [
+      "storage",
+      "objects",
+      "canto_masters_admin_delete",
+      "{authenticated}",
+      "DELETE",
+      "((bucket_id = 'canto-masters'::text) AND (split_part(name, '/'::text, 1) = (auth.uid())::text) AND sa_admin.is_admin())",
+      null
+    ],
+    [
+      "storage",
+      "objects",
+      "canto_masters_admin_read",
+      "{authenticated}",
+      "SELECT",
+      "((bucket_id = 'canto-masters'::text) AND sa_admin.is_admin())",
+      null
+    ],
+    [
+      "storage",
+      "objects",
+      "canto_media_admin_read",
+      "{authenticated}",
+      "SELECT",
+      "((bucket_id = 'canto-media'::text) AND sa_domain.master_storage_path(name))",
+      null
+    ]
+  ],
+  [
+    [
+      "sa_admin",
+      "is_admin",
+      "",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,authenticated=X/postgres,sa_guard=X/postgres}",
+      "563876d8632fd30aefd578a12993f6f1"
+    ],
+    [
+      "sa_admin",
+      "master_request",
+      "p_resource text, p_action text, p_data jsonb",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,authenticated=X/postgres,sa_media_writer=X/postgres}",
+      "2d8a5a286b91c7d5c1072a077c805a85"
+    ],
+    [
+      "sa_admin",
+      "read_record",
+      "p_resource text, p_id bigint, p_expand boolean",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_media_writer=X/postgres}",
+      "b0cf48a1b3959bc11be6f707c4649911"
+    ],
+    [
+      "sa_admin",
+      "refresh_min_stats",
+      "p_classes bigint[]",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "979d69260cffa3d2e10472c3e625eb39"
+    ],
+    [
+      "sa_admin",
+      "write_relations",
+      "p_resource text, p_id bigint, p_relations jsonb",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "73c49ee99ef55ae41eac9f6f259a0e6c"
     ]
   ]
 ]

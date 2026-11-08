@@ -29,6 +29,7 @@ export function createSquadClient(supabase) {
   return Object.freeze({
     me: () => call("v1_me"),
     reserveMediaUpload: (target,file,command) => account("media/uploads",{target,file,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
+    verifyMediaUpload: (uploadId,command) => account("media/verify",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     finalizeMediaUpload: (uploadId,command) => account("media/finalize",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     detachMedia: (target,reason,command) => call("v1_media_detach",{p_target:target,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     mediaGrants: (references,options = {}) => account("media/grants", {references:references.map(({resource,record_id,field,pointer})=>({resource,record_id,field,...(pointer!==undefined?{pointer}:{})})),download:options.download??false}),

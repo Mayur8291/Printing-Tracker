@@ -14,6 +14,8 @@ def access_catalog(conn):
       "SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_domain' OR (n.nspname='canto_api' AND (p.proname LIKE 'v1_%' OR p.proname LIKE 'squad_job_%' OR p.proname LIKE 'account_%')) ORDER BY 1,2,3",
       "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor','sa_worker','sa_media_writer') ORDER BY 1"
       ,"SELECT n.nspname,c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity,c.relacl::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN('sa_domain','sa_media','sa_identity','sa_admin','sa_sync') AND c.relkind IN('r','p','S','v') ORDER BY 1,2"
+      ,"SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname='storage' AND tablename='objects' AND (policyname LIKE 'canto_media_%' OR policyname LIKE 'canto_masters_%') ORDER BY 1,2,3"
+      ,"SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_admin' ORDER BY 1,2,3"
     ]
     return json.loads(json.dumps([conn.execute(q).fetchall() for q in queries]))
 

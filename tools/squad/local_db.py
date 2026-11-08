@@ -73,6 +73,14 @@ def bootstrap():
         AND (s.not_after IS NULL OR s.not_after>now())); $f$;
     REVOKE ALL ON FUNCTION sa_admin.is_admin() FROM PUBLIC;
    """)
+  # Install the actual existing Masters dispatcher for atomic file-save tests.
+  # Minimal Storage catalog fixtures only; no Storage HTTP server is emulated.
+  c.execute("CREATE SCHEMA storage;CREATE TABLE storage.buckets(id text PRIMARY KEY,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);CREATE TABLE storage.objects(id uuid,bucket_id text,name text);ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;CREATE FUNCTION storage.foldername(text) RETURNS text[] LANGUAGE sql AS 'SELECT string_to_array($1,''/'')';GRANT USAGE ON SCHEMA storage TO authenticated;")
+  c.execute((ROOT/'supabase/migrations/20261107045242_canto_admin_masters.sql').read_text())
+  from pglast import parse_sql,ast
+  from pglast.stream import RawStream
+  for item in parse_sql((ROOT/'supabase/migrations/20261107064651_canto_media_sync.sql').read_text()):
+   if isinstance(item.stmt,ast.CreateFunctionStmt) and [x.sval for x in item.stmt.funcname]==['sa_admin','read_record']:c.execute(RawStream()(item.stmt))
   print('Initialized 86 source tables and isolated Auth/session fixtures')
 
 def rebuild():

@@ -1,0 +1,18 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T04:07:00.316260+00:00",
+  "warm_database_commands": {
+    "base_product_types": {
+      "samples": 10,
+      "p95_ms": 27.477,
+      "max_ms": 27.477
+    },
+    "rmp_brands": {
+      "samples": 10,
+      "p95_ms": 11.301,
+      "max_ms": 11.301
+    }
+  },
+  "fixture_transaction_rolled_back": true,
+  "scope": "EXPLAIN ANALYZE atomic create with already-attested private file; two warmups and ten measured samples per physical/virtual master; network upload and verification measured separately, not a concurrent-load SLA."
+}

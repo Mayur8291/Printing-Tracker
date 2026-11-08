@@ -1,11 +1,30 @@
+import { createSquadClient } from "@canto/shared/squad";
+import { createAtomicMasterWriter, preparePrivateMasterForm, sameMasterImage } from "./atomicMasterSave";
 import { urlToScottFile } from "../scott/scottClient";
 import { cantoRpc, getCantoClient, getCantoTarget } from "./target";
 
 const writeQueues = new Map();
+function enqueueWrite(environment, execute) {
+  const pending = (writeQueues.get(environment) || Promise.resolve()).then(execute);
+  writeQueues.set(environment, pending.then(() => undefined, () => undefined));
+  return pending;
+}
 const relationName = (resource, action) => action === "update_categories" ? (resource === "rmp_brands" ? "rmp_categories" : "categories") : action.replace(/^update_/, "");
 export function createSupabaseMastersService(config) {
   const environment = getCantoTarget().environment;
   const resource = config.resource;
+  let privatePipeline;
+  const atomicWriter=createAtomicMasterWriter({client:getCantoClient(environment),sdk:createSquadClient(getCantoClient(environment)),resource,environment,rpc:(name,args)=>enqueueWrite(environment,()=>cantoRpc(name,args,environment))});
+  async function hasPrivatePipeline(){
+    if(!privatePipeline)privatePipeline=(async()=>{
+      const {data,error}=await getCantoClient(environment).schema("canto_api").rpc("account_master_capabilities");
+      // Production retains its current adapter until this backend is released there.
+      if(error?.code==="PGRST202")return false;
+      if(error)throw new Error(error.message||"Unable to check media support.");
+      return data?.upload_pipeline==="verified_private"&&data?.atomic_master_save===true;
+    })().catch(error=>{privatePipeline=undefined;throw error;});
+    return privatePipeline;
+  }
   const cfg = { ...config, labelSingular: config.labelSingular || config.label.replace(/s$/, "") };
   function normalize(row) {
     if (!row) return null;
@@ -19,9 +38,7 @@ export function createSupabaseMastersService(config) {
     if (["list", "get"].includes(action)) return execute();
     // Existing CSV/grid callers use parallel batches. Serialize this browser's writes
     // so they do not contend with each other for the database's publication lock.
-    const pending = (writeQueues.get(environment) || Promise.resolve()).then(execute);
-    writeQueues.set(environment, pending.then(() => undefined, () => undefined));
-    return pending;
+    return enqueueWrite(environment, execute);
   }
   async function listPage({ page = 1, items, pageSize = 100, search = "", includeInactive = false, ...rest } = {}) {
     const filters = Object.fromEntries((config.serverFilters || []).filter(k => rest[k] != null && rest[k] !== "").map(k => [k, rest[k]]));
@@ -69,7 +86,9 @@ export function createSupabaseMastersService(config) {
   async function getById(id) { return normalize(await request("get", { id: String(id) })); }
   async function save(action, id, form, previous, relationPlan = []) {
     const current = previous || (id ? await getById(id) : undefined);
-    const payload = await (action === "create" ? config.toCreatePayload(form) : config.toUpdatePayload(form, current));
+    const verifiedPipeline = await hasPrivatePipeline();
+    const prepared = verifiedPipeline ? preparePrivateMasterForm(config, form, current) : {form, previous:current};
+    const payload = await (action === "create" ? config.toCreatePayload(prepared.form) : config.toUpdatePayload(prepared.form, prepared.previous));
     // Rails ignores these presentation aliases; Supabase deliberately rejects unknown fields.
     delete payload.status; delete payload.logo_url; delete payload.image_url;
     if (resource === "asset_infos") {
@@ -86,11 +105,11 @@ export function createSupabaseMastersService(config) {
     async function imageValue(value, previous, wire) {
       if (payload[wire]?.__base64File) return;
       if ((value === "" || value === null) && previous) { payload[wire] = null; return; }
-      if (typeof value !== "string" || !value || value === previous) return;
+      if (typeof value !== "string" || !value || sameMasterImage(value, previous)) return;
       const imageUrl = new URL(value);
       if (!["https:", "http:"].includes(imageUrl.protocol)) throw new Error("Choose an image file or a readable image URL.");
       const project = environment === "production" ? "levwrmvqdntngeasrtnb" : "scvojtvgnkmbupvyslmb";
-      if (imageUrl.origin === `https://${project}.supabase.co` && imageUrl.pathname.startsWith("/storage/v1/object/public/canto-masters/")) payload[wire] = value;
+      if (!verifiedPipeline && imageUrl.origin === `https://${project}.supabase.co` && imageUrl.pathname.startsWith("/storage/v1/object/public/canto-masters/")) payload[wire] = value;
       else {
         try { payload[wire] = await urlToScottFile(value, `${wire}.png`); }
         catch { throw new Error("This image URL cannot be read. Download the image and choose it as a file."); }
@@ -101,6 +120,7 @@ export function createSupabaseMastersService(config) {
       if (field.type === "image-slots" && form[field.key]) for (const [slot, value] of Object.entries(form[field.key])) if (value === null) payload[slot] = null;
     }
     for (const slot of config.imageSlots || []) if (Object.hasOwn(form, slot)) await imageValue(form[slot], current?.[slot], slot);
+    if(verifiedPipeline)return normalize(await atomicWriter.save(action,id,payload,relations,current?.updated_at));
     const { values, uploaded } = await uploadFiles(payload);
     try {
       return normalize(await request(action, { id: id == null ? undefined : String(id), values, relations, expectedUpdatedAt: current?.updated_at }));

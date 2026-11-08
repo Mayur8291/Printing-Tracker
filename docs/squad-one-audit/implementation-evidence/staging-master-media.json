@@ -1,0 +1,28 @@
+{
+  "environment": "staging",
+  "results": [
+    {
+      "resource": "base_product_types",
+      "atomic_create": true,
+      "lost_response_retry_idempotent": true,
+      "metadata_only_keeps_file": true,
+      "checksum_verified": true,
+      "detached_file_not_signable": true,
+      "end_to_end_ms": 4565.342
+    },
+    {
+      "resource": "rmp_brands",
+      "atomic_create": true,
+      "lost_response_retry_idempotent": true,
+      "metadata_only_keeps_file": true,
+      "checksum_verified": true,
+      "detached_file_not_signable": true,
+      "end_to_end_ms": 2615.828
+    }
+  ],
+  "personal_file_denied": true,
+  "public_upload_denied": true,
+  "measured_at": "2026-11-08T04:05:37.839745+00:00",
+  "fixture_cleanup_verified": true,
+  "public_structure_unchanged": true
+}

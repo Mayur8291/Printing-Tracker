@@ -29,14 +29,14 @@ export function createHandler(deps:Dependencies){
   if(req.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
   const path=new URL(req.url).pathname.replace(/\/+$/,'');
   const route=path.slice(path.lastIndexOf('/squad-account/')+15);
-  if(!['media/grants','media/uploads','media/finalize'].includes(route))return response({error:'NOT_FOUND'},404);
+  if(!['media/grants','media/uploads','media/finalize','media/verify'].includes(route))return response({error:'NOT_FOUND'},404);
   const authorization=req.headers.get('authorization')??'';
   if(!/^Bearer [^\s]+$/.test(authorization)||authorization.length>16384)return response({error:'SESSION_REQUIRED'},401);
   try{
    const input=await readBody(req);
    if(route!=='media/grants'){
     if(!deps.uploads)throw new AccountError('SERVICE_UNAVAILABLE',503);
-    return response(await(route==='media/uploads'?uploadRequest:finalizeRequest)(deps.uploads,authorization,input));
+    return response(await(route==='media/uploads'?uploadRequest(deps.uploads,authorization,input):finalizeRequest(deps.uploads,authorization,input,route!=='media/verify')));
    }
    if(Object.keys(input).some(k=>!['references','download'].includes(k)) || !Array.isArray(input.references) || input.references.length<1 || input.references.length>25 || (input.download!==undefined && typeof input.download!=='boolean'))throw new AccountError('INVALID_REQUEST',400);
    // PostgREST verifies the caller JWT and the RPC checks the current Auth

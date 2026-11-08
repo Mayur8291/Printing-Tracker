@@ -16,7 +16,7 @@ export async function uploadRequest(deps:UploadDependencies,auth:string,input:Re
  if(current.state!=='reserved')return {upload_id:u.upload_id,state:current.state};
  const {url}=await deps.signUpload(u.path);return {upload_id:u.upload_id,state:'reserved',upload_url:url,expires_at:u.expires_at,bytes:u.bytes,content_type:u.content_type};
 }
-export async function finalizeRequest(deps:UploadDependencies,auth:string,input:Record<string,unknown>){
+export async function finalizeRequest(deps:UploadDependencies,auth:string,input:Record<string,unknown>,attach=true){
  if(Object.keys(input).some(k=>!['upload_id','expected_version','idempotency_key'].includes(k))||!uuid.test(String(input.upload_id??''))||!uuid.test(String(input.idempotency_key??''))||typeof input.expected_version!=='string')throw new AccountError('INVALID_REQUEST',400);
  const u:Upload=await deps.rpc(auth,'account_upload_get',{p_id:input.upload_id});assertUpload(u);
  if(input.expected_version!==u.expected_version)throw new AccountError('VERSION_CONFLICT',409);
@@ -31,5 +31,6 @@ export async function finalizeRequest(deps:UploadDependencies,auth:string,input:
   await deps.copyVerified(u.path,verified.sha256,verified.bytes,verified.content_type);
   await deps.rpc(auth,'account_upload_verified',{p_id:u.upload_id,p_sha256:verified.sha256,p_bytes:verified.bytes,p_content_type:verified.content_type},true);
  }
+ if(!attach)return {upload_id:u.upload_id,state:u.state==='attached'?'attached':'verified'};
  return await deps.rpc(auth,'v1_media_attach',{p_upload_id:u.upload_id,p_expected_version:input.expected_version,p_idempotency_key:input.idempotency_key});
 }

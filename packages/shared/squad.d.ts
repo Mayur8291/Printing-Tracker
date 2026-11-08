@@ -294,7 +294,8 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   retryJob(id:string,reason:string,command:Command):Promise<BackgroundJob>;
   audit(filters?:{kind?:string;entityId?:EntityId},page?:PageRequest):Promise<Page<AuditEntry>>;
   me(): Promise<Me>;
-  reserveMediaUpload(target:{resource:string;record_id:EntityId;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
+  reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
+  verifyMediaUpload(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached'}>;
   finalizeMediaUpload(uploadId:string,command:Command):Promise<MediaMutation>;
   detachMedia(target:{resource:string;record_id:EntityId;field:string},reason:string,command:Command):Promise<MediaMutation>;
   mediaGrants(references:Array<Pick<MediaReference,'resource'|'record_id'|'field'|'pointer'>>,options?:{download?:boolean}):Promise<{references:Array<Omit<MediaReference,'status'> & {status:MediaReference['status']|'unavailable'|'external_unavailable';url?:string;expires_in?:number;bytes?:string;content_type?:string;version?:string}>;generation:string;as_of:string}>;
