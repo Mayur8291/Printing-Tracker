@@ -60,3 +60,7 @@ verify_jwt = false
 # Service-only queue pump validates its dedicated Cron secret before any RPC.
 [functions.squad-jobs]
 verify_jwt = false
+
+# User routes forward the JWT to scoped RPCs before any privileged Storage call.
+[functions.squad-account]
+verify_jwt = false

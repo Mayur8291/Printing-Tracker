@@ -277,6 +277,16 @@ Local coverage includes simultaneous claims, stale tokens/generations, expired/r
 
 Only the local-amendment handler is enabled in this iteration. Provider, notification, account, document/import/export and maintenance handlers remain explicit upcoming work, not silently completed jobs. Security advisors have no new Squad finding beyond the two reviewed SQL-standard helpers; existing admin/public findings remain outside this change. No production changes or provider messages were made. Next: scoped media grants/uploads and account orchestration, then integrations/notifications/documents and the complete matrix/cutover/performance review.
 
+## Iteration 20 — scoped media access and inherited artwork (completed)
+
+The `squad-account` deployment now resolves batches of 1–25 media descriptors through the caller's verified JWT and current resource scope, then issues private Storage grants valid for 120 seconds. Customer/preset/order artwork, assigned factory/job-worker material, profile photos, masters, catalogue documents and explicit external links have separate scope rules. Foreign resource IDs and forbidden columns are rejected; source paths and original URLs are not returned. JSON pointers and Unicode text offsets must match the current source value. Empty, missing, pending and unavailable files remain explicit. Supported external links are returned without a server fetch. Production/staging recovery remains separate.
+
+Signing uses the service credential only after the database authorization step. A missing Storage object cannot become a successful grant. A disabled catalogue capability no longer exposes an unrelated owned preset to a worker; assigned work remains visible. Order placement/amendment already copied main artwork references; this iteration also preserves exact matching embedded comment-file references. Regression tests cover customer placement, SC amendment using the order's authorized artwork, customer retrieval and unrelated-customer/SC denial.
+
+**895 SQL tests and 17 Edge tests pass**, with shared/mobile type checks. Hosted database resolution across Admin, SC, PC, Customer and Dealer is below **62 ms warm p95** for 25 actual files. A real GoTrue login through the shared SDK obtained and downloaded migrated media; byte length and SHA256 matched the canonical stored object. Public-bucket access, forbidden fields and a logged-out session were denied. The ten-sample end-to-end warm p95 from this Mac in India is **471.312 ms** (25-file batch). Evidence: `staging-media-grants-performance.json` and `staging-media-sdk.json`. The security advisor shows no new domain issue beyond the two previously reviewed SQL-standard helper warnings. Both migrations are applied to staging, and reviewed refresh fingerprints retain the public-schema isolation check.
+
+This completes authorized downloads and artwork inheritance. Upload/finalize/replace/detach, account enrollment/recovery and the remaining provider/document/notification services remain upcoming work. No production changes or customer messages occurred.
+
 ## Remaining gates
 
 1. Foundation: live actor/session authorization, private executor, idempotency, revisions/audit/outbox, write ownership/refresh fence, shared contracts.

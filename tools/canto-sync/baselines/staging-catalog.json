@@ -8701,7 +8701,7 @@
       "sa_base_product_asset_infos",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_base_product_categories",
@@ -8959,7 +8959,7 @@
       "sa_promotional_banners",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_promotions",

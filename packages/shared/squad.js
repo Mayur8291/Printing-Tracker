@@ -5,7 +5,7 @@ export class SquadError extends Error {
     this.name = "SquadError";
     this.code = error.code || "TRANSPORT_ERROR";
     this.kind = ({"28000":"session", "42501":"forbidden", "40001":"conflict",
-      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable"})[this.code] || "unexpected";
+      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
   }
 }
 
@@ -17,8 +17,18 @@ export function createSquadClient(supabase) {
     if (error) throw new SquadError(error);
     return data;
   }
+  async function account(path, body) {
+    const {data,error}=await supabase.functions.invoke(`squad-account/${path}`,{body});
+    if(error){
+      let code=error.code;
+      try { code=(await error.context.clone().json()).error || code; } catch { /* Network errors have no HTTP body. */ }
+      throw new SquadError({code:code||"TRANSPORT_ERROR",message:"The account request could not be completed."});
+    }
+    return data;
+  }
   return Object.freeze({
     me: () => call("v1_me"),
+    mediaGrants: (references,options = {}) => account("media/grants", {references:references.map(({resource,record_id,field,pointer})=>({resource,record_id,field,...(pointer!==undefined?{pointer}:{})})),download:options.download??false}),
     jobs: (state = null,page = {}) => call("v1_jobs_list", {p_state:state,p_cursor:page.cursor??null,p_limit:page.limit??25}),
     job: (id) => call("v1_job_get", {p_id:id}),
     retryJob: (id,reason,command) => call("v1_job_retry", {p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),

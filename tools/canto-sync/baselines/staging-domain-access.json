@@ -164,6 +164,15 @@
     ],
     [
       "sa_domain",
+      "design_owners",
+      "squad_media_design_owners",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "dispatch_receipts",
       "squad_dispatch_receipt_insert",
       "{sa_executor}",
@@ -597,6 +606,15 @@
     [
       "sa_snapshot_20261019",
       "sa_add_ons",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_add_ons",
       "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
@@ -659,6 +677,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_asset_infos",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_assigned_brands",
       "squad_assigned_brand_delete",
       "{sa_executor}",
@@ -713,6 +740,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_authorized_brands",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_back_order_links",
       "squad_amendment_guard",
       "{sa_guard}",
@@ -745,6 +781,15 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_product_asset_infos",
+      "squad_media_asset_links",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -785,6 +830,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_base_product_types",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_base_products",
       "squad_catalog_read",
       "{sa_executor}",
@@ -805,6 +859,15 @@
       "sa_snapshot_20261019",
       "sa_base_products",
       "squad_guard_earnings",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_products",
+      "squad_media_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -904,6 +967,33 @@
       "sa_snapshot_20261019",
       "sa_brandings",
       "squad_detail_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_brandings",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_bulk_uploads",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_catalogues",
+      "squad_media_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -1191,6 +1281,15 @@
     [
       "sa_snapshot_20261019",
       "sa_fabrics",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_fabrics",
       "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
@@ -1421,6 +1520,15 @@
       "UPDATE",
       "((order_id IN ( SELECT sa_domain.scope_order_ids() AS scope_order_ids)) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) <> 9) OR (cutting_master_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
       "((order_id IN ( SELECT sa_domain.scope_order_ids() AS scope_order_ids)) AND ((( SELECT (sa_domain.actor()).role_id AS role_id) <> 9) OR (cutting_master_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_items",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_snapshot_20261019",
@@ -1785,6 +1893,15 @@
     [
       "sa_snapshot_20261019",
       "sa_orders",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_orders",
       "squad_orders_insert",
       "{sa_executor}",
       "INSERT",
@@ -1849,6 +1966,15 @@
       "sa_snapshot_20261019",
       "sa_product_images",
       "squad_detail_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_images",
+      "squad_media_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -1974,6 +2100,15 @@
     [
       "sa_snapshot_20261019",
       "sa_products",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_products",
       "squad_products_insert",
       "{sa_executor}",
       "INSERT",
@@ -2032,6 +2167,24 @@
       "{sa_executor}",
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_promotional_banners",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_promotions",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
       null
     ],
     [
@@ -2217,6 +2370,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_categories",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_categories",
       "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
@@ -2236,6 +2398,15 @@
       "sa_snapshot_20261019",
       "sa_rmp_classes",
       "squad_detail_labels",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_classes",
+      "squad_media_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -2362,6 +2533,15 @@
       "sa_snapshot_20261019",
       "sa_rmp_skus",
       "squad_guard_stock_sku",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_skus",
+      "squad_media_skus",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -2568,6 +2748,15 @@
     [
       "sa_snapshot_20261019",
       "sa_tasks",
+      "squad_media_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_tasks",
       "squad_task_insert",
       "{sa_executor}",
       "INSERT",
@@ -2650,6 +2839,15 @@
       "sa_snapshot_20261019",
       "sa_users",
       "squad_guard_users",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_users",
+      "squad_media_guard",
       "{sa_guard}",
       "SELECT",
       "true",
@@ -2780,6 +2978,11 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_add_ons",
+      "is_deleted",
+      "{sa_guard=r/postgres}"
+    ],
+    [
       "sa_addresses",
       "address",
       "{sa_guard=r/postgres}"
@@ -2815,6 +3018,21 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_asset_infos",
+      "asset",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_asset_infos",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_asset_infos",
+      "is_deleted",
+      "{sa_guard=r/postgres}"
+    ],
+    [
       "sa_authorized_brands",
       "id",
       "{sa_guard=r/postgres}"
@@ -2826,7 +3044,27 @@
     ],
     [
       "sa_authorized_brands",
+      "logo",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_authorized_brands",
       "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_base_product_types",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_base_product_types",
+      "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_base_product_types",
+      "is_deleted",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -2851,7 +3089,17 @@
     ],
     [
       "sa_base_products",
+      "is_deleted",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_base_products",
       "name",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_brandings",
+      "attachment",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -2862,7 +3110,7 @@
     [
       "sa_brandings",
       "comment",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_brandings",
@@ -2886,8 +3134,23 @@
     ],
     [
       "sa_brandings",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_brandings",
+      "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_brandings",
       "item_id",
       "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_brandings",
+      "mockup_image",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_brandings",
@@ -2903,6 +3166,41 @@
       "sa_brandings",
       "updated_at",
       "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "file",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_bulk_uploads",
+      "user_id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_catalogues",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_catalogues",
+      "is_expired",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_catalogues",
+      "url",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_catalogues",
+      "user_id",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_categories",
@@ -2957,6 +3255,11 @@
     [
       "sa_fabrics",
       "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_fabrics",
+      "is_deleted",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -3412,7 +3715,7 @@
     [
       "sa_orders",
       "comment",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_orders",
@@ -3630,6 +3933,16 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_product_images",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_product_images",
+      "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
       "sa_product_part_add_ons",
       "add_on_color_id",
       "{sa_guard=r/postgres}"
@@ -3686,6 +3999,11 @@
     ],
     [
       "sa_products",
+      "comment",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_products",
       "fabric_color_id",
       "{sa_guard=r/postgres}"
     ],
@@ -3697,6 +4015,11 @@
     [
       "sa_products",
       "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_products",
+      "images",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -3713,6 +4036,36 @@
       "sa_products",
       "updated_at",
       "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_promotional_banners",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_promotional_banners",
+      "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_promotions",
+      "id",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_promotions",
+      "is_deleted",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_promotions",
+      "link",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_promotions",
+      "thumbnail",
+      "{sa_guard=r/postgres}"
     ],
     [
       "sa_quantities",
@@ -3846,6 +4199,16 @@
     ],
     [
       "sa_rmp_categories",
+      "image",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_categories",
+      "is_deleted",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_categories",
       "name",
       "{sa_guard=r/postgres}"
     ],
@@ -3866,7 +4229,17 @@
     ],
     [
       "sa_rmp_classes",
+      "image_1_thumb",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
       "image_2",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "image_2_thumb",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -3876,12 +4249,32 @@
     ],
     [
       "sa_rmp_classes",
+      "image_3_thumb",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
       "image_4",
       "{sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_classes",
+      "image_4_thumb",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
       "image_5",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "image_5_thumb",
+      "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "is_deleted",
       "{sa_guard=r/postgres}"
     ],
     [
@@ -4062,7 +4455,7 @@
     [
       "sa_tasks",
       "note",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_tasks",
@@ -4222,7 +4615,7 @@
     [
       "sa_users",
       "profile_image",
-      "{sa_executor=r/postgres}"
+      "{sa_executor=r/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -4251,6 +4644,18 @@
     ]
   ],
   [
+    [
+      "canto_api",
+      "account_media_resolve",
+      "p_references jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "cd7b4f2845c17b8f1cdea6802c64f5cb"
+    ],
     [
       "canto_api",
       "squad_job_claim",
@@ -5513,6 +5918,18 @@
     ],
     [
       "sa_domain",
+      "account_media_resolve",
+      "p_references jsonb",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard}",
+      "b6d121a12c7a443bc58592972dde6f44"
+    ],
+    [
+      "sa_domain",
       "active_master_ids",
       "p_kind text, p_ids bigint[]",
       "sa_guard",
@@ -5738,7 +6155,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "1b477d38c785deb6af248e9d839be491"
+      "0ecc095392dcce0d1f5390c1fc9877bf"
     ],
     [
       "sa_domain",
@@ -6508,6 +6925,42 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
       "7157e98fa25c97ee87d532d0b3648bc3"
+    ],
+    [
+      "sa_domain",
+      "media_allowed",
+      "p_resource text, p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "eb3c818a9f4c54417778860b3ffaebe6"
+    ],
+    [
+      "sa_domain",
+      "media_fields",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "0da4d273b77b9c01c32131acec9e3304"
+    ],
+    [
+      "sa_domain",
+      "media_leaf",
+      "p_value text, p_pointer text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "383e323fa3e6bb7898469c7fe0b3f328"
     ],
     [
       "sa_domain",
@@ -8886,7 +9339,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard}",
-      "ec8b410b4c90dc1a66db2b4dbc7c0fc3"
+      "c6ddb2b099549e74be8ce2f6da8fd008"
     ],
     [
       "sa_domain",
