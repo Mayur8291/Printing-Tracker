@@ -28,14 +28,25 @@ async function boundedBody(req: Request): Promise<Record<string, unknown>> {
   if(!value || Array.isArray(value) || typeof value !== 'object')throw new Error('invalid_body');
   return value;
 }
-export function createHandler(secret: string | undefined, rpc: Rpc) {
+export function createHandler(secret: string | undefined, rpc: Rpc, removeUploads?: (paths:string[])=>Promise<void>) {
   return async (req: Request): Promise<Response> => {
     if (req.method !== 'POST') return json({error:'METHOD_NOT_ALLOWED'},405);
     if (!secret || secret.length < 32) return json({error:'WORKER_NOT_CONFIGURED'},503);
     const authorization = req.headers.get('authorization') ?? '';
     if (authorization.length > 1024 || !await sameSecret(authorization,`Bearer ${secret}`)) return json({error:'UNAUTHORIZED'},401);
     const path = new URL(req.url).pathname.replace(/\/+$/,'');
-    if (!path.endsWith('/squad-jobs/run')) return json({error:'NOT_FOUND'},404);
+    const cleanup=path.endsWith('/squad-jobs/media-cleanup');
+    if (!cleanup && !path.endsWith('/squad-jobs/run')) return json({error:'NOT_FOUND'},404);
+    if(cleanup){
+      try{
+        if(Object.keys(await boundedBody(req)).length)return json({error:'INVALID_REQUEST'},400);
+        if(!removeUploads)return json({error:'WORKER_NOT_CONFIGURED'},503);
+        const batch=await rpc('account_upload_cleanup',{p_completed:[]}) as {uploads:Array<{id:string;path:string}>};
+        if(batch.uploads.length>100||batch.uploads.some(u=>!/^pending\/[a-f0-9-]{36}$/.test(u.path)||u.path!=='pending/'+u.id))throw new Error('invalid_cleanup_paths');
+        if(batch.uploads.length){await removeUploads(batch.uploads.map(u=>u.path));await rpc('account_upload_cleanup',{p_completed:batch.uploads.map(u=>u.id)});}
+        return json({cleaned:batch.uploads.length});
+      }catch{return json({error:'CLEANUP_UNAVAILABLE'},503);}
+    }
     let limit: number;
     try {
       const input=await boundedBody(req);limit=Number(input.limit??3);
@@ -63,7 +74,7 @@ export function createHandler(secret: string | undefined, rpc: Rpc) {
 }
 export function serviceRpc(url: string, key: string): Rpc {
   return async (name,args) => {
-    if(!['squad_job_claim','squad_job_execute'].includes(name))throw new Error('unknown_rpc');
+    if(!['squad_job_claim','squad_job_execute','account_upload_cleanup'].includes(name))throw new Error('unknown_rpc');
     const response=await fetch(`${url}/rest/v1/rpc/${name}`,{
       method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json','Content-Profile':'canto_api','Accept-Profile':'canto_api'},
       body:JSON.stringify(args),signal:AbortSignal.timeout(12000),
@@ -71,4 +82,11 @@ export function serviceRpc(url: string, key: string): Rpc {
     if(!response.ok){await response.body?.cancel();throw new Error('rpc_failed');}
     return await response.json();
   };
+}
+
+export function storageCleanup(url:string,key:string){
+ return async(paths:string[])=>{
+  const response=await fetch(url+'/storage/v1/object/squad-uploads',{method:'DELETE',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({prefixes:paths}),signal:AbortSignal.timeout(12000)});
+  if(!response.ok){await response.body?.cancel();throw new Error('storage_cleanup_failed');}await response.body?.cancel();
+ };
 }

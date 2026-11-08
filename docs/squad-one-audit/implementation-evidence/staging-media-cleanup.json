@@ -1,0 +1,11 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T03:37:20.974400+00:00",
+  "unauthorized_denied": true,
+  "expired_object_removed": true,
+  "acknowledged_only_after_storage_success": true,
+  "repeat_call_safe": true,
+  "schedule": "17 * * * *",
+  "business_mode": "mirror",
+  "fixture_removed": true
+}

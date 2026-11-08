@@ -122,6 +122,7 @@ export interface Me {
   approved: boolean|null; onboarded: boolean; version: Version;
   capabilities: Record<'notes'|'goals'|'catalogue'|'configure'|'documents'|'promotions'|'place_orders',boolean>;
 }
+export interface MediaMutation {resource:string;record_id:EntityId;field:string;status:'ready'|'empty';version:string;entity_version:string}
 export interface MediaReference { resource:string;record_id:EntityId;field:string;pointer?:string;status:'ready'|'pending'|'missing'|'external'|'empty' }
 export interface CatalogueOption {
   id:EntityId;name:string;position?:number|null;image?:MediaReference;
@@ -293,7 +294,10 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   retryJob(id:string,reason:string,command:Command):Promise<BackgroundJob>;
   audit(filters?:{kind?:string;entityId?:EntityId},page?:PageRequest):Promise<Page<AuditEntry>>;
   me(): Promise<Me>;
-  mediaGrants(references:Array<Pick<MediaReference,'resource'|'record_id'|'field'|'pointer'>>,options?:{download?:boolean}):Promise<{references:Array<Omit<MediaReference,'status'> & {status:MediaReference['status']|'unavailable'|'external_unavailable';url?:string;expires_in?:number;bytes?:string;content_type?:string}>;generation:string;as_of:string}>;
+  reserveMediaUpload(target:{resource:string;record_id:EntityId;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
+  finalizeMediaUpload(uploadId:string,command:Command):Promise<MediaMutation>;
+  detachMedia(target:{resource:string;record_id:EntityId;field:string},reason:string,command:Command):Promise<MediaMutation>;
+  mediaGrants(references:Array<Pick<MediaReference,'resource'|'record_id'|'field'|'pointer'>>,options?:{download?:boolean}):Promise<{references:Array<Omit<MediaReference,'status'> & {status:MediaReference['status']|'unavailable'|'external_unavailable';url?:string;expires_in?:number;bytes?:string;content_type?:string;version?:string}>;generation:string;as_of:string}>;
   saveProfile(fields: ProfileFields,command: Command): Promise<Me>;
   people(filters?:PeopleFilters,page?:PageRequest):Promise<Page<Person>>;
   person(id: EntityId): Promise<PersonDetail>;

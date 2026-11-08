@@ -32,3 +32,15 @@ Deno.test('uncertain execution keeps lease for reconciliation',async()=>{
 Deno.test('failed claim produces safe retriable error',async()=>{
  const h=createHandler(secret,()=>{throw new Error('secret detail');});const response=await h(request());assert(response.status===503);assert(!JSON.stringify(await response.json()).includes('secret'));
 });
+Deno.test('expired media files removed before acknowledgement',async()=>{
+ const calls:string[]=[];const id='11111111-1111-4111-8111-111111111111';
+ const h=createHandler('x'.repeat(48),async(name,args)=>{assert(name==='account_upload_cleanup');calls.push((args.p_completed as string[]).length?'ack':'list');return{uploads:[{id,path:'pending/'+id}]};},async(paths)=>{assert(paths[0]==='pending/'+id);calls.push('delete');});
+ const r=await h(new Request('https://test.invalid/squad-jobs/media-cleanup',{method:'POST',headers:{Authorization:'Bearer '+'x'.repeat(48)},body:'{}'}));assert(r.status===200);assert(calls.join(',')==='list,delete,ack');
+});
+Deno.test('failed storage cleanup remains unacknowledged',async()=>{
+ let ack=false;const id='11111111-1111-4111-8111-111111111111';const h=createHandler('x'.repeat(48),async(_name,args)=>{if((args.p_completed as string[]).length)ack=true;return{uploads:[{id,path:'pending/'+id}]};},async()=>{throw new Error('failed');});
+ const r=await h(new Request('https://test.invalid/squad-jobs/media-cleanup',{method:'POST',headers:{Authorization:'Bearer '+'x'.repeat(48)},body:'{}'}));assert(r.status===503);assert(!ack);
+});
+Deno.test('cleanup refuses paths outside reserved upload bucket',async()=>{
+ let removed=false;const h=createHandler('x'.repeat(48),async()=>({uploads:[{id:'x',path:'../canonical'}]}),async()=>{removed=true;});const r=await h(new Request('https://test.invalid/squad-jobs/media-cleanup',{method:'POST',headers:{Authorization:'Bearer '+'x'.repeat(48)},body:'{}'}));assert(r.status===503);assert(!removed);
+});

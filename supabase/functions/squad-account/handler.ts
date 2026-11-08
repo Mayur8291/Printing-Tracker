@@ -1,13 +1,15 @@
+import {AccountError} from './errors.ts';
+export {AccountError} from './errors.ts';
+import {uploadRequest,finalizeRequest,type UploadDependencies} from './uploads.ts';
+import {verifyMedia} from './media-verification.ts';
 export interface MediaReference {resource:string;record_id:string;field:string;pointer?:string;}
-interface ResolvedMedia extends MediaReference {status:string;bucket?:string;object_path?:string;bytes?:string;content_type?:string;url?:string;}
+interface ResolvedMedia extends MediaReference {status:string;version?:string;bucket?:string;object_path?:string;bytes?:string;content_type?:string;url?:string;}
 export interface MediaResolution {references:ResolvedMedia[];expires_in:number;generation:string;as_of:string;}
 export interface Dependencies {
  resolveMedia:(authorization:string,references:unknown[])=>Promise<MediaResolution>;
  signMedia:(paths:string[],expiresIn:number)=>Promise<Array<{path:string;signedURL?:string;error?:string|null}>>;
  storageUrl:string;
-}
-export class AccountError extends Error {
- constructor(readonly code:string,readonly status:number){super(code);}
+ uploads?:UploadDependencies;
 }
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
@@ -25,11 +27,17 @@ export function createHandler(deps:Dependencies){
  return async(req:Request):Promise<Response>=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
-  if(!new URL(req.url).pathname.replace(/\/+$/,'').endsWith('/squad-account/media/grants'))return response({error:'NOT_FOUND'},404);
+  const path=new URL(req.url).pathname.replace(/\/+$/,'');
+  const route=path.slice(path.lastIndexOf('/squad-account/')+15);
+  if(!['media/grants','media/uploads','media/finalize'].includes(route))return response({error:'NOT_FOUND'},404);
   const authorization=req.headers.get('authorization')??'';
   if(!/^Bearer [^\s]+$/.test(authorization)||authorization.length>16384)return response({error:'SESSION_REQUIRED'},401);
   try{
    const input=await readBody(req);
+   if(route!=='media/grants'){
+    if(!deps.uploads)throw new AccountError('SERVICE_UNAVAILABLE',503);
+    return response(await(route==='media/uploads'?uploadRequest:finalizeRequest)(deps.uploads,authorization,input));
+   }
    if(Object.keys(input).some(k=>!['references','download'].includes(k)) || !Array.isArray(input.references) || input.references.length<1 || input.references.length>25 || (input.download!==undefined && typeof input.download!=='boolean'))throw new AccountError('INVALID_REQUEST',400);
    // PostgREST verifies the caller JWT and the RPC checks the current Auth
    // session plus record scope. Signing uses only those database-resolved paths.
@@ -47,7 +55,7 @@ export function createHandler(deps:Dependencies){
     if(!signedFile || signedFile.error || !signedFile.signedURL)return {...publicFields,status:'unavailable'};
     if(!signedFile.signedURL.startsWith('/object/sign/canto-media/')||signedFile.signedURL.includes('\\'))throw new AccountError('MEDIA_UNAVAILABLE',503);
     const fileUrl=new URL(deps.storageUrl+signedFile.signedURL);
-    if(input.download||!['image/png','image/jpeg','image/webp','image/gif','video/mp4','audio/mpeg','application/pdf'].includes(r.content_type??''))fileUrl.searchParams.set('download','');
+    if(input.download||!['image/png','image/jpeg','image/webp','image/gif','video/mp4','video/webm','audio/mpeg','application/pdf'].includes(r.content_type??''))fileUrl.searchParams.set('download','');
     return {...publicFields,url:fileUrl.href,expires_in:ttl};
    });
    return response({references,generation:resolved.generation,as_of:resolved.as_of});
@@ -55,18 +63,43 @@ export function createHandler(deps:Dependencies){
  };
 }
 export function dependencies(url:string,anon:string,service:string):Dependencies{
+ const serviceHeaders={apikey:service,Authorization:`Bearer ${service}`};
+ const storage=url+'/storage/v1';
+ async function rpc(authorization:string,name:string,args:Record<string,unknown>,privileged=false){
+  const r=await fetch(url+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:privileged?service:anon,Authorization:privileged?`Bearer ${service}`:authorization,'Content-Type':'application/json','Content-Profile':'canto_api','Accept-Profile':'canto_api'},body:JSON.stringify(args),signal:AbortSignal.timeout(12000)});
+  const value=await r.json();if(!r.ok){const code=String(value?.code??'');
+   if(code==='28000'||r.status===401)throw new AccountError('SESSION_REQUIRED',401);
+   if(code==='42501')throw new AccountError('FORBIDDEN',403);
+   if(code==='P0002')throw new AccountError('NOT_FOUND',404);
+   if(code==='40001')throw new AccountError('VERSION_CONFLICT',409);
+   if(code==='55000')throw new AccountError('WRITE_UNAVAILABLE',409);
+   if(code==='54000')throw new AccountError('QUOTA_EXCEEDED',429);
+   if(code.startsWith('22'))throw new AccountError('INVALID_REQUEST',400);
+   throw new AccountError('SERVICE_UNAVAILABLE',503);
+  }return value;
+ }
  return {
   storageUrl:url+'/storage/v1',
-  async resolveMedia(authorization,references){
-   const r=await fetch(url+'/rest/v1/rpc/account_media_resolve',{method:'POST',headers:{apikey:anon,Authorization:authorization,'Content-Type':'application/json','Content-Profile':'canto_api','Accept-Profile':'canto_api'},body:JSON.stringify({p_references:references}),signal:AbortSignal.timeout(12000)});
-   const value=await r.json();if(!r.ok){
-    const code=String(value?.code??'');
-    if(code==='28000'||r.status===401)throw new AccountError('SESSION_REQUIRED',401);
-    if(code==='42501')throw new AccountError('FORBIDDEN',403);
-    if(code==='P0002')throw new AccountError('NOT_FOUND',404);
-    if(code.startsWith('22'))throw new AccountError('INVALID_REQUEST',400);
-    throw new AccountError('SERVICE_UNAVAILABLE',503);
-   }return value;
+  resolveMedia:(authorization,references)=>rpc(authorization,'account_media_resolve',{p_references:references}),
+  uploads:{
+   rpc,
+   async signUpload(path){
+    const r=await fetch(storage+'/object/upload/sign/squad-uploads/'+path,{method:'POST',headers:{...serviceHeaders,'Content-Type':'application/json','x-upsert':'false'},body:'{}',signal:AbortSignal.timeout(12000)});
+    const value=await r.json();if(!r.ok||typeof value.url!=='string'||!value.url.startsWith('/object/upload/sign/squad-uploads/pending/'))throw new AccountError('MEDIA_UNAVAILABLE',503);
+    return {url:storage+value.url};
+   },
+   download:(path)=>fetch(storage+'/object/authenticated/squad-uploads/'+path,{headers:serviceHeaders,signal:AbortSignal.timeout(90000)}),
+   async copyVerified(path,hash,bytes,mime){
+    const source=await fetch(storage+'/object/authenticated/squad-uploads/'+path,{headers:serviceHeaders,signal:AbortSignal.timeout(90000)});
+    if(!source.ok||!source.body){await source.body?.cancel();throw new AccountError('MEDIA_UNAVAILABLE',503);}
+    const canonical='sha256/'+hash.slice(0,2)+'/'+hash;
+    const r=await fetch(storage+'/object/canto-media/'+canonical,{method:'POST',headers:{...serviceHeaders,'Content-Type':mime,'Content-Length':String(bytes),'x-upsert':'false'},body:source.body,signal:AbortSignal.timeout(90000)});
+    if(!r.ok){const value=await r.json();if(!['409','Duplicate','ResourceAlreadyExists'].includes(String(value.statusCode??value.error??value.code)))throw new AccountError('MEDIA_UNAVAILABLE',503);
+     const existing=await fetch(storage+'/object/authenticated/canto-media/'+canonical,{headers:serviceHeaders,signal:AbortSignal.timeout(90000)});
+     if(!existing.ok||!existing.body||existing.headers.get('content-type')?.split(';')[0]!==mime){await existing.body?.cancel();throw new AccountError('MEDIA_UNAVAILABLE',503);}
+     const checked=await verifyMedia(existing.body,bytes,mime);if(checked.sha256!==hash)throw new AccountError('MEDIA_UNAVAILABLE',503);
+    }else await r.body?.cancel();
+   },
   },
   async signMedia(paths,expiresIn){
    const r=await fetch(url+'/storage/v1/object/sign/canto-media',{method:'POST',headers:{apikey:service,Authorization:`Bearer ${service}`,'Content-Type':'application/json'},body:JSON.stringify({paths,expiresIn}),signal:AbortSignal.timeout(12000)});

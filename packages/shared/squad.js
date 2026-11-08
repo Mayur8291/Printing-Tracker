@@ -5,7 +5,7 @@ export class SquadError extends Error {
     this.name = "SquadError";
     this.code = error.code || "TRANSPORT_ERROR";
     this.kind = ({"28000":"session", "42501":"forbidden", "40001":"conflict",
-      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
+      "22023":"validation", "22P02":"validation", "22007":"validation", "23P01":"validation", "23505":"conflict", "54000":"validation", "P0002":"not_found", "55000":"unavailable", "SESSION_REQUIRED":"session", "FORBIDDEN":"forbidden", "NOT_FOUND":"not_found", "INVALID_REQUEST":"validation", "REQUEST_TOO_LARGE":"validation", "VERSION_CONFLICT":"conflict", "WRITE_UNAVAILABLE":"unavailable", "UPLOAD_NOT_FOUND":"conflict", "QUOTA_EXCEEDED":"unavailable", "INVALID_MEDIA":"validation", "MEDIA_UNAVAILABLE":"unavailable", "SERVICE_UNAVAILABLE":"unavailable"})[this.code] || "unexpected";
   }
 }
 
@@ -28,6 +28,9 @@ export function createSquadClient(supabase) {
   }
   return Object.freeze({
     me: () => call("v1_me"),
+    reserveMediaUpload: (target,file,command) => account("media/uploads",{target,file,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
+    finalizeMediaUpload: (uploadId,command) => account("media/finalize",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
+    detachMedia: (target,reason,command) => call("v1_media_detach",{p_target:target,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     mediaGrants: (references,options = {}) => account("media/grants", {references:references.map(({resource,record_id,field,pointer})=>({resource,record_id,field,...(pointer!==undefined?{pointer}:{})})),download:options.download??false}),
     jobs: (state = null,page = {}) => call("v1_jobs_list", {p_state:state,p_cursor:page.cursor??null,p_limit:page.limit??25}),
     job: (id) => call("v1_job_get", {p_id:id}),

@@ -9,10 +9,11 @@ from pathlib import Path
 
 def access_catalog(conn):
     queries=[
-      "SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname IN('sa_snapshot_20261019','sa_domain','sa_identity','sa_sync') ORDER BY 1,2,3",
+      "SELECT schemaname,tablename,policyname,roles::text,cmd,qual,with_check FROM pg_policies WHERE schemaname IN('sa_snapshot_20261019','sa_domain','sa_identity','sa_sync','sa_media','sa_admin') ORDER BY 1,2,3",
       "SELECT c.relname,a.attname,a.attacl::text FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='sa_snapshot_20261019' AND a.attacl IS NOT NULL ORDER BY 1,2",
       "SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_userbyid(p.proowner),p.prosecdef,p.proconfig,p.proacl::text,md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='sa_domain' OR (n.nspname='canto_api' AND (p.proname LIKE 'v1_%' OR p.proname LIKE 'squad_job_%' OR p.proname LIKE 'account_%')) ORDER BY 1,2,3",
-      "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor','sa_worker') ORDER BY 1"
+      "SELECT rolname,rolsuper,rolinherit,rolcanlogin,rolbypassrls FROM pg_roles WHERE rolname IN('sa_guard','sa_executor','sa_worker','sa_media_writer') ORDER BY 1"
+      ,"SELECT n.nspname,c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity,c.relacl::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN('sa_domain','sa_media','sa_identity','sa_admin','sa_sync') AND c.relkind IN('r','p','S','v') ORDER BY 1,2"
     ]
     return json.loads(json.dumps([conn.execute(q).fetchall() for q in queries]))
 
@@ -54,4 +55,7 @@ def after_publication(conn):
         requests=conn.execute("""UPDATE sa_domain.account_requests SET state='discarded',updated_at=now(),error_code='SOURCE_REFRESH_DISCARDED'
           WHERE generation<%s AND state IN('queued','processing','failed') RETURNING id""",(generation,)).fetchall()
         if requests:result['discarded_account_requests']=len(requests)
+    if conn.execute("SELECT to_regclass('sa_domain.media_uploads')").fetchone()[0]:
+        rows=conn.execute("UPDATE sa_domain.media_uploads SET state='expired' WHERE generation<%s AND state IN('reserved','verified') RETURNING id",(generation,)).fetchall()
+        if rows:result['discarded_media_uploads']=len(rows)
     return result

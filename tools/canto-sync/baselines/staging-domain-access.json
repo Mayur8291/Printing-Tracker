@@ -1,6 +1,15 @@
 [
   [
     [
+      "sa_admin",
+      "media",
+      "media_writer_overrides",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      null
+    ],
+    [
       "sa_domain",
       "account_requests",
       "squad_account_request_insert",
@@ -35,6 +44,15 @@
       "UPDATE",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_domain",
+      "archived_designs",
+      "media_archived_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
     ],
     [
       "sa_domain",
@@ -93,6 +111,15 @@
     [
       "sa_domain",
       "audit",
+      "media_audit",
+      "{sa_media_writer}",
+      "INSERT",
+      null,
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "audit",
       "squad_audit_read",
       "{sa_executor}",
       "SELECT",
@@ -122,6 +149,15 @@
       "commands",
       "executor_commands",
       "{sa_executor}",
+      "ALL",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "commands",
+      "media_commands",
+      "{sa_media_writer}",
       "ALL",
       "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))",
       "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
@@ -200,6 +236,24 @@
     ],
     [
       "sa_domain",
+      "entity_versions",
+      "media_versions",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "entity_versions",
+      "media_versions_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "integration_preferences",
       "squad_integration_preferences_read",
       "{sa_executor}",
@@ -260,6 +314,33 @@
       "SELECT",
       "((generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (item_id IN ( SELECT sa_items.id\n   FROM sa_snapshot_20261019.sa_items)))",
       null
+    ],
+    [
+      "sa_domain",
+      "media_history",
+      "media_history_insert",
+      "{sa_media_writer}",
+      "INSERT",
+      null,
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "media_uploads",
+      "media_upload_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "media_uploads",
+      "media_upload_writer",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_domain",
@@ -381,6 +462,15 @@
     [
       "sa_domain",
       "outbox",
+      "media_events",
+      "{sa_media_writer}",
+      "INSERT",
+      null,
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))"
+    ],
+    [
+      "sa_domain",
+      "outbox",
       "squad_guard_queue",
       "{sa_guard}",
       "SELECT",
@@ -446,6 +536,15 @@
       "runtime_state",
       "executor_runtime",
       "{sa_executor}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "runtime_state",
+      "media_runtime",
+      "{sa_media_writer}",
       "SELECT",
       "true",
       null
@@ -520,6 +619,69 @@
       "{sa_guard}",
       "SELECT",
       "true",
+      null
+    ],
+    [
+      "sa_media",
+      "objects",
+      "media_writer_objects",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_media",
+      "objects",
+      "squad_media_objects_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_media",
+      "references",
+      "media_writer_references",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_media",
+      "references",
+      "squad_media_reference_read",
+      "{sa_executor}",
+      "SELECT",
+      "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_media",
+      "references",
+      "squad_media_references_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_media",
+      "references",
+      "squad_order_media_copy",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "((resource = 'brandings'::text) AND (record_id IN ( SELECT b.id\n   FROM ((sa_snapshot_20261019.sa_brandings b\n     JOIN sa_snapshot_20261019.sa_items i ON ((i.id = b.item_id)))\n     JOIN sa_snapshot_20261019.sa_orders o ON ((o.id = i.order_id)))\n  WHERE ((o.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id)) OR ((( SELECT (sa_domain.actor()).role_id AS role_id) = 1) AND (o.customer_sc_id = ( SELECT (sa_domain.actor()).user_id AS user_id)))))))"
+    ],
+    [
+      "sa_media",
+      "references",
+      "squad_work_media",
+      "{sa_executor}",
+      "SELECT",
+      "(( SELECT (NOT sa_domain.catalog_enabled())) AND sa_domain.work_media_visible(resource, record_id))",
       null
     ],
     [
@@ -615,6 +777,15 @@
     [
       "sa_snapshot_20261019",
       "sa_add_ons",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_add_ons",
       "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
@@ -686,6 +857,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_asset_infos",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_assigned_brands",
       "squad_assigned_brand_delete",
       "{sa_executor}",
@@ -746,6 +926,15 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_authorized_brands",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_snapshot_20261019",
@@ -839,6 +1028,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_base_product_types",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_base_products",
       "squad_catalog_read",
       "{sa_executor}",
@@ -872,6 +1070,15 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_base_products",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_snapshot_20261019",
@@ -980,6 +1187,15 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_brandings",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_snapshot_20261019",
@@ -1286,6 +1502,15 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_fabrics",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_snapshot_20261019",
@@ -1983,6 +2208,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_images",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_images",
       "squad_work_images",
       "{sa_executor}",
       "SELECT",
@@ -2109,6 +2343,15 @@
     [
       "sa_snapshot_20261019",
       "sa_products",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_products",
       "squad_products_insert",
       "{sa_executor}",
       "INSERT",
@@ -2180,12 +2423,30 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_promotional_banners",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_promotions",
       "squad_media_guard",
       "{sa_guard}",
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_promotions",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_snapshot_20261019",
@@ -2379,6 +2640,15 @@
     [
       "sa_snapshot_20261019",
       "sa_rmp_categories",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_categories",
       "squad_sales_guard",
       "{sa_guard}",
       "SELECT",
@@ -2411,6 +2681,15 @@
       "SELECT",
       "true",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_classes",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
     ],
     [
       "sa_snapshot_20261019",
@@ -2856,6 +3135,15 @@
     [
       "sa_snapshot_20261019",
       "sa_users",
+      "squad_media_write",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_users",
       "squad_people_insert",
       "{sa_executor}",
       "INSERT",
@@ -2906,6 +3194,15 @@
       "UPDATE",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)",
       "(( SELECT (sa_domain.actor()).role_id AS role_id) = 0)"
+    ],
+    [
+      "sa_sync",
+      "environment_state",
+      "media_environment",
+      "{sa_media_writer}",
+      "ALL",
+      "singleton",
+      "singleton"
     ],
     [
       "sa_sync",
@@ -2970,17 +3267,22 @@
     [
       "sa_add_ons",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_add_ons",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_add_ons",
       "is_deleted",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_add_ons",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_addresses",
@@ -3020,12 +3322,12 @@
     [
       "sa_asset_infos",
       "asset",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_asset_infos",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_asset_infos",
@@ -3033,9 +3335,14 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_asset_infos",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
+    ],
+    [
       "sa_authorized_brands",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_authorized_brands",
@@ -3045,7 +3352,7 @@
     [
       "sa_authorized_brands",
       "logo",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_authorized_brands",
@@ -3053,19 +3360,29 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_authorized_brands",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
+    ],
+    [
       "sa_base_product_types",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_base_product_types",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_base_product_types",
       "is_deleted",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_base_product_types",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_base_products",
@@ -3080,12 +3397,12 @@
     [
       "sa_base_products",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_base_products",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_base_products",
@@ -3098,9 +3415,14 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_base_products",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
+    ],
+    [
       "sa_brandings",
       "attachment",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_brandings",
@@ -3135,12 +3457,12 @@
     [
       "sa_brandings",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_brandings",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_brandings",
@@ -3150,7 +3472,7 @@
     [
       "sa_brandings",
       "mockup_image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_brandings",
@@ -3165,7 +3487,7 @@
     [
       "sa_brandings",
       "updated_at",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_bulk_uploads",
@@ -3250,12 +3572,12 @@
     [
       "sa_fabrics",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_fabrics",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_fabrics",
@@ -3271,6 +3593,11 @@
       "sa_fabrics",
       "uom",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_fabrics",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_item_criteria",
@@ -3934,13 +4261,28 @@
     ],
     [
       "sa_product_images",
+      "created_at",
+      "{sa_media_writer=a/postgres}"
+    ],
+    [
+      "sa_product_images",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=ar/postgres}"
     ],
     [
       "sa_product_images",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=arw/postgres}"
+    ],
+    [
+      "sa_product_images",
+      "product_id",
+      "{sa_media_writer=ar/postgres}"
+    ],
+    [
+      "sa_product_images",
+      "updated_at",
+      "{sa_media_writer=arw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_product_part_add_ons",
@@ -4015,12 +4357,12 @@
     [
       "sa_products",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_products",
       "images",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_products",
@@ -4035,22 +4377,27 @@
     [
       "sa_products",
       "updated_at",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_promotional_banners",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_promotional_banners",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
+    ],
+    [
+      "sa_promotional_banners",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_promotions",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_promotions",
@@ -4065,7 +4412,12 @@
     [
       "sa_promotions",
       "thumbnail",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
+    ],
+    [
+      "sa_promotions",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_quantities",
@@ -4195,12 +4547,12 @@
     [
       "sa_rmp_categories",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_rmp_categories",
       "image",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_categories",
@@ -4213,64 +4565,69 @@
       "{sa_guard=r/postgres}"
     ],
     [
+      "sa_rmp_categories",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
+    ],
+    [
       "sa_rmp_classes",
       "embeded_video",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "id",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_1",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_1_thumb",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_2",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_2_thumb",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_3",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_3_thumb",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_4",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_4_thumb",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_5",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
       "image_5_thumb",
-      "{sa_guard=r/postgres}"
+      "{sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_rmp_classes",
@@ -4286,6 +4643,11 @@
       "sa_rmp_classes",
       "rmp_color_id",
       "{sa_guard=r/postgres}"
+    ],
+    [
+      "sa_rmp_classes",
+      "updated_at",
+      "{sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_rmp_sizes",
@@ -4580,7 +4942,7 @@
     [
       "sa_users",
       "id",
-      "{sa_guard=r/postgres,sa_executor=ar/postgres}"
+      "{sa_guard=r/postgres,sa_executor=ar/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_users",
@@ -4615,7 +4977,7 @@
     [
       "sa_users",
       "profile_image",
-      "{sa_executor=r/postgres,sa_guard=r/postgres}"
+      "{sa_executor=r/postgres,sa_guard=r/postgres,sa_media_writer=rw/postgres}"
     ],
     [
       "sa_users",
@@ -4635,7 +4997,7 @@
     [
       "sa_users",
       "updated_at",
-      "{sa_executor=arw/postgres}"
+      "{sa_executor=arw/postgres,sa_media_writer=rw/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_users",
@@ -4655,6 +5017,54 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
       "cd7b4f2845c17b8f1cdea6802c64f5cb"
+    ],
+    [
+      "canto_api",
+      "account_upload_cleanup",
+      "p_completed uuid[]",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "227d4558e8b88a63ef111174eb4e4b3b"
+    ],
+    [
+      "canto_api",
+      "account_upload_get",
+      "p_id uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "d1c8b544cdd4a8f6b72114360dbb6965"
+    ],
+    [
+      "canto_api",
+      "account_upload_reserve",
+      "p_target jsonb, p_file jsonb, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "cfaab6aef244b4744023eabed47459dc"
+    ],
+    [
+      "canto_api",
+      "account_upload_verified",
+      "p_id uuid, p_sha256 text, p_bytes bigint, p_content_type text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "d4c3c0c17b1efff096c99719b6851cc7"
     ],
     [
       "canto_api",
@@ -5231,6 +5641,30 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "f48d3f737ceadf73213f134602c33d8b"
+    ],
+    [
+      "canto_api",
+      "v1_media_attach",
+      "p_upload_id uuid, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "9581805a60c42eb65b35f049ee9ddd4d"
+    ],
+    [
+      "canto_api",
+      "v1_media_detach",
+      "p_target jsonb, p_expected_version text, p_reason text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres,authenticated=X/postgres}",
+      "91a048b47850103d1a80b32857b50b31"
     ],
     [
       "canto_api",
@@ -5926,7 +6360,55 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard}",
-      "b6d121a12c7a443bc58592972dde6f44"
+      "06d83401a4772a1e9ac6e7872cd50850"
+    ],
+    [
+      "sa_domain",
+      "account_upload_cleanup",
+      "p_completed uuid[]",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,service_role=X/sa_media_writer}",
+      "1648a5376c2b8786d909430a502fe226"
+    ],
+    [
+      "sa_domain",
+      "account_upload_get",
+      "p_id uuid",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard}",
+      "f5027169c70972df03ae9534aac9e1f5"
+    ],
+    [
+      "sa_domain",
+      "account_upload_reserve",
+      "p_target jsonb, p_file jsonb, p_expected_version text, p_idempotency_key uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
+      "2271f509cc7194e7ea29f2f388f97a4a"
+    ],
+    [
+      "sa_domain",
+      "account_upload_verified",
+      "p_id uuid, p_sha256 text, p_bytes bigint, p_content_type text",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,service_role=X/sa_media_writer}",
+      "e6f1c535aff64497b910ff8d362555d8"
     ],
     [
       "sa_domain",
@@ -6219,6 +6701,18 @@
     ],
     [
       "sa_domain",
+      "begin_media_command",
+      "p_operation text, p_key uuid, p_payload jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_media_writer=X/postgres}",
+      "7d0d0d5189d663e707b318d4c319c66f"
+    ],
+    [
+      "sa_domain",
       "branding_price",
       "p_brandings jsonb, p_quantity integer",
       "postgres",
@@ -6238,7 +6732,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
       "df68b45742202d0e40fc389fee9b3dbf"
     ],
     [
@@ -6454,7 +6948,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
       "1ba08f05e953c73b9ded78bfe39d1dec"
     ],
     [
@@ -6772,6 +7266,18 @@
     ],
     [
       "sa_domain",
+      "finish_media_command",
+      "p_operation text, p_key uuid, p_resource text, p_id bigint, p_result jsonb, p_changes jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_media_writer=X/postgres}",
+      "4d1597eeed96af267b0be853d7a806e7"
+    ],
+    [
+      "sa_domain",
       "has_capability",
       "p_capability text",
       "postgres",
@@ -6791,7 +7297,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_guard=X/postgres,sa_media_writer=X/postgres}",
       "ad887c43f7a025fa4921a41d858430d9"
     ],
     [
@@ -6851,7 +7357,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres}",
       "04a0747b5a8b734740d7a7cbe8be966d"
     ],
     [
@@ -6964,6 +7470,30 @@
     ],
     [
       "sa_domain",
+      "media_target",
+      "p_resource text, p_id bigint, p_field text, p_write boolean",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard}",
+      "951d776fed068fd8271a9a83e4cf76ce"
+    ],
+    [
+      "sa_domain",
+      "media_upload_fields",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_media_writer=X/postgres,sa_guard=X/postgres}",
+      "7034f1901818f09e03c80bfb64b51e11"
+    ],
+    [
+      "sa_domain",
       "metrics_item_ids",
       "p_subject_id bigint, p_factory_id bigint",
       "sa_guard",
@@ -7031,7 +7561,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
       "fc962af1956bc975e16ffe5c64ece7b2"
     ],
     [
@@ -7502,7 +8032,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
       "2cf92e05feab9a4c211412de4f00e1c7"
     ],
     [
@@ -8444,6 +8974,30 @@
     ],
     [
       "sa_domain",
+      "v1_media_attach",
+      "p_upload_id uuid, p_expected_version text, p_idempotency_key uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
+      "1ae370009b06ef66179e752f8547f6a0"
+    ],
+    [
+      "sa_domain",
+      "v1_media_detach",
+      "p_target jsonb, p_expected_version text, p_reason text, p_idempotency_key uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
+      "20b87a185ea266edfc112c18573a64c2"
+    ],
+    [
+      "sa_domain",
       "v1_milestone_archive",
       "p_id bigint, p_reason text, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -9241,7 +9795,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
       "177a1d4ac15fc61c8d7616a8434c39e5"
     ],
     [
@@ -9399,7 +9953,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard}",
       "8946ae35c7caf955a78b35bad2bedf5b"
     ],
     [
@@ -9413,6 +9967,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
       "9e021ef5e7eb2ff9127c8c67965af3ad"
+    ],
+    [
+      "sa_domain",
+      "write_media",
+      "p_resource text, p_id bigint, p_field text, p_expected_version text, p_sha256 text, p_key uuid, p_operation text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_media_writer=X/postgres}",
+      "05e8acee9865a8091b8a39cb506f8126"
     ]
   ],
   [
@@ -9431,11 +9997,380 @@
       false
     ],
     [
+      "sa_media_writer",
+      false,
+      false,
+      false,
+      false
+    ],
+    [
       "sa_worker",
       false,
       false,
       false,
       false
+    ]
+  ],
+  [
+    [
+      "sa_admin",
+      "audit",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_admin",
+      "audit_id_seq",
+      "S",
+      false,
+      false,
+      null
+    ],
+    [
+      "sa_admin",
+      "master_contracts",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_admin",
+      "media",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres,sa_media_writer=rd/postgres}"
+    ],
+    [
+      "sa_admin",
+      "record_extras",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_domain",
+      "account_requests",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "app_releases",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=rw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "archived_designs",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "archived_entities",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "audit",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=a/postgres,sa_media_writer=a/postgres}"
+    ],
+    [
+      "sa_domain",
+      "audit_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_executor=U/postgres,sa_worker=U/postgres,sa_media_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "backorder_previews",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "commands",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_media_writer=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "coordinator_request_notes",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "design_owners",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "dispatch_receipts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "entity_versions",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_media_writer=arw/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "integration_preferences",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=rw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "job_attempts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres,sa_executor=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "job_retries",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "line_receipts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "media_history",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_media_writer=a/postgres}"
+    ],
+    [
+      "sa_domain",
+      "media_history_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_media_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "media_uploads",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_media_writer=arw/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "order_amendments",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "order_receipts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "order_requests",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_worker=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "outbox",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_worker=rw/postgres,sa_media_writer=a/postgres}"
+    ],
+    [
+      "sa_domain",
+      "outbox_sequence_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_worker=U/postgres,sa_executor=U/postgres,sa_media_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "preset_index",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+    ],
+    [
+      "sa_domain",
+      "quotes",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "quotes_ledger_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_executor=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "rating_moderation",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "runtime_state",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_guard=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "worker_context",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=ard/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "worker_due_baselines",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_identity",
+      "existing_staff_users",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_identity",
+      "sa_auth_identities",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_media",
+      "objects",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres,sa_guard=r/postgres,sa_media_writer=ar/postgres}"
+    ],
+    [
+      "sa_media",
+      "references",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres,sa_media_writer=arwd/postgres}"
+    ],
+    [
+      "sa_media",
+      "state",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_sync",
+      "environment_state",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres,sa_worker=r/postgres,sa_media_writer=r/postgres}"
+    ],
+    [
+      "sa_sync",
+      "jobs",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_sync",
+      "legacy_identity_keys",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
+    ],
+    [
+      "sa_sync",
+      "refresh_runs",
+      "r",
+      true,
+      false,
+      "{postgres=arwdDxtm/postgres}"
     ]
   ]
 ]

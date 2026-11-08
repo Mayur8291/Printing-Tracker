@@ -51,6 +51,8 @@ def bootstrap():
   ALTER TABLE sa_sync.environment_state ENABLE ROW LEVEL SECURITY;
   CREATE SCHEMA sa_snapshot_20261019;
   CREATE SCHEMA sa_media;
+  CREATE TABLE sa_admin.media(resource text,record_id bigint,field text,url text,PRIMARY KEY(resource,record_id,field));
+  ALTER TABLE sa_admin.media ENABLE ROW LEVEL SECURITY;
   CREATE TABLE sa_media.objects(sha256 text PRIMARY KEY,object_path text UNIQUE NOT NULL,bytes bigint NOT NULL,content_type text NOT NULL,verified_at timestamptz NOT NULL DEFAULT now());
   ALTER TABLE sa_media.objects ENABLE ROW LEVEL SECURITY;
   CREATE TABLE sa_media.references(resource text,record_id bigint,field text,pointer text DEFAULT '',source_value text,source_url text,status text,sha256 text,

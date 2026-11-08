@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "measured_at": "2026-11-08T03:09:07.030Z",
+  "measured_at": "2026-11-08T03:40:41.833Z",
   "checks": [
     "actual GoTrue login and shared SDK",
     "25 actual signed grants",
@@ -9,19 +9,19 @@
     "forbidden source column denied",
     "revoked live session denied by deployed account function"
   ],
-  "first_batch_ms": 409.552,
+  "first_batch_ms": 818.06,
   "warm_samples_ms": [
-    367.659,
-    471.312,
-    469.192,
-    432.273,
-    411.047,
-    351.583,
-    290.642,
-    379.977,
-    286.105,
-    331.038
+    615.072,
+    408.605,
+    410.54,
+    520.113,
+    503.983,
+    411.339,
+    509.739,
+    315.334,
+    286.722,
+    318.921
   ],
-  "warm_p95_ms": 471.312,
+  "warm_p95_ms": 615.072,
   "scope": "25-reference end-to-end batch from this Mac in India; warm ten-sample p95, separately from database budget; no business or Storage writes"
 }

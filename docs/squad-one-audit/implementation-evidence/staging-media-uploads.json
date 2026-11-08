@@ -1,0 +1,45 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T03:37:22.423551+00:00",
+  "results": [
+    {
+      "content_type": "image/png",
+      "bytes": 124,
+      "upload_ms": 179.162,
+      "finalize_ms": 2355.479,
+      "checksum_verified": true,
+      "retry_idempotent": true,
+      "detached": true
+    },
+    {
+      "content_type": "image/svg+xml",
+      "bytes": 5242880,
+      "upload_ms": 783.301,
+      "finalize_ms": 2662.583,
+      "checksum_verified": true,
+      "retry_idempotent": true,
+      "detached": true
+    },
+    {
+      "content_type": "application/pdf",
+      "bytes": 26214400,
+      "upload_ms": 3582.642,
+      "finalize_ms": 3586.718,
+      "checksum_verified": true,
+      "retry_idempotent": true,
+      "detached": true
+    },
+    {
+      "content_type": "video/mp4",
+      "bytes": 104857600,
+      "upload_ms": 11732.771,
+      "finalize_ms": 8967.564,
+      "checksum_verified": true,
+      "retry_idempotent": true,
+      "detached": true
+    }
+  ],
+  "invalid_file_rejected": true,
+  "fixture_cleanup_verified": true,
+  "scope": "Real GoTrue login, deployed Edge, actual private Storage uploads/downloads, scoped RPC attachments and detachments; controlled customer creates only disposable new designs; sequence gaps intentionally retained."
+}
