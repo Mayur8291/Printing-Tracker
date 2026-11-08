@@ -15,6 +15,8 @@ export interface Dependencies {
  uploads?:UploadDependencies;
  flows?:FlowDependencies;
  accountStatus?:(authorization:string,input:Record<string,unknown>)=>Promise<unknown>;
+ documentGrant?:(authorization:string,id:string)=>Promise<{id:string;bucket:string;path:string;expires_in:number;generation:string;bytes:string;sha256:string}>;
+ signDocument?:(path:string,expiresIn:number)=>Promise<string>;
 }
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
@@ -34,11 +36,21 @@ export function createHandler(deps:Dependencies){
   if(req.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
   const path=new URL(req.url).pathname.replace(/\/+$/,'');
   const route=path.slice(path.lastIndexOf('/squad-account/')+15);
-  if(!['media/grants','media/uploads','media/finalize','media/verify','users/status','register','confirm','recovery','users/invite'].includes(route))return response({error:'NOT_FOUND'},404);
+  if(!['documents/download','media/grants','media/uploads','media/finalize','media/verify','users/status','register','confirm','recovery','users/invite'].includes(route))return response({error:'NOT_FOUND'},404);
   const authorization=req.headers.get('authorization')??'';
   if(!/^Bearer [^\s]+$/.test(authorization)||authorization.length>16384)return response({error:'SESSION_REQUIRED'},401);
   try{
    const input=await readBody(req);
+   if(route==='documents/download'){
+    if(Object.keys(input).some(k=>k!=='id')||typeof input.id!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(input.id))throw new AccountError('INVALID_REQUEST',400);
+    if(!deps.documentGrant||!deps.signDocument)throw new AccountError('SERVICE_UNAVAILABLE',503);
+    const id=input.id.toLowerCase(),grant=await deps.documentGrant(authorization,id);
+    if(grant.id!==id||grant.bucket!=='squad-documents'||!/^g[0-9]+\/[a-f0-9-]{36}\/[a-f0-9-]{36}\/document\.pdf$/.test(grant.path)||!grant.path.includes('/'+id+'/'))throw new AccountError('MEDIA_UNAVAILABLE',503);
+    const ttl=120,signed=await deps.signDocument(grant.path,ttl);
+    if(!signed.startsWith('/object/sign/squad-documents/'+grant.path+'?')||signed.includes('\\'))throw new AccountError('MEDIA_UNAVAILABLE',503);
+    const url=new URL(deps.storageUrl+signed);url.searchParams.set('download','squad-'+id+'.pdf');
+    return response({id:grant.id,url:url.href,expires_in:ttl,generation:grant.generation,bytes:grant.bytes,sha256:grant.sha256});
+   }
    if(['register','confirm','recovery','users/invite'].includes(route)){
     if(!deps.flows)throw new AccountError('SERVICE_UNAVAILABLE',503);
     return response(await accountFlow(deps.flows,authorization,route,input));
@@ -97,6 +109,11 @@ export function dependencies(url:string,anon:string,service:string,flowSecret?:s
  }
  return {
   storageUrl:url+'/storage/v1',
+  documentGrant:(authorization,id)=>rpc(authorization,'account_document_grant',{p_id:id}),
+  async signDocument(path,expiresIn){
+   const r=await fetch(storage+'/object/sign/squad-documents/'+path,{method:'POST',headers:{...serviceHeaders,'Content-Type':'application/json'},body:JSON.stringify({expiresIn}),signal:AbortSignal.timeout(12000)});
+   if(!r.ok){await r.body?.cancel();throw new AccountError('MEDIA_UNAVAILABLE',503);}const value=await r.json();if(typeof value.signedURL!=='string')throw new AccountError('MEDIA_UNAVAILABLE',503);return value.signedURL;
+  },
   ...(flowSecret?{flows:{crypto:accountCrypto(flowSecret),auth:authAdmin(url,service),emailAvailable:authEmailAvailable(url,service),rpc:(name:string,args:Record<string,unknown>)=>rpc('',name,args,true),authorizeInvite:(authorization:string,id:string)=>rpc(authorization,'account_invitation_authorize',{p_id:id})}}:{}),
   accountStatus:(authorization,input)=>rpc(authorization,'account_user_status',{p_id:input.user_id,p_action:input.action,p_reason:input.reason,p_expected_version:input.expected_version,p_idempotency_key:input.idempotency_key}),
   resolveMedia:(authorization,references)=>rpc(authorization,'account_media_resolve',{p_references:references}),

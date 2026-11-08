@@ -1,0 +1,49 @@
+{
+  "environment": "staging",
+  "shared_sdk": true,
+  "deployed_edges": true,
+  "document_id": "e061332b-3fac-4088-afbc-ca1ca16183ad",
+  "pages": 5,
+  "bytes": 89589,
+  "completed_parts": 2,
+  "private_storage": true,
+  "unauthenticated_denied": true,
+  "foreign_or_missing_document_denied": true,
+  "sha256_verified": true,
+  "email_provider_accepted": false,
+  "synthetic_images": true,
+  "inbox_delivery_asserted": false,
+  "timings": [
+    {
+      "operation": "request",
+      "wall_ms": 760.493417
+    },
+    {
+      "operation": "worker",
+      "step": 0,
+      "wall_ms": 8020.684958,
+      "states": [
+        "pending"
+      ]
+    },
+    {
+      "operation": "worker",
+      "step": 1,
+      "wall_ms": 2053.457624999999,
+      "states": [
+        "pending"
+      ]
+    },
+    {
+      "operation": "worker",
+      "step": 2,
+      "wall_ms": 2434.0945410000004,
+      "states": [
+        "done"
+      ]
+    }
+  ],
+  "measured_at": "2026-11-08T07:18:47.501417+00:00",
+  "cleanup": "Exact-owned PDF, parts, document, queue, attempts, command and audit removed. Mirror mode, revisions and schedules restored. Sequence gaps retained.",
+  "scope": "11 exact-owned synthetic 1.96 MP PNGs and catalogue records; real deployed capture/render/merge/download; no email; all fixtures removed. No production media used."
+}

@@ -310,6 +310,10 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   removeDevice(id:string,command:Command):Promise<DeviceBinding>;
   notifications(id?:EntityId|null,page?:PageRequest):Promise<Page<InboxNotification> & {generation:string}>;
   notificationFromPush(payload:unknown,projectRef:string):Promise<InboxNotification|null>;
+  requestDocument<K extends DocumentKind>(kind:K,request:DocumentRequestByKind[K],idempotencyKey:string):Promise<{id:string;kind:K;state:'queued';generation:string}>;
+  documents(filters?:{kind?:DocumentKind;state?:DocumentState;legacy?:boolean},page?:PageRequest):Promise<Page<GeneratedDocument>>;
+  document(id:string):Promise<GeneratedDocument>;
+  downloadDocument(id:string):Promise<{id:string;url:string;expires_in:120;generation:string;bytes:string;sha256:string}>;
   deliveryFailures(page?:PageRequest):Promise<Page<BackgroundJob>>;
   me(): Promise<Me>;
   reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
@@ -414,3 +418,14 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
 
 export interface DeviceBinding {id:string;installation_id:string;platform:"android"|"ios"|"web";active:boolean;version:Version;expires_at:string}
 export interface InboxNotification {id:EntityId;title:string;body:string;topic:string;created_at:string;delivery_status:0|1|2;push_state:"inbox_only"|"accepted"|"validated"|"skipped"|"pending"|null;target:{kind:string;id:EntityId}|null}
+
+export type DocumentKind='catalogue'|'delivery_challan'|'tailor_weekly';
+export type DocumentState='queued'|'rendering'|'ready'|'failed'|'expired'|'legacy_pending';
+export interface CatalogueDocumentRequest {
+ selection?:{category_ids?:EntityId[];brand_ids?:EntityId[];class_ids?:EntityId[];exclude_category_ids?:EntityId[];exclude_brand_ids?:EntityId[];exclude_class_ids?:EntityId[];parent_category?:string};
+ markup?:Markup;company_name?:string;company_desc?:string;display_stock?:boolean;bank_details?:boolean;full_name?:string;account_no?:string;ifsc?:string;
+ display_address?:boolean;building_name?:string;area?:string;remarks?:string;terms?:string;terms_reference?:MediaReference;delivery?:'download'|'email';
+}
+export interface DocumentRequestByKind {catalogue:CatalogueDocumentRequest;delivery_challan:{item_id:EntityId;dispatch_id:EntityId;delivery?:'download'|'email'};tailor_weekly:{tailor_id:EntityId;week_start?:string;include_team?:boolean;delivery?:'download'|'email'}}
+export type DocumentRequest=DocumentRequestByKind[DocumentKind];
+export interface GeneratedDocument {id:string;kind:DocumentKind;state:DocumentState;job_id?:string;generation:string;created_at:string;captured_at?:string|null;completed_at?:string|null;expires_at?:string|null;pages?:number|null;bytes?:string|null;error_code?:string|null;snapshot_hash?:string|null;delivery?:'download'|'email';delivery_state?:'not_requested'|'pending'|'sent'|'failed';completed_parts?:number;total_parts?:number|null;media_reference?:MediaReference|null}

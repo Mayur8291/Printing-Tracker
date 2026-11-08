@@ -1,0 +1,56 @@
+{
+  "environment": "staging",
+  "shared_sdk": true,
+  "deployed_edges": true,
+  "document_id": "4919efb4-45b3-4b4e-b1ad-a6259303b543",
+  "pages": 35,
+  "bytes": 68553,
+  "completed_parts": 2,
+  "private_storage": true,
+  "unauthenticated_denied": true,
+  "foreign_or_missing_document_denied": true,
+  "sha256_verified": true,
+  "email_provider_accepted": true,
+  "inbox_delivery_asserted": false,
+  "timings": [
+    {
+      "operation": "request",
+      "wall_ms": 389.5569580000001
+    },
+    {
+      "operation": "worker",
+      "step": 0,
+      "wall_ms": 6471.623333,
+      "states": [
+        "pending"
+      ]
+    },
+    {
+      "operation": "worker",
+      "step": 1,
+      "wall_ms": 1171.185625,
+      "states": [
+        "pending"
+      ]
+    },
+    {
+      "operation": "worker",
+      "step": 2,
+      "wall_ms": 1749.2965000000004,
+      "states": [
+        "done"
+      ]
+    },
+    {
+      "operation": "worker",
+      "step": 3,
+      "wall_ms": 3842.548666999999,
+      "states": [
+        "done"
+      ]
+    }
+  ],
+  "measured_at": "2026-11-08T07:15:39.501370+00:00",
+  "cleanup": "Exact-owned PDF, parts, document, queue, attempts, command and audit removed. Mirror mode, revisions and schedules restored. Sequence gaps retained.",
+  "scope": "101 migrated product classes; missing staging product images remain explicit; real private PDF and signed download; controlled Mailinator recipient only. Provider acceptance does not prove inbox delivery."
+}

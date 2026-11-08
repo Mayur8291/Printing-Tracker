@@ -20,6 +20,10 @@ if(error)throw new Error(`Controlled test login failed: ${error.code || error.st
 try {
   const sdk=createSquadClient(client),me=await sdk.me();
   assert.equal(me.role,3);
+  const documents=await sdk.documents({}, {limit:2});assert.ok(documents.data.length<=2);
+  const legacyDocuments=await sdk.documents({legacy:true}, {limit:2});assert.ok(legacyDocuments.data.every(d=>d.id.startsWith('legacy:')));
+  await assert.rejects(sdk.requestDocument('catalogue',{},crypto.randomUUID()),e=>e instanceof SquadError&&e.kind==='unavailable');
+  await assert.rejects(sdk.downloadDocument('00000000-0000-4000-8000-000000000001'),e=>e instanceof SquadError&&e.kind==='not_found');
   const inbox=await sdk.notifications(null,{limit:2});assert.ok(inbox.data.length<=2&&inbox.data.every(n=>!('recipient_id' in n)&&!('token' in n)));
   await assert.rejects(sdk.deliveryFailures(),e=>e instanceof SquadError&&e.kind==='forbidden');
   await assert.rejects(sdk.saveDevice(crypto.randomUUID(),'android','synthetic_'+crypto.randomUUID().replaceAll('-',''),{idempotencyKey:crypto.randomUUID()}),e=>e instanceof SquadError&&e.kind==='unavailable');

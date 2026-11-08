@@ -88,9 +88,9 @@ flowchart TB
   Providers[External providers] --> Webhooks[squad-webhooks]
   Webhooks --> Ops
   Ops --> Jobs[squad-jobs bounded handlers]
-  Ops --> Worker[Container worker for PDFs and heavy jobs]
+  Jobs --> Render[Resumable PDF render and assembly steps]
   Jobs --> Existing[Existing warehouse adapters and notification providers]
-  Worker --> Storage
+  Render --> Storage
   DO[DigitalOcean read-only exports] --> Refresh[Existing canto-refresh and refresh worker]
   Refresh --> Snapshot
   Refresh --> Auth
@@ -109,7 +109,7 @@ Keep existing `canto-refresh`, `dashboard-stock-api`, `uniware-bridge` and admin
 
 Supabase supports routing multiple endpoints within a function and shared code between functions. Its guidance also points data-intensive operations toward database functions. The split above follows trust and execution requirements rather than one function per persona. [Supabase development guidance](https://supabase.com/docs/guides/functions/development-tips).
 
-PDF rendering and large imports need a separate durable worker. Current hosted Edge limits include a 2-second CPU allowance per request; long wall time does not make CPU-heavy PDF generation suitable. Use one container worker codebase, initially deployed as an on-demand Cloud Run Job with a pinned image and a narrowly scoped worker credential. Existing GitHub refresh execution remains separate and unchanged. The worker claims a durable job and uploads results; it never trusts caller-supplied shell commands. Provisioning this worker is an implementation milestone, not completed work. [Edge limits](https://supabase.com/docs/guides/functions/limits).
+Implementation amendment, 8 November: the user's requirement that business execution stay on Supabase supersedes the original Cloud Run worker proposal. Iteration 26 uses the existing `squad-jobs` deployment with durable database leases, immutable inputs, bounded PDF parts and a separate assembly step. It has passed staging acceptance for a 101-class catalogue and eleven synthetic 1.96-megapixel PNGs; these are tested workloads, not an unlimited rendering guarantee. Import/export workers remain a separate implementation gate. Hosted Edge CPU/memory limits still apply; increasing wall time is not a substitute for bounding CPU work. See [document contracts and limits](squad-one-audit/DOCUMENT_IMPLEMENTATION.md) and [Edge limits](https://supabase.com/docs/guides/functions/limits). Existing GitHub refresh execution remains separate and unchanged.
 
 ### RPCs versus direct data access
 

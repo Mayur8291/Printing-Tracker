@@ -7420,6 +7420,11 @@
       "CREATE INDEX sa_index_catalogues_on_user_id ON sa_snapshot_20261019.sa_catalogues USING btree (user_id)"
     ],
     [
+      "sa_catalogues",
+      "squad_catalogues_owner_page",
+      "CREATE INDEX squad_catalogues_owner_page ON sa_snapshot_20261019.sa_catalogues USING btree (user_id, id DESC)"
+    ],
+    [
       "sa_categories",
       "sa_categories_pkey",
       "CREATE UNIQUE INDEX sa_categories_pkey ON sa_snapshot_20261019.sa_categories USING btree (id)"
@@ -8760,7 +8765,7 @@
       "sa_catalogues",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_categories",
@@ -9012,7 +9017,7 @@
       "sa_rmp_category_brands",
       true,
       false,
-      "{postgres=arwdDxtm/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_rmp_classes",

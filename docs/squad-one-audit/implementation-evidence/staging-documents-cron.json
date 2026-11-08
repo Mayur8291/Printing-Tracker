@@ -1,0 +1,46 @@
+{
+  "environment": "staging",
+  "shared_sdk": true,
+  "deployed_edges": true,
+  "document_id": "7a9ee8bb-b4d2-4891-86aa-be0f951a390c",
+  "pages": 35,
+  "bytes": 68310,
+  "completed_parts": 2,
+  "private_storage": true,
+  "unauthenticated_denied": true,
+  "foreign_or_missing_document_denied": true,
+  "sha256_verified": true,
+  "email_provider_accepted": false,
+  "synthetic_images": false,
+  "automatic_cron": true,
+  "inbox_delivery_asserted": false,
+  "timings": [
+    {
+      "operation": "request",
+      "wall_ms": 563.6956670000001
+    },
+    {
+      "operation": "cron_poll",
+      "step": 0
+    },
+    {
+      "operation": "cron_poll",
+      "step": 1
+    },
+    {
+      "operation": "cron_poll",
+      "step": 2
+    },
+    {
+      "operation": "cron_poll",
+      "step": 3
+    },
+    {
+      "operation": "cron_poll",
+      "step": 4
+    }
+  ],
+  "measured_at": "2026-11-08T07:22:38.401964+00:00",
+  "cleanup": "Exact-owned PDF, parts, document, queue, attempts, command and audit removed. Mirror mode, revisions and schedules restored. Sequence gaps retained.",
+  "scope": "Real SDK request for 101 migrated classes; automatic Vault-backed Supabase Cron -> deployed worker -> PDF download; no manual worker invocation or email. Missing old-source staging images remain explicit."
+}

@@ -326,6 +326,42 @@
     ],
     [
       "sa_domain",
+      "dispatch_receipts",
+      "squad_document_receipts_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "document_cleanup",
+      "document_cleanup_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "documents",
+      "document_owner",
+      "{sa_executor}",
+      "ALL",
+      "((actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)))",
+      "((actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)))"
+    ],
+    [
+      "sa_domain",
+      "documents",
+      "document_worker",
+      "{sa_worker}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
       "entity_versions",
       "account_versions",
       "{sa_account_writer}",
@@ -1416,6 +1452,15 @@
     [
       "sa_snapshot_20261019",
       "sa_catalogues",
+      "squad_document_legacy_read",
+      "{sa_executor}",
+      "SELECT",
+      "(user_id = ( SELECT (sa_domain.actor()).user_id AS user_id))",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_catalogues",
       "squad_media_guard",
       "{sa_guard}",
       "SELECT",
@@ -2415,6 +2460,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_images",
+      "squad_document_product_guard",
+      "{sa_guard}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_images",
       "squad_media_guard",
       "{sa_guard}",
       "SELECT",
@@ -2878,6 +2932,15 @@
       "{sa_guard}",
       "SELECT",
       "true",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_rmp_category_brands",
+      "squad_document_category_brands",
+      "{sa_executor}",
+      "SELECT",
+      "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
       null
     ],
     [
@@ -4575,7 +4638,7 @@
     [
       "sa_product_images",
       "product_id",
-      "{sa_media_writer=ar/postgres}"
+      "{sa_media_writer=ar/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_product_images",
@@ -4665,7 +4728,7 @@
     [
       "sa_products",
       "name",
-      "{sa_executor=w/postgres}"
+      "{sa_executor=w/postgres,sa_guard=r/postgres}"
     ],
     [
       "sa_products",
@@ -5326,6 +5389,18 @@
   [
     [
       "canto_api",
+      "account_document_grant",
+      "p_id uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "bdef3325a3082daad0c8e592fb34dca6"
+    ],
+    [
+      "canto_api",
       "account_invitation_authorize",
       "p_id bigint",
       "postgres",
@@ -5527,6 +5602,66 @@
       ],
       "{postgres=X/postgres,service_role=X/postgres}",
       "38db3e5be185fe6e0425dc6bb5f484f0"
+    ],
+    [
+      "canto_api",
+      "squad_document_cleanup",
+      "p_completed text[]",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "53466b00747b72157063b9152a5be3aa"
+    ],
+    [
+      "canto_api",
+      "squad_document_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "f23c28cc31ec8102c17d0f0a320017dd"
+    ],
+    [
+      "canto_api",
+      "squad_document_mail_finish",
+      "p_id uuid, p_lease_token uuid, p_code text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "a84e1a0c7eb2986670f3f899f0de8238"
+    ],
+    [
+      "canto_api",
+      "squad_document_mail_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "bc3608b57f8f3d0b747daefcc8c91173"
+    ],
+    [
+      "canto_api",
+      "squad_document_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "8efd4600a9d4924aabe4c5bfeb3f0d02"
     ],
     [
       "canto_api",
@@ -6007,6 +6142,42 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "5e39df6a39f7f3424319179988f5b3c7"
+    ],
+    [
+      "canto_api",
+      "v1_document_get",
+      "p_id text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "a745bc4b9e899a94e9fdeaf2565b4fcd"
+    ],
+    [
+      "canto_api",
+      "v1_document_request",
+      "p_kind text, p_request jsonb, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "d498b2e77140e3f56c435f7a3d559c41"
+    ],
+    [
+      "canto_api",
+      "v1_documents_list",
+      "p_kind text, p_state text, p_cursor text, p_limit integer, p_legacy boolean",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "984f6792550e38805ecb460da5c3960f"
     ],
     [
       "canto_api",
@@ -6922,6 +7093,18 @@
     ],
     [
       "sa_domain",
+      "account_document_grant",
+      "p_id uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "37625838dd0362a29443760f59066ebc"
+    ],
+    [
+      "sa_domain",
       "account_invitation_authorize",
       "p_id bigint",
       "sa_account_writer",
@@ -6965,7 +7148,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard,sa_executor=X/sa_guard}",
       "2ecbcff5ab18e8d3a0e249c7b1a33090"
     ],
     [
@@ -7614,7 +7797,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres,sa_worker=X/postgres}",
       "1ba08f05e953c73b9ded78bfe39d1dec"
     ],
     [
@@ -7812,6 +7995,150 @@
     ],
     [
       "sa_domain",
+      "document_capture",
+      "p_id uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor}",
+      "2d7e4b324de5fb6b96562d7bcbcb267e"
+    ],
+    [
+      "sa_domain",
+      "document_catalogue",
+      "p_request jsonb",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "2c48ae3e2ea6ec8279b7f8267e6ffb36"
+    ],
+    [
+      "sa_domain",
+      "document_challan",
+      "p_item bigint, p_dispatch bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "4a626c8989954e9dc0e59880c279ba84"
+    ],
+    [
+      "sa_domain",
+      "document_current",
+      "d sa_domain.documents",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "c28abc594c8fd60541d5f0a6a0ed89dd"
+    ],
+    [
+      "sa_domain",
+      "document_ids",
+      "p_value jsonb",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "2fa1d83482d383dc4cfab2c839f45c36"
+    ],
+    [
+      "sa_domain",
+      "document_images",
+      "p_ids bigint[]",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "5a36ce80ef5dd9b7ab4d9765ba5831e1"
+    ],
+    [
+      "sa_domain",
+      "document_mail_payload",
+      "p_id uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor}",
+      "1f0811abc2046e80c08624d8ed3943da"
+    ],
+    [
+      "sa_domain",
+      "document_projection",
+      "d sa_domain.documents",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "175aff35b0046078ab7bfc1d98194915"
+    ],
+    [
+      "sa_domain",
+      "document_publish",
+      "p_id uuid, p_bytes bigint, p_sha256 text, p_pages integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_worker=X/sa_executor}",
+      "3a9a9c6cfa76e14e662b5c54fad4e160"
+    ],
+    [
+      "sa_domain",
+      "document_recipient",
+      "",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "88a96415dc1e70eed3b3e007740a9ab9"
+    ],
+    [
+      "sa_domain",
+      "document_spec",
+      "p_kind text, p_request jsonb",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "4125a4cbf4c559d0f93d81592cd5a055"
+    ],
+    [
+      "sa_domain",
+      "document_tailor",
+      "p_tailor bigint, p_week date, p_team boolean",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "3e071bc9997f43dc857293b726988a83"
+    ],
+    [
+      "sa_domain",
       "due_timestamp",
       "p_due text",
       "postgres",
@@ -7987,7 +8314,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
       "edd8ce57f33e0e3c677f8b6453f76bc4"
     ],
     [
@@ -8036,7 +8363,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres}",
-      "455b53493ad5011754915c4955b6bbcb"
+      "adccf9c697079e648ced7e391960445f"
     ],
     [
       "sa_domain",
@@ -8048,7 +8375,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
-      "3f360f348c1f79a03719ce6aa03bf301"
+      "bfbd3625c6c048d256b761e639f743e3"
     ],
     [
       "sa_domain",
@@ -9171,6 +9498,66 @@
     ],
     [
       "sa_domain",
+      "squad_document_cleanup",
+      "p_completed text[]",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "75a5862056e97372436e0b97673f5fe6"
+    ],
+    [
+      "sa_domain",
+      "squad_document_finish",
+      "p_id uuid, p_lease_token uuid, p_result jsonb",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "d7f79a11cd52cc27b8531c65358f1973"
+    ],
+    [
+      "sa_domain",
+      "squad_document_mail_finish",
+      "p_id uuid, p_lease_token uuid, p_code text",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "2531ba752e60baeadf5dad1501ef5e39"
+    ],
+    [
+      "sa_domain",
+      "squad_document_mail_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "18315dff8273a397565342e2e307b554"
+    ],
+    [
+      "sa_domain",
+      "squad_document_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_worker",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
+      "e079f8da8efb1a6f5c38dbf362f2367e"
+    ],
+    [
+      "sa_domain",
       "squad_job_claim",
       "p_limit integer",
       "sa_worker",
@@ -9179,7 +9566,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "d7670a22ba6372d8797b28d89527acac"
+      "4fd61259f922648cca3224f0fae9e18f"
     ],
     [
       "sa_domain",
@@ -9801,6 +10188,42 @@
     ],
     [
       "sa_domain",
+      "v1_document_get",
+      "p_id text",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "5c3a37dee935ceea9452ddad5e7e6267"
+    ],
+    [
+      "sa_domain",
+      "v1_document_request",
+      "p_kind text, p_request jsonb, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "7458015fc7c17b0bb73aaa83d558e452"
+    ],
+    [
+      "sa_domain",
+      "v1_documents_list",
+      "p_kind text, p_state text, p_cursor text, p_limit integer, p_legacy boolean",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "6903bc0bff7e65fba2ae76a8e297429a"
+    ],
+    [
+      "sa_domain",
       "v1_factories_list",
       "p_search text, p_cursor text, p_limit integer",
       "sa_executor",
@@ -9908,7 +10331,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,sa_executor=X/sa_worker,sa_app=X/sa_worker,authenticated=X/sa_worker}",
-      "ceb5cfe650ac648bcb0079ad8f4404a4"
+      "dd0edd50629907eb2b8178dd905f997f"
     ],
     [
       "sa_domain",
@@ -11211,7 +11634,31 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=ar/postgres,sa_guard=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "document_cleanup",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "documents",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_worker=rw/postgres}"
+    ],
+    [
+      "sa_domain",
+      "documents_sequence_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_executor=U/postgres}"
     ],
     [
       "sa_domain",

@@ -1,0 +1,45 @@
+{
+  "environment": "staging",
+  "measured_at": "2026-11-08T07:17:06.579577+00:00",
+  "results": [
+    {
+      "name": "catalogue_request",
+      "p95_ms": 8.956,
+      "samples": 10,
+      "target_ms": 500
+    },
+    {
+      "name": "capture_101_classes",
+      "p95_ms": 216.843,
+      "samples": 10,
+      "target_ms": 2000
+    },
+    {
+      "name": "list_25_with_2000_unrelated_documents",
+      "p95_ms": 50.413,
+      "samples": 10,
+      "target_ms": 200
+    },
+    {
+      "name": "list_100_with_2000_unrelated_documents",
+      "p95_ms": 193.6,
+      "samples": 10,
+      "target_ms": 500
+    },
+    {
+      "name": "document_detail",
+      "p95_ms": 3.766,
+      "samples": 10,
+      "target_ms": 200
+    },
+    {
+      "name": "scoped_download_grant",
+      "p95_ms": 2.476,
+      "samples": 10,
+      "target_ms": 200
+    }
+  ],
+  "all_changes_and_sequences_rolled_back": true,
+  "public_structure_unchanged": true,
+  "scope": "Two warmups and ten measured database executions. Real mapped customer, 101 source classes, 100 own and 2000 unrelated document histories. Rendering/storage/mail are separately verified through deployed Edges. Not a mixed-load capacity SLA."
+}

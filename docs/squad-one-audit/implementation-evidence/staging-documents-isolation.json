@@ -1,0 +1,40 @@
+{
+  "environment": "staging",
+  "verified_at": "2026-11-08T07:27:15.168840+00:00",
+  "state": [
+    false,
+    null,
+    167,
+    167
+  ],
+  "runtime": [
+    0,
+    false
+  ],
+  "counts": {
+    "documents": 0,
+    "document_cleanup": 0,
+    "devices": 0,
+    "notification_records": 0,
+    "notification_deliveries": 0
+  },
+  "pending_jobs": 0,
+  "generated_objects": 0,
+  "schedules": [
+    [
+      "squad-documents-pump",
+      true
+    ],
+    [
+      "squad-jobs-minute",
+      true
+    ],
+    [
+      "squad-media-cleanup",
+      true
+    ]
+  ],
+  "refresh_fingerprints_match": true,
+  "synthetic_media_fixtures_removed": true,
+  "production_unchanged": true
+}

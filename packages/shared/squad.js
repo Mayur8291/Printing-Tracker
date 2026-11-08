@@ -49,6 +49,10 @@ export function createSquadClient(supabase) {
         return page.data[0]??null;
       } catch(error) { if(error instanceof SquadError&&error.code==="40001")return null;throw error; }
     },
+    requestDocument: (kind,request,idempotencyKey) => call("v1_document_request",{p_kind:kind,p_request:request,p_idempotency_key:idempotencyKey}),
+    documents: (filters = {},page = {}) => call("v1_documents_list",{p_kind:filters.kind??null,p_state:filters.state??null,p_legacy:filters.legacy??false,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    document: (id) => call("v1_document_get",{p_id:id}),
+    downloadDocument: (id) => account("documents/download",{id}),
     deliveryFailures: (page = {}) => call("v1_delivery_failures",{p_cursor:page.cursor??null,p_limit:page.limit??30}),
     reserveMediaUpload: (target,file,command) => account("media/uploads",{target,file,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     verifyMediaUpload: (uploadId,command) => account("media/verify",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
