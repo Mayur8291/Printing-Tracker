@@ -1,0 +1,77 @@
+{
+  "format": "tracker-read-policy-correction/v1",
+  "recorded_at": "2026-11-09T03:38:57.160885+00:00",
+  "run_id": "3b4b8075-00a9-4a8c-8642-b079b26e7ab3",
+  "environment": "staging",
+  "overall_run_passed": false,
+  "observed_admin_screens": [
+    "Printing Orders",
+    "Customers",
+    "Reports",
+    "Masters",
+    "Data Refresh"
+  ],
+  "private_visual_review": "All five actual Admin screens inspected; populated tables and status views rendered without a visible layout/runtime error. No business values reproduced. Viewer was not reached.",
+  "failure": {
+    "phase": "admin:Data Refresh",
+    "subphase": "validate_rendered_screen",
+    "blocked_reads": [
+      {
+        "method": "GET",
+        "path": "/rest/v1/inventory_skus"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/sample_job_sheet_settings"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/support_admins"
+      }
+    ],
+    "browser_errors": [],
+    "read_failures": []
+  },
+  "cleanup": {
+    "run_id": "3b4b8075-00a9-4a8c-8642-b079b26e7ab3",
+    "environment": "staging",
+    "cleanup": {
+      "removed_owned_auth": 2,
+      "removed_owned_channel_memberships": 2,
+      "unrelated_auth_profiles_preserved_during_cleanup": true,
+      "business_revision_unchanged": true,
+      "no_source_identity_or_write_lease": true
+    },
+    "public_structure_unchanged": true,
+    "acceptance_not_inferred": true
+  },
+  "correction": {
+    "status": "local_passed_hosted_pending",
+    "source": [
+      "apps/admin/src/inventory/inventoryProductPickerUtils.js:fetchInventoryProductsForPicker",
+      "apps/admin/src/sampleJobSheetSettings.js:fetchSampleJobSheetSettings",
+      "apps/admin/src/supportAdminUtils.js:fetchSupportAdminIds"
+    ],
+    "policy": "Allow only exact source GET/HEAD projections on staging public schema; inventory requires source 1000-row pages/order/offset, SLA singleton id=eq.1, support membership user_id only. Wrong methods, schemas, wildcard/embedded columns, extra filters, duplicate query keys, invalid limits remain denied.",
+    "tests": {
+      "policy_cases": 6,
+      "actual_built_browser_checks": 7,
+      "actual_built_scope": "Synthetic Admin/Viewer startup; every actual read now checked against positive policy, no hosted transport."
+    }
+  },
+  "source_review": "Reviewed common Tracker mount fetches and role-specific viewer permission read. Existing allowances cover other startup profile, permissions, chat and notification reads. No extra reads were added speculatively.",
+  "files": [
+    {
+      "path": "tools/squad/web-tracker-read-policy.mjs",
+      "sha256": "bbe4f61560b76c8ad0cbf98ca728a3668aa5b3ccdb6978e1703f3e7a012c8c91"
+    },
+    {
+      "path": "tools/squad/web-tracker-read-policy.test.mjs",
+      "sha256": "d28d42978359fbd719df957302a77b17ecbc21afe34644d861928a9ab08aa907"
+    },
+    {
+      "path": "tools/squad/web-tracker-entry-browser.mjs",
+      "sha256": "eb3ceaccfbb2cdd7ef5322318205a0102088b6e70bc817da1f4877e014a156c6"
+    }
+  ]
+}

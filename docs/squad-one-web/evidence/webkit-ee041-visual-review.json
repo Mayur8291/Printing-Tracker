@@ -1,0 +1,38 @@
+{
+  "recorded_at": "2026-11-09T05:26:37.389181+00:00",
+  "run_id": "ee04107b-548a-48a0-81c0-c94bcbe87f5f",
+  "engine": "WebKit27.2 (not native Safari)",
+  "scope": "Three representative actual360px private screenshots. Visual review only; parent cleanup controls hosted acceptance.",
+  "images_private": true,
+  "images": [
+    {
+      "basename": "webkit-role-3-home-360.png",
+      "sha256": "64aa250d969e29ffcb9fb6ca735684b0d5b0b705eae5701152a3f07ee9c14ca2",
+      "width": 360,
+      "height": 844
+    },
+    {
+      "basename": "webkit-role-0-city-dialog-360.png",
+      "sha256": "3baf63fbaae4a90ae493d7cace6c4f613c6ba5afb0a9d1830661514f2031ee00",
+      "width": 360,
+      "height": 844
+    },
+    {
+      "basename": "webkit-role-11-profile-360.png",
+      "sha256": "85b97a9bfd1cf470fdd6cfffbdfef9f223f73532d1f95072b3926588f044e279",
+      "width": 360,
+      "height": 844
+    }
+  ],
+  "observations": {
+    "customer_home": "Header, wrapped session banner, heading, date controls and two-column metrics fit width with readable spacing. Date widgets display09/11/2026 in this unedited navigation screenshot; no selected-period or date-input behavioral proof inferred.",
+    "admin_city_dialog": "Dialog fits with12px side margins; labels, empty fields, required reason and actions remain visible. Keyboard focus visible on textarea.",
+    "worker_profile": "Clear No attachment state, upload control and focused display-name field fit width; lower profile fields continue below viewport."
+  },
+  "visual_blockers": [],
+  "limitations": [
+    "No native Safari claim",
+    "Date validation, applied-period and All time behavior require separate actual interaction",
+    "Selected screenshots do not establish all routes, universal accessibility or cleanup"
+  ]
+}

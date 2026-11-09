@@ -1,0 +1,279 @@
+{
+  "format": "squad-weekly-mail-acceptance/v1",
+  "status": "passed_scoped_automatic_mail_and_inbox_gate",
+  "environment": "staging",
+  "migration_count": 140,
+  "migration_prefix": "20261109024124",
+  "run_id": "757eb52e-a796-4229-abc0-84d93357dcd7",
+  "accepted_external_gate": "EXTERNAL-WEEKLY-MAIL",
+  "recorded_at": "2026-11-09T03:07:13.942811+00:00",
+  "evidence_chain": {
+    "smtp_and_cleanup": {
+      "path": "evidence/weekly-mail-140-smtp.json",
+      "sha256": "b5b8b23fffe947285268badd269e82c7e99c216f448e9a1cfb28f4110660c71a"
+    },
+    "private_manifest": {
+      "path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/inbox-manifest.json",
+      "sha256": "93a2ebec51ab2c8eaa9cc402242e1006fc91bd902f78ea7addad100ba1cc766b"
+    },
+    "private_inbox_proof": {
+      "path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/verified-inboxes.json",
+      "sha256": "7a8a5721219d2ad6b237af699fa9b52ecc3215ed55653135ca8278dd21316f7a"
+    },
+    "verifier": {
+      "path": "tools/squad/verify_weekly_mail_inboxes.py",
+      "sha256": "a20e4298272b53ef1f719ad1edc6747922b03b9b3b3ff86a9f8bd2735a81cb09",
+      "focused_parser_tests_passed": 22
+    }
+  },
+  "automatic_execution": {
+    "actual_cron_invocation": true,
+    "temporary_cron_runs": {
+      "succeeded": 14
+    },
+    "scope": "Exact-owned short-lived rehearsal Cron and registered jobs only; no generic worker drain or permanent live schedule activation",
+    "smtp_accepted": 5,
+    "weekly_completed": 3,
+    "weekly_amount": "105",
+    "week_start": "2026-10-31"
+  },
+  "inbox": {
+    "verified": true,
+    "message_count": 5,
+    "acquisition": "Original MIME files downloaded from the user-authorized Gmail inbox through browser UI by the coordinating agent",
+    "proof": "Downloaded intended-recipient inbox MIME with exact full To alias, one anchored document UUID and PDF bytes/SHA256; submitted and unique received Message-IDs recorded separately",
+    "recipient_addresses_intentionally_omitted": true,
+    "messages": [
+      {
+        "job_id": "c274a4c8-043e-4eb3-9f2d-d4b5aa0adfa8",
+        "document_id": "792ddd14-a3cd-46c5-a693-9d76481161c4",
+        "kind": "catalogue",
+        "recipient_role": 0,
+        "smtp_submitted_message_id": "<squad-business-c274a4c8-043e-4eb3-9f2d-d4b5aa0adfa8@scottinternational.com>",
+        "inbox_observed_message_id": "<6af1369f2b8832476c189275@mailersend.net>",
+        "message_id_rewritten": true,
+        "mime_sha256": "3534d3e894fd669d828ace757fbc24d65a0dc239d00e330cb34a2135e51130ae",
+        "attachment_sha256": "d63d5f000da5576ca9fa44c823813edeeb56e1b0f8968b5d73ede35555b0e20d"
+      },
+      {
+        "job_id": "12f58b6e-7113-44f0-9ec8-aacde5cc3b96",
+        "document_id": "953dd5e9-aa84-4465-8bb2-38d753f73a74",
+        "kind": "delivery_challan",
+        "recipient_role": 3,
+        "smtp_submitted_message_id": "<squad-business-12f58b6e-7113-44f0-9ec8-aacde5cc3b96@scottinternational.com>",
+        "inbox_observed_message_id": "<6af136a43caec8ed7926c01b@mailersend.net>",
+        "message_id_rewritten": true,
+        "mime_sha256": "6763b11cf6b682d97ec6aed3d386136f05657af76b98dc17750d21a12eda5c39",
+        "attachment_sha256": "67d31427dec2dffe539e6550ded607a54b3d7940123710602c33cd7ed1208a6a"
+      },
+      {
+        "job_id": "c0a4f277-4d0b-4831-9a56-7edce0c3be01",
+        "document_id": "b8a5050a-7d0a-433f-9218-421beeb439a6",
+        "kind": "tailor_weekly",
+        "recipient_role": 0,
+        "smtp_submitted_message_id": "<squad-business-c0a4f277-4d0b-4831-9a56-7edce0c3be01@scottinternational.com>",
+        "inbox_observed_message_id": "<6af136afcab636829fc3c723@mailersend.net>",
+        "message_id_rewritten": true,
+        "mime_sha256": "b16a604daaec04b0060c48c7632684fc8b67b829f9a9527544b4d0a38576db90",
+        "attachment_sha256": "d4188eb1be75ce2c6721fff72c2f084ad93cc8fa13f0a880c083628f890f0d11"
+      },
+      {
+        "job_id": "cc579335-04a2-49b8-8f39-0830ec204971",
+        "document_id": "b8a5050a-7d0a-433f-9218-421beeb439a6",
+        "kind": "tailor_weekly",
+        "recipient_role": 2,
+        "smtp_submitted_message_id": "<squad-business-cc579335-04a2-49b8-8f39-0830ec204971@scottinternational.com>",
+        "inbox_observed_message_id": "<6af136b3f7294a5a44c8a67a@mailersend.net>",
+        "message_id_rewritten": true,
+        "mime_sha256": "9ec8622d1bf61e557215915cad44da18081d404d25b33d22b7b58d9037e3aac5",
+        "attachment_sha256": "d4188eb1be75ce2c6721fff72c2f084ad93cc8fa13f0a880c083628f890f0d11"
+      },
+      {
+        "job_id": "7747e8a1-bb6e-4de5-aa7d-30d45f832091",
+        "document_id": "b8a5050a-7d0a-433f-9218-421beeb439a6",
+        "kind": "tailor_weekly",
+        "recipient_role": 4,
+        "smtp_submitted_message_id": "<squad-business-7747e8a1-bb6e-4de5-aa7d-30d45f832091@scottinternational.com>",
+        "inbox_observed_message_id": "<6af136a9aa9230d08986b8f5@mailersend.net>",
+        "message_id_rewritten": true,
+        "mime_sha256": "e392a75c83188538d9e0ec0d77f2bdd10521baa6d5678fdc52cb84946b43c9dc",
+        "attachment_sha256": "d4188eb1be75ce2c6721fff72c2f084ad93cc8fa13f0a880c083628f890f0d11"
+      }
+    ],
+    "private_originals": [
+      {
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/catalogue-original.eml",
+        "sha256": "3534d3e894fd669d828ace757fbc24d65a0dc239d00e330cb34a2135e51130ae",
+        "bytes": 22626,
+        "job_id": "c274a4c8-043e-4eb3-9f2d-d4b5aa0adfa8"
+      },
+      {
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/challan-original.eml",
+        "sha256": "6763b11cf6b682d97ec6aed3d386136f05657af76b98dc17750d21a12eda5c39",
+        "bytes": 24874,
+        "job_id": "12f58b6e-7113-44f0-9ec8-aacde5cc3b96"
+      },
+      {
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/weekly-admin-original.eml",
+        "sha256": "b16a604daaec04b0060c48c7632684fc8b67b829f9a9527544b4d0a38576db90",
+        "bytes": 23944,
+        "job_id": "c0a4f277-4d0b-4831-9a56-7edce0c3be01"
+      },
+      {
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/weekly-coordinator-original.eml",
+        "sha256": "9ec8622d1bf61e557215915cad44da18081d404d25b33d22b7b58d9037e3aac5",
+        "bytes": 23943,
+        "job_id": "cc579335-04a2-49b8-8f39-0830ec204971"
+      },
+      {
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/weekly-factory-original.eml",
+        "sha256": "e392a75c83188538d9e0ec0d77f2bdd10521baa6d5678fdc52cb84946b43c9dc",
+        "bytes": 23942,
+        "job_id": "7747e8a1-bb6e-4de5-aa7d-30d45f832091"
+      }
+    ]
+  },
+  "documents": [
+    {
+      "document_id": "792ddd14-a3cd-46c5-a693-9d76481161c4",
+      "kind": "catalogue",
+      "bytes": 12320,
+      "sha256": "d63d5f000da5576ca9fa44c823813edeeb56e1b0f8968b5d73ede35555b0e20d",
+      "pages": 1,
+      "private_sdk_download": true
+    },
+    {
+      "document_id": "953dd5e9-aa84-4465-8bb2-38d753f73a74",
+      "kind": "delivery_challan",
+      "bytes": 14040,
+      "sha256": "67d31427dec2dffe539e6550ded607a54b3d7940123710602c33cd7ed1208a6a",
+      "pages": 1,
+      "private_sdk_download": true
+    },
+    {
+      "document_id": "b8a5050a-7d0a-433f-9218-421beeb439a6",
+      "kind": "tailor_weekly",
+      "bytes": 13353,
+      "sha256": "d4188eb1be75ce2c6721fff72c2f084ad93cc8fa13f0a880c083628f890f0d11",
+      "pages": 1,
+      "private_sdk_download": true
+    }
+  ],
+  "visual_review": {
+    "passed": true,
+    "path": "ui-review.md",
+    "section": "Actual three PDF outputs from run 757eb52e-a796-4229-abc0-84d93357dcd7",
+    "scope": "Catalogue, delivery challan and weekly work/payment report, one page each; readable and unclipped; minor existing copy/date-format nits remain",
+    "rendered_pages": [
+      {
+        "kind": "catalogue",
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/catalogue-page-1.png",
+        "sha256": "6d17865d407549897d6cc18e7e2b33ffd3c882452e5c28d8167549643a369a44"
+      },
+      {
+        "kind": "delivery_challan",
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/delivery_challan-page-1.png",
+        "sha256": "251ef5bdfb5dd2b6d73f1fd9738e22066f354e5771128ff1727149163f66c819"
+      },
+      {
+        "kind": "tailor_weekly",
+        "private_path": "tools/squad/private/mail-outputs/757eb52e-a796-4229-abc0-84d93357dcd7/tailor_weekly-page-1.png",
+        "sha256": "34539d32e82d271cea50efad1c4c5dd9f225e199eb8cc57d6b3199dc04851e31"
+      }
+    ]
+  },
+  "cleanup": {
+    "run_id": "757eb52e-a796-4229-abc0-84d93357dcd7",
+    "owned_commands": 124,
+    "owned_auth_revisions": 0,
+    "removed_source_rows": 217,
+    "removed_documents": 7,
+    "removed_queued_documents": 4,
+    "removed_processed_documents": 3,
+    "tables": {
+      "sa_users": 22,
+      "sa_factories": 2,
+      "sa_addresses": 5,
+      "sa_sizes": 1,
+      "sa_size_types": 1,
+      "sa_sc_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_base_size_types": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
+      "sa_rmp_category_brands": 1,
+      "sa_products": 6,
+      "sa_orders": 10,
+      "sa_items": 11,
+      "sa_quantities": 11,
+      "sa_item_tailors": 5,
+      "sa_item_tailor_quantities": 5,
+      "sa_job_sheet_assign_dates": 3,
+      "sa_job_sheet_assign_tailors": 5,
+      "sa_job_sheet_assign_quantities": 5,
+      "sa_job_sheet_tailor_mark_dates": 5,
+      "sa_job_sheet_mark_tailors": 7,
+      "sa_mark_tailor_quantities": 7,
+      "sa_milestones": 1,
+      "sa_responsibilities": 3,
+      "sa_ratings": 3,
+      "sa_tasks": 2,
+      "sa_back_order_links": 1,
+      "sa_customer_requests": 1,
+      "sa_item_criteria": 27,
+      "sa_job_sheet_dispatched_dates": 7,
+      "sa_mark_cuttings": 3,
+      "sa_product_part_add_ons": 5,
+      "sa_product_parts": 5,
+      "sa_stocks": 2,
+      "sa_task_users": 1,
+      "sa_user_dealers": 2,
+      "sa_dispatched_quantities": 7,
+      "sa_mark_cutting_quantities": 3,
+      "sa_stock_useds": 4
+    },
+    "edit_revision_before": 1157,
+    "edit_revision_after": 1281,
+    "synced_revision_after": 1281,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": true,
+    "independently_changed_staff_accounts": 0
+  },
+  "settings_restored": true,
+  "prior_crons_restored": true,
+  "send_receipts_retained": true,
+  "browser_document_chain_accepted_by_this_artifact": false,
+  "production_parity_or_deployment_accepted": false,
+  "limitations": [
+    "This closes only the exact automatic schedule/mail/actual inbox attachment gate; new document UI chains retain their separate acceptance evidence.",
+    "The three rendered documents have one page each; this does not establish arbitrary long-document pagination.",
+    "Temporary exact-job rehearsal Cron succeeded; permanent production schedule activation and native ownership are not implied.",
+    "Original SMTP-only evidence remains unchanged with inbox_verified=false; this additive artifact joins later verified inbox and visual evidence."
+  ]
+}

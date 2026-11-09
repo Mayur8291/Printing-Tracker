@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-09T04:10:17.248098+00:00",
+  "status": "read_only_target_preparation",
+  "repository": "Mayur8291/Printing-Tracker",
+  "refs": {
+    "develop": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+    "main": "44de98628400cfb8649e4bae92c9a2dfadd3ebcc",
+    "local_head": "7f8c86249f1ec062ae291c6e30f45ea2a52fa141"
+  },
+  "git_read": {
+    "ls_remote_success": true,
+    "remote_feature_branch_present": false,
+    "develop_ancestor_of_local_head": true,
+    "commits_ahead": 1,
+    "one_commit_scope": "Existing acceptance evidence/test additions only; no runtime delta."
+  },
+  "auth_capabilities": {
+    "connector": {
+      "login": "notfunny999",
+      "pull": true,
+      "push": false
+    },
+    "local_gh": {
+      "login": "kundan9595",
+      "pull": true,
+      "push": true,
+      "admin": false,
+      "source": "read-only GET repos/Mayur8291/Printing-Tracker permissions"
+    },
+    "git_credential_helper_configured": true,
+    "push_attempted": false,
+    "limitation": "API permission and successful read do not prove future git push acceptance; no dry-run push or write probe performed."
+  },
+  "deployment_records": [
+    {
+      "commit": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+      "id": 7639459441,
+      "environment_label": "Production",
+      "state": "success",
+      "created_at": "2026-11-08T17:43:15Z",
+      "deployment_url": "https://scottdashboard-j1bf5rh6x-mayur8291s-projects.vercel.app",
+      "status_url": "https://vercel.com/mayur8291s-projects/scott_dashboard/F4VMg1n1ynwymVLbvukeXFgp6rvW"
+    },
+    {
+      "commit": "7f8c86249f1ec062ae291c6e30f45ea2a52fa141",
+      "id": 7639689972,
+      "environment_label": "Preview",
+      "state": "success",
+      "created_at": "2026-11-08T18:03:42Z",
+      "deployment_url": "https://scottdashboard-nqao2z415-mayur8291s-projects.vercel.app",
+      "status_url": "https://vercel.com/mayur8291s-projects/scott_dashboard/Cz1paDycD452dbVK16qr67RoYZXa"
+    }
+  ],
+  "live": {
+    "url": "https://scottdashboard.vercel.app",
+    "root_status": 200,
+    "html_sha256": "8d02c0d28df8a6993e9c6f8b6b1c8cde43b008cd644add53c8c12cd8664b2982",
+    "entry_path": "/assets/index-Dvz8lOpT.js",
+    "entry_sha256": "12ee7bab7279d067e0ab9a6a66e29795cd52b54d179c7a17bf2e1aef4b7b7966",
+    "entry_bytes": 2883448,
+    "cache_control": "public, max-age=0, must-revalidate",
+    "deep_links": {
+      "/squad": 404,
+      "/squad/orders": 404,
+      "/account/recovery": 404
+    }
+  },
+  "production_deployment_direct_read": {
+    "final_status": 200,
+    "final_origin": "vercel.com",
+    "application_html_observed": false,
+    "deployment_alias_asset_binding": "Unavailable: immutable deployment URL redirected to Vercel authentication; public live alias asset was observed independently."
+  },
+  "mapping_conclusion": "GitHub deployment records label the current develop SHA Production and the local evidence-only HEAD Preview. Treat develop as the observed live release lane; this does not independently expose or alter Vercel project branch settings. Never infer production from a generic successful commit status alone.",
+  "local_build_config": {
+    "vercel": {
+      "headers": [
+        {
+          "source": "/(.*)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/assets/(.*)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/squad/:path*",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/account/:path*",
+          "destination": "/index.html"
+        }
+      ],
+      "framework": null,
+      "buildCommand": "npm run build",
+      "outputDirectory": "apps/admin/dist",
+      "installCommand": "npm ci"
+    },
+    "root_engine": {
+      "node": "26.x"
+    },
+    "root_build_script": "npm run build --workspace @canto/admin",
+    "admin_build_script": "node ../../node_modules/vite/bin/vite.js build",
+    "config_sha256": "a402d297bb46fe223d1a772e2df33e4690c940a6e928c2a571092efe87428d11",
+    "lock_sha256": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b"
+  },
+  "release_requirements": [
+    "Close existing fixed exit gates and production backend parity before the new frontend is directed at real users.",
+    "Review exact selection manifest and reject dependency/private/env/generated-output paths; preserve unrelated user work.",
+    "Freeze current sources and regenerate clean build/source manifests after pending performance changes; the selection snapshot is not a freeze.",
+    "Vercel build must receive only intended existing public environment variables; its build runs default production mode, unlike the locally proven --mode staging invocation. Validate environment selection on the deployed preview before release.",
+    "Push only reviewed selected commit/branch through normal Git; no forced update and no blanket promotion workflow. A develop push may trigger the observed live deployment.",
+    "Verify actual deployed commit, successful Vercel status, live served entry SHA, cache headers and fresh /squad and /account deep links; then actual authorized persona/Tracker smoke."
+  ],
+  "unsafe_existing_workflow": {
+    "path": ".github/workflows/promote-to-production.yml",
+    "disposition": "Do not invoke: it merges develop into main, applies production DB migrations, deploys functions and targets Netlify, outside this selective Vercel release procedure."
+  },
+  "mutations_performed": {
+    "git_index": false,
+    "git_refs": false,
+    "git_remote": false,
+    "vercel": false,
+    "hosted_database": false
+  }
+}

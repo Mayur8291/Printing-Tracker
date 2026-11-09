@@ -1,0 +1,98 @@
+{
+  "format": "squad-production-edge-deployment-preparation/v1",
+  "prepared_at": "2026-11-09T05:00:17.579821+00:00",
+  "status": "prepared_not_executed",
+  "cli": {
+    "path": "/opt/homebrew/bin/supabase",
+    "version": "2.75.0",
+    "help_commands_verified": [
+      "supabase --help",
+      "supabase functions --help",
+      "supabase functions deploy --help"
+    ],
+    "deploy_help_sha256": "7a2b4754f825d9d94978cc713b5c2e5bc2b620d4bde7430009d8dd06dd2d4635"
+  },
+  "manifest": "docs/squad-one-web/release-manifest-141.json",
+  "manifest_sha256": "f17163ef1962cb5a7a764da176184ee7c9db00aa52f872a5a3ce3f78af9dcf2a",
+  "config_sha256": "0b4c0b21b6a0922b8f79e65d1dd6007617099a2de4b4fa6ffe31cbfc0209aaaa",
+  "source_verification": {
+    "squad-account": {
+      "manifest_inventory_sha256": "952a6b7bd399b8c3b1a808d84158c5aa9a1fcb1ff29f77f3ee913648ffc71ec3",
+      "static_relative_import_files": 10,
+      "all_static_import_files_match_combined_manifest": true,
+      "cross_slug_dependencies_omitted_from_own_inventory": [],
+      "external_imports": [
+        "node:crypto",
+        "npm:@xmldom/xmldom@0.9.12"
+      ],
+      "verify_jwt": false
+    },
+    "squad-jobs": {
+      "manifest_inventory_sha256": "fbc70ed76aac8cc7e12163d026eb5795185983ea13c8ee7900e9ee3c17ab1c8b",
+      "static_relative_import_files": 33,
+      "all_static_import_files_match_combined_manifest": true,
+      "cross_slug_dependencies_omitted_from_own_inventory": [
+        {
+          "path": "supabase/functions/squad-account/media-verification.ts",
+          "sha256": "1221fac9a061cda33cdfdfc4e88ee992eb9ac4a36f2b27a94c60feb06173b6b3",
+          "covered_by": "squad-account inventory in same manifest"
+        }
+      ],
+      "external_imports": [
+        "node:buffer",
+        "node:crypto",
+        "node:stream",
+        "npm:@xmldom/xmldom@0.9.12",
+        "npm:fontkit@2.0.4",
+        "npm:nodemailer@10.3.1",
+        "npm:pdf-lib@1.17.1"
+      ],
+      "verify_jwt": false
+    }
+  },
+  "commands_argv": [
+    [
+      "supabase",
+      "functions",
+      "deploy",
+      "squad-account",
+      "--project-ref",
+      "levwrmvqdntngeasrtnb",
+      "--use-api"
+    ],
+    [
+      "supabase",
+      "functions",
+      "deploy",
+      "squad-jobs",
+      "--project-ref",
+      "levwrmvqdntngeasrtnb",
+      "--use-api"
+    ]
+  ],
+  "cwd": "repository root containing reviewed supabase/config.toml",
+  "credential_handling": "Use management.token() in subprocess environment SUPABASE_ACCESS_TOKEN only. Never print/persist/pass credentials as argv or enable debug.",
+  "invocation_pattern": "subprocess.run(argv, cwd=ROOT, env=dict(os.environ, SUPABASE_ACCESS_TOKEN=token()), check=True)",
+  "preconditions": [
+    "All serialized fixtures cleaned and uncertain release checkpoints resolved.",
+    "Guarded production SQL prefix141 rollback verification and apply complete; exact schedules restored.",
+    "Immediately recheck combined manifest source/config/lock hashes and current staging/production four-Edge inventory. Include the jobs-to-account media-verification dependency explicitly.",
+    "Deploy only the two explicit slugs sequentially, skipping exact current matches. No --prune, generic deployment/promotion/provisioning installer, secrets, config push or provider action."
+  ],
+  "post_deploy": {
+    "readback": "Read management.api(environment, /functions), filtered with verify_mirror_parity.edge_artifacts.",
+    "required": "Changed functions must be ACTIVE, verify_jwt=false and exactly match pinned staging EZBR. Unchanged canto-refresh and squad-webhooks must retain captured hashes. A mismatch blocks release, without blind redeploy.",
+    "full_parity_command": "PYTHONPATH=tools/squad:tools/canto-sync tools/canto-sync/.venv/bin/python tools/squad/verify_mirror_parity.py",
+    "preconditions": "Both environments idle mirrors; no active fixtures/leases; test-write allowlists disabled; exact schedules restored. Do not run against the current staging fixture.",
+    "scope": "Structural/schema/ACL/index/migration, four Edge bundles, private bucket/storage policies, schedules, API exposure, required extensions/collation/auth triggers. Business/Auth rows intentionally not equalized.",
+    "outputs": [
+      "docs/squad-one-audit/implementation-evidence/backend-mirror-parity.json",
+      "tools/squad/private/mirror-parity-details.json"
+    ]
+  },
+  "limitations": [
+    "Local source inventory is not a deployed EZBR bundle; exact post-deployment readback remains mandatory.",
+    "No deployment, package install, hosted/config/provider change or hosted query during this preparation.",
+    "Full parity, refresh frozen ref and final Vercel/deployed acceptance remain pending."
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "format": "squad-web-guest-evidence/v1",
+  "run_id": "b564b5dc-8520-422a-9424-48edd7315b4e",
+  "environment": "staging",
+  "requested_flows": [
+    "recovery",
+    "invite"
+  ],
+  "untested_flows": [
+    "register",
+    "confirm"
+  ],
+  "all_flows_passed": false,
+  "started_at": "2026-11-09T02:29:24.754937+00:00",
+  "flows": {
+    "recovery": {
+      "kind": "recovery",
+      "requestId": "a6c80533-dc86-5235-a07e-9ff4ff69e448",
+      "userId": "1900006802",
+      "next": "sign_in",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority": {
+        "passed": true,
+        "checks": [
+          "real_auth_new_password",
+          "real_auth_old_password_refused",
+          "mapped_customer_identity",
+          "previous_session_and_refresh_refused"
+        ]
+      }
+    },
+    "invite": {
+      "kind": "invite",
+      "requestId": "2af5a9e4-c441-59c4-a18f-b9b11810d30e",
+      "userId": "1900006803",
+      "next": "sign_in",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority": {
+        "passed": true,
+        "checks": [
+          "real_auth_new_password",
+          "real_auth_old_password_refused",
+          "mapped_customer_identity"
+        ]
+      }
+    }
+  },
+  "mail": {
+    "recovery": {
+      "job_id": "cbf9c1f5-063c-470a-a9cd-a27de7f4210f",
+      "smtp_submitted_message_id": "<squad-a6c80533-dc86-5235-a07e-9ff4ff69e448@scottinternational.com>",
+      "observed_message_id": null,
+      "provider_delivery": "done",
+      "inbox_proof": "Operator read the code from the unique fixture recipient and matching purpose in the actual inbox; successful completion independently binds it to the server flow. SMTP-submitted Message-ID is not claimed as an observed inbox header.",
+      "observed_at": "2026-11-09T02:31:14.974516+00:00"
+    },
+    "invite": {
+      "job_id": "2c9ed43c-db9b-4dac-9a58-3d14346b5141",
+      "smtp_submitted_message_id": "<squad-2af5a9e4-c441-59c4-a18f-b9b11810d30e@scottinternational.com>",
+      "observed_message_id": null,
+      "provider_delivery": "done",
+      "inbox_proof": "Operator read the code from the unique fixture recipient and matching purpose in the actual inbox; successful completion independently binds it to the server flow. SMTP-submitted Message-ID is not claimed as an observed inbox header.",
+      "observed_at": "2026-11-09T02:32:38.165367+00:00"
+    }
+  },
+  "status": "passed_selected_flows",
+  "cleanup": {
+    "run_id": "b564b5dc-8520-422a-9424-48edd7315b4e",
+    "edit_revision_before": 1033,
+    "edit_revision_after": 1036,
+    "synced_revision_after": 1036,
+    "owned_revision_delta": 3,
+    "completed_flows": 2,
+    "removed_auth_accounts": 4,
+    "removed_source_people": 4,
+    "audit_and_receipts_retained": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": true
+  },
+  "completed_at": "2026-11-09T02:33:29.690451+00:00",
+  "cutover_unchanged": true,
+  "cron_restored": true,
+  "migration_prefix": "20261108202700"
+}

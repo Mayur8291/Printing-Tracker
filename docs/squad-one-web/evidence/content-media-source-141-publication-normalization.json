@@ -1,0 +1,17 @@
+{
+  "format": "squad-publication-path-normalization/v1",
+  "artifact": "docs/squad-one-web/evidence/content-media-source-141.json",
+  "field": "journeys.content-media.missingProductScreenshot",
+  "change": "Removed absolute machine home-directory prefix; retained exact repository-relative private artifact path. No outcome, count, cleanup or acceptance claim changed.",
+  "before_sha256": "63952d82756659519cec1d71aa12a0331131ed3fc1babcbbeec27fe0f409f116",
+  "after_sha256": "249709601bf3d54203e246bdd38c54678809c6971e7a1ce07e5f65ee033bee60",
+  "original_private_copy": "tools/squad/private/publication-originals/content-media-source-141.original.json",
+  "original_private_copy_sha256": "63952d82756659519cec1d71aa12a0331131ed3fc1babcbbeec27fe0f409f116",
+  "public_artifact_readonly_restored": true,
+  "updated_hash_bindings": [
+    "docs/squad-one-web/release-execution-ledger.json",
+    "docs/squad-one-web/release-exit-criteria.json",
+    "docs/squad-one-web/implementation-progress.json"
+  ],
+  "latest_business_acceptance": "Deferred: active parent run may overwrite this canonical file; review after final result."
+}

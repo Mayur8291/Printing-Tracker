@@ -1,0 +1,64 @@
+{
+  "format": "squad-clean-web-build/v1",
+  "status": "built_startup_verified",
+  "workspace": "/tmp/squad-clean-web-cjtmqrp8",
+  "node": "v26.13.0",
+  "npm": "11.6.2",
+  "source_files": 597,
+  "source_manifest_sha256": "f849a54efa1d805b575fa05c25e2c5a45397f638557b614ce26079b788302c00",
+  "lock_sha256": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b",
+  "app_root_sha256": "022e13c66a1276bbe47fabdf57f890254dfabd3ae53f0c48fc2d51beb139cc13",
+  "environment_names": [
+    "VITE_APP_ENV",
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY"
+  ],
+  "copied_env_files": false,
+  "commands": [
+    {
+      "phase": "install",
+      "exit_code": 0,
+      "seconds": 41.52,
+      "log": "/tmp/squad-clean-web-cjtmqrp8/build-control/install.log"
+    },
+    {
+      "phase": "build",
+      "exit_code": 0,
+      "seconds": 7.82,
+      "log": "/tmp/squad-clean-web-cjtmqrp8/build-control/build.log"
+    }
+  ],
+  "source_unchanged": true,
+  "entry_path": "/assets/index-BTsRt4gB.js",
+  "entry_sha256": "51e8448aeb60144dfaa3875a2252e1af60084cb2a994010d6c8469a2078a7f29",
+  "dist": "/tmp/squad-clean-web-cjtmqrp8/apps/admin/dist",
+  "dist_files": 123,
+  "dist_manifest_sha256": "fcdeaee92163977fcc2cf5500d3bf58efc9333b36f2c0fc97597090cbea13728",
+  "served_entry_sha256": "51e8448aeb60144dfaa3875a2252e1af60084cb2a994010d6c8469a2078a7f29",
+  "preview": "http://127.0.0.1:5186",
+  "startup": {
+    "ready": true,
+    "errors": [],
+    "external_requests_blocked": 0,
+    "scope": "Anonymous startup only; external traffic blocked; no credentials or hosted calls"
+  },
+  "visual_review": {
+    "desktop": [
+      1440,
+      1000
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "horizontal_overflow": false,
+    "result": "Both actual clean-build anonymous login views reviewed; no clipping, overlap or missing styles. No authenticated acceptance claimed.",
+    "images": [
+      "clean-web-login-desktop.png",
+      "clean-web-login-mobile.png"
+    ]
+  },
+  "warnings": [
+    "Existing legacy Tracker App chunk exceeds 1200 kB warning threshold; no compilation error."
+  ]
+}

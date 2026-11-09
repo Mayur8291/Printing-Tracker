@@ -1,0 +1,113 @@
+{
+  "format": "squad-final-performance-handoff/v1",
+  "prepared_at": "2026-11-09T04:41:12.676539+00:00",
+  "scope": "Existing implementation plan section9 and EXIT-07 only; no new test families, load matrix, permissions or timeout changes.",
+  "backend_target": "20261109043010",
+  "thresholds": {
+    "bounded_normal_sql_reads": "Warm production-shaped SQL p95 <200ms; capture plans for a measured miss.",
+    "ordinary_sql_commands": "Warm SQL p95 <500ms; record contention and retry separately.",
+    "interactive_browser_api": "Representative browser-to-hosted-API repeated p95 <=2000ms; first observation and uncontrolled cache/network conditions separate.",
+    "supported_heavy_search_reports": "No statement-timeout failures.",
+    "rendering": "Proposed p75 LCP<=2500ms, INP<=200ms, CLS<=0.1 on defined devices/network; local lab evidence is not deployed field p75."
+  },
+  "remaining_bounded_execution": [
+    {
+      "order": 1,
+      "gate": "Connected operational and report timeout regression, plus exact PDF output",
+      "command": "PYTHONPATH=tools/squad:tools/canto-sync tools/canto-sync/.venv/bin/python tools/squad/test_web_document_outputs_hosted.py --execute",
+      "modules": [
+        "commerce",
+        "operations",
+        "feedback",
+        "reporting"
+      ],
+      "existing_bounds": {
+        "browser_requests_seconds": 1200,
+        "exact_document_output_seconds": 300
+      },
+      "do_not_override_bounds": true,
+      "success_requires": [
+        "All module assertions complete, including PC/F\uff2d/Inspector queues/details and Worker due/history/oracle order_get/stages.",
+        "Reports filters/exports and two exact weekly/challan PDF outputs/download bytes pass.",
+        "No SQL57014/HTTP500 or unresolved command; inspect retained passive api_timings timeline, including nonfatal background errors.",
+        "Exact fixture/storage cleanup and captured Cron restoration verified."
+      ],
+      "reuse": "Commerce/feedback partial successes remain evidence; this rerun is required specifically because the connected operational chain timed out. Do not rerun independent accepted People/Tracker/media branches for performance."
+    },
+    {
+      "order": 2,
+      "gate": "Final fixed representative browser timing sample",
+      "command": "SQUAD_WEB_JOURNEYS=read-performance PYTHONPATH=tools/squad:tools/canto-sync tools/canto-sync/.venv/bin/python tools/squad/test_web_business_hosted.py --execute",
+      "module": "tools/squad/web-read-performance-hosted-journey.mjs",
+      "existing_bounds": {
+        "browser_seconds": 750,
+        "measured_requests": 24,
+        "contracts": 4,
+        "samples_per_contract": 6,
+        "repeats_after_first": 5
+      },
+      "contracts": [
+        "v1_me",
+        "v1_person_get",
+        "v1_orders_list",
+        "v1_catalog_tree"
+      ],
+      "success_requires": [
+        "All24 requests finish successfully; each of four summaries target_met_for_observed_repeats is true.",
+        "First observation remains separate; five-repeat nearest-rank p95 is the maximum of those five, not a large statistical sample.",
+        "No business commands from module; fixture cleanup and schedules restored."
+      ],
+      "important": "Module returns a target boolean but does not throw solely for a latency miss. Root must inspect all_observed_repeat_targets_met. Current dispatcher uses http://localhost:5183 with hosted staging API; this is not proof of Vercel asset/render latency."
+    }
+  ],
+  "prior_proof_to_reuse": [
+    {
+      "evidence": "docs/squad-one-audit/implementation-evidence/staging-order-detail-performance.json",
+      "scope": "Existing46,231-row production-shaped warmSQL order details,10samples/role; original evidence only, not current build certification."
+    },
+    {
+      "evidence": "docs/squad-one-audit/implementation-evidence/staging-factory-execution-performance.json",
+      "scope": "Existing rollback-only normal commands/readSQL targets: e.g cutting command142.993ms p95, assignment120.940ms, cutting detail19.809ms; no concurrent-load claim."
+    },
+    {
+      "evidence": "docs/squad-one-audit/implementation-evidence/staging-order-acceptance-performance.json",
+      "scope": "10warmSQL order acceptance samples,125.554ms p95 against500ms; unchanged command contract evidence."
+    },
+    {
+      "evidence": "docs/squad-one-audit/implementation-evidence/staging-work-reports-performance.json",
+      "scope": "Existing seven-role scoped work report and leaderboard plans/timings; no need to rerun entire backend catalogue."
+    },
+    {
+      "evidence": "docs/squad-one-web/evidence/combined-read-diagnostic.json",
+      "scope": "12browser+12pairedSQL quiet samples allpass; diagnostic only, does not erase original failure."
+    },
+    {
+      "evidence": "docs/squad-one-web/evidence/worker-scope-plan-comparison.json",
+      "scope": "Sixexacthosted rollback-only custom/generic samples show Worker fullscan; no plan-mode timeout reproduction."
+    },
+    {
+      "evidence": "docs/squad-one-web/evidence/worker-scope-index-local.json",
+      "scope": "Actual141 migration,45kforeignorders,custom/generic indexedlookup and unchanged historical/foreign authority; no hosted capacity claim."
+    },
+    {
+      "evidence": "docs/squad-one-web/evidence/production-rendering-lab.json",
+      "scope": "Frozen artifact anonymous Chrome lab: sixcontrolled360/1366px samples LCP2032\u20132080ms,INP8\u201332ms,CLS0. Reuse as local lab only, not authenticated deployed fieldp75."
+    }
+  ],
+  "post_index_metadata_read": {
+    "required": [
+      "Exact141 migration body/hash committed; release receipt and catalog/access baseline match.",
+      "pg_index indisvalid=true,indisready=true,indpred IS NULL; pg_get_indexdef exactly assigned_worker_id,id on snapshot.sa_orders.",
+      "Function hashes/ACL and historical helper predicate remain unchanged; no live-filter rewrite.",
+      "No active test-write fixture/lease and captured schedules restored."
+    ],
+    "optional_one_plan": "If desired in the same bounded READ ONLY metadata transaction: select one existing Worker ID privately, SET LOCAL ROLE sa_guard, EXPLAIN(ANALYZE,BUFFERS,FORMAT JSON) SELECT id FROM sa_snapshot_20261019.sa_orders WHERE assigned_worker_id=%s, with deployed8s statement timeout. Return only safe_plan fields/indexname/rowcount/timing, never selected ID or filter text. No fixture, Auth session, provider call or durable mutation. This verifies real index use only, not full RPC authority or global timeout resolution.",
+    "preferred_exit": "Index validity plus the next connected real actor chain is sufficient; no further full synthetic diagnostic fixture is required."
+  },
+  "exit_rules": [
+    "Preserve all prior failures. One complete final sample and connected chain suffice if thresholds and cleanup pass; no repeat-until-fast selection.",
+    "If a measured target misses or SQLtimeout remains, retain it as unresolved and investigate the concrete contract/plan; never increase timeouts or mark performance complete.",
+    "Historical commandSQL evidence, passive heterogeneous browser timings, quiet diagnostic and local lab measure different layers; never combine them into one p95 or SLA.",
+    "Vercel/nativebrowser release smoke remains EXIT-08/separatebrowsergate; do not infer deployed rendering performance from localhostAPI timings."
+  ]
+}

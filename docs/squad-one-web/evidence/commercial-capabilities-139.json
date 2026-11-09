@@ -1,0 +1,2014 @@
+{
+  "api_timings": {
+    "measurement": "Browser request event through complete response-body receipt; network, gateway, server and harness interception included. Not render time or isolated SQL time.",
+    "cache_state": "mixed cold/warm; cache, connection and function warmth were not controlled",
+    "percentile_method": "nearest rank within each role/contract/status/outcome group",
+    "sample_policy": "First 5000 eligible settled requests; at most 128 tracked concurrently",
+    "observed_requests": 1433,
+    "captured_samples": 1433,
+    "dropped_samples": 0,
+    "dropped_in_flight": 0,
+    "in_flight": 0,
+    "unfinished_requests": 32,
+    "partial": true,
+    "contracts": [
+      {
+        "role": 0,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 5,
+        "latency_samples": 5,
+        "p50_ms": 186.97,
+        "p95_ms": 230.86,
+        "max_ms": 230.86
+      },
+      {
+        "role": 0,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 251.86,
+        "p95_ms": 251.86,
+        "max_ms": 251.86
+      },
+      {
+        "role": 0,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 5,
+        "latency_samples": 5,
+        "p50_ms": 171.74,
+        "p95_ms": 181.5,
+        "max_ms": 181.5
+      },
+      {
+        "role": 0,
+        "contract": "/rest/v1/rpc/v1_order_force_complete",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 368.02,
+        "p95_ms": 368.02,
+        "max_ms": 368.02
+      },
+      {
+        "role": 0,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 272.83,
+        "p95_ms": 513.91,
+        "max_ms": 513.91
+      },
+      {
+        "role": 0,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 210.91,
+        "p95_ms": 210.91,
+        "max_ms": 210.91
+      },
+      {
+        "role": 0,
+        "contract": "/rest/v1/rpc/v1_ratings_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 163.17,
+        "p95_ms": 186.76,
+        "max_ms": 186.76
+      },
+      {
+        "role": 1,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 2,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 1,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 9,
+        "latency_samples": 9,
+        "p50_ms": 251.7,
+        "p95_ms": 1682.67,
+        "max_ms": 1682.67
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 37,
+        "latency_samples": 37,
+        "p50_ms": 185.97,
+        "p95_ms": 209.95,
+        "max_ms": 211.63
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_base_product_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 193.25,
+        "p95_ms": 197.25,
+        "max_ms": 197.25
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 4,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 18,
+        "latency_samples": 18,
+        "p50_ms": 228.55,
+        "p95_ms": 791.45,
+        "max_ms": 791.45
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_configurator_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 34,
+        "latency_samples": 34,
+        "p50_ms": 264.25,
+        "p95_ms": 315.51,
+        "max_ms": 332.59
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 1077.13,
+        "p95_ms": 1077.13,
+        "max_ms": 1077.13
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_dispatch_destination_save",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 226.27,
+        "p95_ms": 226.27,
+        "max_ms": 226.27
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_item_quantity_validate",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 184.7,
+        "p95_ms": 203.42,
+        "max_ms": 203.42
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 37,
+        "latency_samples": 37,
+        "p50_ms": 185.72,
+        "p95_ms": 223.12,
+        "max_ms": 224.34
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_cancel",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 583.85,
+        "p95_ms": 583.85,
+        "max_ms": 583.85
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_due_save",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 277.34,
+        "p95_ms": 277.34,
+        "max_ms": 277.34
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_edit",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 3228.73,
+        "p95_ms": 3228.73,
+        "max_ms": 3228.73
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 20,
+        "latency_samples": 20,
+        "p50_ms": 248.33,
+        "p95_ms": 436.17,
+        "max_ms": 966.95
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_item_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 2241.44,
+        "p95_ms": 2244.2,
+        "max_ms": 2244.2
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_payment_record",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 397.27,
+        "p95_ms": 397.27,
+        "max_ms": 397.27
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_place",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 1005.84,
+        "p95_ms": 1195.3,
+        "max_ms": 1195.3
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_priority_save",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 178.72,
+        "p95_ms": 350.33,
+        "max_ms": 350.33
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_order_priority_save",
+        "status": null,
+        "outcome": "failed",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 195.13,
+        "p95_ms": 1184.26,
+        "max_ms": 1184.26
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_people_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 8,
+        "latency_samples": 8,
+        "p50_ms": 246.74,
+        "p95_ms": 757.86,
+        "max_ms": 757.86
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 10,
+        "latency_samples": 10,
+        "p50_ms": 257.58,
+        "p95_ms": 726.62,
+        "max_ms": 726.62
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_presets_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 330.97,
+        "p95_ms": 330.97,
+        "max_ms": 330.97
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_product_configure",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 433.8,
+        "p95_ms": 1071.65,
+        "max_ms": 1071.65
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_quote",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 409.77,
+        "p95_ms": 493.22,
+        "max_ms": 493.22
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_quote_override",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 332.66,
+        "p95_ms": 332.66,
+        "max_ms": 332.66
+      },
+      {
+        "role": 1,
+        "contract": "/rest/v1/rpc/v1_ratings_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 10,
+        "latency_samples": 10,
+        "p50_ms": 193.91,
+        "p95_ms": 500.11,
+        "max_ms": 500.11
+      },
+      {
+        "role": 3,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 186.05,
+        "p95_ms": 186.05,
+        "max_ms": 186.05
+      },
+      {
+        "role": 3,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 10,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 105,
+        "latency_samples": 105,
+        "p50_ms": 81.19,
+        "p95_ms": 786.28,
+        "max_ms": 10579.66
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 6,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 18,
+        "latency_samples": 18,
+        "p50_ms": 80.92,
+        "p95_ms": 195.78,
+        "max_ms": 195.78
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_coordinator_requests",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 251.54,
+        "p95_ms": 321.02,
+        "max_ms": 321.02
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_coordinator_requests",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 3,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 483.62,
+        "p95_ms": 1006.96,
+        "max_ms": 1006.96
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 5,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 105,
+        "latency_samples": 105,
+        "p50_ms": 84.92,
+        "p95_ms": 1281.11,
+        "max_ms": 10450.4
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 177.72,
+        "p95_ms": 200.94,
+        "max_ms": 200.94
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 8,
+        "latency_samples": 8,
+        "p50_ms": 193.27,
+        "p95_ms": 992.75,
+        "max_ms": 992.75
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 5,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 12,
+        "latency_samples": 12,
+        "p50_ms": 184.48,
+        "p95_ms": 1017.14,
+        "max_ms": 1017.14
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 6,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_rating_save",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 347.24,
+        "p95_ms": 460.86,
+        "max_ms": 460.86
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_ratings_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 6,
+        "latency_samples": 6,
+        "p50_ms": 188.41,
+        "p95_ms": 209.14,
+        "max_ms": 209.14
+      },
+      {
+        "role": 10,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 10,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 6,
+        "latency_samples": 6,
+        "p50_ms": 661.62,
+        "p95_ms": 1608.2,
+        "max_ms": 1608.2
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 9,
+        "latency_samples": 9,
+        "p50_ms": 320.82,
+        "p95_ms": 1932.84,
+        "max_ms": 1932.84
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_base_product_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 334.65,
+        "p95_ms": 334.65,
+        "max_ms": 334.65
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_catalog_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 6,
+        "latency_samples": 6,
+        "p50_ms": 475.74,
+        "p95_ms": 2458.97,
+        "max_ms": 2458.97
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 2,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 283.65,
+        "p95_ms": 365.25,
+        "max_ms": 365.25
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_configurator_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 11,
+        "latency_samples": 11,
+        "p50_ms": 592.59,
+        "p95_ms": 1266.36,
+        "max_ms": 1266.36
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_item_quantity_validate",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 117.99,
+        "p95_ms": 117.99,
+        "max_ms": 117.99
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 9,
+        "latency_samples": 9,
+        "p50_ms": 391.54,
+        "p95_ms": 3183.32,
+        "max_ms": 3183.32
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_order_place",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 754.06,
+        "p95_ms": 1040.71,
+        "max_ms": 1040.71
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_people_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 215.04,
+        "p95_ms": 3519.38,
+        "max_ms": 3519.38
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 155.22,
+        "p95_ms": 210.46,
+        "max_ms": 210.46
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_product_configure",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 934.92,
+        "p95_ms": 934.92,
+        "max_ms": 934.92
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_quote",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 220.44,
+        "p95_ms": 477.81,
+        "max_ms": 477.81
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_rmp_search",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 2,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_rmp_search",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 160.56,
+        "p95_ms": 3474.11,
+        "max_ms": 3474.11
+      },
+      {
+        "role": 10,
+        "contract": "/rest/v1/rpc/v1_rmp_variants",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 755.54,
+        "p95_ms": 1922.11,
+        "max_ms": 1922.11
+      },
+      {
+        "role": 11,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 14,
+        "latency_samples": 14,
+        "p50_ms": 637.76,
+        "p95_ms": 1799.59,
+        "max_ms": 1799.59
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 161,
+        "latency_samples": 161,
+        "p50_ms": 186.55,
+        "p95_ms": 1624.1,
+        "max_ms": 3284.54
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_base_product_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 6,
+        "latency_samples": 6,
+        "p50_ms": 261.32,
+        "p95_ms": 310.64,
+        "max_ms": 310.64
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_catalog_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 312.77,
+        "p95_ms": 569.14,
+        "max_ms": 569.14
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 24,
+        "latency_samples": 24,
+        "p50_ms": 328.29,
+        "p95_ms": 970.46,
+        "max_ms": 2563.94
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_configurator_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 15,
+        "latency_samples": 15,
+        "p50_ms": 1045.43,
+        "p95_ms": 1575.07,
+        "max_ms": 1575.07
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 16,
+        "latency_samples": 16,
+        "p50_ms": 333.88,
+        "p95_ms": 5772.6,
+        "max_ms": 5772.6
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_documents_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 400.09,
+        "p95_ms": 1171.4,
+        "max_ms": 1171.4
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 161,
+        "latency_samples": 161,
+        "p50_ms": 195.18,
+        "p95_ms": 2971.19,
+        "max_ms": 4302.32
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 16,
+        "latency_samples": 16,
+        "p50_ms": 485.78,
+        "p95_ms": 5870.2,
+        "max_ms": 5870.2
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 285.43,
+        "p95_ms": 507.81,
+        "max_ms": 507.81
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_promotions_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 318.62,
+        "p95_ms": 400.76,
+        "max_ms": 400.76
+      },
+      {
+        "role": 12,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 14,
+        "latency_samples": 14,
+        "p50_ms": 356.2,
+        "p95_ms": 1672.75,
+        "max_ms": 1672.75
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 161,
+        "latency_samples": 161,
+        "p50_ms": 164.54,
+        "p95_ms": 228.29,
+        "max_ms": 539.3
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_base_product_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 6,
+        "latency_samples": 6,
+        "p50_ms": 241.28,
+        "p95_ms": 352.89,
+        "max_ms": 352.89
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_catalog_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 383.28,
+        "p95_ms": 388.13,
+        "max_ms": 388.13
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_catalog_tree",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 24,
+        "latency_samples": 24,
+        "p50_ms": 233.53,
+        "p95_ms": 579.62,
+        "max_ms": 634.89
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_configurator_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 15,
+        "latency_samples": 15,
+        "p50_ms": 394.37,
+        "p95_ms": 555.5,
+        "max_ms": 555.5
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_documents_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 278.39,
+        "p95_ms": 320.31,
+        "max_ms": 320.31
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 161,
+        "latency_samples": 161,
+        "p50_ms": 171.78,
+        "p95_ms": 244.33,
+        "max_ms": 403.95
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 236.49,
+        "p95_ms": 294.88,
+        "max_ms": 294.88
+      },
+      {
+        "role": 12,
+        "contract": "/rest/v1/rpc/v1_promotions_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 235.91,
+        "p95_ms": 279.83,
+        "max_ms": 279.83
+      }
+    ]
+  },
+  "environment": "staging",
+  "run_id": "4e1d4def-d2db-4afc-96e4-bde4052b1425",
+  "journeys": {
+    "commerce-controls": {
+      "checks": [
+        "sc_browser_unit_price_override_recomputes_tax_and_persists_accepted_order_total",
+        "sc_lost_success_response_ui_retry_retains_command_and_does_not_increment_version_twice",
+        "sc_due_date_and_destination_persist_exact_browser_values",
+        "person_detail_reuses_orders_with_fixed_customer_scope_and_server_due_sort",
+        "customer_manual_payment_acknowledgement_has_no_business_write_or_staging_external_action",
+        "admin_reasoned_exception_completion_then_sc_completed_priority_and_customer_feedback_create_edit",
+        "sc_custom_order_cancellation_is_durable_and_visible_to_own_customer_without_provider_execution",
+        "dealer_browser_places_own_rmp_purchase_exact_tax_and_foreign_denial",
+        "dealer_browser_places_own_mixed_purchase_exact_tax_typed_children_and_foreign_denial",
+        "dealer_authenticated_due_sort_cursor_walk_matches_bounded_fixture_list_without_duplicates"
+      ],
+      "entities": {
+        "controlsOrderIds": [
+          "55293",
+          "55294"
+        ],
+        "dealerOrderIds": [
+          "55295",
+          "55296"
+        ],
+        "ratingIds": [
+          "316"
+        ]
+      },
+      "pagination": {
+        "transport": "authenticated SDK reads; browser sort independently checked",
+        "page_size": 1,
+        "observed_rows": 2,
+        "bulk_fixture_inserts": 0
+      },
+      "scope": "Real commands on separately browser-created exact-owned custom orders; intentional response loss after HTTP success; no provider execution. Parent cleanup and retained audit remain required."
+    },
+    "amendment": {
+      "checks": [
+        "sc_browser_amendment_preserves_original_product_size_type_sizes_notes_and_payment"
+      ],
+      "entities": {
+        "amendmentOrderIds": [
+          "55297"
+        ]
+      }
+    },
+    "read-performance": {
+      "checks": [
+        "actual_customer_browser_own_identity_profile_scoped_order_list_and_exact_fixture_catalogue_reads",
+        "six_observations_each_with_five_repeats_and_complete_response_body_timing",
+        "no_business_mutations_no_bulk_seed_or_unbounded_pagination"
+      ],
+      "metrics": [
+        {
+          "role": 3,
+          "contract": "/rest/v1/rpc/v1_me",
+          "first_observation_ms": 118.41,
+          "first_observation_warmth": "uncontrolled; not claimed cold",
+          "repeat_sample_count": 5,
+          "repeat_durations_ms": [
+            292.22,
+            2567.74,
+            1533.12,
+            131.8,
+            83.07
+          ],
+          "repeat_p50_ms": 292.22,
+          "repeat_p95_ms": 2567.74,
+          "repeat_max_ms": 2567.74,
+          "target_ms": 2000,
+          "target_met_for_observed_repeats": false,
+          "statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "observed_rows": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "role": 3,
+          "contract": "/rest/v1/rpc/v1_person_get",
+          "first_observation_ms": 714.37,
+          "first_observation_warmth": "uncontrolled; not claimed cold",
+          "repeat_sample_count": 5,
+          "repeat_durations_ms": [
+            404.73,
+            528.18,
+            247.55,
+            330.15,
+            173.44
+          ],
+          "repeat_p50_ms": 330.15,
+          "repeat_p95_ms": 528.18,
+          "repeat_max_ms": 528.18,
+          "target_ms": 2000,
+          "target_met_for_observed_repeats": true,
+          "statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "observed_rows": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "role": 3,
+          "contract": "/rest/v1/rpc/v1_orders_list",
+          "first_observation_ms": 174.76,
+          "first_observation_warmth": "uncontrolled; not claimed cold",
+          "repeat_sample_count": 5,
+          "repeat_durations_ms": [
+            188.48,
+            146.29,
+            193.24,
+            195.49,
+            211.78
+          ],
+          "repeat_p50_ms": 193.24,
+          "repeat_p95_ms": 211.78,
+          "repeat_max_ms": 211.78,
+          "target_ms": 2000,
+          "target_met_for_observed_repeats": true,
+          "statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "observed_rows": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "role": 3,
+          "contract": "/rest/v1/rpc/v1_catalog_tree",
+          "first_observation_ms": 115.19,
+          "first_observation_warmth": "uncontrolled; not claimed cold",
+          "repeat_sample_count": 5,
+          "repeat_durations_ms": [
+            195.71,
+            133.6,
+            73.37,
+            70.77,
+            69.72
+          ],
+          "repeat_p50_ms": 73.37,
+          "repeat_p95_ms": 195.71,
+          "repeat_max_ms": 195.71,
+          "target_ms": 2000,
+          "target_met_for_observed_repeats": true,
+          "statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "observed_rows": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "measured_requests": 24,
+      "all_observed_repeat_targets_met": false,
+      "measurement": "Real browser request start through complete response-body receipt, including network/gateway/SQL/harness interception; no render-time or isolated SQL claim.",
+      "warmth": "Five repeated navigations/searches after each first observation. Browser resource cache and network connections may be reused; database and Edge warmth are not controlled. Treat as repeated-route observations, not a guaranteed warm SLA.",
+      "volume": "Existing exact-owned fixture only; own orders at most30, exact catalogue search1. Catalogue route also performs its ordinary bounded18-row initial list before search. No data inserts, provider requests or email actions."
+    },
+    "capabilities": {
+      "backend": {
+        "checks": [
+          "role-11_products_and_pdf_default_denial_and_no_self_grant",
+          "role-11_browse_grant_does_not_imply_configuration_or_pdf",
+          "role-11_configuration_and_pdf_are_independent_with_retry_safe_owned_intents",
+          "role-12_products_and_pdf_default_denial_and_no_self_grant",
+          "role-12_browse_grant_does_not_imply_configuration_or_pdf",
+          "role-12_configuration_and_pdf_are_independent_with_retry_safe_owned_intents",
+          "role-11_document_owner_scope_and_current_session_revocation",
+          "role-12_document_owner_scope_and_current_session_revocation"
+        ],
+        "entities": {
+          "presetIds": [
+            "2054",
+            "2055"
+          ],
+          "documentIds": [
+            "f30a595a-db81-48ec-870e-02e3ffe887f4",
+            "3a7db3e7-b0df-4fce-a15d-31b5d9723778"
+          ]
+        },
+        "scope": "Shared Job Worker/Team product and PDF grants, immediate revocation, owner isolation and queued download intents. Rendering, Storage download and delivery are separate worker acceptance."
+      },
+      "stages": [
+        {
+          "role": 11,
+          "stage": "off",
+          "expected": {
+            "catalogue": false,
+            "configure": false,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-off-mobile.png"
+        },
+        {
+          "role": 11,
+          "stage": "browse",
+          "expected": {
+            "catalogue": true,
+            "configure": false,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "browse_reference_without_configuration_controls",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-browse-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-browse-mobile.png"
+        },
+        {
+          "role": 11,
+          "stage": "configure",
+          "expected": {
+            "catalogue": true,
+            "configure": true,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "configuration_controls_present_without_order_authority",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-configure-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-configure-mobile.png"
+        },
+        {
+          "role": 11,
+          "stage": "pdf",
+          "expected": {
+            "catalogue": true,
+            "configure": false,
+            "documents": true,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "browse_reference_without_configuration_controls",
+            "catalogue_document_form_visible_without_submission",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-pdf-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-pdf-documents.png"
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-pdf-mobile.png"
+        },
+        {
+          "role": 11,
+          "stage": "combined-products",
+          "expected": {
+            "catalogue": true,
+            "configure": true,
+            "documents": true,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "configuration_controls_present_without_order_authority",
+            "catalogue_document_form_visible_without_submission",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-combined-products-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-combined-products-documents.png"
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-combined-products-mobile.png"
+        },
+        {
+          "role": 11,
+          "stage": "promotions",
+          "expected": {
+            "catalogue": true,
+            "configure": false,
+            "documents": false,
+            "promotions": true
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "browse_reference_without_configuration_controls",
+            "promotion_resources_readable",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-promotions-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-promotions-promotions.png"
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-promotions-mobile.png"
+        },
+        {
+          "role": 11,
+          "stage": "combined",
+          "expected": {
+            "catalogue": true,
+            "configure": true,
+            "documents": true,
+            "promotions": true
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "configuration_controls_present_without_order_authority",
+            "catalogue_document_form_visible_without_submission",
+            "promotion_resources_readable",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-combined-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-combined-documents.png"
+            },
+            {
+              "key": "promotions",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-combined-promotions.png"
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-combined-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "off",
+          "expected": {
+            "catalogue": false,
+            "configure": false,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-off-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "browse",
+          "expected": {
+            "catalogue": true,
+            "configure": false,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "browse_reference_without_configuration_controls",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-browse-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-browse-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "configure",
+          "expected": {
+            "catalogue": true,
+            "configure": true,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "configuration_controls_present_without_order_authority",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-configure-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-configure-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "pdf",
+          "expected": {
+            "catalogue": true,
+            "configure": false,
+            "documents": true,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "browse_reference_without_configuration_controls",
+            "catalogue_document_form_visible_without_submission",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-pdf-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-pdf-documents.png"
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-pdf-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "combined-products",
+          "expected": {
+            "catalogue": true,
+            "configure": true,
+            "documents": true,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "configuration_controls_present_without_order_authority",
+            "catalogue_document_form_visible_without_submission",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-combined-products-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-combined-products-documents.png"
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-combined-products-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "promotions",
+          "expected": {
+            "catalogue": true,
+            "configure": false,
+            "documents": false,
+            "promotions": true
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "browse_reference_without_configuration_controls",
+            "promotion_resources_readable",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-promotions-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-promotions-promotions.png"
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-promotions-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "combined",
+          "expected": {
+            "catalogue": true,
+            "configure": true,
+            "documents": true,
+            "promotions": true
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "configuration_controls_present_without_order_authority",
+            "catalogue_document_form_visible_without_submission",
+            "promotion_resources_readable",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-combined-catalogue.png"
+            },
+            {
+              "key": "documents",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-combined-documents.png"
+            },
+            {
+              "key": "promotions",
+              "allowed": true,
+              "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-combined-promotions.png"
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-combined-mobile.png"
+        },
+        {
+          "role": 11,
+          "stage": "revoked",
+          "expected": {
+            "catalogue": false,
+            "configure": false,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-11-revoked-mobile.png"
+        },
+        {
+          "role": 12,
+          "stage": "revoked",
+          "expected": {
+            "catalogue": false,
+            "configure": false,
+            "documents": false,
+            "promotions": false
+          },
+          "checks": [
+            "actual_identity_drives_sidebar_after_reload",
+            "conditional_routes_enforced",
+            "mobile_no_overflow",
+            "no_application_commands"
+          ],
+          "routes": [
+            {
+              "key": "catalogue",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "documents",
+              "allowed": false,
+              "explicitDenial": true
+            },
+            {
+              "key": "promotions",
+              "allowed": false,
+              "explicitDenial": true
+            }
+          ],
+          "screenshotsPrivate": true,
+          "mobileScreenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-conditional-content-4e1d4def-d2db-4afc-96e4-bde4052b1425/role-12-revoked-mobile.png"
+        }
+      ],
+      "checks": [
+        "role-11_products_and_pdf_default_denial_and_no_self_grant",
+        "role-11_browse_grant_does_not_imply_configuration_or_pdf",
+        "role-11_configuration_and_pdf_are_independent_with_retry_safe_owned_intents",
+        "role-12_products_and_pdf_default_denial_and_no_self_grant",
+        "role-12_browse_grant_does_not_imply_configuration_or_pdf",
+        "role-12_configuration_and_pdf_are_independent_with_retry_safe_owned_intents",
+        "role-11_document_owner_scope_and_current_session_revocation",
+        "role-12_document_owner_scope_and_current_session_revocation",
+        "role_11_capability_off_ui",
+        "role_11_capability_browse_ui",
+        "role_11_capability_configure_ui",
+        "role_11_capability_pdf_ui",
+        "role_11_capability_combined_products_ui",
+        "role_11_capability_promotions_ui",
+        "role_11_capability_combined_ui",
+        "role_12_capability_off_ui",
+        "role_12_capability_browse_ui",
+        "role_12_capability_configure_ui",
+        "role_12_capability_pdf_ui",
+        "role_12_capability_combined_products_ui",
+        "role_12_capability_promotions_ui",
+        "role_12_capability_combined_ui",
+        "role_11_capability_revoked_ui",
+        "role_12_capability_revoked_ui"
+      ],
+      "entities": {
+        "presetIds": [
+          "2054",
+          "2055"
+        ],
+        "documentIds": [
+          "f30a595a-db81-48ec-870e-02e3ffe887f4",
+          "3a7db3e7-b0df-4fce-a15d-31b5d9723778"
+        ]
+      },
+      "completeTransitionMatrix": true,
+      "scope": "Existing owned capability command rehearsal plus16 real UI stage observations; two independent PDF/configuration ownership proofs retained; no worker/provider execution"
+    }
+  },
+  "auth_personas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "browser_personas": [
+    1,
+    3,
+    0,
+    10,
+    11,
+    12
+  ],
+  "browser_errors": 0,
+  "network_violations": 0,
+  "scope": "Real browser commands on disposable staged personas; workers paused; no provider, email, cutover or document rendering acceptance",
+  "cleanup": {
+    "run_id": "4e1d4def-d2db-4afc-96e4-bde4052b1425",
+    "owned_commands": 40,
+    "owned_auth_revisions": 0,
+    "removed_source_rows": 95,
+    "removed_documents": 2,
+    "removed_queued_documents": 2,
+    "removed_processed_documents": 0,
+    "tables": {
+      "sa_users": 17,
+      "sa_factories": 2,
+      "sa_addresses": 3,
+      "sa_sizes": 1,
+      "sa_size_types": 1,
+      "sa_sc_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_base_size_types": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
+      "sa_rmp_category_brands": 1,
+      "sa_products": 4,
+      "sa_orders": 5,
+      "sa_ratings": 1,
+      "sa_item_criteria": 12,
+      "sa_items": 6,
+      "sa_product_part_add_ons": 4,
+      "sa_product_parts": 4,
+      "sa_quantities": 6
+    },
+    "edit_revision_before": 993,
+    "edit_revision_after": 1033,
+    "synced_revision_after": 1033,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": true,
+    "independently_changed_staff_accounts": 0
+  },
+  "measured_at": "2026-11-09T02:28:18.256379+00:00",
+  "cutover_unchanged": true,
+  "cron_restored": true,
+  "provider_requests": 0,
+  "emails_sent": 0,
+  "migration_prefix": "20261108202700"
+}

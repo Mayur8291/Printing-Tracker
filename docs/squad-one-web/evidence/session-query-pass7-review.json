@@ -1,0 +1,91 @@
+{
+  "format": "squad-session-pass7-review/v1",
+  "run_id": "cb66a688-367b-4a11-8ad3-6c57aa5f11c1",
+  "scope": "Static source and existing local browser timing journal only; no browser run, hosted activity or source edits.",
+  "source_freeze": {
+    "selected_files": 597,
+    "unchanged": true,
+    "app_root_sha256": "022e13c66a1276bbe47fabdf57f890254dfabd3ae53f0c48fc2d51beb139cc13",
+    "accepted_local_checks": 15,
+    "clean_build_evidence": "clean-web-build-execution.json"
+  },
+  "browser_timing": {
+    "window_ms": 204931.13,
+    "observed": 385,
+    "completed_success": 326,
+    "cancelled": 17,
+    "unfinished": 39,
+    "completed_http_error": 3,
+    "dropped_samples": 0,
+    "dropped_in_flight": 0,
+    "peak_observer_counter": 42,
+    "maximum_overlap_among_known_closed_intervals": 7,
+    "no_request_launch_for_final_ms": 17797.41
+  },
+  "session_checks": {
+    "identity_calls": 35,
+    "bootstrap_calls": 35,
+    "all_completed_successfully": true,
+    "same_role_identity_overlap_count": 0,
+    "same_role_identity_gaps_below_500ms": 0,
+    "worker_identity_calls": 2,
+    "worker_identity_durations_ms": [
+      792.31,
+      832.26
+    ],
+    "worker_identity_start_gap_ms": 2024.57,
+    "conclusion": "No remaining duplicate in-flight identity or runaway focus-read pattern is evidenced in this trace."
+  },
+  "bounded_extra_domain_read": {
+    "source": [
+      "apps/admin/src/squad/data/hooks.js:54",
+      "apps/admin/src/squad/features/production/OperationsUI.jsx:37",
+      "apps/admin/src/squad/features/jobWork/JobWorkPage.jsx:79"
+    ],
+    "finding": "The shared command hook awaits active-query invalidation, then the operations wrapper invokes the supplied query.refresh callback. JobWorkPage supplies its detail refetch, causing an additional bounded detail read after invalidation.",
+    "matching_timeline_inference": [
+      {
+        "sequence": 381,
+        "event": "worker due-save completes",
+        "at_ms": 185657.71
+      },
+      {
+        "sequence": 382,
+        "event": "post-save order read starts",
+        "at_ms": 185661.02
+      },
+      {
+        "sequence": 382,
+        "event": "post-save order read completes",
+        "at_ms": 187105.72
+      },
+      {
+        "sequence": 384,
+        "event": "new-version history read likely starts",
+        "at_ms": 187109.05
+      },
+      {
+        "sequence": 383,
+        "event": "ratings refetch completes",
+        "at_ms": 187131.02
+      },
+      {
+        "sequence": 385,
+        "event": "additional detail read likely starts",
+        "at_ms": 187133.72
+      },
+      {
+        "sequence": 385,
+        "event": "browser order read HTTP500",
+        "at_ms": 197574.48
+      }
+    ],
+    "limitation": "Order/detail-history mapping is inferred from code and timing; the observer intentionally stores no request arguments. This does not establish the SQL timeout cause.",
+    "app_modified": false
+  },
+  "limitations": [
+    "Observer unfinished and in-flight counters are not active SQL sessions or database concurrency.",
+    "Parent SDK oracle requests are outside the browser observer.",
+    "No overall performance or document acceptance is inferred from this review."
+  ]
+}

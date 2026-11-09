@@ -1,0 +1,515 @@
+{
+  "format": "squad-pc-logged-scope-review/v1",
+  "environment": "synthetic_localhost",
+  "volume_orders_and_items": 45000,
+  "samples": [
+    {
+      "scope": "dense",
+      "component": "pc_exact_scope_branch",
+      "role": "sa_guard",
+      "plan": {
+        "Planning Time": 2.91,
+        "Execution Time": 23.513,
+        "Plan": {
+          "Node Type": "Hash Join",
+          "Join Type": "Inner",
+          "Actual Startup Time": 14.306,
+          "Actual Total Time": 22.609,
+          "Actual Rows": 45008,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 4844,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Relation Name": "sa_items",
+              "Alias": "i",
+              "Actual Startup Time": 0.004,
+              "Actual Total Time": 3.296,
+              "Actual Rows": 45012,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2196,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            {
+              "Node Type": "Hash",
+              "Parent Relationship": "Inner",
+              "Actual Startup Time": 14.293,
+              "Actual Total Time": 14.294,
+              "Actual Rows": 45008,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2648,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Seq Scan",
+                  "Parent Relationship": "Outer",
+                  "Relation Name": "sa_orders",
+                  "Alias": "o",
+                  "Actual Startup Time": 0.003,
+                  "Actual Total Time": 10.603,
+                  "Actual Rows": 45008,
+                  "Actual Loops": 1,
+                  "Shared Hit Blocks": 2648,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scope": "dense",
+      "component": "criteria_exact_bounded_read",
+      "role": "sa_executor",
+      "plan": {
+        "Planning Time": 0.596,
+        "Execution Time": 55.915,
+        "Plan": {
+          "Node Type": "Aggregate",
+          "Strategy": "Plain",
+          "Actual Startup Time": 55.88,
+          "Actual Total Time": 55.881,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 5967,
+          "Shared Read Blocks": 2,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Limit",
+              "Parent Relationship": "Outer",
+              "Actual Startup Time": 55.873,
+              "Actual Total Time": 55.875,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 5967,
+              "Shared Read Blocks": 2,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Sort",
+                  "Parent Relationship": "Outer",
+                  "Actual Startup Time": 55.873,
+                  "Actual Total Time": 55.874,
+                  "Actual Rows": 1,
+                  "Actual Loops": 1,
+                  "Shared Hit Blocks": 5967,
+                  "Shared Read Blocks": 2,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0,
+                  "Plans": [
+                    {
+                      "Node Type": "Index Scan",
+                      "Parent Relationship": "Outer",
+                      "Scan Direction": "Forward",
+                      "Index Name": "sa_index_item_criteria_on_item_id",
+                      "Relation Name": "sa_item_criteria",
+                      "Alias": "q",
+                      "Actual Startup Time": 55.864,
+                      "Actual Total Time": 55.867,
+                      "Actual Rows": 1,
+                      "Actual Loops": 1,
+                      "Shared Hit Blocks": 5967,
+                      "Shared Read Blocks": 2,
+                      "Shared Dirtied Blocks": 0,
+                      "Shared Written Blocks": 0,
+                      "Temp Read Blocks": 0,
+                      "Temp Written Blocks": 0,
+                      "Plans": [
+                        {
+                          "Node Type": "Seq Scan",
+                          "Parent Relationship": "SubPlan",
+                          "Relation Name": "sa_items",
+                          "Alias": "sa_items",
+                          "Actual Startup Time": 34.916,
+                          "Actual Total Time": 50.513,
+                          "Actual Rows": 45008,
+                          "Actual Loops": 1,
+                          "Shared Hit Blocks": 5964,
+                          "Shared Read Blocks": 2,
+                          "Shared Dirtied Blocks": 0,
+                          "Shared Written Blocks": 0,
+                          "Temp Read Blocks": 0,
+                          "Temp Written Blocks": 0,
+                          "Plans": [
+                            {
+                              "Node Type": "Result",
+                              "Parent Relationship": "InitPlan",
+                              "Actual Startup Time": 0.943,
+                              "Actual Total Time": 0.943,
+                              "Actual Rows": 1,
+                              "Actual Loops": 1,
+                              "Shared Hit Blocks": 9,
+                              "Shared Read Blocks": 0,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0
+                            },
+                            {
+                              "Node Type": "Result",
+                              "Parent Relationship": "InitPlan",
+                              "Actual Startup Time": 0.0,
+                              "Actual Total Time": 0.0,
+                              "Actual Rows": 0,
+                              "Actual Loops": 0,
+                              "Shared Hit Blocks": 0,
+                              "Shared Read Blocks": 0,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0
+                            },
+                            {
+                              "Node Type": "ProjectSet",
+                              "Parent Relationship": "SubPlan",
+                              "Actual Startup Time": 28.486,
+                              "Actual Total Time": 29.907,
+                              "Actual Rows": 45008,
+                              "Actual Loops": 1,
+                              "Shared Hit Blocks": 3759,
+                              "Shared Read Blocks": 2,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0,
+                              "Plans": [
+                                {
+                                  "Node Type": "Result",
+                                  "Parent Relationship": "Outer",
+                                  "Actual Startup Time": 0.0,
+                                  "Actual Total Time": 0.0,
+                                  "Actual Rows": 1,
+                                  "Actual Loops": 1,
+                                  "Shared Hit Blocks": 0,
+                                  "Shared Read Blocks": 0,
+                                  "Shared Dirtied Blocks": 0,
+                                  "Shared Written Blocks": 0,
+                                  "Temp Read Blocks": 0,
+                                  "Temp Written Blocks": 0
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scope": "dense",
+      "component": "criteria_actual_helper",
+      "role": "sa_executor",
+      "plan": {
+        "Planning Time": 0.049,
+        "Execution Time": 50.349,
+        "Plan": {
+          "Node Type": "Result",
+          "Actual Startup Time": 50.34,
+          "Actual Total Time": 50.34,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 5382,
+          "Shared Read Blocks": 8,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    },
+    {
+      "scope": "sparse",
+      "component": "pc_exact_scope_branch",
+      "role": "sa_guard",
+      "plan": {
+        "Planning Time": 0.62,
+        "Execution Time": 24.794,
+        "Plan": {
+          "Node Type": "Nested Loop",
+          "Join Type": "Inner",
+          "Actual Startup Time": 0.023,
+          "Actual Total Time": 24.778,
+          "Actual Rows": 108,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 90279,
+          "Shared Read Blocks": 30,
+          "Shared Dirtied Blocks": 30,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Only Scan",
+              "Parent Relationship": "Outer",
+              "Scan Direction": "Backward",
+              "Index Name": "squad_orders_production_scope",
+              "Relation Name": "sa_orders",
+              "Alias": "o",
+              "Actual Startup Time": 0.006,
+              "Actual Total Time": 24.472,
+              "Actual Rows": 108,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 89756,
+              "Shared Read Blocks": 28,
+              "Shared Dirtied Blocks": 30,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Inner",
+              "Scan Direction": "Forward",
+              "Index Name": "sa_index_items_on_order_id",
+              "Relation Name": "sa_items",
+              "Alias": "i",
+              "Actual Startup Time": 0.001,
+              "Actual Total Time": 0.003,
+              "Actual Rows": 1,
+              "Actual Loops": 108,
+              "Shared Hit Blocks": 523,
+              "Shared Read Blocks": 2,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scope": "sparse",
+      "component": "criteria_exact_bounded_read",
+      "role": "sa_executor",
+      "plan": {
+        "Planning Time": 0.128,
+        "Execution Time": 26.746,
+        "Plan": {
+          "Node Type": "Aggregate",
+          "Strategy": "Plain",
+          "Actual Startup Time": 26.716,
+          "Actual Total Time": 26.718,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 91322,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Limit",
+              "Parent Relationship": "Outer",
+              "Actual Startup Time": 26.707,
+              "Actual Total Time": 26.709,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 91322,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Sort",
+                  "Parent Relationship": "Outer",
+                  "Actual Startup Time": 26.707,
+                  "Actual Total Time": 26.708,
+                  "Actual Rows": 1,
+                  "Actual Loops": 1,
+                  "Shared Hit Blocks": 91322,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0,
+                  "Plans": [
+                    {
+                      "Node Type": "Index Scan",
+                      "Parent Relationship": "Outer",
+                      "Scan Direction": "Forward",
+                      "Index Name": "sa_index_item_criteria_on_item_id",
+                      "Relation Name": "sa_item_criteria",
+                      "Alias": "q",
+                      "Actual Startup Time": 26.699,
+                      "Actual Total Time": 26.703,
+                      "Actual Rows": 1,
+                      "Actual Loops": 1,
+                      "Shared Hit Blocks": 91322,
+                      "Shared Read Blocks": 0,
+                      "Shared Dirtied Blocks": 0,
+                      "Shared Written Blocks": 0,
+                      "Temp Read Blocks": 0,
+                      "Temp Written Blocks": 0,
+                      "Plans": [
+                        {
+                          "Node Type": "Seq Scan",
+                          "Parent Relationship": "SubPlan",
+                          "Relation Name": "sa_items",
+                          "Alias": "sa_items",
+                          "Actual Startup Time": 18.604,
+                          "Actual Total Time": 26.643,
+                          "Actual Rows": 108,
+                          "Actual Loops": 1,
+                          "Shared Hit Blocks": 91319,
+                          "Shared Read Blocks": 0,
+                          "Shared Dirtied Blocks": 0,
+                          "Shared Written Blocks": 0,
+                          "Temp Read Blocks": 0,
+                          "Temp Written Blocks": 0,
+                          "Plans": [
+                            {
+                              "Node Type": "Result",
+                              "Parent Relationship": "InitPlan",
+                              "Actual Startup Time": 0.288,
+                              "Actual Total Time": 0.288,
+                              "Actual Rows": 1,
+                              "Actual Loops": 1,
+                              "Shared Hit Blocks": 9,
+                              "Shared Read Blocks": 0,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0
+                            },
+                            {
+                              "Node Type": "Result",
+                              "Parent Relationship": "InitPlan",
+                              "Actual Startup Time": 0.0,
+                              "Actual Total Time": 0.0,
+                              "Actual Rows": 0,
+                              "Actual Loops": 0,
+                              "Shared Hit Blocks": 0,
+                              "Shared Read Blocks": 0,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0
+                            },
+                            {
+                              "Node Type": "ProjectSet",
+                              "Parent Relationship": "SubPlan",
+                              "Actual Startup Time": 18.291,
+                              "Actual Total Time": 18.294,
+                              "Actual Rows": 108,
+                              "Actual Loops": 1,
+                              "Shared Hit Blocks": 89114,
+                              "Shared Read Blocks": 0,
+                              "Shared Dirtied Blocks": 0,
+                              "Shared Written Blocks": 0,
+                              "Temp Read Blocks": 0,
+                              "Temp Written Blocks": 0,
+                              "Plans": [
+                                {
+                                  "Node Type": "Result",
+                                  "Parent Relationship": "Outer",
+                                  "Actual Startup Time": 0.0,
+                                  "Actual Total Time": 0.0,
+                                  "Actual Rows": 1,
+                                  "Actual Loops": 1,
+                                  "Shared Hit Blocks": 0,
+                                  "Shared Read Blocks": 0,
+                                  "Shared Dirtied Blocks": 0,
+                                  "Shared Written Blocks": 0,
+                                  "Temp Read Blocks": 0,
+                                  "Temp Written Blocks": 0
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scope": "sparse",
+      "component": "criteria_actual_helper",
+      "role": "sa_executor",
+      "plan": {
+        "Planning Time": 0.029,
+        "Execution Time": 33.759,
+        "Plan": {
+          "Node Type": "Result",
+          "Actual Startup Time": 33.752,
+          "Actual Total Time": 33.753,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 91576,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    }
+  ],
+  "schema_changes": false,
+  "existing_indexes": [
+    {
+      "table": "sa_item_criteria",
+      "name": "sa_index_item_criteria_on_item_id",
+      "definition": "CREATE INDEX sa_index_item_criteria_on_item_id ON sa_snapshot_20261019.sa_item_criteria USING btree (item_id)"
+    },
+    {
+      "table": "sa_items",
+      "name": "squad_items_order_page",
+      "definition": "CREATE INDEX squad_items_order_page ON sa_snapshot_20261019.sa_items USING btree (order_id, id DESC)"
+    },
+    {
+      "table": "sa_orders",
+      "name": "squad_orders_production_scope",
+      "definition": "CREATE INDEX squad_orders_production_scope ON sa_snapshot_20261019.sa_orders USING btree (id DESC) WHERE ((order_item_type = ANY (ARRAY[1, 2])) AND (customer_dealer_id IS NULL))"
+    }
+  ],
+  "rollback_verified": true,
+  "conclusion": "Existing exact PC predicate index and item/criteria relation indexes are usable. Dense PC authority necessarily enumerates many authorized items; these samples do not reproduce the hosted timeout and do not justify another index or authority change.",
+  "limitations": [
+    "Local synthetic data and warm buffers do not reproduce hosted concurrency or prove the original timeout resolved.",
+    "Sparse phase changes 44,900 rows inside the same rollback transaction; old index entries cannot be vacuumed there, so its high buffer count includes synthetic dead-version traversal. It is proof existing matching indexes are eligible, not a production cost estimate."
+  ]
+}

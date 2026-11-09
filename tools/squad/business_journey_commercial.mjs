@@ -135,7 +135,7 @@ export async function runJourney(ctx) {
   entities.workerOrderId = workerOrder.id; entities.workerItemId = workerOrder.items[0].item_id;
   await pc.assignWorker(workerOrder.id,workerId,dueAt,label+' outsourced work',command(ctx,'worker',(await pc.order(workerOrder.id)).version));
   await pc.saveWorkerCost(entities.workerItemId,'12.345',label+' agreed worker unit cost',command(ctx,'worker-cost',(await pc.orderItem(entities.workerItemId)).version));
-  await pc.saveWorkerDue(workerOrder.id,datePlus(dueAt,2),label+' worker due date',command(ctx,'worker-due',(await pc.order(workerOrder.id)).version));
+  await sdkFor(ctx,11).saveWorkerDue(workerOrder.id,datePlus(dueAt,2),label+' worker due date',command(ctx,'worker-due',(await sdkFor(ctx,11).order(workerOrder.id)).version));
   const workerItem = await sdkFor(ctx,11).orderItem(entities.workerItemId);
   assert.equal(workerItem.worker_unit_cost,'12.345'); assert.equal(cents(workerItem.worker_total_cost),2469n);
   assert.ok(!('unit_amount' in workerItem)); assert.ok(!('total_amount' in await sdkFor(ctx,11).order(workerOrder.id)));

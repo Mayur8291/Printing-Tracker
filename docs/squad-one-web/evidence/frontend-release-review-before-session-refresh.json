@@ -1,0 +1,57 @@
+{
+  "format": "squad-frontend-static-release-review/v1",
+  "reviewed_at": "2026-11-09T02:11:47.523912+00:00",
+  "scope": "Current source and existing local build; no hosted/deployed assertion or broad rerun",
+  "files": {
+    "apps/admin/src/application/AppRoot.jsx": "0edd131f772e9114ab621d8fed25b925a80357d2a5685a84f4f53b17168a27a1",
+    "apps/admin/src/squad/SquadApp.jsx": "953996bc42460a98a5edd3ccdda33776e8d88f880e8aac6b1e8c54c1ed73aadb",
+    "apps/admin/src/squad/data/hooks.js": "4b8758b96300ff051e2ab78abe469bdc55bacd02800cc1c6cfe129b979ec09b5",
+    "packages/shared/squad.js": "5cdadcc2cdc2c83921dea2d004ff2067052a91c279936c01672a1594f9b74f20",
+    "package.json": "9cda3a425bf9eaa20abca770a04d5bc547dfeb852e40c0d3973de08ffeb769f4",
+    "apps/admin/package.json": "7045141824d94903fed882866e96a5e426ad4c94c01b1b95199b2f9ff5ba4bbe",
+    "package-lock.json": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b",
+    "vercel.json": "a402d297bb46fe223d1a772e2df33e4690c940a6e928c2a571092efe87428d11",
+    "apps/admin/vite.config.js": "aa0ce9756901dc539a6adced5e1913ac0514f887ce19e70d71c13b7f2baac58e",
+    "apps/admin/public/sw.js": "f076250bd1d86cfa88cb18cfed9d53eb3db66aa32d5382cb379d3eb9ce96d94b",
+    "apps/admin/dist/index.html": "72c2ecc8193483a31c1cff2c4031fb97ed4cd07390709881fddfce1d10c2657b"
+  },
+  "checks": {
+    "workflow_rows_unique": 115,
+    "source_and_built_files_scanned": 561,
+    "matched_pat_secret_key_private_key_literals": 0,
+    "non_anon_jwt_literals": 0,
+    "anon_jwt_literals": 4,
+    "workspace_manifest_lock_mismatches": 0,
+    "lockfile_version": 3,
+    "dist_sourcemaps": 0,
+    "dist_dot_env_files": 0,
+    "squad_database_transport": "canto_api RPC only; squad-account Edge commands/grants",
+    "tracker_membership_exception": "AppRoot authenticated-role profiles lookup, not Squad sa_app domain access",
+    "legacy_network_fallback_in_squad": false,
+    "list_transport": "Bounded cursor page defaults and visible continuation controls; existing SQL cursor/scope regressions reused",
+    "query_cancellation": "Existing positive read-only signal client and actual lifecycle proofs reused; mutations remain unbound",
+    "deployment_configuration": "npm ci; root npm run build; apps/admin/dist; /squad/:path* and /account/:path* index.html rewrites",
+    "service_worker_navigation": "network fetch, no document cache",
+    "workflow_dispositions": {
+      "interactive_web_workflow": 102,
+      "retired_unsafe_impersonation_not_implemented": 1,
+      "derived_state_visible_in_parent_flow": 4,
+      "background_work_with_visible_result_or_status": 6,
+      "excluded_by_user_airtable": 1,
+      "separate_guarded_ownership_operation": 1
+    }
+  },
+  "new_demonstrated_blockers": [],
+  "remaining_release_gates": [
+    "Final deployed Vercel revision/branch/project/environment and deep-link smoke",
+    "Final deployed Tracker and representative persona read smoke",
+    "Remaining finite hosted acceptance modules with exact cleanup",
+    "Final browser/performance measurements and native Safari disposition"
+  ],
+  "limitations": [
+    "Pattern scan is not a general secret-detection certification.",
+    "Source manifests and static rewrite configuration do not prove hosted settings.",
+    "Existing dist was inspected, not rebuilt during this review.",
+    "No new speculative workflow matrix or permission expansion."
+  ]
+}

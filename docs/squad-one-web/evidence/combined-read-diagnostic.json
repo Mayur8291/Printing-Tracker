@@ -1,0 +1,667 @@
+{
+  "format": "squad-combined-read-diagnostic/v1",
+  "run_id": "bc659e37-5412-4d10-aabd-b7fd41b0df07",
+  "environment": "staging",
+  "browser": {
+    "format": "squad-combined-read-diagnostic/v1",
+    "run_id": "bc659e37-5412-4d10-aabd-b7fd41b0df07",
+    "environment": "staging",
+    "reports": [
+      {
+        "format": "squad-me-browser-diagnostic/v1",
+        "environment": "staging",
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_me",
+        "samples": [
+          {
+            "index": 0,
+            "outcome": "completed",
+            "duration_ms": 117.44,
+            "status": 200,
+            "observed_rows": 1,
+            "transport_timing_ms": {
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "sendStart": 0.2,
+              "sendEnd": 0.33,
+              "receiveHeadersStart": 116.31,
+              "receiveHeadersEnd": 116.35
+            }
+          },
+          {
+            "index": 1,
+            "outcome": "completed",
+            "duration_ms": 83.8,
+            "status": 200,
+            "observed_rows": 1,
+            "transport_timing_ms": {
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "sendStart": 0.37,
+              "sendEnd": 0.5,
+              "receiveHeadersStart": 82.53,
+              "receiveHeadersEnd": 82.58
+            }
+          },
+          {
+            "index": 2,
+            "outcome": "completed",
+            "duration_ms": 87.83,
+            "status": 200,
+            "observed_rows": 1,
+            "transport_timing_ms": {
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "sendStart": 0.25,
+              "sendEnd": 0.39,
+              "receiveHeadersStart": 86.26,
+              "receiveHeadersEnd": 86.31
+            }
+          },
+          {
+            "index": 3,
+            "outcome": "completed",
+            "duration_ms": 75.07,
+            "status": 200,
+            "observed_rows": 1,
+            "transport_timing_ms": {
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "sendStart": 0.18,
+              "sendEnd": 0.32,
+              "receiveHeadersStart": 72.34,
+              "receiveHeadersEnd": 72.46
+            }
+          },
+          {
+            "index": 4,
+            "outcome": "completed",
+            "duration_ms": 66.37,
+            "status": 200,
+            "observed_rows": 1,
+            "transport_timing_ms": {
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "sendStart": 0.38,
+              "sendEnd": 0.54,
+              "receiveHeadersStart": 63.75,
+              "receiveHeadersEnd": 63.82
+            }
+          },
+          {
+            "index": 5,
+            "outcome": "completed",
+            "duration_ms": 68.57,
+            "status": 200,
+            "observed_rows": 1,
+            "transport_timing_ms": {
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "sendStart": 0.27,
+              "sendEnd": 0.38,
+              "receiveHeadersStart": 67.5,
+              "receiveHeadersEnd": 67.55
+            }
+          }
+        ],
+        "repeat_sample_count": 5,
+        "repeat_p95_ms": 87.83,
+        "target_ms": 2000,
+        "target_met": true,
+        "all_requests_completed": true,
+        "measurement": "Actual browser request event through full response receipt. Relative Chromium transport timing is optional, excludes response body time, and is not isolated SQL timing.",
+        "warmth": "First and five repeated route navigations; network, database and gateway warmth uncontrolled. Failed samples are retained and never enter successful percentiles.",
+        "application_mutations": 0
+      },
+      {
+        "format": "squad-worker-browser-diagnostic/v1",
+        "environment": "staging",
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "samples": [
+          {
+            "index": 0,
+            "outcome": "completed",
+            "duration_ms": 314.41,
+            "status": 200,
+            "observed_rows": 1
+          },
+          {
+            "index": 1,
+            "outcome": "completed",
+            "duration_ms": 332.44,
+            "status": 200,
+            "observed_rows": 1
+          },
+          {
+            "index": 2,
+            "outcome": "completed",
+            "duration_ms": 200.77,
+            "status": 200,
+            "observed_rows": 1
+          },
+          {
+            "index": 3,
+            "outcome": "completed",
+            "duration_ms": 201.28,
+            "status": 200,
+            "observed_rows": 1
+          },
+          {
+            "index": 4,
+            "outcome": "completed",
+            "duration_ms": 205.76,
+            "status": 200,
+            "observed_rows": 1
+          },
+          {
+            "index": 5,
+            "outcome": "completed",
+            "duration_ms": 204.6,
+            "status": 200,
+            "observed_rows": 1
+          }
+        ],
+        "all_requests_completed": true,
+        "repeat_p95_ms": 332.44,
+        "target_ms": 2000,
+        "target_met": true,
+        "application_mutations": 0,
+        "measurement": "Actual application navigation and exact bounded order read through full browser response receipt. Six observations, including failures; no retry, direct fetch or business command.",
+        "fixture_limit": "Original persona fixture has one item/quantity, no product and both factory and Worker assignment. This isolates the existing read contract; it is not the failed commercial graph or a capacity benchmark."
+      }
+    ],
+    "browser_errors": 0,
+    "network_violations": 0,
+    "application_mutations": 0,
+    "browser_closed": true
+  },
+  "sql": [
+    {
+      "format": "squad-me-sql-diagnostic/v1",
+      "environment": "staging",
+      "role": 3,
+      "contract": "canto_api.v1_me",
+      "samples": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "sql_execution_ms": 96.387,
+          "planning_ms": 0.022,
+          "plan": {
+            "Planning Time": 0.022,
+            "Execution Time": 96.387,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 96.365,
+              "Actual Total Time": 96.366,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 518,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "sql_execution_ms": 5.668,
+          "planning_ms": 0.023,
+          "plan": {
+            "Planning Time": 0.023,
+            "Execution Time": 5.668,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 5.646,
+              "Actual Total Time": 5.646,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 81,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "sql_execution_ms": 6.134,
+          "planning_ms": 0.023,
+          "plan": {
+            "Planning Time": 0.023,
+            "Execution Time": 6.134,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 6.114,
+              "Actual Total Time": 6.114,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 81,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "sql_execution_ms": 3.692,
+          "planning_ms": 0.022,
+          "plan": {
+            "Planning Time": 0.022,
+            "Execution Time": 3.692,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 3.672,
+              "Actual Total Time": 3.673,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 51,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "sql_execution_ms": 3.699,
+          "planning_ms": 0.022,
+          "plan": {
+            "Planning Time": 0.022,
+            "Execution Time": 3.699,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 3.679,
+              "Actual Total Time": 3.68,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 51,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "sql_execution_ms": 4.599,
+          "planning_ms": 0.024,
+          "plan": {
+            "Planning Time": 0.024,
+            "Execution Time": 4.599,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 4.576,
+              "Actual Total Time": 4.577,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 51,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        }
+      ],
+      "access_paths": {
+        "auth_user": {
+          "Planning Time": 0.328,
+          "Execution Time": 1.181,
+          "Plan": {
+            "Node Type": "Index Only Scan",
+            "Scan Direction": "Forward",
+            "Index Name": "users_pkey",
+            "Relation Name": "users",
+            "Alias": "users",
+            "Actual Startup Time": 0.61,
+            "Actual Total Time": 0.612,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 4,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          }
+        },
+        "auth_session": {
+          "Planning Time": 0.089,
+          "Execution Time": 0.035,
+          "Plan": {
+            "Node Type": "Index Scan",
+            "Scan Direction": "Forward",
+            "Index Name": "sessions_user_id_idx",
+            "Relation Name": "sessions",
+            "Alias": "sessions",
+            "Actual Startup Time": 0.01,
+            "Actual Total Time": 0.011,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 2,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          }
+        },
+        "identity_mapping": {
+          "Planning Time": 0.07,
+          "Execution Time": 0.142,
+          "Plan": {
+            "Node Type": "Index Scan",
+            "Scan Direction": "Forward",
+            "Index Name": "sa_auth_identities_pkey",
+            "Relation Name": "sa_auth_identities",
+            "Alias": "sa_auth_identities",
+            "Actual Startup Time": 0.116,
+            "Actual Total Time": 0.117,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 3,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          }
+        },
+        "source_person": {
+          "Planning Time": 0.183,
+          "Execution Time": 0.039,
+          "Plan": {
+            "Node Type": "Index Only Scan",
+            "Scan Direction": "Forward",
+            "Index Name": "sa_users_pkey",
+            "Relation Name": "sa_users",
+            "Alias": "sa_users",
+            "Actual Startup Time": 0.013,
+            "Actual Total Time": 0.014,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 4,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          }
+        },
+        "entity_version": {
+          "Planning Time": 4.609,
+          "Execution Time": 0.085,
+          "Plan": {
+            "Node Type": "Index Scan",
+            "Scan Direction": "Forward",
+            "Index Name": "entity_versions_pkey",
+            "Relation Name": "entity_versions",
+            "Alias": "entity_versions",
+            "Actual Startup Time": 0.056,
+            "Actual Total Time": 0.056,
+            "Actual Rows": 0,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 2,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          }
+        }
+      },
+      "application_mutations": 0,
+      "migration_prefix": "20261109024124",
+      "function_sha256": {
+        "sa_domain.v1_me()": "5d8b2d4fd477122b50b4e41faed45d063d3d86f263d7d0b810eecbaad05d6393",
+        "sa_domain.actor()": "7f6ea7015312d67ef281d1b0de1f85d1b80f7867137f9e215c29976f0eea2765",
+        "sa_domain.auth_context()": "c1b52cc1847fac9967daeafaf598551c3fff6c725cea41c09d628ecdd0f707c8",
+        "sa_domain.version(text,bigint)": "6dd0711334fa3acd50fb3283bba5321cebeef250b02c5f8f0683539fc5d80efb",
+        "sa_domain.rehearsal_actor_allowed(uuid)": "37fb61a95ffaf756ced10ffaa290818360d0246e705177727d9fa08f962b94ab"
+      },
+      "read_only": true,
+      "all_requests_completed": true,
+      "measurement": "Six direct SQL executions under existing Customer claims and sa_app role in a read-only rolled-back transaction. Outer EXPLAIN cannot expose nested PL/pgSQL plans; point-lookup plans are separate privileged index evidence, not full API plans.",
+      "warmth": "Repeated on one database connection; not comparable to controlled-warm browser latency or a capacity/SLA test."
+    },
+    {
+      "format": "squad-worker-sql-diagnostic/v1",
+      "environment": "staging",
+      "role": 11,
+      "contract": "canto_api.v1_order_get",
+      "samples": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "sql_execution_ms": 63.737,
+          "planning_ms": 0.021,
+          "plan": {
+            "Planning Time": 0.021,
+            "Execution Time": 63.737,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 63.723,
+              "Actual Total Time": 63.723,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2688,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "sql_execution_ms": 32.122,
+          "planning_ms": 0.029,
+          "plan": {
+            "Planning Time": 0.029,
+            "Execution Time": 32.122,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 32.105,
+              "Actual Total Time": 32.106,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2001,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "sql_execution_ms": 32.049,
+          "planning_ms": 0.029,
+          "plan": {
+            "Planning Time": 0.029,
+            "Execution Time": 32.049,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 32.032,
+              "Actual Total Time": 32.032,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2001,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "sql_execution_ms": 32.355,
+          "planning_ms": 0.029,
+          "plan": {
+            "Planning Time": 0.029,
+            "Execution Time": 32.355,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 32.338,
+              "Actual Total Time": 32.339,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2001,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "sql_execution_ms": 33.271,
+          "planning_ms": 0.061,
+          "plan": {
+            "Planning Time": 0.061,
+            "Execution Time": 33.271,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 33.252,
+              "Actual Total Time": 33.252,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2001,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "sql_execution_ms": 34.72,
+          "planning_ms": 0.033,
+          "plan": {
+            "Planning Time": 0.033,
+            "Execution Time": 34.72,
+            "Plan": {
+              "Node Type": "Result",
+              "Actual Startup Time": 34.702,
+              "Actual Total Time": 34.702,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 1998,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          }
+        }
+      ],
+      "application_mutations": 0,
+      "function_sha256": {
+        "sa_domain.v1_order_get(bigint,text,integer)": "d6415c4d76e1fc96b046fe59cb3f3be523da31d33e06eced9d50a3f14cb9ad3b",
+        "sa_domain.v1_order_item_get(bigint,text,text,integer)": "5bc70dacc9dc81f6aaf7ef7dd1d6058b37cb40f2dbee5746252d56ba1a1e81e8",
+        "sa_domain.actor()": "7f6ea7015312d67ef281d1b0de1f85d1b80f7867137f9e215c29976f0eea2765",
+        "sa_domain.auth_context()": "c1b52cc1847fac9967daeafaf598551c3fff6c725cea41c09d628ecdd0f707c8",
+        "sa_domain.scope_order_ids()": "73ca6c0e5db0e6f89583802a6512e824156769319967e8752efb1a22226e54f9",
+        "sa_domain.scope_item_ids()": "44a1561122a957bc62dc18d160c8e7ebeac9443d24676f25fcb7d78565aa2f95"
+      },
+      "settings": {
+        "statement_timeout": "10s",
+        "lock_timeout": "2s",
+        "jit": "off",
+        "plan_cache_mode": "auto",
+        "work_mem": "2184kB"
+      },
+      "role_settings": {
+        "authenticator": {
+          "statement_timeout": "8s",
+          "lock_timeout": "8s"
+        },
+        "sa_app": {}
+      },
+      "database_role_settings": [
+        {
+          "role": "authenticator",
+          "scope": "all_databases",
+          "settings": {
+            "statement_timeout": "8s",
+            "lock_timeout": "8s"
+          }
+        },
+        {
+          "role": "all_roles",
+          "scope": "current_database",
+          "settings": {}
+        }
+      ],
+      "read_only": true,
+      "all_requests_completed": true,
+      "measurement": "Six serial EXPLAIN ANALYZE reads under the exact existing Worker Auth session and sa_app role; 10-second diagnostic timeout. Outer plans do not expose nested functions. Direct SQL bypasses PostgREST pre-request/connection setup and network; not a gateway or capacity measurement."
+    }
+  ],
+  "comparison": "Browser samples first, direct SQL later using the same two real sessions and unchanged original persona fixture. Serial measurements; direct SQL does not reproduce PostgREST setup, pool selection, background app reads or the failed commercial data graph. No causal infrastructure attribution.",
+  "cleanup": {
+    "exact_owned_fixture_removed": true,
+    "retained_blocked_reservations": 11,
+    "business_commands": 0
+  },
+  "cutover_unchanged": true,
+  "cron_unchanged": true,
+  "measured_at": "2026-11-09T03:35:38.408546+00:00"
+}

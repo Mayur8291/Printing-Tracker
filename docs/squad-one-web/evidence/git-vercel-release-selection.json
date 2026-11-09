@@ -1,0 +1,3791 @@
+{
+  "schema_version": 1,
+  "prepared_at_utc": "2026-11-09T04:09:44.616248+00:00",
+  "status": "read_only_preparation_not_release_approval",
+  "branch": "codex/canto-monorepo-masters-refresh",
+  "head": "7f8c86249f1ec062ae291c6e30f45ea2a52fa141",
+  "remote": "https://github.com/Mayur8291/Printing-Tracker.git",
+  "remote_refs": {
+    "develop": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+    "main": "44de98628400cfb8649e4bae92c9a2dfadd3ebcc",
+    "codex/canto-monorepo-masters-refresh": null
+  },
+  "develop_is_ancestor_of_head": true,
+  "local_commits_ahead_of_develop": 1,
+  "index_empty_at_inspection": true,
+  "groups": {
+    "application_and_contracts": [
+      {
+        "path": "apps/admin/package.json",
+        "git_status": " M",
+        "sha256": "7045141824d94903fed882866e96a5e426ad4c94c01b1b95199b2f9ff5ba4bbe",
+        "bytes": 2505,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/main.jsx",
+        "git_status": " M",
+        "sha256": "333cf487f670a8f994d8cd50e31568fd9994263978eb02bd6b98d31d1039d7ff",
+        "bytes": 998,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "package-lock.json",
+        "git_status": " M",
+        "sha256": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b",
+        "bytes": 669472,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "packages/shared/squad.d.ts",
+        "git_status": " M",
+        "sha256": "5ffb1510d7e7136668dcfb405d6573cb0b34b9d01b85708c9982f9c3dcf11394",
+        "bytes": 61038,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "packages/shared/squad.js",
+        "git_status": " M",
+        "sha256": "5cdadcc2cdc2c83921dea2d004ff2067052a91c279936c01672a1594f9b74f20",
+        "bytes": 34185,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "vercel.json",
+        "git_status": " M",
+        "sha256": "a402d297bb46fe223d1a772e2df33e4690c940a6e928c2a571092efe87428d11",
+        "bytes": 658,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/application/AccountFlow.jsx",
+        "git_status": "??",
+        "sha256": "64b2887ccd6a42d5b3ce53d28580c72d70e757fa6c6510ed9571d812712c394d",
+        "bytes": 7201,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/application/AppRoot.jsx",
+        "git_status": "??",
+        "sha256": "022e13c66a1276bbe47fabdf57f890254dfabd3ae53f0c48fc2d51beb139cc13",
+        "bytes": 12019,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/application/WorkspaceErrorBoundary.jsx",
+        "git_status": "??",
+        "sha256": "e4a16942e586586ce4567c02256e910b33a43597799e9c030075045da3f10a36",
+        "bytes": 901,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/SquadApp.jsx",
+        "git_status": "??",
+        "sha256": "953996bc42460a98a5edd3ccdda33776e8d88f880e8aac6b1e8c54c1ed73aadb",
+        "bytes": 3301,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/SquadShell.jsx",
+        "git_status": "??",
+        "sha256": "09e7155bbd226191be1431a775fb90dbcf92117ea037f2b4c5184af94427e0c1",
+        "bytes": 8001,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/AccountContacts.jsx",
+        "git_status": "??",
+        "sha256": "c9a2333a2e4c4b16a96fe255734856aead1b31ac6db3a6933606a349f0d23e38",
+        "bytes": 1929,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/ConfiguratorPreview.jsx",
+        "git_status": "??",
+        "sha256": "e81ee37cb377c70b43587c2dfd9dbf663dc2696862c3d9ae11eeea8b121fd877",
+        "bytes": 9063,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/ContactActions.jsx",
+        "git_status": "??",
+        "sha256": "9928beac155931eb1157f0fdb163c924e1a67088299dba4f410fc52fb925cf5d",
+        "bytes": 1317,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/ImageCropDialog.jsx",
+        "git_status": "??",
+        "sha256": "f00365ce3bda107a4e55e48c97c961dd966a4337e9dc8503e5e2e32cd1fc4d9c",
+        "bytes": 5698,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/Media.jsx",
+        "git_status": "??",
+        "sha256": "4dd8099ca88f1957e6b19d372ef396c63ec8a3d9b80198a2398ac71c229c7e20",
+        "bytes": 15919,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/SquadDialogContent.jsx",
+        "git_status": "??",
+        "sha256": "4dec2f7b7960d21100ae6f14829d8c8c49a0fdeb8490e79dbc193a1ae610fd8d",
+        "bytes": 897,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/capturePreview.js",
+        "git_status": "??",
+        "sha256": "ac6f81a1a9aa52a39fb1ddff87ef5df23cbc8c21767d9089d61428ac3ada2450",
+        "bytes": 2876,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/configuratorPreviewModel.js",
+        "git_status": "??",
+        "sha256": "57994c93e1032d80f9ad7ffd20018ad44333d95fd4090134b671ae63f6b555bc",
+        "bytes": 6152,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/configuratorPreviewModel.test.mjs",
+        "git_status": "??",
+        "sha256": "35e6b7dec0de901768b2e29b92257b73c9c49905014852ccf19a4cd580db9142",
+        "bytes": 1329,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/contactModel.js",
+        "git_status": "??",
+        "sha256": "870635e92fc079e9761c9a8c97105d13327b202bb5006c0092f80fe4195f6ddd",
+        "bytes": 993,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/dashboardPeriod.js",
+        "git_status": "??",
+        "sha256": "f411cd9e386addaa7edf23876e61575ecbfbb77f34e87a396a2e11f62b2c4181",
+        "bytes": 812,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/dashboardPeriod.test.mjs",
+        "git_status": "??",
+        "sha256": "689cabd7f7da00d88d3ff1bfdc7474b74418f993220e738619380d1d95a16357",
+        "bytes": 857,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/imageCropModel.js",
+        "git_status": "??",
+        "sha256": "8fec8db16e0cbbbe957f5772b060a5df69ac5d442a15af942eb86918d4cf52b0",
+        "bytes": 2361,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/index.js",
+        "git_status": "??",
+        "sha256": "2c5239c5af9b80af7af499e35954ea7c18e57f297a3d02a09ee7633f20338026",
+        "bytes": 100,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/index.jsx",
+        "git_status": "??",
+        "sha256": "52c8f5f74e146ef9d5ea49f77b752f0a713f00a8457ade9b2773b224bbc088fd",
+        "bytes": 7066,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/mediaModel.js",
+        "git_status": "??",
+        "sha256": "e797a2d07737841d80071f0a05a2cbe1b923aa7427abf226ec55098f0c0ecf6c",
+        "bytes": 3730,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/components/mediaModel.test.mjs",
+        "git_status": "??",
+        "sha256": "ee3d78fbb2c8555f534d1516486c84299b94516850a2012b5f325e204375053b",
+        "bytes": 3737,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/data/format.js",
+        "git_status": "??",
+        "sha256": "c7f8053f339623d9d010b8cbf743f92db0966bb6124a843f780d34366ddff79e",
+        "bytes": 847,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/data/hooks.js",
+        "git_status": "??",
+        "sha256": "4b8758b96300ff051e2ab78abe469bdc55bacd02800cc1c6cfe129b979ec09b5",
+        "bytes": 3401,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/administration/AdministrationPage.jsx",
+        "git_status": "??",
+        "sha256": "1a504982c3eee38013182038e9369e95eca973f3d1b2c66e2d4c3004ff3890ee",
+        "bytes": 1711,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/administration/IntegrationsPanel.jsx",
+        "git_status": "??",
+        "sha256": "2eb408617fffaaf588dba6cacfe47fc5bff55ccaf4db5b4cf7120e369ae533a5",
+        "bytes": 8027,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/administration/OperationsPanel.jsx",
+        "git_status": "??",
+        "sha256": "f1370c910459667ca2c3cb57d3cbd87274fdc4a4f3bcb5edd79a0bf93c74a894",
+        "bytes": 6087,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/administration/SettingsPanel.jsx",
+        "git_status": "??",
+        "sha256": "ce411b28871050e694a8f71667ebd14d6943afbb7174871b8e131ad6e67b1d7e",
+        "bytes": 7147,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/administration/TransfersPanel.jsx",
+        "git_status": "??",
+        "sha256": "50f987877cbd3d8a56351074007391e21748b026fe755cb59dbf8bb7f34f0ecb",
+        "bytes": 7826,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/AmendmentSelection.jsx",
+        "git_status": "??",
+        "sha256": "f7db7a645262b711a28aa2407d701257aaa8f0b86b3306143262e3f1a0eaa893",
+        "bytes": 4490,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/BrandingEditor.jsx",
+        "git_status": "??",
+        "sha256": "f71723b7169fa080ac5d7c055247ef652ff1c2c7ced199af0dc51af93ac93faf",
+        "bytes": 7083,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/CatalogueFilters.jsx",
+        "git_status": "??",
+        "sha256": "c3e36762a183461ca9d47a7479d1df41522daf4bb75ebe7e955de177279f105c",
+        "bytes": 1925,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/CataloguePage.jsx",
+        "git_status": "??",
+        "sha256": "a130cdb30c0dcfd1f8e84f131eabd920224fbf673ba677cbafcc283d79b25c9f",
+        "bytes": 42761,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/DealerAvailability.jsx",
+        "git_status": "??",
+        "sha256": "7b33062189346ff44f3f0ac455df6402762dae50d621bf03390954b87292fea4",
+        "bytes": 3516,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/PartConfiguration.jsx",
+        "git_status": "??",
+        "sha256": "48d1bbd4a606e80d890653a75c5243caca784510862e5405405aae9146c1b7c0",
+        "bytes": 3412,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/ProductGallery.jsx",
+        "git_status": "??",
+        "sha256": "3815092d63e4052a2be49ece67ed2c2f3efb98e4f942eca861a70d0b5e029f8e",
+        "bytes": 3027,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/ProductReferenceImages.jsx",
+        "git_status": "??",
+        "sha256": "e2e163397c0c47bd401213d897d7a59e75167bb22e7155322111e96185bc9833",
+        "bytes": 5872,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/ProductShareDialog.jsx",
+        "git_status": "??",
+        "sha256": "1df7bbfa2b795ce7983c137b63b38e829f56fb04c219cace78d2fd284ee517ba",
+        "bytes": 5173,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/ProductShareToolbar.jsx",
+        "git_status": "??",
+        "sha256": "afb6ac6b177d85b5bda65f368b43073dc82e650beee061f28f4c0a4ccd4881c8",
+        "bytes": 3424,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/addonSelection.js",
+        "git_status": "??",
+        "sha256": "565318c533e6de7ff4acca8b6c1b9044724c5802319f24a1d9b5417f9aae7c86",
+        "bytes": 2677,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/amendmentModel.js",
+        "git_status": "??",
+        "sha256": "3b46f2a548ce6f090e62ac42f7b1e815b94c90a3635a16ffed18f3c9529fb224",
+        "bytes": 6246,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/catalogueModel.js",
+        "git_status": "??",
+        "sha256": "345f0761f02e586badb1c4294f921df3e701c70b84cd15f7ed3987400a358147",
+        "bytes": 1799,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/catalogue/productShareModel.js",
+        "git_status": "??",
+        "sha256": "cac127736d7a4b0478e64151310182d92ba96ed10146fba2e1cf603cf1bdd592",
+        "bytes": 4558,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/documents/DocumentsPage.jsx",
+        "git_status": "??",
+        "sha256": "1c0115e059bec1a7e62721183f78a6f82cfb8fbaafb29cc874af59907b88b996",
+        "bytes": 24022,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/documents/PdfShareDialog.jsx",
+        "git_status": "??",
+        "sha256": "c5874bdddd620ebaca21e9b9de94174a28f89ba6da3d7f764b1158c2b9dc652d",
+        "bytes": 3546,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/documents/TermsAttachmentField.jsx",
+        "git_status": "??",
+        "sha256": "17dd1e084cf38e5c69a0128ee85025d2d0141bca000f7e3d58c0f1e38d644abe",
+        "bytes": 5501,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/documents/cataloguePreferences.js",
+        "git_status": "??",
+        "sha256": "7b8e644af247b25ed0e5d81e2ff962877a438fa79a412dc6079e1a8ed3645dbc",
+        "bytes": 884,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/documents/pdfShareModel.js",
+        "git_status": "??",
+        "sha256": "286b898419e3b26195b04fb5a035ab43400b2b5e95d50e9afc110ed2d2762487",
+        "bytes": 1906,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/home/HomePage.jsx",
+        "git_status": "??",
+        "sha256": "46c84a4306dc30664fdac6afa4b25aaea50f82c0f45a33fd51a6e86fe53f8517",
+        "bytes": 7382,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/jobWork/JobWorkPage.jsx",
+        "git_status": "??",
+        "sha256": "21318344068697fc6d8a991b87e30931da728fe5fd2bc95088fe5550c37937f9",
+        "bytes": 10967,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/jobWork/WorkerCommitmentHistory.jsx",
+        "git_status": "??",
+        "sha256": "1d0bc8e12fd4bc7c705ef402043b8a157b4cfc1aa194ab749beabfcf632ee224",
+        "bytes": 2181,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/jobWork/jobWorkFilters.js",
+        "git_status": "??",
+        "sha256": "680eabe95cc8cb497d64da1da11a0da7b01ebb3968b2759e7ef25cd32d1d00f7",
+        "bytes": 603,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/notifications/NotificationsPage.jsx",
+        "git_status": "??",
+        "sha256": "508b9d281e3fd69b4f8ecf02f8d813969fb07bef4961202e8812205704664bf1",
+        "bytes": 2279,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/CommerceUI.jsx",
+        "git_status": "??",
+        "sha256": "ae994106062c9346d930529964ae3d6bc69baa26c97e3ac876a4bbfaac18fbc2",
+        "bytes": 4572,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/OrderFilters.jsx",
+        "git_status": "??",
+        "sha256": "f42ec506212c1b68c65a92abf967ca971140317833c157f649186b3ec29f39bf",
+        "bytes": 2607,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/OrdersPage.jsx",
+        "git_status": "??",
+        "sha256": "c157345011e868cbe1c9031f8d456d8b86012319060c5c5b17b3a6190628e9a8",
+        "bytes": 17882,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/PaymentInstructions.jsx",
+        "git_status": "??",
+        "sha256": "0334dd247b61ae3c3bc5275ede15bea979ad8d48a0ac9dbb273022a32f6df0d9",
+        "bytes": 4001,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/RatingCommentInput.jsx",
+        "git_status": "??",
+        "sha256": "3568d0ef7396244fcfedb5e6e4f90039825448463b444021e42222e641906a59",
+        "bytes": 1078,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/RatingsPanel.jsx",
+        "git_status": "??",
+        "sha256": "c2cb602318c63315afe93df947d3e2bad27e2589de5027adf9018d6f419a1833",
+        "bytes": 5403,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/legacy-payment-qr.jpg",
+        "git_status": "??",
+        "sha256": "1c9af5677f0696fc1cd53e1d347b66632202284640d5f366304dfb8249b2470e",
+        "bytes": 93188,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/orderContext.js",
+        "git_status": "??",
+        "sha256": "1334a40826097f51d6a1cc6aed241e649ad34ede292e62a6e1e232a534a03610",
+        "bytes": 858,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/orderModel.js",
+        "git_status": "??",
+        "sha256": "112a511dc5b3bb1b63209595458224b7c75c1be756d024431d8b07397317c237",
+        "bytes": 2203,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/orders/ratingComments.js",
+        "git_status": "??",
+        "sha256": "7be834a8704d37e62952872ef0ae296f5fbaf4a0955dfc45011957a258e46674",
+        "bytes": 577,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/AccountClosure.jsx",
+        "git_status": "??",
+        "sha256": "df2a8bcaf9f0f2c6868ed71aa9936a706a1d3a9a15244fd0b75ca142e6868cfb",
+        "bytes": 4640,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/AddressBook.jsx",
+        "git_status": "??",
+        "sha256": "7c362a804370ca970a9230055412054c4f40ea2e9ad5898aa0dc9fb933514662",
+        "bytes": 4804,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/CanonicalLocationFields.jsx",
+        "git_status": "??",
+        "sha256": "269798d268ce82962e9ee8e49ee17c1a1f4cabaf49009d2ea45acb5a64b46e6c",
+        "bytes": 2644,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/CoordinatorRequests.jsx",
+        "git_status": "??",
+        "sha256": "7752b7a2a15c82775b74c1d0bfb7f0b65f2ca085d90d499ef6473dc08d1e69c2",
+        "bytes": 3809,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/DealerPreferences.jsx",
+        "git_status": "??",
+        "sha256": "75cfe1fa546de686e2cd83546f13e85e819ca57135c96dd861990bb752e079b1",
+        "bytes": 1768,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/PeopleFilters.jsx",
+        "git_status": "??",
+        "sha256": "f88709c0251fd2d9ed438f93eeb856a0c4698aa2b21b2210a1b5ea4837183dce",
+        "bytes": 2633,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/PeoplePage.jsx",
+        "git_status": "??",
+        "sha256": "9d4b1a078a46e651fe2ef5e2f4e6e58ad21c9ebb9c9ab5182aab1d844149b181",
+        "bytes": 23761,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/PeoplePicker.jsx",
+        "git_status": "??",
+        "sha256": "bb5abedbd3c52cd153ba7c88470ecfc6701f3e6853dbab43d229427a621a6e19",
+        "bytes": 2140,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/addressModel.js",
+        "git_status": "??",
+        "sha256": "6d46a9ee94260ecbe4e04c3dbfbb49316ea2adab06022c2b64a050a1f39474f1",
+        "bytes": 903,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/country.json",
+        "git_status": "??",
+        "sha256": "5f67187452315c564ef27a9ecb361c4a2d5e7283d3fd96446cc3e7cef0ff5958",
+        "bytes": 25546,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/peopleModel.js",
+        "git_status": "??",
+        "sha256": "b4ec833d972ae8dbb1f28dedac35b75b7fd16a7431f49a48a9ac3ad926d3ec77",
+        "bytes": 2322,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/people/personValidation.js",
+        "git_status": "??",
+        "sha256": "67b8ac602bc67a08c26a38669ff267b06b190848876d223208bd5a88e25a7d6b",
+        "bytes": 502,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/production/OperationsUI.jsx",
+        "git_status": "??",
+        "sha256": "2d637f8f3e3b248b07de8c888d91a1f7b6c200e57ec235cc7a74c8386b18cfe5",
+        "bytes": 7020,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/production/PersonPicker.jsx",
+        "git_status": "??",
+        "sha256": "10523a83704da34b519ae74fed548ab3daa1ad431ff69c2ab1e88ddee2f8f827",
+        "bytes": 1848,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/production/ProductionPage.jsx",
+        "git_status": "??",
+        "sha256": "433e39d8173ecfb8c01105980cf65b7c5c248d0b9fb31b5516e0879a01de758f",
+        "bytes": 24105,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/production/ProductionProgress.jsx",
+        "git_status": "??",
+        "sha256": "8a7108398c25031cb786514a274bf246d48c3c27f9c86826d0856928fa184f22",
+        "bytes": 1122,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/production/TailorWorkPanel.jsx",
+        "git_status": "??",
+        "sha256": "9c51b7ec0b7a6a085aa6a218e9c0aefb9f0a4da4bc897de6dbb1281e22636812",
+        "bytes": 3601,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/production/WorkHistory.jsx",
+        "git_status": "??",
+        "sha256": "9e9ddc1d6e76b68e251cb0aec4887a1cf4ce43d608396af944f4f9de5608ffcc",
+        "bytes": 1887,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/production/operationsModel.js",
+        "git_status": "??",
+        "sha256": "7b04af0e1870ee41dbcc9cd147f3fd2cbcdeff97697f6becbd952fa23788d07e",
+        "bytes": 2056,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/profile/ProfilePage.jsx",
+        "git_status": "??",
+        "sha256": "fcd831e74a5a5da9844c8f792b8780eb3f199673424e2cf7899a35140c56fd92",
+        "bytes": 4458,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/promotions/PromotionsPage.jsx",
+        "git_status": "??",
+        "sha256": "443a6a972eb130ca8d2e32c47e1c01b4d596fa192a03b82940c8fd56d8e125a2",
+        "bytes": 7765,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/promotions/promotionModel.js",
+        "git_status": "??",
+        "sha256": "1edcb2c45929aac6a1df987b5aef2561f925e0603f45e62947dd9443d20ac048",
+        "bytes": 669,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/promotions/promotionModel.test.mjs",
+        "git_status": "??",
+        "sha256": "c8ba47a8a3daca3c9e36980666c6c6b06af91af6751c4a389dab067c9a3cbb9a",
+        "bytes": 906,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/reports/FactoryScopePicker.jsx",
+        "git_status": "??",
+        "sha256": "986869da0cf80f74e253f92a41eaa435b2fa4daff0cbf8be6d56660475f07063",
+        "bytes": 1498,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/reports/ReportExport.jsx",
+        "git_status": "??",
+        "sha256": "0a4ff05ba0db835eea737805e8ec5c29fe3985c961c48d28105fa747d0cd75d1",
+        "bytes": 4133,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/reports/ReportScopePicker.jsx",
+        "git_status": "??",
+        "sha256": "a9250d623e1ac4546f3132370097ce466f8769f564c4e5bcfdbc3ffb1e4a2856",
+        "bytes": 1906,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/reports/ReportsPage.jsx",
+        "git_status": "??",
+        "sha256": "8cad07e30be66edbcc5ba79cf8c40916fe25064d9ea3c88113368fe0dfabd53d",
+        "bytes": 25645,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/reports/reportModel.js",
+        "git_status": "??",
+        "sha256": "92d1ff844b4dbcea8506b1ccee9de3b0828a7ed9c563be06b4b379c5b9fd734e",
+        "bytes": 3608,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/reports/salesExport.js",
+        "git_status": "??",
+        "sha256": "4e3e1eb4ba205799f988ef1ed0a5e2cd46801667195e9e8eda3575b7a99c15cc",
+        "bytes": 6195,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/stock/BackorderLinks.jsx",
+        "git_status": "??",
+        "sha256": "908757f9d85adb0f3c3914e9039c0dde18ea708ec71d4935ba40c80acbff3952",
+        "bytes": 1761,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/stock/StockPage.jsx",
+        "git_status": "??",
+        "sha256": "ed858591b29640ea68a68059006ded9004dddf53b3fa241141692eea8b5066c1",
+        "bytes": 13932,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/stock/StockReconciliationPanel.jsx",
+        "git_status": "??",
+        "sha256": "fa0d891a93f1520bf6fa49a49b85bacd8384726f27356b454ed9557e86cd3b8c",
+        "bytes": 5817,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/stock/backorderModel.js",
+        "git_status": "??",
+        "sha256": "023337c6bf0ecf200c448abef997170178eb76f85f6f64109d532c12b091ba81",
+        "bytes": 858,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/work/TargetsPage.jsx",
+        "git_status": "??",
+        "sha256": "f66063524e98978bae067e62d73f878cc0b4eddf9dab2cc7841d967b6267c6ec",
+        "bytes": 9222,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/work/WorkPage.jsx",
+        "git_status": "??",
+        "sha256": "6d7ba17e9bec721600ccdc29c8adde6a7b6353fda534e5557683d9d4a6548732",
+        "bytes": 14844,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/work/WorkSelectors.jsx",
+        "git_status": "??",
+        "sha256": "4a4e0555b8a4d7d97465ec6a007aafa3a9398de423d2a17159d26768189c9249",
+        "bytes": 6581,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/features/work/personContext.js",
+        "git_status": "??",
+        "sha256": "bbd86fe8ea21412237c230da9283a960f84083f5e36e18da315fb2e3ac8d8b00",
+        "bytes": 951,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/navigation/registry.js",
+        "git_status": "??",
+        "sha256": "9b00fb7c21ff109c07f15d0a354b60e78ba2aa9763c174d7ffa18538463a49bc",
+        "bytes": 3468,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "apps/admin/src/squad/squad.css",
+        "git_status": "??",
+        "sha256": "bc0b77f0d06043fd47e06390ea626343df3cdbfc0b5cecf8a161a99162a55269",
+        "bytes": 9873,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "packages/shared/squad-signals.test.mjs",
+        "git_status": "??",
+        "sha256": "7bb891db60ba8e544ca5507784f5bf63ad8185d0348a931ee7f32d853c0d2385",
+        "bytes": 4349,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      }
+    ],
+    "backend_source_and_regressions": [
+      {
+        "path": "supabase/functions/_shared/squad-mail.ts",
+        "git_status": " M",
+        "sha256": "b3cb4cf6f0e2e191a9ae4609819ed133744b968128f7ee539321b0db48261951",
+        "bytes": 3849,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-account/handler.ts",
+        "git_status": " M",
+        "sha256": "8f3c4f1ba01439898f304ca9407278cc4ff6faa62e94b769afa0af9a2dc2eaa7",
+        "bytes": 14267,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-account/media-verification.ts",
+        "git_status": " M",
+        "sha256": "1221fac9a061cda33cdfdfc4e88ee992eb9ac4a36f2b27a94c60feb06173b6b3",
+        "bytes": 6724,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-account/uploads.ts",
+        "git_status": " M",
+        "sha256": "ced09d7874995877b4835ebfcc35bd2b0c04a4f4f15903092807c42334e60159",
+        "bytes": 3538,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-account/uploads_test.ts",
+        "git_status": " M",
+        "sha256": "90aab1fa175f683dd09d5a192447316f0a714ad779b4e74f0bed1271402713fe",
+        "bytes": 9022,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-jobs/handler.ts",
+        "git_status": " M",
+        "sha256": "7483121b4dca602ec70b792f4eaa1c1022809a0bef844599e9fd2d0d84bee3b3",
+        "bytes": 16462,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-jobs/index.ts",
+        "git_status": " M",
+        "sha256": "5b8016c659fafe3c042352f91a0d16692d7aaf78c0b2436e2a87b2bc24136c0d",
+        "bytes": 4884,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-jobs/proof-mail_test.ts",
+        "git_status": " M",
+        "sha256": "5c50d6f671e5f1a0aef84bca6b69dd81536ddc23727a4ba0513fed9132b6410f",
+        "bytes": 5033,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-account/document-attachments.ts",
+        "git_status": "??",
+        "sha256": "0f5bf9fda5db9d205b03f4029f7c5eebe77777d6e014f5cfb9a858e636a9c20e",
+        "bytes": 2243,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-account/document-attachments_test.ts",
+        "git_status": "??",
+        "sha256": "e1080fd6a9ad0f0466fb733f830f288df419894f752fb6b63f256f7c92e80961",
+        "bytes": 4479,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-jobs/account-rehearsal.ts",
+        "git_status": "??",
+        "sha256": "577087910df614a881e9a591811e9db6dfbbebdd27a03aa90134a678fb5298a6",
+        "bytes": 2216,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/functions/squad-jobs/account-rehearsal_test.ts",
+        "git_status": "??",
+        "sha256": "06c474eb184bde836c511666447117ca89e01548b07a882140eb320d14a8da60",
+        "bytes": 3977,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108175330_squad_web_session_and_configurator.sql",
+        "git_status": "??",
+        "sha256": "a6aa99dbe52c5796fe785c8d28c922a016370d61bf18d7024ea40336f8eda6f3",
+        "bytes": 7788,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108180809_squad_customer_self_closure.sql",
+        "git_status": "??",
+        "sha256": "bd5c5a5fac8cac9d7d403d70acabb4acd2bb96b1ff0f273a7cb5344cc691ad41",
+        "bytes": 10810,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108181329_squad_order_assignment_filters.sql",
+        "git_status": "??",
+        "sha256": "39b261f0f786588b8a56aa192aa34567746bdff229b1f79f03b4c0f09b9fc5c9",
+        "bytes": 4945,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108181835_squad_commerce_display_context.sql",
+        "git_status": "??",
+        "sha256": "b2df6e807b8d1875c854e748bd6904f48ecfccd2d6bbf1628fd64ec31f0a5885",
+        "bytes": 3198,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108181938_squad_web_detail_reads.sql",
+        "git_status": "??",
+        "sha256": "2b5f0b164654168d1df12810bf62b267db1ba39dbc8c354751fa7b51336fa7bf",
+        "bytes": 1629,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108182150_squad_document_terms_attachments.sql",
+        "git_status": "??",
+        "sha256": "d4fa3bfe0fd6de79358626a569166d6de48fc6649209e642298ae07dea42b64c",
+        "bytes": 14562,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108183714_squad_order_amendment_context.sql",
+        "git_status": "??",
+        "sha256": "ee1dca746e687d9a68bea27a61a9874cc0fd756ebf8cee60ce5e81d8d709a3df",
+        "bytes": 2177,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108184439_squad_scoped_jobsheet_queue.sql",
+        "git_status": "??",
+        "sha256": "002cf523ce314eed4f978aca8e25166946551bae9e790fdc31543becac1cf6aa",
+        "bytes": 3731,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108190645_squad_account_rehearsal.sql",
+        "git_status": "??",
+        "sha256": "80a05f2c96101b00cdfab7466758a5264f034a602f0ae0ae4111950759574438",
+        "bytes": 33409,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108191503_squad_catalogue_terms_rehearsal.sql",
+        "git_status": "??",
+        "sha256": "570aced41e6c76c7a9d5ea691a88a1071942ade157316591110ed48c9b4caf70",
+        "bytes": 7060,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108192922_squad_order_item_point_reads.sql",
+        "git_status": "??",
+        "sha256": "ef5bcf390ef4ea8cca18dc36ab287067b17c00340a44a7f97cbd7b1936b18680",
+        "bytes": 7844,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108192953_squad_work_search_controls.sql",
+        "git_status": "??",
+        "sha256": "bcc855ceb91c84388b31ef14311770bd052e2b47229cefdd8e4aa9df0f1b8167",
+        "bytes": 7925,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108193525_squad_product_image_controls.sql",
+        "git_status": "??",
+        "sha256": "29f27d6d4821e6e1f788635fc3bd3fc280dcd8221bb827223fc4fcd2df5fc5b2",
+        "bytes": 6495,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108194142_squad_sc_customer_account_status.sql",
+        "git_status": "??",
+        "sha256": "3ba0698b152492ecec248534e7d87537e061f3c2d41e433e1b5e6e259f4e4351",
+        "bytes": 1564,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108194210_squad_order_due_sort.sql",
+        "git_status": "??",
+        "sha256": "70af843c3a4d253825d748a5a130a04b1e934ff3e121eb2421c6f45faa29ed50",
+        "bytes": 5590,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108194747_squad_operational_item_views.sql",
+        "git_status": "??",
+        "sha256": "7e842567f889b8ecea21afda64e92d9275b879cb284350bd4b68fa2649bebe10",
+        "bytes": 6251,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108194841_squad_branding_attachment_formats.sql",
+        "git_status": "??",
+        "sha256": "4d3ea1dfcdafd1b0775171a68fb1a77c788491f08066a19f059ae67c141365b2",
+        "bytes": 1140,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108195130_squad_target_controls.sql",
+        "git_status": "??",
+        "sha256": "bf94ef3cd2ea375e2938b70556ae7f884b5fcceed0e4f5fccd6768f6083bf39a",
+        "bytes": 6597,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108195629_squad_person_order_context.sql",
+        "git_status": "??",
+        "sha256": "4b3c28c107b35a7282a127f944bef5847a757ae54f3e7404f352e5eafc8382ba",
+        "bytes": 3581,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108201002_squad_operational_context_reads.sql",
+        "git_status": "??",
+        "sha256": "06e7817b5b384e06c5be1f2b5d26f249a9c4e5264c726cdb521ed61424fa5091",
+        "bytes": 9096,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108201737_squad_completed_order_priority.sql",
+        "git_status": "??",
+        "sha256": "81def146775f568ddede38e2d46cc4a423697a360033b11c8fadb4cc94978ae0",
+        "bytes": 1193,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108202002_squad_worker_order_context.sql",
+        "git_status": "??",
+        "sha256": "8bf5b0e736e587a7dbc2546b35563612d8d1fba8955bb9064856eb180e2cf1e2",
+        "bytes": 1107,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108202021_squad_worker_commitment_guard.sql",
+        "git_status": "??",
+        "sha256": "b78f9e5845d1db46ef0a0f3931a22825fa8739a30dbbfcb95381c81f0527a943",
+        "bytes": 1668,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108202026_squad_backorder_quantity_choices.sql",
+        "git_status": "??",
+        "sha256": "94014792d55ea2fecb9b140255c3413405fb3719754411ddaec48cea65a1beff",
+        "bytes": 7150,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108202457_squad_registration_profile_controls.sql",
+        "git_status": "??",
+        "sha256": "80590748a36665360bd04ba522ce8bd3c922fb1cf73a2d191c89bc17c71ed641",
+        "bytes": 1053,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261108202700_squad_catalogue_parent_options.sql",
+        "git_status": "??",
+        "sha256": "53ed1db07c067b5b42e2c36b21584359c3b46ab850be1939d00d0a2fa2d76477",
+        "bytes": 2037,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "supabase/migrations/20261109024124_squad_weekly_schedule_safe_updates.sql",
+        "git_status": "??",
+        "sha256": "c7dd4d5eb885fe2fd5349edf0271caa55f7c049d2f6457467ac7f5067dad2530",
+        "bytes": 1506,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      }
+    ],
+    "requires_integrator_review": [
+      {
+        "path": "tools/canto-sync/baselines/staging-catalog.json",
+        "git_status": " M",
+        "sha256": "94960383a6f0b4f2a1c5cf5862251b5613f046e420981fd743c2b14742b07f7e",
+        "bytes": 208662,
+        "provenance": "task_scope_classification_not_exclusive_authorship",
+        "review_reason": "generated_refresh_baseline_or_lockfile"
+      },
+      {
+        "path": "tools/canto-sync/baselines/staging-domain-access.json",
+        "git_status": " M",
+        "sha256": "10ac092808a3495fe1a1f989a6739fece803f5baa29dfb84b05a4ea33bbe02e3",
+        "bytes": 454160,
+        "provenance": "task_scope_classification_not_exclusive_authorship",
+        "review_reason": "generated_refresh_baseline_or_lockfile"
+      },
+      {
+        "path": "deno.lock",
+        "git_status": "??",
+        "sha256": "d5dd070c9dd3ae057fdf9282378e0ae01a86ff306e99a8b052ec09b8c2aece2e",
+        "bytes": 308144,
+        "provenance": "task_scope_classification_not_exclusive_authorship",
+        "review_reason": "generated_refresh_baseline_or_lockfile"
+      }
+    ],
+    "owned_task_tools_and_tests": [
+      {
+        "path": "tools/squad/business_fixture_commercial.py",
+        "git_status": " M",
+        "sha256": "315e4dd3e17fcca3d1f545f37a5f66f16673d367d308a7887f750a71ff573b3b",
+        "bytes": 8570,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/business_fixture_commercial_extras.py",
+        "git_status": " M",
+        "sha256": "1e808d9e1a6bbf4065500d255b48bef0de2d0ed2c654299a39037305b606f8d7",
+        "bytes": 2729,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/business_journey_collaboration.mjs",
+        "git_status": " M",
+        "sha256": "91ebc6609a88cc5777ed2c27b7a12d7b965edab8c6a2b7771b0f41d7d334f460",
+        "bytes": 16863,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/business_journey_commercial.mjs",
+        "git_status": " M",
+        "sha256": "ae32e1bdad192fa3e4f4bbba27448336fca211bfc7071865dfef6a1e305ef27b",
+        "bytes": 14651,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/deploy.py",
+        "git_status": " M",
+        "sha256": "aafd5e0c54ff6d842621d65a1441668daf42bc937421de97552651a3266d0858",
+        "bytes": 4672,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/document_output_recovery.py",
+        "git_status": " M",
+        "sha256": "25c5c1e68cc05e5a83ebe54717135b36a8deddcfbdbd3737c2f7b44bfa61ead1",
+        "bytes": 13334,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/release_mirror.py",
+        "git_status": " M",
+        "sha256": "dc3a23151ef3888d035bb512f7bacb38318aa7744d8397b3f63dcf8f688e8ef5",
+        "bytes": 38916,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_accounts.py",
+        "git_status": " M",
+        "sha256": "30b5a748bb857511a80a1581377f1fb20a6991a56aa44de518f0e597e392ed1b",
+        "bytes": 12123,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_business_harness.py",
+        "git_status": " M",
+        "sha256": "3dda0d16ebd5c88de5305f44039e881fec37e79482aa285c038dffc68f7a608c",
+        "bytes": 16309,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_foundation.py",
+        "git_status": " M",
+        "sha256": "5d294619e29389932a0d5387075426afd053580dcd73606893be552b67be18d0",
+        "bytes": 6782,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_hosted_business_journeys.py",
+        "git_status": " M",
+        "sha256": "d9e23107c127a31ccf17ec5f807247f6fa93ea7c53ac875a04ce785e3619a2bb",
+        "bytes": 30412,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_production_allocation.py",
+        "git_status": " M",
+        "sha256": "d5c0fb1b3de0bc9fd4b439d7a0d03df0852154c12cd8d1983bf824c9abe0b7e4",
+        "bytes": 12298,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_sql_existence_guards.py",
+        "git_status": " M",
+        "sha256": "c11337448216db8bcc320147764e03deb63b0cefa8c11822d5c5aa16f6d5badc",
+        "bytes": 2366,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_verify_weekly_mail_inboxes.py",
+        "git_status": " M",
+        "sha256": "c8471c859cebd8290a6c61b6582439c109bf5fd75bf16c5dfa920812a725f657",
+        "bytes": 10115,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_weekly_mail_rehearsal.py",
+        "git_status": " M",
+        "sha256": "ed3030dc81a3bba3c3d4a9263dd0a89b6a86454137f69517d0fc23a901d09da1",
+        "bytes": 15895,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/verify_weekly_mail_inboxes.py",
+        "git_status": " M",
+        "sha256": "a20e4298272b53ef1f719ad1edc6747922b03b9b3b3ff86a9f8bd2735a81cb09",
+        "bytes": 4789,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/benchmark_order_seek.py",
+        "git_status": "??",
+        "sha256": "8d155c70a0e12ca695c5bf5a1d5cd740388336a4fa5ecfe72178a4fef211bc60",
+        "bytes": 2069,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-completed-check.mjs",
+        "git_status": "??",
+        "sha256": "0fee062e02d4a689408d6ddf7428dc2cec981fa8b3ceb32ac2f1649210407307",
+        "bytes": 801,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-completed-check.test.mjs",
+        "git_status": "??",
+        "sha256": "435200893574149afa1aba85b6c82525f43086c3a6ebf67134db0e569d191fa3",
+        "bytes": 1518,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-contract-timings.mjs",
+        "git_status": "??",
+        "sha256": "5f5cb84ea9a32cafa30159d02374274d62808622f042e02443b6a2e819dc9cc3",
+        "bytes": 6111,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-contract-timings.test.mjs",
+        "git_status": "??",
+        "sha256": "a847c9bb9f3eecb3d1f32a6311fc187ae61155977e3f1aefd7a4075142e9cbd9",
+        "bytes": 7519,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-error-diagnostic.mjs",
+        "git_status": "??",
+        "sha256": "916376e27f1fa4c731b258907049f8ffd6b7c9acffd4363a5d7af0d7ac34d443",
+        "bytes": 938,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-error-diagnostic.test.mjs",
+        "git_status": "??",
+        "sha256": "b90d8574c81586092070f45c74f6bd1db87d37f4ae4b144fa92fa412449f8f07",
+        "bytes": 1225,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-lost-response.mjs",
+        "git_status": "??",
+        "sha256": "47aa276139d39a3003a658f989e88b0f18c53ca79c2dce4515548d667d7684e7",
+        "bytes": 2031,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-lost-response.test.mjs",
+        "git_status": "??",
+        "sha256": "110935718a943a5abce16d2f9e4076224ec446de60603b1a3521e7ba1d12b2e5",
+        "bytes": 2364,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-pdf-click.mjs",
+        "git_status": "??",
+        "sha256": "d26a9acfc647b0b095cfe319c6677ab08ed951ad6ebc722acfe10a7af2497748",
+        "bytes": 6601,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-pdf-click.test.mjs",
+        "git_status": "??",
+        "sha256": "ca5af9b7898c36817400010e67399866461f2bcd7f9a045e6af58373af752d5d",
+        "bytes": 3446,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-shutdown-guard.mjs",
+        "git_status": "??",
+        "sha256": "46b163ab7293afed03d7ee6fa3a3513aa01d6ae7ae99915161c61188f5a0dde5",
+        "bytes": 1181,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-shutdown-guard.test.mjs",
+        "git_status": "??",
+        "sha256": "27e1e9a5c2a09e86eb57aa6f2d1020cd2264d4189792a67c14b41834a4b885d4",
+        "bytes": 2056,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-workspace-navigation.mjs",
+        "git_status": "??",
+        "sha256": "92928e91ddbff36a1e6f93d66b8472b127a3d04fa6f735a917dcbe8bbc141a1f",
+        "bytes": 2580,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser-workspace-navigation.test.mjs",
+        "git_status": "??",
+        "sha256": "74b566c564fc4d81748044a8ce9f5f49aaa28dbb1ccc2148c21d68cc0f724eb2",
+        "bytes": 6209,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/browser_entry_manifest.py",
+        "git_status": "??",
+        "sha256": "0fa7a8d14d5951b62063eedee5148ee43962f3861683bdd63be5d28e1675e822",
+        "bytes": 2508,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/business_cleanup_accounts.py",
+        "git_status": "??",
+        "sha256": "d3bbf7c0229b90c6b57f97d90e149b9f690129f0926ffcc75b54da1b607e58db",
+        "bytes": 3776,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/business_nested_milestones.py",
+        "git_status": "??",
+        "sha256": "077f5118da1b8bca923094e0d61ca4abb05f8681d7fd06551f6f8a1405a88596",
+        "bytes": 1307,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/canonical_fixture_location.py",
+        "git_status": "??",
+        "sha256": "828262fcbdc4cc0fe0e23d08266e2fc29efe0941ce4ed40ee8aac9fea15fe1fe",
+        "bytes": 1226,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/guest-diagnostic-contract.json",
+        "git_status": "??",
+        "sha256": "2c13c4844986faf3c4fb1d7efa66339b3f073cebe2eee914231ac056ea8f3fb1",
+        "bytes": 1217,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/guest-failure-diagnostics.mjs",
+        "git_status": "??",
+        "sha256": "ad058116524e2ae8977959f0d3fd575904b08d2bfd8142287b402c2ebf31726b",
+        "bytes": 949,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/guest-failure-diagnostics.test.mjs",
+        "git_status": "??",
+        "sha256": "4ec672234fda4a987c195ba121cfe3b369ee7530b14961a65393b839ef03933f",
+        "bytes": 1572,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/guest_account_fixture.py",
+        "git_status": "??",
+        "sha256": "659248a43abd6caa80c6c8d71ed1da74422e5e8e7a49943ce9a44ffdba76048b",
+        "bytes": 16028,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/guest_failure_diagnostics.py",
+        "git_status": "??",
+        "sha256": "354c34799f19aac1c1faab1a6523653ee44e4b35e2aec8245b136f911bbd15ac",
+        "bytes": 998,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/guest_flow_selection.py",
+        "git_status": "??",
+        "sha256": "40dd079e7dc17b780b32fe1740bb822f906c20cdf5a3e83a23ae36bc9b7c3925",
+        "bytes": 1308,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/me_sql_diagnostic.py",
+        "git_status": "??",
+        "sha256": "a96b8185548147873619b696bd6c5078eea203c347237aee7023f63961e11b05",
+        "bytes": 5336,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/native_safari_handoff.py",
+        "git_status": "??",
+        "sha256": "11aa4d4c55f72bdcf7974f457c8c67156eb3e50feb6c257facbc32bada95dd7a",
+        "bytes": 8242,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/profile_worker_order_rollback.py",
+        "git_status": "??",
+        "sha256": "10ec7a0f57a591af914ee488626462ae6b6b6eb0b93bfc9eca8a1a07c3fa79a2",
+        "bytes": 13312,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/release_web_production.py",
+        "git_status": "??",
+        "sha256": "c41750bbd0d33facf3256bb11ac3dda0bb4d2e570f8c7c8973041d600b53022a",
+        "bytes": 7466,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/release_web_staging.py",
+        "git_status": "??",
+        "sha256": "b579d73cc4ae2c037f232e77beb79f1af0eb5aeccc90342075893e94747da927",
+        "bytes": 3289,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/requirements-test.txt",
+        "git_status": "??",
+        "sha256": "bc28bbdd358f14335ce17cebc18bc6d32501e2fe1a04cbc0dbfc1b00eb454602",
+        "bytes": 71,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_account_rehearsal.py",
+        "git_status": "??",
+        "sha256": "287d9abb1930c5d198588fa341d3779ece0f7fe84672fe87022b8568f931f188",
+        "bytes": 11043,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_account_rehearsal_release.py",
+        "git_status": "??",
+        "sha256": "28959bf6a97e47039bb13798132ce56d092ff3c3b0b98756a81a89aaca55056e",
+        "bytes": 1656,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_branding_attachment_formats.py",
+        "git_status": "??",
+        "sha256": "4699ce00bf566e4c303a53df072da3d35e34868637a3046450a37407b675b61f",
+        "bytes": 2785,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_browser_entry_manifest.py",
+        "git_status": "??",
+        "sha256": "cb2014342bab444859755c3900763248325d1b37dc91d14637a50f03ed5708d6",
+        "bytes": 3291,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_business_nested_milestones.py",
+        "git_status": "??",
+        "sha256": "55c1cecbec69a2405385861ff4d3d2d66f87719ec8ea7e8f0850853ee06b3692",
+        "bytes": 3237,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_business_staff_preservation.py",
+        "git_status": "??",
+        "sha256": "83524540c57458caef2eb1005b2d5b50f496f2b7546cceba0f1cbb7bd3d61972",
+        "bytes": 2382,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_catalogue_terms_rehearsal.py",
+        "git_status": "??",
+        "sha256": "c3f93da1324db49f6db9254a25f83955c97f5ed0f9f68cc07167378b46cecab3",
+        "bytes": 8627,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_commerce_display_context.py",
+        "git_status": "??",
+        "sha256": "7d5a22a8352100e385bb88ecdb2e4297855def744156d55b5abecb5bf72a0cff",
+        "bytes": 3833,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_completed_order_priority.py",
+        "git_status": "??",
+        "sha256": "f789e784a673e2853e1bf7cfeb630640f67ad0952ab018775ece13d2bc3bebf8",
+        "bytes": 4565,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_guest_account_fixture.py",
+        "git_status": "??",
+        "sha256": "6d51da156b78818a77474537762731a70a339c84c92d8ed27a951187eb6765ad",
+        "bytes": 7391,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_guest_failure_diagnostics.py",
+        "git_status": "??",
+        "sha256": "7d40cff0356b0e4f2f0d0c3abc6d2ca4e568f20b0a9670b965d8b66be80ac020",
+        "bytes": 1029,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_guest_flow_selection.py",
+        "git_status": "??",
+        "sha256": "6f8ecc78d2507c8f848467b25bda7d5d71dcc49095ffe3fe620451c1037f6727",
+        "bytes": 2811,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_me_sql_diagnostic.py",
+        "git_status": "??",
+        "sha256": "04d38dd56c7899f631355abb8c9050d61c48414485602e2548623cf6e25f3186",
+        "bytes": 1444,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_native_safari_handoff.py",
+        "git_status": "??",
+        "sha256": "c0c0912574707ede669025444ba49868cbb501c93b13e4cb0ebb65a6b1f32124",
+        "bytes": 5638,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_order_due_sort.py",
+        "git_status": "??",
+        "sha256": "bd2907081f3d76a7937e8643568612acdb5196216110508951053665cfe73077",
+        "bytes": 4876,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_person_order_context.py",
+        "git_status": "??",
+        "sha256": "05853c9a0efea7b0998ac19d8e7791b57fba06c29886b45895549765a68e5a92",
+        "bytes": 6276,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_product_image_controls.py",
+        "git_status": "??",
+        "sha256": "0ee13d03a75786283108c8a211cebdd7f53a9560e2ebdc0744a611eee6106801",
+        "bytes": 6857,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_product_images_sdk.mjs",
+        "git_status": "??",
+        "sha256": "e90979bf31db875c3424c8bf04ea00f1d3cffd311373fe528cd34b129d99045a",
+        "bytes": 954,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_registration_profile_controls.py",
+        "git_status": "??",
+        "sha256": "7a44bd9abee950aee9c854673eafa0bfaf986d997cc22fd896bdc1fb23d67f8a",
+        "bytes": 2399,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_release_web_production.py",
+        "git_status": "??",
+        "sha256": "02aa56a8001b556084aabb2ae5441d8afc3bfd2beef131df68c786e0006ed37b",
+        "bytes": 10869,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_sc_customer_status.py",
+        "git_status": "??",
+        "sha256": "7817da8f9861ad84ccf2b8778d9139e010cfaf3ddc2bd28ad030da21e09b59b9",
+        "bytes": 4161,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_schedule_safe_updates.py",
+        "git_status": "??",
+        "sha256": "ffcd27f0063e6787850947297917261aabafe3e1f38c875d24771cf7d2796dc6",
+        "bytes": 7297,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_self_closure.py",
+        "git_status": "??",
+        "sha256": "ee9e2031e7b5c2383149e8a0b5b8cd79565617dfe9fa8bfe3a7624162513891a",
+        "bytes": 14284,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_target_controls.py",
+        "git_status": "??",
+        "sha256": "5614e967a437dc341c31ba32033ba53632c9a3cffad2a2ae59d965a15e8b9e50",
+        "bytes": 4305,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_target_controls_sdk.mjs",
+        "git_status": "??",
+        "sha256": "c1246066373326ffd948ebbfda7bae42e2b69e4596ecf12b2b9014cebd5834c0",
+        "bytes": 965,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_tracker_channel_cleanup.py",
+        "git_status": "??",
+        "sha256": "0c7f75163ad56bf464f5ff02da4af27ab88d0b6b31e95ff60b1380fca65ffced",
+        "bytes": 5550,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_tracker_colors_fixture.py",
+        "git_status": "??",
+        "sha256": "7ba2f56bf717e0c7a750bf42f41b056b24d066a7edf9385e83fa27ddb7631ce4",
+        "bytes": 5953,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_tracker_colors_wrapper.py",
+        "git_status": "??",
+        "sha256": "268794e3697797171e0646c4cfefe938e424fc8660d63c60edfdb98f4909f8bf",
+        "bytes": 5236,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_tracker_read_fixture.py",
+        "git_status": "??",
+        "sha256": "ae3d37ea2a00f2c1fe5e793efd89f44c4c6fa6d5b350b1dd9c1e2d6c1b0594b3",
+        "bytes": 6724,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_tracker_read_wrapper.py",
+        "git_status": "??",
+        "sha256": "e407d7bdae9d74862bc9915c8580d5383b03cc348b83eb554bcd3a6a6e87ce60",
+        "bytes": 9719,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_account_cleanup.py",
+        "git_status": "??",
+        "sha256": "0c67e181df45a1df6c30dc9be9c3eb47ec5e693d8cc4cd25044fba7eebe68466",
+        "bytes": 3586,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_amendment_context.py",
+        "git_status": "??",
+        "sha256": "269e4fc2ebc6790d8fff1d06a09137cf16b8d31e934435cf4c0742f66aaed8a3",
+        "bytes": 2521,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_business_hosted.py",
+        "git_status": "??",
+        "sha256": "f23a2d00895eded6e4256bc0a99ab2d0df916d77f1bafc55bd59180916ac1d17",
+        "bytes": 442,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_capabilities_cleanup.py",
+        "git_status": "??",
+        "sha256": "5cce9ae6cf43e13920842d6224ddfe34dd1e6b6fbd79f3f4d6656cf233b2ac79",
+        "bytes": 4897,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_catalogue_media_harness.py",
+        "git_status": "??",
+        "sha256": "b4a228a6c63e20c35c52093c57bbee0aacb77915456a737549909f53c46702e8",
+        "bytes": 9672,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_catalogue_media_hosted.py",
+        "git_status": "??",
+        "sha256": "ec6428f98eff024d905b4eaeb761c832d52354c7d1482098c17a194573a0e042",
+        "bytes": 9107,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_catalogue_media_recovery.py",
+        "git_status": "??",
+        "sha256": "7f41d4e3fdd575de9705b1e48785483d7d2b63630d216993a779690acb37059a",
+        "bytes": 16095,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_catalogue_terms_harness.py",
+        "git_status": "??",
+        "sha256": "f8cb278255565dd593ea2998e553fc4d1662920682b66cbeb5b834b43f8d5013",
+        "bytes": 3201,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_catalogue_terms_hosted.py",
+        "git_status": "??",
+        "sha256": "fd703cce507135801245c2fb27033403b15e53296a3e8387d270c9ff1bbd9ef6",
+        "bytes": 8322,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_catalogue_terms_pdf.py",
+        "git_status": "??",
+        "sha256": "d309559a3c14655b3daf491c0caa925994a6b96b355d90c263ea75c7ec859142",
+        "bytes": 3305,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_catalogue_terms_recovery.py",
+        "git_status": "??",
+        "sha256": "47b223dd3301e911b6964aabdcdefe560bb43b2f79194c8c28d0d478347dc114",
+        "bytes": 12038,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_combined_read_diagnostic_harness.py",
+        "git_status": "??",
+        "sha256": "9455ac26c8d96b1ddd715b9264359c4e3ba90ae1dd728f4409578530a01cca98",
+        "bytes": 3235,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_combined_read_diagnostic_hosted.py",
+        "git_status": "??",
+        "sha256": "97313e1b7d9270fc4f2ff189ffdfa846077716b8680034e8afb406edb8f54583",
+        "bytes": 8653,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_contracts.py",
+        "git_status": "??",
+        "sha256": "a5201a05744dba3ed28175a7a253711ad7191a10f63aeef5cb4ef8a053141c58",
+        "bytes": 9133,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_cross_browser_harness.py",
+        "git_status": "??",
+        "sha256": "652ac6257b0f4181572d0362b752355e29d41c0956b6e76dc6dab88d507c5f41",
+        "bytes": 17983,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_cross_browser_hosted.py",
+        "git_status": "??",
+        "sha256": "6e4e64946e73ac67d4defffd510c42a4a2c3fc817fdcd464216f73bc1fa8218a",
+        "bytes": 12186,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_dealer_commercial_scope.py",
+        "git_status": "??",
+        "sha256": "4bbf9f57d7c2761d10056533e5036f5558c3c9ecdb138b59663cd40ebf5ae4bf",
+        "bytes": 2103,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_document_output_harness.py",
+        "git_status": "??",
+        "sha256": "3065077c20a52636acd77c249e01980590d2a5fedf01ddd27e65c5fc20f1338f",
+        "bytes": 3978,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_document_outputs_hosted.py",
+        "git_status": "??",
+        "sha256": "df3e3a51a8dd91fcf9c9b6536c58e6820784d9cfa38e8a8f0a07f3dd1cc9cca8",
+        "bytes": 11780,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_factory_people_cleanup.py",
+        "git_status": "??",
+        "sha256": "4cb1e2f5b08f66a0977ef850f1de824844a724c10e37586876ae3fb50de71ac5",
+        "bytes": 2811,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_feedback_cleanup.py",
+        "git_status": "??",
+        "sha256": "389bc8ec780f2dd3a37d0ea353826e668f100ef8daf89d95628cd8425425b177",
+        "bytes": 3704,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_guest_hosted.py",
+        "git_status": "??",
+        "sha256": "3dc789dfa31b941273af4d6b11d65b0ad7d0b1c775d0eb8c46e594c8d439b60b",
+        "bytes": 11580,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_me_diagnostic_harness.py",
+        "git_status": "??",
+        "sha256": "fa0acebe9a276e18db0167bafa31d48f2d748ca133b1d37422299e58458cc814",
+        "bytes": 2616,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_me_diagnostic_hosted.py",
+        "git_status": "??",
+        "sha256": "c84004664b35f66465ea3d741cbec1f02eecf39cef9898c8c1f0c2ff359de4a8",
+        "bytes": 6169,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_media_hosted.py",
+        "git_status": "??",
+        "sha256": "6a88e442a1f629b8ba74b6826036ee4691d50ec132d661ebd3940e1f38924d32",
+        "bytes": 489,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_media_recovery.py",
+        "git_status": "??",
+        "sha256": "e852a294cbed2af4f0bd6668dd6fb01127d22178d58cd4cf3c9740a200b8b6cd",
+        "bytes": 10369,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_operations_read_cleanup.py",
+        "git_status": "??",
+        "sha256": "5657f5ba963fa3ce83b344056156773aafc4bd683452c69250a2c2537974887f",
+        "bytes": 3809,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_people_cleanup.py",
+        "git_status": "??",
+        "sha256": "54993a502b0b4bb19987be60ff3f5465b275d6a1b754d049350f0e837c5b8928",
+        "bytes": 6358,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_personas_hosted.py",
+        "git_status": "??",
+        "sha256": "4c64b01b2137903edfe8b9ecf8ede1d50f1b46a2bfdb69e81ec82e48bd00f665",
+        "bytes": 3961,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_relationships_cleanup.py",
+        "git_status": "??",
+        "sha256": "a7f9d1b9248bfc86e2473dcf19dd398f1f663ea93cae601238e2e10fe000d2ad",
+        "bytes": 3413,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_settings_cleanup.py",
+        "git_status": "??",
+        "sha256": "ce978c699ef0f567d3daa07fdf8fc6ff0a0f8d9a86609d29c3425095ea6da6b7",
+        "bytes": 1958,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_stock_fixture.py",
+        "git_status": "??",
+        "sha256": "67733ab4728664c44783011f856149014afaff7804657a469ebda27a5065c810",
+        "bytes": 3350,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_stock_reconciliation_hosted.py",
+        "git_status": "??",
+        "sha256": "ff4da382e7bc2aae308309398aec14ce4a00a660031951c3f6530c8f1aaeddbd",
+        "bytes": 3574,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_tracker_colors_hosted.py",
+        "git_status": "??",
+        "sha256": "c6d599de253d13e53db0531bc2148b1913b087b6d703c71a1b44f5b3e6896d7c",
+        "bytes": 6875,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_tracker_read_hosted.py",
+        "git_status": "??",
+        "sha256": "51dcd3074760f6a74959fe51cea0b0885463343244b323bb7e1ad2b43b5b000a",
+        "bytes": 10863,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_web_workflow_extensions_cleanup.py",
+        "git_status": "??",
+        "sha256": "a17b9c7b74346cb7a03906707896ce9fc82bc710afd0842276140ae79b01fe50",
+        "bytes": 4507,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_work_search_controls.py",
+        "git_status": "??",
+        "sha256": "a23af126b117a9a7515fa6a50cc5264796822de4453fa3bbc93625cdc89af139",
+        "bytes": 4020,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_worker_order_context.py",
+        "git_status": "??",
+        "sha256": "1d0aa9d22e123d82866ab018c469add179bd98ae06e79f3ff82358d1fda45637",
+        "bytes": 2555,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_worker_order_rollback_profile.py",
+        "git_status": "??",
+        "sha256": "a2abcf9f4e95a50eb1b64a5e192eaa3388698c96e19dc673bd5ea20df8e8f10d",
+        "bytes": 3765,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/test_worker_read_sql_diagnostic.py",
+        "git_status": "??",
+        "sha256": "cb0a116db785c87346d90eea275b1feaddd1a67e9885ccb5059b213682f3d278",
+        "bytes": 1635,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/tracker_colors_fixture.py",
+        "git_status": "??",
+        "sha256": "7b412e645d8ec287035dd245afd87e549e9b5c144ffa7a175b6121b05c653d52",
+        "bytes": 9357,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/tracker_read_fixture.py",
+        "git_status": "??",
+        "sha256": "399d11b2324915e0633bcbf60f48069de4e3149833b577577d0759a9be37e20f",
+        "bytes": 13370,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/verify_web_catalogue_terms_pdf.py",
+        "git_status": "??",
+        "sha256": "ea708c685b186213f1023db30776c4744662efbb89297618684408d35397d385",
+        "bytes": 2260,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/verify_web_document_output_pdf.py",
+        "git_status": "??",
+        "sha256": "705d6dd83dd0ca84fa3497b4c71e39b050d78a327d6cebc10d3654fa86fd45cc",
+        "bytes": 3333,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-account-entry-adapter.mjs",
+        "git_status": "??",
+        "sha256": "71ab84c66590f53e3af8f4a8c4149c12d207eb1d5bd1d5b433c61264376ef1f7",
+        "bytes": 7129,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-account-entry-browser.mjs",
+        "git_status": "??",
+        "sha256": "f32f1420e2d633ff8252aa44ee7a363afd598caf98da1ffa81ae4dfca33ffa4e",
+        "bytes": 4340,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-account-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "a98640d461fab85163553d8a2c221ffbb793dab5117a843f9213e373586e04b3",
+        "bytes": 3046,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-addon-selection.test.mjs",
+        "git_status": "??",
+        "sha256": "b7f1e08fd0bdacf2b1574c48018db862df9874e7e006193f42d40a559ca6a5ac",
+        "bytes": 2067,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-administration-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "52f20cf4617177bb1c62910c02500fdc458986aef250ce26b6871829727d7bc6",
+        "bytes": 4233,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-artwork-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "c15f769724e90098ae73ee96e980c35219eadc02db02b73093e4f586e838877b",
+        "bytes": 20925,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-artwork-source-browser.mjs",
+        "git_status": "??",
+        "sha256": "157888b9f388ab4ff8cdaa6d442428f575f4715291022f91b560c24a4bff850a",
+        "bytes": 3696,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-backorder-quantities.test.py",
+        "git_status": "??",
+        "sha256": "e369092aee1ecc6e1bb0e74d82226bbc8782bbef7fcc211acb46b0627929b36c",
+        "bytes": 5889,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-branding-editor-browser.mjs",
+        "git_status": "??",
+        "sha256": "568c5437e783c30eeb546d63f7a9a58ab82e5c92cebd8c7f568553a521e4c888",
+        "bytes": 5702,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-business-hosted.mjs",
+        "git_status": "??",
+        "sha256": "0a028f30bbe3d802dc33f87e556778c2d29087f90cba56c554953968d3d3ba4d",
+        "bytes": 10884,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-capabilities-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "7aee9ffd10505aaa363185bccb7c91de9aa62f5e3e7a6295c67dae479f9dcce7",
+        "bytes": 3569,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-capabilities-local-bridge.mjs",
+        "git_status": "??",
+        "sha256": "ec12dfea3ef86b7ac6cefdf83d219652fef8f9a350bbb1c91840e8ec92594ebe",
+        "bytes": 2031,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-context-browser.mjs",
+        "git_status": "??",
+        "sha256": "97303be13e61fee63627a47b94b58107bf6c31772006c8cf52ce94c9421c39e6",
+        "bytes": 4656,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-media-capability-check.mjs",
+        "git_status": "??",
+        "sha256": "c22634fd2d86e3fa2579484a88c2af83fe2520759b22c3386ac757489657a90e",
+        "bytes": 2566,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-media-capability.mjs",
+        "git_status": "??",
+        "sha256": "95974ae2b38002def7bbfc6c50cec57819c2d424fe0c61d562fd822c0704e6c0",
+        "bytes": 2776,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-media-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "a70e97b26aa154142320b4a4931c9bba81bc9364370280f8af552331c26b0b3f",
+        "bytes": 12639,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-parent.test.py",
+        "git_status": "??",
+        "sha256": "17aa9545d5be10a1b8617e87c61c8dd6aaaf367bec231774df183b430d947a1d",
+        "bytes": 2770,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-share-browser.mjs",
+        "git_status": "??",
+        "sha256": "b3a538c69049ea51e484ea3a151a68706e461a4350a57adfd4aeac92a56c46b5",
+        "bytes": 5756,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-terms-acceptance-design.md",
+        "git_status": "??",
+        "sha256": "930d324d573fed5ebf15e6a0a527072f97b0505b37fc973972cb5b332905dc26",
+        "bytes": 6755,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-catalogue-terms-hosted.mjs",
+        "git_status": "??",
+        "sha256": "07bcfe9c104e818c27244c6f8fcabccb8f303ed55f8c4e7e616f683cfed3350a",
+        "bytes": 14481,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-collaboration-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "f71d8976e608f9327b6b9c9af1fd226682a2a8054cb021b01de39c4049c19d10",
+        "bytes": 17178,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-combined-read-diagnostic-hosted.mjs",
+        "git_status": "??",
+        "sha256": "03378221a24c650a2967b90f083d42818f32e45639231be79047b8e154d90601",
+        "bytes": 3352,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-amendment.test.mjs",
+        "git_status": "??",
+        "sha256": "200896ec6b1333277e9db3d66689196f5f55de38e8ec8ad547df01fc95402d51",
+        "bytes": 4440,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-browser.mjs",
+        "git_status": "??",
+        "sha256": "4f783b5fdc62b5f087bf0ef3efd98aa0b62ec626c37cb50ada1e8e1b4ead112a",
+        "bytes": 28405,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-closure-browser.mjs",
+        "git_status": "??",
+        "sha256": "b19be1b7482d5fef9fd99c746bb3f2efff05288894582c698b0edddb206f4487",
+        "bytes": 5219,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-controls-ui.mjs",
+        "git_status": "??",
+        "sha256": "d896872daec898eedf4c8296cc993a2e1377f0e62117a5c540cd4e1637625906",
+        "bytes": 2452,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-coverage.md",
+        "git_status": "??",
+        "sha256": "fd535a65fd661819dbc3ecdc6579b7972abeebcc2f80dd5efda095bc13b01f73",
+        "bytes": 15326,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "a50a2f44af75522885c94f7ca343d404f37b85b91271efecc97b20571cce48d9",
+        "bytes": 27091,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-model.test.mjs",
+        "git_status": "??",
+        "sha256": "a1c4418520ff731ff50342bbbe4ad4197e35f3fe2a747a59afb484203bd66af6",
+        "bytes": 5512,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-commerce-source-controls.test.mjs",
+        "git_status": "??",
+        "sha256": "0cd77fd29eb5fc48f457711ddaa0b0811a36a1002695d8b737b2154d98a44628",
+        "bytes": 3899,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-conditional-content-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "4a862379a613008a76e62a0f61fe60ebc4bf734f5a323027eb460c032afe08da",
+        "bytes": 8979,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-configurator-preview-browser.mjs",
+        "git_status": "??",
+        "sha256": "780d67ff432f2904862e8c5c09c6ce9835ac61456e3816a90be292750ac13ea5",
+        "bytes": 6068,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-contact-controls-browser.mjs",
+        "git_status": "??",
+        "sha256": "45962d1bcdf41314a3a9d28bc114afc63ef2a33266cb3cd503b2c4cfd86fd346",
+        "bytes": 3809,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-contact-model.test.mjs",
+        "git_status": "??",
+        "sha256": "de6dc418267f8f5bb750004e8016cf8f0e61d947f3324406a6253a25060aaece",
+        "bytes": 1409,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-content-hosted-contracts.test.mjs",
+        "git_status": "??",
+        "sha256": "d57d6b0ac7a645954fd3fcf313b23b79c70cbe7e98bdbc389e595e174a40e7af",
+        "bytes": 5182,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-content-media-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "3099845f990d4b25ec589be204ef22a96515f039e8bfdf5f5ba539e8529c817c",
+        "bytes": 14514,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-cross-browser-entry.test.mjs",
+        "git_status": "??",
+        "sha256": "87ea76077f92c8a40a982d475b96ee8f2d113183bcbeaac42e10fea3b8b56a5b",
+        "bytes": 1204,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-cross-browser-hosted.mjs",
+        "git_status": "??",
+        "sha256": "362f74bc4d5f181b1644b99c6a3a30f2f90d40788b2250424ddb30a09c6749e0",
+        "bytes": 9772,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-cross-browser-local.mjs",
+        "git_status": "??",
+        "sha256": "49f724b5764d2677a7f2abb336890c665a6c82e176caf40596e93ba18b82836c",
+        "bytes": 5081,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-cross-browser-policy.mjs",
+        "git_status": "??",
+        "sha256": "b3bf66df8ba00bbfc639795f1d3b08740743b3bd423931dc641fe1f1865282e5",
+        "bytes": 2324,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-cross-browser-policy.test.mjs",
+        "git_status": "??",
+        "sha256": "b04ac4e04f12044a7a29b58f2985af76474cd822724d3a1998f2048ca2b6d331",
+        "bytes": 2499,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-current-ui-review.mjs",
+        "git_status": "??",
+        "sha256": "bf5d42fa55ac959a23f82f6a06c62cee1ed07a57e5c6852494a4ba028ea1b989",
+        "bytes": 8403,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-document-binding.test.py",
+        "git_status": "??",
+        "sha256": "e6219bba341f78593763fd5272b2a32dbacfd6e5a855704e0167071407bf633e",
+        "bytes": 3781,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-document-outputs-hosted.mjs",
+        "git_status": "??",
+        "sha256": "ed7f757644158baeb25a64d5cdeacde3a4221c249a32bec8ba51d602e3cb301f",
+        "bytes": 11379,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-document-outputs.test.mjs",
+        "git_status": "??",
+        "sha256": "25bf92e224501378a53f861b83a178388d41e6409e654c5b0c705adffd96081c",
+        "bytes": 2545,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-factory-people-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "4f2b184e8e8f8d45ec223937ff2cdca8ea4b9bf81f55611a39a9f6fdb8b0ad11",
+        "bytes": 6056,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-feedback-forms-browser.mjs",
+        "git_status": "??",
+        "sha256": "d64e49d1bdf195dd385fa2a2d8605e4612aefb4b93ee1a3f7d66385fc77e5983",
+        "bytes": 4889,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-feedback-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "31d20f7f17cd2fd6561856b8c7fb521973a1d7d7d615faa56acc5ad2df17889e",
+        "bytes": 7433,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-guest-hosted.mjs",
+        "git_status": "??",
+        "sha256": "a31436ca0a55f7ce142276dcb40c4576e1435949cd121e19ca9490511e4fd304",
+        "bytes": 7973,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-guest-recovery-local.mjs",
+        "git_status": "??",
+        "sha256": "28037ff5588e50de635649434a79ccfd06ac324e15626bc20014e9b696cecee7",
+        "bytes": 4577,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-image-crop-browser.mjs",
+        "git_status": "??",
+        "sha256": "d7a37555ed4837eb1fc0ae6a0ec846c872cfabde0467ea1be276e882c7f7fffc",
+        "bytes": 4722,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-job-work-filters.test.mjs",
+        "git_status": "??",
+        "sha256": "3efea50a03f29a63caa3242b730aec4d645c07f266d62df48a66a1e81df83020",
+        "bytes": 773,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-me-diagnostic-hosted.mjs",
+        "git_status": "??",
+        "sha256": "d48983b61c2d04325b957161b4c68a67cf1e23aacf235aa8fee5daecd3a88fa5",
+        "bytes": 2630,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-me-diagnostic.mjs",
+        "git_status": "??",
+        "sha256": "793f4369cc5a738072cba1f571132f67d08ad6cf569dbeb6f6bc6187132190e5",
+        "bytes": 2984,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-me-diagnostic.test.mjs",
+        "git_status": "??",
+        "sha256": "28d11311c95ee671c31635d1e916aec3c0ce503e1eef15b2dba495649698b26d",
+        "bytes": 2607,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-media-browser.mjs",
+        "git_status": "??",
+        "sha256": "cc96b0792029c786ff0456f46732a2fe3a370748364c3d7e618dec440a120a1f",
+        "bytes": 4482,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-media-hosted-adapter.mjs",
+        "git_status": "??",
+        "sha256": "d6e499a7a8eef409e8c6215f4090d1696ad9fa86b0d462132b6c060af9f9e023",
+        "bytes": 10056,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-media-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "6bbd294e75d462291b86963fa1f193311d2f77cb0fcf3a30c19ab3cc96f27e2b",
+        "bytes": 76,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-native-safari-handoff-local.mjs",
+        "git_status": "??",
+        "sha256": "cfdb4954563f387ac4d3313865a94b05447d307ed910094f15074075f682943d",
+        "bytes": 3115,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-navigation-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "2764ed844cbd109dec8911ad83351f3b7f7f218fbf8b053f8284a89837897e44",
+        "bytes": 15077,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operation-invalidation-browser.mjs",
+        "git_status": "??",
+        "sha256": "8c5f5eed2dcd50ad2b1c37f2971b30e836a174e2c1d19519f1d9d2048948a891",
+        "bytes": 9657,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-assignment.test.py",
+        "git_status": "??",
+        "sha256": "465decbe771865df284bed67daef74e59962e3646630a1b6465c1bff85e6bac9",
+        "bytes": 2241,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-attachments.test.py",
+        "git_status": "??",
+        "sha256": "358b59fea1200c6180c20c0de1557bf7af497280b107a9743494d649a0038add",
+        "bytes": 6693,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-browser.mjs",
+        "git_status": "??",
+        "sha256": "f8db2d9c0401386e8e73a076b7303ed2ac8dcab13baf15ed6470ecb003f86bc0",
+        "bytes": 25071,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-context.test.py",
+        "git_status": "??",
+        "sha256": "811a14b89e2a4ae8f6812bd620ce3684afce1b134a1ecbc3f40015940d731084",
+        "bytes": 8101,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-controls.test.mjs",
+        "git_status": "??",
+        "sha256": "da54dd27097b61d224bdda1fbefb45ec0aa13597197858faa6a54e64ec9d6ec3",
+        "bytes": 2470,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-coverage.md",
+        "git_status": "??",
+        "sha256": "edc0f43c737bc4b9e88a34ad8824d56d3d68a09d304dbcbab01c8f46e3148e1d",
+        "bytes": 13675,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-detail-performance.md",
+        "git_status": "??",
+        "sha256": "0a3e9da6684508fe829a8ed09053033e00e34ade4183eb3e1560b1dd738eaba3",
+        "bytes": 2524,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-detail.test.py",
+        "git_status": "??",
+        "sha256": "bffd24c941449c66ac81db24c00d71724763cb9118119efca2308be8767cda93",
+        "bytes": 5852,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-export.test.mjs",
+        "git_status": "??",
+        "sha256": "8e1b0a45a6bbf4edb582caffdfc1ea6d20f08cae33742346382221af06bf09d4",
+        "bytes": 3003,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "07a5b59c35e149b0cb7f3d16264b743432c47ff2d06f2a454261a10f5ce0fadc",
+        "bytes": 18325,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-items-sdk.test.mjs",
+        "git_status": "??",
+        "sha256": "e8fcc0ac6f69c8f4fc1e38e1301282cb92128c5dc45f50f93332e588aee65eef",
+        "bytes": 1001,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-items.test.py",
+        "git_status": "??",
+        "sha256": "f4d3ba6a0cc7a3ca6ad4d32c0cfb3c716ee6cf3f93827f8b8ba4fe54ec5c21ce",
+        "bytes": 7786,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-model.test.mjs",
+        "git_status": "??",
+        "sha256": "66f11706aab7a5e44bbb731e4ca19450525f135b1429dbd797cb780143bc454b",
+        "bytes": 4679,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-queue.test.py",
+        "git_status": "??",
+        "sha256": "624902d7fe4c524757707c470dd829315fd51ca727d8e4309f402356a21f274b",
+        "bytes": 6397,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-read-browser.mjs",
+        "git_status": "??",
+        "sha256": "b3e4d878283056c22dc2e9a46fb88cb6874da676a1c951d2f927dd65a08241b1",
+        "bytes": 7699,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-read-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "643eda9d9d9c1fb477c3258bc1899cf133b18637a8eec14bbdd1cfc0f021c525",
+        "bytes": 7101,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-operations-ui-review.mjs",
+        "git_status": "??",
+        "sha256": "6045dc52ed726655d81d291f77b92f74bb6357045511be86350f297dbc29372e",
+        "bytes": 4182,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-part-selection-browser.mjs",
+        "git_status": "??",
+        "sha256": "ac290d0c11356aa3a2c336e9b875c80342e9da90a99dbd58231641ee3731773c",
+        "bytes": 4810,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-pdf-share.test.mjs",
+        "git_status": "??",
+        "sha256": "ea20b056f4c362d0a927a9db246371ebbd6e4c149b1022a663b30e5a0091f4a7",
+        "bytes": 2319,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-people-forms-browser.mjs",
+        "git_status": "??",
+        "sha256": "037811110e1ae121cc3b3ff8f394cc266a4219335cf1d8be99d6fac0fdf73548",
+        "bytes": 8952,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-people-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "613fcea7650092201e37541bcc1984535f3d1161816c88f98251b877e29a357c",
+        "bytes": 9610,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-persona-browser.mjs",
+        "git_status": "??",
+        "sha256": "ef8d6356017e4fc96b5eb82071f273513772809513022a385e63745edbe2d810",
+        "bytes": 7370,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-preview-capture-browser.mjs",
+        "git_status": "??",
+        "sha256": "69eeb99fce93ec70af1ad99b8ddfa2c9c53284c057bfa93efd802cbd04d0e846",
+        "bytes": 3187,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-product-gallery-browser.mjs",
+        "git_status": "??",
+        "sha256": "2be4a9b6ba8a77cdb9885ebd0028ebacba1c8aec077e574e61362141243dd031",
+        "bytes": 4672,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-product-share-browser.mjs",
+        "git_status": "??",
+        "sha256": "ee8b8ba7c3a907325e59a964fb6974a31274f8aafc6ddf8c6390a0e615e1e439",
+        "bytes": 6157,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-production-lab.mjs",
+        "git_status": "??",
+        "sha256": "f0cab1fd410a5582c2aee4e970e711d9deeb8a0c7acf4c8830d0112b7f65aff3",
+        "bytes": 7559,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-query-lifecycle-browser.mjs",
+        "git_status": "??",
+        "sha256": "280a97af923533ff22f39f0e6df5e2bdbca6c8351d6f12cc7607f5b02ed5994f",
+        "bytes": 5403,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-read-performance-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "43d1726b4eee80207cbf1f53cb37024cc70f6e90fdb829ab72a68f0199f5d228",
+        "bytes": 6312,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-read-performance.test.mjs",
+        "git_status": "??",
+        "sha256": "ac48ac77c59f6d6f4ed108e8898e494c1bb2ce2e7e5b04ed227753f6bcea44f1",
+        "bytes": 2182,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-reference-images-browser.mjs",
+        "git_status": "??",
+        "sha256": "e437687be4a7f6f9602301408a19aee50c70e53d16104c326da49b47cd04ef43",
+        "bytes": 8216,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-registration-controls-browser.mjs",
+        "git_status": "??",
+        "sha256": "e4678e1e4194027336023157106574fedaf32f6ceb31c52a937cae1508edce76",
+        "bytes": 3548,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-relationships-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "ba41b0b43f15c79d6e7e3b7eab95fcf68c12fcfbc5f36167f6c2d2d82049f71a",
+        "bytes": 7174,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-remaining-waiters.test.mjs",
+        "git_status": "??",
+        "sha256": "77356bb7060ea143cb358bcde0189549351d77799fb007b92718d8c8838273cb",
+        "bytes": 1606,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-report-period.test.mjs",
+        "git_status": "??",
+        "sha256": "497cf2085c345f2e7533694b4b850afc774487c056140ce1741843d00a5b6ade",
+        "bytes": 831,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-reporting-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "05c92012d2a6271277a1ae63f2a880038972651e304535699855834ee9441ad5",
+        "bytes": 12643,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-reporting-hosted-journey.test.mjs",
+        "git_status": "??",
+        "sha256": "361d0537e82e5f4e883361f88ab097541698db9d9ca92efec6e76904e29fbc98",
+        "bytes": 2098,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-reporting-waiter.test.mjs",
+        "git_status": "??",
+        "sha256": "aa023e4c8d9cc02047042d738f15578397159232f35bcf3dd91496f6e2a619cd",
+        "bytes": 1053,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-schedule-error-browser.mjs",
+        "git_status": "??",
+        "sha256": "89c29560630f6affb21c170100f4359d6c72f9953e34ff9bea855f3de51cd188",
+        "bytes": 7054,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-session-coalescing-browser.mjs",
+        "git_status": "??",
+        "sha256": "19475797445b03f2adc3510ea68d94060c95cdc5368c962a27335bc56330ff04",
+        "bytes": 12640,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-session-query-probe.mjs",
+        "git_status": "??",
+        "sha256": "cf9e68e42455674a36e3fc6bd551acde28f2408740f1f68c3577897c15352a4a",
+        "bytes": 5220,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-stock-reconciliation-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "678280decf2ff288e746545a1064dcb9bd2c4fb6ab04c077377115cfc02b1ba3",
+        "bytes": 4095,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-target-controls-browser.mjs",
+        "git_status": "??",
+        "sha256": "801d3d4ebe1c8bf48a607aaa6cd5f78461b7952890601f36a13fccb8384ea408",
+        "bytes": 7511,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-build-smoke.mjs",
+        "git_status": "??",
+        "sha256": "0ab7fde3f9441d74305632bea9c4e900a75c2f1e940c8bcf41269f6aaa00956d",
+        "bytes": 9479,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-colors-browser.mjs",
+        "git_status": "??",
+        "sha256": "617bd9c082a5980d441ec77fef0d90da20ca51ce0ab428aa3587fc684026d36f",
+        "bytes": 5772,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-colors-hosted.mjs",
+        "git_status": "??",
+        "sha256": "1554499d23b3936d68a9592864fb24a1175a4f9fb092dada285cd8035a52571d",
+        "bytes": 10503,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-colors-policy.mjs",
+        "git_status": "??",
+        "sha256": "612103e93f85f0dd3a2206bc89a2fd12b482fe7daea2401fb6c57385fbda1be0",
+        "bytes": 2326,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-colors-policy.test.mjs",
+        "git_status": "??",
+        "sha256": "d1761a2dcc209bfa8efecd259a84fc340938055af691e9d85dcb9e08f1b11dc9",
+        "bytes": 2732,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-entry-browser.mjs",
+        "git_status": "??",
+        "sha256": "eb3ceaccfbb2cdd7ef5322318205a0102088b6e70bc817da1f4877e014a156c6",
+        "bytes": 4814,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-read-hosted.mjs",
+        "git_status": "??",
+        "sha256": "e11126779ee4ac0cbb8f065486e40bc9dcff267a181497fd6d241cc76d6e729b",
+        "bytes": 14444,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-read-hosted.test.mjs",
+        "git_status": "??",
+        "sha256": "7e0a7ff124a545efd4bd738678f2b71937b5cfddbe9db1a561740c76eb89d99c",
+        "bytes": 2064,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-read-policy.mjs",
+        "git_status": "??",
+        "sha256": "bbe4f61560b76c8ad0cbf98ca728a3668aa5b3ccdb6978e1703f3e7a012c8c91",
+        "bytes": 5226,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-read-policy.test.mjs",
+        "git_status": "??",
+        "sha256": "d28d42978359fbd719df957302a77b17ecbc21afe34644d861928a9ab08aa907",
+        "bytes": 5511,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-tracker-startup-preflight.mjs",
+        "git_status": "??",
+        "sha256": "2bceb1dc34729b9c128eccdec0a6075109ab59adaedcd08e9852c0bcd9a64f51",
+        "bytes": 2046,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-work-controls-browser.mjs",
+        "git_status": "??",
+        "sha256": "0ad3885d42f912f1e8acc6608d37ce925807f258145412457727f291786b8f72",
+        "bytes": 7852,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-work-person-context-browser.mjs",
+        "git_status": "??",
+        "sha256": "f3b2fef978d183d605ba00d8a838f2509195f490b105bdd42a5962fc25e869f2",
+        "bytes": 7706,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-worker-due.test.py",
+        "git_status": "??",
+        "sha256": "bc25a45f595817af4429e4e5583c5ad8979fb6f743cb90ced745eb0f1d297653",
+        "bytes": 3054,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-worker-read-diagnostic.mjs",
+        "git_status": "??",
+        "sha256": "a584bd31e47957c9b8dda9dae326ca242c6c4b37297cb3efb1fe8f54f78caa03",
+        "bytes": 2093,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-worker-read-diagnostic.test.mjs",
+        "git_status": "??",
+        "sha256": "52b16ea7b7818f80035749b695d43d744d5b08bb6749b7a82e3828f1744530c5",
+        "bytes": 2586,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-workflow-extensions-browser.mjs",
+        "git_status": "??",
+        "sha256": "32f088828ebe5a9755f6a0e5ce54e36ad47179f1888a71d499b021c35aca9318",
+        "bytes": 7698,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-workflow-extensions-hosted-journey.mjs",
+        "git_status": "??",
+        "sha256": "1eb5ee6b210201bf042b5080961efef6376486053a376ee129bc19b953f5cb3b",
+        "bytes": 16347,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web-workflow-waiter.test.mjs",
+        "git_status": "??",
+        "sha256": "216f4d2f90a3c5674bd219fcde0550eb400a89eaadd548d9585980cd62ebcf07",
+        "bytes": 1134,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web_catalogue_media_recovery.py",
+        "git_status": "??",
+        "sha256": "67f38a6590bed50c38dd03d0ee22fa2eb93756857e626e52877f321112636168",
+        "bytes": 20516,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web_catalogue_terms_recovery.py",
+        "git_status": "??",
+        "sha256": "dce66a7ecb68c41c4594897f67180cccb91ac557cd2d826e014a7b3f3135ef8d",
+        "bytes": 14717,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web_document_output_binding.py",
+        "git_status": "??",
+        "sha256": "3ae6200d8ac47a93f153f7aaec3e05fc7976ad5dc1912cd9fbcca14fd4d6bf0f",
+        "bytes": 3575,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web_media_recovery.py",
+        "git_status": "??",
+        "sha256": "892e48adedf8414e1ef86bed84d6feb9af40194e1e4a4aec41d608a1455f5d75",
+        "bytes": 13824,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/web_stock_fixture.py",
+        "git_status": "??",
+        "sha256": "b17bac6f7d82b1f9dfe69e5d2f91a5fe46913bbade8368e27cf84fba66898167",
+        "bytes": 4509,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "tools/squad/worker_read_sql_diagnostic.py",
+        "git_status": "??",
+        "sha256": "2977fdb0be37a9488a555582eadd6e827c5eccf249047d83151436c6dc479980",
+        "bytes": 4758,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      }
+    ],
+    "task_documentation_and_evidence": [
+      {
+        "path": "docs/SQUAD_ONE_WEB_IMPLEMENTATION_PLAN.md",
+        "git_status": "??",
+        "sha256": "61b6ae4c7ac5f4983f0b1a9abaab07bebf5a1b2b06edc5bb8ec0e21769af0a54",
+        "bytes": 45821,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-audit/implementation-evidence/staging-web-guests-recovery-invite.json",
+        "git_status": "??",
+        "sha256": "9dcac72c98826a6991ff8eabea1e60080265bbf8816a6bed60a171f88ac18c8a",
+        "bytes": 3402,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-audit/implementation-evidence/staging-weekly-mail.json",
+        "git_status": "??",
+        "sha256": "b5b8b23fffe947285268badd269e82c7e99c216f448e9a1cfb28f4110660c71a",
+        "bytes": 4088,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/README.md",
+        "git_status": "??",
+        "sha256": "58d0749d3414f0f0668d23f2a7f7cbff273fdc2ed60f22a8664dbb0c66ad8a2d",
+        "bytes": 1723,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/build_view_traceability.py",
+        "git_status": "??",
+        "sha256": "11c15d44e21948875f61649724b6f7ad56304e0081dc4035569689ec6293225b",
+        "bytes": 7804,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/build_web_plan_matrix.py",
+        "git_status": "??",
+        "sha256": "2208ee6216870aaec3726d642695cc7ba0bd2c6cb060656f712a90a6fbff0e53",
+        "bytes": 10878,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/catalogue-media-acceptance-plan.md",
+        "git_status": "??",
+        "sha256": "7de837fad323a9b4c22f4a1b78fc0423907597526ad59f8fa253c6cf17ce6310",
+        "bytes": 9844,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/commerce-people-source-disposition.csv",
+        "git_status": "??",
+        "sha256": "111b75e436c4dde4f88c286678c5d5bd3d776c870ad5242fdb29716da6752461",
+        "bytes": 33527,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/conditional-content-acceptance.md",
+        "git_status": "??",
+        "sha256": "940c0fe0060f50148fdb64e547b4d4a7df7895ffc9584f437768e718d6e29b48",
+        "bytes": 6634,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/coverage-validation.json",
+        "git_status": "??",
+        "sha256": "d847a03ec741f2a5b53b63ee5101c18b7addaf66327c590b7df803590514f3f4",
+        "bytes": 696,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/cross-browser-acceptance.md",
+        "git_status": "??",
+        "sha256": "72843825ae7ccc35e09d856f1abad0c9d59e15fce832cb6ee23b0561538cc4dd",
+        "bytes": 14650,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/accessibility-local.json",
+        "git_status": "??",
+        "sha256": "a177a0cb0da1d23a4b9663806543095f0b49f8a60dec1d6bc7aedcb8a8bcef13",
+        "bytes": 2303,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/active-pass7-read-snapshot.json",
+        "git_status": "??",
+        "sha256": "a8a225cebf083cacfe5f56d29fb7dec0dfbf0c0390b5ca47729abaf3f213a916",
+        "bytes": 2525,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/artwork-acceptance.json",
+        "git_status": "??",
+        "sha256": "7073cccf0cd3ee10c72245cdc5bf281018984e6c149d987f320a0ccfad6c4064",
+        "bytes": 6922,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/backend-regression-119.json",
+        "git_status": "??",
+        "sha256": "69bede63801677e6503a0060af83de468711b8d19d27061935dcffc98ca51078",
+        "bytes": 14956,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/backend-regression-139.json",
+        "git_status": "??",
+        "sha256": "72f79d35feed206a7c6feb34f1d27e30e1939c3c9b2ca3bd83cfa23f0bd53f0b",
+        "bytes": 635,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/business-acceptance.json",
+        "git_status": "??",
+        "sha256": "49c79e927b73f6d57e2941d24b652df0f050847c390b9829c7617b23b595f023",
+        "bytes": 76018,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/catalogue-media-140.json",
+        "git_status": "??",
+        "sha256": "cc27d375e9cd06f5766d1538223911c9e2b508f13f98b012f11c4d32c42a281c",
+        "bytes": 73844,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/catalogue-media-acceptance.json",
+        "git_status": "??",
+        "sha256": "cf6ce4086c8b1bd82f44d6b623e57a272f1b190f97d5a1fd1ec793e470c1a1ea",
+        "bytes": 73429,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/catalogue-terms-acceptance.json",
+        "git_status": "??",
+        "sha256": "f6730da32b13129c6c46e4c209f6fe882ff49f882fd01817a9e02660704b55b0",
+        "bytes": 4359,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-build-execution.json",
+        "git_status": "??",
+        "sha256": "ddfb56df8eddebe146f4c19cb1e4a98552d121fcc659fe779e82ba893625c262",
+        "bytes": 2016,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-build-recipe.json",
+        "git_status": "??",
+        "sha256": "85e13589e79ac487bf5a73dbb4b8e52186e7ca904dc32ae851bde73e19ff6cc7",
+        "bytes": 6365,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-dist-manifest.json",
+        "git_status": "??",
+        "sha256": "989a9fd73c6b92acf46d28513779d881b67fe175fe72a88de22145e889a032a4",
+        "bytes": 12589,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-initial-dist-manifest.json",
+        "git_status": "??",
+        "sha256": "3274e9164fe25fa3003f77976f59a655ffb24c1b77b52afed62e898c839cd73d",
+        "bytes": 12588,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-initial-execution.json",
+        "git_status": "??",
+        "sha256": "0a459b5a17370000d7ae80a9dcfa9beb96ed2b6d7b1c0d175b56e0e912c142b5",
+        "bytes": 2089,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-initial-source-manifest.json",
+        "git_status": "??",
+        "sha256": "f3d38e6ef073438effcf4c1680f18b83401ca11add95e7e7be66f54c70d5202b",
+        "bytes": 70849,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-source-manifest.json",
+        "git_status": "??",
+        "sha256": "63ed1e75490301695fe8af7066f7e5d11130ddba78cac82c816d1c0995117e3f",
+        "bytes": 70850,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/collaboration-administration-closure-121.json",
+        "git_status": "??",
+        "sha256": "fbb63df1975075619ef473eaee65bfc0046a373b8ea880cf10fec516c67d1800",
+        "bytes": 3674,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/combined-read-diagnostic.json",
+        "git_status": "??",
+        "sha256": "84e50fce3dde6cb7daf9b9a1cc3d78146003005a7dc6adfdd7f7893e3f5652c8",
+        "bytes": 22451,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/commerce-139-partial.json",
+        "git_status": "??",
+        "sha256": "ba667092a8f31a539f5a6ec2d720865fb21fb2255dcc16ee7be43f4776113303",
+        "bytes": 4184,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/commerce-source-controls-local.json",
+        "git_status": "??",
+        "sha256": "c961aa4ae050808b367a6421a2a76dc8700cd3db71173f223713e126f5388fc9",
+        "bytes": 5409,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/commercial-capabilities-139.json",
+        "git_status": "??",
+        "sha256": "30fce2d77b294faa619b8fa92c26974ceb32b175276b277674022ea317d3e7fa",
+        "bytes": 62340,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/connected-commerce-operations-feedback-140-partial.json",
+        "git_status": "??",
+        "sha256": "24e8931cc20baaf2416c5e78a6af3de30c7b73be7cb480f66d3b52333b917177",
+        "bytes": 11115,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/deferred-uniware-checkpoint-review.json",
+        "git_status": "??",
+        "sha256": "9fdf0310e226d9c0b8442ad89958fe10977d5b021e654ef5d182213414206736",
+        "bytes": 2744,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/document-chain-139-pass3-partial.json",
+        "git_status": "??",
+        "sha256": "7becb311a6b25da2846355128d3a28d44080405628bb8b09780682db2aeca2fa",
+        "bytes": 49081,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/document-chain-140-pass6-failure.json",
+        "git_status": "??",
+        "sha256": "d26d90f5dbaf4fa21f0990ca0596224b91d355b710b765baa86473ab12af17db",
+        "bytes": 4690,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/factory-collaboration-operations-read-140.json",
+        "git_status": "??",
+        "sha256": "49c79e927b73f6d57e2941d24b652df0f050847c390b9829c7617b23b595f023",
+        "bytes": 76018,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/factory-people-acceptance-preparation.json",
+        "git_status": "??",
+        "sha256": "abb33a136e3a56b874c198b78ec18b0d7dede20c4148727a64d33345a45f5980",
+        "bytes": 2617,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/frontend-release-review-before-session-refresh.json",
+        "git_status": "??",
+        "sha256": "87a90f3b246c68542fbbfd5407a2beffa02576101cba80b961ce5fdef1d73645",
+        "bytes": 3393,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/frontend-release-review.json",
+        "git_status": "??",
+        "sha256": "cf47467d13945fa4a87dd180b18dac851a96ddfca1cd98da8841dbf1b655728c",
+        "bytes": 6951,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/guest-139-partial.json",
+        "git_status": "??",
+        "sha256": "a7ee17dcc1201d5eaedfd778044c9674f575fa4c6d5392945f5b810833c40dd5",
+        "bytes": 4059,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/guest-purpose-coverage-139.json",
+        "git_status": "??",
+        "sha256": "c887b53870e5541cd71cda4c6109268315cce887132db0a6f704e5ff05e54e3f",
+        "bytes": 3472,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/guest-recovery-invite-139.json",
+        "git_status": "??",
+        "sha256": "9dcac72c98826a6991ff8eabea1e60080265bbf8816a6bed60a171f88ac18c8a",
+        "bytes": 3402,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/jobsheet-queue-121.json",
+        "git_status": "??",
+        "sha256": "644b61bb5b931b7561867adcedc7e38394db045b49121aec6b946dc66dc69234",
+        "bytes": 970,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/last-business-cleanup.json",
+        "git_status": "??",
+        "sha256": "4208af89933e07d1a8cda8914b3f2bac96291175d67f08258ed37fcce0212b11",
+        "bytes": 1880,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/last-document-output-cleanup.json",
+        "git_status": "??",
+        "sha256": "bdab3ba30c3c04afb0518d6ebe0343cb15b64dae0f322562e823b89eb78ba728",
+        "bytes": 2372,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/media-acceptance.json",
+        "git_status": "??",
+        "sha256": "87981945c23cfb6a1e10c19a144ddc89f7a380761e9b6fae8907a8c4d79a64be",
+        "bytes": 3442,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/navigation-acceptance.json",
+        "git_status": "??",
+        "sha256": "1152fab778d4cd88c6b34ff253421bd5f61b74a46507c1f2c3f470c9bd0f7386",
+        "bytes": 33272,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/operation-refresh-review.json",
+        "git_status": "??",
+        "sha256": "b997a7e4a1cb8ee44e91b1f02008c5fa8decfdf79acbf9ff4a403c4f341d6610",
+        "bytes": 1720,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/operations-local-checkpoint-139.json",
+        "git_status": "??",
+        "sha256": "7bc01b86594d587ab3cdfb96d2c5afdac429ed2b81e8daa11da5765d332a1611",
+        "bytes": 1751,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/order-seek-128.json",
+        "git_status": "??",
+        "sha256": "10cceda64c12cf0423aa10355ca462d54369b83b09e20b02b5696f007da89645",
+        "bytes": 774,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/order-timeout-140-pass7.json",
+        "git_status": "??",
+        "sha256": "d08fd5c29f02f8b19dd6407739c8dae82532ffaff2e966adf624eb5f8d95a131",
+        "bytes": 10624,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/people-acceptance-preparation.json",
+        "git_status": "??",
+        "sha256": "f6766df31ff8bab5fff556d63220c983bdb8b2755c3fb87aff66f61836521441",
+        "bytes": 3682,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/people-relationships-139.json",
+        "git_status": "??",
+        "sha256": "84f70aad5f6271e01a2fab53a58dea4344e035cd22fd5d1ca74be169182ba61b",
+        "bytes": 17371,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/people-relationships-140-partial.json",
+        "git_status": "??",
+        "sha256": "122c9c95ba398b501f673eb56f09319e23fe9f4f43df1a4c59af19d161301d1d",
+        "bytes": 5687,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/person-context-132-local.json",
+        "git_status": "??",
+        "sha256": "25b817a497c0dd82901fa7ae87e9e9d168aa4f8f637f19525a8df4b121806526",
+        "bytes": 996,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/persona-entry-acceptance.json",
+        "git_status": "??",
+        "sha256": "19e37632344e2f48df9f7655fd3f9f2625d42f8a0898dac70d4e20c8afa72ef9",
+        "bytes": 5409,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/production-rendering-lab.json",
+        "git_status": "??",
+        "sha256": "003c020bf9e22d9c67fd984263a5dd8e556d4db816a62ac7b89aea2b49160090",
+        "bytes": 16344,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/query-lifecycle-local.json",
+        "git_status": "??",
+        "sha256": "285ee946fae13b5be99ed8cd69fd6afccd242251639c221e1937dffe9882dc53",
+        "bytes": 1716,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/read-timeout-140-catalog-snapshot.json",
+        "git_status": "??",
+        "sha256": "180489551773362d4feaae0774acba27cb20bc0f9225defa91ece256f58f8dc2",
+        "bytes": 23167,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/read-timings-139-partial.json",
+        "git_status": "??",
+        "sha256": "3197c613afe097fcf82460951ac77a3588360451d465258b30f57cae0d76fea0",
+        "bytes": 4378,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/schedule-safeupdate-140.json",
+        "git_status": "??",
+        "sha256": "68bbe7972236c9f9f74a1b17ad9ea89e7bd12d0f5c83e0cf5cb246da84bb72e3",
+        "bytes": 1559,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/session-query-pass7-review.json",
+        "git_status": "??",
+        "sha256": "49bf906945a96e4c2a2b8f21dad116a7c0ed6d44e3e4c8d87389e391c10c0cab",
+        "bytes": 3198,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/staging-release-140.json",
+        "git_status": "??",
+        "sha256": "212f72291f232660c5c636f945937cf21ddf94d697ae668872db4e76dab1665f",
+        "bytes": 1874,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/target-controls-local-benchmark.json",
+        "git_status": "??",
+        "sha256": "2e8131d31cfc7240e65a7f353c6f92c570b7ca7f9153ab82c7c8f0b27444ab55",
+        "bytes": 654,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-build-local.json",
+        "git_status": "??",
+        "sha256": "1855d59c60104bf43946cda362d85184014169290fa4bd1aa768a549c830ac61",
+        "bytes": 1460,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-colors-preparation.json",
+        "git_status": "??",
+        "sha256": "1f5ba23d8e106b3f574c6f1eafd7a44a516a72972b019dabd2b1c949dc8846d3",
+        "bytes": 5686,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-harness-readiness-review.json",
+        "git_status": "??",
+        "sha256": "54da2de1f9250375716a1f834064f26d4d40d5f13591f1600d26d2d72446b47c",
+        "bytes": 2504,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-masters-retained-proof-review.json",
+        "git_status": "??",
+        "sha256": "9e558430c921db7e772f1232ba25a6a2c839ef8e5688158d22f3cca1d15ccb28",
+        "bytes": 8245,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-read-acceptance.json",
+        "git_status": "??",
+        "sha256": "adb6b7c4eb234693cc43628ab9d767172d4891acbb96a4b797f1c67dc68b5ace",
+        "bytes": 6549,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-read-policy-correction.json",
+        "git_status": "??",
+        "sha256": "0bb79c044d4cd316ed988c1f207a52ba25751c96f52bcb71838e1f10271b170f",
+        "bytes": 3015,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-setup-recovery-139.json",
+        "git_status": "??",
+        "sha256": "faaf39b2be0d626437c6522c04013db6fa470be2aee33600f9ec453da32516e8",
+        "bytes": 2167,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/weekly-mail-139-failure.json",
+        "git_status": "??",
+        "sha256": "8866f99296a930789c3f8bd237a1d1425a6489fd913c5a91e0e5536c874b8dce",
+        "bytes": 2096,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/weekly-mail-140-accepted.json",
+        "git_status": "??",
+        "sha256": "316d14198677de89174ca9a13a0fcb9d2940bfdccb55650e49e81475ff051990",
+        "bytes": 11969,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/weekly-mail-140-smtp.json",
+        "git_status": "??",
+        "sha256": "b5b8b23fffe947285268badd269e82c7e99c216f448e9a1cfb28f4110660c71a",
+        "bytes": 4088,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/worker-detail-timeout-140-diagnostic.json",
+        "git_status": "??",
+        "sha256": "165134df10616428d4b1486f0d6c0a36b7050e566b697697d61971180b6bab8b",
+        "bytes": 17907,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/worker-order-rollback-profile-initial-role-failure.json",
+        "git_status": "??",
+        "sha256": "9210dda5c6490c6de7f29185a4742e3116bcc019e81281c92fb619b02db2442e",
+        "bytes": 2134,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/worker-order-rollback-profile.json",
+        "git_status": "??",
+        "sha256": "9210dda5c6490c6de7f29185a4742e3116bcc019e81281c92fb619b02db2442e",
+        "bytes": 2134,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/guest-account-acceptance.md",
+        "git_status": "??",
+        "sha256": "b8f9376e2820bd8d76757cda829b57ec23d7555bcfaa651ea22a35a1b8a06cad",
+        "bytes": 9850,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/implementation-progress.json",
+        "git_status": "??",
+        "sha256": "1b622e936bdb99551940872fe5882c1a3137cae290846784444a5f390bb864e5",
+        "bytes": 16969,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/persona-web-coverage.csv",
+        "git_status": "??",
+        "sha256": "eafb361662f7d0ffe9106a7d3f20c09c6d8ae51d354f05568d3a63a2d8f4f249",
+        "bytes": 5871,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/prepared-acceptance-check-map.csv",
+        "git_status": "??",
+        "sha256": "3777f8249671991f797845bd557c409f720219170ed22f3de100ca7e1a3904be",
+        "bytes": 14749,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/prepared-acceptance-check-map.json",
+        "git_status": "??",
+        "sha256": "f38a28e8bb034666476860086b807ec3dacc0a475fdf262d890da72fd25b9fef",
+        "bytes": 31533,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/release-execution-gates.md",
+        "git_status": "??",
+        "sha256": "0a19be0bf18f9c5c7101257954496b2d69843bfcf0614d39ab0c71339f9de760",
+        "bytes": 7648,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/release-execution-ledger.csv",
+        "git_status": "??",
+        "sha256": "849325c2576d9672ee02aa1659ac6cf656bf5aed7a3f5d32e76afc142f2786be",
+        "bytes": 194841,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/release-execution-ledger.json",
+        "git_status": "??",
+        "sha256": "feb0f1e082e2b89c21b261b1cfbd60c3df717871df5f4ccd8c9cded603cd99fc",
+        "bytes": 491312,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/release-exit-criteria.json",
+        "git_status": "??",
+        "sha256": "2911a63aa4e6aa71fd3a72f7b70bd53adfb7c4f6a2800ca2f7e2cb07a1fa8244",
+        "bytes": 26107,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/release-manifest-139.json",
+        "git_status": "??",
+        "sha256": "dfff1f26a87186b440e96e7f3ab23b5bb74d2b6910e868e745ec9001b48b318f",
+        "bytes": 24392,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/release-manifest-140.json",
+        "git_status": "??",
+        "sha256": "2113cfabc68ce17df26a2b424605fab5739d491caf180ba908ab85207eabc914",
+        "bytes": 26217,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/source-control-review.csv",
+        "git_status": "??",
+        "sha256": "1b8b0c6efaca53cf9841bbd0baf96720339f404d8e2f0469e1f99f62c84990b5",
+        "bytes": 34544,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/source-discovered-web-gaps.csv",
+        "git_status": "??",
+        "sha256": "cb68a399996d07405cdf229021580b5d600e22fa313139f3e937d42ea64d3195",
+        "bytes": 1243,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/source-view-web-traceability.csv",
+        "git_status": "??",
+        "sha256": "82ec64aca4fd286433d93a7dccdf24fc7984797ab27ebac1141f9e66b69ec800",
+        "bytes": 291775,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/tracker-release-regression.md",
+        "git_status": "??",
+        "sha256": "09e83d9740daf62a7f8b84a1ff128f5a1ff633ff4662c73a8d844e79eb733cdd",
+        "bytes": 12044,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/ui-review.md",
+        "git_status": "??",
+        "sha256": "221e7b37d284fbde1d2bec3ad095141338e75d8bb3afea6543c90faed2c6bc0c",
+        "bytes": 60620,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      },
+      {
+        "path": "docs/squad-one-web/workflow-web-coverage.csv",
+        "git_status": "??",
+        "sha256": "4b3d95e1dcab314788145b4b3b1d417e69bf4a1026052bab547c883de4903633",
+        "bytes": 120307,
+        "provenance": "task_scope_classification_not_exclusive_authorship"
+      }
+    ],
+    "reviewed_synthetic_images": [
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-login-desktop.png",
+        "git_status": "??",
+        "sha256": "58e63b69b230e56be9de2ef8dfab20528f34b603b3cc04fb995797d78445e951",
+        "bytes": 46047,
+        "provenance": "task_scope_classification_not_exclusive_authorship",
+        "review_reason": "binary_or_raw_log_privacy_review",
+        "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-login-mobile.png",
+        "git_status": "??",
+        "sha256": "3407ac40edd393310f63faa06589bf254ea5e5c97293ce40f1fd57f082f306fe",
+        "bytes": 33083,
+        "provenance": "task_scope_classification_not_exclusive_authorship",
+        "review_reason": "binary_or_raw_log_privacy_review",
+        "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+      },
+      {
+        "path": "docs/squad-one-web/evidence/configurator-preview-fixture-desktop.png",
+        "git_status": "??",
+        "sha256": "999911ae5765ca3bac4883c4e175627383239af5aa71aa919067ae8a571362c0",
+        "bytes": 44294,
+        "provenance": "task_scope_classification_not_exclusive_authorship",
+        "review_reason": "binary_or_raw_log_privacy_review",
+        "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+      },
+      {
+        "path": "docs/squad-one-web/evidence/configurator-preview-fixture-mobile.png",
+        "git_status": "??",
+        "sha256": "da57c457318649566b87f635af753d57bebd33f7a3cd97dff1dbed96eab21f61",
+        "bytes": 22391,
+        "provenance": "task_scope_classification_not_exclusive_authorship",
+        "review_reason": "binary_or_raw_log_privacy_review",
+        "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+      }
+    ]
+  },
+  "group_counts": {
+    "application_and_contracts": 109,
+    "backend_source_and_regressions": 39,
+    "requires_integrator_review": 3,
+    "owned_task_tools_and_tests": 249,
+    "task_documentation_and_evidence": 95,
+    "reviewed_synthetic_images": 4
+  },
+  "excluded_dirty_entry_counts": {
+    "node_modules": 1171,
+    ".temp": 1,
+    "generated_export": 1,
+    "tmp": 3
+  },
+  "secret_marker_scan": {
+    "patterns": "private-key blocks, Supabase personal tokens, GitHub token literal markers only; not a comprehensive secret audit",
+    "matching_paths": []
+  },
+  "ownership_policy": "Preserve all existing user work. Grouping identifies current task scope, not authorship. Integrator must approve generated baselines, unclassified changes, raw logs and binary evidence. No blanket staging.",
+  "freeze_policy": "These are current file hashes, not a freeze: agents and hosted evidence remain active. Recompute and compare approved paths after final acceptance/build; reject unexpected path/hash changes.",
+  "planned_staging_policy": {
+    "safe_groups_after_review": [
+      "application_and_contracts",
+      "backend_source_and_regressions",
+      "owned_task_tools_and_tests",
+      "task_documentation_and_evidence",
+      "reviewed_synthetic_images"
+    ],
+    "manual_review_groups": [
+      "requires_integrator_review"
+    ],
+    "procedure": "Construct a NUL-delimited pathspec from reviewed exact entries; verify hashes and exclusion rules immediately before git add --pathspec-from-file=<file> --pathspec-file-nul. Then inspect cached name-status, diff --check and secret scan. Do not execute until final release authorization and gates pass.",
+    "never": [
+      "git add .",
+      "git add -A",
+      "git push --force",
+      "automatic develop-to-main promotion workflow",
+      "Stage any public_git_exclusions path or any descendant of tools/squad/private."
+    ]
+  },
+  "limitations": [
+    "No Git index/ref/remote mutation performed.",
+    "Existing tracked node_modules remain part of historical checkout; their local dirty entries are excluded, not silently deleted.",
+    "The final release must use an approved commit SHA/build and rerun served asset/deep-link checks after Vercel deploy."
+  ],
+  "post_snapshot_validation": {
+    "changed_paths": [
+      "tools/squad/web-operations-hosted-journey.mjs",
+      "tools/squad/web-remaining-waiters.test.mjs"
+    ],
+    "staged_paths": [],
+    "conclusion": "Expected concurrent agent work; snapshot must be regenerated at actual release freeze. These two review artifacts themselves are intentionally not self-hashed."
+  },
+  "public_git_exclusions": [
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-build.log",
+      "git_status": "??",
+      "sha256": "4002d842543ea0c8fd46073d15fb0d1c77bb16ac06903695db24943ea645566e",
+      "bytes": 6749,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/clean-web-build.log"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-initial-build.log",
+      "git_status": "??",
+      "sha256": "0510ec68b71c22d4dba5ad3ad35487581f2876807c0ec18d379b01582fcc9418",
+      "bytes": 6749,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/clean-web-initial-build.log"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-initial-install.log",
+      "git_status": "??",
+      "sha256": "64ed7b2f3519096ee960bfcb2ec5edc8a209804dde562d16972d802f08dbcbd8",
+      "bytes": 1045,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/clean-web-initial-install.log"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-install.log",
+      "git_status": "??",
+      "sha256": "64ed7b2f3519096ee960bfcb2ec5edc8a209804dde562d16972d802f08dbcbd8",
+      "bytes": 1045,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/clean-web-install.log"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/customer-mobile.png",
+      "git_status": "??",
+      "sha256": "97747e2c82557ef3eb4247f94d724e3d683fcb833395f0d6994cd6f4ef1dea57",
+      "bytes": 30430,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/customer-mobile.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-0-desktop.png",
+      "git_status": "??",
+      "sha256": "cbd126147bbad417e3fa2e8ef1b613304c06729156e670e3005dd818472f392b",
+      "bytes": 111583,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-0-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-1-desktop.png",
+      "git_status": "??",
+      "sha256": "1866db54f6b8059e1e17fe02d0668d2cbdd6d6e3ed4a02d5754f9d3ab6f1c746",
+      "bytes": 103518,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-1-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-10-desktop.png",
+      "git_status": "??",
+      "sha256": "1eee94e8d3cc68ebd76fc09c4a64e0dd3e90770def92adf9e83877ab1357f66d",
+      "bytes": 101016,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-10-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-11-desktop.png",
+      "git_status": "??",
+      "sha256": "1564e68948ae976175fc2eaaaaf52a13633748571760ad7e91304292615f945d",
+      "bytes": 106432,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-11-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-12-desktop.png",
+      "git_status": "??",
+      "sha256": "63dfaafdc256c8d45187b2f7fe567c24ee807fe733c10ea8437284947b558b8e",
+      "bytes": 73158,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-12-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-2-desktop.png",
+      "git_status": "??",
+      "sha256": "5b912cd3a5b3e967fd567657362a4e3bafbb752581efdd00f7e77b138956cc33",
+      "bytes": 110714,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-2-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-3-desktop.png",
+      "git_status": "??",
+      "sha256": "6296c5d965a854082290b3a36269e1a449d783391f61cee3e9da56b38fe56068",
+      "bytes": 97067,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-3-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-4-desktop.png",
+      "git_status": "??",
+      "sha256": "4bc507b1d4e6aa0631e429a8ee0341a38084c966127e164e46647ef6dc3b2fb0",
+      "bytes": 99980,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-4-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-7-desktop.png",
+      "git_status": "??",
+      "sha256": "e8f20e0bf79b15e2f9bf2c9cf4c0022d13d0f0f2d59103ddf85dc6ac9624a933",
+      "bytes": 80277,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-7-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-8-desktop.png",
+      "git_status": "??",
+      "sha256": "7fc94674ef6a2da7c705046128e6a240efeae3cbfe485ca736c105978af2f4ee",
+      "bytes": 76198,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-8-desktop.png"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/role-9-desktop.png",
+      "git_status": "??",
+      "sha256": "5c2cb139507bf1fa234b85eabe9f0e86a9107a1e932c8482207fc20199e8bc34",
+      "bytes": 73612,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Excluded from public Git: actual hosted persona screen or raw build/install log. Original preserved locally; private retained copy.",
+      "private_copy": "tools/squad/private/publication-review/role-9-desktop.png"
+    }
+  ],
+  "private_tracker_screenshot_exclusions": [
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-printing-orders.png",
+      "sha256": "44f8ed9f98b3acebcf515696184b25dbec18bbb6c22debacf538fc6b7ee89d45",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    },
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-customers.png",
+      "sha256": "d406d1aa495abef7f484c7aed446bebf583a179abb1f2624f91837fad9d4a2b5",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    },
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-reports.png",
+      "sha256": "a19db87f60c6889544cd97dde986e478aec871085036d1fcd5feac0cd4fe9160",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    },
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-masters.png",
+      "sha256": "214bbe59c1b878d29ecfc10fbcbb4a6ec4cf7e893f4465c250c830f799b01f78",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    },
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-data-refresh.png",
+      "sha256": "c85166f56d378ead157d0ea6903ab1b9c08afca787d32450b4119cefb99c4fa2",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    },
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-360.png",
+      "sha256": "4737f22678787df0a06c20ff512b82e724e8f326086815bf62a11b1bb05b7499",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    },
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/viewer-printing-orders.png",
+      "sha256": "f74f9b9a76f94a28ca4dad0b9950cd0f9a5216e36663ea3ff36e051795b44074",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    },
+    {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/viewer-360.png",
+      "sha256": "cfcfbb1d0f29d5e8c50f27ebc716b347eeb6f75a5915e46a8687238cf7a6e451",
+      "publication": "excluded_actual_hosted_tracker_business_content"
+    }
+  ]
+}

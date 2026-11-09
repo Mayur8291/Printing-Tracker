@@ -36,6 +36,7 @@ def plan_fixture(state):
     row('rmp_prices', 108, name=label + ' RMP price', price='80', mrp='100',
         rmp_sku_id=base + 106, rmp_price_type_id=base + 107)
     row('rmp_sku_prices', 109, rmp_sku_id=base + 106, rmp_price_id=base + 108)
+    row('rmp_category_brands', 110, rmp_category_id=base + 102, rmp_brand_id=base + 101)
     row('users', 120, name=label + ' alternate coordinator',
         email=f'squad-business-{run.hex[:12]}-coordinator@mailinator.com',
         encrypted_password='', role=1, approved=True, onboarded=True, disabled=False)

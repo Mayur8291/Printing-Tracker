@@ -1,0 +1,650 @@
+{
+  "measurement": "Weighted completed acceptance milestones; partial evidence is displayed separately and does not inflate accepted weight. Built scope, local proof, hosted backend and browser outcomes remain distinct.",
+  "accepted_percent": 96,
+  "remaining_percent": 4,
+  "milestones": [
+    {
+      "id": "persona_entry",
+      "weight_percent": 5,
+      "status": "passed",
+      "evidence": "evidence/persona-entry-acceptance.json",
+      "accepted_weight_percent": 5
+    },
+    {
+      "id": "session_security",
+      "weight_percent": 5,
+      "status": "passed",
+      "evidence": "evidence/persona-entry-acceptance.json",
+      "checks": [
+        "11 real password logins and token refreshes",
+        "Logout clears protected UI and denies signed-out deep links",
+        "Live Customer disable removes access without reload",
+        "Live Team feature revocation removes route access, restoration re-enables it",
+        "No Tracker/raw-source table access; environment network fencing"
+      ],
+      "accepted_weight_percent": 5
+    },
+    {
+      "id": "shared_interaction_foundation",
+      "weight_percent": 5,
+      "status": "passed",
+      "evidence": "evidence/navigation-acceptance.json",
+      "checks": [
+        "115 route/persona combinations without navigation failure",
+        "11 authenticated role workspaces",
+        "5 mobile personas, drawer navigation/focus restoration",
+        "Dark appearance and mobile admin dialog keyboard containment",
+        "Real Inspector jobsheet RPC HTTP200 in200ms after121",
+        "Vercel deployment acceptance remains separate"
+      ],
+      "accepted_weight_percent": 5
+    },
+    {
+      "id": "people_and_accounts",
+      "weight_percent": 10,
+      "status": "passed",
+      "evidence": [
+        "evidence/guest-139-partial.json",
+        "evidence/collaboration-administration-closure-121.json",
+        "evidence/people-acceptance-preparation.json",
+        "evidence/people-relationships-139.json",
+        "evidence/commercial-capabilities-139.json",
+        "evidence/guest-recovery-invite-139.json",
+        "evidence/guest-purpose-coverage-139.json",
+        "evidence/factory-collaboration-operations-read-140.json",
+        "evidence/workflow-extensions-141.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 10,
+      "historical_partial_evidence": [
+        "Registration and confirmation completed with real inbox proof",
+        "Customer self-closure/profile accepted121; current139 SQL regression passed",
+        "Ten real139 browser checks passed: managed Tailor/SubTailor and Team/SC profile forms, notes grant, SC-owned Customer status/session cycle, reviewed Customer/Dealer commercial rules and isolated coordinator transfer/restore; exact61-row cleanup and schedules restored",
+        "Recovery/invitation inbox purposes now passed; PC factory setup now passed140; archive/history, coordinator-request/bulk and remaining finite variants still separately gated",
+        "Job Worker/Team16 real conditional UI states passed, with8separate SDK grant/revocation/owner checks; PDF render/download is a separate output proof.",
+        "All four guest purposes now have actual real-inbox browser proof across two exact-cleaned runs. Recovery additionally rejects old password/live session/refresh; invitation preserves mapped identity. Later subset removed four Auth/four source accounts and retained three owned revisions; earlier overall run failure remains documented.",
+        "PC visible factory create/edit, Factory Manager linked to that factory, and Inspector linked to that manager passed3 exact140 checks. Shared operational-team save branch proved; no invitation/provider execution or all-team-role Cartesian claim."
+      ],
+      "acceptance_basis": "Original finite EXIT-01/03/04 definitions satisfied by current12 exact browser checks plus retained guest/status, factory, conditional permission, commercial/feedback and single/batch collaboration proofs; global release gates remain separately weighted."
+    },
+    {
+      "id": "commerce",
+      "weight_percent": 20,
+      "status": "passed",
+      "evidence": [
+        "evidence/commerce-139-partial.json",
+        "evidence/commerce-source-controls-local.json",
+        "evidence/commercial-capabilities-139.json",
+        "evidence/connected-commerce-operations-feedback-140-partial.json",
+        "evidence/connected-commerce-operations-reporting-141.json",
+        "evidence/document-output-141.json",
+        "evidence/document-outputs-aec91653-visual-review.json",
+        "evidence/workflow-extensions-141.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 20,
+      "historical_partial_evidence": [
+        "Six real139 browser checks completed: own address, SC review/relationship, custom configure/quote/order, deposit/priority redaction, RMP queued purchase, mixed order/foreign denial",
+        "Ten actual commercial controls and one amendment passed139: override/replay, due/destination/context, local payment acknowledgement, reasoned completion/priority/Customer rating, cancel, Dealer RMP+mixed and exact preserved amendment.40commands95rows2queued documents cleaned.",
+        "Staff/item feedback now passed140; coordinator-request/Admin-review and final release gates remain separately tracked; historical v1_me2567.74ms miss is retained as history; latest bounded141repeat sample passes at189.70ms, without a globalSLA claim.",
+        "Four actual140 feedback checks passed on the completed factory graph: SC\u2192PC, PC\u2192FM, FM item\u2192Cutting Master, and Admin moderation with preserved reason/history and recalculated visible count. Other required coordinator-request/Admin-review control remains separately gated.",
+        "Connected141 passed21 exact commerce/operations/feedback/reporting checks and both actual weekly/challan PDF outputs;62commands/143source graph rows/3documents cleaned, source/schedules restored, one independent staff change preserved. Performance/global deployment remain separate."
+      ],
+      "acceptance_basis": "Original finite EXIT-01/03/04 definitions satisfied by current12 exact browser checks plus retained guest/status, factory, conditional permission, commercial/feedback and single/batch collaboration proofs; global release gates remain separately weighted."
+    },
+    {
+      "id": "manufacturing_and_job_work",
+      "weight_percent": 15,
+      "status": "passed",
+      "evidence": [
+        "evidence/operations-local-checkpoint-139.json",
+        "../squad-one-audit/implementation-evidence/staging-business-journeys.json",
+        "evidence/connected-commerce-operations-feedback-140-partial.json",
+        "evidence/connected-commerce-operations-reporting-141.json",
+        "evidence/document-output-141.json",
+        "evidence/document-outputs-aec91653-visual-review.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 15,
+      "acceptance_basis": "Unchanged finite milestone criteria satisfied by connected141, prior scoped backend/local controls, and stock-reconciliation141 for Dealer counter repair. Global performance and deployment have their own milestone; not double-counted here.",
+      "historical_partial_evidence": [
+        "Full manufacturing/JW implementation and23 current rendered component cases passed",
+        "Five actual operations checks completed140: factory/cutter/checklist/partial cut, Tailor/SubTailor allocation with coupled inspection/pickup, destination/partial dispatch, Job Worker cost/due/stages, and Dealer stock path. Zero phase browser errors/violations;59commands143source rows cleaned. Existing SEW.04 earnings/weekly report UI and EXIT-02 outputs still pending;15% milestone not yet awarded.",
+        "Connected141 passed21 exact commerce/operations/feedback/reporting checks and both actual weekly/challan PDF outputs;62commands/143source graph rows/3documents cleaned, source/schedules restored, one independent staff change preserved. Performance/global deployment remain separate."
+      ],
+      "checks": [
+        "Accepted connected workflow controls and independent read oracles",
+        "Exact cleanup and preserved authoritative balances/history",
+        "Relevant PDF/payroll/period/report requirements passed; scope limitations retained in source evidence"
+      ]
+    },
+    {
+      "id": "dealer_fulfillment",
+      "weight_percent": 10,
+      "status": "passed",
+      "evidence": [
+        "evidence/operations-local-checkpoint-139.json",
+        "../squad-one-audit/implementation-evidence/staging-business-journeys.json",
+        "evidence/connected-commerce-operations-feedback-140-partial.json",
+        "evidence/stock-reconciliation-141.json",
+        "evidence/connected-commerce-operations-reporting-141.json",
+        "evidence/document-output-141.json",
+        "evidence/document-outputs-aec91653-visual-review.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 10,
+      "acceptance_basis": "Unchanged finite milestone criteria satisfied by connected141, prior scoped backend/local controls, and stock-reconciliation141 for Dealer counter repair. Global performance and deployment have their own milestone; not double-counted here.",
+      "historical_partial_evidence": [
+        "Custom stock/receipt/FIFO/backorder backend proof retained",
+        "Actual140 browser Dealer custom-stock receipt, partial FIFO dispatch, edited shortage purchase/requote, linked backorder completion and exact remaining balance passed. Full report/output chain remains separate; the exact EXIT-06 stock-counter case is now accepted in its own141 artifact.",
+        "Exact staging141 stock-counter branch passed: Admin UI repairs one owned evidence-version counter1\u21920 and reads retained reason/history; Dealer SDK denied. Receipt/consumption unchanged,9owned commands cleaned with source/staff/schedules restored; no provider/cutover. This satisfies only the named EXIT-06 counter case, not whole Stock or the connected report/output chain.",
+        "Connected141 passed21 exact commerce/operations/feedback/reporting checks and both actual weekly/challan PDF outputs;62commands/143source graph rows/3documents cleaned, source/schedules restored, one independent staff change preserved. Performance/global deployment remain separate."
+      ],
+      "checks": [
+        "Accepted connected workflow controls and independent read oracles",
+        "Exact cleanup and preserved authoritative balances/history",
+        "Relevant PDF/payroll/period/report requirements passed; scope limitations retained in source evidence"
+      ]
+    },
+    {
+      "id": "collaboration",
+      "weight_percent": 8,
+      "status": "passed",
+      "evidence": [
+        "evidence/collaboration-administration-closure-121.json",
+        "evidence/backend-regression-139.json",
+        "evidence/factory-collaboration-operations-read-140.json",
+        "evidence/workflow-extensions-141.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 8,
+      "historical_partial_evidence": [
+        "Team task lifecycle, Admin\u2192Team goal complete/reopen and single SC target lifecycle accepted121",
+        "Batch responsibilities and target controls now passed140; assigned/order-context task variant still requires final acceptance",
+        "Five actual140 collaboration checks passed: personal task lifecycle, assigned responsibility complete/reopen, two-item responsibility batch, SC target lifecycle/read-only projection, and two-target batch with pending/achieved filters. No assigned order-linked task claim."
+      ],
+      "acceptance_basis": "Original finite EXIT-01/03/04 definitions satisfied by current12 exact browser checks plus retained guest/status, factory, conditional permission, commercial/feedback and single/batch collaboration proofs; global release gates remain separately weighted."
+    },
+    {
+      "id": "reports",
+      "weight_percent": 8,
+      "status": "passed",
+      "evidence": [
+        "evidence/operations-local-checkpoint-139.json",
+        "../squad-one-audit/implementation-evidence/staging-work-reports-performance.json",
+        "../squad-one-audit/implementation-evidence/staging-dashboard-verification.json",
+        "evidence/weekly-mail-140-accepted.json",
+        "evidence/connected-commerce-operations-reporting-141.json",
+        "evidence/document-output-141.json",
+        "evidence/document-outputs-aec91653-visual-review.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 8,
+      "acceptance_basis": "Unchanged finite milestone criteria satisfied by connected141, prior scoped backend/local controls, and stock-reconciliation141 for Dealer counter repair. Global performance and deployment have their own milestone; not double-counted here.",
+      "historical_partial_evidence": [
+        "Scoped reports/metrics/leaderboard/earnings implemented and locally tested",
+        "Existing Tracker Reports accepted separately; new persona reporting adapter awaits complete hosted run",
+        "Automatic exact-job Cron and five actual Gmail attachments passed140: catalogue, challan and weekly report to intended roles; exact recipient/document/PDF proof, three one-page visual reviews,217 source rows/settings/schedules restored. Separate browser document-chain and deployed gates remain open.",
+        "Connected141 passed21 exact commerce/operations/feedback/reporting checks and both actual weekly/challan PDF outputs;62commands/143source graph rows/3documents cleaned, source/schedules restored, one independent staff change preserved. Performance/global deployment remain separate."
+      ],
+      "checks": [
+        "Accepted connected workflow controls and independent read oracles",
+        "Exact cleanup and preserved authoritative balances/history",
+        "Relevant PDF/payroll/period/report requirements passed; scope limitations retained in source evidence"
+      ]
+    },
+    {
+      "id": "documents_media_content",
+      "weight_percent": 6,
+      "status": "passed",
+      "evidence": [
+        "evidence/media-acceptance.json",
+        "evidence/artwork-acceptance.json",
+        "evidence/catalogue-terms-acceptance.json",
+        "evidence/weekly-mail-140-accepted.json",
+        "evidence/catalogue-media-140.json",
+        "evidence/connected-commerce-operations-reporting-141.json",
+        "evidence/document-output-141.json",
+        "evidence/document-outputs-aec91653-visual-review.json",
+        "evidence/owned-content-media-141.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 6,
+      "historical_partial_evidence": [
+        "Actual own-profile PNG upload/replace/detach/download and exact cleanup passed",
+        "Actual source artwork/recolor and catalogue+terms PDF output/download accepted",
+        "Weekly/challan browser outputs, distinct remaining file/content controls pending",
+        "Automatic exact-job Cron and five actual Gmail attachments passed140: catalogue, challan and weekly report to intended roles; exact recipient/document/PDF proof, three one-page visual reviews,217 source rows/settings/schedules restored. Separate browser document-chain and deployed gates remain open.",
+        "Two actual140 Customer catalogue-media branches passed: reusable preset/reference PNG append+preview+byte-verified download+guidelines create/edit+detach; inert opaque .cdr branding upload+download-only+detach. Independent server proof bound2uploads/downloads;8 commands57 source rows2 storage objects cleaned, schedules restored. Generated mockup capture and remaining content/document/deployed gates are not inferred.",
+        "Connected141 passed21 exact commerce/operations/feedback/reporting checks and both actual weekly/challan PDF outputs;62commands/143source graph rows/3documents cleaned, source/schedules restored, one independent staff change preserved. Performance/global deployment remain separate."
+      ],
+      "acceptance_basis": "Original finite media6% criteria satisfied by current7browser transport/missing-state checks and exactcleanup plus prior profile/reference/branding/terms/preset/conditional evidence. Native focus issue is closed by the separate actual-component Safari regression; final deployed acceptance remains global4%."
+    },
+    {
+      "id": "administration",
+      "weight_percent": 4,
+      "status": "passed",
+      "evidence": [
+        "evidence/collaboration-administration-closure-121.json",
+        "prepared-acceptance-check-map.json",
+        "evidence/weekly-mail-140-accepted.json",
+        "evidence/factory-collaboration-operations-read-140.json",
+        "evidence/tracker-colors-acceptance.json",
+        "evidence/tracker-colors-776b6d12-visual-review.json",
+        "evidence/stock-reconciliation-141.json",
+        "evidence/transfer-ownership-local-review.json",
+        "evidence/administration-internal-exit-141-review.json"
+      ],
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 4,
+      "historical_partial_evidence": [
+        "Owned city/zone/criteria CRUD accepted121",
+        "Six actual140 operator read checks passed; import/retry/nonempty inbox remain separately gated; exact stock-counter case subsequently passed141; Tracker scoped read-only regression passed140, final deployed gate remains",
+        "Automatic exact-job Cron and five actual Gmail attachments passed140: catalogue, challan and weekly report to intended roles; exact recipient/document/PDF proof, three one-page visual reviews,217 source rows/settings/schedules restored. Separate browser document-chain and deployed gates remain open.",
+        "Own Team/Admin job scope, foreign job/audit denial, exact cursor/filter binding, rendered audit/job detail, denied SC deep link and Customer/Team empty inbox passed. No retry, worker, fanout, delivery or acknowledgement mutation.",
+        "Current clean-build Tracker Colors branch passed3 visible actions with one temporary Admin and one owned Color; exact Color/Auth/membership cleanup, source content and schedules restored. Independent three-state desktop review found no new visual blocker. No other Masters/bulk/import/media/refresh or deployed branch inferred.",
+        "Exact staging141 stock-counter branch passed: Admin UI repairs one owned evidence-version counter1\u21920 and reads retained reason/history; Dealer SDK denied. Receipt/consumption unchanged,9owned commands cleaned with source/staff/schedules restored; no provider/cutover. This satisfies only the named EXIT-06 counter case, not whole Stock or the connected report/output chain."
+      ],
+      "acceptance_basis": "Unchanged finite EXIT-06 internal cases met; explicitly external native-owner/worker/Uniware gates remain separate, and final deployed revision read smoke remains the global release milestone.",
+      "remaining_external_gates": [
+        "EXTERNAL-NATIVE-OPERATORS",
+        "EXTERNAL-OWNERSHIP",
+        "EXTERNAL-UNIWARE"
+      ]
+    },
+    {
+      "id": "whole_application_release",
+      "weight_percent": 4,
+      "status": "partial_evidence",
+      "evidence": [
+        "evidence/backend-regression-139.json",
+        "evidence/accessibility-local.json",
+        "evidence/query-lifecycle-local.json",
+        "evidence/production-rendering-lab.json",
+        "evidence/staging-release-140.json",
+        "evidence/tracker-read-acceptance.json",
+        "evidence/tracker-colors-acceptance.json",
+        "evidence/tracker-colors-776b6d12-visual-review.json",
+        "evidence/staging-release-141.json",
+        "evidence/read-performance-141.json"
+      ],
+      "partial_evidence": [
+        "Full139 local2529 tests pass",
+        "13 populated axe scans zero violations; local keyboard/focus and responsive review passed",
+        "Cancellation fix verified locally; current hosted quality, browser coverage, parity and deployed build remain gated",
+        "Staging140 rollback verification and application passed with86 source digests before/after, public structure unchanged, exact schedules restored and reviewed refresh fingerprints verified. Production113 unchanged; parity and deployed release acceptance remain pending.",
+        "Actual Tracker staging read regression passed16 checks (Admin10/Viewer6,40+33 reads), exact2Auth+2membership cleanup and source/public preservation. Automatic writes blocked; Masters CRUD, refresh execution, realtime and final frozen/deployed build remain unclaimed.",
+        "Current clean-build Tracker Colors branch passed3 visible actions with one temporary Admin and one owned Color; exact Color/Auth/membership cleanup, source content and schedules restored. Independent three-state desktop review found no new visual blocker. No other Masters/bulk/import/media/refresh or deployed branch inferred.",
+        "Staging141 rollback verification, apply and metadata readback passed: exact full Worker scope index valid/ready/unfiltered; protected source/Auth/public data and schedule/ownership guards preserved. Production remains last verified113;28 migration bodies and four local Edge source inventories match manifest141. The original browser timeout/performance gate is still open; no production parity or deployment claim.",
+        "Latest bounded staging141 repeated-read sample passes all four2000ms targets: p95 me189.70/person185.35/orders171.13/catalogue173.31ms,24measured requests; exact zero-command cleanup. This resolves the prior measured repeated-read miss for this scope only; native/engine/deployed/render quality gates remain separate.",
+        "Production now matches staging at141 migrations and all four checked Edge artifacts. Guarded apply protected86source tables/public structure and restored exact schedules. Endpoint and refresh catalog checks pass. Strict platform parity remains false only for pre-existing pg_net0.20.0/0.20.3; managed upgrade is separate. This does not imply deployed frontend or native Safari acceptance.",
+        "Native Safari staged Customer login/reload/normal exact-byte media download/Home valid and reversed date/reset/logout passed; separately reproduced dialog focus-return bug corrected and verified through pointer, keyboard and Close in actual native Safari local React fixture. Final deployed release still pending."
+      ],
+      "remaining_exit_groups": [
+        "EXIT-07",
+        "EXIT-08"
+      ],
+      "accepted_weight_percent": 0
+    }
+  ],
+  "external_dependencies": [
+    "Uniware provider access deferred by user"
+  ],
+  "scope": "Complete approved persona web implementation; no automatic production ownership cutover",
+  "verification": {
+    "local_sql": {
+      "tests": 2529,
+      "failed": 0,
+      "evidence": "evidence/backend-regression-139.json"
+    },
+    "local_axe": {
+      "populated_states": 13,
+      "violations": 0,
+      "evidence": "evidence/accessibility-local.json",
+      "scope": "Local scan plus documented keyboard checks; not full WCAG certification"
+    },
+    "operations_component_browser": {
+      "passed": 23,
+      "fresh_after_query_cancellation": true
+    },
+    "operations_read_component_browser": {
+      "passed": 7
+    },
+    "hosted_backend_business": {
+      "groups": 34,
+      "rpc_requests": 437,
+      "evidence": "../squad-one-audit/implementation-evidence/staging-business-journeys.json",
+      "scope": "Historical SDK, not frontend"
+    },
+    "hosted_browser_partial_workflow_rows": 100,
+    "source_mapping": {
+      "planned_workflows": 115,
+      "view_inventory": 317,
+      "mapping_is_not_runtime_acceptance": true
+    },
+    "hosted_people_relationships": {
+      "checks": 10,
+      "commands": 21,
+      "removed_source_rows": 61,
+      "evidence": "evidence/people-relationships-139.json",
+      "scope": "Exact partial workflow branches; no providers/email/provisioning or deployment claim"
+    },
+    "current_staging_backend": {
+      "migration_count": 141,
+      "migration_prefix": "20261109043010",
+      "evidence": "evidence/staging-release-141.json",
+      "rollback_verified": true,
+      "applied": true,
+      "source_public_and_cron_guards_passed": true,
+      "index_valid_ready_unfiltered": true,
+      "ownership_flags_unchanged": true,
+      "original_browser_timeout_resolved": false
+    },
+    "production_backend_baseline": {
+      "migration_count": 141,
+      "migration_prefix": "20261109043010",
+      "applied": true,
+      "evidence": "evidence/production-release-141.json",
+      "source_tables_verified": 86,
+      "protected_data_and_public_structure_unchanged": true,
+      "exact_schedules_restored": true,
+      "cutover": false,
+      "refresh_executed": false,
+      "pending_reviewed_migrations": 0,
+      "full_application_artifact_parity_verified": true,
+      "strict_platform_parity": false,
+      "known_platform_difference": "pg_net staging0.20.3 / production0.20.0; managed maintenance remains separate."
+    },
+    "hosted_automatic_mail_inbox": {
+      "messages": 5,
+      "document_kinds": 3,
+      "actual_cron": true,
+      "real_inbox_mime_verified": true,
+      "one_page_visual_reviews": 3,
+      "removed_source_rows": 217,
+      "source_settings_schedules_restored": true,
+      "evidence": "evidence/weekly-mail-140-accepted.json",
+      "scope": "Exact provider/inbox gate; does not add browser partial workflow rows or close the active document UI chain"
+    },
+    "hosted_tracker_readonly": {
+      "checks": 16,
+      "admin_checks": 10,
+      "viewer_checks": 6,
+      "successful_reads": 73,
+      "removed_auth": 2,
+      "removed_memberships": 2,
+      "business_revision_unchanged": true,
+      "evidence": "evidence/tracker-read-acceptance.json",
+      "scope": "Legacy Tracker bounded read-only regression; no Canto workflow count or deployed acceptance change"
+    },
+    "hosted_factory_collaboration_operator_read": {
+      "evidence": "evidence/factory-collaboration-operations-read-140.json",
+      "checks": 14,
+      "owned_commands": 21,
+      "removed_source_rows": 63,
+      "source_and_schedules_restored": true,
+      "whole_milestone_claimed": false
+    },
+    "hosted_catalogue_media": {
+      "evidence": "evidence/catalogue-media-140.json",
+      "run_id": "d8ab8f62-0c19-45ca-8b9c-5057997d4491",
+      "checks": 2,
+      "owned_commands": 8,
+      "removed_source_rows": 57,
+      "removed_storage_objects": 2,
+      "server_proof": {
+        "server_bound_roots": 2,
+        "exact_uploads": 2,
+        "exact_downloads": 2,
+        "retained_audit_proof": true
+      },
+      "whole_milestone_claimed": false
+    },
+    "hosted_tracker_colors": {
+      "checks": 3,
+      "evidence": "evidence/tracker-colors-acceptance.json",
+      "visual_review": "evidence/tracker-colors-776b6d12-visual-review.json",
+      "run_id": "776b6d12-055a-49b0-ae05-ee8e01439a9c",
+      "workflow_rows": [
+        "MASTER.01",
+        "MASTER.02"
+      ],
+      "removed_owned_colors": 1,
+      "removed_owned_auth": 1,
+      "removed_owned_memberships": 1,
+      "source_content_and_schedules_restored": true,
+      "whole_milestone_claimed": false
+    },
+    "native_safari_startup": {
+      "evidence": "evidence/native-safari-startup-preflight.json",
+      "scope": "Actual native Safari anonymous login-page startup only; tab closed.",
+      "authenticated_flow_tested": false,
+      "native_release_gate_satisfied": false
+    },
+    "release_manifest": {
+      "path": "release-manifest-141.json",
+      "pending_migrations_from_production_baseline": 0,
+      "migration_body_hashes_verified": 28,
+      "edge_source_inventories_verified": 4,
+      "verification_evidence": "evidence/release-manifest-141-source-verification.json",
+      "hosted_edge_parity_verified": true,
+      "manifest_migrations_from_historical_113_baseline": 28,
+      "application_parity_evidence": "evidence/application-parity-141.json"
+    },
+    "hosted_stock_reconciliation": {
+      "evidence": "evidence/stock-reconciliation-141.json",
+      "sha256": "e3a8a3f6bf52ef027a20abddd4c37e31d974f9ab6cf616cc3443f4b2245dd1b7",
+      "run_id": "4b365817-dd15-4dcf-bf16-23ec630faa47",
+      "checks": 3,
+      "actual_browser_checks": 2,
+      "sdk_permission_checks": 1,
+      "owned_commands": 9,
+      "source_content_staff_and_schedules_restored": true,
+      "whole_milestone_claimed": false,
+      "provider_execution": false,
+      "cutover_unchanged": true
+    },
+    "hosted_connected141": {
+      "evidence": "evidence/connected-commerce-operations-reporting-141.json",
+      "run_id": "aec91653-6ae2-421e-8dc7-4d845c9126f8",
+      "checks": 21,
+      "actual_pdf_outputs": 2,
+      "pdf_pages_reviewed": 2,
+      "owned_commands": 62,
+      "removed_source_graph_rows": 143,
+      "removed_documents": 3,
+      "source_schedules_restored": true,
+      "independent_staff_changes_preserved": 1,
+      "performance_gate_satisfied": false,
+      "deployed_gate_satisfied": false
+    },
+    "hosted_read_performance141": {
+      "evidence": "evidence/read-performance-141.json",
+      "sha256": "63cb2c742a33bf8bcbd1bf4d353bbcd3af70c242e086e3693111284c62427cfd",
+      "run_id": "e526c711-b854-4742-95bc-c116182624d7",
+      "measured_requests": 24,
+      "repeat_observations_per_contract": 5,
+      "first_observations_per_contract": 1,
+      "repeat_p95_ms": {
+        "v1_me": 189.7,
+        "v1_person_get": 185.35,
+        "v1_orders_list": 171.13,
+        "v1_catalog_tree": 173.31
+      },
+      "target_ms": 2000,
+      "all_observed_repeat_targets_met": true,
+      "scope": "Small-sample local browser frontend\u2192hosted staging API through complete response-body receipt. Warmth uncontrolled, one Customer and bounded fixture; not Vercel/render/load/concurrency SLA.",
+      "owned_commands": 0,
+      "business_revision_unchanged": true,
+      "source_staff_crons_restored": true
+    },
+    "hosted_content_media_source141": {
+      "path": "evidence/content-media-source-141.json",
+      "sha256": "249709601bf3d54203e246bdd38c54678809c6971e7a1ce07e5f65ee033bee60",
+      "run_id": "64d500ca-28ce-4caa-a4fb-e2fca6f0f0e9",
+      "scope": "Three exact read-only Customer checks: explicit missing product exclusion without empty download; actual external-promotion Share at intercepted exact clipboard boundary; staging-only mutation-free transport. No ready product raster in first40 or promotion attachment in first24; successful file downloads remain unproven.",
+      "visual_review": "evidence/content-media-64d500ca-visual-review.json",
+      "visual_review_sha256": "bc67378dca93435fe14ecbb104c15ca045766e02f5aa9cfe0ec6c56b0d7b092e",
+      "complete_required_media": false,
+      "checks": 3,
+      "owned_commands": 0,
+      "source_staff_crons_restored": true,
+      "weighted_milestone_closed": false
+    },
+    "hosted_firefox141": {
+      "path": "evidence/firefox-141.json",
+      "sha256": "c7102dab7390c48326310c91ffd138392e9c1e8b95d31843b521974d503c09a5",
+      "run_id": "7bf27e42-9440-400c-8342-7ca1e3e11a8a",
+      "engine": "firefox",
+      "version": "159.0",
+      "personas": 11,
+      "routes": 102,
+      "keyboard_checks": 34,
+      "viewport": {
+        "width": 360,
+        "height": 844
+      },
+      "frontend": {
+        "base": "http://127.0.0.1:5186",
+        "entry_path": "/assets/index-D0HIEzmj.js",
+        "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+      },
+      "scope": "Real staged identity login/navigation, read-only360px/keyboard/profile controls and Admin unsaved city dialog on pinned clean build. Not mutation journeys, WebKit or native Safari.",
+      "diagnostics": {
+        "page_errors_retained": 125,
+        "classified_caught_lock_diagnostics": 125,
+        "native_errors": 0,
+        "fatal_errors": 0,
+        "route_issue_count": 0
+      },
+      "private_report_sha256": "79c3a62441ff12c1a3000ad8fde50a8dcd052cbb83a1d03d2c4d9deb4da815db",
+      "diagnostic_local_regression": "evidence/firefox-lock-observer-local-review.json",
+      "visual_review": "evidence/firefox-7bf27-visual-review.json",
+      "visual_review_sha256": "9fda5acaf3a23c40e9252010b054c0f6fa92c0fe35ffb7080e4e549421e70c8b",
+      "owned_commands": 0,
+      "source_staff_crons_restored": true,
+      "native_safari_tested": false
+    },
+    "hosted_webkit141": {
+      "path": "evidence/webkit-141.json",
+      "sha256": "86f5a0841f30b14312201305d91c764bca7f1a0ce5a45eb615e270a2006b3146",
+      "run_id": "ee04107b-548a-48a0-81c0-c94bcbe87f5f",
+      "engine": "webkit",
+      "version": "27.2",
+      "personas": 11,
+      "routes": 102,
+      "keyboard_checks": 34,
+      "viewport": {
+        "width": 360,
+        "height": 844
+      },
+      "frontend": {
+        "base": "http://127.0.0.1:5186",
+        "entry_path": "/assets/index-D0HIEzmj.js",
+        "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+      },
+      "scope": "WebKit engine27.2 actual staged login/read navigation,360px keyboard/profile controls and Admin unsaved city dialog. Not native Safari or mutation journeys.",
+      "diagnostics": {
+        "page_errors_retained": 0,
+        "classified_caught_lock_diagnostics": 0,
+        "native_errors": 0,
+        "fatal_errors": 0,
+        "route_issue_count": 0
+      },
+      "private_report_sha256": "fb03e07a5c702ce3020aa523dc9786308da26aec4688e72973a913324e9b5911",
+      "visual_review": "evidence/webkit-ee041-visual-review.json",
+      "visual_review_sha256": "ea9404728132ff409e8dc4d99d6484013e5662fdefdbd82001e6c1c503a0051f",
+      "owned_commands": 0,
+      "source_content_and_crons_restored": true,
+      "staff_auth_preserved_during_cleanup": true,
+      "staff_unchanged_since_fixture": false,
+      "independent_staff_changes_preserved": 1,
+      "native_safari_tested": false
+    },
+    "hosted_workflow_extensions141": {
+      "evidence": "evidence/workflow-extensions-141.json",
+      "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417",
+      "run_id": "2a786bce-6fc5-4c2d-b3f4-4b3f2633e46f",
+      "checks": 12,
+      "extension_checks": 5,
+      "owned_commands": 38,
+      "removed_source_rows": 96,
+      "source_staff_crons_restored": true,
+      "browser_errors": 0,
+      "network_violations": 0,
+      "no_new_screenshots": true,
+      "deployed_acceptance": false
+    },
+    "historical_production113_preflight": {
+      "migration_count": 113,
+      "changed_by_staging_release": false,
+      "fresh_production_verification_pending": true,
+      "migration_prefix": "20261108154028",
+      "migration_only_freshly_verified": true,
+      "migration_verification_evidence": "evidence/production-release-preflight-141.json",
+      "migration_verified_at": "2026-11-09T04:48:11.798964+00:00",
+      "pending_reviewed_migrations": 28,
+      "verification_scope": "Applied migration prefix113 names and bodies verified read-only against141 manifest; full production parity, ownership/environment and release verification remain pending."
+    },
+    "backend_application_parity141": {
+      "evidence": "evidence/application-parity-141.json",
+      "sha256": "4b54da010954c4b95f6b24370e3d30cab3defaebe1e23d80a616131ff5a23f19",
+      "application_artifacts_equal": true,
+      "strict_equal": false,
+      "only_reported_difference": "extensions: documented pg_net patch version",
+      "production_edge_release": "evidence/production-edge-release-141.json",
+      "four_edge_artifacts_equal": true,
+      "endpoint_evidence": "evidence/backend-endpoints-141.json",
+      "refresh_catalog_evidence": "evidence/refresh-catalog-check-141.json",
+      "source_refresh_or_cutover": false,
+      "managed_platform_upgrade_performed": false,
+      "frontend_deployment_acceptance": false
+    },
+    "hosted_owned_content141": {
+      "evidence": "evidence/owned-content-media-141.json",
+      "sha256": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+      "run_id": "b6e764b1-9116-4c2a-bf56-b22c1f4b35b6",
+      "checks": 7,
+      "browser_errors": 0,
+      "network_violations": 0,
+      "removed_source_rows": 55,
+      "removed_storage_objects": 1,
+      "owned_commands": 0,
+      "revision_unchanged": true,
+      "source_staff_crons_restored": true,
+      "native_focus_quality_pending": false,
+      "deployed_acceptance": false
+    },
+    "native_safari_authenticated141": {
+      "evidence": "evidence/native-safari-owned-media-b6e764b1.json",
+      "sha256": "3092be95f7620a5cd5b2df44278c9426455ebff588ef7fece1408e9215b8f2f0",
+      "scope": "Actual Safari26.1 staged Customer login/reload, normal exact-byte PNG download, valid/reversed/Home reset controls and logout; original focus finding closed by separate actual-component native supplement."
+    },
+    "native_safari_focus_supplement": {
+      "evidence": "evidence/native-safari-product-share-focus.json",
+      "sha256": "fcf2fbe13cf37772bc5028573c9ce293f43398efb5c40a3526fdfafac941693f",
+      "scope": "Actual native Safari local account-free React dialog: pointer/keyboard Escape and Close restore the connected opener with visible focus ring. No hosted/API/download replay."
+    },
+    "frozen_refresh_reference141": {
+      "evidence": "evidence/frozen-refresh-reference-141.json",
+      "sha256": "a361faf4ae40d9cb47704242bcfdce1820d50e5d63e82006d2157222aaa95f40",
+      "branch": "codex/backend-parity-20261109-141",
+      "commit": "14e178d108220418e7a6bc1da14971f9bfa0cba3",
+      "both_environments_verified": true,
+      "other_secret_digests_preserved": true,
+      "refresh_dispatched": false
+    },
+    "final_focus_build": {
+      "evidence": "evidence/clean-web-build-execution.json",
+      "sha256": "2e017346ca12a0ce94545126b5679d2d2078707e8a7f2fad30a7a2d7a927fd5f",
+      "source_manifest_sha256": "0160f5bc7f475cf3250bd90c90683b0a7ca40250433a4d980b627834c13af615",
+      "entry_path": "/assets/index-C1WMMJOg.js",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "only_two_focus_source_changes": true,
+      "anonymous_startup_verified": true,
+      "deployed_acceptance": false
+    }
+  },
+  "finite_exit_criteria": "release-exit-criteria.json",
+  "execution_ledger": "release-execution-ledger.json"
+}

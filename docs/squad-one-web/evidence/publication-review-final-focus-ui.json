@@ -1,0 +1,36 @@
+{
+  "format": "squad-publication-review/v1",
+  "scope": "Final focus/media96 acceptance and current clean build; metadata/hash-only visual evidence, no public screenshots or credentials. Historical assertions preserved.",
+  "files": {
+    "docs/squad-one-web/implementation-progress.json": "047b00de80c6c87c618040fc2b71efe77d67d9fc8837dc5863617b33c063f4eb",
+    "docs/squad-one-web/release-exit-criteria.json": "ea324aaf4701726b0bde02ebed9dc5f111f5dc2cfb6111d5b8761ab402d44bbe",
+    "docs/squad-one-web/release-execution-ledger.json": "598f71b5876f360d5897fb2dac469060740043113a128faa1fe2fe38eb91fb68",
+    "docs/squad-one-web/release-execution-ledger.csv": "828bc229692eb3f2449ebc258ac9ef67799c519d3fe2d8b0f346d39a706cd160",
+    "docs/squad-one-web/README.md": "28b434f3fa226374fa6b6cd95506d655f91689dd457567233942c4982da297b2",
+    "docs/squad-one-web/release-execution-gates.md": "dbeb719a944b36bc2389ee2ac94bea40637a3625855294485b3151f28f55fb5e",
+    "docs/squad-one-audit/BACKEND_PARITY.md": "8643b049f6244ba17ccc1f99f8a3c98976163bd855bb0f2f6fea4cf82373795f",
+    "docs/squad-one-web/evidence/owned-content-media-141.json": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+    "docs/squad-one-web/evidence/owned-content-media-acceptance.json": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+    "docs/squad-one-web/evidence/owned-content-media-141-publication-normalization.json": "12cabb0601672769b24528488aefbfed20d50466cb0940a8212b477d165dfae1",
+    "docs/squad-one-web/evidence/owned-content-media-b6e7-visual-review.json": "6923554f78d0a0c2705e633a0e1be212d92e1459872f9ef4a262fddbe924b22e",
+    "docs/squad-one-web/evidence/native-safari-owned-media-b6e764b1.json": "3092be95f7620a5cd5b2df44278c9426455ebff588ef7fece1408e9215b8f2f0",
+    "docs/squad-one-web/evidence/native-safari-product-share-focus.json": "fcf2fbe13cf37772bc5028573c9ce293f43398efb5c40a3526fdfafac941693f",
+    "docs/squad-one-web/evidence/product-share-focus-local-review.json": "0ff85eedf3c462567d7164f116c3d265e17eedd1247320453d796d58439df915",
+    "docs/squad-one-web/evidence/frozen-refresh-reference-141.json": "a361faf4ae40d9cb47704242bcfdce1820d50e5d63e82006d2157222aaa95f40",
+    "docs/squad-one-web/evidence/clean-web-build-execution.json": "2e017346ca12a0ce94545126b5679d2d2078707e8a7f2fad30a7a2d7a927fd5f",
+    "docs/squad-one-web/evidence/clean-web-source-manifest.json": "89d09d2a483803cc8cf7eb9e7162d750ff298f6b72f1b83042e3b72c7abf7ee3",
+    "docs/squad-one-web/evidence/clean-web-dist-manifest.json": "c38c4abe62d982ce8fb142ebeacf52ae513dc8902e679c0af69f354f081ccea1",
+    "docs/squad-one-web/evidence/clean-web-build.log": "ed385b3e4d978d6fb52301451e5ed84e7b64db063d73bdfb1ef3775edcf01172",
+    "docs/squad-one-web/evidence/clean-web-pre-focus-build-execution.json": "eb37ed400327a76da7de1025e0b6861bdc4888c32bdc0b0c931f09788997d7a8",
+    "docs/squad-one-web/evidence/clean-web-pre-focus-source-manifest.json": "4fd1e2be5acb28826f2e6f63c4ebcf9a881fc370b2068273b45a14cb498f81f1",
+    "docs/squad-one-web/evidence/clean-web-pre-focus-dist-manifest.json": "a010b0a597e5524447d0720a569585b83d993b1233f5ada630d58c310e91dcb7",
+    "docs/squad-one-web/evidence/clean-web-pre-focus-build.log": "988124ae6cebe11259778f38bd450ac54ce8e3c8b80106a0a56f6887b50b8ee0"
+  },
+  "result": "approved",
+  "checks": [
+    "No absolute home paths or credential values",
+    "Only repository-relative or nonpersonal temporary artifact paths",
+    "Native scope distinguished from local focus supplement and deployed acceptance",
+    "Exact source/build hashes retained;96percent/0deployed rows preserved"
+  ]
+}

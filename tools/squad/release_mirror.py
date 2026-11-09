@@ -250,9 +250,37 @@ def security_check(c):
     require(not c.execute("""SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
       JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='sa_domain' AND
       ((p.prosecdef AND (r.rolsuper OR r.rolbypassrls) AND
-      p.oid NOT IN('sa_domain.auth_context()'::regprocedure,'sa_domain.revoke_account_sessions(bigint)'::regprocedure))
+      p.oid NOT IN('sa_domain.auth_context()'::regprocedure,'sa_domain.revoke_account_sessions(bigint)'::regprocedure) AND p.oid IS DISTINCT FROM to_regprocedure('sa_domain.self_closure_password_proof()') AND p.oid IS DISTINCT FROM to_regprocedure('sa_domain.revoke_closed_self_sessions(uuid)')
+      AND p.oid IS DISTINCT FROM to_regprocedure('sa_domain.account_rehearsal_snapshot(uuid)')
+      AND p.oid IS DISTINCT FROM to_regprocedure('sa_domain.account_rehearsal_record(uuid,text,bigint)')
+      AND p.oid IS DISTINCT FROM to_regprocedure('sa_domain.account_rehearsal_publish_auth(uuid,uuid)'))
       OR (has_function_privilege('anon',p.oid,'EXECUTE') AND p.oid<>'sa_domain.v1_app_bootstrap(text,text)'::regprocedure))""").fetchone(),
       'Unsafe domain function privileges')
+    # The reviewed self-only Auth bridges are never callable by an API principal.
+    # Older prefixes legitimately have neither helper; the exact release artifact
+    # comparison still binds any installed function body, owner and ACL.
+    require(not c.execute("""SELECT 1 FROM pg_proc p WHERE p.oid IN(
+      to_regprocedure('sa_domain.self_closure_password_proof()'),
+      to_regprocedure('sa_domain.revoke_closed_self_sessions(uuid)')) AND (
+      NOT p.prosecdef OR pg_get_userbyid(p.proowner)<>'postgres'
+      OR p.proconfig IS DISTINCT FROM ARRAY['search_path=pg_catalog']::text[]
+      OR EXISTS(SELECT 1 FROM unnest(ARRAY['anon','authenticated','sa_app','service_role','sa_executor','sa_guard']) role_name
+        WHERE has_function_privilege(role_name,p.oid,'EXECUTE'))
+      OR NOT has_function_privilege('sa_account_writer',p.oid,'EXECUTE'))""").fetchone(),
+      'Unsafe self-closure Auth bridge authority')
+    # Exact synthetic account receipts need Auth/source hashes. Only the
+    # private account executor may invoke these reviewed bridges; the hosted
+    # artifact comparison also binds their bodies, owners, and ACLs.
+    require(not c.execute("""SELECT 1 FROM pg_proc p WHERE p.oid IN(
+      to_regprocedure('sa_domain.account_rehearsal_snapshot(uuid)'),
+      to_regprocedure('sa_domain.account_rehearsal_record(uuid,text,bigint)'),
+      to_regprocedure('sa_domain.account_rehearsal_publish_auth(uuid,uuid)')) AND (
+      NOT p.prosecdef OR pg_get_userbyid(p.proowner)<>'postgres'
+      OR p.proconfig IS DISTINCT FROM ARRAY['search_path=pg_catalog']::text[]
+      OR EXISTS(SELECT 1 FROM unnest(ARRAY['anon','authenticated','sa_app','service_role','sa_executor','sa_guard']) role_name
+        WHERE has_function_privilege(role_name,p.oid,'EXECUTE'))
+      OR NOT has_function_privilege('sa_account_writer',p.oid,'EXECUTE'))""").fetchone(),
+      'Unsafe account rehearsal bridge authority')
     require(not c.execute('SELECT 1 FROM pg_roles WHERE rolname=ANY(%s) AND (rolsuper OR rolinherit OR rolcanlogin OR rolbypassrls OR rolcreaterole OR rolcreatedb OR rolreplication)',
                           (list(PRIVATE_ROLES) + ['sa_app'],)).fetchone(), 'Unsafe private execution role')
     require(not c.execute("""SELECT 1 FROM pg_auth_members WHERE

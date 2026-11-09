@@ -1,0 +1,41 @@
+{
+  "format": "squad-clean-web-build/v1",
+  "status": "incremental_built",
+  "workspace": "/tmp/squad-clean-web-cjtmqrp8",
+  "node": "v26.13.0",
+  "npm": "11.6.2",
+  "source_files": 598,
+  "source_manifest_sha256": "34f3e7b4586a3fb61bb3f26734f543d5e5c22ddbeacf47d1df7a794cf5cbc8a0",
+  "lock_sha256": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b",
+  "app_root_sha256": "022e13c66a1276bbe47fabdf57f890254dfabd3ae53f0c48fc2d51beb139cc13",
+  "environment_names": [
+    "VITE_APP_ENV",
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY"
+  ],
+  "copied_env_files": false,
+  "dependency_install_reused_from": "clean-web-initial-execution.json",
+  "source_changes": [
+    "apps/admin/src/squad/components/Media.jsx",
+    "apps/admin/src/squad/components/mediaNavigation.js",
+    "apps/admin/src/squad/features/promotions/PromotionsPage.jsx"
+  ],
+  "previous_artifact": "/tmp/squad-clean-web-cjtmqrp8/build-control/pre-safari-artifact",
+  "commands": [
+    {
+      "phase": "safari_download_build",
+      "exit_code": 0,
+      "seconds": 8.91,
+      "log": "/tmp/squad-clean-web-cjtmqrp8/build-control/build-safari-refresh.log"
+    }
+  ],
+  "source_unchanged": true,
+  "entry_path": "/assets/index-Dy0PSYTE.js",
+  "entry_sha256": "92f718500c75869265f5d937d7e9dfa83f043fc2b7bfd7f6249a83c72c0a4c46",
+  "dist": "/tmp/squad-clean-web-cjtmqrp8/apps/admin/dist",
+  "dist_files": 123,
+  "dist_manifest_sha256": "6e9e53f2045e50fde8c478a1cf4711609e867951c880979192c16418a81029f7",
+  "warnings": [
+    "Existing legacy Tracker App chunk exceeds1200kB warning threshold; no compilation error."
+  ]
+}

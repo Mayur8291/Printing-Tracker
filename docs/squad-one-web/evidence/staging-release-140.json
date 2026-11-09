@@ -1,0 +1,40 @@
+{
+  "format": "squad-staging-release-evidence/v1",
+  "environment": "staging",
+  "migration_count": 140,
+  "migration_prefix": "20261109024124",
+  "migration": "supabase/migrations/20261109024124_squad_weekly_schedule_safe_updates.sql",
+  "migration_sha256": "c7dd4d5eb885fe2fd5349edf0271caa55f7c049d2f6457467ac7f5067dad2530",
+  "change_scope": "Six explicit singleton UPDATE predicates across existing weekly-tailor and warehouse configure/heartbeat functions. No new grants, endpoints, provider execution or schema redesign.",
+  "proofs": [
+    {
+      "mode": "rollback verification",
+      "log_sha256": "a37a70054ed266fbeaab7de7a68c3590fef8a0f6df5c50661bb8f5ba394f7c28",
+      "applied_migrations": [],
+      "verified_source_table_digests_before": 86,
+      "verified_source_table_digests_after": 86,
+      "public_structure_unchanged": true,
+      "exact_schedules_restored": true
+    },
+    {
+      "mode": "apply",
+      "log_sha256": "074b3e0251e733d9043cfac932052ee1ebbfd0566f75e548f97b74eeb6187fdd",
+      "applied_migrations": [
+        "20261109024124_squad_weekly_schedule_safe_updates.sql"
+      ],
+      "verified_source_table_digests_before": 86,
+      "verified_source_table_digests_after": 86,
+      "public_structure_unchanged": true,
+      "exact_schedules_restored": true
+    }
+  ],
+  "reviewed_refresh_fingerprints_verified": true,
+  "production": {
+    "baseline_migration_count": 113,
+    "changed_by_this_release": false,
+    "parity_with_staging_claimed": false,
+    "scope": "Parent-confirmed existing113 baseline; this artifact contains no new production inspection or deployment."
+  },
+  "functional_acceptance": "Release guards passed; actual weekly Cron/PDF/SMTP/inbox acceptance remains separate and pending. Earlier139 attempt sent zero messages and is retained as failure evidence.",
+  "recorded_at": "2026-11-09T02:54:53.459511+00:00"
+}

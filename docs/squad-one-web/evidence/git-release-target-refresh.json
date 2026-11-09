@@ -1,0 +1,27 @@
+{
+  "format": "squad-readonly-git-release-refresh/v1",
+  "observed_at": "2026-11-09T05:03:33.239279+00:00",
+  "remote_heads": {
+    "refs/heads/develop": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+    "refs/heads/main": "44de98628400cfb8649e4bae92c9a2dfadd3ebcc"
+  },
+  "feature_branch_remote_present": false,
+  "develop_status": "success",
+  "statuses": [
+    {
+      "context": "Vercel",
+      "state": "success",
+      "target_url": "https://vercel.com/mayur8291s-projects/scott_dashboard/F4VMg1n1ynwymVLbvukeXFgp6rvW",
+      "updated_at": "2026-11-08T17:43:15Z"
+    }
+  ],
+  "prior_target_evidence": "docs/squad-one-web/evidence/git-vercel-release-target.json",
+  "live_alias_or_immutable_asset_freshly_verified": false,
+  "clean_build_source_files_checked": 597,
+  "clean_build_source_mismatches": [],
+  "scope": "Read-only git ls-remote and GitHub commit status; local clean-build source hash comparison. No stage/commit/push/deploy or mutation.",
+  "limitations": [
+    "GitHub Vercel status does not by itself prove current live alias asset or Vercel branch settings.",
+    "Docs/tools remain active; final candidate snapshot requires fresh freeze verification."
+  ]
+}

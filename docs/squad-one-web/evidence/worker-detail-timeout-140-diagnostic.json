@@ -1,0 +1,686 @@
+{
+  "status": "diagnosed_no_local_reproduction_not_resolved",
+  "recorded_at": "2026-11-09T03:21:25.900459+00:00",
+  "hosted_run": "6b0afe1e-3fc7-458b-af47-44c712b9e09c",
+  "observations": {
+    "failed_contract": "v1_order_get",
+    "browser_persona": 11,
+    "message": "canceling statement due to statement timeout",
+    "timings": [
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 35,
+        "latency_samples": 35,
+        "p50_ms": 193.46,
+        "p95_ms": 5674.39,
+        "max_ms": 10472.74
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": 500,
+        "outcome": "completed_http_error",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 10240.46,
+        "p95_ms": 10240.46,
+        "max_ms": 10240.46
+      },
+      {
+        "role": 11,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 23,
+        "latency_samples": 23,
+        "p50_ms": 269.28,
+        "p95_ms": 909.26,
+        "max_ms": 1701.38
+      }
+    ],
+    "unfinished_requests": 64,
+    "unfinished_meaning": "Requests still present in Puppeteer request-event map at stop; not proof of active SQL or backend concurrency."
+  },
+  "local_profile": {
+    "database": "squad_test_web_operations",
+    "synthetic_added_rows": {
+      "orders": 45000,
+      "items": 90000,
+      "quantities": 216000
+    },
+    "bound": "5s statement timeout;8 calls per mode/ownership; no retries",
+    "role": 11,
+    "order_items_limit": 25,
+    "groups": [
+      {
+        "ownership": "sparse",
+        "plan_cache_mode": "force_custom_plan",
+        "reads": 8,
+        "min_ms": 11.55,
+        "max_ms": 30.12,
+        "failures": 0
+      },
+      {
+        "ownership": "sparse",
+        "plan_cache_mode": "force_generic_plan",
+        "reads": 8,
+        "min_ms": 9.7,
+        "max_ms": 10.51,
+        "failures": 0
+      },
+      {
+        "ownership": "sparse",
+        "plan_cache_mode": "auto",
+        "reads": 8,
+        "min_ms": 9.72,
+        "max_ms": 10.35,
+        "failures": 0
+      },
+      {
+        "ownership": "dense",
+        "plan_cache_mode": "force_custom_plan",
+        "reads": 8,
+        "min_ms": 17.43,
+        "max_ms": 21.78,
+        "failures": 0
+      },
+      {
+        "ownership": "dense",
+        "plan_cache_mode": "force_generic_plan",
+        "reads": 8,
+        "min_ms": 15.59,
+        "max_ms": 16.42,
+        "failures": 0
+      },
+      {
+        "ownership": "dense",
+        "plan_cache_mode": "auto",
+        "reads": 8,
+        "min_ms": 15.67,
+        "max_ms": 16.84,
+        "failures": 0
+      }
+    ],
+    "point_plan_summary": [
+      {
+        "ownership": "sparse",
+        "mode": "force_custom_plan",
+        "relation": "order",
+        "execution_ms": 1.125,
+        "top_node": "Index Scan"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "force_custom_plan",
+        "relation": "items",
+        "execution_ms": 7.497,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "force_custom_plan",
+        "relation": "quantities",
+        "execution_ms": 0.626,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "force_generic_plan",
+        "relation": "order",
+        "execution_ms": 0.691,
+        "top_node": "Index Scan"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "force_generic_plan",
+        "relation": "items",
+        "execution_ms": 7.664,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "force_generic_plan",
+        "relation": "quantities",
+        "execution_ms": 0.406,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "auto",
+        "relation": "order",
+        "execution_ms": 0.714,
+        "top_node": "Index Scan"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "auto",
+        "relation": "items",
+        "execution_ms": 7.26,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "sparse",
+        "mode": "auto",
+        "relation": "quantities",
+        "execution_ms": 0.404,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "dense",
+        "mode": "force_custom_plan",
+        "relation": "order",
+        "execution_ms": 1.196,
+        "top_node": "Index Scan"
+      },
+      {
+        "ownership": "dense",
+        "mode": "force_custom_plan",
+        "relation": "items",
+        "execution_ms": 14.465,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "dense",
+        "mode": "force_custom_plan",
+        "relation": "quantities",
+        "execution_ms": 0.653,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "dense",
+        "mode": "force_generic_plan",
+        "relation": "order",
+        "execution_ms": 0.724,
+        "top_node": "Index Scan"
+      },
+      {
+        "ownership": "dense",
+        "mode": "force_generic_plan",
+        "relation": "items",
+        "execution_ms": 14.235,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "dense",
+        "mode": "force_generic_plan",
+        "relation": "quantities",
+        "execution_ms": 0.432,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "dense",
+        "mode": "auto",
+        "relation": "order",
+        "execution_ms": 0.803,
+        "top_node": "Index Scan"
+      },
+      {
+        "ownership": "dense",
+        "mode": "auto",
+        "relation": "items",
+        "execution_ms": 15.213,
+        "top_node": "Limit"
+      },
+      {
+        "ownership": "dense",
+        "mode": "auto",
+        "relation": "quantities",
+        "execution_ms": 0.549,
+        "top_node": "Limit"
+      }
+    ],
+    "rollback_completed": true,
+    "remaining_local_counts": {
+      "orders": 12,
+      "items": 12,
+      "quantities": 12
+    },
+    "function_sha256": {
+      "sa_domain.v1_order_get(bigint,text,integer)": "d6415c4d76e1fc96b046fe59cb3f3be523da31d33e06eced9d50a3f14cb9ad3b",
+      "sa_domain.scope_order_ids()": "73ca6c0e5db0e6f89583802a6512e824156769319967e8752efb1a22226e54f9",
+      "sa_domain.can_item(bigint)": "0c6b842bdb090ca98445c2c893ae9270012a7525f03c2f63a9a2f6675588891e"
+    },
+    "samples": [
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 0,
+        "ms": 30.12
+      },
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 1,
+        "ms": 11.86
+      },
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 2,
+        "ms": 12.02
+      },
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 3,
+        "ms": 11.56
+      },
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 4,
+        "ms": 11.74
+      },
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 5,
+        "ms": 11.7
+      },
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 6,
+        "ms": 11.55
+      },
+      {
+        "density": "sparse",
+        "mode": "force_custom_plan",
+        "attempt": 7,
+        "ms": 12.2
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 0,
+        "ms": 10.47
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 1,
+        "ms": 10.51
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 2,
+        "ms": 9.95
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 3,
+        "ms": 9.9
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 4,
+        "ms": 9.95
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 5,
+        "ms": 9.79
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 6,
+        "ms": 10.29
+      },
+      {
+        "density": "sparse",
+        "mode": "force_generic_plan",
+        "attempt": 7,
+        "ms": 9.7
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 0,
+        "ms": 10.0
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 1,
+        "ms": 9.83
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 2,
+        "ms": 10.35
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 3,
+        "ms": 9.92
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 4,
+        "ms": 10.03
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 5,
+        "ms": 9.72
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 6,
+        "ms": 10.19
+      },
+      {
+        "density": "sparse",
+        "mode": "auto",
+        "attempt": 7,
+        "ms": 10.03
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 0,
+        "ms": 21.78
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 1,
+        "ms": 17.54
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 2,
+        "ms": 17.81
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 3,
+        "ms": 17.83
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 4,
+        "ms": 17.68
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 5,
+        "ms": 17.43
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 6,
+        "ms": 17.5
+      },
+      {
+        "density": "dense",
+        "mode": "force_custom_plan",
+        "attempt": 7,
+        "ms": 17.81
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 0,
+        "ms": 16.42
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 1,
+        "ms": 15.86
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 2,
+        "ms": 15.96
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 3,
+        "ms": 15.84
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 4,
+        "ms": 15.84
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 5,
+        "ms": 15.59
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 6,
+        "ms": 16.37
+      },
+      {
+        "density": "dense",
+        "mode": "force_generic_plan",
+        "attempt": 7,
+        "ms": 16.26
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 0,
+        "ms": 15.82
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 1,
+        "ms": 15.83
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 2,
+        "ms": 16.24
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 3,
+        "ms": 16.25
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 4,
+        "ms": 15.67
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 5,
+        "ms": 16.63
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 6,
+        "ms": 16.34
+      },
+      {
+        "density": "dense",
+        "mode": "auto",
+        "attempt": 7,
+        "ms": 16.84
+      }
+    ]
+  },
+  "conclusion": "No statement timeout or generic-plan regression reproduced. Point items still build current authorized order IDs, costing about7ms sparse and15ms dense locally. This is a measurable inefficiency but does not explain the10s hosted timeout. Existing evidence cannot distinguish hosted plan/stats differences, resource/lock contention or another transient cause. No migration, timeout increase or app retry change is justified from this result alone.",
+  "next_evidence": "Paired browser/direct-SQL observations using the exact original owned persona fixture and real Customer/Worker sessions; six samples each, failed samples retained, direct SQL 10s timeout.",
+  "source_files": [
+    "supabase/migrations/20261107191849_squad_order_detail_batches.sql",
+    "supabase/migrations/20261107154723_squad_work_scope_query_review.sql",
+    "apps/admin/src/squad/features/jobWork/JobWorkPage.jsx",
+    "tools/squad/browser-contract-timings.mjs"
+  ],
+  "second_independent_failure": {
+    "run_id": "47d4b3e7-97b2-4bed-b033-884dac47f87f",
+    "persona": 4,
+    "screen": "Factory item detail / checklist",
+    "message": "canceling statement due to statement timeout",
+    "timings": [
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 21,
+        "latency_samples": 21,
+        "p50_ms": 597.81,
+        "p95_ms": 1589.35,
+        "max_ms": 1649.33
+      },
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": 500,
+        "outcome": "completed_http_error",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 10406.65,
+        "p95_ms": 10406.65,
+        "max_ms": 10406.65
+      },
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 2982.61,
+        "p95_ms": 3471.85,
+        "max_ms": 3471.85
+      },
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_order_get",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_order_item_get",
+        "status": 500,
+        "outcome": "completed_http_error",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 10405.86,
+        "p95_ms": 10405.86,
+        "max_ms": 10405.86
+      },
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_order_item_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 8,
+        "latency_samples": 8,
+        "p50_ms": 3148.61,
+        "p95_ms": 4721.2,
+        "max_ms": 4721.2
+      },
+      {
+        "role": 4,
+        "contract": "/rest/v1/rpc/v1_order_item_get",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 2,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      }
+    ],
+    "unfinished_requests": 19,
+    "inference": "Multiple persona/read contracts failed across separate runs; shared hosted cause remains possible but unproven. No SQL concurrency inferred from unfinished browser request events."
+  },
+  "local_profile_hosted_access": false,
+  "diagnostic_hosted_mutations": false,
+  "separate_authorized_read_only_catalog_snapshot": "docs/squad-one-web/evidence/read-timeout-140-catalog-snapshot.json",
+  "quiet_hosted_comparison": {
+    "evidence": "docs/squad-one-web/evidence/combined-read-diagnostic.json",
+    "run_id": "bc659e37-5412-4d10-aabd-b7fd41b0df07",
+    "browser_customer_ms": {
+      "min": 66.37,
+      "max": 117.44,
+      "repeat_p95": 87.83
+    },
+    "browser_worker_ms": {
+      "min": 200.77,
+      "max": 332.44,
+      "repeat_p95": 332.44
+    },
+    "sql_customer_ms": {
+      "min": 3.692,
+      "max": 96.387
+    },
+    "sql_worker_ms": {
+      "min": 32.049,
+      "max": 63.737
+    },
+    "observations": {
+      "browser": 12,
+      "sql": 12,
+      "failed": 0
+    },
+    "normal_authenticator_statement_timeout": "8s",
+    "diagnostic_sql_statement_timeout": "10s",
+    "jit": "off",
+    "cleanup": "Exact owned original persona graph removed;11 blocked reservations retained;no business commands,cron,cutover changes",
+    "disposition": "Quiet serial non-reproduction. Does not supersede either original real SQL timeout or prove a capacity, connection-pool, application concurrency or query-plan cause. Original fixture has no product and one item per order, unlike commercial acceptance graph. No SQL migration justified by this evidence.",
+    "next_chain_measurement": "Existing actual-chain timing observer now retains a bounded passive relative timeline using the same sample cap, plus tracked browser in-flight counts. No additional requests. Three local tests cover privacy, real Chromium delayed/truncated/cancelled HTTP, overlap and unfinished-stop semantics. This does not equate browser requests with active SQL."
+  },
+  "passive_timeline_prepared": {
+    "helper": "tools/squad/browser-contract-timings.mjs",
+    "sha256": "5f5cb84ea9a32cafa30159d02374274d62808622f042e02443b6a2e819dc9cc3",
+    "tests": "node --test tools/squad/browser-contract-timings.test.mjs",
+    "passed_tests": 3,
+    "hosted_executed_with_timeline": false
+  }
+}

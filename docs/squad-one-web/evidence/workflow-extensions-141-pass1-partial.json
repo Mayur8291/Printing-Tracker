@@ -1,0 +1,136 @@
+{
+  "run_id": "5dcfef9c-faa4-4253-b8de-d4d706aefba3",
+  "environment": "staging",
+  "migration_count": 141,
+  "result": "partial_failure",
+  "journeys": {
+    "people": {
+      "checks": [
+        "fm_real_browser_tailor_subtailor_create_edit_exact_manager_parent_and_no_login_controls",
+        "admin_real_browser_team_sc_business_profile_create_edit_no_invites_or_workers",
+        "admin_real_browser_team_notes_only_grant_preserves_parent_child_constraints",
+        "sc_cannot_read_foreign_managed_workforce"
+      ],
+      "scope": "Four separately created business profiles through real forms; Tailor/SubTailor managed by own FM, Team/SC by Admin. Queued account intents remain unexecuted; no Auth provisioning or mail claimed.",
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    "relationships": {
+      "checks": [
+        "admin_isolated_dealer_brand_price_visibility_and_future_approval_settings_persist",
+        "sc_customer_price_visibility_and_admin_indirect_dealer_link_persist",
+        "coordinator_reassignment_removes_old_sc_access_and_restore_recovers_exact_customer"
+      ],
+      "scope": "Two new source-only business profiles, no login provisioning; no existing order routing changed. Automatic approval flag only, not automatic onboarding outcome; no zone routing, bulk reassignment, coordinator-request review or notification delivery claimed.",
+      "browser_errors": 0,
+      "network_violations": 0
+    }
+  },
+  "completed_individual_checks": [
+    {
+      "name": "workflow-extensions",
+      "check": "customer_browser_coordinator_request_admin_rejection_preserves_original_routing",
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    {
+      "name": "workflow-extensions",
+      "check": "admin_browser_bulk_reassigns_two_isolated_customers_old_sc_denied_then_restored",
+      "browser_errors": 0,
+      "network_violations": 0
+    }
+  ],
+  "failure": {
+    "name": "Error",
+    "message": "No element found for selector: select[aria-label=\"Work history type\"]"
+  },
+  "private_source_hashes": {
+    "business-5dcfef9c-faa4-4253-b8de-d4d706aefba3.jsonl": "b88e6ff3fc46190d4a170372c985112828ceca1f4ff5b1dc89967a5e5441caa0",
+    "original-error.json": "7cf44d911e20a789d837653aaf3a3319733f6954076dcb9695e1f41b05bb4609"
+  },
+  "cleanup_receipt": {
+    "run_id": "5dcfef9c-faa4-4253-b8de-d4d706aefba3",
+    "measured_at": "2026-11-09T05:12:59.982194+00:00",
+    "cleanup": {
+      "run_id": "5dcfef9c-faa4-4253-b8de-d4d706aefba3",
+      "owned_commands": 35,
+      "owned_auth_revisions": 0,
+      "removed_source_rows": 94,
+      "removed_documents": 0,
+      "removed_queued_documents": 0,
+      "removed_processed_documents": 0,
+      "tables": {
+        "sa_users": 24,
+        "sa_factories": 2,
+        "sa_addresses": 3,
+        "sa_sizes": 1,
+        "sa_size_types": 1,
+        "sa_sc_sizes": 1,
+        "sa_base_product_types": 1,
+        "sa_base_products": 1,
+        "sa_categories": 1,
+        "sa_fabrics": 1,
+        "sa_colors": 1,
+        "sa_parts": 1,
+        "sa_add_ons": 1,
+        "sa_criteria": 1,
+        "sa_base_product_categories": 1,
+        "sa_base_product_fabrics": 1,
+        "sa_fabric_colors": 1,
+        "sa_base_product_parts": 1,
+        "sa_part_colors": 1,
+        "sa_add_on_parts": 1,
+        "sa_add_on_base_products": 1,
+        "sa_add_on_colors": 1,
+        "sa_base_size_types": 1,
+        "sa_authorized_brands": 1,
+        "sa_rmp_brands": 1,
+        "sa_rmp_categories": 1,
+        "sa_rmp_colors": 1,
+        "sa_rmp_classes": 1,
+        "sa_rmp_sizes": 1,
+        "sa_rmp_skus": 1,
+        "sa_rmp_price_types": 1,
+        "sa_rmp_prices": 1,
+        "sa_rmp_sku_prices": 1,
+        "sa_rmp_category_brands": 1,
+        "sa_products": 1,
+        "sa_orders": 1,
+        "sa_items": 1,
+        "sa_assigned_brands": 1,
+        "sa_customer_requests": 1,
+        "sa_item_criteria": 3,
+        "sa_item_tailors": 2,
+        "sa_job_sheet_assign_dates": 2,
+        "sa_job_sheet_assign_quantities": 2,
+        "sa_job_sheet_assign_tailors": 2,
+        "sa_job_sheet_mark_tailors": 4,
+        "sa_job_sheet_tailor_mark_dates": 2,
+        "sa_mark_cuttings": 1,
+        "sa_mark_tailor_quantities": 4,
+        "sa_product_part_add_ons": 1,
+        "sa_product_parts": 1,
+        "sa_quantities": 1,
+        "sa_user_dealers": 1,
+        "sa_item_tailor_quantities": 2,
+        "sa_mark_cutting_quantities": 1
+      },
+      "edit_revision_before": 1539,
+      "edit_revision_after": 1574,
+      "synced_revision_after": 1574,
+      "audit_and_commands_retained": true,
+      "jobs_terminalized": true,
+      "source_content_restored": true,
+      "staff_auth_preserved_during_cleanup": true,
+      "staff_auth_unchanged_since_fixture": true,
+      "independently_changed_staff_accounts": 0
+    },
+    "cutover_unchanged": true,
+    "cron_restored": true,
+    "public_structure_and_staff_auth_preserved": true
+  },
+  "scope": "Seven fully recorded People/relationship checks plus two individually completed extension checks preserved despite later harness selector-readiness failure. No managed-archive visible-history, assigned-task or preset-rename acceptance inferred from this failed run.",
+  "application_changed": false,
+  "weighted_milestone_awarded": false,
+  "remaining_failure_fix": "Three bounded waitForSelector calls before existing Work history type and Task assignment select actions. No retry, payload, assertion or deadline changes. Independently source-reviewed."
+}

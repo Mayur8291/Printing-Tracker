@@ -1,0 +1,50 @@
+{
+  "format": "squad-native-safari-observation/v1",
+  "run_id": "b6e764b1-9116-4c2a-bf56-b22c1f4b35b6",
+  "observed_at": "2026-11-09T06:05:25.649749+00:00",
+  "status": "functional_checks_passed_focus_return_review_pending",
+  "frontend": {
+    "base": "http://localhost:5186",
+    "entry_path": "/assets/index-Dy0PSYTE.js",
+    "entry_sha256": "92f718500c75869265f5d937d7e9dfa83f043fc2b7bfd7f6249a83c72c0a4c46"
+  },
+  "browser_version": "Safari26.1 (21622.2.11.11.9)",
+  "automated_browser_report_sha256": "7b9fe4da0448ee9684f3d467f1773719bc1aebfe99bafd76dc05c5bcd1d3dee7",
+  "native_observations": {
+    "customer_staging_login": true,
+    "session_reload_preserved_identity": true,
+    "ready_promotion_preview": true,
+    "missing_promotion_explicit": true,
+    "exact_category_filter": true,
+    "normal_download_button": true,
+    "popup_workaround_used": false,
+    "download_bytes": 143,
+    "download_sha256": "4cd25f8d39d72e338ab31e6a72096fa4f0e661a945468cac8c07490227a37d8c",
+    "download_local_hash_matches": true,
+    "valid_home_period": "2026-11-08 through 2026-11-09 applied; selected-period recent orders caption observed",
+    "reversed_home_period": "2026-11-10 through 2026-11-09 blocked by Safari native validation: Value must be less than or equal to 2026-11-09",
+    "all_time_reset": true,
+    "product_image_prepared": "1 image ready",
+    "dialog_keyboard": "Option+Tab traversed Close then Prepare again; Escape closed dialog",
+    "dialog_focus_return": "AX focus after Escape was HTML content, not Review and share; independent local investigation pending",
+    "logout_verified": true,
+    "application_tab_closed": true,
+    "clipboard_cleared_by_handoff": true,
+    "handoff_shutdown_acknowledged": true,
+    "private_window_closed": true
+  },
+  "cleanup_confirmed": true,
+  "acceptance_complete": false,
+  "scope": "Only exact disposable staging Customer and owned media. No business mutation, external share, signed URL, password or contact information in this receipt. Cleanup confirmation is added only after wrapper success.",
+  "cleanup_receipt": {
+    "path": "docs/squad-one-web/evidence/owned-content-media-acceptance.json",
+    "sha256": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+    "removed_source_rows": 55,
+    "owned_commands": 0,
+    "storage_removed": true,
+    "source_content_restored": true,
+    "cron_restored": true,
+    "cutover_unchanged": true,
+    "staff_auth_unchanged": true
+  }
+}

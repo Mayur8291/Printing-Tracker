@@ -1,0 +1,12 @@
+{
+  "scope": "Local PostgreSQL and harness regression suite; hosted and deployed acceptance remain separate",
+  "backend_prefix": "20261108202700",
+  "tests": 2529,
+  "failures": 0,
+  "errors": 0,
+  "duration_seconds": 307.012,
+  "measured_at": "2026-11-09T01:42:31.327961+00:00",
+  "log_sha256": "48d6e3239d0602edb09f9710f1f2808d8924c3671a2188669320a6b960dfc59c",
+  "log_local_path": "/tmp/squad-web-full-db-tests139c.log",
+  "correction": "Self-closure tests now establish a fresh password session per case. Regression proves a one-day-old session is rejected even with fresh AMR. Production password-proof enforcement unchanged."
+}

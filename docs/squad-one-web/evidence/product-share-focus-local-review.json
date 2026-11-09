@@ -1,0 +1,35 @@
+{
+  "format": "squad-product-share-focus-local/v1",
+  "status": "passed",
+  "baseline": {
+    "engines": [
+      "Chromium",
+      "WebKit"
+    ],
+    "actual_document_active_element_after_escape": "BODY",
+    "accessibility_artifact_only": false
+  },
+  "fix": "Capture actual toolbar event.currentTarget and restore still-connected enabled trigger in dialog onCloseAutoFocus. Share/preparation/download logic unchanged.",
+  "checks_per_engine": [
+    "pointer Escape returns opener",
+    "keyboard open/traversal/Escape returns opener with focus-visible",
+    "Close returns opener"
+  ],
+  "remote_requests": 0,
+  "page_errors": 0,
+  "native_supplement": {
+    "evidence": "evidence/native-safari-product-share-focus.json",
+    "sha256": "fcf2fbe13cf37772bc5028573c9ce293f43398efb5c40a3526fdfafac941693f",
+    "scope": "Actual native Safari local account-free React dialog: pointer/keyboard Escape and Close restore the connected opener with visible focus ring. No hosted/API/download replay."
+  },
+  "source_sha256": {
+    "apps/admin/src/squad/features/catalogue/CataloguePage.jsx": "2895b856d3784087e8e7b1270d547a8451bc3de9ea54d7d29ef347154d117828",
+    "apps/admin/src/squad/features/catalogue/ProductShareDialog.jsx": "8be930787dc23969ffd90514c60b0064340efea536989abfdc6c75e8208f5fe0",
+    "tools/squad/web-product-share-focus-browser.mjs": "fb62779ec298c71464ef9e5c69e36dc678527b09c93278459b493d792b0ed2a6"
+  },
+  "private_screenshot_sha256": {
+    "/tmp/squad-product-share-focus-chromium.png": "385bdc21ebddeb3a8aea35fddc0b588c71b0d4a84d414c546caf6ea27d1570ec",
+    "/tmp/squad-product-share-focus-webkit.png": "742a519903c248409fc0f719d6725df20a2cb9bb5069d3f075f6bd4808b1ee82"
+  },
+  "visual_review": "Both390px screens inspected: readable selected-product card and actions, visible keyboard focus ring on Review and share; no clipping."
+}

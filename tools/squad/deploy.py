@@ -26,6 +26,7 @@ def deploy(check=True,through=None):
     # Parallel implementation may have later, unfinished local migrations.
     # Release only a reviewed chronological prefix, never reorder migrations.
     require(through is None or re.fullmatch(r'[0-9]{14}',through),'Invalid migration cutoff')
+    from release_mirror import source_projection, protected_data, security_check, environment_state
     with connect('staging') as c:
         check_catalog(c,'staging')
         with c.transaction():
@@ -37,6 +38,9 @@ def deploy(check=True,through=None):
             c.execute('LOCK TABLE sa_sync.environment_state IN ACCESS EXCLUSIVE MODE')
             require(c.execute('SELECT environment FROM sa_sync.environment_state WHERE singleton').fetchone()[0]=='staging','Unexpected environment')
             before=public_structure(c)
+            _, source_tables = source_projection(c)
+            protected_before = protected_data(c, source_tables)
+            ownership_before = environment_state(c, 'staging')
             applied=[]
             for path in sorted((ROOT/'supabase/migrations').glob('*_squad_*.sql')):
                 version,name=path.stem.split('_',1);body=path.read_text()
@@ -53,9 +57,10 @@ def deploy(check=True,through=None):
                 c.execute('INSERT INTO supabase_migrations.schema_migrations(version,name,statements) VALUES(%s,%s,%s)',(version,name,[body]))
                 applied.append(path.name)
             require(public_structure(c)==before,'Printing Tracker public structure changed')
-            require(not c.execute("""SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-              JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='sa_domain' AND
-              ((p.prosecdef AND (r.rolsuper OR r.rolbypassrls) AND p.oid NOT IN('sa_domain.auth_context()'::regprocedure,'sa_domain.revoke_account_sessions(bigint)'::regprocedure)) OR (has_function_privilege('anon',p.oid,'EXECUTE') AND p.oid<>'sa_domain.v1_app_bootstrap(text,text)'::regprocedure))""").fetchone(),'Unsafe function privileges')
+            # One shared guard is used by staging and production releases.
+            security_check(c)
+            require(protected_data(c, source_tables) == protected_before, 'Protected source/Auth/public/media data changed')
+            require(environment_state(c, 'staging') == ownership_before, 'Staging ownership or revisions changed')
             reviewed_catalog=catalog(c);reviewed_access=access_catalog(c)
             print(json.dumps({'environment':'staging','migrations':applied,'public_structure_unchanged':True,'mode':'rollback verification' if check else 'apply'}))
             if check:raise psycopg.Rollback()

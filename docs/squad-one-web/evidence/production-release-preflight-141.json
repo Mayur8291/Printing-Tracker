@@ -1,0 +1,1050 @@
+{
+  "format": "squad-production-release-readonly-preflight/v1",
+  "measured_at": "2026-11-09T04:48:11.798964+00:00",
+  "manifest": "docs/squad-one-web/release-manifest-141.json",
+  "manifest_sha256": "f17163ef1962cb5a7a764da176184ee7c9db00aa52f872a5a3ce3f78af9dcf2a",
+  "target_prefix_count": 141,
+  "target_through": "20261109043010",
+  "production": {
+    "prefix_count": 113,
+    "last_migration": "20261108154028",
+    "contiguous_reviewed_prefix": true,
+    "applied_body_mismatches": [],
+    "unknown_squad_migrations": [],
+    "applied_body_hashes": [
+      {
+        "version": "20261107130905",
+        "name": "squad_domain_foundation",
+        "body_sha256": "26dbdabe9cb4401fd47c2cf4a03d828cfcdcf2760105739ef702c49cb8a4e760",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107131817",
+        "name": "squad_auth_write_fence",
+        "body_sha256": "ff32d71674368e0ecca0b0ada18595890dfd27396776c9fc528130ea0983846a",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107132520",
+        "name": "squad_hosted_auth_boundary",
+        "body_sha256": "33e7ae7d902d29d0bcf488e708e4eb543148ebd3239c8e53824d65a4bcde68df",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107132809",
+        "name": "squad_scoped_reads",
+        "body_sha256": "3c8dd98a9f3d0f4962f25ba8698e6a8caf6480c603e98da1487c790bfd04b77c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107133835",
+        "name": "squad_work_management",
+        "body_sha256": "c6e95ce599441b184ede535fbb8c4ba3ad390dbbd9302d1010d94515867148fe",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107134743",
+        "name": "squad_sales_targets",
+        "body_sha256": "d4150630997b01ee2ae3c7118bfe8880d7121115f757006e7d2bacbed50ce0c2",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107135733",
+        "name": "squad_contract_review_fixes",
+        "body_sha256": "5a408b1ae2858379065e0843f4e980dc2d36cd26b36ad5afd2f8bdea9db305d8",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107140656",
+        "name": "squad_catalogue_contracts",
+        "body_sha256": "acb14ea25ad4219752a05b018f37fe0879777fac9ee3ceb729e552231e006199",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107141231",
+        "name": "squad_pricing_engine",
+        "body_sha256": "fb5fbba2e16cac9fa3f5c621aa25d171e2709e80f7d95680faa81985ae0f42f8",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107142136",
+        "name": "squad_catalogue_query_review",
+        "body_sha256": "50bd1a76f6dd34460710b472183314f3742c94513a32c3726b5f8e589243b3a0",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107142746",
+        "name": "squad_presets_and_quote_review",
+        "body_sha256": "c9cdd5d79fb061ce535a4ae281b675da5f637eedcb22dd6b256ea5ca11f6c14c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107144141",
+        "name": "squad_order_acceptance",
+        "body_sha256": "3f0b756453973a233e5548c86be21d0d7b48e5766c3afcea4524f56ac25418da",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107150240",
+        "name": "squad_order_lifecycle",
+        "body_sha256": "508762a860df398f4a3dd14c1f9f74b5d5062303811814c87bb92517a6214177",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107151152",
+        "name": "squad_order_acceptance_performance",
+        "body_sha256": "8987ba724f5b2480b84efcb19f16f4a485d50dfefa72e734440b9d6de84795e7",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107151402",
+        "name": "squad_production_allocation",
+        "body_sha256": "8a513e6cee6cb5fd1f101d2fc54430ce17c53b1952606348865afed3783662a5",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107152340",
+        "name": "squad_factory_relationship_review",
+        "body_sha256": "f88d0565e8a7123e8409d88ebd0364c78b2abeb5b28012437fac042ce62505b2",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107152811",
+        "name": "squad_production_query_review",
+        "body_sha256": "5d29830736978fae9abe34b6181bd196da9c0e0bdfccb842ac7ac9e8b35da571",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107153720",
+        "name": "squad_production_execution",
+        "body_sha256": "3776ab09ef22065ea2359c8c7d75d10f7c95d62a11d953462a1fe63639d455d4",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107154723",
+        "name": "squad_work_scope_query_review",
+        "body_sha256": "f686dd137437a5204ba295fbd2921a19ed0dd89196903600cce20a6ad0cd79c9",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107155042",
+        "name": "squad_work_scope_index_paths",
+        "body_sha256": "3d96452fb1638690747e9d6be3645aef96ab453c26ed0136bd4ef7ae34d4d9e1",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107155302",
+        "name": "squad_assignment_progress_semantics",
+        "body_sha256": "4f128e6882015ad7b307572cd0b19ed5dad9606a0ba1eb178b767473cc15838c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107160045",
+        "name": "squad_dealer_stock_balances",
+        "body_sha256": "1f38e5c48d106512c8f63ed26b7d6105129b87c72ec3e03d0d0f5f1d2df0cf81",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107160838",
+        "name": "squad_dealer_stock_execution",
+        "body_sha256": "f51fb93518402bad84d5c3ba0c7ea4da91e865da47a8a2e209b7f19e4038e138",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107162742",
+        "name": "squad_historical_preset_reorders",
+        "body_sha256": "1e954acc373b22f3551a83a2dece8a438ca9343198dc82a021cfc5426b12a37f",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107163208",
+        "name": "squad_dealer_backorders",
+        "body_sha256": "cd9576414e1e2e2af0a03f496d98b33027f56b05947718b6412c7edfa252d2aa",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107163542",
+        "name": "squad_stock_query_review",
+        "body_sha256": "1699a7a7dcd4eb596088fbc00890b5f1ba91439e5fd4f4f88749609813a74d27",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107164109",
+        "name": "squad_delivery_contracts",
+        "body_sha256": "408d0ef2196b333658754320e72a14bffd005e8bccfd5528abca6c0c0cadf060",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107164500",
+        "name": "squad_tailor_earnings",
+        "body_sha256": "5911034b136b64b86c7af5a6c397db93c57633d9b5987e2664f81ed8e7abef16",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107165430",
+        "name": "squad_people_and_addresses",
+        "body_sha256": "88f891c608aa382270197eba939ac78e535ed9404eca97c625116e6afcef6217",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107171159",
+        "name": "squad_people_dependency_queries",
+        "body_sha256": "168fbb1d3c83c787861dd42089038fe40f33a3762a50730ba490032fa2a8266f",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107171508",
+        "name": "squad_customer_relationships",
+        "body_sha256": "7d17f6ee5e5d67e6d78d5622be5e0d3054131b1747d8aebdfe9f3d46c639994b",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107172446",
+        "name": "squad_people_filters",
+        "body_sha256": "b458461f6dd567fca911c21fb29240ded2cce75aacade7e4de2197ba151ff6e4",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107173303",
+        "name": "squad_relationship_batch_performance",
+        "body_sha256": "322231e935b96cc1aa9881530410d6dea8e34b3519e0a960a170208d5b3e4cbe",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107173834",
+        "name": "squad_app_content_and_settings",
+        "body_sha256": "e9f6d7fa84370a638299aab1a50616ffc4792c68f658028347aad337fc6dfb68",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107175132",
+        "name": "squad_content_selector_review",
+        "body_sha256": "57c6306abcbf853566317808d1ea0a54120101f606d0eddd6d1507ffd6d75f77",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107175250",
+        "name": "squad_ratings_and_moderation",
+        "body_sha256": "9995e9a49e5a6226d79e571668a398c785686dfefca1f363c4ec3e1787beb235",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107180159",
+        "name": "squad_work_reports",
+        "body_sha256": "cee3a3a7952737b9761e05358eaad3b50811cc3ebabab40989b1d0204fda2c65",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107180931",
+        "name": "squad_work_report_scope_review",
+        "body_sha256": "7cc4715ed225c9ad2c4ab215cec64d7892449a9bb87eb02a676b8d4c6951396f",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107181440",
+        "name": "squad_sales_reports",
+        "body_sha256": "1126a4b690cafe0bd2065c40f703895e9e21d38c371fd31fb79b8967177fac47",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107182955",
+        "name": "squad_sales_report_query_review",
+        "body_sha256": "3db129eaddca78b6309e131fc35035c75d8eed2c8f11a4744766b62d37a8af14",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107183250",
+        "name": "squad_sales_report_plan_review",
+        "body_sha256": "8c15b9e05871bfe1d2004b7d839668e4884c14268cf4c2c98ea2eaca3ddf634e",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107183622",
+        "name": "squad_sales_report_statistics",
+        "body_sha256": "cc111beda3b68fcd7e8d14166cbe0a671381f33878b440a7730bcb1ef7613195",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107184051",
+        "name": "squad_sales_numeric_validation",
+        "body_sha256": "357612a00971ac276eacd13d9aacf89ca5c812fe7049487f391ac2e9572d03e6",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107184305",
+        "name": "squad_sales_report_labels",
+        "body_sha256": "d3f31d284518cc1238123f648d1a12d082ac898b369cbc7abde053c3f3ccb98a",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107184505",
+        "name": "squad_order_amendments",
+        "body_sha256": "348ebda3f0261ea95ad6d99629153a4f2a262f603d9d361e1ec63df7998a9c6c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107185947",
+        "name": "squad_order_detail_contracts",
+        "body_sha256": "c324b8fa3951ca1fae17335168fb134d0a5c0bfcb821b297ef96534a50bd0486",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107190922",
+        "name": "squad_order_detail_query_review",
+        "body_sha256": "a8234f164b84b8992e7b02cc965fd0431abffb4f3b76257d6b661f4378f40266",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107191401",
+        "name": "squad_order_write_policy_review",
+        "body_sha256": "2035957651493bfd8714d55a2d0b49e59405ecfe1df9d8b5345fa16f50eed960",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107191618",
+        "name": "squad_order_batch_acceptance",
+        "body_sha256": "95e27fab551356dc699dda5386bc97a4249958ad2af35cf1a4b5d3347ad15dd1",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261107191849",
+        "name": "squad_order_detail_batches",
+        "body_sha256": "8c596b6a698afbfb7d1f0b0c4837dee499c8fc50d97efb665f491a3c8e406b40",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108022247",
+        "name": "squad_bounded_amendment_execution",
+        "body_sha256": "87cd0e68f16ae06e8224a28fc10216d448deaef167f685a019aa882161226fd8",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108022829",
+        "name": "squad_batch_preset_validation",
+        "body_sha256": "fbd4e1ae424e6e48f42c17c60bddb2c4eb524d24ab246c343d7ebc5986902554",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108023249",
+        "name": "squad_request_pricing_reuse",
+        "body_sha256": "9705d24d97e787be269d49dea12cca2d4e270fcee17043a6bb82db34a1fa6e0c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108023920",
+        "name": "squad_durable_jobs",
+        "body_sha256": "43d89ec7fe38cda32f4f00d5cbda98b5ca7759e2a203b5fc3cc17de033b6ec54",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108025016",
+        "name": "squad_job_scheduler_transport",
+        "body_sha256": "4cb78ca070cc8c3414e3b57663e0e21098ce25337405e7fe83a611709b465fec",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108025916",
+        "name": "squad_scoped_media_grants",
+        "body_sha256": "94c9741054a6d403c7e7d2a06da4d3d19eed975a81b68793714e27915409d35c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108031300",
+        "name": "squad_order_media_inheritance",
+        "body_sha256": "1eb213d885e395896fc16a06d349a10e1f987fb0a9601a1aab1f31c6acc3e1a1",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108031703",
+        "name": "squad_verified_media_uploads",
+        "body_sha256": "faa718e8ac5c292de1f065347d597c0630a4d59497682cb434a66a9fba65134c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108033220",
+        "name": "squad_expired_upload_cleanup",
+        "body_sha256": "6499263ac4b4f62600f1dad36eacd0eea7ffcde8442f3ca2a47c316f45572f61",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108034426",
+        "name": "squad_atomic_master_media",
+        "body_sha256": "506580047b4cfaadacefff59b5f64d6cbe3a2c8845c0b30fdcb431cb48e93364",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108041430",
+        "name": "squad_account_reconciliation",
+        "body_sha256": "3cd2854aee120a6073777f6e7d2aecae22c69f79be0aba9b6b22c34f6c686b63",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108043442",
+        "name": "squad_account_recovery_review",
+        "body_sha256": "cc552be8dfd21b1907b7f58feca96b179835a575896cc855d5d798239c490101",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108044248",
+        "name": "squad_account_email_flows",
+        "body_sha256": "0f53e10f149130f7930d362ce82bd7261ccc0e127559ffd2f764cf8289826de0",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108052301",
+        "name": "squad_account_creation_review",
+        "body_sha256": "aa7593d2c33b174c706dbdd1d0bc30074e679d7e43cb00e02edf5007a1e832c4",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108053948",
+        "name": "squad_notification_contracts",
+        "body_sha256": "72e8f4af6d5f06d6c11b5e4bb219ded1594c64c9642007ca0210d72de45243c0",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108060519",
+        "name": "squad_notification_routing_review",
+        "body_sha256": "42b046dc0e62bc895b640478360fad7442a801fae4ef60e2a7076a4a3bdda4df",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108061117",
+        "name": "squad_notification_event_parity",
+        "body_sha256": "4032921d13a3b59f195e22b28dfe7e969edc833612e324808ef6217bb1e963d8",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108061754",
+        "name": "squad_notification_delivery_review",
+        "body_sha256": "2a3e9744b7b3db9a1912cdeb4edb0e1fba5dd8b8d6a5f5518ad1a1d76e0c706a",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108063322",
+        "name": "squad_document_snapshots",
+        "body_sha256": "a1cf278e8f7dd966aec1e0d9caf29bc4a075686a92cc5788219a2932cde7b692",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108063818",
+        "name": "squad_document_capture",
+        "body_sha256": "f37c5e15279318f7b19e11104a309aae138bae458a4ffdaa1b3045cff99209a0",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108064009",
+        "name": "squad_document_worker",
+        "body_sha256": "ffac5b26002c35e3e33705afe7758b49ad41769c196ea0f8289c2fcab35acf58",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108065733",
+        "name": "squad_document_delivery",
+        "body_sha256": "0988387de8f5f161b6cb8f2723077f5ee5c8a6a404bf62721579a24aec1808ef",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108072339",
+        "name": "squad_document_retry_review",
+        "body_sha256": "324d99db7ad12e26932e2bdc9711172de71a1ad6cdad5e8e0242113c28af1f1c",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108073331",
+        "name": "squad_transfer_jobs",
+        "body_sha256": "98379761ec4aa2f50272c7aae918ce7033b6e327ad8481c9ce71824298979ce5",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108074142",
+        "name": "squad_transfer_contracts",
+        "body_sha256": "b31fffd419a42793eae19725f41d9e768c9ec979b46180ccec14c7453815bcf5",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108074850",
+        "name": "squad_transfer_worker",
+        "body_sha256": "59387e709ec09c798a2e155334e8e01a1e784e0766dcfc2b613dca47ab1837a0",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108075017",
+        "name": "squad_stock_reconciliation",
+        "body_sha256": "2e499af5e27bbd1d6be17577a8091cc7ac8d762f61a45ebb5a494d43d087cbdb",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108075418",
+        "name": "squad_transfer_retention",
+        "body_sha256": "14ac5a55d4e8c61186d300bbd630df449200fc9beb77aa3d859f4a7d0c390bf2",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108080502",
+        "name": "squad_cutover_contracts",
+        "body_sha256": "f9fa3a1ccb0c8bf8593e794672a60c93b81e822230c57b40f2dd0cf11e7d3a1b",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108080718",
+        "name": "squad_warehouse_receipts",
+        "body_sha256": "30058e07611d951136acf486b3db6df4fbf22707ff546f2d0ddb7acb0f755600",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108081450",
+        "name": "squad_warehouse_effects",
+        "body_sha256": "9c08a99fe3ce76eb72231dc2f0313a7848d97cb821f19b53aecafe79d9d14f78",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108081816",
+        "name": "squad_stock_reconciliation_plans",
+        "body_sha256": "9a8fd0b1eb01702374eb1c26e7a4961d1c9915d15a05399e68ffc4aa70ff2ce8",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108082157",
+        "name": "squad_warehouse_outbound",
+        "body_sha256": "1aade94ebafff60a0331bbe3d39e97fe33dc284023993cc5cfe42e9a45a4c90b",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108083005",
+        "name": "squad_transfer_legacy_history",
+        "body_sha256": "03a1442e23f163b652413347d12e76909087b6b8b5477ee821f14caa461b7b38",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108083543",
+        "name": "squad_warehouse_customers",
+        "body_sha256": "d0163a32716dc29e1fc534834a47cc6ef4aca209313e8b0073c56bf69b27bab7",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108084219",
+        "name": "squad_airtable_capture",
+        "body_sha256": "53726a3d108ffa631a93607f62b58c2cf557acf6e70687f83e32167caa51ac83",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108084246",
+        "name": "squad_warehouse_amendments",
+        "body_sha256": "4f7b19b84aa9c5f4d383e611948aa67f4375089452a6039497c0fb9f1c90534f",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108085147",
+        "name": "squad_airtable_master_bridge",
+        "body_sha256": "0b347ed1808db5d80e9773dac825db7b0bc401fbb55d91e52694909572490935",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108085317",
+        "name": "squad_warehouse_notifications",
+        "body_sha256": "dc96f7f92ab0fdc8d5adc34be61f5cfd10645e5be3412d1cb19247e11ef87ce5",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108085403",
+        "name": "squad_airtable_worker",
+        "body_sha256": "0faa83890dd068f7ef15927d5715ed76e4ed24b5aed96da585cdc097b1d23926",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108085500",
+        "name": "squad_business_mail",
+        "body_sha256": "341f3646f30deab3ab02854e26590428a107584d34f95f86844b786aa97d71cf",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108085643",
+        "name": "squad_airtable_reports",
+        "body_sha256": "5f38329b9a82f3f6175fad52b9a20cc9c4b0c3bc20e63f65c380351fe2560e96",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108090117",
+        "name": "squad_worker_review",
+        "body_sha256": "74738d4d359eb77a9e9e9ea8e8fc5876dca94490981e191209e0479de9d2f57a",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108090719",
+        "name": "squad_persona_finance_parity",
+        "body_sha256": "564b010d49ea3a2e21726bada1213bc3a45a6964635e0a93d10a1c0ffcd13433",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108092021",
+        "name": "squad_weekly_tailor_schedule",
+        "body_sha256": "9f5dd3da4aff0f1bcc5b1c753e9c434fcf560e633ed66d153ea3850cdec6c952",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108093011",
+        "name": "squad_airtable_failure_recovery",
+        "body_sha256": "7464c74ed24f98cf9ad5d37cf9b41f921c59da402211c1e7f1c39ec607e50142",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108093050",
+        "name": "squad_work_point_scope",
+        "body_sha256": "a1ee81edc9e062a3d07f35b815240a0a8c9358462f3af648027343766bdd8b96",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108093125",
+        "name": "squad_warehouse_schedule",
+        "body_sha256": "311020b30d928f6a8f0c79012ae1102667b8010271797dc1cca6bda5d43269e0",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108094123",
+        "name": "squad_inventory_watermarks",
+        "body_sha256": "96b940d4a571318a07e819030420bdfe39f4424b327cf0cc82d6ac567caa6b0d",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108094744",
+        "name": "squad_warehouse_scope_isolation",
+        "body_sha256": "82b7428bc7612f7a594e8bbe06fa5bedb39c3b38709f06e74c73030e8768ab9b",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108100011",
+        "name": "squad_uniware_custom_fields",
+        "body_sha256": "e02e2ac6ea77961b21e6434568a2e3eadf376b3b77d1f04557a5dea005c6f597",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108100638",
+        "name": "squad_uniware_failed_recovery",
+        "body_sha256": "950ff352d369349c859e48d7122ed23d1e7db85788c16d60a43a5c76ca64a0d5",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108103400",
+        "name": "squad_scoped_staging_rehearsal",
+        "body_sha256": "9c5c8ad7797f89500636c43d011ee832d296f5a5564797b650c9fb49c7dcf515",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108110233",
+        "name": "squad_application_conflict_sqlstate",
+        "body_sha256": "13f9030865e356689d749956d7c1c166a88a152f3599807d6d7f61fed92b2864",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108112012",
+        "name": "squad_stock_allocation_scope",
+        "body_sha256": "8bdc92dc1e2f4b42f8ad8ce6422d5f310f1db310f63742ff137c41a537bd959b",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108115936",
+        "name": "squad_document_rehearsal",
+        "body_sha256": "231274effc789138ecdeee66de082584d92c53e4a574ceda4e8dd61352b1f079",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108121820",
+        "name": "squad_warehouse_rehearsal",
+        "body_sha256": "fa77f1e74a279c77caebfd2ccf91a8fedf8b328072b8fb7989d2b9665d725f1a",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108121935",
+        "name": "squad_weekly_mail_rehearsal",
+        "body_sha256": "863ed66d920dd289be760dd68674278fb866e7ab20ea3c037c5749ac7b7eb6e9",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108125014",
+        "name": "squad_warehouse_rejection_diagnostics",
+        "body_sha256": "1410646c5b2a96ea84698f9bae6ed27a004005928e9da40c117c85290a867d87",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108125302",
+        "name": "squad_dashboard_customers_reports",
+        "body_sha256": "99cc08f9d80072f1baa2fab44496b8613e41d9c6ef54b029158f3bf8d100c9bf",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108144542",
+        "name": "squad_backend_environment_parity",
+        "body_sha256": "82e863f864518b63f85cdbe690f2af96c271520505ef43adca358175bbb83833",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108145821",
+        "name": "squad_dashboard_rmp_search_projection",
+        "body_sha256": "0e79cd857887f8bcbde745f3d71e3aecc4fd3c1c88f531775a2ac1b41f5c6977",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      },
+      {
+        "version": "20261108154028",
+        "name": "squad_dashboard_customer_type_summary",
+        "body_sha256": "6ca5fad3994d9c10c79239c793e811fa8bec463ff18249885f02ca507f8212c9",
+        "statement_count": 1,
+        "matches_reviewed_body": true
+      }
+    ],
+    "pending_count": 28,
+    "pending_migrations": [
+      {
+        "version": "20261108175330",
+        "file": "supabase/migrations/20261108175330_squad_web_session_and_configurator.sql",
+        "sha256": "a6aa99dbe52c5796fe785c8d28c922a016370d61bf18d7024ea40336f8eda6f3"
+      },
+      {
+        "version": "20261108180809",
+        "file": "supabase/migrations/20261108180809_squad_customer_self_closure.sql",
+        "sha256": "bd5c5a5fac8cac9d7d403d70acabb4acd2bb96b1ff0f273a7cb5344cc691ad41"
+      },
+      {
+        "version": "20261108181329",
+        "file": "supabase/migrations/20261108181329_squad_order_assignment_filters.sql",
+        "sha256": "39b261f0f786588b8a56aa192aa34567746bdff229b1f79f03b4c0f09b9fc5c9"
+      },
+      {
+        "version": "20261108181835",
+        "file": "supabase/migrations/20261108181835_squad_commerce_display_context.sql",
+        "sha256": "b2df6e807b8d1875c854e748bd6904f48ecfccd2d6bbf1628fd64ec31f0a5885"
+      },
+      {
+        "version": "20261108181938",
+        "file": "supabase/migrations/20261108181938_squad_web_detail_reads.sql",
+        "sha256": "2b5f0b164654168d1df12810bf62b267db1ba39dbc8c354751fa7b51336fa7bf"
+      },
+      {
+        "version": "20261108182150",
+        "file": "supabase/migrations/20261108182150_squad_document_terms_attachments.sql",
+        "sha256": "d4fa3bfe0fd6de79358626a569166d6de48fc6649209e642298ae07dea42b64c"
+      },
+      {
+        "version": "20261108183714",
+        "file": "supabase/migrations/20261108183714_squad_order_amendment_context.sql",
+        "sha256": "ee1dca746e687d9a68bea27a61a9874cc0fd756ebf8cee60ce5e81d8d709a3df"
+      },
+      {
+        "version": "20261108184439",
+        "file": "supabase/migrations/20261108184439_squad_scoped_jobsheet_queue.sql",
+        "sha256": "002cf523ce314eed4f978aca8e25166946551bae9e790fdc31543becac1cf6aa"
+      },
+      {
+        "version": "20261108190645",
+        "file": "supabase/migrations/20261108190645_squad_account_rehearsal.sql",
+        "sha256": "80a05f2c96101b00cdfab7466758a5264f034a602f0ae0ae4111950759574438"
+      },
+      {
+        "version": "20261108191503",
+        "file": "supabase/migrations/20261108191503_squad_catalogue_terms_rehearsal.sql",
+        "sha256": "570aced41e6c76c7a9d5ea691a88a1071942ade157316591110ed48c9b4caf70"
+      },
+      {
+        "version": "20261108192922",
+        "file": "supabase/migrations/20261108192922_squad_order_item_point_reads.sql",
+        "sha256": "ef5bcf390ef4ea8cca18dc36ab287067b17c00340a44a7f97cbd7b1936b18680"
+      },
+      {
+        "version": "20261108192953",
+        "file": "supabase/migrations/20261108192953_squad_work_search_controls.sql",
+        "sha256": "bcc855ceb91c84388b31ef14311770bd052e2b47229cefdd8e4aa9df0f1b8167"
+      },
+      {
+        "version": "20261108193525",
+        "file": "supabase/migrations/20261108193525_squad_product_image_controls.sql",
+        "sha256": "29f27d6d4821e6e1f788635fc3bd3fc280dcd8221bb827223fc4fcd2df5fc5b2"
+      },
+      {
+        "version": "20261108194142",
+        "file": "supabase/migrations/20261108194142_squad_sc_customer_account_status.sql",
+        "sha256": "3ba0698b152492ecec248534e7d87537e061f3c2d41e433e1b5e6e259f4e4351"
+      },
+      {
+        "version": "20261108194210",
+        "file": "supabase/migrations/20261108194210_squad_order_due_sort.sql",
+        "sha256": "70af843c3a4d253825d748a5a130a04b1e934ff3e121eb2421c6f45faa29ed50"
+      },
+      {
+        "version": "20261108194747",
+        "file": "supabase/migrations/20261108194747_squad_operational_item_views.sql",
+        "sha256": "7e842567f889b8ecea21afda64e92d9275b879cb284350bd4b68fa2649bebe10"
+      },
+      {
+        "version": "20261108194841",
+        "file": "supabase/migrations/20261108194841_squad_branding_attachment_formats.sql",
+        "sha256": "4d3ea1dfcdafd1b0775171a68fb1a77c788491f08066a19f059ae67c141365b2"
+      },
+      {
+        "version": "20261108195130",
+        "file": "supabase/migrations/20261108195130_squad_target_controls.sql",
+        "sha256": "bf94ef3cd2ea375e2938b70556ae7f884b5fcceed0e4f5fccd6768f6083bf39a"
+      },
+      {
+        "version": "20261108195629",
+        "file": "supabase/migrations/20261108195629_squad_person_order_context.sql",
+        "sha256": "4b3c28c107b35a7282a127f944bef5847a757ae54f3e7404f352e5eafc8382ba"
+      },
+      {
+        "version": "20261108201002",
+        "file": "supabase/migrations/20261108201002_squad_operational_context_reads.sql",
+        "sha256": "06e7817b5b384e06c5be1f2b5d26f249a9c4e5264c726cdb521ed61424fa5091"
+      },
+      {
+        "version": "20261108201737",
+        "file": "supabase/migrations/20261108201737_squad_completed_order_priority.sql",
+        "sha256": "81def146775f568ddede38e2d46cc4a423697a360033b11c8fadb4cc94978ae0"
+      },
+      {
+        "version": "20261108202002",
+        "file": "supabase/migrations/20261108202002_squad_worker_order_context.sql",
+        "sha256": "8bf5b0e736e587a7dbc2546b35563612d8d1fba8955bb9064856eb180e2cf1e2"
+      },
+      {
+        "version": "20261108202021",
+        "file": "supabase/migrations/20261108202021_squad_worker_commitment_guard.sql",
+        "sha256": "b78f9e5845d1db46ef0a0f3931a22825fa8739a30dbbfcb95381c81f0527a943"
+      },
+      {
+        "version": "20261108202026",
+        "file": "supabase/migrations/20261108202026_squad_backorder_quantity_choices.sql",
+        "sha256": "94014792d55ea2fecb9b140255c3413405fb3719754411ddaec48cea65a1beff"
+      },
+      {
+        "version": "20261108202457",
+        "file": "supabase/migrations/20261108202457_squad_registration_profile_controls.sql",
+        "sha256": "80590748a36665360bd04ba522ce8bd3c922fb1cf73a2d191c89bc17c71ed641"
+      },
+      {
+        "version": "20261108202700",
+        "file": "supabase/migrations/20261108202700_squad_catalogue_parent_options.sql",
+        "sha256": "53ed1db07c067b5b42e2c36b21584359c3b46ab850be1939d00d0a2fa2d76477"
+      },
+      {
+        "version": "20261109024124",
+        "file": "supabase/migrations/20261109024124_squad_weekly_schedule_safe_updates.sql",
+        "sha256": "c7dd4d5eb885fe2fd5349edf0271caa55f7c049d2f6457467ac7f5067dad2530"
+      },
+      {
+        "version": "20261109043010",
+        "file": "supabase/migrations/20261109043010_squad_worker_scope_index.sql",
+        "sha256": "8f4c269b2cd5cafb37846d8327c2978f654bfad1bcb40f4e9a21696c2715ae9f"
+      }
+    ]
+  },
+  "edge_inventories": {
+    "staging": [
+      {
+        "slug": "canto-refresh",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0"
+      },
+      {
+        "slug": "squad-account",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "2e58b626551992a6d1ee1fbcdfd379a8654da4e6762570650df174a5b5ff146c"
+      },
+      {
+        "slug": "squad-jobs",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "2c79ff5e340d846d14995386d86f992787defb68164c5d3a2c5e01a8a108feac"
+      },
+      {
+        "slug": "squad-webhooks",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9"
+      }
+    ],
+    "production": [
+      {
+        "slug": "canto-refresh",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0"
+      },
+      {
+        "slug": "squad-account",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d"
+      },
+      {
+        "slug": "squad-jobs",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176"
+      },
+      {
+        "slug": "squad-webhooks",
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9"
+      }
+    ]
+  },
+  "edge_delta": [
+    {
+      "slug": "canto-refresh",
+      "staging_ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0",
+      "production_ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0",
+      "bundle_equal": true,
+      "status_equal": true,
+      "verify_jwt_equal": true,
+      "required_action": "compare_only_no_deployment_needed"
+    },
+    {
+      "slug": "squad-account",
+      "staging_ezbr_sha256": "2e58b626551992a6d1ee1fbcdfd379a8654da4e6762570650df174a5b5ff146c",
+      "production_ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d",
+      "bundle_equal": false,
+      "status_equal": true,
+      "verify_jwt_equal": true,
+      "required_action": "promote_exact_reviewed_staging_artifact_after_sql_acceptance"
+    },
+    {
+      "slug": "squad-jobs",
+      "staging_ezbr_sha256": "2c79ff5e340d846d14995386d86f992787defb68164c5d3a2c5e01a8a108feac",
+      "production_ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176",
+      "bundle_equal": false,
+      "status_equal": true,
+      "verify_jwt_equal": true,
+      "required_action": "promote_exact_reviewed_staging_artifact_after_sql_acceptance"
+    },
+    {
+      "slug": "squad-webhooks",
+      "staging_ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9",
+      "production_ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9",
+      "bundle_equal": true,
+      "status_equal": true,
+      "verify_jwt_equal": true,
+      "required_action": "compare_only_no_deployment_needed"
+    }
+  ],
+  "ready_for_guarded_release_preparation": true,
+  "scope": "Current read-only migration metadata and four managed Edge inventories only. No full structural/data parity scan, config change, SQL apply, deployment, provider action, or staging fixture inspection.",
+  "limitations": [
+    "Production ownership, schedules, idle leases, full protected digests, refreshed catalog fingerprints and final parity must still be verified by the guarded release at execution time.",
+    "Staging has an active accepted test fixture; no full parity acceptance is asserted.",
+    "Local Edge source inventories are not hosted EZBR bundle hashes. Hosted bundle equality/difference is reported separately."
+  ]
+}

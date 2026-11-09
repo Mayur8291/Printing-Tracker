@@ -29,7 +29,10 @@ CHECKPOINT=ROOT/'tools/squad/private/personas-checkpoint.json'
 URL='https://scvojtvgnkmbupvyslmb.supabase.co'
 ROLES=[0,1,2,3,4,7,8,9,10,11,12]
 MIN_ID=1900000000
-MAX_ID=1900010000
+# Reviewed 2026-11-09: 536 blocked tombstones, zero live source/Auth rows;
+# next 2,000 IDs collision-free. Ten further 200-ID blocks, never reuse tombstones.
+# See evidence/persona-reservation-range-review-141.json.
+MAX_ID=1900012000
 FEATURES=[{'key':'1','checked':True},{'key':'2','checked':True},{'key':'3','checked':True,'children':[{'key':f'3.{n}','checked':True} for n in range(1,5)]}]
 
 

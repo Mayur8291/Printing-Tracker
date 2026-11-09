@@ -1,0 +1,52 @@
+{
+  "format": "squad-production-release-141/v1",
+  "measured_at": "2026-11-09T05:54:41.914469+00:00",
+  "result": {
+    "release": {
+      "environment": "production",
+      "through": "20261109043010",
+      "mode": "applied",
+      "migrations": [
+        "20261108175330_squad_web_session_and_configurator.sql",
+        "20261108180809_squad_customer_self_closure.sql",
+        "20261108181329_squad_order_assignment_filters.sql",
+        "20261108181835_squad_commerce_display_context.sql",
+        "20261108181938_squad_web_detail_reads.sql",
+        "20261108182150_squad_document_terms_attachments.sql",
+        "20261108183714_squad_order_amendment_context.sql",
+        "20261108184439_squad_scoped_jobsheet_queue.sql",
+        "20261108190645_squad_account_rehearsal.sql",
+        "20261108191503_squad_catalogue_terms_rehearsal.sql",
+        "20261108192922_squad_order_item_point_reads.sql",
+        "20261108192953_squad_work_search_controls.sql",
+        "20261108193525_squad_product_image_controls.sql",
+        "20261108194142_squad_sc_customer_account_status.sql",
+        "20261108194210_squad_order_due_sort.sql",
+        "20261108194747_squad_operational_item_views.sql",
+        "20261108194841_squad_branding_attachment_formats.sql",
+        "20261108195130_squad_target_controls.sql",
+        "20261108195629_squad_person_order_context.sql",
+        "20261108201002_squad_operational_context_reads.sql",
+        "20261108201737_squad_completed_order_priority.sql",
+        "20261108202002_squad_worker_order_context.sql",
+        "20261108202021_squad_worker_commitment_guard.sql",
+        "20261108202026_squad_backorder_quantity_choices.sql",
+        "20261108202457_squad_registration_profile_controls.sql",
+        "20261108202700_squad_catalogue_parent_options.sql",
+        "20261109024124_squad_weekly_schedule_safe_updates.sql",
+        "20261109043010_squad_worker_scope_index.sql"
+      ],
+      "added_companion_columns": [],
+      "source_tables_verified": 86,
+      "protected_data_unchanged": true,
+      "aligned_legacy_collations": 0,
+      "reviewed_post_commit_operational_changes": [],
+      "public_structure_unchanged": true,
+      "cutover": false,
+      "staging_artifacts_sha256": "d23b125ecbb3703f8a915704e7f8be8b4112594f7645985f57c93375b947bc51"
+    },
+    "exact_schedules_restored": true
+  },
+  "log_sha256": "cc7d9cba7236a6dad529cd1abd65367cf213bb5a4a113321f16f20a810a02909",
+  "frontend_and_edge_deployment_not_inferred": true
+}

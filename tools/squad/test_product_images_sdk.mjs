@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {createSquadClient} from '../../packages/shared/squad.js';
+const calls=[];
+const sdk=createSquadClient({schema(name){assert.equal(name,'canto_api');return{rpc:async(name,args)=>{calls.push({name,args});return{data:{ok:true},error:null};}};}});
+await sdk.productImages('123');
+assert.deepEqual(calls.pop(),{name:'v1_product_images',args:{p_product_id:'123',p_cursor:null,p_limit:30}});
+await sdk.productImages('123',{cursor:'opaque',limit:10});
+assert.deepEqual(calls.pop(),{name:'v1_product_images',args:{p_product_id:'123',p_cursor:'opaque',p_limit:10}});
+await sdk.saveProductImageComment('456','Reference front',{expectedVersion:'4:9',idempotencyKey:'same-command'});
+assert.deepEqual(calls.pop(),{name:'v1_product_image_comment',args:{p_image_id:'456',p_comment:'Reference front',p_expected_version:'4:9',p_idempotency_key:'same-command'}});
+console.log('Product image SDK: 3 contract checks passed');

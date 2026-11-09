@@ -1,0 +1,338 @@
+{
+  "format": "squad-connected-browser-partial-acceptance/v1",
+  "status": "overall_run_failed_completed_phases_preserved",
+  "environment": "staging",
+  "migration_count": 140,
+  "run_id": "f0ba2782-43ca-42da-8cb1-dfcd678955ca",
+  "recorded_at": "2026-11-09T03:10:44.180986+00:00",
+  "frontend_target": "localhost React against staging Supabase",
+  "completed_phases": [
+    "commerce",
+    "operations",
+    "feedback"
+  ],
+  "completed_checks": 15,
+  "journey_results": [
+    {
+      "name": "commerce",
+      "result": {
+        "checks": [
+          "customer_real_browser_adds_owned_delivery_address",
+          "sc_real_browser_reviews_fixture_customer_and_assigns_direct_relationship",
+          "customer_real_browser_configures_parts_addons_sizes_quotes_and_places_custom_order",
+          "sc_real_browser_records_deposit_and_priority_pc_projection_hides_payment",
+          "customer_real_browser_places_ready_made_order_with_server_price_and_queued_provider_intent",
+          "sc_real_browser_places_mixed_order_for_reviewed_customer_with_exact_totals_and_foreign_customer_denial"
+        ],
+        "entities": {
+          "addressId": "7525",
+          "customOrderIds": [
+            "55316"
+          ],
+          "readyMadeOrderIds": [
+            "55317"
+          ],
+          "mixedOrderIds": [
+            "55318"
+          ]
+        },
+        "scope": "Real browser commands and authenticated SDK read oracles on exact-owned staging fixtures; workers paused, no provider/email execution."
+      },
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    {
+      "name": "operations",
+      "result": {
+        "checks": [
+          "real_browser_pc_factory_fm_cutter_checklist_cm_partial_cut_and_history",
+          "real_browser_fm_tailor_subtailor_allocation_inspector_coupled_completion_pickup_and_current_item_tabs",
+          "real_browser_di_destination_partial_dispatch_and_completed_order",
+          "real_browser_pc_worker_cost_and_allocation_jw_due_commitment_and_six_stages",
+          "real_browser_dealer_receipt_partial_fifo_dispatch_edited_procurement_requote_linked_purchase_and_exact_remaining_stock"
+        ],
+        "entities": {
+          "orderIds": [],
+          "itemIds": [],
+          "factoryOrderId": "55316",
+          "factoryItemId": "116115",
+          "workerOrderId": "55319",
+          "workerItemId": "116119",
+          "dealerCustomerId": "7734",
+          "supplyOrderId": "55320",
+          "demandOrderId": "55321",
+          "backorderId": "55322"
+        },
+        "scope": "Real browser operations with authenticated read oracles. Separate dealer customer/address are declared SDK setup; no workers, external providers or emails invoked."
+      },
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    {
+      "name": "feedback",
+      "result": {
+        "checks": [
+          "sc_order_feedback_resolves_actual_assigned_pc",
+          "pc_order_feedback_resolves_actual_assigned_factory_manager",
+          "fm_item_feedback_selects_actual_assigned_cutting_master",
+          "admin_moderation_hides_exact_rating_preserves_reason_and_history_and_recalculates_visible_count"
+        ],
+        "entities": {
+          "orderId": "55316",
+          "itemId": "116115",
+          "ratingIds": [
+            "323",
+            "324",
+            "325"
+          ]
+        },
+        "scope": "Actual rendered role-specific feedback on the previously completed owned factory graph; all commands journaled by parent, no providers. Exact parent cleanup remains required."
+      },
+      "browser_errors": 0,
+      "network_violations": 0
+    }
+  ],
+  "failure": {
+    "phase": "reporting",
+    "code": "22023",
+    "cause": "The reporting harness used a future exclusive-before date beyond the server Kolkata civil-date boundary.",
+    "entire_run_passed": false
+  },
+  "uncompleted_phases": [
+    "reporting",
+    "document_outputs"
+  ],
+  "full_report_or_pdf_browser_acceptance": false,
+  "source_evidence": {
+    "private_journal": {
+      "path": "tools/squad/private/business-f0ba2782-43ca-42da-8cb1-dfcd678955ca.jsonl",
+      "sha256": "a36ec0c6cd3ffbfac40ddecf55ec98ce66cbb5247e35a22e55d71109ba637e89"
+    },
+    "cleanup_snapshot": {
+      "path": "evidence/last-document-output-cleanup.json",
+      "sha256": "df447aca3ad0466ada9b3a11d106b4b1ae15ebb20cbd644a445709ace201708e"
+    },
+    "prepared_operations_mapping": {
+      "path": "prepared-acceptance-check-map.json",
+      "sha256": "3201bfd5877af47c9848d87fd806416a64b995cfada4752a122124b772a2bb64"
+    }
+  },
+  "operations_workflow_mapping": [
+    {
+      "check": "real_browser_pc_factory_fm_cutter_checklist_cm_partial_cut_and_history",
+      "workflow_ids": [
+        "PLAN.01",
+        "PLAN.02",
+        "PLAN.03",
+        "PLAN.04",
+        "CUT.01",
+        "CUT.02",
+        "CUT.03"
+      ],
+      "roles": [
+        2,
+        4,
+        9
+      ],
+      "scope": "Owned custom order factory path; two cutting events."
+    },
+    {
+      "check": "real_browser_fm_tailor_subtailor_allocation_inspector_coupled_completion_pickup_and_current_item_tabs",
+      "workflow_ids": [
+        "SEW.01",
+        "SEW.02",
+        "SEW.03"
+      ],
+      "roles": [
+        4,
+        8
+      ],
+      "scope": "Own factory assignments and source-coupled inspection/pickup; managed Tailor/SubTailor current tabs."
+    },
+    {
+      "check": "real_browser_di_destination_partial_dispatch_and_completed_order",
+      "workflow_ids": [
+        "DISPATCH.01",
+        "DISPATCH.02",
+        "DISPATCH.03",
+        "DISPATCH.04"
+      ],
+      "roles": [
+        7
+      ],
+      "scope": "Two partial dispatches with exact terminal completion."
+    },
+    {
+      "check": "real_browser_pc_worker_cost_and_allocation_jw_due_commitment_and_six_stages",
+      "workflow_ids": [
+        "JOB.02",
+        "JOB.03",
+        "JOB.04",
+        "JOB.05"
+      ],
+      "roles": [
+        2,
+        11
+      ],
+      "scope": "Owned direct worker order, cost, first due reason and six stages."
+    },
+    {
+      "check": "real_browser_dealer_receipt_partial_fifo_dispatch_edited_procurement_requote_linked_purchase_and_exact_remaining_stock",
+      "workflow_ids": [
+        "STOCK.01",
+        "STOCK.02",
+        "STOCK.03",
+        "BACK.01",
+        "BACK.02",
+        "DISPATCH.02"
+      ],
+      "roles": [
+        1,
+        2,
+        10,
+        11
+      ],
+      "scope": "Custom Dealer supply/demand only; edited shortage quote, receipt, partial FIFO dispatch and exact balance; no RMP stock claim."
+    }
+  ],
+  "feedback_workflow_mapping": [
+    {
+      "check": "sc_order_feedback_resolves_actual_assigned_pc",
+      "workflow_ids": [
+        "RATE.01",
+        "RATE.02"
+      ],
+      "roles": [
+        1
+      ],
+      "scope": "SC order feedback resolves the actually assigned Production Coordinator."
+    },
+    {
+      "check": "pc_order_feedback_resolves_actual_assigned_factory_manager",
+      "workflow_ids": [
+        "RATE.01",
+        "RATE.02"
+      ],
+      "roles": [
+        2
+      ],
+      "scope": "PC order feedback resolves the actually assigned Factory Manager."
+    },
+    {
+      "check": "fm_item_feedback_selects_actual_assigned_cutting_master",
+      "workflow_ids": [
+        "RATE.01",
+        "RATE.02"
+      ],
+      "roles": [
+        4
+      ],
+      "scope": "Factory Manager item feedback selects the actually assigned Cutting Master."
+    },
+    {
+      "check": "admin_moderation_hides_exact_rating_preserves_reason_and_history_and_recalculates_visible_count",
+      "workflow_ids": [
+        "RATE.03"
+      ],
+      "roles": [
+        0
+      ],
+      "scope": "Admin hides exact own-fixture rating, preserving reason/history and recalculating visible count."
+    }
+  ],
+  "cleanup": {
+    "run_id": "f0ba2782-43ca-42da-8cb1-dfcd678955ca",
+    "owned_commands": 59,
+    "owned_auth_revisions": 0,
+    "removed_source_rows": 143,
+    "removed_documents": 0,
+    "removed_queued_documents": 0,
+    "removed_processed_documents": 0,
+    "tables": {
+      "sa_users": 18,
+      "sa_factories": 2,
+      "sa_addresses": 5,
+      "sa_sizes": 1,
+      "sa_size_types": 1,
+      "sa_sc_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_base_size_types": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
+      "sa_rmp_category_brands": 1,
+      "sa_products": 3,
+      "sa_orders": 7,
+      "sa_items": 8,
+      "sa_ratings": 3,
+      "sa_back_order_links": 1,
+      "sa_item_criteria": 18,
+      "sa_item_tailors": 2,
+      "sa_job_sheet_assign_dates": 2,
+      "sa_job_sheet_assign_quantities": 2,
+      "sa_job_sheet_assign_tailors": 2,
+      "sa_job_sheet_dispatched_dates": 4,
+      "sa_job_sheet_mark_tailors": 2,
+      "sa_job_sheet_tailor_mark_dates": 1,
+      "sa_mark_cuttings": 2,
+      "sa_mark_tailor_quantities": 2,
+      "sa_product_part_add_ons": 3,
+      "sa_product_parts": 3,
+      "sa_quantities": 8,
+      "sa_stocks": 2,
+      "sa_user_dealers": 1,
+      "sa_dispatched_quantities": 4,
+      "sa_item_tailor_quantities": 2,
+      "sa_mark_cutting_quantities": 2,
+      "sa_stock_useds": 3
+    },
+    "edit_revision_before": 1281,
+    "edit_revision_after": 1340,
+    "synced_revision_after": 1340,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": true,
+    "independently_changed_staff_accounts": 0
+  },
+  "cron_restored": true,
+  "cutover_unchanged": true,
+  "source_content_restored": true,
+  "manufacturing_milestone_assessment": {
+    "weight_percent": 15,
+    "status": "partial_evidence",
+    "core_operations_browser_passed": true,
+    "remaining_existing_requirement": "SEW.04 Tailor earnings and weekly work report: EXIT-02 connected period/payroll/report and real PDF UI/output acceptance remains uncompleted.",
+    "new_requirements_introduced": false,
+    "accepted_weight_change": 0
+  },
+  "limitations": [
+    "The overall run failed; only the three durable completed phase records are accepted.",
+    "Operations covers exact custom factory/Job Worker/Dealer stock branches; no RMP stock/provider fulfillment claim.",
+    "Passing feedback does not by itself close EXIT-03: the separately required Customer coordinator request/Admin review remains distinct.",
+    "No full report, PDF browser chain, deployment, production parity or enterprise performance claim."
+  ]
+}

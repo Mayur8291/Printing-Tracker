@@ -1,0 +1,72 @@
+{
+  "scope": "Prepared optional real UI acceptance; no hosted execution claimed",
+  "adapter": "tools/squad/web-people-hosted-journey.mjs",
+  "modules": {
+    "people": {
+      "export": "runJourney",
+      "subjects": "Four new journaled business profiles: FM-owned Tailor and SubTailor; Admin-created Team and Sales Coordinator",
+      "checks": [
+        "Create/edit through current shared forms",
+        "Read back exact manager and parent relationships",
+        "No Tailor login/invitation controls",
+        "Factory Manager role picker excludes commercial/Admin roles",
+        "SC denied foreign workforce read",
+        "Admin Team notes-only grant with products parent disabled"
+      ],
+      "providers": "Account intents stay queued; no invitations, emails or worker execution"
+    },
+    "people-status": {
+      "export": "runStatusJourney",
+      "subject": "Existing exact fixture Customer owned by fixture SC",
+      "checks": [
+        "SC disable/enable via squad-account users/status Edge route",
+        "Existing Customer session and protected route denied",
+        "Enable does not revive old token",
+        "Fresh real password login restores same Auth UUID and sa_app role"
+      ],
+      "provider_limit": "Synchronous source-state guard and session revocation only; paused reconciliation means Auth-provider banning is not claimed",
+      "ordering": "Before account closure; refreshes Customer SDK/browser login after enable",
+      "cleanup_gate": "Run test_web_people_cleanup before enabling this optional module"
+    }
+  },
+  "local_browser": {
+    "test": "tools/squad/web-people-forms-browser.mjs",
+    "passed": 7,
+    "scope": "Four actual rendered create forms plus Dealer brand/price/visibility, future approval setting and indirect Customer link payloads; exact exported helper. Fixture SDK, not hosted proof."
+  },
+  "independent_review": {
+    "reviewer": "web_commerce_implementation",
+    "result": "No concrete ownership, permission, journaling or status-flow blocker found"
+  },
+  "cleanup_test": {
+    "path": "tools/squad/test_web_people_cleanup.py",
+    "status": "passed",
+    "tests": 5,
+    "duration_seconds": 3.211,
+    "database": "squad_test_web",
+    "log": "/tmp/squad-people-cleanup139.log",
+    "proof": "Existing cleanup unchanged: zero Auth revisions for synchronous status intent/session revocation; rejects unexplained revision; interrupted disable and full cycle restore exact owned graph. Four created/edited People profiles with queued intents also clean."
+  },
+  "hosted_status": "not_executed",
+  "relationships": {
+    "adapter": "tools/squad/web-relationships-hosted-journey.mjs",
+    "export": "runJourney",
+    "scope": "Two new source-only Dealer/Customer profiles. Account intents queued; no provider execution. Brand/price/visibility settings, future automatic-approval flag, indirect link, coordinator transfer/revoke/read restoration.",
+    "local_cleanup": {
+      "test": "tools/squad/test_web_relationships_cleanup.py",
+      "passed": 1,
+      "commands": 10,
+      "duration_seconds": 0.911,
+      "database": "squad_test_web_operations",
+      "scope": "Existing reviewed relationship contracts on agent isolated DB; not full139 integration claim",
+      "owned_auth_revisions": 0
+    },
+    "independent_review": "Commerce reviewer found no concrete scope/cleanup hole; queue wording and result journaling corrected.",
+    "uncovered": [
+      "Automatic onboarding outcome and zone routing",
+      "Bulk coordinator reassignment and customer change-request review",
+      "Notification provider delivery or ack (no source ack control exists)"
+    ],
+    "hosted_status": "not_executed"
+  }
+}

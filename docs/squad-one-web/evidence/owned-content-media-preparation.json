@@ -1,0 +1,41 @@
+{
+  "status": "prepared_local_tests_passed_hosted_pending",
+  "prepared_at": "2026-11-09T05:25:22.839091+00:00",
+  "files": {
+    "tools/squad/web_content_fixture.py": "036e87e2520a6cc32bdec5b45023c88a3867793d1359244376fb8dc14c9381e4",
+    "tools/squad/test_web_content_fixture.py": "3099149f78edbe717fbb767d2cb1147817ae8ed380c4d02e28d09235cb46e0e3",
+    "tools/squad/test_web_content_media_hosted.py": "368a97e0563405272a79903f0ffe3a089552a9c8e56e608a156e5980c1141821",
+    "tools/squad/web-content-media-hosted-journey.mjs": "1d1b056925e0dfd15a8df235179c60954d2db92313bd16dcdc610f1569c3d233",
+    "tools/squad/web-owned-content.test.mjs": "d7c983c3ca09c5003ba751f8d9613ebec1f1694fe51d7dba22c7fe1e2b9642a4",
+    "tools/squad/business_fixture_commercial.py": "a511b85d659edfdae7735640ddb327c5ef9d341e2270d446b95c6926b82a2a1d",
+    "tools/squad/web-business-hosted.mjs": "7f4f59467eb0bc5b7b16ae0fd99f7f30a4c12c94698cb2a2ad07743b78480821",
+    "tools/squad/web-owned-promotion-browser.mjs": "ec331394b3d72eb2f158e314aff6fb6a5833e1e248e589ee34d1f59233998d08"
+  },
+  "tests": {
+    "actual_sql_cleanup_cases": 8,
+    "sql_duration_seconds": 4.736,
+    "exact_discovery_cases": 3,
+    "actual_react_category_date_filter_cases": 1,
+    "clean_build_preflight": "localhost5186 matched source and dist manifests"
+  },
+  "scope": {
+    "environment": "staging",
+    "objects": 1,
+    "ready_references": 2,
+    "missing_promotions": 1,
+    "new_permissions": 0,
+    "providers": 0,
+    "source_existing_mode_unchanged": true,
+    "optional_native_handoff_seconds": 300
+  },
+  "command": "PYTHONPATH=tools/squad tools/canto-sync/.venv/bin/python -u tools/squad/test_web_content_media_hosted.py --execute --native-safari",
+  "recovery": "Same script --recover; unconfirmed browser/native shutdown requires explicit corresponding --confirm-*-shutdown. Unknown Storage POST completion retains checkpoint until existing 2h10m media grace expires.",
+  "native_oracle": "Fresh Customer grant and exact bytes checked; report contains ID/name/category/date/hash/bytes and Storage basename only, never URL or credentials. Actual Safari download must acquire another fresh grant through UI.",
+  "frontend": {
+    "base": "http://localhost:5186",
+    "entry_path": "/assets/index-D0HIEzmj.js",
+    "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+  },
+  "independent_ui_review": "GO from web_ui_implementation; actual category/date React test rerun",
+  "independent_cleanup_review": "Awaiting final Commerce acknowledgement; prior review found no remaining boundary issue"
+}

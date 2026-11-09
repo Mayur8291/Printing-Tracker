@@ -1,0 +1,172 @@
+{
+  "format": "squad-worker-timeout-disposition/v1",
+  "investigation_status": "connected_functional_timeout_regression_passed_final_browser_latency_gate_pending",
+  "failure_evidence": "docs/squad-one-web/evidence/order-timeout-140-pass7.json",
+  "probe_evidence": "docs/squad-one-web/evidence/worker-order-rollback-profile.json",
+  "probe_sha256": "a56d7f68f5ec6d1d60c263d01fe7b6cfcd45b0a00da848727408d8f1dfee8e0a",
+  "probe_rollback_verified": true,
+  "probe_samples": [
+    {
+      "phase": "before_due",
+      "component": "outer_order",
+      "sql_execution_ms": 32.319,
+      "planning_ms": 0.035
+    },
+    {
+      "phase": "before_due",
+      "component": "header",
+      "sql_execution_ms": 6.846,
+      "planning_ms": 0.474
+    },
+    {
+      "phase": "before_due",
+      "component": "item_quantity_page",
+      "sql_execution_ms": 20.757,
+      "planning_ms": 0.796
+    },
+    {
+      "phase": "before_due",
+      "component": "dispatch_destination",
+      "sql_execution_ms": 3.297,
+      "planning_ms": 0.032
+    },
+    {
+      "phase": "before_due",
+      "component": "pending_request",
+      "sql_execution_ms": 0.087,
+      "planning_ms": 0.488
+    },
+    {
+      "phase": "before_due",
+      "component": "worker_history",
+      "sql_execution_ms": 18.334,
+      "planning_ms": 0.033
+    },
+    {
+      "phase": "after_due",
+      "component": "outer_order",
+      "sql_execution_ms": 31.626,
+      "planning_ms": 0.031
+    },
+    {
+      "phase": "after_due",
+      "component": "header",
+      "sql_execution_ms": 6.813,
+      "planning_ms": 0.509
+    },
+    {
+      "phase": "after_due",
+      "component": "item_quantity_page",
+      "sql_execution_ms": 20.592,
+      "planning_ms": 0.82
+    },
+    {
+      "phase": "after_due",
+      "component": "dispatch_destination",
+      "sql_execution_ms": 3.267,
+      "planning_ms": 0.03
+    },
+    {
+      "phase": "after_due",
+      "component": "pending_request",
+      "sql_execution_ms": 0.085,
+      "planning_ms": 0.489
+    },
+    {
+      "phase": "after_due",
+      "component": "worker_history",
+      "sql_execution_ms": 16.559,
+      "planning_ms": 0.031
+    }
+  ],
+  "findings": [
+    "The exact normal command-created custom product/order, Worker cost and due-change graph completes all twelve staging component/outer reads before unconditional rollback.",
+    "Main Worker order read is 32.319ms before due change and 31.626ms afterward; no shared block reads in these samples.",
+    "Item/quantity page is 20.6ms, with authorization scope touching 1,678 cached blocks and returning one order. This remains proportional to source scan work; no constant-cost claim.",
+    "The failed real browser/SDK chain and this serial single-connection SQL probe differ in request overlap, connection preparation, gateway path and resource state.",
+    "Successful quiet/profile measurements do not establish cause or resolution of the earlier8\u201310second cancellations.",
+    "Separate UI change removes a verified redundant post-command refetch, but its causal effect on SQL timeouts is unproven.",
+    "Original PostgreSQL logs locate both Worker cancellations inside scope_order_ids line 9. The idle exact graph measures that same scope subplan around 16ms; cached plan behavior remains untested on staging.",
+    "Existing Worker paging index is partial on live orders; adding a live predicate to this authorization helper would change historical visibility and is not an acceptable performance shortcut.",
+    "Hosted forced custom/generic comparison selects the same full orders scan: 15.073/15.048ms, 1,656 cached blocks, one Worker order. Full order RPC 43.178/34.811ms; all six samples completed and rollback verified. Generic-plan selection alone does not reproduce the original cancellation.",
+    "A localhost-only full (assigned_worker_id,id) index experiment reduces the exact scope branch from 1,325 blocks to 4\u20135 blocks in both plan modes while preserving all seven owned IDs including deleted historical data. This supports an additive index optimization, without proving complete hosted timeout resolution."
+  ],
+  "next_evidence": "Parent review of narrowly additive full Worker scope index; no historical predicate change. Any eventual real-chain rerun must retain original failure evidence and verify actual outcomes rather than treating quiet probes as resolution.",
+  "not_changed": [
+    "SQL schema and policies",
+    "statement timeout defaults",
+    "Supabase compute tier",
+    "DigitalOcean",
+    "refresh or ownership flags"
+  ],
+  "original_log_evidence": "docs/squad-one-web/evidence/pass7-timeout-log-context.json",
+  "confirmed_cancellation_paths": [
+    {
+      "function": "sa_domain.scope_order_ids",
+      "body_line": 9,
+      "branch": "Worker: assigned_worker_id = actor.user_id",
+      "caller": "v1_order_get",
+      "occurrences": 2
+    },
+    {
+      "function": "sa_domain.scope_item_ids",
+      "body_line": 6,
+      "branch": "PC: custom/mixed order with customer_dealer_id IS NULL",
+      "caller": "jobsheet_page_ids / v1_jobsheets_list",
+      "occurrences": 1
+    }
+  ],
+  "forced_plan_evidence": "docs/squad-one-web/evidence/worker-scope-plan-comparison.json",
+  "local_index_evidence": "docs/squad-one-web/evidence/worker-scope-index-local.json",
+  "additive_index_141": {
+    "file": "supabase/migrations/20261109043010_squad_worker_scope_index.sql",
+    "sha256": "8f4c269b2cd5cafb37846d8327c2978f654bfad1bcb40f4e9a21696c2715ae9f",
+    "focused_tests_passed": 2,
+    "local_evidence": "docs/squad-one-web/evidence/worker-scope-index-local.json",
+    "independent_review": "docs/squad-one-web/evidence/worker-scope-index-independent-review.json",
+    "hosted_resolution": "Connected real workflow passed with exact cleanup; separate fixed24-read browser latency sample remains pending."
+  },
+  "other_logged_path_review": {
+    "evidence": "docs/squad-one-web/evidence/pc-logged-scope-index-review.json",
+    "samples": 6,
+    "dense_scope_ms": 23.513,
+    "dense_criteria_read_ms": 55.915,
+    "dense_criteria_helper_ms": 50.349,
+    "result": "PC scope already has an exact predicate index without a historical exclusion; item and criteria relation indexes are usable. No additional index or semantics change justified by this bounded review.",
+    "limitations": "Sparse same-transaction rewrite retains dead index entries; index eligibility demonstrated, timing not a production prediction."
+  },
+  "final_connected_acceptance": {
+    "run_id": "aec91653-6ae2-421e-8dc7-4d845c9126f8",
+    "measured_at": "2026-11-09T04:54:11.708126+00:00",
+    "evidence": "docs/squad-one-web/evidence/document-output-acceptance.json",
+    "sha256": "9db7538fb1f930c046122b6290df7e1c56abab48ec14acf08832326d909e65e0",
+    "prefix": "141",
+    "browser_checks": 21,
+    "modules": [
+      "commerce",
+      "operations",
+      "feedback",
+      "reporting"
+    ],
+    "verified_pdf_kinds": [
+      "delivery_challan",
+      "tailor_weekly"
+    ],
+    "browser_errors": 0,
+    "network_violations": 0,
+    "visual_review": "docs/squad-one-web/evidence/document-outputs-aec91653-visual-review.json",
+    "source_content_restored": true,
+    "cron_restored": true,
+    "cutover_unchanged": true,
+    "owned_commands": 62,
+    "removed_source_rows": 143,
+    "audits_and_commands_retained": true,
+    "independently_changed_staff_accounts_preserved": 1,
+    "disposition": "The previously failing connected Worker/operations path and remaining report/PDF chain completed after141 and removal of redundant post-command refreshes. This closes the functional timeout reproduction gate for the recorded run, not a global capacity or isolated-cause claim."
+  },
+  "remaining_gate": {
+    "command_handoff": "docs/squad-one-web/final-performance-acceptance-handoff.json",
+    "scope": "One fixed24-request representative browser sample, fourcontracts with sixobservations each; inspect five-repeat p95<=2000ms percontract. No new SQL probes.",
+    "status": "pending_parent_run"
+  }
+}

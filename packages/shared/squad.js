@@ -9,16 +9,29 @@ export class SquadError extends Error {
   }
 }
 
+// Positive list: binding a query signal must never make a command cancellable.
+const CANCELLABLE_READS=new Set(`v1_me v1_app_bootstrap v1_audit_list v1_base_product_get v1_banners_list v1_catalog_options v1_catalog_tree v1_configurator_options v1_coordinator_requests v1_cutting_detail v1_cutting_queue v1_dashboard v1_dealer_stock v1_deliveries_list v1_delivery_failures v1_dispatch_detail v1_dispatch_queue v1_document_get v1_documents_list v1_factories_list v1_factory_queue v1_import_status v1_integration_get v1_job_get v1_jobs_list v1_jobsheets_list v1_mail_settings_read v1_milestones_list v1_milestone_progress v1_notifications_list v1_operational_items v1_order_get v1_order_item_get v1_orders_list v1_people_list v1_person_get v1_presets_list v1_product_images v1_production_progress v1_promotions_list v1_ratings_list v1_relationship_options v1_responsibilities_list v1_responsibility_get v1_rmp_detail v1_rmp_search v1_rmp_variants v1_sales_coordinator_metrics v1_sales_report v1_settings_read v1_tailor_earnings v1_tailor_leaderboard v1_tailor_work v1_task_assignees v1_task_get v1_tasks_list v1_work_metrics v1_warehouse_schedule_status v1_weekly_tailor_schedule_status v1_airtable_reports_status`.split(' '));
+
 /** Keep a command's key and payload unchanged when retrying an uncertain response. */
-export function createSquadClient(supabase) {
+export function createSquadClient(supabase, options = {}) {
+  const readSignal=options.readSignal;
+  if(readSignal!==undefined && !(readSignal instanceof AbortSignal))throw new TypeError('A query AbortSignal is required.');
   const api = supabase.schema("canto_api");
   async function call(name, args = {}) {
-    const { data, error } = await api.rpc(name, args);
+    if(readSignal){
+      if(!CANCELLABLE_READS.has(name)&&!(name==='v1_stock_reconciliation'&&['review','history'].includes(args.p_action)))throw new TypeError('Commands cannot run through a signal-bound read client.');
+      readSignal.throwIfAborted();
+    }
+    const request=api.rpc(name,args);
+    const { data, error } = await (readSignal?request.abortSignal(readSignal):request);
+    readSignal?.throwIfAborted();
     if (error) throw new SquadError(error);
     return data;
   }
   async function account(path, body) {
-    const {data,error}=await supabase.functions.invoke(`squad-account/${path}`,{body});
+    if(readSignal){if(path!=='media/grants')throw new TypeError('Commands cannot run through a signal-bound read client.');readSignal.throwIfAborted();}
+    const {data,error}=await supabase.functions.invoke(`squad-account/${path}`,{body,...(readSignal?{signal:readSignal}:{})});
+    readSignal?.throwIfAborted();
     if(error){
       let code=error.code;
       try { code=(await error.context.clone().json()).error || code; } catch { /* Network errors have no HTTP body. */ }
@@ -27,6 +40,8 @@ export function createSquadClient(supabase) {
     return data;
   }
   return Object.freeze({
+    /** A new immutable client for this query only; the original remains unbound. */
+    withSignal: (signal) => {if(!(signal instanceof AbortSignal))throw new TypeError('A query AbortSignal is required.');return createSquadClient(supabase,{readSignal:signal});},
     requestRegistration: (email,profile,requestId) => account("register",{action:"request",request_id:requestId,email,profile}),
     completeRegistration: (proof) => account("register",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
     requestConfirmation: (email,requestId) => account("confirm",{action:"request",request_id:requestId,email}),
@@ -36,6 +51,7 @@ export function createSquadClient(supabase) {
     invitePerson: (id,requestId) => account("users/invite",{action:"request",request_id:requestId,user_id:id}),
     acceptInvitation: (proof) => account("users/invite",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
     me: () => call("v1_me"),
+    closeAccount: (confirmation,command) => call("v1_account_close",{p_confirmation:confirmation,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     saveDevice: (installationId,platform,token,command) => call("v1_device_save",{p_installation_id:installationId,p_platform:platform,p_token:token,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
     removeDevice: (id,command) => call("v1_device_remove",{p_id:id,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     notifications: (id = null,page = {}) => call("v1_notifications_list",{p_id:id,p_cursor:page.cursor??null,p_limit:page.limit??30}),
@@ -76,6 +92,8 @@ export function createSquadClient(supabase) {
     requestDocument: (kind,request,idempotencyKey) => call("v1_document_request",{p_kind:kind,p_request:request,p_idempotency_key:idempotencyKey}),
     documents: (filters = {},page = {}) => call("v1_documents_list",{p_kind:filters.kind??null,p_state:filters.state??null,p_legacy:filters.legacy??false,p_cursor:page.cursor??null,p_limit:page.limit??30}),
     document: (id) => call("v1_document_get",{p_id:id}),
+    reserveDocumentAttachment: (file,idempotencyKey) => account("documents/attachments",{file,idempotency_key:idempotencyKey}),
+    finalizeDocumentAttachment: (uploadId,command) => account("documents/attachments/finalize",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     downloadDocument: (id) => account("documents/download",{id}),
     deliveryFailures: (page = {}) => call("v1_delivery_failures",{p_cursor:page.cursor??null,p_limit:page.limit??30}),
     reserveMediaUpload: (target,file,command) => account("media/uploads",{target,file,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
@@ -128,6 +146,7 @@ export function createSquadClient(supabase) {
     order: (id, items = {}) => call("v1_order_get", {
       p_id: id, p_item_cursor: items.cursor ?? null, p_item_limit: items.limit ?? 50
     }),
+    orderSection: (id,section,page = {}) => call("v1_order_get", {p_id:id,p_item_cursor:page.cursor??null,p_item_limit:page.limit??25,p_section:section}),
     ratings: (kind,id,filters = {},page = {}) => call("v1_ratings_list", {p_entity_kind:kind,p_entity_id:id,p_from_id:filters.fromId??null,p_to_id:filters.toId??null,p_include_archived:filters.includeArchived??false,p_cursor:page.cursor??null,p_limit:page.limit??30}),
     saveRating: (id,kind,entityId,toId,fields,command) => call("v1_rating_save", {p_id:id,p_entity_kind:kind,p_entity_id:entityId,p_to_id:toId,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
     archiveRating: (id,reason,command) => call("v1_rating_archive", {p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
@@ -136,7 +155,7 @@ export function createSquadClient(supabase) {
       p_dealer_id:context.dealerId??null,p_customer_id:context.customerId??null,
       p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
-    previewBackorder: (orderIds,addressId) => call("v1_backorder_preview", {p_order_ids:orderIds,p_address_id:addressId}),
+    previewBackorder: (orderIds,addressId,quantities) => call("v1_backorder_preview", {p_order_ids:orderIds,p_address_id:addressId,...(quantities===undefined?{}:{p_quantities:quantities})}),
     placeBackorder: (previewId,dueAt,command) => call("v1_backorder_place", {
       p_preview_id:previewId,p_due_at:dueAt,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
@@ -171,11 +190,17 @@ export function createSquadClient(supabase) {
     }),
     validateQuantities: (quantities,sample = null) => call("v1_item_quantity_validate", {p_quantities:quantities,p_sample:sample}),
     quote: (request) => call("v1_quote", {p_request:request}),
+    calculateQuote: (request) => call("v1_configuration_quote", {p_request:request}),
+    resolveConfigurationSize: (baseId,scSizeId,idempotencyKey) => call("v1_configuration_size_resolve", {p_base_id:baseId,p_sc_size_id:scSizeId,p_idempotency_key:idempotencyKey}),
     catalogueQuote: (request,markup = {kind:"percentage",value:"0"}) => call("v1_catalogue_quote", {p_request:request,p_markup:markup}),
     configureProduct: (configuration,name,comment,idempotencyKey) => call("v1_product_configure", {
       p_configuration:configuration,p_name:name,p_comment:comment,p_idempotency_key:idempotencyKey
     }),
     presets: (filters = {},page = {}) => call("v1_presets_list", {p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    productImages: (productId,page = {}) => call("v1_product_images", {p_product_id:productId,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    saveProductImageComment: (imageId,comment,command) => call("v1_product_image_comment", {
+      p_image_id:imageId,p_comment:comment,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
     renamePreset: (id,name,command) => call("v1_preset_rename", {
       p_id:id,p_name:name,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
@@ -267,16 +292,26 @@ export function createSquadClient(supabase) {
     jobsheets: (filters = {},page = {}) => call("v1_jobsheets_list", {
       p_item_id:filters.itemId??null,p_tailor_id:filters.tailorId??null,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
+    operationalItems: (filters = {},page = {}) => call("v1_operational_items", {
+      p_tailor_id:filters.tailorId??null,p_completed:filters.completed===undefined?false:filters.completed,
+      p_item_id:filters.itemId??null,p_order_id:filters.orderId??null,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
     tailorWork: (filters = {},page = {}) => call("v1_tailor_work", {
       p_item_id:filters.itemId??null,p_tailor_id:filters.tailorId??null,p_history:filters.history??false,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
     productionProgress: (orderId) => call("v1_production_progress", {p_order_id:orderId}),
     tasks: (filters = {}, page = {}) => call("v1_tasks_list", {
       p_state: filters.state ?? null, p_order_id: filters.orderId ?? null,
-      p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30
+      p_cursor: page.cursor ?? null, p_limit: page.limit ?? 30,
+      ...(filters.query!==undefined?{p_query:filters.query}:{}),
+      ...(filters.assignment!==undefined?{p_assignment:filters.assignment}:{})
     }),
     task: (id) => call("v1_task_get", {p_id:id}),
-    taskAssignees: (page = {}) => call("v1_task_assignees", {p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    taskAssignees: (page = {}, filters = {}) => call("v1_task_assignees", {
+      p_cursor:page.cursor??null,p_limit:page.limit??30,
+      ...(filters.query!==undefined?{p_query:filters.query}:{}),
+      ...(filters.role!==undefined?{p_role:filters.role}:{})
+    }),
     saveTask: (task, command) => call("v1_task_save", {
       p_id:task.id??null,p_note:task.note,p_deadline:task.deadline,p_order_id:task.orderId??null,
       p_assignee_ids:task.assigneeIds,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey
@@ -284,6 +319,7 @@ export function createSquadClient(supabase) {
     transitionTask: (id,state,command) => call("v1_task_transition", {
       p_id:id,p_state:state,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
+    responsibility: (id) => call("v1_responsibility_get", {p_id:id}),
     responsibilities: (filters = {},page = {}) => call("v1_responsibilities_list", {
       p_subject_id:filters.subjectId??null,p_kind:filters.kind??null,p_completed:filters.completed??null,
       p_cursor:page.cursor??null,p_limit:page.limit??30
@@ -292,7 +328,8 @@ export function createSquadClient(supabase) {
     transitionResponsibility: (id,state,reason,command) => call("v1_responsibility_transition", {
       p_id:id,p_state:state,p_reason:reason??null,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
-    milestones: (subjectId,page = {}) => call("v1_milestones_list", {p_subject_id:subjectId??null,p_cursor:page.cursor??null,p_limit:page.limit??30}),
+    milestones: (subjectId,page = {},state) => call("v1_milestones_list", {p_subject_id:subjectId??null,p_cursor:page.cursor??null,p_limit:page.limit??30,...(state&&state!=="all"?{p_state:state}:{})}),
+    createMilestones: (subjectId,targets,idempotencyKey) => call("v1_milestones_create", {p_subject_id:subjectId,p_targets:targets,p_idempotency_key:idempotencyKey}),
     milestoneProgress: (id) => call("v1_milestone_progress", {p_id:id}),
     saveMilestone: (target,command) => call("v1_milestone_save", {
       p_id:target.id??null,p_subject_id:target.subjectId,p_start:target.start,p_end:target.end,

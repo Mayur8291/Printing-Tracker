@@ -1,0 +1,40 @@
+{
+  "run_id": "776b6d12-055a-49b0-ae05-ee8e01439a9c",
+  "review_type": "independent_visual_review",
+  "scope": "Three actual built-application desktop screenshots at 1440 by 1000 pixels; private artifacts retained in place.",
+  "screenshots": [
+    {
+      "state": "created",
+      "private_path": "tools/squad/private/tracker-colors-776b6d12-055a-49b0-ae05-ee8e01439a9c/created.png",
+      "sha256": "db81036c32ba7ab8805a557c4cf36d74c4d5dc3ff43c8cefa3e37c9a13957c81",
+      "observed": "One active owned row; blue swatch and #2457AA label; run-marked name wraps legibly."
+    },
+    {
+      "state": "edited",
+      "private_path": "tools/squad/private/tracker-colors-776b6d12-055a-49b0-ae05-ee8e01439a9c/edited.png",
+      "sha256": "2ad4ada356d2241685bf5ed1c906e6a7ed7060f8d6ec4125b1769745f1791a40",
+      "observed": "Same scoped row with edited suffix; green swatch and #196B45 label; active status retained."
+    },
+    {
+      "state": "archived",
+      "private_path": "tools/squad/private/tracker-colors-776b6d12-055a-49b0-ae05-ee8e01439a9c/archived.png",
+      "sha256": "1d4afb594f2dfab730a56d512354dd78b0b9d9c98b87fb111b01badcbe817cc3",
+      "observed": "Scoped result count is zero with explicit empty-state text; deletion success notification visible."
+    }
+  ],
+  "layout_review": {
+    "environment": "Supabase and Staging indicators visibly consistent in all three states.",
+    "design": "Typography, spacing, nested navigation, toolbar and table styling match the established Printing Tracker UI.",
+    "existing_behaviors": [
+      "Success toasts temporarily overlap the bottom pagination area.",
+      "The populated table uses its existing horizontal overflow layout for trailing actions."
+    ],
+    "new_visual_blockers": []
+  },
+  "limits": [
+    "Desktop screenshots only; no mobile, keyboard or accessibility assertion from these images.",
+    "Screenshot states do not prove database cleanup or overall hosted acceptance."
+  ],
+  "cleanup_or_acceptance_inferred": false,
+  "images_copied_public": false
+}

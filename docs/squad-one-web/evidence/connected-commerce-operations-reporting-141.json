@@ -1,0 +1,444 @@
+{
+  "format": "squad-connected-browser-acceptance/v1",
+  "status": "passed_exact_connected_scope_after_cleanup",
+  "environment": "staging",
+  "migration_count": 141,
+  "run_id": "aec91653-6ae2-421e-8dc7-4d845c9126f8",
+  "measured_at": "2026-11-09T04:54:11.708126+00:00",
+  "completed_phases": [
+    "commerce",
+    "operations",
+    "feedback",
+    "reporting"
+  ],
+  "completed_checks": 21,
+  "journey_results": [
+    {
+      "name": "commerce",
+      "checks": [
+        "customer_real_browser_adds_owned_delivery_address",
+        "sc_real_browser_reviews_fixture_customer_and_assigns_direct_relationship",
+        "customer_real_browser_configures_parts_addons_sizes_quotes_and_places_custom_order",
+        "sc_real_browser_records_deposit_and_priority_pc_projection_hides_payment",
+        "customer_real_browser_places_ready_made_order_with_server_price_and_queued_provider_intent",
+        "sc_real_browser_places_mixed_order_for_reviewed_customer_with_exact_totals_and_foreign_customer_denial"
+      ],
+      "scope": "Real browser commands and authenticated SDK read oracles on exact-owned staging fixtures; workers paused, no provider/email execution.",
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    {
+      "name": "operations",
+      "checks": [
+        "real_browser_pc_factory_fm_cutter_checklist_cm_partial_cut_and_history",
+        "real_browser_fm_tailor_subtailor_allocation_inspector_coupled_completion_pickup_and_current_item_tabs",
+        "real_browser_di_destination_partial_dispatch_and_completed_order",
+        "real_browser_pc_worker_cost_and_allocation_jw_due_commitment_and_six_stages",
+        "real_browser_dealer_receipt_partial_fifo_dispatch_edited_procurement_requote_linked_purchase_and_exact_remaining_stock"
+      ],
+      "scope": "Real browser operations with authenticated read oracles. Separate dealer customer/address are declared SDK setup; no workers, external providers or emails invoked.",
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    {
+      "name": "feedback",
+      "checks": [
+        "sc_order_feedback_resolves_actual_assigned_pc",
+        "pc_order_feedback_resolves_actual_assigned_factory_manager",
+        "fm_item_feedback_selects_actual_assigned_cutting_master",
+        "admin_moderation_hides_exact_rating_preserves_reason_and_history_and_recalculates_visible_count"
+      ],
+      "scope": "Actual rendered role-specific feedback on the previously completed owned factory graph; all commands journaled by parent, no providers. Exact parent cleanup remains required.",
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    {
+      "name": "reporting",
+      "checks": [
+        "admin_real_browser_report_date_validation_exact_order_filter_end_page_and_fixture_only_csv",
+        "real_rpc_customer_scoped_report_cursor_has_multiple_pages_without_duplicates",
+        "factory_manager_real_browser_period_work_metrics_and_tailor_subtailor_leaderboard",
+        "factory_manager_real_browser_weekly_earnings_and_queued_weekly_pdf_detail_history",
+        "dispatch_real_browser_exact_recorded_delivery_challan_queued_detail_history",
+        "customer_real_browser_fixture_class_catalogue_queued_detail_history_foreign_actor_denial"
+      ],
+      "scope": "Real UI filters, exact fixture-only in-memory CSV, bounded page-end controls; multi-page cursor verified via real scoped RPC. Documents queued only, no worker/provider/media/download execution.",
+      "browser_errors": 0,
+      "network_violations": 0
+    }
+  ],
+  "workflow_mapping": [
+    {
+      "module": "operations",
+      "check": "real_browser_pc_factory_fm_cutter_checklist_cm_partial_cut_and_history",
+      "workflow_ids": [
+        "PLAN.01",
+        "PLAN.02",
+        "PLAN.03",
+        "PLAN.04",
+        "CUT.01",
+        "CUT.02",
+        "CUT.03"
+      ],
+      "roles": [
+        2,
+        4,
+        9
+      ],
+      "scope": "Owned custom order factory path; two cutting events."
+    },
+    {
+      "module": "operations",
+      "check": "real_browser_fm_tailor_subtailor_allocation_inspector_coupled_completion_pickup_and_current_item_tabs",
+      "workflow_ids": [
+        "SEW.01",
+        "SEW.02",
+        "SEW.03"
+      ],
+      "roles": [
+        4,
+        8
+      ],
+      "scope": "Own factory assignments and source-coupled inspection/pickup; managed Tailor/SubTailor current tabs."
+    },
+    {
+      "module": "operations",
+      "check": "real_browser_di_destination_partial_dispatch_and_completed_order",
+      "workflow_ids": [
+        "DISPATCH.01",
+        "DISPATCH.02",
+        "DISPATCH.03",
+        "DISPATCH.04"
+      ],
+      "roles": [
+        7
+      ],
+      "scope": "Two partial dispatches with exact terminal completion."
+    },
+    {
+      "module": "operations",
+      "check": "real_browser_pc_worker_cost_and_allocation_jw_due_commitment_and_six_stages",
+      "workflow_ids": [
+        "JOB.02",
+        "JOB.03",
+        "JOB.04",
+        "JOB.05"
+      ],
+      "roles": [
+        2,
+        11
+      ],
+      "scope": "Owned direct worker order, cost, first due reason and six stages."
+    },
+    {
+      "module": "operations",
+      "check": "real_browser_dealer_receipt_partial_fifo_dispatch_edited_procurement_requote_linked_purchase_and_exact_remaining_stock",
+      "workflow_ids": [
+        "STOCK.01",
+        "STOCK.02",
+        "STOCK.03",
+        "BACK.01",
+        "BACK.02",
+        "DISPATCH.02"
+      ],
+      "roles": [
+        1,
+        2,
+        10,
+        11
+      ],
+      "scope": "Custom Dealer supply/demand only; edited shortage quote, receipt, partial FIFO dispatch and exact balance; no RMP stock claim."
+    },
+    {
+      "module": "reporting",
+      "check": "admin_real_browser_report_date_validation_exact_order_filter_end_page_and_fixture_only_csv",
+      "workflow_ids": [
+        "METRIC.04"
+      ],
+      "roles": [
+        0
+      ],
+      "scope": "Exact owned order filter/date validation/end-page and fixture-only CSV."
+    },
+    {
+      "module": "reporting",
+      "check": "real_rpc_customer_scoped_report_cursor_has_multiple_pages_without_duplicates",
+      "workflow_ids": [
+        "METRIC.04"
+      ],
+      "roles": [
+        3
+      ],
+      "scope": "SDK multi-page limit1 cursor, not UI multi-page claim."
+    },
+    {
+      "module": "reporting",
+      "check": "factory_manager_real_browser_period_work_metrics_and_tailor_subtailor_leaderboard",
+      "workflow_ids": [
+        "METRIC.02",
+        "METRIC.03"
+      ],
+      "roles": [
+        4
+      ],
+      "scope": "Fixture production counts with explicit period; managed Tailor/SubTailor ranking."
+    },
+    {
+      "module": "reporting",
+      "check": "factory_manager_real_browser_weekly_earnings_and_queued_weekly_pdf_detail_history",
+      "workflow_ids": [
+        "SEW.04",
+        "DOC.04"
+      ],
+      "roles": [
+        4
+      ],
+      "scope": "Queued request/detail/history only; output acceptance handled by separate exact worker harness."
+    },
+    {
+      "module": "reporting",
+      "check": "dispatch_real_browser_exact_recorded_delivery_challan_queued_detail_history",
+      "workflow_ids": [
+        "DOC.03"
+      ],
+      "roles": [
+        7
+      ],
+      "scope": "Exact delivery request queued; no generic worker."
+    },
+    {
+      "module": "reporting",
+      "check": "customer_real_browser_fixture_class_catalogue_queued_detail_history_foreign_actor_denial",
+      "workflow_ids": [
+        "DOC.01",
+        "DOC.02"
+      ],
+      "roles": [
+        3,
+        1
+      ],
+      "scope": "Fixture class and actor-specific queued catalogue; no full output/download claim."
+    },
+    {
+      "check": "sc_order_feedback_resolves_actual_assigned_pc",
+      "workflow_ids": [
+        "RATE.01",
+        "RATE.02"
+      ],
+      "roles": [
+        1
+      ],
+      "scope": "SC order feedback resolves the actually assigned Production Coordinator.",
+      "module": "feedback"
+    },
+    {
+      "check": "pc_order_feedback_resolves_actual_assigned_factory_manager",
+      "workflow_ids": [
+        "RATE.01",
+        "RATE.02"
+      ],
+      "roles": [
+        2
+      ],
+      "scope": "PC order feedback resolves the actually assigned Factory Manager.",
+      "module": "feedback"
+    },
+    {
+      "check": "fm_item_feedback_selects_actual_assigned_cutting_master",
+      "workflow_ids": [
+        "RATE.01",
+        "RATE.02"
+      ],
+      "roles": [
+        4
+      ],
+      "scope": "Factory Manager item feedback selects the actually assigned Cutting Master.",
+      "module": "feedback"
+    },
+    {
+      "check": "admin_moderation_hides_exact_rating_preserves_reason_and_history_and_recalculates_visible_count",
+      "workflow_ids": [
+        "RATE.03"
+      ],
+      "roles": [
+        0
+      ],
+      "scope": "Admin hides exact own-fixture rating, preserving reason/history and recalculating visible count.",
+      "module": "feedback"
+    },
+    {
+      "module": "commerce",
+      "check": "customer_real_browser_adds_owned_delivery_address",
+      "workflow_ids": [
+        "PEOPLE.06"
+      ],
+      "roles": [
+        3
+      ],
+      "scope": "Same exact commercial control previously mapped; repeated on this connected owned graph."
+    },
+    {
+      "module": "commerce",
+      "check": "sc_real_browser_reviews_fixture_customer_and_assigns_direct_relationship",
+      "workflow_ids": [
+        "LINK.01",
+        "LINK.02"
+      ],
+      "roles": [
+        1
+      ],
+      "scope": "Same exact commercial control previously mapped; repeated on this connected owned graph."
+    },
+    {
+      "module": "commerce",
+      "check": "customer_real_browser_configures_parts_addons_sizes_quotes_and_places_custom_order",
+      "workflow_ids": [
+        "CAT.01",
+        "CONFIG.01",
+        "CONFIG.02",
+        "CONFIG.05",
+        "PRICE.01",
+        "ORDER.02"
+      ],
+      "roles": [
+        3
+      ],
+      "scope": "Same exact commercial control previously mapped; repeated on this connected owned graph."
+    },
+    {
+      "module": "commerce",
+      "check": "customer_real_browser_places_ready_made_order_with_server_price_and_queued_provider_intent",
+      "workflow_ids": [
+        "CAT.02",
+        "CAT.03",
+        "PRICE.02",
+        "ORDER.02",
+        "INTEGRATE.01",
+        "INTEGRATE.02"
+      ],
+      "roles": [
+        3
+      ],
+      "scope": "Same exact commercial control previously mapped; repeated on this connected owned graph."
+    },
+    {
+      "module": "commerce",
+      "check": "sc_real_browser_places_mixed_order_for_reviewed_customer_with_exact_totals_and_foreign_customer_denial",
+      "workflow_ids": [
+        "PRICE.02",
+        "ORDER.02"
+      ],
+      "roles": [
+        1
+      ],
+      "scope": "Same exact commercial control previously mapped; repeated on this connected owned graph."
+    },
+    {
+      "module": "commerce",
+      "check": "sc_real_browser_records_deposit_and_priority_pc_projection_hides_payment",
+      "workflow_ids": [
+        "ORDER.06",
+        "ORDER.07"
+      ],
+      "roles": [
+        1,
+        2
+      ],
+      "scope": "Same exact commercial control previously mapped; repeated on this connected owned graph."
+    }
+  ],
+  "documents_evidence": "evidence/document-output-141.json",
+  "documents_sha256": "9db7538fb1f930c046122b6290df7e1c56abab48ec14acf08832326d909e65e0",
+  "visual_review": "evidence/document-outputs-aec91653-visual-review.json",
+  "visual_review_sha256": "782aaf6ad336f712a6ca7a534f1333e31dd54d4f30f2caff88e758d8afd78876",
+  "source_journal_sha256": "978045fd9df50de58c1b7c0517de2fedd631162e2ab973cf765110f411bd91a1",
+  "cleanup": {
+    "run_id": "aec91653-6ae2-421e-8dc7-4d845c9126f8",
+    "owned_commands": 62,
+    "owned_auth_revisions": 0,
+    "removed_source_rows": 143,
+    "removed_documents": 3,
+    "removed_queued_documents": 1,
+    "removed_processed_documents": 2,
+    "tables": {
+      "sa_users": 18,
+      "sa_factories": 2,
+      "sa_addresses": 5,
+      "sa_sizes": 1,
+      "sa_size_types": 1,
+      "sa_sc_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_base_size_types": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
+      "sa_rmp_category_brands": 1,
+      "sa_products": 3,
+      "sa_orders": 7,
+      "sa_items": 8,
+      "sa_ratings": 3,
+      "sa_back_order_links": 1,
+      "sa_item_criteria": 18,
+      "sa_item_tailors": 2,
+      "sa_job_sheet_assign_dates": 2,
+      "sa_job_sheet_assign_quantities": 2,
+      "sa_job_sheet_assign_tailors": 2,
+      "sa_job_sheet_dispatched_dates": 4,
+      "sa_job_sheet_mark_tailors": 2,
+      "sa_job_sheet_tailor_mark_dates": 1,
+      "sa_mark_cuttings": 2,
+      "sa_mark_tailor_quantities": 2,
+      "sa_product_part_add_ons": 3,
+      "sa_product_parts": 3,
+      "sa_quantities": 8,
+      "sa_stocks": 2,
+      "sa_user_dealers": 1,
+      "sa_dispatched_quantities": 4,
+      "sa_item_tailor_quantities": 2,
+      "sa_mark_cutting_quantities": 2,
+      "sa_stock_useds": 3
+    },
+    "edit_revision_before": 1477,
+    "edit_revision_after": 1539,
+    "synced_revision_after": 1539,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": false,
+    "independently_changed_staff_accounts": 1
+  },
+  "cron_restored": true,
+  "cutover_unchanged": true,
+  "source_content_restored": true,
+  "staff_scope_note": "One independently changed staff account was preserved; staff/Auth were preserved during cleanup, not asserted unchanged since fixture creation.",
+  "limitations": [
+    "Read transport timing remains mixed/partial and is not an enterprise performance SLA. EXIT-07 remains open.",
+    "The multi-page report cursor check is SDK-based; other named UI checks use actual browser controls.",
+    "Two PDF outputs only, both one page; no new multi-page layout claim.",
+    "No Uniware/provider/email execution here. Separately accepted automatic mail evidence remains distinct.",
+    "No global deployed release or whole-persona/workflow matrix acceptance inferred."
+  ]
+}

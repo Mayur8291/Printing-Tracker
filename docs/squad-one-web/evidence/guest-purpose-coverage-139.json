@@ -1,0 +1,91 @@
+{
+  "format": "squad-guest-purpose-coverage/v1",
+  "environment": "staging",
+  "migration_prefix": "20261108202700",
+  "purpose_count": 4,
+  "one_run_all_flows_passed": false,
+  "all_four_required_guest_purposes_have_scoped_passed_evidence": true,
+  "purposes": [
+    {
+      "purpose": "register",
+      "run_id": "997340b5-69e4-40cf-a53d-66390f31b128",
+      "evidence": "evidence/guest-139-partial.json",
+      "sha256": "a7ee17dcc1201d5eaedfd778044c9674f575fa4c6d5392945f5b810833c40dd5",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority_checks": [
+        "real_auth_blocks_pending_approval"
+      ],
+      "cleanup_verified": true
+    },
+    {
+      "purpose": "confirm",
+      "run_id": "997340b5-69e4-40cf-a53d-66390f31b128",
+      "evidence": "evidence/guest-139-partial.json",
+      "sha256": "a7ee17dcc1201d5eaedfd778044c9674f575fa4c6d5392945f5b810833c40dd5",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority_checks": [
+        "real_auth_new_password",
+        "real_auth_old_password_refused",
+        "mapped_customer_identity"
+      ],
+      "cleanup_verified": true
+    },
+    {
+      "purpose": "recovery",
+      "run_id": "b564b5dc-8520-422a-9424-48edd7315b4e",
+      "evidence": "evidence/guest-recovery-invite-139.json",
+      "sha256": "9dcac72c98826a6991ff8eabea1e60080265bbf8816a6bed60a171f88ac18c8a",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority_checks": [
+        "real_auth_new_password",
+        "real_auth_old_password_refused",
+        "mapped_customer_identity",
+        "previous_session_and_refresh_refused"
+      ],
+      "cleanup_verified": true
+    },
+    {
+      "purpose": "invite",
+      "run_id": "b564b5dc-8520-422a-9424-48edd7315b4e",
+      "evidence": "evidence/guest-recovery-invite-139.json",
+      "sha256": "9dcac72c98826a6991ff8eabea1e60080265bbf8816a6bed60a171f88ac18c8a",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority_checks": [
+        "real_auth_new_password",
+        "real_auth_old_password_refused",
+        "mapped_customer_identity"
+      ],
+      "cleanup_verified": true
+    }
+  ],
+  "limitations": [
+    "Earlier full run remains failed overall; only its completed registration and confirmation purposes are reused.",
+    "Later run intentionally selected recovery and invitation; its all_flows_passed remains false.",
+    "Successful proof codes were read in the real unique recipient inbox and accepted by the matching server flow; SMTP-submitted Message-ID is not claimed as an observed header.",
+    "This combines guest-purpose evidence only; final deployed smoke, remaining People controls and any independently required password-change UI disposition are not inferred."
+  ]
+}

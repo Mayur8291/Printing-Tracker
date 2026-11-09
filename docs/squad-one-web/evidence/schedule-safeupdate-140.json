@@ -1,0 +1,34 @@
+{
+  "format": "squad-schedule-safeupdate-regression/v1",
+  "measured_at": "2026-11-09T02:46:01.532176+00:00",
+  "migration": "20261109024124_squad_weekly_schedule_safe_updates.sql",
+  "sha256": "c7dd4d5eb885fe2fd5349edf0271caa55f7c049d2f6457467ac7f5067dad2530",
+  "environment": "isolated local synthetic PostgreSQL17",
+  "scope": "6explicit WHEREsingleton predicates across4schedulefunctions; no hosted/SMTP/providerwork",
+  "actual_module": {
+    "upstream": "https://github.com/eradman/pg-safeupdate",
+    "commit": "37dbc9c4acf5e2504adf2b218e9c6b41751022f3",
+    "loaded_per_connection": true,
+    "server_defaults_changed": false
+  },
+  "tests": {
+    "new_actual_guard": 9,
+    "existing_weekly_warehouse": 41,
+    "weekly_rehearsal_and_recovery": 40,
+    "total": 90,
+    "passed": 90
+  },
+  "checks": [
+    "Old configure and both heartbeat branches reproduce SQLSTATE21000 under actual module",
+    "Fixed enable/disable/replay and expected-version controls pass with guard enabled",
+    "Bounded weekly queue and empty-week advance retained",
+    "Error pause and successful error reset verified for both schedules",
+    "Provider ownership and browser worker denials retained",
+    "Function owners/ACLs/security modes/search_path unchanged",
+    "Existing mail rehearsal provenance/revocation and exact cleanup regressions pass"
+  ],
+  "limitations": [
+    "Local integration result; root hosted staging release and actual weekly-mail retry remain separate.",
+    "Safeupdate module is locally built, not claimed to be exact hosted binary."
+  ]
+}

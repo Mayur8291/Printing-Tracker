@@ -5,6 +5,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 from fixtures import rpc,session,uid
 from local_db import connect
+from release_mirror import security_check
 from test_catalogue import seed_catalogue
 import test_production_execution as work
 from test_hosted_personas import controlled_alias
@@ -93,7 +94,7 @@ class WeeklyMailRehearsal(unittest.TestCase):
     def test_lock_owner_has_no_bypass_or_direct_write_authority(self):
         self.register()
         self.assertEqual(self.raw("SELECT r.rolname,r.rolsuper,r.rolbypassrls,r.rolcanlogin FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner WHERE p.oid='sa_domain.weekly_mail_lock(uuid)'::regprocedure"),[('sa_mail_lock',False,False,False)])
-        self.assertEqual(self.raw("SELECT count(*) FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner WHERE p.pronamespace='sa_domain'::regnamespace AND p.prosecdef AND(r.rolsuper OR r.rolbypassrls) AND p.oid NOT IN('sa_domain.auth_context()'::regprocedure,'sa_domain.revoke_account_sessions(bigint)'::regprocedure)"),[(0,)])
+        self.c.execute('RESET ROLE'); security_check(self.c)
         for role in ['anon','authenticated','sa_app','service_role','sa_worker']:
             self.assertEqual(self.raw('SELECT pg_has_role(%s,%s,%s)',(role,'sa_mail_lock','MEMBER')),[(False,)])
         for role in ['anon','authenticated','sa_app','service_role']:

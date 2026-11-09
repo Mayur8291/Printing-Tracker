@@ -1,0 +1,75 @@
+{
+  "format": "squad-publication-delta-review/v1",
+  "reviewed_at": "2026-11-09T06:01:03.217303+00:00",
+  "scope": "Production141 release, exact application parity and endpoint/catalog metadata plus current documentation. Historical outcomes retained; strict platform difference explicit.",
+  "approved_exact_files": [
+    {
+      "path": "docs/squad-one-web/evidence/production-release-141.json",
+      "sha256": "2e18aa69466d07a2e88b0be234f27d075766ceb0822a62475f69f04fca17f8dd",
+      "bytes": 2483,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/production-edge-release-141.json",
+      "sha256": "bb06bfdc3612d96e6e531dab3dceb08c4dc8ad4b3a4808ab54dc4355ed371f3b",
+      "bytes": 1911,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/refresh-catalog-check-141.json",
+      "sha256": "63978834410423ef4f3a7f80e7f61d2bd038a69645161dde9c3f8555936ea85e",
+      "bytes": 727,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/application-parity-141.json",
+      "sha256": "4b54da010954c4b95f6b24370e3d30cab3defaebe1e23d80a616131ff5a23f19",
+      "bytes": 5542,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/backend-endpoints-141.json",
+      "sha256": "4f1dd0ee07bfbef3c12b4f8a542461fd64ee9249cfdfcb4cff8689d085e8ae1a",
+      "bytes": 1707,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/backend-mirror-parity.json",
+      "sha256": "4b54da010954c4b95f6b24370e3d30cab3defaebe1e23d80a616131ff5a23f19",
+      "bytes": 5542,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-audit/implementation-evidence/backend-mirror-endpoints.json",
+      "sha256": "4f1dd0ee07bfbef3c12b4f8a542461fd64ee9249cfdfcb4cff8689d085e8ae1a",
+      "bytes": 1707,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/README.md",
+      "sha256": "a4f01b545fd5517069d71cdf0b65d18a27fa9982892dbc39792b53f5e702f347",
+      "bytes": 2540,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/implementation-progress.json",
+      "sha256": "2039b5b4c470f28ef338ad7a74845b9e1784170a7c02edb23935880e8e45a555",
+      "bytes": 35212,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-gates.md",
+      "sha256": "e5bd72dbf2d6f3c143fa5aae3f8cf14a1ef9f86f93003111c9dfa80dc4fbfffb",
+      "bytes": 15221,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-audit/BACKEND_PARITY.md",
+      "sha256": "6248a6e0b23747aa4ae8a604f3ac22929b2a8b7bc4533d75fb22ef64bd49b73a",
+      "bytes": 12784,
+      "publication": "approved_exact_hash_only"
+    }
+  ],
+  "inspection": "Migration filenames, aggregate preservation/endpoint outcomes, fixed project release metadata and artifact hashes only. No credentials, contacts, source rows, signed URLs, home paths or private logs.",
+  "limitations": "Read-only evidence review, not an independent hosted rerun. Later changed hashes require review; 90% frontend acceptance unchanged."
+}

@@ -1,0 +1,34 @@
+{
+  "path": "evidence/firefox-141.json",
+  "sha256": "c7102dab7390c48326310c91ffd138392e9c1e8b95d31843b521974d503c09a5",
+  "run_id": "7bf27e42-9440-400c-8342-7ca1e3e11a8a",
+  "engine": "firefox",
+  "version": "159.0",
+  "personas": 11,
+  "routes": 102,
+  "keyboard_checks": 34,
+  "viewport": {
+    "width": 360,
+    "height": 844
+  },
+  "frontend": {
+    "base": "http://127.0.0.1:5186",
+    "entry_path": "/assets/index-D0HIEzmj.js",
+    "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+  },
+  "scope": "Real staged identity login/navigation, read-only360px/keyboard/profile controls and Admin unsaved city dialog on pinned clean build. Not mutation journeys, WebKit or native Safari.",
+  "diagnostics": {
+    "page_errors_retained": 125,
+    "classified_caught_lock_diagnostics": 125,
+    "native_errors": 0,
+    "fatal_errors": 0,
+    "route_issue_count": 0
+  },
+  "private_report_sha256": "79c3a62441ff12c1a3000ad8fde50a8dcd052cbb83a1d03d2c4d9deb4da815db",
+  "diagnostic_local_regression": "evidence/firefox-lock-observer-local-review.json",
+  "visual_review": "evidence/firefox-7bf27-visual-review.json",
+  "visual_review_sha256": "9fda5acaf3a23c40e9252010b054c0f6fa92c0fe35ffb7080e4e549421e70c8b",
+  "owned_commands": 0,
+  "source_staff_crons_restored": true,
+  "native_safari_tested": false
+}

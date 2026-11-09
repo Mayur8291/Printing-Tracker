@@ -1,0 +1,237 @@
+{
+  "format": "squad-publication-delta-review/v1",
+  "reviewed_at": "2026-11-09T05:33:33.625010+00:00",
+  "previous_review": "docs/squad-one-web/evidence/publication-review-release-141.json",
+  "previous_review_sha256": "eb857acc17a9a7159aa3779a86bc03e002649cbb12f690c2360a1d968c9048e7",
+  "repository_visibility": "public",
+  "scope": "Docs/evidence changed since previous publication review; exact hashes only. No private directory, generated PDF/image output or raw log approved.",
+  "approved_exact_files": [
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.json",
+      "sha256": "65b361d40d2950d22eed7c7f88107202345042b7b0040dc98d3f4ab552830209",
+      "bytes": 535505,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/release-exit-criteria.json",
+      "sha256": "16a28c0e9b59b257f217a2a9a876ecc3709d4f10c1b78c6c641f2ce3e63b7632",
+      "bytes": 33742,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-gates.md",
+      "sha256": "d383319c4012d637a4bbaecca2fc17fd460a8624049e04f8c49c3f8e63c2a751",
+      "bytes": 13537,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/README.md",
+      "sha256": "a2f816b2a0efab0a45cae4a3ed317f2f2773bf8a1f75694c7dad1fac443dd808",
+      "bytes": 2454,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/implementation-progress.json",
+      "sha256": "b6f47d624bf133bf94df1b4d27f5d5a90f730099447c54a376460b16bfdfbba3",
+      "bytes": 31845,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.csv",
+      "sha256": "26b85a23f76dbfe0cb973ea37e660ef136386b825c223a878b0fc8e0d6608325",
+      "bytes": 242743,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/administration-internal-exit-141-review.json",
+      "sha256": "c068f65d2262a886ec8ff6d5f76cbf507d805526000d4af1c19ece2a5cc11c8e",
+      "bytes": 2864,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/production-rollback-verification-141.json",
+      "sha256": "cc9b816c5207fd23f60b0d9433ff9cae375ea9926ec6199fa0cc24de0855e13e",
+      "bytes": 4249,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/webkit-ee041-visual-review.json",
+      "sha256": "ea9404728132ff409e8dc4d99d6484013e5662fdefdbd82001e6c1c503a0051f",
+      "bytes": 1772,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/firefox-141.json",
+      "sha256": "c7102dab7390c48326310c91ffd138392e9c1e8b95d31843b521974d503c09a5",
+      "bytes": 2310,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/firefox-acceptance.json",
+      "sha256": "c7102dab7390c48326310c91ffd138392e9c1e8b95d31843b521974d503c09a5",
+      "bytes": 2310,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/git-release-candidates-current.json",
+      "sha256": "22430d25ba1690fefa67f18ccd8e351061e1cf4396b11f4fce56d83b4e721c8c",
+      "bytes": 405784,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/content-media-source-141.json",
+      "sha256": "249709601bf3d54203e246bdd38c54678809c6971e7a1ce07e5f65ee033bee60",
+      "bytes": 19175,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/preset-content-boundary-preparation.json",
+      "sha256": "30c2264d90f919eb346b0dc5dc216927b41dcca04c4817aa1d6b96b076926faf",
+      "bytes": 3935,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/webkit-acceptance.json",
+      "sha256": "86f5a0841f30b14312201305d91c764bca7f1a0ce5a45eb615e270a2006b3146",
+      "bytes": 2309,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/workflow-extensions-141-pass1-partial.json",
+      "sha256": "6f8780fb09bea833467d21262e8ac002a864033dec7601817364d1e04199dc96",
+      "bytes": 5500,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/content-media-source-141-publication-normalization.json",
+      "sha256": "280c69092abd4dfecd52883e027208c66c728ea6b27283e1c30c6f28a0b99e27",
+      "bytes": 1125,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/firefox-141-observer-visual-binding.json",
+      "sha256": "27468cc642df110e55139b2848d285f383a49e3e27f7fed74e4e7e63d5752b2a",
+      "bytes": 1334,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/firefox-lock-observer-local-review.json",
+      "sha256": "c5eb9e651a8ade09705809f2d36942603277960d174dd9e328ecfaf5e54a58c9",
+      "bytes": 1722,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/persona-reservation-range-review-141.json",
+      "sha256": "99c433d8ba0b5c10abe34b8492fc65b48826646562ca364f8d039735068ec94d",
+      "bytes": 1376,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/content-media-64d500ca-visual-review.json",
+      "sha256": "bc67378dca93435fe14ecbb104c15ca045766e02f5aa9cfe0ec6c56b0d7b092e",
+      "bytes": 1089,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/webkit-141-observer-visual-binding.json",
+      "sha256": "e7c11224b48b4513bb03dbfd4464505d5d4482326d2a7f3a2fe772e41730bf3f",
+      "bytes": 1356,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/native-safari-version.json",
+      "sha256": "94e3e22cc6a58740953960a41cf9bd95972a5b2cb2d1103d45bd2b4b20311b3c",
+      "bytes": 282,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/last-business-cleanup.json",
+      "sha256": "ca164ffe0c461d88790b6f1eb06d36a79bd9c62ec4f83ef2750a98aed8c795a8",
+      "bytes": 2454,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/transfer-ownership-local-review.json",
+      "sha256": "45431d342b3bb9fdb339450edbde0937a9daef28ed47656841049a14f0553411",
+      "bytes": 1178,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/webkit-141.json",
+      "sha256": "86f5a0841f30b14312201305d91c764bca7f1a0ce5a45eb615e270a2006b3146",
+      "bytes": 2309,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-preparation.json",
+      "sha256": "d18b168359ee1436f597cb01faf86b6900415e201fec2931dd1361084b912123",
+      "bytes": 2588,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/firefox-7bf27-visual-review.json",
+      "sha256": "9fda5acaf3a23c40e9252010b054c0f6fa92c0fe35ffb7080e4e549421e70c8b",
+      "bytes": 1717,
+      "publication": "approved_exact_hash_only",
+      "reason": "Scoped aggregate fixture/browser/cleanup/release or plan/hash metadata; private screenshots are referenced only by relative path and digest. No contact records, credentials, signed URLs, raw page text, or embedded file bytes observed."
+    }
+  ],
+  "deferred_files": [
+    {
+      "path": "docs/squad-one-web/evidence/business-acceptance.json",
+      "sha256_at_review": "63952d82756659519cec1d71aa12a0331131ed3fc1babcbbeec27fe0f409f116",
+      "publication": "not_approved_current_hash",
+      "reason": "Active parent workflow may replace canonical result. Current version still has an absolute home path in journeys.content-media.missingProductScreenshot; normalize after final run, retaining raw bytes privately.",
+      "indicator_categories": [
+        "absolute_home"
+      ]
+    }
+  ],
+  "normalization": "docs/squad-one-web/evidence/content-media-source-141-publication-normalization.json",
+  "inspection": {
+    "candidate_count": 29,
+    "approved_count": 28,
+    "deferred_count": 1,
+    "structured_review": "Browser counts, scoped check descriptions, cleanup receipts, source/build file inventories, fixed selector diagnostic, no application response rows except nonpersonal entity IDs/status summaries.",
+    "approved_files_secret_or_contact_indicator_hits": 0,
+    "screenshots_copied_public": false
+  },
+  "retained_exclusions": [
+    "All tools/squad/private content including original normalization backup",
+    "All new unreviewed binaries, actual screenshots/PDF outputs and raw logs",
+    "Native handoff credentials, URLs or clipboard contents"
+  ],
+  "limitations": [
+    "Changed or overwritten hashes invalidate this approval.",
+    "Canonical business-acceptance remains unapproved until active run finishes and privacy review is repeated.",
+    "This review does not accept incomplete features or authorize deployment.",
+    "The review receipt itself needs integrator inspection; it cannot self-approve its own hash."
+  ]
+}

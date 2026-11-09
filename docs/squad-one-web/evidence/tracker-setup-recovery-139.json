@@ -1,0 +1,38 @@
+{
+  "format": "squad-tracker-setup-recovery/v1",
+  "environment": "staging",
+  "run_id": "be7a48dd-a8d7-4822-b12a-48c86f0e9a39",
+  "status": "setup_failed_recovered_not_ui_accepted",
+  "failure": "Existing profile guard rejected viewer-to-admin update because the exact admin email was inserted into the allowlist only after the update.",
+  "automatic_dependency": "One trigger-created unread channel membership belonged to the new profile; original cleanup correctly refused unknown dependent rows.",
+  "read_only_recovery_proof": {
+    "trusted_run_marker": true,
+    "membership_profile_auth_xmin_equal": true,
+    "membership_role": "member",
+    "conversation_kind": "channel",
+    "last_read_at_null": true,
+    "owned_auth_sessions": 0
+  },
+  "fix": "Insert exact owned admin allowlist entry before promotion, preserving the existing trigger. Capture original channel membership composite key, full hash and xmin; require exact full set and no children; delete only those proven rows. Viewer receives no unnecessary update. Unknown browser shutdown retains checkpoint.",
+  "cleanup": {
+    "verified_by": "parent executed exact recovery after independent read-only inspection and local tests",
+    "removed_owned_auth": 1,
+    "removed_owned_channel_memberships": 1,
+    "unrelated_auth_profiles_preserved_during_cleanup": true,
+    "business_revision_unchanged": true,
+    "checkpoint_removed": true
+  },
+  "local_validation": {
+    "channel_and_existing_sql_tests": 20,
+    "wrapper_privacy_lifecycle_tests": 7,
+    "database": "isolated synthetic PostgreSQL",
+    "actual_hosted_fixture_ui_acceptance": false
+  },
+  "files_sha256": {
+    "tools/squad/tracker_read_fixture.py": "399d11b2324915e0633bcbf60f48069de4e3149833b577577d0759a9be37e20f",
+    "tools/squad/test_web_tracker_read_hosted.py": "8beda72271cc64c667436bb4de786793c4e723f9a89a4ce7db5fcadcf1932c4f",
+    "tools/squad/test_tracker_channel_cleanup.py": "0c7f75163ad56bf464f5ff02da4af27ab88d0b6b31e95ff60b1380fca65ffced",
+    "tools/squad/test_tracker_read_wrapper.py": "9746cc3ca35127aed2ca00be06bc1179451abe64e4195d033239ef82035237e8"
+  },
+  "recorded_at": "2026-11-09T02:49:38.763606+00:00"
+}

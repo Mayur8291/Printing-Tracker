@@ -1,0 +1,96 @@
+{
+  "scope": "Local only; no hosted release or acceptance inferred",
+  "source_commit": "5d55d9461af18b94a867dce07dee7c4b76f1e51f",
+  "source_disposition_groups": 53,
+  "browser_component_cases": 28,
+  "browser_test": "tools/squad/web-commerce-browser.mjs",
+  "model_tests": 21,
+  "model_test_command": "node --test tools/squad/web-commerce*.test.mjs",
+  "sdk_types": "passed tsc noEmit ES2022 NodeNext",
+  "migration134": {
+    "path": "20261108201737_squad_completed_order_priority.sql",
+    "sha256": "81def146775f568ddede38e2d46cc4a423697a360033b11c8fadb4cc94978ae0",
+    "new_tests": 10,
+    "existing_lifecycle_regressions": 27,
+    "reviewer": "operations agent"
+  },
+  "migration137": {
+    "path": "20261108202002_squad_worker_order_context.sql",
+    "sha256": "8bf5b0e736e587a7dbc2546b35563612d8d1fba8955bb9064856eb180e2cf1e2",
+    "new_tests": 6,
+    "due_sort_regressions": 11,
+    "reviewer": "operations agent"
+  },
+  "ui_controls": [
+    "Server-projected person management and photo authority",
+    "State/city selectors and source phone/designation requirements",
+    "Contextual shared Orders for customer/coordinator/manager/worker",
+    "Selected-person task/responsibility/target links",
+    "Source Tailor work panel",
+    "Staging-safe shared contact actions",
+    "On-demand scoped backorder links",
+    "Completed-order priority without other closed mutations",
+    "Lazy SC order customer contact from existing scoped person API; staging-safe shared actions"
+  ],
+  "targeted_sql_regressions": 95,
+  "pdf_link_acceptance": {
+    "helper": "tools/squad/browser-pdf-click.mjs",
+    "test": "tools/squad/browser-pdf-click.test.mjs",
+    "actual_browser_behaviors": [
+      "attachment download complete event and private-file SHA256",
+      "inline native PDF viewer with verified bytes"
+    ],
+    "negative_checks": [
+      "corrupted same-length PDF hash rejected",
+      "prevented click with correct href rejected"
+    ],
+    "hosted_run": "not run by this lane"
+  },
+  "lost_response_acceptance_adapter": {
+    "helper": "tools/squad/browser-lost-response.mjs",
+    "test": "tools/squad/browser-lost-response.test.mjs",
+    "local_result": "Passed actual HTTP server mutation followed by deliberately lost successful response, unchanged retry, exactly one durable fixture change; existing Puppeteer request interception retained",
+    "hosted_module": "commerce-controls",
+    "hosted_result": "Not executed; parent acceptance and exact cleanup required",
+    "origin_binding": "Exact staging Supabase origin plus RPC path"
+  },
+  "commerce_controls_adapter_checks": [
+    "SC quote unit-price override and exact tax/accepted total",
+    "Successful RPC response lost after server commit; unchanged UI retry same key/payload/version and no second increment",
+    "Due date and destination persist exact browser values",
+    "Person-to-orders scoped customer filter plus due-date sort",
+    "Payment acknowledgement leaves version/payment unchanged and staging external links absent",
+    "Admin exception closure, completed priority, Customer feedback create/edit exact recipient",
+    "Custom cancellation visible to own customer without provider worker",
+    "Dealer own RMP and mixed placement with exact fixture tax/totals, typed children, queued provider intent, pure-RMP PC denial, mixed selling total with payment-field redaction and foreign Customer denial",
+    "Actual small-fixture authenticated due-sort cursor walk with page size1, exact observed count and no bulk data inserts"
+  ],
+  "pc_scope_adapter_correction": {
+    "reason": "Hosted run d3494489 correctly returned P0002 for pure Dealer RMP; the adapter wrongly expected a visible redacted order. A second stale assertion also hid all mixed selling values although source-authorized PC selling projections already permit them.",
+    "change": "Pure RMP now requires PC not_found; mixed requires accepted selling total1302 and absence of paid_amount/payment_status. Foreign Customer denial retained.",
+    "source": "Pinned Flutter5d55d946 global_constants.dart136\u2013148 selling values and230\u2013235 payment values; scoped reads PC custom/mixed only; persona_finance_parity migration20261108090719.",
+    "test": "tools/squad/test_web_dealer_commercial_scope.py",
+    "local_result": "Passed actual Dealer-owned RMP and mixed quote/placement, PC denial or correct selling/payment projection and foreign Customer denial; isolated rollback only.",
+    "reviewer": "operations agent independently approved",
+    "backend_changes": false,
+    "hosted_corrected_result": "Pending parent rerun; prior failed run cleaned exactly."
+  },
+  "staff_feedback_adapter": {
+    "path": "tools/squad/web-feedback-hosted-journey.mjs",
+    "requires": "Completed owned commerce factory order/item after operations",
+    "checks": [
+      "SC to actual assigned PC",
+      "PC to actual assigned Factory Manager",
+      "Factory Manager item to actual assigned Cutting Master",
+      "Admin exact-record moderation, retained history and visible summary recalculation",
+      "Customer cannot view private staff feedback"
+    ],
+    "local_rendered_form_cases": 4,
+    "cleanup_test": "test_web_feedback_cleanup.FeedbackCleanup passed full139 exact cleanup and retained audit; no new cleanup exception",
+    "reviewers": [
+      "parent",
+      "operations agent"
+    ],
+    "hosted_result": "Pending parent execution"
+  }
+}

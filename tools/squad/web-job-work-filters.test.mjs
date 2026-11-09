@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{jobWorkFilters}from '../../apps/admin/src/squad/features/jobWork/jobWorkFilters.js';
+test('job worker tabs use worker completion rather than whole order completion',()=>{assert.deepEqual(jobWorkFilters(),{worker_status:0,assignment_kind:'job_worker',search:''});assert.equal(jobWorkFilters({state:'completed'}).worker_status,1);assert.equal('state' in jobWorkFilters(),false);});
+test('priority due sort and search compose without changing actor scope',()=>{assert.deepEqual(jobWorkFilters({state:'completed',priority:true,sort:'due_asc',search:' 123 '}),{worker_status:1,assignment_kind:'job_worker',search:'123',prime:true,sort:'due_asc'});assert.throws(()=>jobWorkFilters({sort:'random'}));});

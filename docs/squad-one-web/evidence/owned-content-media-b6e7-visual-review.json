@@ -1,0 +1,40 @@
+{
+  "format": "squad-private-visual-review/v1",
+  "run_id": "b6e764b1-9116-4c2a-bf56-b22c1f4b35b6",
+  "screenshots": [
+    {
+      "path": "tools/squad/private/web-content-media-b6e764b1-9116-4c2a-bf56-b22c1f4b35b6/product-zip-mobile.png",
+      "sha256": "8c219a3bd9d3c9866cebfed56eb24d925765692c83659a4b05a046cdce94babe",
+      "viewport": {
+        "width": 360,
+        "height": 844
+      }
+    },
+    {
+      "path": "tools/squad/private/web-content-media-b6e764b1-9116-4c2a-bf56-b22c1f4b35b6/promotion-mobile.png",
+      "sha256": "a46c905bead339925cd5190df5d646bafeba4a9ed4f6616e586f3c07be9e16d6",
+      "viewport": {
+        "width": 360,
+        "height": 844
+      }
+    },
+    {
+      "path": "tools/squad/private/web-content-media-b6e764b1-9116-4c2a-bf56-b22c1f4b35b6/promotion-missing-mobile.png",
+      "sha256": "32985aae74ca9db12ed123b153f71c374243dd8a8f0710f8b536983f9aadf7eb",
+      "viewport": {
+        "width": 360,
+        "height": 844
+      }
+    }
+  ],
+  "observations": [
+    "Product image-share dialog fits360px, clearly states1image ready and Download started, with all actions readable and no clipping.",
+    "Ready promotion screenshot is captured during media loading; layout is readable but it does not prove decoded pixels. Actual browser byte/hash download and separate native preview observations supply those distinct proofs.",
+    "Missing promotion clearly reports File missing from source with explanatory text and exact category/date filters."
+  ],
+  "limitations": [
+    "Native product-dialog focus-return bug is separately reproduced and fixed locally; native focused regression remains pending.",
+    "No public screenshot bytes; these are exact private artifact hashes."
+  ],
+  "new_visual_layout_blocker": false
+}

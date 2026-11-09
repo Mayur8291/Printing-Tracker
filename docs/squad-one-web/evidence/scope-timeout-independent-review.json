@@ -1,0 +1,134 @@
+{
+  "format": "scope-timeout-independent-review/v1",
+  "reviewed_at": "2026-11-09T04:24:43.922386+00:00",
+  "scope": "Read-only source/evidence review and independent diagnostic harness review; no hosted queries or SQL execution.",
+  "inputs": {
+    "docs/squad-one-web/evidence/pass7-timeout-log-context.json": "51922fa046e91355988bc5dc0909cad463a6918d332601348c470f78d4aa0ae1",
+    "docs/squad-one-web/evidence/worker-order-rollback-profile.json": "a56d7f68f5ec6d1d60c263d01fe7b6cfcd45b0a00da848727408d8f1dfee8e0a",
+    "supabase/migrations/20261107155042_squad_work_scope_index_paths.sql": "3d96452fb1638690747e9d6be3645aef96ab453c26ed0136bd4ef7ae34d4d9e1",
+    "tools/squad/profile_worker_order_rollback.py": "e8932247768f62b6068c02eb844187edc7b982e09181e63870ea1892a95092a7",
+    "tools/squad/test_worker_order_rollback_profile.py": "65c3ef4c49a670d45b48c83fd2f76f3a645183468c16005947ad17bea96f5c44"
+  },
+  "observed_timeout_contexts": [
+    "Worker scope_order_ids body line9",
+    "PC scope_item_ids body line6 via jobsheet_page_ids",
+    "item_children and item detail"
+  ],
+  "isolated_probe": {
+    "settings": {
+      "statement_timeout": "8s",
+      "lock_timeout": "2s",
+      "jit": "off",
+      "plan_cache_mode": "auto",
+      "work_mem": "2184kB"
+    },
+    "samples": [
+      {
+        "phase": "before_due",
+        "component": "outer_order",
+        "ms": 32.319,
+        "outcome": "completed"
+      },
+      {
+        "phase": "before_due",
+        "component": "header",
+        "ms": 6.846,
+        "outcome": "completed"
+      },
+      {
+        "phase": "before_due",
+        "component": "item_quantity_page",
+        "ms": 20.757,
+        "outcome": "completed"
+      },
+      {
+        "phase": "before_due",
+        "component": "dispatch_destination",
+        "ms": 3.297,
+        "outcome": "completed"
+      },
+      {
+        "phase": "before_due",
+        "component": "pending_request",
+        "ms": 0.087,
+        "outcome": "completed"
+      },
+      {
+        "phase": "before_due",
+        "component": "worker_history",
+        "ms": 18.334,
+        "outcome": "completed"
+      },
+      {
+        "phase": "after_due",
+        "component": "outer_order",
+        "ms": 31.626,
+        "outcome": "completed"
+      },
+      {
+        "phase": "after_due",
+        "component": "header",
+        "ms": 6.813,
+        "outcome": "completed"
+      },
+      {
+        "phase": "after_due",
+        "component": "item_quantity_page",
+        "ms": 20.592,
+        "outcome": "completed"
+      },
+      {
+        "phase": "after_due",
+        "component": "dispatch_destination",
+        "ms": 3.267,
+        "outcome": "completed"
+      },
+      {
+        "phase": "after_due",
+        "component": "pending_request",
+        "ms": 0.085,
+        "outcome": "completed"
+      },
+      {
+        "phase": "after_due",
+        "component": "worker_history",
+        "ms": 16.559,
+        "outcome": "completed"
+      }
+    ],
+    "rollback_verified": true
+  },
+  "inferences_and_limits": [
+    "Actual server57014 stacks show database cancellation; browser symptoms alone do not explain the cause.",
+    "Fast one-connection auto-mode results do not exclude a differently cached pooled PL/pgSQL plan.",
+    "Component extraction substitutes constants and cannot prove pooled parameter-sensitive behavior.",
+    "Worker scope predicate lacks live-row filters; current catalog only shows a partial assigned_worker index with those filters. This is a possible cost contributor, not a proven timeout root cause.",
+    "Adding live predicates for index use could change historical authority and is not an approved optimization.",
+    "A forced generic/custom difference would demonstrate sensitivity, not prove the original pooled connection chose the generic plan."
+  ],
+  "diagnostic_review": {
+    "result": "GO",
+    "optional_mode": "--compare-scope-plans",
+    "bounded_samples": 6,
+    "controls": [
+      "Same owned SQL-only command graph and unchanged rollback fingerprints",
+      "Original sa_app/sa_executor/sa_guard role and JWT boundaries",
+      "Exact bigint parameterized Worker branch, no live filter or new grant",
+      "SET LOCAL mode, per-query savepoints, explicit prepared-statement DEALLOCATE",
+      "No HTTP/provider/Cron calls; sequence gaps disclosed"
+    ],
+    "suggestion": "Fail on helper definition drift before comparing hardcoded branch."
+  },
+  "primary_sources": [
+    {
+      "url": "https://www.postgresql.org/docs/17/plpgsql-implementation.html",
+      "supports": "PL/pgSQL substitutes variables as parameters and caches prepared plans."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-prepare.html",
+      "supports": "Generic/custom plan selection, forced mode diagnostic and session-scoped prepared statements."
+    }
+  ],
+  "root_cause_established": false,
+  "production_change_recommended_without_measurement": false
+}

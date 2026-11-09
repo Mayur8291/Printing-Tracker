@@ -1,5 +1,6 @@
 import {createHandler,serviceRpc, storageCleanup,scheduledMaintenance} from './handler.ts';
 import {reconcileAccount,authAdmin} from './accounts.ts';
+import {accountRehearsal} from './account-rehearsal.ts';
 import {accountMail} from './account-mail.ts';
 import {accountCrypto} from '../_shared/squad-account-crypto.ts';
 import {proofMailer} from '../_shared/squad-mail.ts';
@@ -38,5 +39,5 @@ const transfers={run:transferWorker(rpc,transferStorage(url,key)),remove:async(p
  const r=await fetch(url+'/storage/v1/object/squad-transfers',{method:'DELETE',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({prefixes:paths}),signal:AbortSignal.timeout(12000),redirect:'error'});
  if(!r.ok){await r.body?.cancel();throw new Error('transfer_cleanup_failed');}await r.body?.cancel();
 }};
-const domain={rehearsalProjectRef:projectRef,warehouseRehearsal:warehouseRehearsalFromEnvironment(rpc,name=>Deno.env.get(name)),weeklyMailRehearsal:weeklyMailRehearsal(rpc,files,{...mailConfig,projectRef}),documentRehearsalProjectRef:projectRef==='scvojtvgnkmbupvyslmb'?projectRef:undefined,warehouseCheck:warehouseReadCheck(name=>Deno.env.get(name)),heartbeat:()=>scheduledMaintenance(rpc),warehouse:warehouseWorker(rpc,warehouseAdapters(name=>Deno.env.get(name))),businessMail:businessMailWorker(rpc,files,businessMailer({...mailConfig,projectRef})),airtable:airtableWorker(rpc,airtableFromEnvironment(name=>Deno.env.get(name)),airtableStorage(url,key)),airtableReport:airtableReportWorker(rpc,reportsFromEnvironment(name=>Deno.env.get(name)))};
+const domain={accountRehearsal:accountRehearsal(rpc,flowSecret,{...mailConfig,projectRef}),rehearsalProjectRef:projectRef,warehouseRehearsal:warehouseRehearsalFromEnvironment(rpc,name=>Deno.env.get(name)),weeklyMailRehearsal:weeklyMailRehearsal(rpc,files,{...mailConfig,projectRef}),documentRehearsalProjectRef:projectRef==='scvojtvgnkmbupvyslmb'?projectRef:undefined,warehouseCheck:warehouseReadCheck(name=>Deno.env.get(name)),heartbeat:()=>scheduledMaintenance(rpc),warehouse:warehouseWorker(rpc,warehouseAdapters(name=>Deno.env.get(name))),businessMail:businessMailWorker(rpc,files,businessMailer({...mailConfig,projectRef})),airtable:airtableWorker(rpc,airtableFromEnvironment(name=>Deno.env.get(name)),airtableStorage(url,key)),airtableReport:airtableReportWorker(rpc,reportsFromEnvironment(name=>Deno.env.get(name)))};
 Deno.serve(createHandler(Deno.env.get('SQUAD_JOBS_SECRET'),rpc,storageCleanup(url,key),reconcileAccount(rpc,authAdmin(url,key)),mail,push,documents,transfers,domain));

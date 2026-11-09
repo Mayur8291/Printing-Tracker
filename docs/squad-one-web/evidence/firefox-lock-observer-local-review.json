@@ -1,0 +1,41 @@
+{
+  "recorded_at": "2026-11-09T05:09:15.549797+00:00",
+  "scope": "Local Firefox native Web Locks diagnostic regression; no hosted application, credentials, or source changes. Original hosted Firefox failure is not reclassified.",
+  "application_changes": false,
+  "test_command": "node tools/squad/browser-error-observer.test.mjs",
+  "passed_checks": 8,
+  "actual_browser_cases": [
+    "caught pinned auth-js zero-wait lock contention retained as Firefox diagnostic",
+    "uncaught identical lock rejection remains fatal through unhandledrejection",
+    "unrelated caught callback remains fatal through pageerror",
+    "identical synchronous uncaught error remains fatal through window.error"
+  ],
+  "classifier_negatives": [
+    "Chromium unchanged",
+    "WebKit unchanged",
+    "incomplete authentication/navigation fatal",
+    "other project lock fatal"
+  ],
+  "sources": [
+    {
+      "path": "tools/squad/browser-error-observer.mjs",
+      "sha256": "8054b913cf1e74a45b3757aa10890c7d5e3391010fe2f847d9f04942cf792719"
+    },
+    {
+      "path": "tools/squad/browser-error-observer.test.mjs",
+      "sha256": "1a2eb1647763dcafd252f37b1ee386f54a7f1ee2c19d137ccf18a2ff52096467"
+    },
+    {
+      "path": "tools/squad/web-cross-browser-hosted.mjs",
+      "sha256": "f4a88f029885d75cb4c421b15eb42c67c1aa0cf86ec68af555e0df3e56c05110"
+    }
+  ],
+  "hosted_acceptance": "pending fresh execution with native event observation",
+  "independent_review": {
+    "reviewer": "commerce",
+    "result": "GO",
+    "rerun_checks": 8,
+    "additional_observation": "The same eight cases also passed with the test-only extra100ms wait removed, preserving actual browser-native error collection.",
+    "application_changes": false
+  }
+}

@@ -19,6 +19,10 @@
       ]
     }
   ],
+  "rewrites": [
+    { "source": "/squad/:path*", "destination": "/index.html" },
+    { "source": "/account/:path*", "destination": "/index.html" }
+  ],
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "apps/admin/dist",

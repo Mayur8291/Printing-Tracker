@@ -1,6 +1,6 @@
 import {AccountError} from './errors.ts';
 import {InvalidMedia,verifyMedia} from './media-verification.ts';
-export interface Upload {upload_id:string;path:string;bucket:string;bytes:string;content_type:string;filename:string;state:string;expected_version?:string;current_version?:string;result?:unknown;sha256?:string;expires_at?:string;}
+export interface Upload {resource?:string;upload_id:string;path:string;bucket:string;bytes:string;content_type:string;filename:string;state:string;expected_version?:string;current_version?:string;result?:unknown;sha256?:string;expires_at?:string;}
 export interface UploadDependencies {
  rpc:(auth:string,name:string,args:Record<string,unknown>,service?:boolean)=>Promise<any>;
  signUpload:(path:string)=>Promise<{url:string}>;

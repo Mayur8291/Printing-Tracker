@@ -1,0 +1,45 @@
+{
+  "format": "squad-worker-scope-index-independent-review/v1",
+  "reviewed_at": "2026-11-09T04:35:08.269175+00:00",
+  "status": "source_and_local_evidence_review_go_hosted_validation_pending",
+  "migration_through": "20261109043010",
+  "files": {
+    "supabase/migrations/20261109043010_squad_worker_scope_index.sql": "8f4c269b2cd5cafb37846d8327c2978f654bfad1bcb40f4e9a21696c2715ae9f",
+    "tools/squad/profile_worker_scope_index_local.py": "d002622b03142e1ccb379f3a0f9e6d3c5063ce0a1ae5c605551a1a1c17de92bd",
+    "tools/squad/test_worker_scope_index.py": "c58c6e8363c4a8647dd400edaac3388985d46731cfa6fa108dfb9abb3c69eeba",
+    "tools/canto-sync/delta_sync.py": "39835d5ed1816f249c29b3cec7c7750a8e4eee16e770db11a4694d1d69334e45",
+    "tools/squad/release_mirror.py": "dc3a23151ef3888d035bb512f7bacb38318aa7744d8397b3f63dcf8f688e8ef5",
+    "tools/squad/deploy.py": "aafd5e0c54ff6d842621d65a1441668daf42bc937421de97552651a3266d0858",
+    "tools/squad/release_web_staging.py": "b579d73cc4ae2c037f232e77beb79f1af0eb5aeccc90342075893e94747da927",
+    "tools/squad/release_web_production.py": "c41750bbd0d33facf3256bb11ac3dda0bb4d2e570f8c7c8973041d600b53022a"
+  },
+  "checks": {
+    "only_additive_nonunique_unfiltered_index_and_comment": true,
+    "no_function_rls_grant_or_data_changes": true,
+    "historical_scope_retained": true,
+    "foreign_worker_orders_denied": true,
+    "actual_migration_local_security_metadata_unchanged": true,
+    "local_rollback_verified": true,
+    "local_volume_orders": 45000
+  },
+  "refresh_review": {
+    "supported_publish": "delta_sync.apply_changes retains snapshot table and indexes; temporary loading tables are separate",
+    "rollback": "rollback.py uses the same publish_delta path",
+    "fingerprint": "catalog includes pg_indexes definition before and after publication; unexpected drift fails closed",
+    "recreation": "No new hook needed for row-delta refresh. A fresh installation must apply the ordered migration prefix.",
+    "production_release": "release_web_production wraps release_mirror with exact schedule checkpoint/restoration; committed migration receipt controls baseline publication/recovery",
+    "staging_release": "release_web_staging wraps deploy.py; protected source/public guards and post-commit catalog/domain-access baseline verification remain unchanged"
+  },
+  "rollout_requirements": [
+    "Create new141 manifest with exact migration and release-tool hashes; retain140 unchanged.",
+    "Pin staging rollback verification and apply to exact141 cutoff; preserve captured schedule states.",
+    "Advance each environment catalog/access baseline only through its reviewed release path, then verify frozen refresh worker revision references the corresponding baseline.",
+    "Apply production only as part of final accepted parity release; no provider/cutover/data refresh implied.",
+    "Keep existing connected browser timeout/performance gate open until real chain succeeds."
+  ],
+  "limitations": [
+    "Independent read of actual SQL/tests and local evidence; reviewer did not rerun the shared local database or execute hosted changes.",
+    "Both hosted forced custom/generic Worker scans were about15ms; no generic-plan regression or eight-second timeout cause was reproduced.",
+    "Synthetic local index speedup is evidence of reduced work, not proof that intermittent hosted timeout is resolved."
+  ]
+}

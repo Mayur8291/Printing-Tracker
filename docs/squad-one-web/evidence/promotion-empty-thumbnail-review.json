@@ -1,0 +1,38 @@
+{
+  "format": "squad-promotion-thumbnail-ui-review/v1",
+  "cause": "Optional thumbnail descriptor is truthy even when its authorized grant is explicitly empty; it showed a misleading No attachment label above a valid primary image.",
+  "change": "Hide only the optional thumbnail with status empty; preserve loading, missing, pending and unavailable states. Primary attachment logic unchanged.",
+  "source": "apps/admin/src/squad/features/promotions/PromotionsPage.jsx",
+  "source_sha256": "4f13474df7472592ec7708080c90b54106c99114866350dfcad2830492bcb7b4",
+  "test": "tools/squad/web-promotion-thumbnail-browser.mjs",
+  "test_sha256": "8e2f1149f2245cc2ce2919006f7a97252fa292153fc16c2daa113a1a6b348639",
+  "rendered_cases_passed": 4,
+  "page_errors": 0,
+  "external_requests": 0,
+  "visual_review": {
+    "private_path": "/tmp/squad-promotion-empty-thumbnail-fixed-360.png",
+    "sha256": "a26d9ea92af43dae51e7dc199e8815e47ccf98f3ddf84533bdbf4c9388d8e0e1",
+    "viewport": {
+      "width": 360,
+      "height": 844
+    },
+    "observations": "Single primary media card; no misleading empty-thumbnail label. Open/Download actions fit, controls have readable spacing, no clipping. Fixture image decoded; not production image-content proof."
+  },
+  "clean_build": {
+    "entry_path": "/assets/index-Dy0PSYTE.js",
+    "entry_sha256": "92f718500c75869265f5d937d7e9dfa83f043fc2b7bfd7f6249a83c72c0a4c46",
+    "source_manifest_sha256": "34f3e7b4586a3fb61bb3f26734f543d5e5c22ddbeacf47d1df7a794cf5cbc8a0",
+    "seconds": 8.91,
+    "anonymous_startup_ready": true,
+    "anonymous_page_errors": 0,
+    "hosted_calls": 0,
+    "preview": "http://localhost:5186",
+    "preview_restart_required": false
+  },
+  "scope": "Local UI and clean build only; parent owns actual affected Safari acceptance.",
+  "independent_review": {
+    "reviewer": "web_operations_implementation",
+    "result": "GO",
+    "scope": "Exact empty-only condition preserves missing/pending/loading and primary attachment; four actual component cases reviewed. No authority expansion."
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "observed_at": "2026-11-09T05:12:10.173249+00:00",
+  "method": "Native Safari About dialog through CUA",
+  "version": "26.1",
+  "build": "21622.2.11.11.9",
+  "about_dialog_closed": true,
+  "existing_digitalocean_tabs_preserved": 2,
+  "authenticated_acceptance_claimed": false
+}

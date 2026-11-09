@@ -5,7 +5,7 @@ const labels:Record<ProofPurpose,string>={register:'registration',confirm:'email
 export function proofMessage(id:string,recipient:string,purpose:ProofPurpose,code:string){
  if(!/^[0-9a-f-]{36}$/i.test(id)||!/^\d{8}$/.test(code)||!Object.hasOwn(labels,purpose)||recipient.length>254||!/^[^\s\x00-\x1f\x7f<>;,"@]+@[^\s\x00-\x1f\x7f<>;,"@]+\.[^\s\x00-\x1f\x7f<>;,"@]+$/.test(recipient))throw new Error('invalid_proof_mail');
  return{to:{address:recipient,name:''},messageId:`<squad-${id}@scottinternational.com>`,subject:`Your Squad One ${labels[purpose]} code`,
- text:`Your Squad One ${labels[purpose]} code is:\n\n${code}\n\nIt expires 15 minutes after your request. Enter it only in the Squad One app or dashboard where you requested it. Do not share this code.\n\nEmail confirmation does not automatically approve your business account. If you did not request this message, you can ignore it.`};
+ text:`Your Squad One ${labels[purpose]} code is:\n\n${code}\n\n${purpose==='invite'?`Invitation request ID: ${id}\n\n`:''}It expires 15 minutes after your request. Enter it only in the Squad One app or dashboard where you requested it. Do not share this code.\n\nEmail confirmation does not automatically approve your business account. If you did not request this message, you can ignore it.`};
 }
 export interface ProofMailTransport {
  sendMail(message:Record<string,unknown>):Promise<{accepted?:unknown[];rejected?:unknown[]}>;

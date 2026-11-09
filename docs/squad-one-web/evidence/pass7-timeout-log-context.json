@@ -1,0 +1,97 @@
+{
+  "format": "squad-original-timeout-log-context/v1",
+  "environment": "staging",
+  "window_start": "2026-11-09T03:45:00Z",
+  "window_end": "2026-11-09T04:00:00Z",
+  "query_filter": "SQLSTATE57014 or event_message statement timeout",
+  "query_error_present": false,
+  "rows": [
+    {
+      "timestamp": "2026-11-09T03:51:44.633000",
+      "sqlstate": "57014",
+      "context_functions": [
+        {
+          "function": "sa_domain.item_children",
+          "line": 16
+        },
+        {
+          "function": "sa_domain.v1_order_item_get",
+          "line": 6
+        },
+        {
+          "function": "v1_order_item_get"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-09T03:51:45.167000",
+      "sqlstate": "57014",
+      "context_functions": [
+        {
+          "function": "sa_domain.v1_order_item_get",
+          "line": 22
+        },
+        {
+          "function": "v1_order_item_get"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-09T03:51:45.177000",
+      "sqlstate": "57014",
+      "context_functions": [
+        {
+          "function": "sa_domain.scope_item_ids",
+          "line": 6
+        },
+        {
+          "function": "sa_domain.jobsheet_page_ids",
+          "line": 6
+        },
+        {
+          "function": "sa_domain.v1_jobsheets_list",
+          "line": 5
+        },
+        {
+          "function": "v1_jobsheets_list"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-09T03:52:20.087000",
+      "sqlstate": "57014",
+      "context_functions": [
+        {
+          "function": "sa_domain.scope_order_ids",
+          "line": 9
+        },
+        {
+          "function": "sa_domain.v1_order_get",
+          "line": 9
+        },
+        {
+          "function": "v1_order_get"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-09T03:52:27.397000",
+      "sqlstate": "57014",
+      "context_functions": [
+        {
+          "function": "sa_domain.scope_order_ids",
+          "line": 9
+        },
+        {
+          "function": "sa_domain.v1_order_get",
+          "line": 9
+        },
+        {
+          "function": "v1_order_get"
+        }
+      ]
+    }
+  ],
+  "raw_logs_saved": false,
+  "source": "https://supabase.com/docs/guides/observability/advanced-log-filtering"
+}

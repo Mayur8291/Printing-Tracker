@@ -1,0 +1,872 @@
+{
+  "format": "squad-finite-release-exit/v1",
+  "basis": "Approved implementation plan sections8-11 plus unchanged115 workflow rows; evidence reconciliation, not a new source audit or relaxed acceptance standard.",
+  "rule": "A distinct retained UI action, authorization branch or provider path requires its own visible proof. Shared input values/MIME/color/size combinations may reuse the same rendered client mechanism plus current SQL and historical hosted SDK guard evidence. Never replace all browser happy-path evidence with backend tests.",
+  "acceptance_levels": [
+    "implementation_mapped",
+    "local_component_or_sql_passed",
+    "hosted_backend_exact_scope",
+    "hosted_browser_exact_scope",
+    "final_deployed_smoke",
+    "external_or_human_gate"
+  ],
+  "required_groups": [
+    {
+      "id": "EXIT-01",
+      "title": "Guest account and status journey",
+      "state": "passed_exact_finite_internal_criteria",
+      "workflows": [
+        "AUTH.01",
+        "AUTH.02",
+        "AUTH.03",
+        "AUTH.05"
+      ],
+      "reuse": [
+        "entry",
+        "backend_registration",
+        "backend_recovery",
+        "backend_account_status",
+        "collab"
+      ],
+      "prepared": [
+        "tools/squad/web-people-hosted-journey.mjs:runStatusJourney",
+        "docs/squad-one-web/guest-account-acceptance.md"
+      ],
+      "required": [
+        "Finish actual guest registration/confirmation/recovery/password-change/invitation browser paths in the exact controlled inbox harness. Preserve each completed purpose separately if another fails.",
+        "Run SC-owned Customer disable\u2192old session denial\u2192enable\u2192fresh same-identity login. Keep provider reconciliation distinct from synchronous status."
+      ],
+      "not_repeat": [
+        "Do not repeat all11 login variations after every account fix; rerun affected session boundaries and final deployed smoke.",
+        "Customer self-closure121 already passed. Current139 local fresh-session regression2529 passes; rerun only affected account release boundary."
+      ],
+      "exit": "Each required purpose has browser form/result, exact identity/session assertions, controlled email where required, and exact cleanup. A code-request202 or SMTP acceptance is not inbox receipt.",
+      "evidence": [
+        "evidence/workflow-extensions-141.json",
+        "evidence/guest-purpose-coverage-139.json",
+        "evidence/people-relationships-139.json",
+        "evidence/factory-collaboration-operations-read-140.json",
+        "evidence/commercial-capabilities-139.json",
+        "evidence/connected-commerce-operations-reporting-141.json"
+      ],
+      "acceptance_note": "Original finite branches now satisfied by exact current/prior evidence; global browser/performance/deployment gates remain separate. No provider or all-persona Cartesian claim."
+    },
+    {
+      "id": "EXIT-02",
+      "title": "Connected production, Dealer stock, reports and document outputs",
+      "state": "passed_exact_finite_connected_criteria",
+      "workflows": [
+        "PLAN.01",
+        "PLAN.02",
+        "PLAN.03",
+        "PLAN.04",
+        "CUT.01",
+        "CUT.02",
+        "CUT.03",
+        "SEW.01",
+        "SEW.02",
+        "SEW.03",
+        "SEW.04",
+        "DISPATCH.01",
+        "DISPATCH.02",
+        "DISPATCH.03",
+        "DISPATCH.04",
+        "JOB.01",
+        "JOB.02",
+        "JOB.03",
+        "JOB.04",
+        "JOB.05",
+        "STOCK.01",
+        "STOCK.02",
+        "STOCK.03",
+        "STOCK.04",
+        "BACK.01",
+        "BACK.02",
+        "METRIC.01",
+        "METRIC.02",
+        "METRIC.03",
+        "METRIC.04",
+        "METRIC.05",
+        "DOC.03",
+        "DOC.04",
+        "ORDER.08"
+      ],
+      "reuse": [
+        "backend_business",
+        "backend_documents",
+        "commerce139",
+        "local139",
+        "localops"
+      ],
+      "prepared": [
+        "tools/squad/web-operations-hosted-journey.mjs",
+        "tools/squad/web-reporting-hosted-journey.mjs",
+        "tools/squad/test_web_document_outputs_hosted.py"
+      ],
+      "required": [
+        "Complete existing commerce\u2192operations\u2192reporting chain on owned records with distinct PC/FM/CM/Inspector/DI/JW/Dealer sessions, including Customer-direct and Dealer-linked custom paths.",
+        "Complete weekly and challan queue\u2192ready\u2192real browser PDF download/content/hash/foreign denial using the existing exact two-job worker capability.",
+        "Confirm current-item/history, full-filter CSV, period metrics/leaderboard and quantity/money redaction values."
+      ],
+      "not_repeat": [
+        "The six commerce139 browser checks are already accepted partial evidence; rerunning commerce here is required fixture setup, not a fresh unknown feature.",
+        "Do not repeat every size/color combination or all quantity values. Existing bounded/replay/overrun/conflict SQL+SDK cases cover the same calculation branches."
+      ],
+      "exit": "Whole connected chain passes with no timeout or unintended destination, exact final balances/payroll/history, both PDF outputs proven and cleanup restored. Stock reconciliation repair is EXIT-06, not implicit in dispatch success.",
+      "evidence": [
+        "evidence/connected-commerce-operations-reporting-141.json",
+        "evidence/document-output-141.json",
+        "evidence/document-outputs-aec91653-visual-review.json"
+      ],
+      "acceptance_note": "All fixed connected-chain controls and two PDF output requirements passed141 after exact cleanup. Performance/global deployment remain EXIT-07/08; no extra per-size/per-role duplicate testing added."
+    },
+    {
+      "id": "EXIT-03",
+      "title": "Commercial editing, exception and feedback branches",
+      "state": "passed_exact_finite_internal_criteria",
+      "workflows": [
+        "CAT.01",
+        "CAT.02",
+        "CAT.03",
+        "CAT.04",
+        "CONFIG.01",
+        "CONFIG.02",
+        "CONFIG.03",
+        "CONFIG.04",
+        "CONFIG.05",
+        "PRICE.01",
+        "PRICE.02",
+        "PRICE.03",
+        "PRICE.04",
+        "ORDER.01",
+        "ORDER.02",
+        "ORDER.03",
+        "ORDER.04",
+        "ORDER.05",
+        "ORDER.06",
+        "ORDER.07",
+        "ORDER.08",
+        "RATE.01",
+        "RATE.02",
+        "RATE.03",
+        "APP.04",
+        "LINK.04",
+        "LINK.05"
+      ],
+      "reuse": [
+        "commerce139",
+        "backend_business",
+        "localcommerce",
+        "artwork",
+        "catalogue"
+      ],
+      "prepared": [
+        "tools/squad/web-commerce-hosted-journey.mjs:runAmendmentJourney",
+        "tools/squad/web-commerce-hosted-journey.mjs:runCommerceControlsJourney",
+        "tools/squad/web-workflow-extensions-hosted-journey.mjs"
+      ],
+      "required": [
+        "Run prepared amendment and commerce-controls: server quote/override, due/destination, lost-success response retry, payment acknowledgement, reasoned exception completion, priority, cancellation, Customer feedback, Dealer RMP and mixed queued purchase.",
+        "Add only the still-distinct SC\u2192PC and PC\u2192factory/item feedback controls and an Admin moderation outcome to the same completed owned graph; assert existing scoped rating recipients.",
+        "Exercise Customer coordinator request and Admin review once on isolated relationships; bulk reassignment belongs EXIT-04."
+      ],
+      "not_repeat": [
+        "No full UI matrix of every price/size/dealer product combination after custom, RMP, mixed, direct and Dealer branches pass.",
+        "Uniware fulfillment is deferred externally; honest queued/unknown outcome is the accepted web boundary, never fabricated fulfilled success."
+      ],
+      "exit": "Each distinct retained commercial mutation is reached through the UI, accepted server values/version replay match, and foreign/closed-state boundaries remain enforced. Required feedback actors differ and cannot be replaced by one Customer rating.",
+      "accepted_scoped_cases": [
+        {
+          "case": "SC\u2192PC, PC\u2192FM, FM item\u2192Cutting Master feedback and Admin moderation",
+          "evidence": "evidence/connected-commerce-operations-reporting-141.json",
+          "scope": "Four real rendered feedback checks; coordinator-request/Admin-review remains a separate required branch."
+        }
+      ],
+      "evidence": [
+        "evidence/workflow-extensions-141.json",
+        "evidence/guest-purpose-coverage-139.json",
+        "evidence/people-relationships-139.json",
+        "evidence/factory-collaboration-operations-read-140.json",
+        "evidence/commercial-capabilities-139.json",
+        "evidence/connected-commerce-operations-reporting-141.json"
+      ],
+      "acceptance_note": "Original finite branches now satisfied by exact current/prior evidence; global browser/performance/deployment gates remain separate. No provider or all-persona Cartesian claim."
+    },
+    {
+      "id": "EXIT-04",
+      "title": "People, relationships, work and conditional authority",
+      "state": "passed_exact_finite_internal_criteria",
+      "workflows": [
+        "PEOPLE.01",
+        "PEOPLE.02",
+        "PEOPLE.03",
+        "PEOPLE.04",
+        "PEOPLE.05",
+        "PEOPLE.06",
+        "LINK.01",
+        "LINK.02",
+        "LINK.03",
+        "LINK.04",
+        "LINK.05",
+        "LINK.06",
+        "TASK.01",
+        "TASK.02",
+        "TASK.03",
+        "GOAL.01",
+        "GOAL.02",
+        "GOAL.03",
+        "TARGET.01",
+        "TARGET.02",
+        "TARGET.03",
+        "AUTH.04",
+        "JOB.01",
+        "JOB.02"
+      ],
+      "reuse": [
+        "collab",
+        "backend_business",
+        "people_local",
+        "context132",
+        "localtarget"
+      ],
+      "prepared": [
+        "tools/squad/web-people-hosted-journey.mjs",
+        "tools/squad/web-relationships-hosted-journey.mjs",
+        "tools/squad/web-collaboration-hosted-journey.mjs",
+        "tools/squad/web-workflow-extensions-hosted-journey.mjs"
+      ],
+      "required": [
+        "Run existing People/relationships adapters: FM-managed Tailor/SubTailor, Admin Team/SC, reviewed Customer/Dealer commercial rules, direct/indirect and coordinator transfer with former-SC denial.",
+        "Run new batch responsibility/target controls from the existing collaboration adapter; retain already accepted single-task/single-goal/single-target lifecycle evidence.",
+        "Bounded extensions: one PC factory/team setup, one dependency-blocked then eligible managed-subject archive retaining history, one order-linked assigned task with assignee/search filter, and one isolated bulk reassignment/request-review outcome.",
+        "Show conditional Team/JW no-grant/browse/configure/PDF/promotions branches via existing independently controlled grants; content actions are EXIT-05."
+      ],
+      "not_repeat": [
+        "Do not recreate all roles through all authorized managers where the same shared form and same permission branch were already proved. PC factory setup and FM managed-subject paths are distinct branches and stay required.",
+        "Do not require repeated status cycles for every role after127 SC authority plus Admin prior worker proof and live session regression."
+      ],
+      "exit": "All unique management/relationship/conditional permission controls have one scoped successful UI outcome plus existing direct denial/guard proof; no invitations or source routing on unrelated users.",
+      "evidence": [
+        "evidence/workflow-extensions-141.json",
+        "evidence/guest-purpose-coverage-139.json",
+        "evidence/people-relationships-139.json",
+        "evidence/factory-collaboration-operations-read-140.json",
+        "evidence/commercial-capabilities-139.json",
+        "evidence/connected-commerce-operations-reporting-141.json"
+      ],
+      "acceptance_note": "Original finite branches now satisfied by exact current/prior evidence; global browser/performance/deployment gates remain separate. No provider or all-persona Cartesian claim."
+    },
+    {
+      "id": "EXIT-05",
+      "title": "Retained catalogue, promotion and file controls",
+      "state": "passed_exact_finite_internal_criteria",
+      "workflows": [
+        "CAT.01",
+        "CAT.02",
+        "CAT.03",
+        "CAT.04",
+        "CONFIG.01",
+        "CONFIG.02",
+        "CONFIG.03",
+        "CONFIG.04",
+        "CONFIG.05",
+        "PROMO.01",
+        "PROMO.02",
+        "MEDIA.01",
+        "MEDIA.02",
+        "MEDIA.03",
+        "MEDIA.04",
+        "DOC.01",
+        "DOC.02",
+        "APP.03"
+      ],
+      "reuse": [
+        "media",
+        "artwork",
+        "catalogue",
+        "backend_media",
+        "backend_master_media",
+        "backend_catalogue",
+        "localcommerce",
+        "localops"
+      ],
+      "prepared": [
+        "tools/squad/web-artwork-source-browser.mjs",
+        "tools/squad/web-media-hosted-journey.mjs",
+        "tools/squad/web-catalogue-terms-hosted.mjs"
+      ],
+      "required": [
+        "Retain completed own-profile upload/replace/detach and catalogue-with-terms real output proof. Exercise remaining distinct reference/branding/product-image association/comment or managed-person purpose through owned UI targets; existing MIME/signature/RLS tests supply adversarial combinations.",
+        "One authorized promotion category/file preview\u2192download/share fallback, one product preview/share and one scoped existing-preset rename/history path; use actual scoped grants and explicit missing-source states.",
+        "Show conditional Team/JW browse versus configure versus PDF/promotions permission branches with the same shared controls, including live revoke."
+      ],
+      "not_repeat": [
+        "Do not upload every accepted MIME for every entity: one actual transport/output plus exact purpose permission and local signature/size negatives suffice for the same mechanism.",
+        "Do not search indefinitely for real mirrored add-on artwork when the bounded source search found none; retain local geometry proof and source limitation explicitly.",
+        "Do not share expiring URLs as files or use production files to replace missing staging source content."
+      ],
+      "exit": "Each retained unique file/purpose/action has a verified visible outcome or explicit existing-source missing state. Source absence is not counted as a successful migrated download.",
+      "accepted_scoped_cases": [
+        {
+          "case": "Customer missing-product share exclusion and external-promotion clipboard fallback",
+          "path": "evidence/content-media-source-141.json",
+          "sha256": "249709601bf3d54203e246bdd38c54678809c6971e7a1ce07e5f65ee033bee60",
+          "run_id": "64d500ca-28ce-4caa-a4fb-e2fca6f0f0e9",
+          "scope": "Three exact read-only Customer checks: explicit missing product exclusion without empty download; actual external-promotion Share at intercepted exact clipboard boundary; staging-only mutation-free transport. No ready product raster in first40 or promotion attachment in first24; successful file downloads remain unproven.",
+          "visual_review": "evidence/content-media-64d500ca-visual-review.json",
+          "visual_review_sha256": "bc67378dca93435fe14ecbb104c15ca045766e02f5aa9cfe0ec6c56b0d7b092e",
+          "complete_required_media": false
+        }
+      ],
+      "evidence": [
+        "evidence/owned-content-media-141.json",
+        "evidence/owned-content-media-b6e7-visual-review.json",
+        "evidence/catalogue-media-140.json",
+        "evidence/media-acceptance.json",
+        "evidence/artwork-acceptance.json",
+        "evidence/workflow-extensions-141.json",
+        "evidence/commercial-capabilities-139.json"
+      ],
+      "acceptance_note": "Seven fresh real media controls and exact cleanup complete remaining file transport/missing-state branches; prior profile/reference/branding/terms/preset/conditional proofs retained. Native focus quality stays EXIT-07, final deployed client EXIT-08."
+    },
+    {
+      "id": "EXIT-06",
+      "title": "Operator diagnostics, notifications and existing Tracker controls",
+      "state": "passed_internal_finite_criteria_external_ownership_gates_retained",
+      "workflows": [
+        "NOTIFY.01",
+        "NOTIFY.02",
+        "NOTIFY.03",
+        "MASTER.01",
+        "MASTER.02",
+        "MASTER.03",
+        "INTEGRATE.01",
+        "INTEGRATE.02",
+        "INTEGRATE.03",
+        "INTEGRATE.04",
+        "INTEGRATE.05",
+        "INTEGRATE.06",
+        "REFRESH.01",
+        "REFRESH.02",
+        "REFRESH.03",
+        "OPS.01",
+        "OPS.02",
+        "OPS.03",
+        "STOCK.04",
+        "APP.01"
+      ],
+      "reuse": [
+        "collab",
+        "backend_notify",
+        "backend_transfers",
+        "backend_master_media",
+        "backend_weekly_schedule",
+        "tracker_prior",
+        "local139"
+      ],
+      "prepared": [
+        "tools/squad/web-operations-read-hosted-journey.mjs",
+        "tools/squad/web-administration-hosted-journey.mjs",
+        "tools/squad/web-operations-read-browser.mjs",
+        "tools/squad/test_web_stock_reconciliation_hosted.py"
+      ],
+      "required": [
+        "Run operations-read after collaboration: exact job/audit, cursor binding, non-admin denials and empty inbox. Nonempty inbox destinations have local rendered coverage and historical hosted backend proof; new fixture fanout remains EXTERNAL-NATIVE-OPERATORS without a reviewed scoped worker.",
+        "Operator retry is native-only through worker_write_fence; mirror rejection and local rendered exact-job controls must remain verified. Actual hosted requeue is EXTERNAL-NATIVE-OPERATORS; do not fabricate dead jobs or toggle ownership for proof.",
+        "Accepted: one Admin evidence-version stock counter reconciliation through UI (stock-reconciliation-141.json). CSV import upload/validate/apply is explicitly native-ownership gated (EXTERNAL-OWNERSHIP); prove the disabled mirror explanation and retain existing201-row scoped backend worker proof. Do not enable cutover or invent a broad import rehearsal for frontend acceptance.",
+        "Verify existing Tracker staff login/navigation, Masters create/edit/archive and refresh target/status/exceptions on the final build. Do not perform a full data refresh solely for frontend proof or alter runtime ownership/provider configuration."
+      ],
+      "not_repeat": [
+        "Already accepted Admin cities/zones/criteria CRUD121 does not need fresh coverage unless changed.",
+        "Notifications have no original acknowledgement/delete control; do not invent one. Native phone/OS push is not a promised web outcome.",
+        "Do not toggle live external integrations, weekly schedules, production ownership or run unrelated jobs to create evidence."
+      ],
+      "exit": "Every operator UI action is either exercised on an exact-owned reversible fixture or backed by an explicit external/ownership gate; staff and Squad permissions stay separate. No new production/legacy mutation transport.",
+      "accepted_scoped_cases": [
+        {
+          "case": "Admin evidence-version stock-counter reconciliation",
+          "evidence": "evidence/stock-reconciliation-141.json",
+          "sha256": "e3a8a3f6bf52ef027a20abddd4c37e31d974f9ab6cf616cc3443f4b2245dd1b7",
+          "run_id": "4b365817-dd15-4dcf-bf16-23ec630faa47",
+          "checks": [
+            "Admin actual UI exact counter repair",
+            "Admin actual UI retained before/after/reason history",
+            "Dealer SDK permission denial"
+          ],
+          "scope": "One owned receipt only; no broader Stock, import, worker or whole-group acceptance inferred."
+        },
+        {
+          "case": "Four-case actual TransfersPanel ownership control matrix",
+          "evidence": "evidence/transfer-ownership-local-review.json",
+          "level": "local_rendered_negative_and_permission_controls",
+          "hosted_native_import_executed": false
+        }
+      ],
+      "acceptance_review": "evidence/administration-internal-exit-141-review.json",
+      "remaining_global_gate": "Final deployed revision Tracker/persona smoke and parity remain EXIT-08; browser quality remains EXIT-07.",
+      "remaining_external_gate_ids": [
+        "EXTERNAL-NATIVE-OPERATORS",
+        "EXTERNAL-OWNERSHIP",
+        "EXTERNAL-UNIWARE"
+      ]
+    },
+    {
+      "id": "EXIT-07",
+      "title": "Whole-client quality and browser release gate",
+      "state": "scoped_browser_quality_passed_final_frozen_release_binding_pending",
+      "workflows": [
+        "AUTH.01",
+        "AUTH.02",
+        "AUTH.03",
+        "AUTH.04",
+        "AUTH.05",
+        "PEOPLE.01",
+        "PEOPLE.02",
+        "PEOPLE.03",
+        "PEOPLE.04",
+        "PEOPLE.05",
+        "PEOPLE.06",
+        "LINK.01",
+        "LINK.02",
+        "LINK.03",
+        "LINK.04",
+        "LINK.05",
+        "LINK.06",
+        "CAT.01",
+        "CAT.02",
+        "CAT.03",
+        "CAT.04",
+        "CONFIG.01",
+        "CONFIG.02",
+        "CONFIG.03",
+        "CONFIG.04",
+        "CONFIG.05",
+        "PRICE.01",
+        "PRICE.02",
+        "PRICE.03",
+        "PRICE.04",
+        "ORDER.01",
+        "ORDER.02",
+        "ORDER.03",
+        "ORDER.04",
+        "ORDER.05",
+        "ORDER.06",
+        "ORDER.07",
+        "ORDER.08",
+        "PLAN.01",
+        "PLAN.02",
+        "PLAN.03",
+        "PLAN.04",
+        "CUT.01",
+        "CUT.02",
+        "CUT.03",
+        "SEW.01",
+        "SEW.02",
+        "SEW.03",
+        "SEW.04",
+        "DISPATCH.01",
+        "DISPATCH.02",
+        "DISPATCH.03",
+        "DISPATCH.04",
+        "JOB.01",
+        "JOB.02",
+        "JOB.03",
+        "JOB.04",
+        "JOB.05",
+        "STOCK.01",
+        "STOCK.02",
+        "STOCK.03",
+        "STOCK.04",
+        "BACK.01",
+        "BACK.02",
+        "TASK.01",
+        "TASK.02",
+        "TASK.03",
+        "GOAL.01",
+        "GOAL.02",
+        "GOAL.03",
+        "TARGET.01",
+        "TARGET.02",
+        "TARGET.03",
+        "RATE.01",
+        "RATE.02",
+        "RATE.03",
+        "METRIC.01",
+        "METRIC.02",
+        "METRIC.03",
+        "METRIC.04",
+        "METRIC.05",
+        "DOC.01",
+        "DOC.02",
+        "DOC.03",
+        "DOC.04",
+        "DOC.05",
+        "PROMO.01",
+        "PROMO.02",
+        "MEDIA.01",
+        "MEDIA.02",
+        "MEDIA.03",
+        "MEDIA.04",
+        "NOTIFY.01",
+        "NOTIFY.02",
+        "NOTIFY.03",
+        "MASTER.01",
+        "MASTER.02",
+        "MASTER.03",
+        "INTEGRATE.01",
+        "INTEGRATE.02",
+        "INTEGRATE.03",
+        "INTEGRATE.04",
+        "INTEGRATE.06",
+        "REFRESH.01",
+        "REFRESH.02",
+        "REFRESH.03",
+        "APP.01",
+        "APP.02",
+        "APP.03",
+        "APP.04",
+        "OPS.01",
+        "OPS.02",
+        "OPS.03"
+      ],
+      "reuse": [
+        "entry",
+        "nav",
+        "local139",
+        "localcommerce",
+        "localops"
+      ],
+      "prepared": [
+        "tools/squad/web-cross-browser-hosted.mjs",
+        "tools/squad/web-cross-browser-local.mjs",
+        "tools/squad/browser-contract-timings.mjs",
+        "tools/squad/web-query-lifecycle-browser.mjs"
+      ],
+      "required": [
+        "Verify the cancellation fix: aborted reads do not call global authorization handling or clear healthy sessions, no stale page result, duplicate workload or polling after navigation.",
+        "Run actual staged persona navigation/read matrix in Firefox and WebKit; keep WebKit distinct from native Safari certification. Verify core native Safari login/date/download/keyboard behavior required by plan, or identify it as an explicit unmet release gate.",
+        "Capture final representative browser API latency, SQL query evidence for misses, desktop/tablet/360px keyboard/focus/error/reflow, and accessible semantic controls. No timeout or unresolved wrong-persona action.",
+        "Run current full local suites/build/security checks once at frozen code; only rerun affected checks after subsequent fixes."
+      ],
+      "not_repeat": [
+        "No full expensive rebuild after each test-only adapter fix.",
+        "No endless load sample accumulation after the predefined latency sample and supported worst-case query plans pass; report warm/cold separately."
+      ],
+      "exit": "Recorded frozen build with passing scoped functional/security/accessibility/browser gates and measured performance targets or explicit unresolved measured misses; local scans alone do not claim WCAG certification.",
+      "accepted_scoped_cases": [
+        {
+          "evidence": "evidence/read-performance-141.json",
+          "sha256": "63cb2c742a33bf8bcbd1bf4d353bbcd3af70c242e086e3693111284c62427cfd",
+          "run_id": "e526c711-b854-4742-95bc-c116182624d7",
+          "measured_requests": 24,
+          "repeat_observations_per_contract": 5,
+          "first_observations_per_contract": 1,
+          "repeat_p95_ms": {
+            "v1_me": 189.7,
+            "v1_person_get": 185.35,
+            "v1_orders_list": 171.13,
+            "v1_catalog_tree": 173.31
+          },
+          "target_ms": 2000,
+          "all_observed_repeat_targets_met": true,
+          "scope": "Small-sample local browser frontend\u2192hosted staging API through complete response-body receipt. Warmth uncontrolled, one Customer and bounded fixture; not Vercel/render/load/concurrency SLA.",
+          "owned_commands": 0,
+          "business_revision_unchanged": true,
+          "source_staff_crons_restored": true,
+          "case": "Bounded current Customer API repeated-read target"
+        },
+        {
+          "case": "Actual Firefox159 read-only11persona navigation and360px keyboard/core controls",
+          "path": "evidence/firefox-141.json",
+          "sha256": "c7102dab7390c48326310c91ffd138392e9c1e8b95d31843b521974d503c09a5",
+          "run_id": "7bf27e42-9440-400c-8342-7ca1e3e11a8a",
+          "engine": "firefox",
+          "version": "159.0",
+          "personas": 11,
+          "routes": 102,
+          "keyboard_checks": 34,
+          "viewport": {
+            "width": 360,
+            "height": 844
+          },
+          "frontend": {
+            "base": "http://127.0.0.1:5186",
+            "entry_path": "/assets/index-D0HIEzmj.js",
+            "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+          },
+          "scope": "Real staged identity login/navigation, read-only360px/keyboard/profile controls and Admin unsaved city dialog on pinned clean build. Not mutation journeys, WebKit or native Safari.",
+          "diagnostics": {
+            "page_errors_retained": 125,
+            "classified_caught_lock_diagnostics": 125,
+            "native_errors": 0,
+            "fatal_errors": 0,
+            "route_issue_count": 0
+          },
+          "private_report_sha256": "79c3a62441ff12c1a3000ad8fde50a8dcd052cbb83a1d03d2c4d9deb4da815db",
+          "diagnostic_local_regression": "evidence/firefox-lock-observer-local-review.json",
+          "visual_review": "evidence/firefox-7bf27-visual-review.json",
+          "visual_review_sha256": "9fda5acaf3a23c40e9252010b054c0f6fa92c0fe35ffb7080e4e549421e70c8b",
+          "owned_commands": 0,
+          "source_staff_crons_restored": true,
+          "native_safari_tested": false
+        },
+        {
+          "case": "Actual WebKit27.2 read-only11persona navigation and360px keyboard/core controls",
+          "path": "evidence/webkit-141.json",
+          "sha256": "86f5a0841f30b14312201305d91c764bca7f1a0ce5a45eb615e270a2006b3146",
+          "run_id": "ee04107b-548a-48a0-81c0-c94bcbe87f5f",
+          "engine": "webkit",
+          "version": "27.2",
+          "personas": 11,
+          "routes": 102,
+          "keyboard_checks": 34,
+          "viewport": {
+            "width": 360,
+            "height": 844
+          },
+          "frontend": {
+            "base": "http://127.0.0.1:5186",
+            "entry_path": "/assets/index-D0HIEzmj.js",
+            "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+          },
+          "scope": "WebKit engine27.2 actual staged login/read navigation,360px keyboard/profile controls and Admin unsaved city dialog. Not native Safari or mutation journeys.",
+          "diagnostics": {
+            "page_errors_retained": 0,
+            "classified_caught_lock_diagnostics": 0,
+            "native_errors": 0,
+            "fatal_errors": 0,
+            "route_issue_count": 0
+          },
+          "private_report_sha256": "fb03e07a5c702ce3020aa523dc9786308da26aec4688e72973a913324e9b5911",
+          "visual_review": "evidence/webkit-ee041-visual-review.json",
+          "visual_review_sha256": "ea9404728132ff409e8dc4d99d6484013e5662fdefdbd82001e6c1c503a0051f",
+          "owned_commands": 0,
+          "source_content_and_crons_restored": true,
+          "staff_auth_preserved_during_cleanup": true,
+          "staff_unchanged_since_fixture": false,
+          "independent_staff_changes_preserved": 1,
+          "native_safari_tested": false
+        },
+        {
+          "evidence": "evidence/native-safari-owned-media-b6e764b1.json",
+          "sha256": "3092be95f7620a5cd5b2df44278c9426455ebff588ef7fece1408e9215b8f2f0",
+          "scope": "Actual Safari26.1 staged Customer login/reload, normal exact-byte PNG download, valid/reversed/Home reset controls and logout; original focus finding closed by separate actual-component native supplement."
+        },
+        {
+          "evidence": "evidence/native-safari-product-share-focus.json",
+          "sha256": "fcf2fbe13cf37772bc5028573c9ce293f43398efb5c40a3526fdfafac941693f",
+          "scope": "Actual native Safari local account-free React dialog: pointer/keyboard Escape and Close restore the connected opener with visible focus ring. No hosted/API/download replay."
+        }
+      ],
+      "acceptance_note": "Firefox and WebKit real11-persona matrices plus native Safari core controls and focused native dialog correction accepted at their exact artifact scope. Current final build source binding and deployed release remain separately recorded; no WCAG/load SLA inference."
+    },
+    {
+      "id": "EXIT-08",
+      "title": "Parity, deployment, Tracker regression and handoff",
+      "state": "release_pending",
+      "workflows": [
+        "AUTH.01",
+        "AUTH.02",
+        "AUTH.03",
+        "AUTH.04",
+        "AUTH.05",
+        "PEOPLE.01",
+        "PEOPLE.02",
+        "PEOPLE.03",
+        "PEOPLE.04",
+        "PEOPLE.05",
+        "PEOPLE.06",
+        "LINK.01",
+        "LINK.02",
+        "LINK.03",
+        "LINK.04",
+        "LINK.05",
+        "LINK.06",
+        "CAT.01",
+        "CAT.02",
+        "CAT.03",
+        "CAT.04",
+        "CONFIG.01",
+        "CONFIG.02",
+        "CONFIG.03",
+        "CONFIG.04",
+        "CONFIG.05",
+        "PRICE.01",
+        "PRICE.02",
+        "PRICE.03",
+        "PRICE.04",
+        "ORDER.01",
+        "ORDER.02",
+        "ORDER.03",
+        "ORDER.04",
+        "ORDER.05",
+        "ORDER.06",
+        "ORDER.07",
+        "ORDER.08",
+        "PLAN.01",
+        "PLAN.02",
+        "PLAN.03",
+        "PLAN.04",
+        "CUT.01",
+        "CUT.02",
+        "CUT.03",
+        "SEW.01",
+        "SEW.02",
+        "SEW.03",
+        "SEW.04",
+        "DISPATCH.01",
+        "DISPATCH.02",
+        "DISPATCH.03",
+        "DISPATCH.04",
+        "JOB.01",
+        "JOB.02",
+        "JOB.03",
+        "JOB.04",
+        "JOB.05",
+        "STOCK.01",
+        "STOCK.02",
+        "STOCK.03",
+        "STOCK.04",
+        "BACK.01",
+        "BACK.02",
+        "TASK.01",
+        "TASK.02",
+        "TASK.03",
+        "GOAL.01",
+        "GOAL.02",
+        "GOAL.03",
+        "TARGET.01",
+        "TARGET.02",
+        "TARGET.03",
+        "RATE.01",
+        "RATE.02",
+        "RATE.03",
+        "METRIC.01",
+        "METRIC.02",
+        "METRIC.03",
+        "METRIC.04",
+        "METRIC.05",
+        "DOC.01",
+        "DOC.02",
+        "DOC.03",
+        "DOC.04",
+        "DOC.05",
+        "PROMO.01",
+        "PROMO.02",
+        "MEDIA.01",
+        "MEDIA.02",
+        "MEDIA.03",
+        "MEDIA.04",
+        "NOTIFY.01",
+        "NOTIFY.02",
+        "NOTIFY.03",
+        "MASTER.01",
+        "MASTER.02",
+        "MASTER.03",
+        "INTEGRATE.01",
+        "INTEGRATE.02",
+        "INTEGRATE.03",
+        "INTEGRATE.04",
+        "INTEGRATE.06",
+        "REFRESH.01",
+        "REFRESH.02",
+        "REFRESH.03",
+        "APP.01",
+        "APP.02",
+        "APP.03",
+        "APP.04",
+        "OPS.01",
+        "OPS.02",
+        "OPS.03"
+      ],
+      "reuse": [
+        "tracker_prior"
+      ],
+      "prepared": [],
+      "required": [
+        "Apply reviewed compatible backend changes to production and staging, verify actual app parity, refresh fingerprints/catalog and frozen workflow ref; keep each environment data and ownership separate.",
+        "Deploy exact accepted frontend commit to verified Vercel project, verify actual URL/branch/env selection, deep links/Auth redirect and no secret/raw-table/legacy fallback.",
+        "Run final deployed Tracker and representative persona read smoke without production business writes, capture errors/rollback asset reference, publish115-row evidence and14-actor outcomes.",
+        "Provide precise remaining external/source/human-UAT gates and real ownership mode. Human UAT is a handoff gate, not something automation can claim the user completed."
+      ],
+      "not_repeat": [
+        "Do not remigrate user data/media or perform production cutover merely to claim backend parity.",
+        "Do not rerun every mutation on production; controlled staging acceptance plus final live read verification is the planned release boundary."
+      ],
+      "exit": "Exact deployed revision/backend hashes/URLs recorded, current release checks pass, cleanup and schedules restored, and no retained workflow hides an unmet internal gate.",
+      "accepted_scoped_cases": [
+        {
+          "evidence": "evidence/frozen-refresh-reference-141.json",
+          "sha256": "a361faf4ae40d9cb47704242bcfdce1820d50e5d63e82006d2157222aaa95f40",
+          "branch": "codex/backend-parity-20261109-141",
+          "commit": "14e178d108220418e7a6bc1da14971f9bfa0cba3",
+          "both_environments_verified": true,
+          "other_secret_digests_preserved": true,
+          "refresh_dispatched": false
+        }
+      ]
+    }
+  ],
+  "external_gates": [
+    {
+      "id": "EXTERNAL-UNIWARE",
+      "workflows": [
+        "INTEGRATE.01",
+        "INTEGRATE.02",
+        "INTEGRATE.03",
+        "INTEGRATE.04"
+      ],
+      "state": "user_deferred",
+      "gate": "Actual controlled Uniware inventory/customer/order/amend/cancel/reconciliation against existing setup; queued/error UI can be accepted separately."
+    },
+    {
+      "id": "EXTERNAL-WEEKLY-MAIL",
+      "workflows": [
+        "DOC.04",
+        "OPS.03"
+      ],
+      "state": "passed_scoped_actual_cron_and_inbox",
+      "gate": "Actual exact-owned temporary Cron and five intended inbox attachments passed with exact recipient/document/PDF binding and cleanup. This provider gate is satisfied; separate browser document chains, permanent production scheduling and deployed acceptance are not inferred.",
+      "evidence": "evidence/weekly-mail-140-accepted.json"
+    },
+    {
+      "id": "EXTERNAL-SOURCE-MEDIA",
+      "workflows": [
+        "MEDIA.04",
+        "CONFIG.03",
+        "PROMO.02"
+      ],
+      "state": "environment_separate_missing_source_report",
+      "gate": "Genuinely absent staging source files remain explicit; do not recover from production without revised user direction."
+    },
+    {
+      "id": "EXTERNAL-OWNERSHIP",
+      "workflows": [
+        "REFRESH.03",
+        "INTEGRATE.06",
+        "MASTER.02"
+      ],
+      "state": "not_part_of_frontend_release",
+      "gate": "Fresh source/Auth/media reconciliation, source freeze and guarded native production ownership transition remain separately authorized. Current TransfersPanel requires canWrite && writeState.mode=native; transfer SQL requires environment cutover with no active refresh. No exact import rehearsal route exists. Real hosted CSV upload/validate/apply remains pending this ownership gate; mirror disabled controls and existing local/historical backend proof are separate evidence."
+    },
+    {
+      "id": "EXTERNAL-NATIVE-OPERATORS",
+      "workflows": [
+        "NOTIFY.02",
+        "NOTIFY.03",
+        "OPS.01",
+        "OPS.02"
+      ],
+      "state": "native_ownership_required",
+      "gate": "worker_write_fence requires cutover; no narrow notification/retry rehearsal exists. Keep mirror negative/local UI controls and historical hosted backend execution separate from new hosted UI requeue/delivery. No provider or generic drain for frontend proof."
+    }
+  ],
+  "optional_after_required_pass": [
+    "More colors/sizes/product IDs under an already-proved contract and price branch",
+    "Every allowed role invoking the identical unchanged shared form when the same authority branch, navigation and server scope were independently proved",
+    "Repeating accepted unchanged121 task/settings/closure flows solely because other modules failed",
+    "Repeated source-file searching after bounded absence is documented",
+    "Large CSV stress reruns when current bounded client adapter and existing immutable worker proof remain unchanged"
+  ],
+  "stop_rule": "Finish these fixed required groups. On failure, fix the concrete defect and rerun its affected acceptance plus regression dependency. Add a new group only for a demonstrated unmapped retained behavior, security defect or new user requirement; not hypothetical permutations. Do not mark complete while an internal required case is unresolved."
+}

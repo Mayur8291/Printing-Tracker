@@ -33,9 +33,13 @@ export async function runJourney(ctx) {
 
   // Complete the actual direct customer job before converting its relationship.
   const directOrderId=commercial.entities.workerOrderId, directItemId=commercial.entities.workerItemId;
-  const due1=await worker.saveWorkerDue(directOrderId,datePlus(dueAt,3),label+' material delay',command(ctx,'worker-due-3',(await worker.order(directOrderId)).version));
+  const beforeDeniedDue=await worker.order(directOrderId);
+  await assert.rejects(worker.saveWorkerDue(directOrderId,datePlus(dueAt,3),label+' material delay',command(ctx,'worker-cannot-repeat-due',beforeDeniedDue.version)),denied('unavailable'));
+  const afterDeniedDue=await worker.order(directOrderId);
+  assert.equal(afterDeniedDue.version,beforeDeniedDue.version,'Rejected Worker revision must not change the order');
+  const due1=await pc.saveWorkerDue(directOrderId,datePlus(dueAt,3),label+' material delay',command(ctx,'pc-due-3',afterDeniedDue.version));
   assert.equal(due1.delta_days,3);assert.equal(due1.baseline_basis,'assignment');
-  const due2=await worker.saveWorkerDue(directOrderId,datePlus(dueAt,4),label+' revised material delay',command(ctx,'worker-due-4',due1.version));
+  const due2=await pc.saveWorkerDue(directOrderId,datePlus(dueAt,4),label+' revised material delay',command(ctx,'pc-due-4',due1.version));
   assert.equal(due2.delta_days,4);assert.equal(due2.original_due_at,due1.original_due_at);
   const initialItem=await worker.orderItem(directItemId);
   await assert.rejects(worker.saveWorkerCost(directItemId,'99',label,command(ctx,'worker-cannot-set-cost',initialItem.version)),denied('forbidden'));

@@ -1,0 +1,36 @@
+{
+  "path": "evidence/webkit-141.json",
+  "sha256": "86f5a0841f30b14312201305d91c764bca7f1a0ce5a45eb615e270a2006b3146",
+  "run_id": "ee04107b-548a-48a0-81c0-c94bcbe87f5f",
+  "engine": "webkit",
+  "version": "27.2",
+  "personas": 11,
+  "routes": 102,
+  "keyboard_checks": 34,
+  "viewport": {
+    "width": 360,
+    "height": 844
+  },
+  "frontend": {
+    "base": "http://127.0.0.1:5186",
+    "entry_path": "/assets/index-D0HIEzmj.js",
+    "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+  },
+  "scope": "WebKit engine27.2 actual staged login/read navigation,360px keyboard/profile controls and Admin unsaved city dialog. Not native Safari or mutation journeys.",
+  "diagnostics": {
+    "page_errors_retained": 0,
+    "classified_caught_lock_diagnostics": 0,
+    "native_errors": 0,
+    "fatal_errors": 0,
+    "route_issue_count": 0
+  },
+  "private_report_sha256": "fb03e07a5c702ce3020aa523dc9786308da26aec4688e72973a913324e9b5911",
+  "visual_review": "evidence/webkit-ee041-visual-review.json",
+  "visual_review_sha256": "ea9404728132ff409e8dc4d99d6484013e5662fdefdbd82001e6c1c503a0051f",
+  "owned_commands": 0,
+  "source_content_and_crons_restored": true,
+  "staff_auth_preserved_during_cleanup": true,
+  "staff_unchanged_since_fixture": false,
+  "independent_staff_changes_preserved": 1,
+  "native_safari_tested": false
+}

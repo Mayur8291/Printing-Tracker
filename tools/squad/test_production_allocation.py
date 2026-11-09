@@ -104,6 +104,7 @@ class Allocation(unittest.TestCase):
  def test_worker_due_changes_preserve_assignment_baseline(self):
   self.worker();self.actor(111)
   r=rpc(self.c,'v1_worker_due_save',(1001,'2026-12-03T00:00:00Z','Material delay',self.ov(),uuid.uuid4()));self.assertEqual(r['delta_days'],2);self.assertEqual(r['baseline_basis'],'assignment')
+  self.actor(102) # Further corrections remain the coordinator's responsibility.
   r2=rpc(self.c,'v1_worker_due_save',(1001,'2026-12-05T00:00:00Z','Further delay',r['version'],uuid.uuid4()));self.assertEqual(r2['delta_days'],4);self.assertEqual(r['original_due_at'],r2['original_due_at'])
  def test_legacy_due_baseline_is_honest_about_missing_assignment_history(self):
   self.raw('UPDATE sa_snapshot_20261019.sa_orders SET assigned_worker_id=111,assigned_to_id=NULL WHERE id=1001');self.actor(111)

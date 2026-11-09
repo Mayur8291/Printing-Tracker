@@ -39,8 +39,8 @@ class Accounts(unittest.TestCase):
     raise psycopg.Rollback()
    else:self.fail('Stale version allowed')
   self.assertEqual(self.raw('SELECT count(*) FROM auth.sessions WHERE user_id=%s',(uid(103),)),[(1,)])
- def test_customer_and_coordinator_cannot_change_login_status(self):
-  for actor in (101,103,104,110,112):
+ def test_customer_and_unrelated_coordinator_cannot_change_login_status(self):
+  for actor in (201,103,104,110,112):
    with self.subTest(actor=actor),self.c.transaction():
     self.actor_as(actor)
     try:self.status()

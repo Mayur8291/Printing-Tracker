@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-11-08T17:12:01.371986+00:00",
+  "measured_at": "2026-11-09T05:56:09.256048+00:00",
   "scope": "Squad/Canto backend schema, grants, RPCs, Edge artifacts, private buckets and schedules; no data refresh or cutover",
   "equal": false,
   "application_artifacts_equal": true,
@@ -13,23 +13,23 @@
   "environments": {
     "staging": {
       "schema_hashes": {
-        "columns": "fdfc1ee19962ca7a2c6dde27ebb31ecba5da24eabb336da6004c67d6b9ac4566",
-        "relations": "92e40d8870eb1e34d81adb8406209e2cc41a364df3eae9819e1c4df5a9985b46",
-        "functions": "5516b991840751b78286cf57772a12b11a081c14e3f75e77e7966f21f7131a51",
+        "columns": "31424204247a1573dbb8c5ff7bd0a7b3006338c8b17126aeba469420dd2dd8fa",
+        "relations": "7e7ef880776556c2d79c774bf4cbde6146b75c2b861feb741a213a1071dbdb22",
+        "functions": "18efedceaa1c9c19b0dcca8504737496556e6d59df55723cb9d74e6ff858a325",
         "types": "50dae15469ebba72dfd3b93c8f99589bf9930ca49a4b34aaee2cd74538807601",
         "views": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "sequences": "f9fd0bb0bafc2c99d344749de1f20ed089447005735d56056d9cb44f448769a7",
-        "constraints": "fd251414543e83dc484af51e4b05ab9c3ab4e79fd44e76ef7f07ba891d202893",
-        "indexes": "e6d2d2d83367f89e5daf881f3d31f0eca5bb4297117aeff376385acd828dbe98",
-        "policies": "5e800a41c4ffd4da16e50752e0ed5c4e5abdca1eadeeed6eef94495bbfac127b",
-        "triggers": "5f09e54ca1344e32901adbbf471a68cfcc51921aa561de9de46e1db7ad2e4463",
+        "sequences": "56c785d78ff7df659a6fc6dfaf42e3d1cef1870a6e3cff8bccd7daaeb766e802",
+        "constraints": "b64aa2ae7ec41df561bf064cb346f1638a32f95ff965b56c7ecbecf06da6dadd",
+        "indexes": "a12cef40d6b29efc26c240ebfd0d0d86eb3395fe677fd9ce961faeb95edc36c4",
+        "policies": "a33f5dcf8c102224361654576c2155aa2d77bb9888669b9ea0c9f82433600d78",
+        "triggers": "4468369f772117cb996d7e6df12a23ac8b217f272a3c8c8c7a9c7649db9942e0",
         "schema_acl": "d21445f59b0cc740e7f5a1c299d3573761d262f4b98309d8ee39220c87434148",
         "default_acl": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "roles": "32d150c849aa6cfe878d5233c91a354c45ab7a368c35d1dcdee94ed6f42933f2",
         "role_memberships": "2373501de6ddea38144c50ba454438210309ab70e8d2d5b5d9df41eeb3d37b60"
       },
-      "migrations": 113,
-      "last_migration": "20261108154028",
+      "migrations": 141,
+      "last_migration": "20261109043010",
       "functions": [
         {
           "slug": "canto-refresh",
@@ -41,13 +41,13 @@
           "slug": "squad-account",
           "status": "ACTIVE",
           "verify_jwt": false,
-          "ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d"
+          "ezbr_sha256": "2e58b626551992a6d1ee1fbcdfd379a8654da4e6762570650df174a5b5ff146c"
         },
         {
           "slug": "squad-jobs",
           "status": "ACTIVE",
           "verify_jwt": false,
-          "ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176"
+          "ezbr_sha256": "2c79ff5e340d846d14995386d86f992787defb68164c5d3a2c5e01a8a108feac"
         },
         {
           "slug": "squad-webhooks",
@@ -58,31 +58,31 @@
       ],
       "mirror": true,
       "revision": [
-        646,
-        646
+        1612,
+        1612
       ],
       "test_writes_disabled": true,
       "public_structure": "05d34e00e8e4e1d5bfa9b23212717e898bd58d0c3e13888ebcaf1eceae6997fa"
     },
     "production": {
       "schema_hashes": {
-        "columns": "fdfc1ee19962ca7a2c6dde27ebb31ecba5da24eabb336da6004c67d6b9ac4566",
-        "relations": "92e40d8870eb1e34d81adb8406209e2cc41a364df3eae9819e1c4df5a9985b46",
-        "functions": "5516b991840751b78286cf57772a12b11a081c14e3f75e77e7966f21f7131a51",
+        "columns": "31424204247a1573dbb8c5ff7bd0a7b3006338c8b17126aeba469420dd2dd8fa",
+        "relations": "7e7ef880776556c2d79c774bf4cbde6146b75c2b861feb741a213a1071dbdb22",
+        "functions": "18efedceaa1c9c19b0dcca8504737496556e6d59df55723cb9d74e6ff858a325",
         "types": "50dae15469ebba72dfd3b93c8f99589bf9930ca49a4b34aaee2cd74538807601",
         "views": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "sequences": "f9fd0bb0bafc2c99d344749de1f20ed089447005735d56056d9cb44f448769a7",
-        "constraints": "fd251414543e83dc484af51e4b05ab9c3ab4e79fd44e76ef7f07ba891d202893",
-        "indexes": "e6d2d2d83367f89e5daf881f3d31f0eca5bb4297117aeff376385acd828dbe98",
-        "policies": "5e800a41c4ffd4da16e50752e0ed5c4e5abdca1eadeeed6eef94495bbfac127b",
-        "triggers": "5f09e54ca1344e32901adbbf471a68cfcc51921aa561de9de46e1db7ad2e4463",
+        "sequences": "56c785d78ff7df659a6fc6dfaf42e3d1cef1870a6e3cff8bccd7daaeb766e802",
+        "constraints": "b64aa2ae7ec41df561bf064cb346f1638a32f95ff965b56c7ecbecf06da6dadd",
+        "indexes": "a12cef40d6b29efc26c240ebfd0d0d86eb3395fe677fd9ce961faeb95edc36c4",
+        "policies": "a33f5dcf8c102224361654576c2155aa2d77bb9888669b9ea0c9f82433600d78",
+        "triggers": "4468369f772117cb996d7e6df12a23ac8b217f272a3c8c8c7a9c7649db9942e0",
         "schema_acl": "d21445f59b0cc740e7f5a1c299d3573761d262f4b98309d8ee39220c87434148",
         "default_acl": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "roles": "32d150c849aa6cfe878d5233c91a354c45ab7a368c35d1dcdee94ed6f42933f2",
         "role_memberships": "2373501de6ddea38144c50ba454438210309ab70e8d2d5b5d9df41eeb3d37b60"
       },
-      "migrations": 113,
-      "last_migration": "20261108154028",
+      "migrations": 141,
+      "last_migration": "20261109043010",
       "functions": [
         {
           "slug": "canto-refresh",
@@ -94,13 +94,13 @@
           "slug": "squad-account",
           "status": "ACTIVE",
           "verify_jwt": false,
-          "ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d"
+          "ezbr_sha256": "2e58b626551992a6d1ee1fbcdfd379a8654da4e6762570650df174a5b5ff146c"
         },
         {
           "slug": "squad-jobs",
           "status": "ACTIVE",
           "verify_jwt": false,
-          "ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176"
+          "ezbr_sha256": "2c79ff5e340d846d14995386d86f992787defb68164c5d3a2c5e01a8a108feac"
         },
         {
           "slug": "squad-webhooks",

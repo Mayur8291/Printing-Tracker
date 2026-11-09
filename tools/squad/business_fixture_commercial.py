@@ -27,6 +27,7 @@ def plan_fixture(state):
         'reviewCustomerId':base+3, 'baseTypeId':base+4, 'baseProductId':base+5,
         'categoryId':base+6, 'fabricId':base+7, 'colorId':base+8,
         'partId':base+9, 'addonId':base+10, 'partCriterionId':base+11,
+        'sizeTypeId':base+14, 'scSizeId':base+15,
     }
     table_rows = []
 
@@ -40,9 +41,11 @@ def plan_fixture(state):
         {'id':base+1,'user_id':actor_base+10,'address':label+' dealer address','state':'Karnataka','city':label+' city','zip_code':'560001','is_primary':True},
     ])
     rows('sizes',[{'id':base+2,'name':label+' size'}])
+    rows('size_types',[{'id':base+14,'name':label+' size type'}])
+    rows('sc_sizes',[{'id':base+15,'name':label+' size','size_type_id':base+14,'position':0}])
     rows('base_product_types',[{'id':base+4,'name':label+' type'}])
     rows('base_products',[{'id':base+5,'name':label+' base','base_product_type_id':base+4,
-                          'base_of':20,'base_sn':10,'tims_cost':5,'adult_consumption':2,'kids_consumption':1,
+                          'size_type_id':base+14,'base_of':20,'base_sn':10,'tims_cost':5,'adult_consumption':2,'kids_consumption':1,
                           'over_header_percentage':10,'sample_rate':500,'calculator':1000}])
     rows('categories',[{'id':base+6,'name':label+' category'}])
     rows('fabrics',[{'id':base+7,'name':label+' fabric','price':600,'uom':'KG','gsm':180}])
@@ -59,6 +62,7 @@ def plan_fixture(state):
         (25,'add_on_parts',{'add_on_id':base+10,'part_id':base+9}),
         (26,'add_on_base_products',{'add_on_id':base+10,'base_product_id':base+5}),
         (27,'add_on_colors',{'add_on_id':base+10,'color_id':base+8}),
+        (28,'base_size_types',{'base_product_id':base+5,'size_type_id':base+14}),
     ]:
         rows(table,[{'id':base+offset,**fields}])
     result = {
@@ -80,6 +84,8 @@ def plan_fixture(state):
         else:
             table_rows.append(entry);by_table[entry['table']] = entry
     result['commercialExtras'] = extras['commercialExtras']
+    if 'web_address_location' in state:
+        result['web_address_location'] = dict(state['web_address_location'])
     if state.get('weekly_mail_rehearsal') is True:
         from business_fixture_weekly_mail import plan_fixture as plan_weekly
         weekly=plan_weekly(state)
@@ -91,6 +97,9 @@ def plan_fixture(state):
             else:
                 table_rows.append(entry);by_table[entry['table']]=entry
         result['weeklyMail']=weekly['weeklyMail']
+    if 'web_content_media' in state:
+        from web_content_fixture import planned_rows
+        table_rows.append(planned_rows(state))
     return result
 
 

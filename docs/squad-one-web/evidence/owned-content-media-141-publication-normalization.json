@@ -1,0 +1,17 @@
+{
+  "format": "squad-evidence-path-normalization/v1",
+  "source": "evidence/owned-content-media-acceptance.json",
+  "private_original": "tools/squad/private/publication-originals/owned-content-media-b6e764b1-9116-4c2a-bf56-b22c1f4b35b6.original.json",
+  "original_sha256": "bfbe2fac9ccf3f176848ae9d7a91f36e017153cc8a2f1fa0847b72fb941a5983",
+  "public_derivative": "evidence/owned-content-media-141.json",
+  "public_sha256": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+  "changed_fields": [
+    "journeys.content-media.productScreenshot",
+    "journeys.content-media.promotionScreenshot",
+    "journeys.content-media.missingPromotionScreenshot"
+  ],
+  "change": "Absolute workspace prefix removed from screenshot paths only; all browser assertions, fixture IDs, hashes and cleanup values preserved.",
+  "canonical_pending_normalization": false,
+  "canonical_sha256": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+  "rebound_native_receipt": "native-safari-owned-media-b6e764b1.json:cleanup_receipt.sha256"
+}

@@ -1,0 +1,65 @@
+{
+  "milestone": "administration",
+  "weight_percent": 4,
+  "result": "internal_finite_criteria_satisfied_external_gates_retained",
+  "criteria_basis": "EXIT-06 required clauses and explicit external/ownership dispositions, unchanged",
+  "provenance": [
+    {
+      "case": "Owned city/zone/criteria CRUD",
+      "evidence": "evidence/collaboration-administration-closure-121.json"
+    },
+    {
+      "case": "Job/audit scope, cursor, non-admin denial, queued job no retry, empty recipient inbox",
+      "evidence": "evidence/factory-collaboration-operations-read-140.json",
+      "checks": 6
+    },
+    {
+      "case": "Failed-job retry disabled when readonly or missing handler; bounded notifications destinations",
+      "evidence": "tools/squad/web-operations-read-browser.mjs",
+      "level": "local rendered, hosted backend proof retained separately"
+    },
+    {
+      "case": "CSV disabled mirror/test/readonly controls and explanation",
+      "evidence": "evidence/transfer-ownership-local-review.json",
+      "checks": 4
+    },
+    {
+      "case": "Admin exact stock counter repair/history and Dealer denial",
+      "evidence": "evidence/stock-reconciliation-141.json",
+      "checks": 3
+    },
+    {
+      "case": "Real Tracker staff gateway, scoped reads, refresh status and360px",
+      "evidence": "evidence/tracker-read-acceptance.json",
+      "checks": 16,
+      "limitation": "Earlier accepted built entry10743fc...; final deployed revision read smoke remains EXIT-08"
+    },
+    {
+      "case": "Current clean-built actual Tracker Colors create/edit/archive",
+      "evidence": "evidence/tracker-colors-acceptance.json",
+      "checks": 3,
+      "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+    },
+    {
+      "case": "Exact-owned Cron/provider/inbox PDF delivery",
+      "evidence": "evidence/weekly-mail-140-accepted.json",
+      "emails": 5
+    }
+  ],
+  "retained_external_gates": [
+    "EXTERNAL-NATIVE-OPERATORS: actual native job retry and notification fanout/delivery",
+    "EXTERNAL-OWNERSHIP: CSV upload/validate/apply requires separately authorized native ownership",
+    "EXTERNAL-UNIWARE: user deferred provider access"
+  ],
+  "remaining_global_gate": "EXIT-08 final deployed build/Tracker/persona read smoke and production parity; EXIT-07 browser/quality requirements. Neither is double-counted inside the internal administration weight.",
+  "not_claimed": [
+    "All Masters resources or bulk/media variants newly browser tested",
+    "Native worker retry, nonempty new fixture fanout or CSV apply executed",
+    "Full data refresh run",
+    "Native ownership enabled",
+    "Production/deployed acceptance"
+  ],
+  "independent_review": "UI lane source/evidence audit plus Operations finite-gap review and four-case guard review",
+  "accepted_weight_before": 48,
+  "accepted_weight_after": 52
+}

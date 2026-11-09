@@ -1,0 +1,6 @@
+{
+  "stages": ["initializing", "account_scope", "recovery_old_login", "recovery_old_identity", "invitation_request", "page_navigation", "email_entry", "profile_entry", "request_submit", "request_response", "request_recorded", "proof_form", "inbox_proof", "password_mismatch", "wrong_proof_submit", "wrong_proof_response", "correct_proof_submit", "correct_proof_response", "completion_recorded", "completion_status", "completion_secrets_removed", "authority_verification", "new_password_login", "pending_approval_check", "new_identity", "previous_password_login", "previous_session_read", "previous_refresh", "fresh_logout", "flow_record", "final_browser_checks"],
+  "types": ["AssertionError", "TimeoutError", "SquadError", "TypeError", "Error", "AbortError"],
+  "codes": ["28000", "42501", "57014", "PT409", "40001", "22023", "P0002", "55000", "TRANSPORT_ERROR", "INVALID_OR_EXPIRED_CODE", "PROVIDER_UNAVAILABLE", "ACCOUNT_UNAVAILABLE", "ACCOUNT_REQUEST_BUSY", "SESSION_REQUIRED", "FORBIDDEN"],
+  "files": ["web-guest-hosted.mjs", "web-account-entry-adapter.mjs", "squad.js", "AccountFlow.jsx", "WaitTask.js", "Realm.js", "Frame.js", "Page.js", "decorators.js", "QueryHandler.js", "ElementHandle.js", "assert.js"]
+}

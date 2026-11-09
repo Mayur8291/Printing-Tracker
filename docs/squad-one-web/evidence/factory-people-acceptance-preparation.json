@@ -1,0 +1,59 @@
+{
+  "format": "squad-factory-people-acceptance-preparation/v1",
+  "recorded_at": "2026-11-09T03:30:59.604592+00:00",
+  "status": "local_passed_independently_reviewed_hosted_pending",
+  "exit_group": "EXIT-04",
+  "optional_module": "factory-management",
+  "adapter": "tools/squad/web-factory-people-hosted-journey.mjs",
+  "export": "runJourney",
+  "prerequisites": "Existing standard business fixture; no prior commerce/People module results needed. Parent owns serialized staging run, command journal and cleanup.",
+  "commands": 6,
+  "subjects": [
+    "One new factory create/edit",
+    "One new Factory Manager create/edit linked to that factory",
+    "One new Inspector create/edit linked to that manager"
+  ],
+  "proofs": [
+    "Bounded exact-name factory read and changed version",
+    "Person role/name and exact unchanged parent relationship read after edit",
+    "Foreign Sales Coordinator denied both created workforce profiles"
+  ],
+  "local_validation": {
+    "rendered_forms": {
+      "path": "tools/squad/web-people-forms-browser.mjs",
+      "cases_passed": 10,
+      "new_cases": 3,
+      "scope": "Actual current React forms using fixture SDK; exact adapter helpers for PC Factory Manager and Inspector selectors plus factory create/edit ID/version."
+    },
+    "cleanup": {
+      "path": "tools/squad/test_web_factory_people_cleanup.py",
+      "tests_passed": 2,
+      "database": "squad_test_web",
+      "duration_seconds": 1.521,
+      "scope": "Existing audit-rooted cleanup; six-command graph and interrupted factory-only creation restore exact source state. No cleanup exceptions or provider calls."
+    }
+  },
+  "independent_review": {
+    "reviewer": "web_ui_implementation",
+    "result": "GO; exact roots journaled immediately, same entity/version and scoped parent links checked; no provider or invitation execution."
+  },
+  "limits": [
+    "Hosted browser execution pending. No milestone awarded.",
+    "Inspector is a representative shared factory-team RPC branch; no Cartesian all-role claim.",
+    "Queued account intents remain unexecuted; no login provisioning, invitations or email."
+  ],
+  "files": [
+    {
+      "path": "tools/squad/web-factory-people-hosted-journey.mjs",
+      "sha256": "4f2b184e8e8f8d45ec223937ff2cdca8ea4b9bf81f55611a39a9f6fdb8b0ad11"
+    },
+    {
+      "path": "tools/squad/test_web_factory_people_cleanup.py",
+      "sha256": "4cb1e2f5b08f66a0977ef850f1de824844a724c10e37586876ae3fb50de71ac5"
+    },
+    {
+      "path": "tools/squad/web-people-forms-browser.mjs",
+      "sha256": "037811110e1ae121cc3b3ff8f394cc266a4219335cf1d8be99d6fac0fdf73548"
+    }
+  ]
+}

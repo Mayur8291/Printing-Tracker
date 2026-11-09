@@ -1,0 +1,50 @@
+{
+  "format": "squad-clean-web-build/v1",
+  "status": "incremental_built_startup_verified",
+  "workspace": "/tmp/squad-clean-web-cjtmqrp8",
+  "node": "v26.13.0",
+  "npm": "11.6.2",
+  "source_files": 597,
+  "source_manifest_sha256": "7a76635fb3a6c3a3f48be1a40d8cd0912c48935f615293a236b93c68e8fd816e",
+  "lock_sha256": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b",
+  "app_root_sha256": "022e13c66a1276bbe47fabdf57f890254dfabd3ae53f0c48fc2d51beb139cc13",
+  "environment_names": [
+    "VITE_APP_ENV",
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY"
+  ],
+  "copied_env_files": false,
+  "dependency_install_reused_from": "clean-web-initial-execution.json",
+  "source_changes": [
+    "apps/admin/src/squad/features/jobWork/JobWorkPage.jsx",
+    "apps/admin/src/squad/features/production/ProductionPage.jsx",
+    "apps/admin/src/squad/features/stock/StockPage.jsx",
+    "apps/admin/src/squad/features/stock/StockReconciliationPanel.jsx"
+  ],
+  "previous_artifact": "/tmp/squad-clean-web-cjtmqrp8/build-control/initial-artifact",
+  "commands": [
+    {
+      "phase": "incremental_build",
+      "exit_code": 0,
+      "seconds": 8.43,
+      "log": "/tmp/squad-clean-web-cjtmqrp8/build-control/build-incremental.log"
+    }
+  ],
+  "source_unchanged": true,
+  "entry_path": "/assets/index-D0HIEzmj.js",
+  "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085",
+  "dist": "/tmp/squad-clean-web-cjtmqrp8/apps/admin/dist",
+  "dist_files": 123,
+  "dist_manifest_sha256": "e7f1522ae7de64f78d729c7cdae2d442235da22445a61eae7118e3a151a97d2b",
+  "warnings": [
+    "Existing legacy Tracker App chunk exceeds 1200 kB warning threshold; no compilation error."
+  ],
+  "preview": "http://127.0.0.1:5186",
+  "served_entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085",
+  "startup": {
+    "ready": true,
+    "errors": [],
+    "external_requests_blocked": 0,
+    "scope": "Anonymous startup only; external traffic blocked; no credentials or hosted calls"
+  }
+}

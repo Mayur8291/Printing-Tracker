@@ -1,4 +1,4 @@
-import {proofMailer,type ProofPurpose,type ProofMailTransportFactory} from '../_shared/squad-mail.ts';
+import {proofMessage,proofMailer,type ProofPurpose,type ProofMailTransportFactory} from '../_shared/squad-mail.ts';
 const assert=(value:unknown)=>{if(!value)throw new Error('assertion failed');};
 const base={projectRef:'scvojtvgnkmbupvyslmb',host:'smtp.invalid',port:2525,username:'fixture',password:'fixture',sender:'sender@squad.invalid'};
 const id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',email='squad-proof@mailinator.com';
@@ -44,4 +44,10 @@ Deno.test('shared SMTP deadline closes a stalled transport and reports uncertain
   try{await proofMailer({...base,allowedRecipients:[email]},factory)(id,email,'recovery','12345678');throw new Error('accepted');}catch(error){assert(error instanceof Error&&error.message==='mail_delivery_unavailable');}
   assert(deadline===35000&&closes>=1);
  }finally{globalThis.setTimeout=original;}
+});
+
+Deno.test('invitation proof includes the exact request ID required by the guest form',()=>{
+ const invitation=proofMessage(id,email,'invite','12345678');
+ assert(invitation.text.includes(`Invitation request ID: ${id}`));
+ for(const purpose of ['register','confirm','recovery'] as ProofPurpose[])assert(!proofMessage(id,email,purpose,'12345678').text.includes('Invitation request ID:'));
 });

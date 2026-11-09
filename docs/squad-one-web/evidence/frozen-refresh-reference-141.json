@@ -1,0 +1,31 @@
+{
+  "format": "squad-frozen-refresh-reference/v1",
+  "branch": "codex/backend-parity-20261109-141",
+  "commit": "14e178d108220418e7a6bc1da14971f9bfa0cba3",
+  "previous_branch": "codex/backend-parity-20261108-113",
+  "previous_commit": "f2ed1a1f0b4e086f0e154fc7a4d78b4bb27e41bb",
+  "changed_files": [
+    "tools/canto-sync/baselines/production-catalog.json",
+    "tools/canto-sync/baselines/production-domain-access.json",
+    "tools/canto-sync/baselines/staging-catalog.json",
+    "tools/canto-sync/baselines/staging-domain-access.json"
+  ],
+  "baseline_sha256": {
+    "staging-catalog.json": "9806fdf8260b3d45b779dbae81fb5887a6f2d28ca5ed90cd8e23a58a27d282ec",
+    "production-catalog.json": "6f82af6e22eb7cb7a8c6fe2c2c5609b8b72de6f2bbf0fb1e3a870efcc60520cc",
+    "staging-domain-access.json": "10ac092808a3495fe1a1f989a6739fece803f5baa29dfb84b05a4ea33bbe02e3",
+    "production-domain-access.json": "10ac092808a3495fe1a1f989a6739fece803f5baa29dfb84b05a4ea33bbe02e3"
+  },
+  "refresh_dispatched": false,
+  "environments": {
+    "staging": {
+      "verified": true,
+      "other_secret_digests_unchanged": true
+    },
+    "production": {
+      "verified": true,
+      "other_secret_digests_unchanged": true
+    }
+  },
+  "measured_at": "2026-11-09T06:05:59.413475+00:00"
+}

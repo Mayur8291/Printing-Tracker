@@ -1,0 +1,22 @@
+{
+  "purpose": "Web planning coverage only; no implementation, runtime acceptance, or production cutover claim",
+  "workflow_count": 115,
+  "module_count": 28,
+  "stored_roles": 13,
+  "login_personas": 11,
+  "shared_workflows": 68,
+  "dispositions": {
+    "background_work_with_visible_result_or_status": 6,
+    "derived_state_visible_in_parent_flow": 4,
+    "excluded_by_user_airtable": 1,
+    "interactive_web_workflow": 102,
+    "retired_unsafe_impersonation_not_implemented": 1,
+    "separate_guarded_ownership_operation": 1
+  },
+  "missing_workflow_ids": [],
+  "missing_module_mappings": [],
+  "source_discovered_variations": 1,
+  "source_discovered_variation_ids": [
+    "WEB-GAP-01"
+  ]
+}

@@ -1,0 +1,1539 @@
+{
+  "run_id": "84a327be-953a-484a-ae13-1fe8c92646db",
+  "environment": "staging",
+  "frontend": "local real React application on localhost:5183; Vercel release acceptance separate",
+  "migration_prefix": "20261108184439",
+  "scope": "Shared navigation/responsiveness/accessibility smoke only; artwork in same run failed and is separately awaiting retest",
+  "route_persona_combinations": 115,
+  "login_personas": 11,
+  "mobile_personas": 5,
+  "dialogs": [
+    {
+      "named": true,
+      "fits": true,
+      "submitVisible": true,
+      "focusContained": true,
+      "screenshot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/tools/squad/private/web-navigation-84a327be-953a-484a-ae13-1fe8c92646db/admin-city-dialog-mobile.png"
+    }
+  ],
+  "failures": [],
+  "network": [
+    {
+      "role": 0,
+      "route": "/squad/home",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 280
+    },
+    {
+      "role": 0,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 1361
+    },
+    {
+      "role": 0,
+      "route": "/squad/catalogue",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 212
+    },
+    {
+      "role": 0,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 247
+    },
+    {
+      "role": 0,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 325
+    },
+    {
+      "role": 0,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 507
+    },
+    {
+      "role": 0,
+      "route": "/squad/orders",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 177
+    },
+    {
+      "role": 0,
+      "route": "/squad/people",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 163
+    },
+    {
+      "role": 0,
+      "route": "/squad/production",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 185
+    },
+    {
+      "role": 0,
+      "route": "/squad/job-work",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 169
+    },
+    {
+      "role": 0,
+      "route": "/squad/tasks",
+      "rpc": "v1_tasks_list",
+      "status": 200,
+      "elapsed_ms": 240
+    },
+    {
+      "role": 0,
+      "route": "/squad/goals",
+      "rpc": "v1_responsibilities_list",
+      "status": 200,
+      "elapsed_ms": 217
+    },
+    {
+      "role": 0,
+      "route": "/squad/targets",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 218
+    },
+    {
+      "role": 0,
+      "route": "/squad/targets",
+      "rpc": "v1_milestones_list",
+      "status": 200,
+      "elapsed_ms": 283
+    },
+    {
+      "role": 0,
+      "route": "/squad/reports",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 203
+    },
+    {
+      "role": 0,
+      "route": "/squad/reports",
+      "rpc": "v1_catalog_options",
+      "status": 200,
+      "elapsed_ms": 236
+    },
+    {
+      "role": 0,
+      "route": "/squad/reports",
+      "rpc": "v1_sales_report",
+      "status": 200,
+      "elapsed_ms": 306
+    },
+    {
+      "role": 0,
+      "route": "/squad/reports",
+      "rpc": "v1_settings_read",
+      "status": 200,
+      "elapsed_ms": 475
+    },
+    {
+      "role": 0,
+      "route": "/squad/reports",
+      "rpc": "v1_rmp_search",
+      "status": 200,
+      "elapsed_ms": 594
+    },
+    {
+      "role": 0,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 182
+    },
+    {
+      "role": 0,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 177
+    },
+    {
+      "role": 0,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 205
+    },
+    {
+      "role": 0,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 267
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration",
+      "rpc": "v1_settings_read",
+      "status": 200,
+      "elapsed_ms": 162
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 159
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 161
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 158
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 179
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 177
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 180
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 180
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 398
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_settings_read",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 165
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 166
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 171
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 171
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 172
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 173
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/jobs",
+      "rpc": "v1_jobs_list",
+      "status": 200,
+      "elapsed_ms": 199
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 231
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 230
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 158
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 169
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 168
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 260
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 290
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 432
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/delivery-failures",
+      "rpc": "v1_delivery_failures",
+      "status": 200,
+      "elapsed_ms": 184
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 161
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 178
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 145
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 156
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 159
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 158
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 163
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 167
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/audit",
+      "rpc": "v1_audit_list",
+      "status": 200,
+      "elapsed_ms": 179
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 146
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 152
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 156
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 169
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 169
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 241
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_settings_read",
+      "status": 200,
+      "elapsed_ms": 178
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_weekly_tailor_schedule_status",
+      "status": 200,
+      "elapsed_ms": 167
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_mail_settings_read",
+      "status": 200,
+      "elapsed_ms": 176
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/integrations",
+      "rpc": "v1_warehouse_schedule_status",
+      "status": 200,
+      "elapsed_ms": 182
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 156
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 165
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 157
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 158
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 161
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 161
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 164
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 170
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/transfers",
+      "rpc": "v1_import_status",
+      "status": 200,
+      "elapsed_ms": 179
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 159
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 161
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 164
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 185
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 189
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 200
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 205
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/stock",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 165
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 151
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 158
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 155
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 155
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 156
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_me",
+      "status": 200,
+      "elapsed_ms": 163
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 170
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_app_bootstrap",
+      "status": 200,
+      "elapsed_ms": 264
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_settings_read",
+      "status": 200,
+      "elapsed_ms": 159
+    },
+    {
+      "role": 0,
+      "route": "/squad/administration/settings",
+      "rpc": "v1_settings_read",
+      "status": 200,
+      "elapsed_ms": 156
+    },
+    {
+      "role": 1,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 345
+    },
+    {
+      "role": 1,
+      "route": "/squad/home",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 610
+    },
+    {
+      "role": 1,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 179
+    },
+    {
+      "role": 1,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 202
+    },
+    {
+      "role": 1,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 203
+    },
+    {
+      "role": 1,
+      "route": "/squad/catalogue",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 729
+    },
+    {
+      "role": 1,
+      "route": "/squad/orders",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 187
+    },
+    {
+      "role": 1,
+      "route": "/squad/people",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 174
+    },
+    {
+      "role": 1,
+      "route": "/squad/tasks",
+      "rpc": "v1_tasks_list",
+      "status": 200,
+      "elapsed_ms": 194
+    },
+    {
+      "role": 1,
+      "route": "/squad/goals",
+      "rpc": "v1_responsibilities_list",
+      "status": 200,
+      "elapsed_ms": 180
+    },
+    {
+      "role": 1,
+      "route": "/squad/targets",
+      "rpc": "v1_milestones_list",
+      "status": 200,
+      "elapsed_ms": 171
+    },
+    {
+      "role": 1,
+      "route": "/squad/reports",
+      "rpc": "v1_sales_coordinator_metrics",
+      "status": 200,
+      "elapsed_ms": 215
+    },
+    {
+      "role": 1,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 160
+    },
+    {
+      "role": 1,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 159
+    },
+    {
+      "role": 1,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 192
+    },
+    {
+      "role": 1,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 210
+    },
+    {
+      "role": 2,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 196
+    },
+    {
+      "role": 2,
+      "route": "/squad/home",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 216
+    },
+    {
+      "role": 2,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 168
+    },
+    {
+      "role": 2,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 194
+    },
+    {
+      "role": 2,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 216
+    },
+    {
+      "role": 2,
+      "route": "/squad/orders",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 186
+    },
+    {
+      "role": 2,
+      "route": "/squad/people",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 159
+    },
+    {
+      "role": 2,
+      "route": "/squad/production",
+      "rpc": "v1_factory_queue",
+      "status": 200,
+      "elapsed_ms": 416
+    },
+    {
+      "role": 2,
+      "route": "/squad/job-work",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 164
+    },
+    {
+      "role": 2,
+      "route": "/squad/tasks",
+      "rpc": "v1_tasks_list",
+      "status": 200,
+      "elapsed_ms": 167
+    },
+    {
+      "role": 2,
+      "route": "/squad/goals",
+      "rpc": "v1_responsibilities_list",
+      "status": 200,
+      "elapsed_ms": 166
+    },
+    {
+      "role": 2,
+      "route": "/squad/reports",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 167
+    },
+    {
+      "role": 2,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 2,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 168
+    },
+    {
+      "role": 2,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 190
+    },
+    {
+      "role": 2,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 166
+    },
+    {
+      "role": 3,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 189
+    },
+    {
+      "role": 3,
+      "route": "/squad/home",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 213
+    },
+    {
+      "role": 3,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 159
+    },
+    {
+      "role": 3,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 162
+    },
+    {
+      "role": 3,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 181
+    },
+    {
+      "role": 3,
+      "route": "/squad/orders",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 191
+    },
+    {
+      "role": 3,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 155
+    },
+    {
+      "role": 3,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 3,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 196
+    },
+    {
+      "role": 3,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 155
+    },
+    {
+      "role": 3,
+      "route": "/squad/profile",
+      "rpc": "v1_coordinator_requests",
+      "status": 200,
+      "elapsed_ms": 169
+    },
+    {
+      "role": 3,
+      "route": "/squad/profile",
+      "rpc": "v1_person_get",
+      "status": 200,
+      "elapsed_ms": 197
+    },
+    {
+      "role": 4,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 184
+    },
+    {
+      "role": 4,
+      "route": "/squad/home",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 206
+    },
+    {
+      "role": 4,
+      "route": "/squad/orders",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 180
+    },
+    {
+      "role": 4,
+      "route": "/squad/people",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 191
+    },
+    {
+      "role": 4,
+      "route": "/squad/production",
+      "rpc": "v1_factory_queue",
+      "status": 200,
+      "elapsed_ms": 168
+    },
+    {
+      "role": 4,
+      "route": "/squad/tasks",
+      "rpc": "v1_tasks_list",
+      "status": 200,
+      "elapsed_ms": 182
+    },
+    {
+      "role": 4,
+      "route": "/squad/reports",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 165
+    },
+    {
+      "role": 4,
+      "route": "/squad/reports",
+      "rpc": "v1_work_metrics",
+      "status": 200,
+      "elapsed_ms": 528
+    },
+    {
+      "role": 4,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 154
+    },
+    {
+      "role": 4,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 149
+    },
+    {
+      "role": 7,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 236
+    },
+    {
+      "role": 7,
+      "route": "/squad/people",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 402
+    },
+    {
+      "role": 7,
+      "route": "/squad/production",
+      "rpc": "v1_dispatch_queue",
+      "status": 200,
+      "elapsed_ms": 519
+    },
+    {
+      "role": 7,
+      "route": "/squad/reports",
+      "rpc": "v1_work_metrics",
+      "status": 200,
+      "elapsed_ms": 567
+    },
+    {
+      "role": 7,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 261
+    },
+    {
+      "role": 7,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 298
+    },
+    {
+      "role": 8,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 301
+    },
+    {
+      "role": 8,
+      "route": "/squad/people",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 365
+    },
+    {
+      "role": 8,
+      "route": "/squad/production",
+      "rpc": "v1_jobsheets_list",
+      "status": 200,
+      "elapsed_ms": 200
+    },
+    {
+      "role": 8,
+      "route": "/squad/reports",
+      "rpc": "v1_work_metrics",
+      "status": 200,
+      "elapsed_ms": 199
+    },
+    {
+      "role": 8,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 112
+    },
+    {
+      "role": 9,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 221
+    },
+    {
+      "role": 9,
+      "route": "/squad/production",
+      "rpc": "v1_cutting_queue",
+      "status": 200,
+      "elapsed_ms": 182
+    },
+    {
+      "role": 9,
+      "route": "/squad/reports",
+      "rpc": "v1_work_metrics",
+      "status": 200,
+      "elapsed_ms": 251
+    },
+    {
+      "role": 9,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 212
+    },
+    {
+      "role": 10,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 115
+    },
+    {
+      "role": 10,
+      "route": "/squad/home",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 256
+    },
+    {
+      "role": 10,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 115
+    },
+    {
+      "role": 10,
+      "route": "/squad/catalogue",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 133
+    },
+    {
+      "role": 10,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 214
+    },
+    {
+      "role": 10,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 220
+    },
+    {
+      "role": 10,
+      "route": "/squad/orders",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 108
+    },
+    {
+      "role": 10,
+      "route": "/squad/people",
+      "rpc": "v1_people_list",
+      "status": 200,
+      "elapsed_ms": 134
+    },
+    {
+      "role": 10,
+      "route": "/squad/stock",
+      "rpc": "v1_dealer_stock",
+      "status": 200,
+      "elapsed_ms": 278
+    },
+    {
+      "role": 10,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 92
+    },
+    {
+      "role": 10,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 113
+    },
+    {
+      "role": 10,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 230
+    },
+    {
+      "role": 10,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 103
+    },
+    {
+      "role": 10,
+      "route": "/squad/profile",
+      "rpc": "v1_person_get",
+      "status": 200,
+      "elapsed_ms": 1153
+    },
+    {
+      "role": 10,
+      "route": "/squad/profile",
+      "rpc": "v1_person_get",
+      "status": 200,
+      "elapsed_ms": 1263
+    },
+    {
+      "role": 11,
+      "route": "/squad/home",
+      "rpc": "v1_dashboard",
+      "status": 200,
+      "elapsed_ms": 224
+    },
+    {
+      "role": 11,
+      "route": "/squad/home",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 357
+    },
+    {
+      "role": 11,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 177
+    },
+    {
+      "role": 11,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 178
+    },
+    {
+      "role": 11,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 217
+    },
+    {
+      "role": 11,
+      "route": "/squad/orders",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 199
+    },
+    {
+      "role": 11,
+      "route": "/squad/job-work",
+      "rpc": "v1_orders_list",
+      "status": 200,
+      "elapsed_ms": 163
+    },
+    {
+      "role": 11,
+      "route": "/squad/tasks",
+      "rpc": "v1_tasks_list",
+      "status": 200,
+      "elapsed_ms": 237
+    },
+    {
+      "role": 11,
+      "route": "/squad/goals",
+      "rpc": "v1_responsibilities_list",
+      "status": 200,
+      "elapsed_ms": 215
+    },
+    {
+      "role": 11,
+      "route": "/squad/reports",
+      "rpc": "v1_work_metrics",
+      "status": 200,
+      "elapsed_ms": 177
+    },
+    {
+      "role": 11,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 163
+    },
+    {
+      "role": 11,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 178
+    },
+    {
+      "role": 11,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 216
+    },
+    {
+      "role": 11,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 175
+    },
+    {
+      "role": 12,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 73
+    },
+    {
+      "role": 12,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 97
+    },
+    {
+      "role": 12,
+      "route": "/squad/catalogue",
+      "rpc": "v1_catalog_tree",
+      "status": 200,
+      "elapsed_ms": 123
+    },
+    {
+      "role": 12,
+      "route": "/squad/tasks",
+      "rpc": "v1_tasks_list",
+      "status": 200,
+      "elapsed_ms": 115
+    },
+    {
+      "role": 12,
+      "route": "/squad/goals",
+      "rpc": "v1_responsibilities_list",
+      "status": 200,
+      "elapsed_ms": 95
+    },
+    {
+      "role": 12,
+      "route": "/squad/documents",
+      "rpc": "v1_documents_list",
+      "status": 200,
+      "elapsed_ms": 69
+    },
+    {
+      "role": 12,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 81
+    },
+    {
+      "role": 12,
+      "route": "/squad/promotions",
+      "rpc": "v1_promotions_list",
+      "status": 200,
+      "elapsed_ms": 96
+    },
+    {
+      "role": 12,
+      "route": "/squad/notifications",
+      "rpc": "v1_notifications_list",
+      "status": 200,
+      "elapsed_ms": 69
+    }
+  ],
+  "cleanup": {
+    "run_id": "84a327be-953a-484a-ae13-1fe8c92646db",
+    "measured_at": "2026-11-08T19:17:38.326007+00:00",
+    "cleanup": {
+      "run_id": "84a327be-953a-484a-ae13-1fe8c92646db",
+      "owned_commands": 0,
+      "owned_auth_revisions": 0,
+      "removed_source_rows": 53,
+      "removed_documents": 0,
+      "removed_queued_documents": 0,
+      "removed_processed_documents": 0,
+      "tables": {
+        "sa_users": 17,
+        "sa_factories": 2,
+        "sa_addresses": 3,
+        "sa_sizes": 1,
+        "sa_size_types": 1,
+        "sa_sc_sizes": 1,
+        "sa_base_product_types": 1,
+        "sa_base_products": 1,
+        "sa_categories": 1,
+        "sa_fabrics": 1,
+        "sa_colors": 1,
+        "sa_parts": 1,
+        "sa_add_ons": 1,
+        "sa_criteria": 1,
+        "sa_base_product_categories": 1,
+        "sa_base_product_fabrics": 1,
+        "sa_fabric_colors": 1,
+        "sa_base_product_parts": 1,
+        "sa_part_colors": 1,
+        "sa_add_on_parts": 1,
+        "sa_add_on_base_products": 1,
+        "sa_add_on_colors": 1,
+        "sa_base_size_types": 1,
+        "sa_authorized_brands": 1,
+        "sa_rmp_brands": 1,
+        "sa_rmp_categories": 1,
+        "sa_rmp_colors": 1,
+        "sa_rmp_classes": 1,
+        "sa_rmp_sizes": 1,
+        "sa_rmp_skus": 1,
+        "sa_rmp_price_types": 1,
+        "sa_rmp_prices": 1,
+        "sa_rmp_sku_prices": 1,
+        "sa_rmp_category_brands": 1
+      },
+      "edit_revision_before": 719,
+      "edit_revision_after": 719,
+      "synced_revision_after": 719,
+      "audit_and_commands_retained": true,
+      "jobs_terminalized": true,
+      "source_content_restored": true,
+      "staff_auth_preserved_during_cleanup": true,
+      "staff_auth_unchanged_since_fixture": true,
+      "independently_changed_staff_accounts": 0
+    },
+    "cutover_unchanged": true,
+    "cron_restored": true,
+    "public_structure_and_staff_auth_preserved": true
+  },
+  "visual_review": {
+    "customer_mobile_home": "passed",
+    "admin_city_mobile_dialog": "passed",
+    "reviewer": "root",
+    "scope": "No clipping; existing typography/cards/labels/focus treatment retained"
+  },
+  "measured_at": "2026-11-08T19:19:39.606822+00:00"
+}

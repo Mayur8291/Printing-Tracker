@@ -1,0 +1,40 @@
+{
+  "format": "squad-private-visual-review/v1",
+  "run_id": "8e07f632-76b3-4cd6-a42b-96c3cd423656",
+  "screenshots": [
+    {
+      "path": "tools/squad/private/web-content-media-8e07f632-76b3-4cd6-a42b-96c3cd423656/product-zip-mobile.png",
+      "sha256": "e25cf76699993b903870fb51a8d14b945c4298e3db3b8788bc011459b82440f6",
+      "viewport": {
+        "width": 360,
+        "height": 844
+      }
+    },
+    {
+      "path": "tools/squad/private/web-content-media-8e07f632-76b3-4cd6-a42b-96c3cd423656/promotion-mobile.png",
+      "sha256": "4297cc1ec8d1fdaba0fb8e9e2090a364e21dc1a34465477858324c55b532b33a",
+      "viewport": {
+        "width": 360,
+        "height": 844
+      }
+    },
+    {
+      "path": "tools/squad/private/web-content-media-8e07f632-76b3-4cd6-a42b-96c3cd423656/promotion-missing-mobile.png",
+      "sha256": "724bdfeb551e7968969049fc3ae1b945e351c0ee808ba81456c853d0c096886c",
+      "viewport": {
+        "width": 360,
+        "height": 844
+      }
+    }
+  ],
+  "observations": [
+    "Product share dialog fits360px with bounded selection,1image ready, clear Download ZIP/Close controls and visible successful-download state; no clipping or overlap.",
+    "Promotion ready-card capture is still in loading state: card/filter layout is readable, but this screenshot does not prove decoded preview pixels. Independent actual download byte/hash assertion is in the verified browser report.",
+    "Missing promotion shows explicit No attachment with category/date filters; no download success inferred from this missing state."
+  ],
+  "new_visual_blocker": false,
+  "limitations": [
+    "Native Safari popup failure remains open for the affected download path; these are headless Chrome captures.",
+    "Images remain private; only path/hash metadata published."
+  ]
+}

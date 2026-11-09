@@ -26,7 +26,11 @@ export function validateSvg(bytes:Uint8Array){
     if(attr.name==='xmlns'){if(attr.value!=='http://www.w3.org/2000/svg')throw new InvalidMedia();continue;}
     if(attr.name==='xmlns:xlink'){if(attr.value!=='http://www.w3.org/1999/xlink')throw new InvalidMedia();continue;}
     safeValue(attr.value);
-    if(attr.name==='style')for(const part of attr.value.split(';').filter(s=>s.trim())){const colon=part.indexOf(':');if(colon<1||!styles.has(part.slice(0,colon).trim()))throw new InvalidMedia();safeValue(part.slice(colon+1));}
+    if(attr.name==='style')for(const part of attr.value.split(';').filter(s=>s.trim())){
+     const colon=part.indexOf(':'),property=part.slice(0,colon).trim(),value=part.slice(colon+1).trim();
+     const maskType=property==='mask-type'&&el.localName==='mask'&&/^(luminance|alpha)$/.test(value);
+     if(colon<1||(!styles.has(property)&&!maskType))throw new InvalidMedia();safeValue(value);
+    }
    }
   }else if(![3,4,8].includes(node.nodeType))throw new InvalidMedia();
   for(const child of Array.from(node.childNodes??[]))queue.push({node:child,depth:depth+1});
@@ -39,11 +43,14 @@ export async function verifyMedia(body:ReadableStream<Uint8Array>,expectedBytes:
  try{while(true){const {value,done}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>expectedBytes)throw new InvalidMedia();hash.update(value);
    if(head.length<64){const n=Math.min(64-head.length,value.length),merged=new Uint8Array(head.length+n);merged.set(head);merged.set(value.subarray(0,n),head.length);head=merged;}
    const keep=value.subarray(Math.max(0,value.length-2048));const merged=new Uint8Array(Math.min(2048,tail.length+keep.length));const previous=Math.min(tail.length,merged.length-keep.length);if(previous>0)merged.set(tail.subarray(tail.length-previous));merged.set(keep,previous);tail=merged;
-   if(mime==='image/svg+xml'){if(bytes>5242880)throw new InvalidMedia();svg.push(value.slice());}
+   if(mime==='image/svg+xml'||mime==='text/plain'){if(bytes>5242880)throw new InvalidMedia();svg.push(value.slice());}
   }}finally{await reader.cancel();reader.releaseLock();}
  if(bytes!==expectedBytes)throw new InvalidMedia();
  let valid=false;
  switch(mime){
+  // Reservation permits opaque bytes only for source-supported branding attachment
+  // extensions. Their integrity is checked here; they are never parsed or previewed.
+  case'application/octet-stream':valid=bytes<=26214400;break;
   case'image/png':valid=bytes>=45&&equal(head,[137,80,78,71,13,10,26,10])&&ascii(head,12,16)==='IHDR'&&equal(tail.subarray(tail.length-12),[0,0,0,0,73,69,78,68,174,66,96,130]);break;
   case'image/jpeg':valid=bytes>=4&&equal(head,[255,216,255])&&equal(tail.subarray(tail.length-2),[255,217]);break;
   case'image/gif':valid=bytes>=14&&['GIF87a','GIF89a'].includes(ascii(head,0,6))&&tail[tail.length-1]===59;break;
@@ -51,6 +58,7 @@ export async function verifyMedia(body:ReadableStream<Uint8Array>,expectedBytes:
   case'application/pdf':valid=bytes>=20&&/^%PDF-[12]\.[0-9]/.test(ascii(head,0,8))&&/%%EOF\s*$/.test(ascii(tail));break;
   case'video/mp4':valid=bytes>=24&&ascii(head,4,8)==='ftyp'&&/^(isom|iso[2-9]|mp4[12]|avc1|M4V |MSNV|dash)$/.test(ascii(head,8,12));break;
   case'video/webm':valid=bytes>=32&&equal(head,[26,69,223,163])&&ascii(head).includes('webm');break;
+  case'text/plain':{const all=new Uint8Array(bytes);let i=0;for(const b of svg){all.set(b,i);i+=b.length;}let source;try{source=text(all);}catch{throw new InvalidMedia();}valid=!/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(source);break;}
   case'image/svg+xml':{const all=new Uint8Array(bytes);let i=0;for(const b of svg){all.set(b,i);i+=b.length;}validateSvg(all);valid=true;break;}
  }
  if(!valid)throw new InvalidMedia();return {sha256:hash.digest('hex'),bytes,content_type:mime};

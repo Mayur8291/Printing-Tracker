@@ -1,0 +1,37 @@
+{
+  "recorded_at": "2026-11-09T05:21:56.157528+00:00",
+  "run_id": "7bf27e42-9440-400c-8342-7ca1e3e11a8a",
+  "scope": "Three representative actual Firefox159 private360px screenshots; visual review only, no cleanup/whole-browser acceptance inferred.",
+  "images_private": true,
+  "images": [
+    {
+      "basename": "firefox-role-3-home-360.png",
+      "sha256": "d2b8ba5f9e47b646e219505edc9c91cad465cc6829cdf4b304eef476e1140eb2",
+      "width": 360,
+      "height": 844
+    },
+    {
+      "basename": "firefox-role-0-city-dialog-360.png",
+      "sha256": "1cdd065ae748201fed5c67dcee0571e4d86ffd802071c226a529ab0fc17bea2f",
+      "width": 360,
+      "height": 844
+    },
+    {
+      "basename": "firefox-role-11-profile-360.png",
+      "sha256": "bb4966c480d723279fba22e976a95146b6aed9f060c469699c03a127b763a3fc",
+      "width": 360,
+      "height": 844
+    }
+  ],
+  "observations": {
+    "customer_home": "Readable hierarchy and date fields; metric cards fit in two columns; no visible horizontal clipping. Own-order wording appropriate.",
+    "admin_city_dialog": "Dialog fits inside360px viewport with12px side margins; all form/actions visible, labels clear, and keyboard focus ring visible on pagination control.",
+    "worker_profile": "Profile/attachment controls and focused display-name field fit width; image preview is still loading in captured frame. Lower fields continue below viewport normally."
+  },
+  "visual_blockers": [],
+  "limitations": [
+    "Profile media readiness is not established by its loading screenshot",
+    "Only selected viewport screenshots inspected; no universal WCAG or native Safari claim",
+    "Parent must confirm exact fixture cleanup before overall hosted acceptance"
+  ]
+}

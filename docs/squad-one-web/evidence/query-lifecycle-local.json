@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "scope": "Actual hook+SDK with controllable local transport; no hosted requests",
+  "checks": [
+    "filter_switch_aborts_obsolete_reads",
+    "latest_query_only",
+    "scope_switch_aborts_old_client",
+    "old_scope_response_cannot_publish",
+    "unmount_cancels_read",
+    "cancelled_forbidden_response_does_not_reauthenticate"
+  ],
+  "before": {
+    "calls": [
+      {
+        "name": "v1_orders_list",
+        "key": "A:first",
+        "signalAttached": true,
+        "cancelled": true
+      },
+      {
+        "name": "v1_orders_list",
+        "key": "A:second",
+        "signalAttached": true,
+        "cancelled": true
+      },
+      {
+        "name": "v1_orders_list",
+        "key": "A:third",
+        "signalAttached": true,
+        "cancelled": false
+      }
+    ],
+    "inFlight": 1
+  },
+  "after": {
+    "calls": [
+      {
+        "name": "v1_orders_list",
+        "key": "A:first",
+        "signalAttached": true,
+        "cancelled": true
+      },
+      {
+        "name": "v1_orders_list",
+        "key": "A:second",
+        "signalAttached": true,
+        "cancelled": true
+      },
+      {
+        "name": "v1_orders_list",
+        "key": "A:third",
+        "signalAttached": true,
+        "cancelled": false
+      },
+      {
+        "name": "v1_orders_list",
+        "key": "A:fourth",
+        "signalAttached": true,
+        "cancelled": true
+      },
+      {
+        "name": "v1_orders_list",
+        "key": "B:fourth",
+        "signalAttached": true,
+        "cancelled": false
+      },
+      {
+        "name": "v1_orders_list",
+        "key": "B:fifth",
+        "signalAttached": true,
+        "cancelled": true
+      }
+    ],
+    "inFlight": 0,
+    "authErrors": []
+  }
+}

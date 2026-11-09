@@ -1,0 +1,27 @@
+{
+  "recorded_at": "2026-11-09T05:21:18.944478+00:00",
+  "scope": "Current actual TransfersPanel ownership controls with synthetic local reads. No hosted execution, upload, command, worker or native import acceptance.",
+  "command": "node tools/squad/web-transfer-ownership-browser.mjs",
+  "passed": 4,
+  "cases": [
+    "mirror + canWrite=false",
+    "test + canWrite=true",
+    "native + canWrite=false",
+    "native + canWrite=true"
+  ],
+  "assertions": [
+    "Only native plus canWrite enables CSV file input and validated apply/cancel controls",
+    "All other cases show explicit protected-mirror explanation",
+    "Existing validated import is readable in every case",
+    "No mutation method invoked; no page exceptions"
+  ],
+  "files": {
+    "tools/squad/web-transfer-ownership-browser.mjs": "9eeca52abbb2f77f2a6ebd147cd42fe75a95aa17f895c2fe9930770686ccd451",
+    "apps/admin/src/squad/features/administration/TransfersPanel.jsx": "50f987877cbd3d8a56351074007391e21748b026fe755cb59dbf8bb7f34f0ecb"
+  },
+  "independent_review": {
+    "reviewer": "operations",
+    "result": "GO",
+    "limitation": "Local ownership negative proof only, not native import execution"
+  }
+}

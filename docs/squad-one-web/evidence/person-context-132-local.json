@@ -1,0 +1,25 @@
+{
+  "environment": "local_postgres17",
+  "migration": "20261108195629_squad_person_order_context.sql",
+  "sha256": "4b3c28c107b35a7282a127f944bef5847a757ae54f3e7404f352e5eafc8382ba",
+  "independent_review": "web_operations_implementation: no concrete scope/ACL/finalization issue",
+  "sql_tests": {
+    "new": 14,
+    "native_media": 21,
+    "total": 35,
+    "passed": true
+  },
+  "security_check": "passed",
+  "sdk_types": "passed",
+  "hosted_applied": false,
+  "ui_integration": "pending_hosted_test_freeze",
+  "proofs": [
+    "manager/coordinator order filters intersect existing RLS",
+    "context cursor bound to filters/actor/generation",
+    "managed photo follows existing can_manage_person for active roles1-12",
+    "self photo retained; other Admin photo not granted",
+    "upload finalize rechecks relationship and deletion",
+    "linked dealer phone limited to active approved exact relationship",
+    "dealer ordering deterministic by link id; old Rails ordering unspecified"
+  ]
+}

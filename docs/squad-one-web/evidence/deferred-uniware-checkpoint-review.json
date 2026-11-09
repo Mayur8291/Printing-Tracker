@@ -1,0 +1,44 @@
+{
+  "format": "squad-deferred-provider-checkpoint-review/v1",
+  "reviewed_at": "2026-11-09T02:49:58.603376+00:00",
+  "review_scope": "Local checkpoint, retained evidence, lifecycle code and documentation only; no hosted query or mutation",
+  "run_id": "255a278d-d61e-419d-8dc9-c36fcd771ee1",
+  "environment": "staging",
+  "classification": "intentionally_retained_user_deferred_provider_reconciliation",
+  "checkpoint": "tools/squad/private/warehouse-rehearsal-checkpoint.json",
+  "checkpoint_sha256": "1c820aba018219b96393662f937988151dfadae3d1dd43c2d1a35cd6403368ee",
+  "evidence": "docs/squad-one-audit/implementation-evidence/staging-uniware-deferred.json",
+  "evidence_sha256": "f40509db026cb2bd9ea34d7acfbf38b97b29e3ae105a2af9fdf8583086fce49c",
+  "documentation": "docs/squad-one-audit/WAREHOUSE_REHEARSAL.md",
+  "lifecycle": "tools/squad/test_hosted_warehouse_rehearsal.py",
+  "known_historical_state": {
+    "registered": true,
+    "preflight_confirmed": true,
+    "customer_create_attempted": true,
+    "customer_result": "blocked / PROVIDER_REJECTED",
+    "customer_existence_confirmed": false,
+    "customer_code": "S-1954286882",
+    "order_submission_attempts": 0,
+    "active_provider_lease_in_retained_evidence": false,
+    "source_fixture_rolled_back": true,
+    "source_business_writes": 0,
+    "source_tables_verified": 86,
+    "source_sequences_verified": 95,
+    "forward_expires_at": "2026-11-08T13:18:14.098106+00:00",
+    "cleanup_expires_at": "2026-11-09T12:48:14.098106+00:00"
+  },
+  "current_runtime_assertion": null,
+  "release_disposition": "Filename is not evidence of an active database fixture or lease. Preserve this deferred manifest and identifiers; backend release still relies on its actual idle-mirror, disabled-test-write and active-lease guards. Do not mark provider lifecycle or cleanup successful.",
+  "next_when_user_resumes": [
+    "Look up the exact customer in the original Uniware tenant UI before any create/edit retry.",
+    "Resolve the external outcome using the immutable customer/manifest provenance; no blind create replay, ID reuse, payload changes or speculative deletion.",
+    "Review expired capability windows and changed source-generation/baseline preconditions before any recovery command. Existing --recover refuses an attempted but unconfirmed customer and finish compares original source revision/staff/Cron baselines; it is not an automatic current-state cleanup solution.",
+    "Retain the checkpoint and immutable reservations until reconciliation has defensible evidence; record any remaining provider limitation in final handoff."
+  ],
+  "performed_actions": {
+    "hosted_queries": 0,
+    "provider_calls": 0,
+    "checkpoint_mutations": 0,
+    "recovery_commands": 0
+  }
+}

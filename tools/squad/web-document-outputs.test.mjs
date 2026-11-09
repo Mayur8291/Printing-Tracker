@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateBindings,validateGrant} from './web-document-outputs-hosted.mjs';
+const run='01234567-89ab-4cde-8f01-23456789abcd';
+function config(){const actors=[{role:4,auth_id:'11111111-1111-4111-8111-111111111111'},{role:7,auth_id:'22222222-2222-4222-8222-222222222222'}];return{url:'https://scvojtvgnkmbupvyslmb.supabase.co',run_id:run,actors,output_dir:'tools/squad/private/web-document-outputs/'+run,documents:actors.map((a,i)=>{const document_id=`33333333-3333-4333-8333-${String(i+1).padStart(12,'0')}`;return{role:a.role,kind:i?'delivery_challan':'tailor_weekly',actor_id:a.auth_id,document_id,job_id:`44444444-4444-4444-8444-${String(i+1).padStart(12,'0')}`,generation:4,request_hash:'a'.repeat(64),prefix:`g4/${a.auth_id}/${document_id}/`};})};}
+function grant(c=config()){return{url:c.url+'/storage/v1/object/sign/squad-documents/'+c.documents[0].prefix+'document.pdf?token=test',expires_in:120,bytes:1000,sha256:'a'.repeat(64)};}
+test('only two registered kinds, fixed staging and private run directory',()=>assert.equal(validateBindings(config()).length,2));
+test('production, arbitrary output directory and catalogue are rejected',()=>{for(const change of [c=>c.url='https://other.supabase.co',c=>c.output_dir='/tmp/output',c=>c.documents[0].kind='catalogue']){const c=config();change(c);assert.throws(()=>validateBindings(c));}});
+test('wrong actor, duplicate IDs and altered prefix are rejected',()=>{for(const change of [c=>c.documents[0].actor_id=c.actors[1].auth_id,c=>c.documents[1].document_id=c.documents[0].document_id,c=>c.documents[0].prefix='elsewhere/']){const c=config();change(c);assert.throws(()=>validateBindings(c));}});
+test('signed grant belongs to exact document',()=>assert.equal(validateGrant(grant(),config().documents[0]).hostname,'scvojtvgnkmbupvyslmb.supabase.co'));
+test('foreign host, public path, changed UUID and credentials rejected',()=>{for(const change of [g=>g.url=g.url.replace('scvojtvgnkmbupvyslmb','other'),g=>g.url=g.url.replace('/object/sign/','/object/public/'),g=>g.url=g.url.replace('document.pdf','other.pdf'),g=>g.url=g.url.replace('https://','https://user:password@')]){const g=grant();change(g);assert.throws(()=>validateGrant(g,config().documents[0]));}});
+test('oversized PDF, incorrect hash and unexpected expiry rejected',()=>{for(const change of [g=>g.bytes=9*1024*1024,g=>g.sha256='broken',g=>g.expires_in=3600]){const g=grant();change(g);assert.throws(()=>validateGrant(g,config().documents[0]));}});

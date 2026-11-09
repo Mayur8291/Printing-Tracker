@@ -1,0 +1,98 @@
+{
+  "format": "squad-document-output-visual-review/v1",
+  "run_id": "aec91653-6ae2-421e-8dc7-4d845c9126f8",
+  "method": "Read-only PDF skill workflow: independent pdfinfo page counts and visual inspection of every generated page PNG plus both actual ready-state desktop UI screenshots.",
+  "documents": [
+    {
+      "kind": "tailor_weekly",
+      "pdf": {
+        "private_path": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8/tailor_weekly.pdf",
+        "sha256": "caeffee6ee9019e3a65a8d6edbc40793b9943f4264a114dadb3e31a568314201",
+        "bytes": 13298
+      },
+      "page_count": 1,
+      "independent_page_count_tool": "pdfinfo; A4; no forms or JavaScript",
+      "reviewed_all_pages": true,
+      "page_images": [
+        {
+          "private_path": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8/tailor_weekly-page-1.png",
+          "sha256": "b16def0c07fd34f8dcca008a5ba2ca5295731816e3710d9a87c541191a25e2ca",
+          "bytes": 92452
+        }
+      ],
+      "ready_ui": {
+        "private_path": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8/tailor_weekly-ready.png",
+        "sha256": "b1742067091b12b86000cafad081c245613eafa2b0c5d66887a7678d104dd4d6",
+        "bytes": 77100
+      },
+      "layout": {
+        "heading_hierarchy": "Clear dark title band and blue section headings.",
+        "text": "Legible glyphs, line spacing and margins; no clipped or overlapping text.",
+        "footer": "Document reference, renderer version and 1/1 pagination visible below a separated footer rule.",
+        "tables": "These one-item outputs use labeled sections rather than a grid; no omitted/clipped table-header issue is present.",
+        "ready_ui": "Correct document title, ready badge, page count1, Download delivery, Email status Not requested, and Prepare download/Share PDF/Open PDF controls; desktop layout fits without overlap."
+      },
+      "amounts_observed": {
+        "assigned": 1,
+        "completed": 1,
+        "pending": 0,
+        "unit_rate_INR": "35",
+        "total_INR": "35.00"
+      },
+      "source_state_note": "Weekly period and job-sheet labels visible; summary repeats the correct completed/pending and amount values."
+    },
+    {
+      "kind": "delivery_challan",
+      "pdf": {
+        "private_path": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8/delivery_challan.pdf",
+        "sha256": "cad2df7691d2a4140d81be9ca4a04b92b1eb8f91cacf132356573a8b79a65f0e",
+        "bytes": 14198
+      },
+      "page_count": 1,
+      "independent_page_count_tool": "pdfinfo; A4; no forms or JavaScript",
+      "reviewed_all_pages": true,
+      "page_images": [
+        {
+          "private_path": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8/delivery_challan-page-1.png",
+          "sha256": "e67569bfa342b5cd184bd62f3d68aceca0e12af2d01c0de52f0810b6121fbf58",
+          "bytes": 135265
+        }
+      ],
+      "ready_ui": {
+        "private_path": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8/delivery_challan-ready.png",
+        "sha256": "40f9a42f6b162140e7f34658490d57351ecc9cd1814f296e7da78c82ff8aaaae",
+        "bytes": 71038
+      },
+      "layout": {
+        "heading_hierarchy": "Clear dark title band and blue section headings.",
+        "text": "Legible glyphs, line spacing and margins; no clipped or overlapping text.",
+        "footer": "Document reference, renderer version and 1/1 pagination visible below a separated footer rule.",
+        "tables": "These one-item outputs use labeled sections rather than a grid; no omitted/clipped table-header issue is present.",
+        "ready_ui": "Correct document title, ready badge, page count1, Download delivery, Email status Not requested, and Prepare download/Share PDF/Open PDF controls; desktop layout fits without overlap."
+      },
+      "amounts_observed": {
+        "dispatch_quantity": 1,
+        "unit_price_INR": "500",
+        "subtotal_INR": "500.00",
+        "CGST_INR": "0.00",
+        "SGST_INR": "0.00",
+        "IGST_INR": "25.00",
+        "total_INR": "525.00"
+      },
+      "source_state_note": "Customer destination and selected size quantity visible. Fixture product has an explicit Image unavailable state; blank optional phone/GST fields are not invented. Non-tax-invoice note is legible."
+    }
+  ],
+  "verified_report": {
+    "private_path": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8/verified-report.json",
+    "sha256": "3cf9dc9b2f05111fba31691421babb681dc5fee943801d4bda4f8a38c57ed59f",
+    "bytes": 2799
+  },
+  "visual_result": "No visual blocker in the reviewed artifacts.",
+  "private_artifacts_copied_public": false,
+  "limits": [
+    "Two one-page fixture outputs only; no multi-page pagination, mobile UI or PDF accessibility/tagging compliance claimed.",
+    "Automated content/authorization/download-byte assertions belong to the separately hashed verifier report.",
+    "Parent cleanup and overall connected-run acceptance were still pending at review; neither is inferred here."
+  ],
+  "overall_hosted_acceptance_inferred": false
+}

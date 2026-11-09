@@ -1,0 +1,45 @@
+{
+  "run_id": "776b6d12-055a-49b0-ae05-ee8e01439a9c",
+  "environment": "staging",
+  "complete": true,
+  "checks": [
+    "visible_color_create_and_readback",
+    "visible_color_edit_and_readback",
+    "visible_color_archive_and_readback"
+  ],
+  "entryAssets": [
+    {
+      "path": "/assets/index-D0HIEzmj.js",
+      "sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+    }
+  ],
+  "errors": [],
+  "violations": [],
+  "scope": "One owned Colors create/edit/archive UI branch; no media, CSV, refresh or provider actions",
+  "frontend_build": {
+    "base": "http://127.0.0.1:5186",
+    "entry_path": "/assets/index-D0HIEzmj.js",
+    "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+  },
+  "cleanup": {
+    "run_id": "776b6d12-055a-49b0-ae05-ee8e01439a9c",
+    "source_content_restored": true,
+    "removed_owned_colors": 1,
+    "admin_operations": 3,
+    "domain_commands": 2,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "edit_revision_after": 1468,
+    "synced_revision_after": 1468,
+    "no_cutover_or_test_lease_change": true,
+    "public_structure_unchanged": true,
+    "staff_cleanup": {
+      "removed_owned_auth": 1,
+      "removed_owned_channel_memberships": 1,
+      "unrelated_auth_profiles_preserved_during_cleanup": true,
+      "business_revision_unchanged": false,
+      "no_source_identity_or_write_lease": true
+    }
+  },
+  "cron_restored": true
+}

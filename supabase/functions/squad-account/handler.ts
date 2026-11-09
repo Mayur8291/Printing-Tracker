@@ -1,3 +1,4 @@
+import {documentAttachmentRequest} from './document-attachments.ts';
 import {AccountError} from './errors.ts';
 import {accountFlow,type FlowDependencies} from './flows.ts';
 import {accountCrypto} from '../_shared/squad-account-crypto.ts';
@@ -38,7 +39,7 @@ export function createHandler(deps:Dependencies){
   if(req.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
   const path=new URL(req.url).pathname.replace(/\/+$/,'');
   const route=path.slice(path.lastIndexOf('/squad-account/')+15);
-  if(!['transfers/uploads','transfers/verify','transfers/download','documents/download','media/grants','media/uploads','media/finalize','media/verify','users/status','register','confirm','recovery','users/invite'].includes(route))return response({error:'NOT_FOUND'},404);
+  if(!['documents/attachments','documents/attachments/finalize','transfers/uploads','transfers/verify','transfers/download','documents/download','media/grants','media/uploads','media/finalize','media/verify','users/status','register','confirm','recovery','users/invite'].includes(route))return response({error:'NOT_FOUND'},404);
   const authorization=req.headers.get('authorization')??'';
   if(!/^Bearer [^\s]+$/.test(authorization)||authorization.length>16384)return response({error:'SESSION_REQUIRED'},401);
   try{
@@ -46,6 +47,10 @@ export function createHandler(deps:Dependencies){
    if(route.startsWith('transfers/')){
     if(!deps.transfers)throw new AccountError('SERVICE_UNAVAILABLE',503);
     return response(await transferRequest(deps.transfers,authorization,route,input));
+   }
+   if(route==='documents/attachments'||route==='documents/attachments/finalize'){
+    if(!deps.uploads)throw new AccountError('SERVICE_UNAVAILABLE',503);
+    return response(await documentAttachmentRequest(deps.uploads,authorization,route,input));
    }
    if(route==='documents/download'){
     if(Object.keys(input).some(k=>k!=='id')||typeof input.id!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(input.id))throw new AccountError('INVALID_REQUEST',400);

@@ -1,0 +1,29 @@
+{
+  "measured_at": "2026-11-08T18:52:51.885279+00:00",
+  "scope": "Isolated synthetic local PostgreSQL; not hosted latency",
+  "items": 1000,
+  "assignment_rows": 100000,
+  "timings_ms": {
+    "dense_factory_first": 72.8,
+    "dense_factory_next": 71.5,
+    "filtered_single_item": 133.4,
+    "empty_factory": 7.0,
+    "sparse_factory_old_history": 16.8,
+    "pc_broad_queue": 27.9
+  },
+  "new_tests": 9,
+  "existing_production_regressions": 43,
+  "passed": 52,
+  "migration": "20261108184439_squad_scoped_jobsheet_queue.sql",
+  "migration_sha256": "002cf523ce314eed4f978aca8e25166946551bae9e790fdc31543becac1cf6aa",
+  "hosted_retest_required": false,
+  "hosted_retest": {
+    "environment": "staging",
+    "run_id": "84a327be-953a-484a-ae13-1fe8c92646db",
+    "rpc": "v1_jobsheets_list",
+    "role": 8,
+    "status": 200,
+    "roundtrip_ms": 200,
+    "scope": "Fixture factory empty queue within real staging dataset; dense/sparse load measurements remain local"
+  }
+}

@@ -1,0 +1,63 @@
+/** Real UI catalogue-only media journey. Requires separate catalogue media proof
+ * hooks; this cannot use or broaden the own-profile cleanup authorization. */
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {downloadOwnedMedia} from './web-media-hosted-adapter.mjs';
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const post=(response,suffix)=>response.request().method()==='POST'&&new URL(response.url()).pathname===suffix;
+async function click(page,label){await page.waitForFunction(label=>[...document.querySelectorAll('button')].some(n=>n.textContent.trim()===label&&!n.disabled),{},label);await page.evaluate(label=>[...document.querySelectorAll('button')].find(n=>n.textContent.trim()===label&&!n.disabled).click(),label);}
+async function field(page,label,value,dialog=false){
+ await page.waitForFunction((label,dialog)=>[...document.querySelectorAll(dialog?'[role=dialog] label':'label')].some(n=>n.textContent.trim().replace(/\s*\*$/,'')===label),{},label,dialog);
+ const id=await page.evaluate((label,dialog)=>[...document.querySelectorAll(dialog?'[role=dialog] label':'label')].find(n=>n.textContent.trim().replace(/\s*\*$/,'')===label).htmlFor,label,dialog);
+ const handle=await page.evaluateHandle(id=>document.getElementById(id),id);
+ if(await handle.evaluate(n=>n.tagName)==='SELECT'){await page.waitForFunction((id,value)=>[...document.getElementById(id).options].some(n=>n.value===value),{},id,String(value));await handle.asElement().select(String(value));}
+ else await handle.evaluate((n,value)=>{Object.getOwnPropertyDescriptor(n.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(n,value);n.dispatchEvent(new Event('input',{bubbles:true}));},String(value));
+ await handle.dispose();
+}
+export async function rpc(page,name,action,received){const wait=page.waitForResponse(r=>post(r,`/rest/v1/rpc/${name}`),{timeout:45000});wait.catch(()=>{});await action();const response=await wait,value=await response.json();if(received)await received(value);assert.equal(response.ok(),true,`${name}: ${value.code||response.status()} ${value.message||''}`);return value;}
+export function reservationResponse(page){const reserved=page.waitForResponse(r=>post(r,'/functions/v1/squad-account/media/uploads'),{timeout:45000});reserved.catch(()=>{});return reserved;}
+async function section(page,label){await page.waitForFunction(label=>[...document.querySelectorAll('main section')].some(n=>n.querySelector('h3')?.textContent.trim()===label),{},label);return page.evaluateHandle(label=>[...document.querySelectorAll('main section')].find(n=>n.querySelector('h3')?.textContent.trim()===label),label);}
+async function waitMediaAction(page,label,action){await page.waitForFunction((label,action)=>{const node=[...document.querySelectorAll('main section')].find(n=>n.querySelector('h3')?.textContent.trim()===label);return node&&[...node.querySelectorAll('button,a')].some(n=>n.textContent.trim()===action&&!n.disabled);},{},label,action);}
+async function clickIn(handle,label){await handle.evaluate((n,label)=>{const button=[...n.querySelectorAll('button')].find(n=>n.textContent.trim()===label&&!n.disabled);assertButton(button,label);button.click();function assertButton(n,label){if(!n)throw Error('Missing media action: '+label);}},label);}
+
+export async function runJourney(ctx){
+ const hooks=ctx.catalogueMediaAcceptance;assert.ok(hooks,'Separate reviewed catalogue cleanup capability required');
+ for(const method of ['assertOwnedSetup','recordRoot','recordReservation','verifyCleanupReady'])assert.equal(typeof hooks[method],'function');
+ assert.match(ctx.runId,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);assert.match(ctx.base,/^http:\/\/localhost:\d+$/);assert.equal(hooks.role,3);assert.deepEqual(hooks.configuration,ctx.fixture.customConfig);
+ assert.equal(hooks.files.length,hooks.opaque?2:1);const files=hooks.files.map((file,index)=>{const data=fs.readFileSync(file.path);assert.equal(sha(data),file.sha256);assert.equal(data.length,file.bytes);assert.ok(data.length>0&&data.length<10*1024*1024);assert.equal(file.kind,index===0?'product_png':'branding_opaque');assert.equal(file.content_type,index===0?'image/png':'application/octet-stream');assert.equal(path.basename(file.path),file.filename);if(index===0)assert.equal(data.subarray(0,8).toString('hex'),'89504e470d0a1a0a');else{assert.ok(file.filename.endsWith('.cdr'));assert.equal(data.toString('ascii'),`Squad inert download-only branding acceptance\n${ctx.runId}\n`);}return file;});
+ await hooks.assertOwnedSetup();const entry=(ctx.clientsMap??ctx.clients).get(3);assert.equal(entry.me.id,String(ctx.fixture.actors['3']));const page=await ctx.pageFor(3);
+ const folder=path.resolve('tools/squad/private',`catalogue-media-download-${ctx.runId}`);fs.mkdirSync(folder,{recursive:true,mode:0o700});fs.chmodSync(folder,0o700);
+ const uploads=[],checks=[],downloads=[];const ids=ctx.fixture.ids;
+ await page.goto(ctx.base+'/squad/catalogue',{waitUntil:'domcontentloaded'});await page.waitForSelector('input[aria-label="Search products"]');await page.type('input[aria-label="Search products"]',ctx.fixture.label+' base');await page.click('button[aria-label="Search"]');
+ await page.waitForFunction(name=>[...document.querySelectorAll('article')].some(a=>a.querySelector('h2')?.textContent===name),{},ctx.fixture.label+' base');await page.evaluate(name=>[...document.querySelectorAll('article')].find(a=>a.querySelector('h2')?.textContent===name).querySelector('button').click(),ctx.fixture.label+' base');
+ await field(page,'Category',ids.categoryId);await field(page,'Fabric',ids.fabricId);await field(page,'Fabric color',ids.colorId);
+ await page.waitForFunction(label=>[...document.querySelectorAll('label')].some(n=>n.textContent===label),{},ctx.fixture.label+' part');await page.evaluate(label=>[...document.querySelectorAll('label')].find(n=>n.textContent===label).querySelector('input[type=checkbox]').click(),ctx.fixture.label+' part');
+ await field(page,ctx.fixture.label+' part color',ids.colorId);await field(page,'Add-on',ids.addonId);await field(page,'Add-on color',ids.colorId);await click(page,'Add selection');
+ await field(page,'Design name',ctx.fixture.label+' media preset');await click(page,'Save reusable design');await page.waitForSelector('[role=dialog]');
+ const product=await rpc(page,'v1_product_configure',()=>click(page,'Save design'),value=>hooks.recordRoot('product',value.id,value));assert.equal(product.reused,false);assert.match(product.id,/^[1-9]\d*$/);ctx.record('product',product.id);
+ await page.waitForFunction(()=>!document.querySelector('[role=dialog]'));assert.equal((await entry.sdk.productImages(product.id,{limit:12})).data.length,0);
+ async function upload(file,label,target,received){
+  assert.equal(sha(fs.readFileSync(file.path)),file.sha256);let handle=await section(page,label);
+  const input=await handle.asElement().$('input[type=file]');assert.ok(input);await input.uploadFile(path.resolve(file.path));await input.dispose();
+  await page.waitForFunction(label=>{const section=[...document.querySelectorAll('main section')].find(n=>n.querySelector('h3')?.textContent.trim()===label);return [...section.querySelectorAll('button')].some(n=>n.textContent.trim()==='Upload and save'&&!n.disabled);},{},label);
+  const reserved=reservationResponse(page);const verified=page.waitForResponse(r=>post(r,'/functions/v1/squad-account/media/verify'),{timeout:45000});const finalized=page.waitForResponse(r=>post(r,'/functions/v1/squad-account/media/finalize'),{timeout:45000});verified.catch(()=>{});finalized.catch(()=>{});
+  await clickIn(handle,'Upload and save');const reserve=await reserved,value=await reserve.json();await hooks.recordReservation(value.upload_id,target);assert.equal(reserve.ok(),true);assert.match(value.upload_id,/^[a-f0-9-]{36}$/);uploads.push(value.upload_id);assert.equal((await verified).ok(),true);const final=await finalized,result=await final.json();if(received)await received(result);assert.equal(final.ok(),true);await handle.dispose();return result;
+ }
+ const appendTarget={resource:'products',record_id:product.id,field:'images'};const appended=await upload(files[0],'New reference image',appendTarget,value=>hooks.recordRoot('product_image',value.record_id,value));assert.equal(appended.resource,'product_images');assert.equal(appended.field,'image');
+ const imageTarget={resource:'product_images',record_id:appended.record_id,field:'image'},imageLabel=`Reference image #${appended.record_id}`;
+ await page.waitForFunction(label=>{const node=[...document.querySelectorAll('main section')].find(n=>n.querySelector('h3')?.textContent.trim()===label);const image=node?.querySelector('img');return image?.complete&&image.naturalWidth>0;},{},imageLabel);await waitMediaAction(page,imageLabel,'Download');
+ let handle=await section(page,imageLabel);await handle.evaluate(async n=>{const image=n.querySelector('img');if(!image)throw Error('Reference image preview missing');await image.decode();if(!image.naturalWidth)throw Error('Reference image did not decode');});downloads.push(await downloadOwnedMedia(page,handle,folder,files[0]));await handle.dispose();
+ let version=(await entry.sdk.productImages(product.id,{limit:12})).version;
+ for(let i=0;i<2;i++){await click(page,'Edit guidelines');await page.waitForSelector('[role=dialog] textarea');await field(page,'Guidelines',`${ctx.fixture.label} note${i}`,true);const saved=await rpc(page,'v1_product_image_comment',()=>click(page,'Save changes'));assert.equal(saved.id,appended.record_id);assert.notEqual(saved.version,version);await page.waitForFunction(()=>!document.querySelector('[role=dialog]'));const listed=await entry.sdk.productImages(product.id,{limit:12});assert.equal(listed.data.length,1);assert.equal(listed.data[0].comment,`${ctx.fixture.label} note${i}`);version=listed.version;}
+ async function detach(target,label){await waitMediaAction(page,label,'Remove');let handle=await section(page,label);await clickIn(handle,'Remove');await handle.dispose();await page.waitForSelector('[role=dialog] textarea');await page.type('[role=dialog] textarea',ctx.fixture.label+' media acceptance complete');await rpc(page,'v1_media_detach',()=>click(page,'Remove attachment'));await page.waitForFunction(()=>!document.querySelector('[role=dialog]'));assert.equal((await entry.sdk.mediaGrants([target])).references[0].status,'empty');}
+ await detach(imageTarget,imageLabel);checks.push('actual_ui_owned_design_png_append_preview_exact_download_guidelines_create_edit_and_detach');
+ if(hooks.opaque){
+  assert.deepEqual(hooks.brandingSpec,{type:'print',side:'front',width:'3',height:'2',unit:'inch',comment:ctx.fixture.label});await click(page,'Add placement');await page.waitForSelector('[role=dialog]');await field(page,'Placement','front',true);await field(page,'Width (inches)','3',true);await field(page,'Height (inches)','2',true);await field(page,'Comment / guidelines',ctx.fixture.label,true);await page.evaluate(()=>[...document.querySelectorAll('[role=dialog] button')].find(n=>n.textContent.trim()==='Add placement').click());await page.waitForFunction(()=>!document.querySelector('[role=dialog]'));
+  const design=await rpc(page,'v1_branding_save',()=>click(page,'Artwork'),value=>hooks.recordRoot('branding',value.id,value));assert.match(design.id,/^[1-9]\d*$/);assert.equal(design.product_id,null);
+  const target={resource:'brandings',record_id:design.id,field:'attachment'},attached=await upload(files[1],'Additional file',target);assert.equal(attached.resource,'brandings');assert.equal(attached.record_id,design.id);assert.equal(attached.field,'attachment');await waitMediaAction(page,'Additional file','Download');handle=await section(page,'Additional file');assert.equal(await handle.evaluate(n=>n.querySelectorAll('img,video,iframe,object,embed').length),0);assert.equal(await handle.evaluate(n=>[...n.querySelectorAll('a,button')].some(e=>e.textContent.trim()==='Open')),false);downloads.push(await downloadOwnedMedia(page,handle,folder,files[1]));await handle.dispose();await detach(target,'Additional file');checks.push('actual_ui_owned_unlinked_branding_opaque_upload_download_only_exact_bytes_and_detach');
+ }
+ const proof=await hooks.verifyCleanupReady({uploadIds:uploads,productId:product.id});assert.equal(proof.passed,true);
+ return {checks,uploadIds:uploads,downloads,cleanupProof:proof,scope:'New exact-owned reusable product/reference and optional unlinked branding; separate catalogue recovery required; no provider execution'};
+}

@@ -1,0 +1,57 @@
+{
+  "format": "squad-preset-content-boundary-preparation/v1",
+  "prepared_at": "2026-11-09T05:03:58.042952+00:00",
+  "status": "local_checks_and_root_independent_review_passed_hosted_pending",
+  "files": {
+    "tools/squad/web-workflow-extensions-hosted-journey.mjs": "781dbce02b17d49be13725c512e749b1aa03daa308b22c6ae574745408c19ee4",
+    "tools/squad/web-content-media-hosted-journey.mjs": "8b6c66df762b0234307b07429185705b69e3f6b7a0abfccc7240184333ff1eb6",
+    "tools/squad/web-preset-content-boundary-browser.mjs": "96b747f52105bcc0e9fea3de7c380584a78ce5e4f3b225458ed6a2a5107f51eb",
+    "tools/squad/test_web_workflow_extensions_cleanup.py": "c150a4258158a28c342d30d7974772f23938e927effc85a712dd1de836cec4bb"
+  },
+  "local_browser": {
+    "passed": 3,
+    "scope": [
+      "Actual CataloguePage saved-design rename submits exact ID and expected version with stable command UUID and refreshed name.",
+      "Actual PromotionsPage Share click calls intercepted clipboard boundary with exact authorized URL and visible success.",
+      "Incorrect expected URL fails; temporary navigator properties are restored."
+    ],
+    "command": "node tools/squad/web-preset-content-boundary-browser.mjs",
+    "remount_guard": "Independent review found identical-heading remount race in negative test; fixture now exposes exact rendered generation before acquiring the new card. All three checks rerun pass. Hosted adapter and app unchanged."
+  },
+  "local_cleanup": {
+    "passed": 1,
+    "elapsed_seconds": 4.054,
+    "database": "squad_test_web",
+    "command": "SQUAD_TEST_DATABASE=squad_test_web PYTHONPATH=tools/squad tools/canto-sync/.venv/bin/python -m unittest tools/squad/test_web_workflow_extensions_cleanup.py -v",
+    "scope": "Existing full composed workflow, isolated two-Customer bulk transfer/restore, assigned order task, dependency-safe archive/history, plus one actual SC preset rename. Existing exact cleanup succeeds and repeat cleanup returns immutable result."
+  },
+  "hosted_preconditions": {
+    "workflow": "people,relationships,workflow-extensions; only existing journaled extra custom order preset is renamed by its SC. No new fixture, provider, invite, account write or cleanup exception.",
+    "content": "Existing bounded authorized source discovery only. External URL case is optional when absent; actual promotion file download remains the required fallback proof."
+  },
+  "limitations": [
+    "CONFIG04 historical design means previous saved products list/reuse and SC rename; no new rename audit UI is invented.",
+    "Clipboard capability is deliberately intercepted in the isolated page; no OS clipboard read/write, native share or external send is claimed.",
+    "One earlier local cleanup attempt used an older isolated DB lacking the pre-existing125 task query overload and failed before the new rename. Full current shared DB passed; no SQL changed."
+  ],
+  "workflow_map": {
+    "sc_browser_renames_owned_history_preset_fresh_search_reopens_same_configuration_and_order_identity": [
+      "CONFIG.04"
+    ],
+    "external_promotion_actual_share_click_exact_clipboard_fallback_boundary": [
+      "PROMO.01"
+    ]
+  },
+  "independent_review": {
+    "reviewer": "root",
+    "result": "GO",
+    "scope": "Exact owned existing preset/version/configuration/order invariant; fresh route search/reopen; clipboard capability restoration and no OS/native send."
+  },
+  "readiness_fix": {
+    "prior_sha256": "d9ccf1dec1f1379bd491e068d31153d36783b9de8d8baf24aff610ad69091f48",
+    "updated_at": "2026-11-09T05:14:27.000059+00:00",
+    "change": "Wait for late-rendered Work history type and two Task assignment controls before existing select calls. Default bounded wait; no retry/assertion/command/app change.",
+    "independent_review": "UI lane GO; source shows the controls are conditionally rendered after page loading.",
+    "historical_failure": "evidence/workflow-extensions-141-pass1-partial.json"
+  }
+}

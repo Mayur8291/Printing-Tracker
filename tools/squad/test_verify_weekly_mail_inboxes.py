@@ -6,6 +6,7 @@ import unittest
 import uuid
 from email import policy
 from email.message import EmailMessage
+from email.parser import BytesParser
 from pathlib import Path
 
 from verify_weekly_mail_inboxes import verify
@@ -39,7 +40,7 @@ class WeeklyMailInboxProof(unittest.TestCase):
         msg['To'] = recipient or item['email']
         msg['Message-ID'] = identity or f"<squad-business-{item['job_id']}@scottinternational.com>"
         msg['Subject'] = 'Synthetic MIME parser fixture'
-        msg.set_content('Document ID: ' + (document or item['document_id']))
+        msg.set_content('Document: ' + (document or item['document_id']))
         for number, data in enumerate([self.pdf] if attachments is None else attachments):
             msg.add_attachment(data, maintype='application', subtype='pdf', filename=f'fixture-{number}.pdf')
         raw = msg.as_bytes()
@@ -63,6 +64,25 @@ class WeeklyMailInboxProof(unittest.TestCase):
         self.assertTrue(all(x['attachment_sha256'] == hashlib.sha256(self.pdf).hexdigest()
                             for x in result['messages']))
 
+    def test_real_delivery_shape_shared_weekly_document_and_two_admin_messages(self):
+        # One weekly PDF is delivered to three role aliases; Admin also gets
+        # a distinct catalogue in the same inbox. Neither alone is ambiguous.
+        weekly_id = self.manifest['deliveries'][2]['document_id']
+        self.manifest['deliveries'][2]['email'] = self.manifest['deliveries'][0]['email']
+        for index in (2, 3, 4):
+            self.manifest['deliveries'][index]['document_id'] = weekly_id
+        for index in range(5):
+            self.write(index, identity=f'<provider-{index}@mailersend.net>')
+        result = verify(self.manifest, self.paths)
+        self.assertEqual(len(result['messages']), 5)
+        self.assertTrue(all(x['message_id_rewritten'] for x in result['messages']))
+
+    def test_same_delivery_with_different_received_id_still_rejected(self):
+        item = self.manifest['deliveries'][0]
+        self.write(1, recipient=item['email'], document=item['document_id'],
+                   identity='<second-copy@mailersend.net>')
+        self.denied()
+
     def test_wrong_recipient_rejected(self):
         self.write(0, recipient='other@mailinator.com')
         self.denied()
@@ -74,8 +94,60 @@ class WeeklyMailInboxProof(unittest.TestCase):
         self.write(0, recipient='different-fixture@example.invalid')
         self.denied()
 
-    def test_unknown_message_identity_rejected(self):
-        self.write(0, identity='<unknown@example.invalid>')
+    def test_provider_rewritten_identity_requires_full_binding(self):
+        self.write(0, identity='<provider-rewritten@mailersend.net>')
+        result = verify(self.manifest, self.paths)
+        proof = result['messages'][0]
+        self.assertTrue(proof['message_id_rewritten'])
+        self.assertEqual(proof['inbox_observed_message_id'], '<provider-rewritten@mailersend.net>')
+        self.assertEqual(proof['smtp_submitted_message_id'],
+                         f"<squad-business-{self.manifest['deliveries'][0]['job_id']}@scottinternational.com>")
+        self.write(0, identity='<provider-rewritten@mailersend.net>', recipient='wrong@example.invalid')
+        self.denied()
+
+    def test_duplicate_received_id_rejected_even_with_distinct_correct_bindings(self):
+        self.write(0, identity='<same@mailersend.net>')
+        self.write(1, identity='<same@mailersend.net>')
+        self.denied()
+
+    def test_other_intended_submitted_id_is_not_a_rewrite(self):
+        self.write(0, identity=f"<squad-business-{self.manifest['deliveries'][1]['job_id']}@scottinternational.com>")
+        self.denied()
+
+    def test_manifest_collision_rejected_before_matching(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest['deliveries'][1].update(email=manifest['deliveries'][0]['email'],
+                                         document_id=manifest['deliveries'][0]['document_id'])
+        self.denied(manifest=manifest)
+
+    def test_full_plus_alias_not_normalized_to_base_or_other_alias(self):
+        self.manifest['deliveries'][0]['email'] = 'inbox+run-admin@example.invalid'
+        self.write(0, identity='<rewritten@mailersend.net>')
+        self.assertTrue(verify(self.manifest, self.paths)['inbox_verified'])
+        for address in ['inbox@example.invalid', 'inbox+run-customer@example.invalid',
+                        'Inbox+run-admin@example.invalid']:
+            self.write(0, recipient=address, identity='<rewritten@mailersend.net>')
+            self.denied()
+
+    def test_document_must_be_unique_and_anchored(self):
+        for content in ['Quoted Document: {id}', 'Document: {id} suffix',
+                        'Document: {id}\nDocument: {id}',
+                        'Document: {id}\nDocument: invalid']:
+            self.write(0)
+            msg = BytesParser(policy=policy.default).parsebytes(self.paths[0].read_bytes())
+            msg.get_body(preferencelist=('plain',)).set_content(
+                content.format(id=self.manifest['deliveries'][0]['document_id']))
+            self.paths[0].write_bytes(msg.as_bytes())
+            self.denied()
+
+    def test_extra_non_pdf_attachment_rejected(self):
+        msg = BytesParser(policy=policy.default).parsebytes(self.paths[0].read_bytes())
+        msg.add_attachment(b'extra', maintype='text', subtype='plain', filename='extra.txt')
+        self.paths[0].write_bytes(msg.as_bytes())
+        self.denied()
+
+    def test_rewrite_does_not_accept_wrong_pdf(self):
+        self.write(0, identity='<rewritten@mailersend.net>', attachments=[self.pdf + b'changed'])
         self.denied()
 
     def test_missing_document_identity_rejected(self):

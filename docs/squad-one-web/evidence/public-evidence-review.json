@@ -1,0 +1,416 @@
+{
+  "format": "public-evidence-review-v1",
+  "reviewed_at": "2026-11-09T04:12:30.114343+00:00",
+  "scope": "Current release selection only; no historical repository rewrite.",
+  "repository_visibility": "public",
+  "actual_tracker_screenshots": {
+    "count": 8,
+    "paths_and_hashes": [
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-printing-orders.png",
+        "sha256": "44f8ed9f98b3acebcf515696184b25dbec18bbb6c22debacf538fc6b7ee89d45",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-customers.png",
+        "sha256": "d406d1aa495abef7f484c7aed446bebf583a179abb1f2624f91837fad9d4a2b5",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-reports.png",
+        "sha256": "a19db87f60c6889544cd97dde986e478aec871085036d1fcd5feac0cd4fe9160",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-masters.png",
+        "sha256": "214bbe59c1b878d29ecfc10fbcbb4a6ec4cf7e893f4465c250c830f799b01f78",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-data-refresh.png",
+        "sha256": "c85166f56d378ead157d0ea6903ab1b9c08afca787d32450b4119cefb99c4fa2",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-360.png",
+        "sha256": "4737f22678787df0a06c20ff512b82e724e8f326086815bf62a11b1bb05b7499",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/viewer-printing-orders.png",
+        "sha256": "f74f9b9a76f94a28ca4dad0b9950cd0f9a5216e36663ea3ff36e051795b44074",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/viewer-360.png",
+        "sha256": "cfcfbb1d0f29d5e8c50f27ebc716b347eeb6f75a5915e46a8687238cf7a6e451",
+        "publication": "excluded_actual_hosted_tracker_business_content"
+      }
+    ],
+    "disposition": "Remain under ignored tools/squad/private; only hashes and aggregate checks are published."
+  },
+  "other_hosted_persona_screens": {
+    "count": 12,
+    "disposition": "Excluded; synthetic Auth principals do not guarantee dashboard contents/metrics are synthetic. Private retained copies made; original user files not deleted."
+  },
+  "raw_build_logs": {
+    "count": 4,
+    "disposition": "Excluded as raw logs; sanitized build aggregate/manifests retained."
+  },
+  "reviewed_synthetic_images": [
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-login-desktop.png",
+      "git_status": "??",
+      "sha256": "58e63b69b230e56be9de2ef8dfab20528f34b603b3cc04fb995797d78445e951",
+      "bytes": 46047,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-login-mobile.png",
+      "git_status": "??",
+      "sha256": "3407ac40edd393310f63faa06589bf254ea5e5c97293ce40f1fd57f082f306fe",
+      "bytes": 33083,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/configurator-preview-fixture-desktop.png",
+      "git_status": "??",
+      "sha256": "999911ae5765ca3bac4883c4e175627383239af5aa71aa919067ae8a571362c0",
+      "bytes": 44294,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/configurator-preview-fixture-mobile.png",
+      "git_status": "??",
+      "sha256": "da57c457318649566b87f635af753d57bebd33f7a3cd97dff1dbed96eab21f61",
+      "bytes": 22391,
+      "provenance": "task_scope_classification_not_exclusive_authorship",
+      "review_reason": "binary_or_raw_log_privacy_review",
+      "publication_review": "Visually inspected: anonymous empty login or explicitly synthetic geometry fixture; no real person, customer or order data."
+    }
+  ],
+  "json_review": {
+    "files": [
+      {
+        "path": "docs/squad-one-audit/implementation-evidence/staging-web-guests-recovery-invite.json",
+        "sha256": "9dcac72c98826a6991ff8eabea1e60080265bbf8816a6bed60a171f88ac18c8a"
+      },
+      {
+        "path": "docs/squad-one-audit/implementation-evidence/staging-weekly-mail.json",
+        "sha256": "b5b8b23fffe947285268badd269e82c7e99c216f448e9a1cfb28f4110660c71a"
+      },
+      {
+        "path": "docs/squad-one-web/coverage-validation.json",
+        "sha256": "d847a03ec741f2a5b53b63ee5101c18b7addaf66327c590b7df803590514f3f4"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/accessibility-local.json",
+        "sha256": "a177a0cb0da1d23a4b9663806543095f0b49f8a60dec1d6bc7aedcb8a8bcef13"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/active-pass7-read-snapshot.json",
+        "sha256": "a8a225cebf083cacfe5f56d29fb7dec0dfbf0c0390b5ca47729abaf3f213a916"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/artwork-acceptance.json",
+        "sha256": "7073cccf0cd3ee10c72245cdc5bf281018984e6c149d987f320a0ccfad6c4064"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/backend-regression-119.json",
+        "sha256": "69bede63801677e6503a0060af83de468711b8d19d27061935dcffc98ca51078"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/backend-regression-139.json",
+        "sha256": "72f79d35feed206a7c6feb34f1d27e30e1939c3c9b2ca3bd83cfa23f0bd53f0b"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/business-acceptance.json",
+        "sha256": "49c79e927b73f6d57e2941d24b652df0f050847c390b9829c7617b23b595f023"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/catalogue-media-140.json",
+        "sha256": "cc27d375e9cd06f5766d1538223911c9e2b508f13f98b012f11c4d32c42a281c"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/catalogue-media-acceptance.json",
+        "sha256": "cf6ce4086c8b1bd82f44d6b623e57a272f1b190f97d5a1fd1ec793e470c1a1ea"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/catalogue-terms-acceptance.json",
+        "sha256": "f6730da32b13129c6c46e4c209f6fe882ff49f882fd01817a9e02660704b55b0"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-build-execution.json",
+        "sha256": "ddfb56df8eddebe146f4c19cb1e4a98552d121fcc659fe779e82ba893625c262"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-build-recipe.json",
+        "sha256": "85e13589e79ac487bf5a73dbb4b8e52186e7ca904dc32ae851bde73e19ff6cc7"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-dist-manifest.json",
+        "sha256": "989a9fd73c6b92acf46d28513779d881b67fe175fe72a88de22145e889a032a4"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-initial-dist-manifest.json",
+        "sha256": "3274e9164fe25fa3003f77976f59a655ffb24c1b77b52afed62e898c839cd73d"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-initial-execution.json",
+        "sha256": "0a459b5a17370000d7ae80a9dcfa9beb96ed2b6d7b1c0d175b56e0e912c142b5"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-initial-source-manifest.json",
+        "sha256": "f3d38e6ef073438effcf4c1680f18b83401ca11add95e7e7be66f54c70d5202b"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/clean-web-source-manifest.json",
+        "sha256": "63ed1e75490301695fe8af7066f7e5d11130ddba78cac82c816d1c0995117e3f"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/collaboration-administration-closure-121.json",
+        "sha256": "fbb63df1975075619ef473eaee65bfc0046a373b8ea880cf10fec516c67d1800"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/combined-read-diagnostic.json",
+        "sha256": "84e50fce3dde6cb7daf9b9a1cc3d78146003005a7dc6adfdd7f7893e3f5652c8"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/commerce-139-partial.json",
+        "sha256": "ba667092a8f31a539f5a6ec2d720865fb21fb2255dcc16ee7be43f4776113303"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/commerce-source-controls-local.json",
+        "sha256": "c961aa4ae050808b367a6421a2a76dc8700cd3db71173f223713e126f5388fc9"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/commercial-capabilities-139.json",
+        "sha256": "30fce2d77b294faa619b8fa92c26974ceb32b175276b277674022ea317d3e7fa"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/connected-commerce-operations-feedback-140-partial.json",
+        "sha256": "24e8931cc20baaf2416c5e78a6af3de30c7b73be7cb480f66d3b52333b917177"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/deferred-uniware-checkpoint-review.json",
+        "sha256": "9fdf0310e226d9c0b8442ad89958fe10977d5b021e654ef5d182213414206736"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/document-chain-139-pass3-partial.json",
+        "sha256": "7becb311a6b25da2846355128d3a28d44080405628bb8b09780682db2aeca2fa"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/document-chain-140-pass6-failure.json",
+        "sha256": "d26d90f5dbaf4fa21f0990ca0596224b91d355b710b765baa86473ab12af17db"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/factory-collaboration-operations-read-140.json",
+        "sha256": "49c79e927b73f6d57e2941d24b652df0f050847c390b9829c7617b23b595f023"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/factory-people-acceptance-preparation.json",
+        "sha256": "abb33a136e3a56b874c198b78ec18b0d7dede20c4148727a64d33345a45f5980"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/frontend-release-review-before-session-refresh.json",
+        "sha256": "87a90f3b246c68542fbbfd5407a2beffa02576101cba80b961ce5fdef1d73645"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/frontend-release-review.json",
+        "sha256": "cf47467d13945fa4a87dd180b18dac851a96ddfca1cd98da8841dbf1b655728c"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/guest-139-partial.json",
+        "sha256": "a7ee17dcc1201d5eaedfd778044c9674f575fa4c6d5392945f5b810833c40dd5"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/guest-purpose-coverage-139.json",
+        "sha256": "c887b53870e5541cd71cda4c6109268315cce887132db0a6f704e5ff05e54e3f"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/guest-recovery-invite-139.json",
+        "sha256": "9dcac72c98826a6991ff8eabea1e60080265bbf8816a6bed60a171f88ac18c8a"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/jobsheet-queue-121.json",
+        "sha256": "644b61bb5b931b7561867adcedc7e38394db045b49121aec6b946dc66dc69234"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/last-business-cleanup.json",
+        "sha256": "4208af89933e07d1a8cda8914b3f2bac96291175d67f08258ed37fcce0212b11"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/last-document-output-cleanup.json",
+        "sha256": "bdab3ba30c3c04afb0518d6ebe0343cb15b64dae0f322562e823b89eb78ba728"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/media-acceptance.json",
+        "sha256": "87981945c23cfb6a1e10c19a144ddc89f7a380761e9b6fae8907a8c4d79a64be"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/navigation-acceptance.json",
+        "sha256": "1152fab778d4cd88c6b34ff253421bd5f61b74a46507c1f2c3f470c9bd0f7386"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/operation-refresh-review.json",
+        "sha256": "b997a7e4a1cb8ee44e91b1f02008c5fa8decfdf79acbf9ff4a403c4f341d6610"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/operations-local-checkpoint-139.json",
+        "sha256": "7bc01b86594d587ab3cdfb96d2c5afdac429ed2b81e8daa11da5765d332a1611"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/order-seek-128.json",
+        "sha256": "10cceda64c12cf0423aa10355ca462d54369b83b09e20b02b5696f007da89645"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/order-timeout-140-pass7.json",
+        "sha256": "d08fd5c29f02f8b19dd6407739c8dae82532ffaff2e966adf624eb5f8d95a131"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/people-acceptance-preparation.json",
+        "sha256": "f6766df31ff8bab5fff556d63220c983bdb8b2755c3fb87aff66f61836521441"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/people-relationships-139.json",
+        "sha256": "84f70aad5f6271e01a2fab53a58dea4344e035cd22fd5d1ca74be169182ba61b"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/people-relationships-140-partial.json",
+        "sha256": "122c9c95ba398b501f673eb56f09319e23fe9f4f43df1a4c59af19d161301d1d"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/person-context-132-local.json",
+        "sha256": "25b817a497c0dd82901fa7ae87e9e9d168aa4f8f637f19525a8df4b121806526"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/persona-entry-acceptance.json",
+        "sha256": "19e37632344e2f48df9f7655fd3f9f2625d42f8a0898dac70d4e20c8afa72ef9"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/production-rendering-lab.json",
+        "sha256": "003c020bf9e22d9c67fd984263a5dd8e556d4db816a62ac7b89aea2b49160090"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/query-lifecycle-local.json",
+        "sha256": "285ee946fae13b5be99ed8cd69fd6afccd242251639c221e1937dffe9882dc53"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/read-timeout-140-catalog-snapshot.json",
+        "sha256": "180489551773362d4feaae0774acba27cb20bc0f9225defa91ece256f58f8dc2"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/read-timings-139-partial.json",
+        "sha256": "3197c613afe097fcf82460951ac77a3588360451d465258b30f57cae0d76fea0"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/schedule-safeupdate-140.json",
+        "sha256": "68bbe7972236c9f9f74a1b17ad9ea89e7bd12d0f5c83e0cf5cb246da84bb72e3"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/session-query-pass7-review.json",
+        "sha256": "49bf906945a96e4c2a2b8f21dad116a7c0ed6d44e3e4c8d87389e391c10c0cab"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/staging-release-140.json",
+        "sha256": "212f72291f232660c5c636f945937cf21ddf94d697ae668872db4e76dab1665f"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/target-controls-local-benchmark.json",
+        "sha256": "2e8131d31cfc7240e65a7f353c6f92c570b7ca7f9153ab82c7c8f0b27444ab55"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-build-local.json",
+        "sha256": "1855d59c60104bf43946cda362d85184014169290fa4bd1aa768a549c830ac61"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-colors-preparation.json",
+        "sha256": "1f5ba23d8e106b3f574c6f1eafd7a44a516a72972b019dabd2b1c949dc8846d3"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-harness-readiness-review.json",
+        "sha256": "54da2de1f9250375716a1f834064f26d4d40d5f13591f1600d26d2d72446b47c"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-masters-retained-proof-review.json",
+        "sha256": "9e558430c921db7e772f1232ba25a6a2c839ef8e5688158d22f3cca1d15ccb28"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-read-acceptance.json",
+        "sha256": "adb6b7c4eb234693cc43628ab9d767172d4891acbb96a4b797f1c67dc68b5ace"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-read-policy-correction.json",
+        "sha256": "0bb79c044d4cd316ed988c1f207a52ba25751c96f52bcb71838e1f10271b170f"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/tracker-setup-recovery-139.json",
+        "sha256": "faaf39b2be0d626437c6522c04013db6fa470be2aee33600f9ec453da32516e8"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/weekly-mail-139-failure.json",
+        "sha256": "8866f99296a930789c3f8bd237a1d1425a6489fd913c5a91e0e5536c874b8dce"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/weekly-mail-140-accepted.json",
+        "sha256": "316d14198677de89174ca9a13a0fcb9d2940bfdccb55650e49e81475ff051990"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/weekly-mail-140-smtp.json",
+        "sha256": "b5b8b23fffe947285268badd269e82c7e99c216f448e9a1cfb28f4110660c71a"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/worker-detail-timeout-140-diagnostic.json",
+        "sha256": "165134df10616428d4b1486f0d6c0a36b7050e566b697697d61971180b6bab8b"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/worker-order-rollback-profile-initial-role-failure.json",
+        "sha256": "9210dda5c6490c6de7f29185a4742e3116bcc019e81281c92fb619b02db2442e"
+      },
+      {
+        "path": "docs/squad-one-web/evidence/worker-order-rollback-profile.json",
+        "sha256": "9210dda5c6490c6de7f29185a4742e3116bcc019e81281c92fb619b02db2442e"
+      },
+      {
+        "path": "docs/squad-one-web/implementation-progress.json",
+        "sha256": "1b622e936bdb99551940872fe5882c1a3137cae290846784444a5f390bb864e5"
+      },
+      {
+        "path": "docs/squad-one-web/prepared-acceptance-check-map.json",
+        "sha256": "f38a28e8bb034666476860086b807ec3dacc0a475fdf262d890da72fd25b9fef"
+      },
+      {
+        "path": "docs/squad-one-web/release-execution-ledger.json",
+        "sha256": "feb0f1e082e2b89c21b261b1cfbd60c3df717871df5f4ccd8c9cded603cd99fc"
+      },
+      {
+        "path": "docs/squad-one-web/release-exit-criteria.json",
+        "sha256": "2911a63aa4e6aa71fd3a72f7b70bd53adfb7c4f6a2800ca2f7e2cb07a1fa8244"
+      },
+      {
+        "path": "docs/squad-one-web/release-manifest-139.json",
+        "sha256": "dfff1f26a87186b440e96e7f3ab23b5bb74d2b6910e868e745ec9001b48b318f"
+      },
+      {
+        "path": "docs/squad-one-web/release-manifest-140.json",
+        "sha256": "2113cfabc68ce17df26a2b424605fab5739d491caf180ba908ab85207eabc914"
+      }
+    ],
+    "checks": [
+      "Reviewed structure for raw person/customer/address/phone/response/page-body records; acceptance files contain checks, actor role numbers, timing samples, hashes and cleanup counts.",
+      "Tracker artifact contains eight private screenshot references/hashes but no embedded screenshots or raw business records.",
+      "SQL diagnostic rows are aggregate counts/timings/schema statistics, not source table records.",
+      "Email-like values found only in submitted/provider Message-ID fields; actual mailbox recipients and MIME bodies remain private.",
+      "No signed Storage URL/token query or credential literal markers found in selected documentation."
+    ],
+    "limitation": "Allowlist applies to exact current hashes; new or changed evidence needs another review. This is not approval to publish arbitrary future JSON."
+  },
+  "git_mutations": false,
+  "user_files_deleted": false
+}

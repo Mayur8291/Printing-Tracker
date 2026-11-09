@@ -1,0 +1,150 @@
+{
+  "format": "squad-publication-review/v1",
+  "scope": "Frozen final focus source/test, final clean build metadata, unchanged aggregate cleanup receipt and execution documentation. No Git or hosted mutation.",
+  "approved_exact_files": [
+    {
+      "path": "apps/admin/src/squad/features/catalogue/CataloguePage.jsx",
+      "sha256": "2895b856d3784087e8e7b1270d547a8451bc3de9ea54d7d29ef347154d117828",
+      "bytes": 42876,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "apps/admin/src/squad/features/catalogue/ProductShareDialog.jsx",
+      "sha256": "8be930787dc23969ffd90514c60b0064340efea536989abfdc6c75e8208f5fe0",
+      "bytes": 5359,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-audit/BACKEND_PARITY.md",
+      "sha256": "8643b049f6244ba17ccc1f99f8a3c98976163bd855bb0f2f6fea4cf82373795f",
+      "bytes": 12895,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/README.md",
+      "sha256": "28b434f3fa226374fa6b6cd95506d655f91689dd457567233942c4982da297b2",
+      "bytes": 2576,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-build-execution.json",
+      "sha256": "2e017346ca12a0ce94545126b5679d2d2078707e8a7f2fad30a7a2d7a927fd5f",
+      "bytes": 2006,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-dist-manifest.json",
+      "sha256": "c38c4abe62d982ce8fb142ebeacf52ae513dc8902e679c0af69f354f081ccea1",
+      "bytes": 12589,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-pre-focus-build-execution.json",
+      "sha256": "eb37ed400327a76da7de1025e0b6861bdc4888c32bdc0b0c931f09788997d7a8",
+      "bytes": 1604,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-pre-focus-dist-manifest.json",
+      "sha256": "a010b0a597e5524447d0720a569585b83d993b1233f5ada630d58c310e91dcb7",
+      "bytes": 12589,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-pre-focus-source-manifest.json",
+      "sha256": "4fd1e2be5acb28826f2e6f63c4ebcf9a881fc370b2068273b45a14cb498f81f1",
+      "bytes": 70974,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/clean-web-source-manifest.json",
+      "sha256": "89d09d2a483803cc8cf7eb9e7162d750ff298f6b72f1b83042e3b72c7abf7ee3",
+      "bytes": 70974,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/last-business-cleanup.json",
+      "sha256": "8d2aa1ea3416830be8220ad28d7bf0cce69526b8afd0bb03dcd49299a5b12c61",
+      "bytes": 2501,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/product-share-focus-local-review.json",
+      "sha256": "0ff85eedf3c462567d7164f116c3d265e17eedd1247320453d796d58439df915",
+      "bytes": 1850,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/publication-review-final-focus-ui.json",
+      "sha256": "88dfe75a3e5c9d83f8c7c09a2d7a97503cd3e721b2b9fc097ec34c5976b9d981",
+      "bytes": 3623,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/publication-review-production-141-ui.json",
+      "sha256": "c6e69a5f39cc72e23543e94552e358cd818c2aa65f90cccacdc6be517b1cdd27",
+      "bytes": 3306,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/implementation-progress.json",
+      "sha256": "047b00de80c6c87c618040fc2b71efe77d67d9fc8837dc5863617b33c063f4eb",
+      "bytes": 38228,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-gates.md",
+      "sha256": "dbeb719a944b36bc2389ee2ac94bea40637a3625855294485b3151f28f55fb5e",
+      "bytes": 16887,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.csv",
+      "sha256": "828bc229692eb3f2449ebc258ac9ef67799c519d3fe2d8b0f346d39a706cd160",
+      "bytes": 257423,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.json",
+      "sha256": "598f71b5876f360d5897fb2dac469060740043113a128faa1fe2fe38eb91fb68",
+      "bytes": 551613,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-exit-criteria.json",
+      "sha256": "ea324aaf4701726b0bde02ebed9dc5f111f5dc2cfb6111d5b8761ab402d44bbe",
+      "bytes": 37627,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/ui-review.md",
+      "sha256": "221e7b37d284fbde1d2bec3ad095141338e75d8bb3afea6543c90faed2c6bc0c",
+      "bytes": 60620,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "tools/squad/web-product-share-focus-browser.mjs",
+      "sha256": "fb62779ec298c71464ef9e5c69e36dc678527b09c93278459b493d792b0ed2a6",
+      "bytes": 5676,
+      "publication": "approved_exact_hash_only"
+    }
+  ],
+  "review_findings": [
+    "The final clean source manifest changes exactly CataloguePage and ProductShareDialog; native focus receipt binds both source hashes.",
+    "Focus restoration captures the invoking button and restores only its still-connected enabled element. It does not alter authorization, media grants, sharing or download handlers.",
+    "The focused browser test uses synthetic loopback data and rejects remote requests; no user credentials or hosted business rows are included.",
+    "All23 final UI receipt hashes matched current files. Source/dist manifests contain paths and hashes only; build evidence lists public environment variable names without values.",
+    "Ledger JSON/CSV retain115 workflow rows. Aggregate timing/count evidence and exact artifact hashes do not include real customer contacts, raw records, credentials, signed URLs, private screenshot/PDF bytes or personal home paths.",
+    "Execution evidence preserves96percent acceptance and final deployment gate; historical partial failures are not rewritten as complete.",
+    "Raw logs, private captures, tracked node_modules, environment files and dist outputs remain excluded by the release selector even when hash-only references appear in approved metadata."
+  ],
+  "self_review_required": "Root must review this receipt and explicitly approve its own exact hash; it cannot approve itself.",
+  "native_receipt_root_approval": {
+    "path": "docs/squad-one-web/evidence/publication-review-final-native-141.json",
+    "sha256": "8d2855076e298dd49cfbb1949e9d3dfc16bef9c6f0ae3ec0224b8188777ce1d1"
+  },
+  "limitations": [
+    "Publication review is not a new runtime test or deployed acceptance.",
+    "Any later changed or new file requires exact-hash refresh and review."
+  ]
+}

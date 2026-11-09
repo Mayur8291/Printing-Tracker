@@ -1,0 +1,68 @@
+{
+  "format": "squad-production-edge-release/v1",
+  "measured_at": "2026-11-09T05:55:02.625209+00:00",
+  "migration_prefix": "20261109043010",
+  "deployed": [
+    "squad-account",
+    "squad-jobs"
+  ],
+  "before": [
+    {
+      "slug": "canto-refresh",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0"
+    },
+    {
+      "slug": "squad-account",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d"
+    },
+    {
+      "slug": "squad-jobs",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176"
+    },
+    {
+      "slug": "squad-webhooks",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9"
+    }
+  ],
+  "after": [
+    {
+      "slug": "canto-refresh",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0"
+    },
+    {
+      "slug": "squad-account",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "2e58b626551992a6d1ee1fbcdfd379a8654da4e6762570650df174a5b5ff146c"
+    },
+    {
+      "slug": "squad-jobs",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "2c79ff5e340d846d14995386d86f992787defb68164c5d3a2c5e01a8a108feac"
+    },
+    {
+      "slug": "squad-webhooks",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9"
+    }
+  ],
+  "staging_artifacts_equal": true,
+  "unchanged_slugs": [
+    "canto-refresh",
+    "squad-webhooks"
+  ],
+  "secrets_or_provider_configuration_changed": false,
+  "source_refresh_or_cutover": false
+}

@@ -1,0 +1,521 @@
+{
+  "format": "squad-web-release-manifest/v1",
+  "prepared_at": "2026-11-09T02:32:35.540490+00:00",
+  "status": "prepared_from_local_sources_not_a_deployment_or_fresh_hosted_parity_check",
+  "baseline": {
+    "source": "docs/squad-one-audit/implementation-evidence/backend-mirror-parity.json",
+    "measured_at": "2026-11-08T17:12:01.371986+00:00",
+    "production_prefix_count": 113,
+    "production_through": "20261108154028",
+    "historical_only": true,
+    "historical_difference": "pg_net/platform extension versions; this artifact is not proof that difference remains today"
+  },
+  "target": {
+    "prefix_count": 139,
+    "through": "20261108202700",
+    "pending_from_113": 26,
+    "local_regression_evidence": "docs/squad-one-web/evidence/backend-regression-139.json"
+  },
+  "migration_files": [
+    {
+      "ordinal": 114,
+      "version": "20261108175330",
+      "file": "supabase/migrations/20261108175330_squad_web_session_and_configurator.sql",
+      "sha256": "a6aa99dbe52c5796fe785c8d28c922a016370d61bf18d7024ea40336f8eda6f3"
+    },
+    {
+      "ordinal": 115,
+      "version": "20261108180809",
+      "file": "supabase/migrations/20261108180809_squad_customer_self_closure.sql",
+      "sha256": "bd5c5a5fac8cac9d7d403d70acabb4acd2bb96b1ff0f273a7cb5344cc691ad41"
+    },
+    {
+      "ordinal": 116,
+      "version": "20261108181329",
+      "file": "supabase/migrations/20261108181329_squad_order_assignment_filters.sql",
+      "sha256": "39b261f0f786588b8a56aa192aa34567746bdff229b1f79f03b4c0f09b9fc5c9"
+    },
+    {
+      "ordinal": 117,
+      "version": "20261108181835",
+      "file": "supabase/migrations/20261108181835_squad_commerce_display_context.sql",
+      "sha256": "b2df6e807b8d1875c854e748bd6904f48ecfccd2d6bbf1628fd64ec31f0a5885"
+    },
+    {
+      "ordinal": 118,
+      "version": "20261108181938",
+      "file": "supabase/migrations/20261108181938_squad_web_detail_reads.sql",
+      "sha256": "2b5f0b164654168d1df12810bf62b267db1ba39dbc8c354751fa7b51336fa7bf"
+    },
+    {
+      "ordinal": 119,
+      "version": "20261108182150",
+      "file": "supabase/migrations/20261108182150_squad_document_terms_attachments.sql",
+      "sha256": "d4fa3bfe0fd6de79358626a569166d6de48fc6649209e642298ae07dea42b64c"
+    },
+    {
+      "ordinal": 120,
+      "version": "20261108183714",
+      "file": "supabase/migrations/20261108183714_squad_order_amendment_context.sql",
+      "sha256": "ee1dca746e687d9a68bea27a61a9874cc0fd756ebf8cee60ce5e81d8d709a3df"
+    },
+    {
+      "ordinal": 121,
+      "version": "20261108184439",
+      "file": "supabase/migrations/20261108184439_squad_scoped_jobsheet_queue.sql",
+      "sha256": "002cf523ce314eed4f978aca8e25166946551bae9e790fdc31543becac1cf6aa"
+    },
+    {
+      "ordinal": 122,
+      "version": "20261108190645",
+      "file": "supabase/migrations/20261108190645_squad_account_rehearsal.sql",
+      "sha256": "80a05f2c96101b00cdfab7466758a5264f034a602f0ae0ae4111950759574438"
+    },
+    {
+      "ordinal": 123,
+      "version": "20261108191503",
+      "file": "supabase/migrations/20261108191503_squad_catalogue_terms_rehearsal.sql",
+      "sha256": "570aced41e6c76c7a9d5ea691a88a1071942ade157316591110ed48c9b4caf70"
+    },
+    {
+      "ordinal": 124,
+      "version": "20261108192922",
+      "file": "supabase/migrations/20261108192922_squad_order_item_point_reads.sql",
+      "sha256": "ef5bcf390ef4ea8cca18dc36ab287067b17c00340a44a7f97cbd7b1936b18680"
+    },
+    {
+      "ordinal": 125,
+      "version": "20261108192953",
+      "file": "supabase/migrations/20261108192953_squad_work_search_controls.sql",
+      "sha256": "bcc855ceb91c84388b31ef14311770bd052e2b47229cefdd8e4aa9df0f1b8167"
+    },
+    {
+      "ordinal": 126,
+      "version": "20261108193525",
+      "file": "supabase/migrations/20261108193525_squad_product_image_controls.sql",
+      "sha256": "29f27d6d4821e6e1f788635fc3bd3fc280dcd8221bb827223fc4fcd2df5fc5b2"
+    },
+    {
+      "ordinal": 127,
+      "version": "20261108194142",
+      "file": "supabase/migrations/20261108194142_squad_sc_customer_account_status.sql",
+      "sha256": "3ba0698b152492ecec248534e7d87537e061f3c2d41e433e1b5e6e259f4e4351"
+    },
+    {
+      "ordinal": 128,
+      "version": "20261108194210",
+      "file": "supabase/migrations/20261108194210_squad_order_due_sort.sql",
+      "sha256": "70af843c3a4d253825d748a5a130a04b1e934ff3e121eb2421c6f45faa29ed50"
+    },
+    {
+      "ordinal": 129,
+      "version": "20261108194747",
+      "file": "supabase/migrations/20261108194747_squad_operational_item_views.sql",
+      "sha256": "7e842567f889b8ecea21afda64e92d9275b879cb284350bd4b68fa2649bebe10"
+    },
+    {
+      "ordinal": 130,
+      "version": "20261108194841",
+      "file": "supabase/migrations/20261108194841_squad_branding_attachment_formats.sql",
+      "sha256": "4d3ea1dfcdafd1b0775171a68fb1a77c788491f08066a19f059ae67c141365b2"
+    },
+    {
+      "ordinal": 131,
+      "version": "20261108195130",
+      "file": "supabase/migrations/20261108195130_squad_target_controls.sql",
+      "sha256": "bf94ef3cd2ea375e2938b70556ae7f884b5fcceed0e4f5fccd6768f6083bf39a"
+    },
+    {
+      "ordinal": 132,
+      "version": "20261108195629",
+      "file": "supabase/migrations/20261108195629_squad_person_order_context.sql",
+      "sha256": "4b3c28c107b35a7282a127f944bef5847a757ae54f3e7404f352e5eafc8382ba"
+    },
+    {
+      "ordinal": 133,
+      "version": "20261108201002",
+      "file": "supabase/migrations/20261108201002_squad_operational_context_reads.sql",
+      "sha256": "06e7817b5b384e06c5be1f2b5d26f249a9c4e5264c726cdb521ed61424fa5091"
+    },
+    {
+      "ordinal": 134,
+      "version": "20261108201737",
+      "file": "supabase/migrations/20261108201737_squad_completed_order_priority.sql",
+      "sha256": "81def146775f568ddede38e2d46cc4a423697a360033b11c8fadb4cc94978ae0"
+    },
+    {
+      "ordinal": 135,
+      "version": "20261108202002",
+      "file": "supabase/migrations/20261108202002_squad_worker_order_context.sql",
+      "sha256": "8bf5b0e736e587a7dbc2546b35563612d8d1fba8955bb9064856eb180e2cf1e2"
+    },
+    {
+      "ordinal": 136,
+      "version": "20261108202021",
+      "file": "supabase/migrations/20261108202021_squad_worker_commitment_guard.sql",
+      "sha256": "b78f9e5845d1db46ef0a0f3931a22825fa8739a30dbbfcb95381c81f0527a943"
+    },
+    {
+      "ordinal": 137,
+      "version": "20261108202026",
+      "file": "supabase/migrations/20261108202026_squad_backorder_quantity_choices.sql",
+      "sha256": "94014792d55ea2fecb9b140255c3413405fb3719754411ddaec48cea65a1beff"
+    },
+    {
+      "ordinal": 138,
+      "version": "20261108202457",
+      "file": "supabase/migrations/20261108202457_squad_registration_profile_controls.sql",
+      "sha256": "80590748a36665360bd04ba522ce8bd3c922fb1cf73a2d191c89bc17c71ed641"
+    },
+    {
+      "ordinal": 139,
+      "version": "20261108202700",
+      "file": "supabase/migrations/20261108202700_squad_catalogue_parent_options.sql",
+      "sha256": "53ed1db07c067b5b42e2c36b21584359c3b46ab850be1939d00d0a2fa2d76477"
+    }
+  ],
+  "edge_artifacts": [
+    {
+      "slug": "squad-account",
+      "baseline_113_ezbr_sha256": "0d9ab2b1b83ef505a2f9ac52dd9cefadbd662948d8173b398b4ddc1303ef083d",
+      "source_files": [
+        {
+          "path": "supabase/functions/squad-account/deno.json",
+          "sha256": "2c869cf8caca3d826d3bed06fbac87ee00ab5f45bb179cebc03d079efae9e790"
+        },
+        {
+          "path": "supabase/functions/squad-account/deno.lock",
+          "sha256": "71a2e8e008e9baedf82ec97cc2136417d4dafe0355e0b8a68576cc9569b41827"
+        },
+        {
+          "path": "supabase/functions/squad-account/document-attachments.ts",
+          "sha256": "0f5bf9fda5db9d205b03f4029f7c5eebe77777d6e014f5cfb9a858e636a9c20e"
+        },
+        {
+          "path": "supabase/functions/squad-account/errors.ts",
+          "sha256": "455a3ef30f3d0f404848f83c583a02bc71257f962b8735240ffea9d0868b77ef"
+        },
+        {
+          "path": "supabase/functions/squad-account/flows.ts",
+          "sha256": "50393bd7f8f8598552fd6d9a43e306ab47e178e2add22275a0226ff9db803509"
+        },
+        {
+          "path": "supabase/functions/squad-account/handler.ts",
+          "sha256": "8f3c4f1ba01439898f304ca9407278cc4ff6faa62e94b769afa0af9a2dc2eaa7"
+        },
+        {
+          "path": "supabase/functions/squad-account/index.ts",
+          "sha256": "7b51341bf78312dc6ce940204798eec13fb6ecfd35b694fa06f3685e594b8722"
+        },
+        {
+          "path": "supabase/functions/squad-account/media-verification.ts",
+          "sha256": "1221fac9a061cda33cdfdfc4e88ee992eb9ac4a36f2b27a94c60feb06173b6b3"
+        },
+        {
+          "path": "supabase/functions/squad-account/transfers.ts",
+          "sha256": "8ff4e00fc2de06f4e251377190cc37f6fc98e4a185424d6d40d452908f483241"
+        },
+        {
+          "path": "supabase/functions/squad-account/uploads.ts",
+          "sha256": "ced09d7874995877b4835ebfcc35bd2b0c04a4f4f15903092807c42334e60159"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-account-crypto.ts",
+          "sha256": "681024f0d93bcab194dd45a204a9dc52860b3286bc7c16b717c87ef9eb6c411a"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-auth.ts",
+          "sha256": "3b77191d600c988d49486a955419fa2ff3b621e236fad6070531253207835d61"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-mail.ts",
+          "sha256": "b3cb4cf6f0e2e191a9ae4609819ed133744b968128f7ee539321b0db48261951"
+        }
+      ],
+      "source_inventory_sha256": "952a6b7bd399b8c3b1a808d84158c5aa9a1fcb1ff29f77f3ee913648ffc71ec3",
+      "action": "Deploy only if current staging and production EZBR differ; verify exact staging EZBR after deployment",
+      "scope_note": "Local source inventory is not an Edge bundle digest; shared Squad files are a conservative superset."
+    },
+    {
+      "slug": "squad-jobs",
+      "baseline_113_ezbr_sha256": "96e1f3e041dc5052610629684f1743c376ef7819aa9d32cd4053b62d1c10a176",
+      "source_files": [
+        {
+          "path": "supabase/functions/squad-jobs/account-mail.ts",
+          "sha256": "9f404157ba68334b56fd7b80033ce4d809651e129b68248f42aec8a715d89872"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/account-rehearsal.ts",
+          "sha256": "577087910df614a881e9a591811e9db6dfbbebdd27a03aa90134a678fb5298a6"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/accounts.ts",
+          "sha256": "943913c9acbf7c1d2d8246ef16120426e49729f4461b7e68fe9dee341a1375e5"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/airtable-contracts.json",
+          "sha256": "260bf208298a59fb9058d436bdcbbdfdd0f0bf9a6b3744de41220fea43bc5eb4"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/airtable-mapping.ts",
+          "sha256": "b441c0899e666b30b0085122ab50bf4842fd8542d7fed3b519024c35c5020390"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/airtable-provider.ts",
+          "sha256": "b63e408999150baa33e022be8e64ed5dd3952a21b268bc9334d193113050f964"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/airtable-reports-contracts.json",
+          "sha256": "2a4f33e0f8a1ef132ebdaa6e7909ff134a47dfca4ceacad6a571bf9d1437d64e"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/airtable-reports.ts",
+          "sha256": "eded4784aa87920336f7cf0b6ee53bb249ca31b04d1703e53c26d7ed063731d4"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/airtable.ts",
+          "sha256": "e2d83beaa2c9c3c5e85f81f51d6ab0b5021e4cdfe0c5cc3ddbcd3d6e263b1607"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/business-mail.ts",
+          "sha256": "6c54bf444c367e8e26eb2336fe5797ca5fa30d2b2b1de04aa9a818aef529c016"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/deno.json",
+          "sha256": "2c869cf8caca3d826d3bed06fbac87ee00ab5f45bb179cebc03d079efae9e790"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/deno.lock",
+          "sha256": "3933332150431157a80f74e37b34fba7a15494a870bef38159344ea0c9dd270b"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/document-mail.ts",
+          "sha256": "62348654892b90a678c740d1a117ed8cf3221d967f9bc5ac55e6d1a5db947111"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/documents-render.ts",
+          "sha256": "ae2111b87c1986a4e0aa3be8e03c7bcf0ade5d284e8f34e0dd0e3d579ba4c9ca"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/documents.ts",
+          "sha256": "b347688c99d258e89958bd0a3c0d38a8283f74105c3e2a2de6790a81bacabcac"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/fontkit-adapter.ts",
+          "sha256": "81ba6d28cef90f898ea87881397765c3c3a0fefdb112cf0e92e23b94db5d04a3"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/fonts/LICENSE",
+          "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/fonts/NotoSans-Regular.ttf",
+          "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/fonts/NotoSansDevanagari-Regular.ttf",
+          "sha256": "385e78e6359a9d88a0f243d53b1209d7548361ba2194e2b9ec779bcaa7e8949d"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/fonts/embedded.ts",
+          "sha256": "69770224a11c6e6070687b5d17739879f108d484902020e0318bc47af495b59b"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/fonts/sources.json",
+          "sha256": "831ea860855c4526d1cbef8db7b234e36b07b1417b613a875a28853eac1f744f"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/handler.ts",
+          "sha256": "7483121b4dca602ec70b792f4eaa1c1022809a0bef844599e9fd2d0d84bee3b3"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/index.ts",
+          "sha256": "5b8016c659fafe3c042352f91a0d16692d7aaf78c0b2436e2a87b2bc24136c0d"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/notifications.ts",
+          "sha256": "3e4fb8652b8636fee78f0973e38ce55fa2ebbd05cca34088ae6dc6824e5e69bd"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/transfers-csv.ts",
+          "sha256": "124d859fb7502d463a2c7b0b6fe587644464d64f3308d344d0c983dc37ec16c8"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/transfers.ts",
+          "sha256": "c7783bf8b730ece521458e68ce91dac710eed82550effd5fcadcaf3ff746c070"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse-check.ts",
+          "sha256": "9733b2cda3603737a4400dfe3d7aa92fe8d0608ab220736f78d91f1708a8e56d"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse-dashboard.ts",
+          "sha256": "149369cc88474af4cd3a5759a2eb4ab0947143dff0008e79437eeba116719fe6"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse-http.ts",
+          "sha256": "881a1a8b8c6c56b0769498d9f5136948caafcb8578d61340988e801ce4878bac"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse-payload.ts",
+          "sha256": "13dbb0a81572e7bf33ee7ce4525376c9807d283a8937fd4e60994594aa2e6b49"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse-rehearsal.ts",
+          "sha256": "d9784e9c3d86afbbeb39799b9d2dc4b25578a1320cbc8094150febdc2b8053e1"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse-types.ts",
+          "sha256": "9e91b840abce93fdcf58985599a6ce8e896b6e1fd20a876946fb7ac243ae7c4f"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse-unicommerce.ts",
+          "sha256": "f21abc599d8b4ba45a7c5df65aeaeb54105c1f11956c94e3785afc8c692afe87"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/warehouse.ts",
+          "sha256": "7bc97b96022732fde4761e0e25665459acc566254e44f5fc3d03d5682977c1a0"
+        },
+        {
+          "path": "supabase/functions/squad-jobs/weekly-mail-rehearsal.ts",
+          "sha256": "7619c01b821be196482c9544cafc0868ee6db1c76964780bc3b2867e4527c344"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-account-crypto.ts",
+          "sha256": "681024f0d93bcab194dd45a204a9dc52860b3286bc7c16b717c87ef9eb6c411a"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-auth.ts",
+          "sha256": "3b77191d600c988d49486a955419fa2ff3b621e236fad6070531253207835d61"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-mail.ts",
+          "sha256": "b3cb4cf6f0e2e191a9ae4609819ed133744b968128f7ee539321b0db48261951"
+        }
+      ],
+      "source_inventory_sha256": "fbc70ed76aac8cc7e12163d026eb5795185983ea13c8ee7900e9ee3c17ab1c8b",
+      "action": "Deploy only if current staging and production EZBR differ; verify exact staging EZBR after deployment",
+      "scope_note": "Local source inventory is not an Edge bundle digest; shared Squad files are a conservative superset."
+    },
+    {
+      "slug": "squad-webhooks",
+      "baseline_113_ezbr_sha256": "544a0a3b9dfe9561805cb820f8c391036ec858af0eb62f0af0147c6bd92e95f9",
+      "source_files": [
+        {
+          "path": "supabase/functions/squad-webhooks/deno.json",
+          "sha256": "0ec506687020e3cdc61ef1735c56963917070937c696ef87c79a63010fbc7594"
+        },
+        {
+          "path": "supabase/functions/squad-webhooks/handler.ts",
+          "sha256": "53b9b15bdab9a3ab6540afc00f2ad92958b6dba76180341b63ea53f7a8d318e0"
+        },
+        {
+          "path": "supabase/functions/squad-webhooks/index.ts",
+          "sha256": "c2f951e1e1ffb84b05d170259b631e599d6fa643659ad557c8d556313e3add6b"
+        },
+        {
+          "path": "supabase/functions/squad-webhooks/payload.ts",
+          "sha256": "c3bbd62567f006e37238d1e7766063744c41043b1514ad5920ee70c93e56725e"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-account-crypto.ts",
+          "sha256": "681024f0d93bcab194dd45a204a9dc52860b3286bc7c16b717c87ef9eb6c411a"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-auth.ts",
+          "sha256": "3b77191d600c988d49486a955419fa2ff3b621e236fad6070531253207835d61"
+        },
+        {
+          "path": "supabase/functions/_shared/squad-mail.ts",
+          "sha256": "b3cb4cf6f0e2e191a9ae4609819ed133744b968128f7ee539321b0db48261951"
+        }
+      ],
+      "source_inventory_sha256": "ec39a1d1a3163353eecbd2f15b6df1c0ea8171d7ba370c3974790016131c8555",
+      "action": "Compare only; no refresh/webhook changes requested",
+      "scope_note": "Local source inventory is not an Edge bundle digest; shared Squad files are a conservative superset."
+    },
+    {
+      "slug": "canto-refresh",
+      "baseline_113_ezbr_sha256": "d5b6858a6de5243f1bf558253cac53238917d4d40dd383aa1e2b25f905e258b0",
+      "source_files": [
+        {
+          "path": "supabase/functions/canto-refresh/index.ts",
+          "sha256": "de8e3496b0dfdd0863e1941d08b1288335e571aa5259d8aaf476ef551195d485"
+        }
+      ],
+      "source_inventory_sha256": "07dada584265f0ea264a987666ddf4894f9ed94673f81f7a39fa9e2e1243a9be",
+      "action": "Compare only; no refresh/webhook changes requested",
+      "scope_note": "Local source inventory is not an Edge bundle digest; shared Squad files are a conservative superset."
+    }
+  ],
+  "do_not_change": [
+    "DigitalOcean servers, Rails, Flutter or SSH export configuration",
+    "Imported source/business data or Auth identities",
+    "Source refresh/media refresh or existing canto-refresh Edge",
+    "Cutover ownership and test-write permissions",
+    "Provider enablement or credentials; Airtable stays excluded",
+    "Existing public-schema application definitions",
+    "Cron definitions or original active flags after release"
+  ],
+  "rollout": [
+    {
+      "step": 1,
+      "action": "Finish finite hosted acceptance and exact fixture cleanup; close all fixture/release recovery checkpoints. Pin frontend build/source SHA and this migration inventory."
+    },
+    {
+      "step": 2,
+      "action": "Read current staging/production migration bodies and four Edge EZBR hashes. Require staging exact139, no unknown migration, idle mirrors/test writes disabled. Treat historical113 as a baseline to verify, not assumed current state."
+    },
+    {
+      "step": 3,
+      "action": "Capture all production Cron identities/definitions/active flags durably; pause only existing Squad schedules and wait for in-flight exact worker leases to finish. release_mirror refuses active Squad schedules. release_web_staging.py is staging-only and must not be repurposed silently."
+    },
+    {
+      "step": 4,
+      "action": "Rollback-only production SQL verification with existing release_mirror guard; verify26 missing bodies and protected source/Auth/public/media digests. Do not supply bootstrap/collation-bootstrap: these were already completed before113.",
+      "command": "PYTHONPATH=tools/squad:tools/canto-sync tools/canto-sync/.venv/bin/python tools/squad/release_mirror.py --environment production --through 20261108202700"
+    },
+    {
+      "step": 5,
+      "action": "Apply the same immutable prefix only after successful rollback verification. The existing tool creates a precommit receipt and publishes verified refresh/access baselines.",
+      "command": "PYTHONPATH=tools/squad:tools/canto-sync tools/canto-sync/.venv/bin/python tools/squad/release_mirror.py --environment production --through 20261108202700 --apply",
+      "recovery": "Use same through and --recover-baselines for uncertain outcome; never rerun or delete receipt speculatively."
+    },
+    {
+      "step": 6,
+      "action": "Promote only changed reviewed Squad Edge artifacts using existing API-based CLI pattern and production project ref from management.PROJECTS, keeping verify_jwt=false per existing config/application authorization. Capture exact staging and resulting production EZBR. Do not invoke generic drains or copy secrets. The provisioning installer install_mirror_runtime.py is broader (may fill absent secrets/buckets/schedules); prefer narrow existing deploy calls for this already provisioned upgrade.",
+      "existing_pattern": "supabase functions deploy <reviewed-changed-slug> --project-ref <configured-production-ref> --use-api"
+    },
+    {
+      "step": 7,
+      "action": "Restore each production schedule to its captured original active flag; verify every original schedule definition/identity and unrelated state. Keep recovery receipt until exact restoration succeeds."
+    },
+    {
+      "step": 8,
+      "action": "Run existing read-only schema/ACL/SQL/Edge/bucket/schedule/environment parity verifier after schedules restored and fixtures absent; interpret environment-specific business/Auth differences separately.",
+      "command": "PYTHONPATH=tools/squad:tools/canto-sync tools/canto-sync/.venv/bin/python tools/squad/verify_mirror_parity.py"
+    },
+    {
+      "step": 9,
+      "action": "Publish frozen frontend through authorized Git/Vercel target only after backend parity. Confirm deployed branch/commit/build hashes and deep links; run prepared built Tracker read smoke plus representative persona reads. No production synthetic writes required."
+    }
+  ],
+  "frontend": {
+    "review": "docs/squad-one-web/evidence/frontend-release-review.json",
+    "build": "npm ci; npm run build",
+    "output": "apps/admin/dist",
+    "rewrites": [
+      "/squad/:path* -> /index.html",
+      "/account/:path* -> /index.html"
+    ],
+    "tracker_smoke": "tools/squad/test_web_tracker_read_hosted.py --execute --base <approved-built-frontend-url>",
+    "tracker_scope": "Disposable staging admin/viewer only; strict browser read policy; exact identity cleanup; no HMR artifact acceptance"
+  },
+  "release_tools": {
+    "tools/squad/release_mirror.py": "dc3a23151ef3888d035bb512f7bacb38318aa7744d8397b3f63dcf8f688e8ef5",
+    "tools/squad/release_web_staging.py": "b579d73cc4ae2c037f232e77beb79f1af0eb5aeccc90342075893e94747da927",
+    "tools/squad/verify_mirror_parity.py": "fd4bf03601a698ef9a0db3c0409d47f1d7b09d6e56690ab29091f39b00ff7c1b",
+    "tools/squad/install_mirror_runtime.py": "cc14e83f833b3e930ffae731e8c3e6884689ed4640ac0afeeed776d8143fe14b",
+    "vercel.json": "a402d297bb46fe223d1a772e2df33e4690c940a6e928c2a571092efe87428d11"
+  }
+}

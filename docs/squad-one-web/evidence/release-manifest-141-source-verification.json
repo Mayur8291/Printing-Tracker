@@ -1,0 +1,14 @@
+{
+  "format": "squad-release-manifest-source-verification/v1",
+  "verified_at": "2026-11-09T04:44:47.964799+00:00",
+  "manifest": "docs/squad-one-web/release-manifest-141.json",
+  "manifest_sha256": "f17163ef1962cb5a7a764da176184ee7c9db00aa52f872a5a3ce3f78af9dcf2a",
+  "migration_bodies_verified": 28,
+  "edge_source_inventories_verified": 4,
+  "release_tool_hashes_verified": 6,
+  "mismatches": [],
+  "staging_release_evidence": "docs/squad-one-web/evidence/staging-release-141.json",
+  "current_staging_prefix": 141,
+  "production_last_verified_prefix": 113,
+  "scope": "Local exact file and inventory hashes only; no new hosted queries, Edge deployment, production parity, timeout-resolution or workflow acceptance claim."
+}

@@ -210,11 +210,15 @@ class BusinessHarness(unittest.TestCase):
         self.c.execute('ALTER TABLE public.profiles ADD COLUMN unexpected_recovery_probe boolean')
         with self.assertRaises(AssertionError):harness.cleanup(self.c,state,[])
 
-    def test_repeated_recovery_rechecks_staff_identity(self):
+    def test_repeated_recovery_preserves_later_staff_activity(self):
         from fixtures import uid
-        state=self.prepared();harness.cleanup(self.c,state,[])
+        state=self.prepared();cleaned=harness.cleanup(self.c,state,[])
         self.c.execute('UPDATE auth.users SET raw_user_meta_data=%s WHERE id=%s',(Jsonb({'foreign':'change'}),uid(999)))
-        with self.assertRaises(AssertionError):harness.cleanup(self.c,state,[])
+        # A completed fixture has no authority over subsequent live Auth
+        # activity. Recovery verifies its own tombstones and returns the
+        # original receipt; it must never restore an old staff row.
+        self.assertEqual(harness.cleanup(self.c,state,[]),cleaned)
+        self.assertEqual(self.c.execute('SELECT raw_user_meta_data FROM auth.users WHERE id=%s',(uid(999),)).fetchone()[0],{'foreign':'change'})
 
     def test_composite_cleanup_recovers_lost_results_and_nested_backorder_keys(self):
         state=self.prepared();actors={}

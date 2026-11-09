@@ -1,0 +1,153 @@
+{
+  "format": "finite-remaining-acceptance-review/v1",
+  "recorded_at": "2026-11-09T04:23:28.104016+00:00",
+  "basis": {
+    "path": "docs/squad-one-web/release-exit-criteria.json",
+    "sha256": "2911a63aa4e6aa71fd3a72f7b70bd53adfb7c4f6a2800ca2f7e2cb07a1fa8244",
+    "rule": "Reconcile only the existing eight exit groups against archived cleaned acceptance; preparation and failed-module code do not establish completion."
+  },
+  "groups": [
+    {
+      "id": "EXIT-01",
+      "internal_remaining": [],
+      "accepted_scope": [
+        "Four guest purposes across separately cleaned actual-inbox runs",
+        "SC-owned Customer disable/enable and old-session denial",
+        "Customer self-closure121"
+      ],
+      "note": "Existing state text is stale; no new guest rerun required absent affected auth changes. Final deployed smoke belongs EXIT08."
+    },
+    {
+      "id": "EXIT-02",
+      "internal_remaining": [
+        "A successful complete commerce\u2192operations\u2192reporting chain without SQL timeout",
+        "Persona metrics/leaderboard/earnings and scoped full-filter CSV visible values",
+        "Weekly and challan queue\u2192ready\u2192actual browser PDF bytes/content/hash/foreign denial"
+      ],
+      "retained_passes": [
+        "Connected manufacturing/JW/Dealer stock and staff/item feedback completed in earlier cleaned partial run",
+        "Five actual automatic-mail inbox attachments passed separately"
+      ],
+      "prepared": [
+        "test_web_document_outputs_hosted.py",
+        "web-reporting-hosted-journey.mjs",
+        "web-document-outputs-hosted.mjs"
+      ],
+      "note": "Do not call the mail gate or earlier operations checks untested. Rerun commerce/operations only for the connected owned graph and performance fix acceptance."
+    },
+    {
+      "id": "EXIT-03",
+      "internal_remaining": [
+        "Customer coordinator request and Admin review/rejection outcome on isolated relationships"
+      ],
+      "retained_passes": [
+        "Commercial controls10, amendment1, customer feedback, SC\u2192PC/PC\u2192FM/item feedback and Admin moderation"
+      ],
+      "prepared": [
+        "web-workflow-extensions-hosted-journey.mjs"
+      ],
+      "note": "No new Cartesian price/size or Dealer product repeats."
+    },
+    {
+      "id": "EXIT-04",
+      "internal_remaining": [
+        "Dependency-blocked then eligible managed Tailor/SubTailor archive with retained work history",
+        "Order-linked assigned task completed by its Team assignee with context/search",
+        "Exact-two isolated Customer bulk coordinator reassignment/restore and request-review outcome"
+      ],
+      "retained_passes": [
+        "People/relationships/status",
+        "PC factory create/edit and linked FM/Inspector setup",
+        "Batch responsibility and target controls",
+        "Team/JW conditional permission states with revoke"
+      ],
+      "prepared": [
+        "web-workflow-extensions-hosted-journey.mjs"
+      ],
+      "prerequisites": [
+        "people",
+        "relationships"
+      ],
+      "note": "Prior failed extension modules do not establish these branches unless a durable independently asserted completed-check receipt exists."
+    },
+    {
+      "id": "EXIT-05",
+      "internal_remaining": [
+        "Authorized promotion category/file preview\u2192download/share fallback",
+        "Product preview/share and scoped existing-preset rename/history action"
+      ],
+      "retained_passes": [
+        "Own-profile upload/replace/detach",
+        "Source artwork/recolor",
+        "Catalogue with terms actual PDF",
+        "Reusable preset PNG reference append/download/comment-edit/detach and opaque branding file upload/download-only/detach",
+        "Conditional Team/JW UI permissions"
+      ],
+      "prepared": [
+        "web-content-media-hosted-journey.mjs",
+        "web-conditional-content-hosted-journey.mjs"
+      ],
+      "note": "Use fixed bounded source discovery. Missing staging media remains an explicit source gate; no production recovery or every-MIME upload matrix."
+    },
+    {
+      "id": "EXIT-06",
+      "internal_remaining": [
+        "Admin evidence-version stock reconciliation UI repair/history on exact owned mismatch",
+        "Final clean-build Masters leaf Color visible create/edit/archive with exact cleanup"
+      ],
+      "retained_passes": [
+        "Admin cities/zones/criteria121",
+        "Operator job/audit/cursor/foreign-denial and empty inbox reads140",
+        "Tracker Admin/Viewer16 scoped read checks"
+      ],
+      "prepared": [
+        "test_web_stock_reconciliation_hosted.py",
+        "test_web_tracker_colors_hosted.py"
+      ],
+      "externally_gated_not_new_internal_work": [
+        "Native CSV import apply",
+        "Native operator retry and nonempty provider fanout",
+        "Full data refresh/cutover"
+      ],
+      "note": "Colors now explicitly user-authorized; failed attempt had zero Color commands and cleaned temporary staff. Parent owns retry."
+    },
+    {
+      "id": "EXIT-07",
+      "internal_remaining": [
+        "Resolve demonstrated Worker/order/item SQL timeouts and measured common-API latency miss, then finite representative validation",
+        "Actual frozen-build Firefox and WebKit role navigation/read matrix",
+        "Native Safari core login/date/download/keyboard proof or explicit unmet human release gate",
+        "Final frozen-code affected security/local/build checks and exact measured responsive/accessibility outcomes"
+      ],
+      "retained_passes": [
+        "Full139 local2529 tests",
+        "Local15-case session coalescing and cancellation tests",
+        "13 populated axe scans and many scoped rendered responsive checks"
+      ],
+      "note": "No blind broad reruns; current SQL profiling and fixed samples determine necessary changes. WebKit is not native Safari."
+    },
+    {
+      "id": "EXIT-08",
+      "internal_remaining": [
+        "Reviewed production backend114\u2192current accepted prefix plus actual schema/Edge parity and refresh/frozen-ref fingerprints",
+        "Selective approved Git commit and verified Vercel project/environment/deep-link deployment",
+        "Final deployed Tracker and representative persona read smoke and rollback asset reference",
+        "Published115-row/14-actor evidence with explicit external gates and human UAT handoff"
+      ],
+      "retained_passes": [
+        "Staging140 exact rollback/application/source/crons guards",
+        "Clean build and current Git/Vercel read-only selection evidence"
+      ],
+      "note": "No production business writes, fresh data/media migration or ownership cutover just to claim parity."
+    }
+  ],
+  "external_gates": {
+    "Uniware": "user deferred",
+    "weekly_mail": "passed scoped actual Cron and five real inbox attachments",
+    "source_media": "report missing separately per environment",
+    "ownership_native_operators": "separate cutover/worker authorization; not silently included",
+    "human_UAT": "handoff, not automatable completion"
+  },
+  "changes_made": "Evidence review only; no code, database, hosted or Git mutation.",
+  "weighted_progress_changed": false
+}

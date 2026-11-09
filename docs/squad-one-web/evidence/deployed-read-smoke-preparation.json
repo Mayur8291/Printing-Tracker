@@ -1,0 +1,46 @@
+{
+  "format": "squad-deployed-read-smoke-preparation/v1",
+  "status": "local_prepared_independent_review_passed_not_hosted_acceptance",
+  "scope": "Reuse exact existing staging fixtures and cleanup: Tracker Admin/Viewer read-only, Squad11persona read-only login/navigation/unsaved forms. No production writes, application commands, providers or native handoff.",
+  "reviewed_receipt_schema": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "Exact allowlisted HTTPS Vercel origin",
+    "entry_path": "/assets/index-<actual-release>.js",
+    "entry_sha256": "64hex actual reviewed deployed entry digest",
+    "git_commit": "40hex actual release commit",
+    "deployment_id": "dpl_<actual reviewed Vercel deployment>"
+  },
+  "receipt_provenance_requirement": "Parent independently verifies actual Git/Vercel deployment commit and successful target before approving receipt. Harness pins entry bytes and unchanged receipt; it does not independently authenticate Git provenance or hash all lazy chunks. Production-mode deployment may differ from local staging bundle.",
+  "commands": {
+    "tracker_preflight": "PYTHONPATH=tools/squad tools/canto-sync/.venv/bin/python tools/squad/test_web_tracker_read_hosted.py --base https://scottdashboard.vercel.app --release-manifest <reviewed-release.json>",
+    "tracker_execute": "Same command plus --execute; creates2 exact-owned staging staff identities, no source write lease or Cron changes.",
+    "squad_preflight": "PYTHONPATH=tools/squad tools/canto-sync/.venv/bin/python tools/squad/test_web_cross_browser_hosted.py --engine firefox --base https://scottdashboard.vercel.app --release-manifest <reviewed-release.json>",
+    "squad_execute": "Same command plus --execute; existing isolated11persona fixture with exact source/Cron cleanup. Browser positive read allowlist blocks application commands and all production Supabase/legacy transports.",
+    "recovery": "Use the same wrapper --recover only for its existing exact checkpoint; no acceptance inferred."
+  },
+  "local_tests": {
+    "python": 53,
+    "javascript": 8,
+    "hosted_runs": 0
+  },
+  "source_hashes": {
+    "tools/squad/deployed_frontend_manifest.py": "0d30a9c3aec0706463a7019d806de22fdd8e566bad98e4cf72c4c80db9ae805e",
+    "tools/squad/browser_entry_manifest.py": "84e2b26053b1b6254e9a28a098f058ae720e4a2524d470f8c6b1f5581a6b9d88",
+    "tools/squad/test_web_cross_browser_hosted.py": "26798f4b6a82fda1f0ce990f96bf676b806c3a6d65695440bc77f6055e507be1",
+    "tools/squad/web-cross-browser-hosted.mjs": "9aa277d62131e376569cfae03f02645a12e8d110e67dc7fd9c20bd888d8bd001",
+    "tools/squad/test_web_tracker_read_hosted.py": "08eb3eec04a4505691f4fee45da474975d80bc48910af904ed8acc53d28b206c",
+    "tools/squad/test_deployed_frontend_manifest.py": "d27e13156df6ef700b6290d6c1784efcf2d487595e1d89e9e6a22fb68ea27e66",
+    "tools/squad/test_web_cross_browser_harness.py": "ca6fd957b9805a1fa29e7abd3d45d80c969bd70ebe9e0703302798ef3ab1b592",
+    "tools/squad/web-cross-browser-entry.test.mjs": "cb1fc5eaf0853882e9176a46a456f175297ced8c8c28cb825a5149fcb86f1170"
+  },
+  "remaining_gates": [
+    "Actual deployment commit/target/public-env/deep-link receipt",
+    "Actual final deployed smoke and cleanup",
+    "Native Safari and global performance scope remain separate"
+  ],
+  "independent_review": {
+    "reviewer": "web_operations_implementation",
+    "result": "GO",
+    "scope": "Strict origin/receipt/preflight, stage-before-module initialization, per-persona entry bytes, unchanged read-only transport, exact lifecycle/recovery and cloud-native rejection. No concrete blocker; no hosted execution."
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "format": "squad-connected-browser-partial-acceptance/v1",
+  "status": "overall_run_failed_completed_phases_preserved",
+  "environment": "staging",
+  "migration_count": 140,
+  "run_id": "47d4b3e7-97b2-4bed-b033-884dac47f87f",
+  "recorded_at": "2026-11-09T03:26:44.564791+00:00",
+  "frontend_target": "localhost React against staging Supabase",
+  "completed_phases": [
+    "people",
+    "relationships"
+  ],
+  "completed_checks": 7,
+  "journey_results": [
+    {
+      "name": "people",
+      "result": {
+        "checks": [
+          "fm_real_browser_tailor_subtailor_create_edit_exact_manager_parent_and_no_login_controls",
+          "admin_real_browser_team_sc_business_profile_create_edit_no_invites_or_workers",
+          "admin_real_browser_team_notes_only_grant_preserves_parent_child_constraints",
+          "sc_cannot_read_foreign_managed_workforce"
+        ],
+        "entities": {
+          "personIds": [
+            "7736",
+            "7737",
+            "7738",
+            "7739"
+          ]
+        },
+        "scope": "Four separately created business profiles through real forms; Tailor/SubTailor managed by own FM, Team/SC by Admin. Queued account intents remain unexecuted; no Auth provisioning or mail claimed."
+      },
+      "browser_errors": 0,
+      "network_violations": 0
+    },
+    {
+      "name": "relationships",
+      "result": {
+        "checks": [
+          "admin_isolated_dealer_brand_price_visibility_and_future_approval_settings_persist",
+          "sc_customer_price_visibility_and_admin_indirect_dealer_link_persist",
+          "coordinator_reassignment_removes_old_sc_access_and_restore_recovers_exact_customer"
+        ],
+        "entities": {
+          "personIds": [
+            "7740",
+            "7741"
+          ]
+        },
+        "scope": "Two new source-only business profiles, no login provisioning; no existing order routing changed. Automatic approval flag only, not automatic onboarding outcome; no zone routing, bulk reassignment, coordinator-request review or notification delivery claimed."
+      },
+      "browser_errors": 0,
+      "network_violations": 0
+    }
+  ],
+  "uncompleted_phases": [
+    "workflow-extensions"
+  ],
+  "failure": {
+    "reported_stage": "workflow-extensions Factory Manager detail/checklist",
+    "reported_failure": "SQL statement timeout",
+    "root_cause": "Under independent diagnosis; no cause inferred from adapter or cleanup."
+  },
+  "coverage_limits": [
+    "No workflow-extensions journey_result was persisted. Coordinator-request and bulk commands are not counted as completed UI branches from code or command UUIDs alone.",
+    "No complete people milestone, deployed acceptance or provider delivery claimed."
+  ],
+  "cleanup": {
+    "run_id": "47d4b3e7-97b2-4bed-b033-884dac47f87f",
+    "measured_at": "2026-11-09T03:24:56.271484+00:00",
+    "cleanup": {
+      "run_id": "47d4b3e7-97b2-4bed-b033-884dac47f87f",
+      "owned_commands": 30,
+      "owned_auth_revisions": 0,
+      "removed_source_rows": 79,
+      "removed_documents": 0,
+      "removed_queued_documents": 0,
+      "removed_processed_documents": 0,
+      "tables": {
+        "sa_users": 24,
+        "sa_factories": 2,
+        "sa_addresses": 3,
+        "sa_sizes": 1,
+        "sa_size_types": 1,
+        "sa_sc_sizes": 1,
+        "sa_base_product_types": 1,
+        "sa_base_products": 1,
+        "sa_categories": 1,
+        "sa_fabrics": 1,
+        "sa_colors": 1,
+        "sa_parts": 1,
+        "sa_add_ons": 1,
+        "sa_criteria": 1,
+        "sa_base_product_categories": 1,
+        "sa_base_product_fabrics": 1,
+        "sa_fabric_colors": 1,
+        "sa_base_product_parts": 1,
+        "sa_part_colors": 1,
+        "sa_add_on_parts": 1,
+        "sa_add_on_base_products": 1,
+        "sa_add_on_colors": 1,
+        "sa_base_size_types": 1,
+        "sa_authorized_brands": 1,
+        "sa_rmp_brands": 1,
+        "sa_rmp_categories": 1,
+        "sa_rmp_colors": 1,
+        "sa_rmp_classes": 1,
+        "sa_rmp_sizes": 1,
+        "sa_rmp_skus": 1,
+        "sa_rmp_price_types": 1,
+        "sa_rmp_prices": 1,
+        "sa_rmp_sku_prices": 1,
+        "sa_rmp_category_brands": 1,
+        "sa_products": 1,
+        "sa_orders": 1,
+        "sa_items": 1,
+        "sa_assigned_brands": 1,
+        "sa_customer_requests": 1,
+        "sa_item_criteria": 3,
+        "sa_item_tailors": 1,
+        "sa_job_sheet_assign_dates": 1,
+        "sa_job_sheet_assign_quantities": 1,
+        "sa_job_sheet_assign_tailors": 1,
+        "sa_mark_cuttings": 1,
+        "sa_product_part_add_ons": 1,
+        "sa_product_parts": 1,
+        "sa_quantities": 1,
+        "sa_user_dealers": 1,
+        "sa_item_tailor_quantities": 1,
+        "sa_mark_cutting_quantities": 1
+      },
+      "edit_revision_before": 1378,
+      "edit_revision_after": 1408,
+      "synced_revision_after": 1408,
+      "audit_and_commands_retained": true,
+      "jobs_terminalized": true,
+      "source_content_restored": true,
+      "staff_auth_preserved_during_cleanup": true,
+      "staff_auth_unchanged_since_fixture": true,
+      "independently_changed_staff_accounts": 0
+    },
+    "cutover_unchanged": true,
+    "cron_restored": true,
+    "public_structure_and_staff_auth_preserved": true
+  },
+  "provenance": {
+    "journal": {
+      "path": "tools/squad/private/business-47d4b3e7-97b2-4bed-b033-884dac47f87f.jsonl",
+      "sha256": "18c038d89e42358925d786f780296c5018eb65726a3f44a5877ea563e05fb9c7"
+    },
+    "cleanup_snapshot": {
+      "path": "docs/squad-one-web/evidence/last-business-cleanup.json",
+      "sha256": "ea07f372e977a46195765f64289cb32819313769498a05061c7ae4302c677245"
+    }
+  },
+  "overall_run_passed": false,
+  "new_milestone_awarded": false
+}

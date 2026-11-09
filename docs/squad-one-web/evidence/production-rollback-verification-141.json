@@ -1,0 +1,101 @@
+{
+  "format": "squad-production-rollback-verification/v1",
+  "measured_at": "2026-11-09T05:18:00.506655+00:00",
+  "environment": "production",
+  "target_prefix": 141,
+  "through": "20261109043010",
+  "mode": "rollback_verification_only",
+  "process_exit": 0,
+  "command": [
+    "tools/canto-sync/.venv/bin/python",
+    "tools/squad/release_web_production.py",
+    "--environment",
+    "production",
+    "--through",
+    "20261109043010"
+  ],
+  "release_result": {
+    "environment": "production",
+    "through": "20261109043010",
+    "mode": "rollback verification",
+    "migrations": [
+      "20261108175330_squad_web_session_and_configurator.sql",
+      "20261108180809_squad_customer_self_closure.sql",
+      "20261108181329_squad_order_assignment_filters.sql",
+      "20261108181835_squad_commerce_display_context.sql",
+      "20261108181938_squad_web_detail_reads.sql",
+      "20261108182150_squad_document_terms_attachments.sql",
+      "20261108183714_squad_order_amendment_context.sql",
+      "20261108184439_squad_scoped_jobsheet_queue.sql",
+      "20261108190645_squad_account_rehearsal.sql",
+      "20261108191503_squad_catalogue_terms_rehearsal.sql",
+      "20261108192922_squad_order_item_point_reads.sql",
+      "20261108192953_squad_work_search_controls.sql",
+      "20261108193525_squad_product_image_controls.sql",
+      "20261108194142_squad_sc_customer_account_status.sql",
+      "20261108194210_squad_order_due_sort.sql",
+      "20261108194747_squad_operational_item_views.sql",
+      "20261108194841_squad_branding_attachment_formats.sql",
+      "20261108195130_squad_target_controls.sql",
+      "20261108195629_squad_person_order_context.sql",
+      "20261108201002_squad_operational_context_reads.sql",
+      "20261108201737_squad_completed_order_priority.sql",
+      "20261108202002_squad_worker_order_context.sql",
+      "20261108202021_squad_worker_commitment_guard.sql",
+      "20261108202026_squad_backorder_quantity_choices.sql",
+      "20261108202457_squad_registration_profile_controls.sql",
+      "20261108202700_squad_catalogue_parent_options.sql",
+      "20261109024124_squad_weekly_schedule_safe_updates.sql",
+      "20261109043010_squad_worker_scope_index.sql"
+    ],
+    "added_companion_columns": [],
+    "source_tables_verified": 86,
+    "protected_data_unchanged": true,
+    "aligned_legacy_collations": 0,
+    "reviewed_post_commit_operational_changes": [],
+    "public_structure_unchanged": true,
+    "cutover": false,
+    "staging_artifacts_sha256": "d23b125ecbb3703f8a915704e7f8be8b4112594f7645985f57c93375b947bc51"
+  },
+  "exact_schedules_restored": true,
+  "captured_schedule_count": 8,
+  "owned_schedule_original_flags": [
+    {
+      "name": "squad-documents-pump",
+      "active": true
+    },
+    {
+      "name": "squad-jobs-minute",
+      "active": true
+    },
+    {
+      "name": "squad-media-cleanup",
+      "active": true
+    }
+  ],
+  "schedule_checkpoint_sha256": "2b5e2c21f79f74a2d204e446ed8ee0061ee963b629df15746975f7a3ee7c4016",
+  "post_rollback_readback": {
+    "migration_count": 113,
+    "migration_through": "20261108154028",
+    "proposed_index_absent": true,
+    "idle_production_mirror": true,
+    "test_writes_disabled": true,
+    "original_active_owned_schedules": 3
+  },
+  "production_baseline_hashes_unchanged": {
+    "tools/canto-sync/baselines/production-catalog.json": "7c399a02dba18f3f2f1a58c0253b92dea2363732cb88a1fc03d82d959e483311",
+    "tools/canto-sync/baselines/production-domain-access.json": "aaefcc566e2d4d07fc0b5085f10876166f3dd4ae4f1bfcc82f604081bf0803ca"
+  },
+  "both_recovery_checkpoints_absent": true,
+  "private_log_sha256": "2348c1cb655e6d7d164d269bf7012296de352ab648618f8909bef88bb7bd85a0",
+  "sql_applied": false,
+  "edge_deployed": false,
+  "data_refresh_executed": false,
+  "provider_called": false,
+  "cutover_changed": false,
+  "limitations": [
+    "This proves the exact reviewed141 SQL prefix can execute and roll back under existing protected-data guards; it is not a production upgrade or final Edge/backend parity acceptance.",
+    "Production remains113 and final apply/deployment is reserved for the parent after remaining acceptance.",
+    "Staging artifact reference was read-only; the independent staging browser fixture was not modified."
+  ]
+}

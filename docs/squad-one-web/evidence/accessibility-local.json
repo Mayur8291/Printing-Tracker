@@ -1,0 +1,91 @@
+{
+  "scope": "Local representative rendered components only; not hosted persona coverage or WCAG conformance",
+  "axe_version": "4.14.0",
+  "build_log": "/tmp/squad-ui-signal-build.log",
+  "scan_count": 13,
+  "violation_count": 0,
+  "scans": [
+    {
+      "name": "people-mobile",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "people-mobile-dark",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "people-desktop",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "people-edit-mobile",
+      "violations": [],
+      "manual_review": [
+        {
+          "rule": "aria-hidden-focus",
+          "targets": [
+            [
+              "span[data-radix-focus-guard=\"\"][data-aria-hidden=\"true\"]:nth-child(1)"
+            ],
+            [
+              "#root"
+            ],
+            [
+              "span[data-radix-focus-guard=\"\"][data-aria-hidden=\"true\"]:nth-child(6)"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "order-contact-mobile",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "order-contact-desktop",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "catalogue-mobile",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "catalogue-variants-mobile",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "registration-mobile",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "backorder-mobile",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "backorder-desktop",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "job-desktop",
+      "violations": [],
+      "manual_review": []
+    },
+    {
+      "name": "job-mobile",
+      "violations": [],
+      "manual_review": []
+    }
+  ],
+  "manual_keyboard": "Actual People command dialog: keyboard-only opening,16 Tabs stay contained, Escape closes and returns focus to trigger. Radix focus guards/background stay excluded from modal interaction. Not a screen-reader audit.",
+  "remaining": "Native Safari, real screen-reader review, all hosted role/route states, deployed device/field performance are separate acceptance gates."
+}

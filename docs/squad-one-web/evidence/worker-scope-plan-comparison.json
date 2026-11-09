@@ -1,0 +1,283 @@
+{
+  "format": "squad-worker-rollback-profile/v1",
+  "environment": "staging",
+  "samples": [
+    {
+      "phase": "after_due",
+      "plan_cache_mode": "force_custom_plan",
+      "component": "outer_order",
+      "role": "sa_app",
+      "outcome": "completed",
+      "plan": {
+        "Planning Time": 0.034,
+        "Execution Time": 43.178,
+        "Plan": {
+          "Node Type": "Result",
+          "Actual Startup Time": 43.156,
+          "Actual Total Time": 43.156,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 2244,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    },
+    {
+      "phase": "after_due",
+      "plan_cache_mode": "force_custom_plan",
+      "component": "scope_order_ids",
+      "role": "sa_executor",
+      "outcome": "completed",
+      "plan": {
+        "Planning Time": 0.025,
+        "Execution Time": 17.473,
+        "Plan": {
+          "Node Type": "ProjectSet",
+          "Actual Startup Time": 17.448,
+          "Actual Total Time": 17.451,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1693,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Result",
+              "Parent Relationship": "Outer",
+              "Actual Startup Time": 0.001,
+              "Actual Total Time": 0.002,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "phase": "after_due",
+      "plan_cache_mode": "force_custom_plan",
+      "component": "worker_scope_branch",
+      "role": "sa_guard",
+      "outcome": "completed",
+      "plan": {
+        "Planning Time": 0.208,
+        "Execution Time": 15.073,
+        "Plan": {
+          "Node Type": "Seq Scan",
+          "Relation Name": "sa_orders",
+          "Alias": "o",
+          "Actual Startup Time": 15.043,
+          "Actual Total Time": 15.044,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1656,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    },
+    {
+      "phase": "after_due",
+      "plan_cache_mode": "force_generic_plan",
+      "component": "outer_order",
+      "role": "sa_app",
+      "outcome": "completed",
+      "plan": {
+        "Planning Time": 0.035,
+        "Execution Time": 34.811,
+        "Plan": {
+          "Node Type": "Result",
+          "Actual Startup Time": 34.793,
+          "Actual Total Time": 34.794,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1999,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    },
+    {
+      "phase": "after_due",
+      "plan_cache_mode": "force_generic_plan",
+      "component": "scope_order_ids",
+      "role": "sa_executor",
+      "outcome": "completed",
+      "plan": {
+        "Planning Time": 0.024,
+        "Execution Time": 16.613,
+        "Plan": {
+          "Node Type": "ProjectSet",
+          "Actual Startup Time": 16.588,
+          "Actual Total Time": 16.591,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1678,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Result",
+              "Parent Relationship": "Outer",
+              "Actual Startup Time": 0.001,
+              "Actual Total Time": 0.002,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "phase": "after_due",
+      "plan_cache_mode": "force_generic_plan",
+      "component": "worker_scope_branch",
+      "role": "sa_guard",
+      "outcome": "completed",
+      "plan": {
+        "Planning Time": 0.208,
+        "Execution Time": 15.048,
+        "Plan": {
+          "Node Type": "Seq Scan",
+          "Relation Name": "sa_orders",
+          "Alias": "o",
+          "Actual Startup Time": 15.02,
+          "Actual Total Time": 15.021,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1656,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    }
+  ],
+  "setup_steps": [
+    {
+      "role": 3,
+      "contract": "v1_product_configure",
+      "elapsed_ms": 1271.697875000001,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 3,
+      "contract": "v1_quote",
+      "elapsed_ms": 233.62550000000226,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 3,
+      "contract": "v1_order_place",
+      "elapsed_ms": 434.4793749999951,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_order_get",
+      "elapsed_ms": 154.2449579999925,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_order_assign_worker",
+      "elapsed_ms": 994.4002499999982,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_order_item_get",
+      "elapsed_ms": 1957.474665999996,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_worker_cost_save",
+      "elapsed_ms": 85.45004099998721,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 11,
+      "contract": "v1_order_get",
+      "elapsed_ms": 78.32604200000048,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 11,
+      "contract": "v1_worker_due_save",
+      "elapsed_ms": 162.1166249999959,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    }
+  ],
+  "external_calls": 0,
+  "committed_fixture_rows": 0,
+  "sequence_policy": "Ordinary nextval gaps may remain; sequences are never reset.",
+  "measurement": "One SQL connection after actual Worker due change: forced custom versus generic plans for existing order RPC, scope helper, and exact parameterized Worker branch under its original guard role. No historical/live predicate changes. No HTTP/concurrent-load claim.",
+  "settings": {
+    "statement_timeout": "8s",
+    "lock_timeout": "2s",
+    "jit": "off",
+    "plan_cache_mode": "auto",
+    "work_mem": "2184kB"
+  },
+  "function_sha256": {
+    "sa_domain.v1_order_get(bigint,text,integer)": "d6415c4d76e1fc96b046fe59cb3f3be523da31d33e06eced9d50a3f14cb9ad3b",
+    "sa_domain.v1_order_get(bigint,text,integer,text)": "1d7fb100ec9631b529774431de4d1609a0106ef999205d60476411fc4696d8ef",
+    "sa_domain.actor()": "7f6ea7015312d67ef281d1b0de1f85d1b80f7867137f9e215c29976f0eea2765",
+    "sa_domain.auth_context()": "c1b52cc1847fac9967daeafaf598551c3fff6c725cea41c09d628ecdd0f707c8",
+    "sa_domain.scope_order_ids()": "73ca6c0e5db0e6f89583802a6512e824156769319967e8752efb1a22226e54f9",
+    "sa_domain.can_item(bigint)": "0c6b842bdb090ca98445c2c893ae9270012a7525f03c2f63a9a2f6675588891e",
+    "sa_domain.order_dispatch_destination(bigint)": "ff7bc17e20c3ccc31cacfb6fe2d0d948f1acd90a04ce962c6724cb0b0f9e8b7c",
+    "sa_domain.worker_order_context(bigint,bigint,integer)": "d3ea625ff6f9309001f12c6c692a394cab78bd164c20c59f4b0be3f3d1b7e8b9"
+  },
+  "rollback_verified": true,
+  "all_components_completed": true
+}

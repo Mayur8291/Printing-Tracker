@@ -1,0 +1,179 @@
+{
+  "documents": [
+    {
+      "kind": "delivery_challan",
+      "document_id": "62a7cd80-7be2-43c0-a57a-458a66291fa0",
+      "job_id": "d9c4ec37-6beb-4404-aa13-b725c77018e7",
+      "bytes": 14198,
+      "sha256": "cad2df7691d2a4140d81be9ca4a04b92b1eb8f91cacf132356573a8b79a65f0e",
+      "pages": 1,
+      "queued_to_ready_without_reload": true,
+      "browser_prepare_download": true,
+      "browser_open_pdf": true,
+      "browser_pdf_link": {
+        "mode": "download",
+        "completed": true,
+        "bytes": 14198,
+        "sha256": "cad2df7691d2a4140d81be9ca4a04b92b1eb8f91cacf132356573a8b79a65f0e"
+      },
+      "private_storage": true,
+      "foreign_authenticated_denied": true,
+      "unauthenticated_denied": true,
+      "public_storage_denied": true,
+      "download_expiry_seconds": 120,
+      "timings": [
+        {
+          "step": 0,
+          "wall_ms": 4464,
+          "states": [
+            "done"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "tailor_weekly",
+      "document_id": "f566a9db-ac77-4bc3-a775-6d1211ba95f8",
+      "job_id": "48abc25a-7ee4-4739-a826-a21a534b3913",
+      "bytes": 13298,
+      "sha256": "caeffee6ee9019e3a65a8d6edbc40793b9943f4264a114dadb3e31a568314201",
+      "pages": 1,
+      "queued_to_ready_without_reload": true,
+      "browser_prepare_download": true,
+      "browser_open_pdf": true,
+      "browser_pdf_link": {
+        "mode": "download",
+        "completed": true,
+        "bytes": 13298,
+        "sha256": "caeffee6ee9019e3a65a8d6edbc40793b9943f4264a114dadb3e31a568314201"
+      },
+      "private_storage": true,
+      "foreign_authenticated_denied": true,
+      "unauthenticated_denied": true,
+      "public_storage_denied": true,
+      "download_expiry_seconds": 120,
+      "timings": [
+        {
+          "step": 0,
+          "wall_ms": 3210,
+          "states": [
+            "done"
+          ]
+        }
+      ]
+    }
+  ],
+  "real_browser": true,
+  "deployed_renderer": true,
+  "emails_sent": 0,
+  "providers_called": 0,
+  "visual_review_required": true,
+  "scope": "Two exact registered download jobs; browser request/progress/private PDF link and bytes; no ordinary queue drain or catalogue rendering",
+  "browser_errors": 0,
+  "network_violations": 0,
+  "pdf_content": [
+    {
+      "kind": "delivery_challan",
+      "pages": 1,
+      "content_verified": true,
+      "text_characters": 721,
+      "fixture_items_only": true,
+      "layout_review_required": true
+    },
+    {
+      "kind": "tailor_weekly",
+      "pages": 1,
+      "content_verified": true,
+      "text_characters": 491,
+      "fixture_items_only": true,
+      "layout_review_required": true
+    }
+  ],
+  "private_artifact_directory": "tools/squad/private/web-document-outputs/aec91653-6ae2-421e-8dc7-4d845c9126f8",
+  "browser_journey_checks": 21,
+  "cleanup": {
+    "run_id": "aec91653-6ae2-421e-8dc7-4d845c9126f8",
+    "owned_commands": 62,
+    "owned_auth_revisions": 0,
+    "removed_source_rows": 143,
+    "removed_documents": 3,
+    "removed_queued_documents": 1,
+    "removed_processed_documents": 2,
+    "tables": {
+      "sa_users": 18,
+      "sa_factories": 2,
+      "sa_addresses": 5,
+      "sa_sizes": 1,
+      "sa_size_types": 1,
+      "sa_sc_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_base_size_types": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
+      "sa_rmp_category_brands": 1,
+      "sa_products": 3,
+      "sa_orders": 7,
+      "sa_items": 8,
+      "sa_ratings": 3,
+      "sa_back_order_links": 1,
+      "sa_item_criteria": 18,
+      "sa_item_tailors": 2,
+      "sa_job_sheet_assign_dates": 2,
+      "sa_job_sheet_assign_quantities": 2,
+      "sa_job_sheet_assign_tailors": 2,
+      "sa_job_sheet_dispatched_dates": 4,
+      "sa_job_sheet_mark_tailors": 2,
+      "sa_job_sheet_tailor_mark_dates": 1,
+      "sa_mark_cuttings": 2,
+      "sa_mark_tailor_quantities": 2,
+      "sa_product_part_add_ons": 3,
+      "sa_product_parts": 3,
+      "sa_quantities": 8,
+      "sa_stocks": 2,
+      "sa_user_dealers": 1,
+      "sa_dispatched_quantities": 4,
+      "sa_item_tailor_quantities": 2,
+      "sa_mark_cutting_quantities": 2,
+      "sa_stock_useds": 3
+    },
+    "edit_revision_before": 1477,
+    "edit_revision_after": 1539,
+    "synced_revision_after": 1539,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": false,
+    "independently_changed_staff_accounts": 1
+  },
+  "cutover_unchanged": true,
+  "cron_restored": true,
+  "source_content_restored": true,
+  "immutable_audits_retained": true,
+  "environment": "staging",
+  "run_id": "aec91653-6ae2-421e-8dc7-4d845c9126f8",
+  "measured_at": "2026-11-09T04:54:11.708126+00:00"
+}

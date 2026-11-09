@@ -1,0 +1,52 @@
+{
+  "scope": "Frozen production artifact with synthetic staff membership and local read responses only; not hosted CRUD/refresh/realtime acceptance",
+  "entry": "/assets/index-CmIDpT67.js",
+  "entrySha256": "10743fcda1843e308268964ea1470c716312a0b107455be4d29cd6293d4228ac",
+  "cases": [
+    {
+      "membership": "admin",
+      "checks": [
+        "verified_staff_membership_routes_to_legacy_tracker",
+        "tracker_lazy_chunk_only",
+        "no_profile_create_or_promotion",
+        "desktop_no_page_overflow",
+        "existing_printing_orders_entry_renders",
+        "existing_masters_entry_renders",
+        "existing_data_refresh_entry_renders"
+      ],
+      "errors": [],
+      "publicReadCount": 29
+    },
+    {
+      "membership": "viewer",
+      "checks": [
+        "verified_staff_membership_routes_to_legacy_tracker",
+        "tracker_lazy_chunk_only",
+        "no_profile_create_or_promotion",
+        "desktop_no_page_overflow"
+      ],
+      "errors": [],
+      "publicReadCount": 28
+    },
+    {
+      "membership": "none",
+      "checks": [
+        "missing_staff_membership_denied_before_legacy_import"
+      ],
+      "errors": []
+    }
+  ],
+  "blockedWrites": [
+    {
+      "membership": "admin",
+      "path": "/rest/v1/rpc/set_my_dashboard_presence",
+      "method": "POST"
+    },
+    {
+      "membership": "viewer",
+      "path": "/rest/v1/rpc/set_my_dashboard_presence",
+      "method": "POST"
+    }
+  ],
+  "unexpectedRequests": []
+}

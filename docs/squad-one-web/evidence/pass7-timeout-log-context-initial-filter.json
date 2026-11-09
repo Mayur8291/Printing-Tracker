@@ -1,0 +1,11 @@
+{
+  "format": "squad-original-timeout-log-context/v1",
+  "environment": "staging",
+  "window_start": "2026-11-09T03:45:00Z",
+  "window_end": "2026-11-09T04:00:00Z",
+  "row_count": 0,
+  "context_functions": [],
+  "query_error_present": false,
+  "raw_logs_saved": false,
+  "source": "https://supabase.com/docs/reference/api/v1-get-project-logs"
+}

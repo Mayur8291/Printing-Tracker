@@ -1,0 +1,43 @@
+{
+  "format": "squad-publication-delta-review/v1",
+  "reviewed_at": "2026-11-09T05:50:37.637929+00:00",
+  "scope": "Owned media automated scope and recovered native partial; no complete native/whole-media claim.",
+  "approved_exact_files": [
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-141-recovery.json",
+      "sha256": "2f753dc3d2af1da609ded145dfcdbafdeaff085d8c851d5f7179e3ac5b8fbfeb",
+      "bytes": 2321,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-8e07-visual-review.json",
+      "sha256": "b946cd2ed839370ab8f4aa3fab59bec1b15248fcc00ef691dbf0952451046615",
+      "bytes": 1784,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-141-scoped.json",
+      "sha256": "8467eac59922b507be767a18d094f748de68c2030870284e978b52364d9fc0b0",
+      "bytes": 6206,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/native-safari-owned-media-141-recovery-supplement.json",
+      "sha256": "97376d019b3f0445a57349cdd8a201cbec87078083a66651b18279294abdfbdd",
+      "bytes": 1104,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/native-safari-owned-media-141-partial.json",
+      "sha256": "88d643aac32e78237049cda28cbb776097b0819ef5bb35a1aa9345cfe4a62eaf",
+      "bytes": 1557,
+      "publication": "approved_exact_hash_only"
+    }
+  ],
+  "inspection": "Fixture IDs/names, fixed build identity, byte hashes, aggregate checks and cleanup only; private visual artifacts remain relative path/hash references. No contact records, credentials, signed URLs, raw log text or embedded images.",
+  "excluded": [
+    "All private screenshots/logs/verified report originals",
+    "Downloaded PNG bytes"
+  ],
+  "limitations": "Changed files require fresh hash review; this privacy review adds no acceptance."
+}

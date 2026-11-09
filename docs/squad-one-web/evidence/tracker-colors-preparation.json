@@ -1,0 +1,185 @@
+{
+  "format": "tracker-colors-preparation/v1",
+  "status": "prepared_local_passed_hosted_authorized_acceptance_pending",
+  "gate": "EXIT-06",
+  "scope": {
+    "environment": "staging",
+    "staff_accounts_created": 1,
+    "existing_staff_edited": 0,
+    "source_records_created": 1,
+    "resource": "colors",
+    "visible_actions": [
+      "create",
+      "edit",
+      "archive"
+    ],
+    "cleanup": "Remove only exact audit-bound synthetic Colors row and run-marked Admin/Auth/profile/auto-channel membership; retain audit/command rows and monotonically acknowledge exactly proven net-zero revision delta.",
+    "paused_schedules": "Exact existing Squad schedule definitions/active states preserved and restored; queued owned master.saved jobs terminalized without execution.",
+    "no_actions": [
+      "full refresh",
+      "native cutover",
+      "Squad write lease",
+      "provider sends",
+      "media upload",
+      "CSV",
+      "bulk edit",
+      "real user changes"
+    ]
+  },
+  "authorization_boundary": "User explicitly approved one separate staging Admin plus one owned Color create/edit/archive and exact cleanup. Parent alone executes the serialized hosted run; original read-only Tracker scope is unchanged.",
+  "authorization_model": "Actual authenticated platform admin plus live session, required by existing Masters contract. Squad sa_app identities/mirror leases cannot authorize Masters.",
+  "frontend": {
+    "base": "http://127.0.0.1:5186/",
+    "manifest": "docs/squad-one-web/evidence/clean-web-build-execution.json",
+    "entry_path": "/assets/index-BTsRt4gB.js",
+    "entry_sha256": "51e8448aeb60144dfaa3875a2252e1af60084cb2a994010d6c8469a2078a7f29",
+    "local_render_used_exact_clean_dist": true
+  },
+  "local_tests": {
+    "sql_cleanup_provenance": {
+      "count": 8,
+      "passed": true,
+      "database": "squad_test_web",
+      "all_rolled_back": true
+    },
+    "lifecycle_boundaries": {
+      "count": 6,
+      "passed": true
+    },
+    "request_policy": {
+      "count": 3,
+      "passed": true
+    },
+    "actual_built_react_synthetic_transport": {
+      "count": 3,
+      "passed": true,
+      "checks": [
+        "visible_color_create_and_readback",
+        "visible_color_edit_and_readback",
+        "visible_color_archive_and_readback"
+      ]
+    }
+  },
+  "independent_review": {
+    "ui_agent": "GO: exact owned-record hydration wait, restrictive transport journal, rendered create/edit/archive screenshots and scoped empty state; local proof only",
+    "parent": "Reviewed bounded receipt/revision/xmin/FK/source-netzero checks and unchanged staff helper; no concrete blocker identified"
+  },
+  "fences": [
+    "Exclusive publication lock during plan/setup/cleanup; released for bounded browser because existing Masters requires exclusive per-command fence.",
+    "No durable source ownership freeze claimed while browser runs; generation/watermark/audit/revision/source-digest drift rejects cleanup and retains checkpoint.",
+    "Unknown browser shutdown keeps identities and paused schedules; no automatic cleanup or retry."
+  ],
+  "commands": {
+    "preflight": "tools/canto-sync/.venv/bin/python tools/squad/test_web_tracker_colors_hosted.py",
+    "execute_after_authorization": "tools/canto-sync/.venv/bin/python tools/squad/test_web_tracker_colors_hosted.py --execute",
+    "recover_only_after_confirmed_browser_shutdown": "tools/canto-sync/.venv/bin/python tools/squad/test_web_tracker_colors_hosted.py --recover"
+  },
+  "recovery": {
+    "checkpoint": "tools/squad/private/tracker-colors-checkpoint.json",
+    "normal": "With browser closure confirmed by successful child exit, --recover validates immutable journal, exact source/audit ownership and unchanged environment before removal; restores exact schedules and writes fsynced cleanup receipt before deleting checkpoint.",
+    "unconfirmed_browser": "--recover intentionally refuses while browser_shutdown_unconfirmed=true. Integrator must inspect/close the exact harness-owned Chrome process/context, record reviewed shutdown evidence for the exact run, and explicitly clear only that marker in the private checkpoint before retry. There is no generic CLI bypass and no browser shutdown inferred from elapsed time.",
+    "cleanup_refusal": "Preserve checkpoint, identities, source row and paused schedules for review; do not delete audits, rewind revisions, truncate foreign data, force cleanup or run refresh."
+  },
+  "files": [
+    {
+      "path": "tools/squad/tracker_colors_fixture.py",
+      "sha256": "7b412e645d8ec287035dd245afd87e549e9b5c144ffa7a175b6121b05c653d52"
+    },
+    {
+      "path": "tools/squad/test_tracker_colors_fixture.py",
+      "sha256": "7ba2f56bf717e0c7a750bf42f41b056b24d066a7edf9385e83fa27ddb7631ce4"
+    },
+    {
+      "path": "tools/squad/test_web_tracker_colors_hosted.py",
+      "sha256": "131e7d6d11b8597f3913d08f1a0e310f7856f4e5da5636143996e96bc48a19b5"
+    },
+    {
+      "path": "tools/squad/test_tracker_colors_wrapper.py",
+      "sha256": "2242f479e79f023503e9cc8f94f1a7b1a01aac1634f8fa57d086e5be4edd78d4"
+    },
+    {
+      "path": "tools/squad/web-tracker-colors-policy.mjs",
+      "sha256": "612103e93f85f0dd3a2206bc89a2fd12b482fe7daea2401fb6c57385fbda1be0"
+    },
+    {
+      "path": "tools/squad/web-tracker-colors-policy.test.mjs",
+      "sha256": "d1761a2dcc209bfa8efecd259a84fc340938055af691e9d85dcb9e08f1b11dc9"
+    },
+    {
+      "path": "tools/squad/web-tracker-colors-hosted.mjs",
+      "sha256": "1554499d23b3936d68a9592864fb24a1175a4f9fb092dada285cd8035a52571d"
+    },
+    {
+      "path": "tools/squad/web-tracker-colors-browser.mjs",
+      "sha256": "617bd9c082a5980d441ec77fef0d90da20ca51ce0ab428aa3587fc684026d36f"
+    }
+  ],
+  "transport_diagnostic_followup": {
+    "recorded_at": "2026-11-09T04:15:40.212160+00:00",
+    "prior_hosted_result": "Create failed before any journaled mutation; parent confirmed exact Auth/membership cleanup and zero Colors/revision changes.",
+    "root_cause": "Not yet proven. Existing staging OPTIONS policy already permits preflight.",
+    "local_native_cors": {
+      "test": "tools/squad/web-tracker-colors-cors.test.mjs",
+      "passed": 1,
+      "proof": "Real two-origin loopback Chrome native preflight then scoped POST; foreign payload denied before backend."
+    },
+    "policy_and_diagnostic_tests": {
+      "test": "tools/squad/web-tracker-colors-policy.test.mjs",
+      "passed": 4
+    },
+    "actual_current_clean_build_synthetic_ui": "Three create/edit/archive checks pass. No hosted transport claim.",
+    "policy_widened": false,
+    "private_diagnostics": "Bounded phase/contract/decision/key-shape and failed network class; payload values, credential headers and URL query excluded.",
+    "files": {
+      "tools/squad/web-tracker-colors-hosted.mjs": "9ac7f138e957c34adf66969ae0ced88cee724ad9da7599be6b7f4671c0c9f9b2",
+      "tools/squad/web-tracker-colors-cors.test.mjs": "2589fc9a31027dc67d6a7d488a898437536ae0d5b5bf19532c7102d553ef9fc3",
+      "tools/squad/web-tracker-colors-policy.test.mjs": "033955af1926e8809b110728d0032e6338ddf3545b49276da2cd71c9c82ac61e"
+    },
+    "capability_response_diagnostic": "Only HTTP status and two expected-feature equality booleans retained; no response body."
+  },
+  "interception_correction": {
+    "recorded_at": "2026-11-09T04:26:45.652151+00:00",
+    "confirmed_failure_run": "a34246fd-0c37-417a-a6ac-2c321bd81dc0",
+    "cause": "Production harness mutation sequence check called Array.index instead of Array.indexOf; threw before journal append/send. Request policy correctly allowed the exact mutation.",
+    "fix": "Use indexOf in shared production journalColorsMutation callback; preserve journal-before-send and exact phase checks.",
+    "application_or_policy_changed": false,
+    "tests": {
+      "command": "node --test tools/squad/web-tracker-colors-journal.test.mjs tools/squad/web-tracker-colors-policy.test.mjs tools/squad/web-tracker-colors-cors.test.mjs",
+      "passed": 6,
+      "proof": [
+        "Real native two-origin Chrome OPTIONS/POST",
+        "Actual production interception callback and real fsynced0600 journal for create/edit/archive",
+        "Server observes journal before each exact POST",
+        "Out-of-order and duplicate phases refuse before transport and preserve prior journal",
+        "Foreign payload remains denied by unchanged policy",
+        "Diagnostics exclude values, credential headers and URL query"
+      ]
+    },
+    "files": {
+      "tools/squad/web-tracker-colors-hosted.mjs": "80306feb00d3ae3731926ad1ec601767491dd506fba686e5e1ddc70663966a7d",
+      "tools/squad/web-tracker-colors-journal.test.mjs": "7ad911ef9d9f4433e6a873842a59752f0f01414600c32f47da8d40fcfe660172"
+    },
+    "hosted_success_claimed": false,
+    "failed_run_disposition": {
+      "run_id": "a34246fd-0c37-417a-a6ac-2c321bd81dc0",
+      "cleanup_receipt": {
+        "path": "tools/squad/private/tracker-colors-a34246fd-0c37-417a-a6ac-2c321bd81dc0/cleanup-receipt.json",
+        "sha256": "90117b5f63ade76dc9dfa1805f1f01cd506aa31d1244d0b582b19f306005042d"
+      },
+      "source_content_restored": true,
+      "color_commands": 0,
+      "domain_commands": 0,
+      "removed_colors": 0,
+      "removed_owned_auth": 1,
+      "removed_owned_memberships": 1,
+      "business_revision_unchanged": true,
+      "cron_restored": true,
+      "public_structure_unchanged": true,
+      "acceptance": false,
+      "request_policy_allowed_exact_mutation": true,
+      "cors_cause_established": false,
+      "journal_entries": 0
+    },
+    "root_review": "GO; no source/app/policy change, exact production callback tested."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "squad-native-safari-focus/v1",
+  "observed_at": "2026-11-09T06:10:56.136503+00:00",
+  "status": "passed",
+  "browser": "Safari26.1 (21622.2.11.11.9)",
+  "fixture": "http://127.0.0.1:5190",
+  "scope": "Actual React ProductShareToolbar/ProductShareDialog in account-free local synthetic fixture. No hosted request, account, credential, file grant or business mutation. This is a focused supplement, not a replay of hosted media acceptance.",
+  "source_sha256": {
+    "apps/admin/src/squad/features/catalogue/CataloguePage.jsx": "2895b856d3784087e8e7b1270d547a8451bc3de9ea54d7d29ef347154d117828",
+    "apps/admin/src/squad/features/catalogue/ProductShareDialog.jsx": "8be930787dc23969ffd90514c60b0064340efea536989abfdc6c75e8208f5fe0",
+    "tools/squad/web-product-share-focus-browser.mjs": "fb62779ec298c71464ef9e5c69e36dc678527b09c93278459b493d792b0ed2a6"
+  },
+  "independent_review": {
+    "result": "GO",
+    "reason": "Opener captured from event.currentTarget; close autofocus targets only the still-connected enabled original trigger. No media/share/download handler changes."
+  },
+  "checks": {
+    "pointer_open_escape_returns_opener": true,
+    "keyboard_return_opens_dialog": true,
+    "option_tab_stays_in_dialog": true,
+    "keyboard_escape_returns_opener": true,
+    "visible_focus_ring_after_keyboard_escape": true,
+    "explicit_close_returns_opener": true,
+    "fixture_window_closed": true
+  },
+  "observed_focus_label": "Review and share",
+  "observation_methods": [
+    "Native Safari accessibility focus state",
+    "Fixture-visible Current focus status derived from document.activeElement",
+    "Native screenshot inspected for visible focus ring"
+  ],
+  "closes_finding_from": "docs/squad-one-web/evidence/native-safari-owned-media-b6e764b1.json",
+  "deployment_not_inferred": true
+}

@@ -1,0 +1,67 @@
+{
+  "format": "squad-stock-fixture-role-review/v1",
+  "scope": "Local-only hosted-fixture role restoration and bounded pending helper scan; not hosted browser acceptance.",
+  "files": {
+    "tools/squad/web_stock_fixture.py": "0f3e0a46bd24b0572177483acb5cf9e7985c736b3247335ea235845ba594fd27",
+    "tools/squad/test_web_stock_fixture.py": "c56a8324bd8de3a0e9f09ffb8f3ce17ed0449c0438ea6c295460a9561f88c416"
+  },
+  "fix": "Capture existing current_user and restore with quoted SET LOCAL ROLE, not RESET ROLE. No grants, privilege escalation, RPC changes or nested savepoints. Preserve original SQL errors for whole-setup rollback.",
+  "local_tests": {
+    "command": "SQUAD_TEST_DATABASE=squad_test_web ../Canto/canto-sync/.venv/bin/python tools/squad/test_web_stock_fixture.py",
+    "passed": 6,
+    "failed": 0,
+    "new_cases": [
+      "Restricted NOINHERIT session_user differs from privileged current_user; raw receipt query and exact cleanup succeed with original xmin.",
+      "Final RPC SQL error keeps original error, then whole-setup rollback removes source changes, owned Auth and all commands."
+    ]
+  },
+  "pending_helper_scan": {
+    "roots": [
+      "test_web_business_hosted",
+      "test_web_document_outputs_hosted",
+      "test_web_cross_browser_hosted",
+      "test_web_catalogue_media_hosted"
+    ],
+    "modules": [
+      "browser_entry_manifest",
+      "business_cleanup_accounts",
+      "business_cleanup_documents",
+      "business_fixture_commercial",
+      "business_fixture_commercial_extras",
+      "business_fixture_weekly_mail",
+      "business_nested_milestones",
+      "canonical_fixture_location",
+      "deploy",
+      "document_output_recovery",
+      "native_safari_handoff",
+      "release_mirror",
+      "test_hosted_business_journeys",
+      "test_hosted_personas",
+      "test_web_business_hosted",
+      "test_web_catalogue_media_hosted",
+      "test_web_cross_browser_hosted",
+      "test_web_document_outputs_hosted",
+      "verify_mirror_parity",
+      "web_catalogue_media_recovery",
+      "web_catalogue_terms_recovery",
+      "web_document_output_binding",
+      "web_media_recovery"
+    ],
+    "module_count": 23,
+    "reset_role_hits": [],
+    "limit": "Only reachable local Python imports of these four pending wrappers; local-only test cases and historical benchmarks are not treated as hosted execution paths."
+  },
+  "references": [
+    "https://www.postgresql.org/docs/current/sql-set-role.html"
+  ],
+  "failed_hosted_run": {
+    "run_id": "17e1ddb1-75f4-4c54-a20e-91569e3dbc70",
+    "browser_acceptance": false,
+    "cleanup_independent_verification": "Parent verified exact rehearsal.cleanup audit: source restored, owned_commands0, revisions unchanged1468, staff/Auth unchanged and documents0; evidence/staging-release-141.json. Raw removed_source_rows53 describes planned graph roots after rollback, not53 proven actual deletions."
+  },
+  "independent_review": {
+    "reviewer": "commerce lane",
+    "decision": "GO",
+    "scope": "Static role/error/xmin boundary and focused local tests reviewed; no independent shared-DB rerun during active release."
+  }
+}

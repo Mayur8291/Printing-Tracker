@@ -1,0 +1,19 @@
+{
+  "format": "squad-refresh-catalog-check/v1",
+  "measured_at": "2026-11-09T05:56:33.796091+00:00",
+  "environments": {
+    "staging": {
+      "catalog_and_domain_access_match": true
+    },
+    "production": {
+      "catalog_and_domain_access_match": true
+    }
+  },
+  "refresh_executed": false,
+  "baseline_sha256": {
+    "staging-catalog.json": "9806fdf8260b3d45b779dbae81fb5887a6f2d28ca5ed90cd8e23a58a27d282ec",
+    "production-catalog.json": "6f82af6e22eb7cb7a8c6fe2c2c5609b8b72de6f2bbf0fb1e3a870efcc60520cc",
+    "staging-domain-access.json": "10ac092808a3495fe1a1f989a6739fece803f5baa29dfb84b05a4ea33bbe02e3",
+    "production-domain-access.json": "10ac092808a3495fe1a1f989a6739fece803f5baa29dfb84b05a4ea33bbe02e3"
+  }
+}

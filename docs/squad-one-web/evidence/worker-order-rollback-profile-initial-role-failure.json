@@ -1,0 +1,80 @@
+{
+  "format": "squad-worker-rollback-profile/v1",
+  "environment": "staging",
+  "samples": [],
+  "setup_steps": [
+    {
+      "role": 3,
+      "contract": "v1_product_configure",
+      "elapsed_ms": 1383.5369170000008,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 3,
+      "contract": "v1_quote",
+      "elapsed_ms": 277.34291599999494,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 3,
+      "contract": "v1_order_place",
+      "elapsed_ms": 462.934790999995,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_order_get",
+      "elapsed_ms": 162.7301660000029,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_order_assign_worker",
+      "elapsed_ms": 1527.703833000004,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_order_item_get",
+      "elapsed_ms": 1989.4320410000005,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    },
+    {
+      "role": 2,
+      "contract": "v1_worker_cost_save",
+      "elapsed_ms": 98.91770800000188,
+      "outcome": "completed",
+      "sqlstate": null,
+      "context_functions": []
+    }
+  ],
+  "external_calls": 0,
+  "committed_fixture_rows": 0,
+  "sequence_policy": "Ordinary nextval gaps may remain; sequences are never reset.",
+  "measurement": "One SQL connection, actual command-created custom order before/after Worker commitment. Component plans preserve original role/RLS; no HTTP or concurrent-load claim.",
+  "settings": {
+    "statement_timeout": "8s",
+    "lock_timeout": "2s",
+    "jit": "off",
+    "plan_cache_mode": "auto",
+    "work_mem": "2184kB"
+  },
+  "rollback_verified": true,
+  "all_components_completed": false,
+  "setup_failed": true,
+  "failure_type": "InsufficientPrivilege",
+  "failure_sqlstate": "42501",
+  "failure_context_functions": []
+}

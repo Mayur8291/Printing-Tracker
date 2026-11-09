@@ -1,0 +1,59 @@
+{
+  "format": "squad-weekly-mail-failure/v1",
+  "environment": "staging",
+  "run_id": "0bb5b80d-9257-4bce-8cec-83ff464d199c",
+  "status": "failed_before_mail_capability_registration_cleanup_verified",
+  "failure": {
+    "contract": "canto_api.v1_weekly_tailor_schedule_configure",
+    "sqlstate": "21000",
+    "reason": "Hosted pg-safeupdate rejected singleton UPDATE without explicit WHERE predicate."
+  },
+  "email_acceptance": false,
+  "smtp_messages_sent": 0,
+  "no_send_proof": {
+    "registered_capability": false,
+    "temporary_mail_cron": null,
+    "weekly_result_present": false,
+    "reason": "Failure occurred before registering the capability or its mail Cron; capability-bound worker could not send."
+  },
+  "cleanup": {
+    "proof": "Read-only sa_domain.audit changes row with operation=rehearsal.cleanup and exact run command_key; no new fixture/hash recomputation.",
+    "owned_commands": 121,
+    "removed_source_rows": 217,
+    "removed_documents": 4,
+    "removed_processed_documents": 0,
+    "removed_queued_documents": 4,
+    "owned_auth_revisions": 0,
+    "edit_revision_before": 1036,
+    "edit_revision_after": 1157,
+    "synced_revision_after": 1157,
+    "source_content_restored": true,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "staff_auth_unchanged_since_fixture": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "independently_changed_staff_accounts": 0
+  },
+  "cron_restore_observation": [
+    {
+      "jobid": 6,
+      "expected_active": true,
+      "observed_active": true
+    },
+    {
+      "jobid": 7,
+      "expected_active": true,
+      "observed_active": true
+    },
+    {
+      "jobid": 13,
+      "expected_active": true,
+      "observed_active": true
+    }
+  ],
+  "cron_definition_hashes_rechecked": false,
+  "active_business_checkpoint_observed": false,
+  "archive_sha256": "02d3a82d95d34d8a55fd50d67dcb2d00581a91d629187a66a1c403844d306130",
+  "fix_pending": "Additive140 explicit singleton WHERE predicates; release and actual mail run remain separate.",
+  "recorded_at": "2026-11-09T02:49:38.763606+00:00"
+}

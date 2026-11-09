@@ -7290,6 +7290,11 @@
       "CREATE INDEX squad_backlinks_original ON sa_snapshot_20261019.sa_back_order_links USING btree (order_id, back_order_id)"
     ],
     [
+      "sa_back_order_links",
+      "squad_backlinks_purchase_page",
+      "CREATE INDEX squad_backlinks_purchase_page ON sa_snapshot_20261019.sa_back_order_links USING btree (back_order_id, order_id DESC)"
+    ],
+    [
       "sa_base_product_asset_infos",
       "sa_base_product_asset_infos_pkey",
       "CREATE UNIQUE INDEX sa_base_product_asset_infos_pkey ON sa_snapshot_20261019.sa_base_product_asset_infos USING btree (id)"
@@ -7635,6 +7640,11 @@
       "CREATE INDEX squad_item_tailor ON sa_snapshot_20261019.sa_item_tailors USING btree (item_id, tailor_id)"
     ],
     [
+      "sa_item_tailors",
+      "squad_tailor_item_page",
+      "CREATE INDEX squad_tailor_item_page ON sa_snapshot_20261019.sa_item_tailors USING btree (tailor_id, item_id DESC)"
+    ],
+    [
       "sa_items",
       "dashboard_item_summary",
       "CREATE INDEX dashboard_item_summary ON sa_snapshot_20261019.sa_items USING btree (item_type, id DESC) INCLUDE (order_id, total_quantity, total_amount, branding_amount, cgst_amount, sgst_amount, igst_amount, uc_order_status, dispatched_status)"
@@ -7733,6 +7743,11 @@
       "sa_job_sheet_assign_quantities",
       "squad_assign_fifo",
       "CREATE INDEX squad_assign_fifo ON sa_snapshot_20261019.sa_job_sheet_assign_quantities USING btree (item_tailor_id, quantity_id, job_sheet_assign_date_id, id)"
+    ],
+    [
+      "sa_job_sheet_assign_quantities",
+      "squad_assignment_item_page",
+      "CREATE INDEX squad_assignment_item_page ON sa_snapshot_20261019.sa_job_sheet_assign_quantities USING btree (item_id, id DESC)"
     ],
     [
       "sa_job_sheet_assign_quantities",
@@ -7926,6 +7941,16 @@
     ],
     [
       "sa_orders",
+      "squad_orders_backorder_parent",
+      "CREATE INDEX squad_orders_backorder_parent ON sa_snapshot_20261019.sa_orders USING btree (back_order_for_id, id DESC) WHERE (back_order_for_id IS NOT NULL)"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_created_seek",
+      "CREATE INDEX squad_orders_created_seek ON sa_snapshot_20261019.sa_orders USING btree (created_at DESC NULLS LAST, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
       "squad_orders_customer_page",
       "CREATE INDEX squad_orders_customer_page ON sa_snapshot_20261019.sa_orders USING btree (customer_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],
@@ -7933,6 +7958,11 @@
       "sa_orders",
       "squad_orders_dealer_page",
       "CREATE INDEX squad_orders_dealer_page ON sa_snapshot_20261019.sa_orders USING btree (customer_dealer_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_due_seek",
+      "CREATE INDEX squad_orders_due_seek ON sa_snapshot_20261019.sa_orders USING btree (due_on, id) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
     ],
     [
       "sa_orders",
@@ -7958,6 +7988,11 @@
       "sa_orders",
       "squad_orders_worker_page",
       "CREATE INDEX squad_orders_worker_page ON sa_snapshot_20261019.sa_orders USING btree (assigned_worker_id, id DESC) WHERE ((is_deleted IS NOT TRUE) AND (deleted_at IS NULL))"
+    ],
+    [
+      "sa_orders",
+      "squad_orders_worker_scope",
+      "CREATE INDEX squad_orders_worker_scope ON sa_snapshot_20261019.sa_orders USING btree (assigned_worker_id, id)"
     ],
     [
       "sa_orders",
@@ -8013,6 +8048,11 @@
       "sa_product_images",
       "sa_product_images_pkey",
       "CREATE UNIQUE INDEX sa_product_images_pkey ON sa_snapshot_20261019.sa_product_images USING btree (id)"
+    ],
+    [
+      "sa_product_images",
+      "squad_product_images_page",
+      "CREATE INDEX squad_product_images_page ON sa_snapshot_20261019.sa_product_images USING btree (product_id, id DESC)"
     ],
     [
       "sa_product_part_add_ons",
@@ -8268,6 +8308,11 @@
       "sa_rmp_brands",
       "squad_airtable_identity_rmp_brands",
       "CREATE INDEX squad_airtable_identity_rmp_brands ON sa_snapshot_20261019.sa_rmp_brands USING btree (airtable_id) WHERE (airtable_id IS NOT NULL)"
+    ],
+    [
+      "sa_rmp_brands",
+      "squad_rmp_parent_category_page",
+      "CREATE INDEX squad_rmp_parent_category_page ON sa_snapshot_20261019.sa_rmp_brands USING btree (main_category COLLATE \"C\", id) WHERE ((is_deleted IS NOT TRUE) AND (main_category IS NOT NULL))"
     ],
     [
       "sa_rmp_categories",
@@ -9211,7 +9256,7 @@
       "sa_sc_sizes",
       true,
       false,
-      "{postgres=arwdDxtm/postgres,sa_worker=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_worker=r/postgres,sa_executor=r/postgres}"
     ],
     [
       "sa_schema_migrations",

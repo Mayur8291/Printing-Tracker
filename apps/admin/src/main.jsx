@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@radix-ui/themes/styles.css";
-import App from "./App";
+import App from "./application/AppRoot";
 import PicklistPreviewPage from "./picklist/PicklistPreviewPage.jsx";
 import "./styles.css";
 import "./responsive-mobile-tablet.css";

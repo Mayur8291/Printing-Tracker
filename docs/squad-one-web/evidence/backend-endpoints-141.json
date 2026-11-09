@@ -1,0 +1,78 @@
+{
+  "measured_at": "2026-11-09T05:56:18.687095+00:00",
+  "checks": {
+    "production": {
+      "bootstrap_android": {
+        "status": 200,
+        "elapsed_ms": 872.7
+      },
+      "bootstrap_ios": {
+        "status": 200,
+        "elapsed_ms": 570.1
+      },
+      "bootstrap_web": {
+        "status": 200,
+        "elapsed_ms": 508.3
+      },
+      "private_rpc_denied": {
+        "status": 401
+      },
+      "account_session_denied": {
+        "status": 401
+      },
+      "worker_secret_denied": {
+        "status": 401
+      },
+      "worker_mirror_paused": {
+        "status": 200,
+        "elapsed_ms": 4309.3
+      },
+      "provider_ingress_disabled": {
+        "status": 503
+      },
+      "warehouse-rehearsal_denied": {
+        "status": 503
+      },
+      "mail-rehearsal_denied": {
+        "status": 503
+      },
+      "document-rehearsal_denied": {
+        "status": 503
+      }
+    },
+    "staging": {
+      "bootstrap_android": {
+        "status": 200,
+        "elapsed_ms": 437.5
+      },
+      "bootstrap_ios": {
+        "status": 200,
+        "elapsed_ms": 152.8
+      },
+      "bootstrap_web": {
+        "status": 200,
+        "elapsed_ms": 250.8
+      },
+      "private_rpc_denied": {
+        "status": 401
+      },
+      "account_session_denied": {
+        "status": 401
+      },
+      "worker_secret_denied": {
+        "status": 401
+      },
+      "worker_mirror_paused": {
+        "status": 200,
+        "elapsed_ms": 1207.1
+      },
+      "provider_ingress_disabled": {
+        "status": 503
+      }
+    }
+  },
+  "no_source_refresh": true,
+  "no_provider_effects": true,
+  "no_login_fixtures": true,
+  "timing_scope": "Single endpoint probes, not capacity or p95 benchmarks"
+}

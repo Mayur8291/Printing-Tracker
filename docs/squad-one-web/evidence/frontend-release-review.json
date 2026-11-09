@@ -1,0 +1,121 @@
+{
+  "format": "squad-frontend-static-release-review/v1",
+  "reviewed_at": "2026-11-09T04:04:59.051001+00:00",
+  "scope": "Frozen source after reviewed session coalescing and bounded operations-refetch fixes; exact clean artifact referenced. No hosted/deployed assertion or unrelated broad rerun.",
+  "files": {
+    "apps/admin/src/application/AppRoot.jsx": "022e13c66a1276bbe47fabdf57f890254dfabd3ae53f0c48fc2d51beb139cc13",
+    "apps/admin/src/squad/SquadApp.jsx": "953996bc42460a98a5edd3ccdda33776e8d88f880e8aac6b1e8c54c1ed73aadb",
+    "apps/admin/src/squad/data/hooks.js": "4b8758b96300ff051e2ab78abe469bdc55bacd02800cc1c6cfe129b979ec09b5",
+    "packages/shared/squad.js": "5cdadcc2cdc2c83921dea2d004ff2067052a91c279936c01672a1594f9b74f20",
+    "package.json": "9cda3a425bf9eaa20abca770a04d5bc547dfeb852e40c0d3973de08ffeb769f4",
+    "apps/admin/package.json": "7045141824d94903fed882866e96a5e426ad4c94c01b1b95199b2f9ff5ba4bbe",
+    "package-lock.json": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b",
+    "vercel.json": "a402d297bb46fe223d1a772e2df33e4690c940a6e928c2a571092efe87428d11",
+    "apps/admin/vite.config.js": "aa0ce9756901dc539a6adced5e1913ac0514f887ce19e70d71c13b7f2baac58e",
+    "apps/admin/public/sw.js": "f076250bd1d86cfa88cb18cfed9d53eb3db66aa32d5382cb379d3eb9ce96d94b",
+    "apps/admin/src/squad/features/jobWork/JobWorkPage.jsx": "21318344068697fc6d8a991b87e30931da728fe5fd2bc95088fe5550c37937f9",
+    "apps/admin/src/squad/features/production/ProductionPage.jsx": "433e39d8173ecfb8c01105980cf65b7c5c248d0b9fb31b5516e0879a01de758f",
+    "apps/admin/src/squad/features/stock/StockPage.jsx": "ed858591b29640ea68a68059006ded9004dddf53b3fa241141692eea8b5066c1",
+    "apps/admin/src/squad/features/stock/StockReconciliationPanel.jsx": "fa0d891a93f1520bf6fa49a49b85bacd8384726f27356b454ed9557e86cd3b8c"
+  },
+  "checks": {
+    "workflow_rows_unique": 115,
+    "source_and_built_files_scanned": 561,
+    "matched_pat_secret_key_private_key_literals": 0,
+    "non_anon_jwt_literals": 0,
+    "anon_jwt_literals": 4,
+    "workspace_manifest_lock_mismatches": 0,
+    "lockfile_version": 3,
+    "dist_sourcemaps": 0,
+    "dist_dot_env_files": 0,
+    "squad_database_transport": "canto_api RPC only; squad-account Edge commands/grants",
+    "tracker_membership_exception": "AppRoot authenticated-role profiles lookup, not Squad sa_app domain access",
+    "legacy_network_fallback_in_squad": false,
+    "list_transport": "Bounded cursor page defaults and visible continuation controls; existing SQL cursor/scope regressions reused",
+    "query_cancellation": "Existing positive read-only signal client and actual lifecycle proofs reused; mutations remain unbound",
+    "deployment_configuration": "npm ci; root npm run build; apps/admin/dist; /squad/:path* and /account/:path* index.html rewrites",
+    "service_worker_navigation": "network fetch, no document cache",
+    "workflow_dispositions": {
+      "interactive_web_workflow": 102,
+      "retired_unsafe_impersonation_not_implemented": 1,
+      "derived_state_visible_in_parent_flow": 4,
+      "background_work_with_visible_result_or_status": 6,
+      "excluded_by_user_airtable": 1,
+      "separate_guarded_ownership_operation": 1
+    }
+  },
+  "new_demonstrated_blockers": [],
+  "remaining_release_gates": [
+    "Final deployed Vercel revision/branch/project/environment and deep-link smoke",
+    "Final deployed Tracker and representative persona read smoke",
+    "Remaining finite hosted acceptance modules with exact cleanup",
+    "Final browser/performance measurements and native Safari disposition"
+  ],
+  "limitations": [
+    "Prior pattern scan is not a general secret-detection certification and was not broadly rerun.",
+    "Source manifests and static rewrite configuration do not prove hosted settings.",
+    "The clean artifact uses explicit public staging configuration; Vercel production configuration remains a separate release gate.",
+    "No new speculative workflow matrix or permission expansion.",
+    "Quiet serial or local read-count evidence does not resolve the separate long-flow SQL timeout."
+  ],
+  "prior_review": "frontend-release-review-before-session-refresh.json",
+  "retained_prior_checks": "The prior secret-pattern scan, workflow inventory and static configuration findings are retained from the linked review; they were not broadly rerun.",
+  "targeted_review": {
+    "source_files": [
+      "apps/admin/src/application/AppRoot.jsx",
+      "apps/admin/src/squad/features/jobWork/JobWorkPage.jsx",
+      "apps/admin/src/squad/features/production/ProductionPage.jsx",
+      "apps/admin/src/squad/features/stock/StockPage.jsx",
+      "apps/admin/src/squad/features/stock/StockReconciliationPanel.jsx"
+    ],
+    "session_checks": {
+      "actual_app_root_strict_mode_cases": 15,
+      "independent_reviews": [
+        "Commerce lifecycle GO",
+        "Operations security GO"
+      ],
+      "preserved": [
+        "Fresh completed-session revalidation",
+        "Same-user form preservation",
+        "Immediate direct account-switch clear",
+        "Sign-out/unmount stale-response guards",
+        "Forced write-lease expiry validation"
+      ]
+    },
+    "operations_checks": {
+      "actual_rendered_components": 3,
+      "focused_behavior_checks": 4,
+      "existing_operations_rendered_checks": 23,
+      "target_reads_before": 3,
+      "target_reads_after": 2,
+      "independent_review": "Operations GO",
+      "changes": "Pure post-success refetch calls removed after awaited active-scope invalidation; reset/navigation/manual-refresh callbacks retained."
+    },
+    "scope_exclusions": [
+      "No query/command authorization changes",
+      "No SQL timeout causation claim",
+      "No new workflow or permission scope"
+    ]
+  },
+  "clean_artifact": {
+    "workspace": "/tmp/squad-clean-web-cjtmqrp8",
+    "dist": "/tmp/squad-clean-web-cjtmqrp8/apps/admin/dist",
+    "source_manifest_sha256": "7a76635fb3a6c3a3f48be1a40d8cd0912c48935f615293a236b93c68e8fd816e",
+    "entry_path": "/assets/index-D0HIEzmj.js",
+    "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085",
+    "dist_manifest_sha256": "e7f1522ae7de64f78d729c7cdae2d442235da22445a61eae7118e3a151a97d2b",
+    "source_unchanged": true,
+    "preview": "http://127.0.0.1:5186",
+    "served_entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085",
+    "evidence": "clean-web-build-execution.json",
+    "prior_artifact": "/tmp/squad-clean-web-cjtmqrp8/build-control/initial-artifact",
+    "scope": "Production-optimized staging build from isolated fresh npm-ci dependency tree; one incremental rebuild after four reviewed feature changes. Anonymous startup verified; no deployment claim."
+  },
+  "supporting_evidence": [
+    "session-query-pass7-review.json",
+    "operation-refresh-review.json",
+    "clean-web-build-execution.json",
+    "clean-web-source-manifest.json",
+    "clean-web-dist-manifest.json"
+  ]
+}

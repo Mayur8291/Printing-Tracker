@@ -1,0 +1,162 @@
+{
+  "format": "squad-owned-content-automated-scoped/v1",
+  "run_id": "8e07f632-76b3-4cd6-a42b-96c3cd423656",
+  "environment": "staging",
+  "status": "automated_seven_checks_passed_cleanup_recovered_native_incomplete",
+  "private_verified_report_sha256": "84619fa26ff0fb9a7744fc25a142b2079c54e4b38624ce5fcc4ae3075d599b2a",
+  "frontend": {
+    "base": "http://localhost:5186",
+    "entry_path": "/assets/index-D0HIEzmj.js",
+    "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+  },
+  "browser_personas": [
+    3
+  ],
+  "browser_errors": 0,
+  "network_violations": 0,
+  "journey": {
+    "checks": [
+      "actual_checkbox_prepare_and_zip_click",
+      "downloaded_zip_original_image_exact_bytes",
+      "flat_name_manifest_without_signed_urls",
+      "product_share_mobile_bounds",
+      "actual_promotion_fresh_grant_download_exact_bytes",
+      "missing_promotion_explicit_without_download",
+      "no_application_mutation_or_cross_environment_transport"
+    ],
+    "coverage": {
+      "productZip": {
+        "downloaded": true,
+        "imageBytes": 143,
+        "imageSha256": "959be0fa20f4b848ae53d1a8f5b3964e9ea83bfde455847c10dbec135dcc0c68",
+        "flatFiles": 2,
+        "noSignedUrls": true
+      },
+      "nativeFileShare": "Not invoked: operating-system share targets remain outside this headless read-only journey",
+      "productMissing": "No missing image reference in the first40 accessible ready-made products",
+      "promotionDownload": {
+        "downloaded": true,
+        "bytes": 143,
+        "sha256": "959be0fa20f4b848ae53d1a8f5b3964e9ea83bfde455847c10dbec135dcc0c68"
+      },
+      "promotionMissing": true
+    },
+    "screenshotsPrivate": true,
+    "scope": "Exact-owned ready PNG and missing promotion fixture through read-only Customer UI; parent independently verifies cleanup",
+    "productsObserved": [
+      {
+        "id": "1901730104",
+        "status": "ready"
+      }
+    ],
+    "productId": "1901730104",
+    "productScreenshot": "tools/squad/private/web-content-media-8e07f632-76b3-4cd6-a42b-96c3cd423656/product-zip-mobile.png",
+    "promotionsObserved": [
+      {
+        "id": "1901730301",
+        "status": "missing"
+      },
+      {
+        "id": "1901730300",
+        "status": "ready"
+      }
+    ],
+    "promotionId": "1901730300",
+    "promotionScreenshot": "tools/squad/private/web-content-media-8e07f632-76b3-4cd6-a42b-96c3cd423656/promotion-mobile.png",
+    "missingPromotionScreenshot": "tools/squad/private/web-content-media-8e07f632-76b3-4cd6-a42b-96c3cd423656/promotion-missing-mobile.png",
+    "completeRequiredMedia": true,
+    "nativeOracle": {
+      "freshCustomerGrantVerified": true,
+      "customerId": "1900010603",
+      "promotionId": "1901730300",
+      "promotionName": "SQB 8e07f63276b3 ready PNG",
+      "category": "SQB 8e07f63276b3 content",
+      "uploadDate": "2026-11-09",
+      "productId": "1901730104",
+      "productName": "SQB 8e07f63276b3 RMP class",
+      "filename": "959be0fa20f4b848ae53d1a8f5b3964e9ea83bfde455847c10dbec135dcc0c68",
+      "bytes": 143,
+      "sha256": "959be0fa20f4b848ae53d1a8f5b3964e9ea83bfde455847c10dbec135dcc0c68"
+    }
+  },
+  "cleanup": {
+    "format": "squad-owned-content-recovery/v1",
+    "run_id": "8e07f632-76b3-4cd6-a42b-96c3cd423656",
+    "recovery_log_sha256": "4160104a7102a14cb4b58794e95e21a186a8d6822e8eb54a744e9fea9f40908e",
+    "cleanup": {
+      "run_id": "8e07f632-76b3-4cd6-a42b-96c3cd423656",
+      "owned_commands": 0,
+      "owned_auth_revisions": 0,
+      "removed_source_rows": 55,
+      "removed_documents": 0,
+      "removed_queued_documents": 0,
+      "removed_processed_documents": 0,
+      "tables": {
+        "sa_users": 17,
+        "sa_factories": 2,
+        "sa_addresses": 3,
+        "sa_sizes": 1,
+        "sa_size_types": 1,
+        "sa_sc_sizes": 1,
+        "sa_base_product_types": 1,
+        "sa_base_products": 1,
+        "sa_categories": 1,
+        "sa_fabrics": 1,
+        "sa_colors": 1,
+        "sa_parts": 1,
+        "sa_add_ons": 1,
+        "sa_criteria": 1,
+        "sa_base_product_categories": 1,
+        "sa_base_product_fabrics": 1,
+        "sa_fabric_colors": 1,
+        "sa_base_product_parts": 1,
+        "sa_part_colors": 1,
+        "sa_add_on_parts": 1,
+        "sa_add_on_base_products": 1,
+        "sa_add_on_colors": 1,
+        "sa_base_size_types": 1,
+        "sa_authorized_brands": 1,
+        "sa_rmp_brands": 1,
+        "sa_rmp_categories": 1,
+        "sa_rmp_colors": 1,
+        "sa_rmp_classes": 1,
+        "sa_rmp_sizes": 1,
+        "sa_rmp_skus": 1,
+        "sa_rmp_price_types": 1,
+        "sa_rmp_prices": 1,
+        "sa_rmp_sku_prices": 1,
+        "sa_rmp_category_brands": 1,
+        "sa_promotions": 2
+      },
+      "edit_revision_before": 1612,
+      "edit_revision_after": 1612,
+      "synced_revision_after": 1612,
+      "audit_and_commands_retained": true,
+      "jobs_terminalized": true,
+      "source_content_restored": true,
+      "staff_auth_preserved_during_cleanup": true,
+      "staff_auth_unchanged_since_fixture": true,
+      "independently_changed_staff_accounts": 0,
+      "media": {
+        "owned_ready_references": 2,
+        "owned_missing_references": 1,
+        "owned_storage_objects": 1,
+        "existing_media_preserved": true,
+        "storage_removed": true
+      }
+    },
+    "recovered": true,
+    "cron_restored": true,
+    "cron_proof": "Successful wrapper recovery returns only after business.set_crons(False) and checkpoint unlink; parent confirmed exit0.",
+    "checkpoint_absent": true,
+    "acceptance_not_inferred_from_cleanup": true,
+    "browser_commands": 0,
+    "revision_unchanged": true
+  },
+  "visual_review": "owned-content-media-8e07-visual-review.json",
+  "visual_review_sha256": "b946cd2ed839370ab8f4aa3fab59bec1b15248fcc00ef691dbf0952451046615",
+  "native_safari_complete": false,
+  "current_download_fix_retest_required": true,
+  "whole_media_milestone_awarded": false,
+  "scope": "Accepts only seven exact automated Customer PNG/ZIP/missing-state checks on the prior pinned build after exact cleanup. Native Safari required manual popup release, and its remaining date/dialog tests were not completed. No native or final release acceptance."
+}

@@ -1,0 +1,99 @@
+{
+  "format": "squad-web-guest-evidence/v1",
+  "run_id": "997340b5-69e4-40cf-a53d-66390f31b128",
+  "environment": "staging",
+  "started_at": "2026-11-09T01:38:38.460798+00:00",
+  "flows": {
+    "register": {
+      "kind": "register",
+      "requestId": "49292881-0aa6-5e54-9901-11eb688dc52b",
+      "userId": "7717",
+      "next": "await_approval",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority": {
+        "passed": true,
+        "checks": [
+          "real_auth_blocks_pending_approval"
+        ]
+      }
+    },
+    "confirm": {
+      "kind": "confirm",
+      "requestId": "83021efe-c4ae-5b2a-b934-d4ad8e8eef98",
+      "userId": "1900005401",
+      "next": "sign_in",
+      "checks": [
+        "owned_guest_form_request",
+        "password_mismatch_stays_local",
+        "wrong_proof_rejected_without_losing_form",
+        "real_inbox_code_completion",
+        "correct_approval_or_signin_result"
+      ],
+      "authority": {
+        "passed": true,
+        "checks": [
+          "real_auth_new_password",
+          "real_auth_old_password_refused",
+          "mapped_customer_identity"
+        ]
+      }
+    }
+  },
+  "mail": {
+    "register": {
+      "job_id": "f2ab86a2-0f5a-4268-95b0-cf2299234460",
+      "provider_delivery": "done",
+      "observed_at": "2026-11-09T01:41:38.444822+00:00",
+      "smtp_submitted_message_id": "<squad-49292881-0aa6-5e54-9901-11eb688dc52b@scottinternational.com>",
+      "observed_message_id": null,
+      "observed_mailinator_id": "squad-guest-997340b569e440cfa53d66390f31b128-register-1794188374-01218986311012",
+      "inbox_proof": "Actual native Chrome Mailinator recipient, subject and code observed; code not stored. SMTP-submitted Message-ID was not verified in the received headers."
+    },
+    "confirm": {
+      "job_id": "7283bd86-2721-4862-9a21-d215f57092c6",
+      "provider_delivery": "done",
+      "observed_at": "2026-11-09T01:42:59.203349+00:00",
+      "smtp_submitted_message_id": "<squad-83021efe-c4ae-5b2a-b934-d4ad8e8eef98@scottinternational.com>",
+      "observed_message_id": null,
+      "observed_mailinator_id": "squad-guest-997340b569e440cfa53d66390f31b128-confirm-1794188510-01218990023012",
+      "inbox_proof": "Actual native Chrome Mailinator recipient, subject and code observed; code not stored. SMTP-submitted Message-ID was not verified in the received headers."
+    },
+    "recovery": {
+      "job_id": "41984353-14c6-433f-8d3a-f01a3fbd8b93",
+      "provider_delivery": "done",
+      "observed_at": "2026-11-09T01:44:18.013521+00:00",
+      "smtp_submitted_message_id": "<squad-f936aa4d-6c38-5133-b4ae-33e447385c6d@scottinternational.com>",
+      "observed_message_id": null,
+      "observed_mailinator_id": "squad-guest-997340b569e440cfa53d66390f31b128-recovery-1794188595-01218992200012",
+      "inbox_proof": "Actual native Chrome Mailinator recipient, subject and code observed; code not stored. SMTP-submitted Message-ID was not verified in the received headers."
+    }
+  },
+  "status": "failed",
+  "failure_type": "AssertionError",
+  "cleanup": {
+    "run_id": "997340b5-69e4-40cf-a53d-66390f31b128",
+    "edit_revision_before": 849,
+    "edit_revision_after": 853,
+    "synced_revision_after": 853,
+    "owned_revision_delta": 4,
+    "completed_flows": 2,
+    "removed_auth_accounts": 5,
+    "removed_source_people": 5,
+    "audit_and_receipts_retained": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": true
+  },
+  "completed_at": "2026-11-09T01:45:34.265768+00:00",
+  "cutover_unchanged": true,
+  "cron_restored": true,
+  "acceptance": "Partial only: registration and confirmation completed with real inbox proof. Recovery failed before completion, invitation untested. Cleanup verified.",
+  "backend_prefix": "20261108202700",
+  "recorded_at": "2026-11-09T01:53:17.616300+00:00"
+}

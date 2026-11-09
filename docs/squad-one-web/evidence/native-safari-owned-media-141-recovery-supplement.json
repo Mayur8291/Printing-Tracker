@@ -1,0 +1,26 @@
+{
+  "format": "squad-native-safari-recovery-supplement/v1",
+  "run_id": "8e07f632-76b3-4cd6-a42b-96c3cd423656",
+  "original_partial_receipt": "native-safari-owned-media-141-partial.json",
+  "original_partial_sha256": "88d643aac32e78237049cda28cbb776097b0819ef5bb35a1aa9345cfe4a62eaf",
+  "original_preserved": true,
+  "parent_observed_shutdown": {
+    "signed_out_login_ui_visible": true,
+    "application_tab_closed": true,
+    "handoff_both_shutdown_checks_selected": true,
+    "finish_clicked_clipboard_cleared_copy_controls_disabled": true,
+    "handoff_window_closed": true,
+    "expired_handoff_post_failed_as_expected": true
+  },
+  "cleanup_receipt": "owned-content-media-141-recovery.json",
+  "cleanup_receipt_sha256": "2f753dc3d2af1da609ded145dfcdbafdeaff085d8c851d5f7179e3ac5b8fbfeb",
+  "recovery_exit_code": 0,
+  "cleanup_confirmed": true,
+  "native_acceptance_complete": false,
+  "remaining_native_checks": [
+    "Valid/invalid/reset date filters",
+    "Product dialog keyboard flow",
+    "Normal Download without manual popup recovery after fix"
+  ],
+  "no_business_command_executed": true
+}

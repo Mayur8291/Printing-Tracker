@@ -1,0 +1,418 @@
+{
+  "format": "squad-publication-review/v1",
+  "reviewed_at": "2026-11-09T05:07:50.011039+00:00",
+  "repository_visibility": "public",
+  "scope": "43 changed documents, three generated baseline/lock files and one pinned source QR asset from the current candidate snapshot; no user-file rewrite or Git mutation.",
+  "approved_exact_files": [
+    {
+      "path": "apps/admin/src/squad/features/orders/legacy-payment-qr.jpg",
+      "sha256": "1c9af5677f0696fc1cd53e1d347b66632202284640d5f366304dfb8249b2470e",
+      "bytes": 93188,
+      "reviewed_category": "binary_or_raw_log_manual_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Intended application payment asset, visually inspected and byte-identical to pinned Flutter develop; not a hosted customer screenshot. Display disabled in staging, no payment/contact executed."
+    },
+    {
+      "path": "deno.lock",
+      "sha256": "d5dd070c9dd3ae057fdf9282378e0ae01a86ff306e99a8b052ec09b8c2aece2e",
+      "bytes": 308144,
+      "reviewed_category": "generated_baseline_or_lock_manual_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Root Deno v5 dependency/specifier/integrity lock only (1184 npm entries); no credentials, request payload or business records. Retain for reproducible local backend tooling; deployed Edge functions use their own separately pinned locks."
+    },
+    {
+      "path": "docs/squad-one-web/README.md",
+      "sha256": "59924479b7dc7cd3cc33cf2f61f59e9fe880af5e5dc24ab3b87feb8ecd7fc9a7",
+      "bytes": 2237,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/business-acceptance.json",
+      "sha256": "63cb2c742a33bf8bcbd1bf4d353bbcd3af70c242e086e3693111284c62427cfd",
+      "bytes": 54136,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/connected-commerce-operations-reporting-141.json",
+      "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed",
+      "bytes": 14773,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/document-output-141.json",
+      "sha256": "9db7538fb1f930c046122b6290df7e1c56abab48ec14acf08832326d909e65e0",
+      "bytes": 5420,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/document-output-acceptance.json",
+      "sha256": "9db7538fb1f930c046122b6290df7e1c56abab48ec14acf08832326d909e65e0",
+      "bytes": 5420,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/document-outputs-aec91653-visual-review.json",
+      "sha256": "782aaf6ad336f712a6ca7a534f1333e31dd54d4f30f2caff88e758d8afd78876",
+      "bytes": 5195,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/finite-remaining-acceptance-review.json",
+      "sha256": "4f4eadd4b0eadb3a5b44897ecfd547e8ab4007e3592602e65e79bc1b92d0dfc5",
+      "bytes": 7158,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/git-release-target-refresh.json",
+      "sha256": "19c8ee985883659d834519391945961b02f903048188ff55323b1a11fe4a3c16",
+      "bytes": 1178,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/git-vercel-release-selection.json",
+      "sha256": "ee5e8028571a6423f742fd561379f96ca1f990161966c275fec9c95e1b316ebe",
+      "bytes": 164889,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/git-vercel-release-target.json",
+      "sha256": "d5aa1ee6aa21d3b01e3d6f311de561c7e204c0c01a023ae4aa21ca750decba06",
+      "bytes": 5865,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/last-business-cleanup.json",
+      "sha256": "9e15f2db37a582c10cbc93f407da9b25ce8f6e67eef19e43538dd9227dc17583",
+      "bytes": 1800,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/last-document-output-cleanup.json",
+      "sha256": "fc6a6d7429e22a0a552b921f8bfd6f3b5335d5ff966185eaa8d5e56fef7f196c",
+      "bytes": 2505,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/native-safari-startup-preflight.json",
+      "sha256": "937e3c969ec5408b807c6e5437fbc4952330d940454d1c352427111f79c89c58",
+      "bytes": 685,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/pass7-timeout-log-context-initial-filter.json",
+      "sha256": "e9268cf760db3c3c777b988ec080efd01a4f9400d5a6d5c101f3bf1b79e3aa5c",
+      "bytes": 345,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/pass7-timeout-log-context.json",
+      "sha256": "51922fa046e91355988bc5dc0909cad463a6918d332601348c470f78d4aa0ae1",
+      "bytes": 2247,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/pc-logged-scope-index-review.json",
+      "sha256": "e601012f6c660e200dd09a012b8b39af62da7a27e9692984cc4a61fd0f50ded4",
+      "bytes": 20632,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/preset-content-boundary-preparation.json",
+      "sha256": "d680984a098e827fbe2e39e3479f784e829a69beba0dc6ebe63a137c8b5fb2c9",
+      "bytes": 3391,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/production-edge-deployment-preparation-141.json",
+      "sha256": "1a1ecc3e20eb4726bb85a22bf67427a2e98dc7a165f58f6713f8043e31a75426",
+      "bytes": 4707,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/production-release-preflight-141.json",
+      "sha256": "03b207297cf41771440d618ff826d028b967ea94da83a2b1982811226b56c23b",
+      "bytes": 40306,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/public-evidence-review.json",
+      "sha256": "92d6d371e87993026245f931a7835aaddbb481b7885adc2d4f6121d3382551b5",
+      "bytes": 19850,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/read-performance-141.json",
+      "sha256": "63cb2c742a33bf8bcbd1bf4d353bbcd3af70c242e086e3693111284c62427cfd",
+      "bytes": 54136,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-manifest-141-source-verification.json",
+      "sha256": "2da1cff0dedd8faff5e69c0a41d01572c35562a6a42b6952f8173f0cc574f0fe",
+      "bytes": 728,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/scope-timeout-independent-review.json",
+      "sha256": "8be1eda2d058398b258f48ada07b1eee1cec3b86e86e6fb5193e9294edaed2fa",
+      "bytes": 4916,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/staging-release-141.json",
+      "sha256": "26c7e0d10343d26524b671deb5b9d9f023698d55eac23110b83fa604c1c13225",
+      "bytes": 2754,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/stock-fixture-role-local-review.json",
+      "sha256": "02bdb115464abc43889bce8876d6224f7a73aed9fb51726d2061d088b773f3f6",
+      "bytes": 3117,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/stock-reconciliation-141.json",
+      "sha256": "e3a8a3f6bf52ef027a20abddd4c37e31d974f9ab6cf616cc3443f4b2245dd1b7",
+      "bytes": 10006,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/stock-reconciliation-acceptance.json",
+      "sha256": "e3a8a3f6bf52ef027a20abddd4c37e31d974f9ab6cf616cc3443f4b2245dd1b7",
+      "bytes": 10006,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/tracker-colors-776b6d12-visual-review.json",
+      "sha256": "4680d7d0dc8962ee58e2da72466a912d793cc957381d098370edb769c2bcfd93",
+      "bytes": 2037,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/tracker-colors-acceptance.json",
+      "sha256": "26a659c3d2cacf03fb19638593ab7835b9b73256793a83518448af9d260c562c",
+      "bytes": 1450,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/tracker-colors-preparation.json",
+      "sha256": "c3d02bc93afe13c65656f6031b9a7911c53871a8751280934986f1c7e608d8b8",
+      "bytes": 9603,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Aggregate scoped fixture acceptance/cleanup or visual-review metadata; private artifacts referenced by relative path/hash only, no PDF/image bytes, signed URLs, customer contacts or raw page text."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/worker-order-rollback-profile.json",
+      "sha256": "a56d7f68f5ec6d1d60c263d01fe7b6cfcd45b0a00da848727408d8f1dfee8e0a",
+      "bytes": 95149,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/worker-scope-index-independent-review.json",
+      "sha256": "0c899f45599caf321a90d85a87a50476bbe2650bbc1c95b70d88f88e00645b63",
+      "bytes": 3379,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/worker-scope-index-local.json",
+      "sha256": "e3aee0fae68651d40325fa9236da4ff7b0a80616152343d0e26c303469cf05b8",
+      "bytes": 4651,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/worker-scope-plan-comparison.json",
+      "sha256": "b3ca54af82bf8f6e3016a18f5ebd396bbee90a3221e80e03b56723fc06afdedf",
+      "bytes": 8716,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/evidence/worker-timeout-140-disposition.json",
+      "sha256": "7b2db84491ea42de935db18f9b70a884ea5f2becc084965d7e749cdacac75413",
+      "bytes": 7993,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/final-performance-acceptance-handoff.json",
+      "sha256": "764a34ca87f1c48d3a085703427a9c426f6af7011c63054503d8c04fe9678ddd",
+      "bytes": 7391,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Sanitized diagnostic/acceptance evidence: contract names, bounded plans/timings/counts/hashes and conclusions; no SQL parameter literals, customer rows, raw response/log data or credential-bearing URLs."
+    },
+    {
+      "path": "docs/squad-one-web/implementation-progress.json",
+      "sha256": "ebcd2f08122db1b750a721ea0b4b5b0dddfc5f0fb3aed9505ff55b3ccc4bd38f",
+      "bytes": 27444,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/prepared-acceptance-check-map.json",
+      "sha256": "468d5b3068704c94f5fa0531c281f6be5f521e91146dced8a81cf1a5cb2277c3",
+      "bytes": 32028,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-gates.md",
+      "sha256": "4112955486f346546b5999ef481a44c0d4d0520c231820b51dca654b5080c898",
+      "bytes": 10968,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.csv",
+      "sha256": "5aca4f262d1be8079591aeb6b7dc468c25387dc82dd1f5bd3b734392e9b0af04",
+      "bytes": 241931,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.json",
+      "sha256": "121c500643c497a59499b40762eb010e45a5138aa452a522f81fd5169f1f76fe",
+      "bytes": 530406,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/release-exit-criteria.json",
+      "sha256": "f57650c08dc5b92f722fe0c0895c6c46797a66e0735452275b23153f928b8c72",
+      "bytes": 28683,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "docs/squad-one-web/release-manifest-141.json",
+      "sha256": "f17163ef1962cb5a7a764da176184ee7c9db00aa52f872a5a3ce3f78af9dcf2a",
+      "bytes": 28008,
+      "reviewed_category": "new_or_changed_document_publication_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Plan/status/release/source-hash metadata and reviewed workflow descriptions only; no embedded private evidence, credentials, customer contacts or signed URLs."
+    },
+    {
+      "path": "tools/canto-sync/baselines/staging-catalog.json",
+      "sha256": "9806fdf8260b3d45b779dbae81fb5887a6f2d28ca5ed90cd8e23a58a27d282ec",
+      "bytes": 208847,
+      "reviewed_category": "generated_baseline_or_lock_manual_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Generated staging catalog/access fingerprint metadata only, no business/Auth rows or credentials. Captured by reviewed staging141 release; preserves schema/RLS/ACL/function-hash drift guard. Production baseline remains separate and must update only through its own guarded release."
+    },
+    {
+      "path": "tools/canto-sync/baselines/staging-domain-access.json",
+      "sha256": "10ac092808a3495fe1a1f989a6739fece803f5baa29dfb84b05a4ea33bbe02e3",
+      "bytes": 454160,
+      "reviewed_category": "generated_baseline_or_lock_manual_review",
+      "publication": "approved_exact_hash_only",
+      "reason": "Generated staging catalog/access fingerprint metadata only, no business/Auth rows or credentials. Captured by reviewed staging141 release; preserves schema/RLS/ACL/function-hash drift guard. Production baseline remains separate and must update only through its own guarded release."
+    }
+  ],
+  "retained_exclusions": {
+    "prior_publication_exclusion_count": 16,
+    "private_tracker_screenshots": 8,
+    "all_private_directories": true,
+    "all_raw_logs": true,
+    "generated_pdf_outputs": true,
+    "all_new_unreviewed_binary_evidence": true
+  },
+  "inspection": {
+    "document_shapes": "Plans/ledger mappings, fixture checks/cleanup, contract timing series, sanitized plan nodes, schema/release digests, review notes. All43 parsed or text-reviewed; JSON arrays are aggregate observations, not application records.",
+    "private_artifacts": "Relative private paths and SHA/byte references may be published; referenced files, native URLs, contents and screenshots remain excluded.",
+    "urls": "Only noncredential official/reference/GitHub/Vercel metadata and localhost navigation URLs observed. No signed Storage/private object access URLs, query credentials or Auth tokens.",
+    "email_or_personal_contact_fields_found": false,
+    "embedded_pdf_image_or_raw_payload_found": false,
+    "secret_markers_found": false
+  },
+  "baseline_review": {
+    "staging_catalog_vs_head": "Nine additive indexes including Worker scope, plus sc_sizes executor SELECT ACL; no removed index.",
+    "staging_access_vs_head": "Policies, column ACLs, function metadata/hashes, domain relations and Auth/outbox trigger metadata reflect reviewed114\u2013141 migrations; schema metadata only.",
+    "release_proof": "docs/squad-one-web/evidence/staging-release-141.json",
+    "functional_caveat": "Publication approval does not replace current database catalog verification or final frozen refresh-worker revision update."
+  },
+  "qr_source": {
+    "commit": "5d55d9461af18b94a867dce07dee7c4b76f1e51f",
+    "path": "assets/payment_qr.jpg",
+    "exact_copy": true,
+    "intent": "Original customer-facing payment recipient asset requested for source parity; no payment made."
+  },
+  "limitations": [
+    "Exact reviewed hashes only; changed or new files require another review.",
+    "This is publication privacy review, not acceptance of all workflows, production release approval or exclusive authorship.",
+    "Content indicators and structural review complement each other; secret scanning alone is not a universal PII detector.",
+    "The review receipt itself requires integrator inspection before final staging; its own hash cannot self-approve."
+  ]
+}

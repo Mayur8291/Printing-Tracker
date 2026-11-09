@@ -1,0 +1,49 @@
+{
+  "format": "squad-media-navigation-regression/v1",
+  "measured_at": "2026-11-09T05:53:06.244412+00:00",
+  "status": "local_browser_passed_native_safari_recheck_pending",
+  "problem": "Async grant resolution followed by a new-tab anchor required a popup after the original user gesture. Native Safari blocked that Download path.",
+  "change": {
+    "download": "Fresh scoped download grant; validated active-environment Storage URL with required attachment flag; temporary same-context anchor, removed immediately; no popup or file buffering.",
+    "open": "Reserve blank tab synchronously, sever opener, navigate only that still-blank owned tab after fresh inline grant.",
+    "lifecycle": "Abort/discard pending grants on SDK, identity scope, environment, reference change or unmount. Errors close only the pending blank tab; an independently navigated tab is preserved.",
+    "permissions": "No backend, Storage policy, SDK permissions or stored credentials changed."
+  },
+  "files": {
+    "apps/admin/src/squad/components/Media.jsx": "1292739ed851d29500e0fcdc401694db76d1d599fac419575e35943273a96ecc",
+    "apps/admin/src/squad/components/mediaNavigation.js": "7ac6bb68bac3981272d6984d7d85a381798e3c3097e8874552e8774b57c5f1b7",
+    "tools/squad/web-media-navigation-browser.mjs": "420738183ee75471e8319d153339bf0bf2a449189c589c9621ce044187a45a4a"
+  },
+  "tests": {
+    "command": "node tools/squad/web-media-navigation-browser.mjs",
+    "engines": [
+      "Chromium",
+      "Playwright WebKit"
+    ],
+    "cases_per_engine": 13,
+    "bytes_verified_per_download": 54718,
+    "javascript_errors": 0,
+    "external_requests": 0,
+    "transport": "Actual temporary local HTTPS attachment server, exact downloaded-byte equality, synthetic SDK grants and contexts.",
+    "cases": [
+      "Delayed attachment grant downloads without popup and retains app",
+      "Open reserves a gesture-bound tab with opener null and inline grant",
+      "Blocked Open produces a visible error before requesting a grant",
+      "Grant rejection does not navigate",
+      "Missing grant does not navigate",
+      "Foreign-origin grant does not navigate",
+      "Inline-only grant is rejected for Download",
+      "Different-reference grant does not navigate",
+      "Failed Open grant closes its blank tab",
+      "Unmount cancels pending navigation",
+      "Identity scope change cancels pending navigation",
+      "Reference change cancels pending navigation",
+      "User-navigated reserved tab is not closed or overwritten"
+    ]
+  },
+  "limitations": [
+    "WebKit is not native Safari; native Safari recheck and final rebuilt/deployed smoke remain pending.",
+    "Local HTTPS fixture bytes do not claim hosted Storage delivery.",
+    "No broad unchanged workflow suite repeated."
+  ]
+}

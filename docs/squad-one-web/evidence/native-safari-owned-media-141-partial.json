@@ -1,0 +1,31 @@
+{
+  "format": "squad-native-safari-partial/v1",
+  "run_id": "8e07f632-76b3-4cd6-a42b-96c3cd423656",
+  "status": "incomplete_shutdown_recovery_required",
+  "observed_at": "2026-11-09T05:45:37.672455+00:00",
+  "frontend": {
+    "base": "http://localhost:5186",
+    "entry_path": "/assets/index-D0HIEzmj.js",
+    "entry_sha256": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085"
+  },
+  "browser_version": "Safari26.1 (21622.2.11.11.9)",
+  "automated_browser_report_sha256": "84619fa26ff0fb9a7744fc25a142b2079c54e4b38624ce5fcc4ae3075d599b2a",
+  "native_observations": {
+    "customer_staging_login": true,
+    "session_reload_preserved_identity": true,
+    "ready_promotion_preview": true,
+    "missing_promotion_explicit": true,
+    "download_popup_blocked": true,
+    "download_completed_after_manual_open_blocked_popup": true,
+    "download_bytes": 143,
+    "download_sha256": "959be0fa20f4b848ae53d1a8f5b3964e9ea83bfde455847c10dbec135dcc0c68",
+    "download_local_hash_matches": true,
+    "date_filters_verified": false,
+    "dialog_keyboard_verified": false,
+    "logout_verified": false
+  },
+  "interruption": "Mac and private window locked; after manual unlock, concurrent user input/tool timeouts prevented bounded completion. Sign-out approval review misinterpreted assistant request; user clarification requested. Checkpoint retained.",
+  "acceptance_complete": false,
+  "cleanup_confirmed": false,
+  "scope": "No browser-generated credential, signed URL, screenshot or source contact information persisted in this public receipt."
+}

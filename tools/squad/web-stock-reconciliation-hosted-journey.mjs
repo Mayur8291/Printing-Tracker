@@ -1,0 +1,20 @@
+/** One declared owned mismatch. Setup fixture is separate from this real UI repair proof. */
+import assert from 'node:assert/strict';
+import {navigateWorkspace} from './browser-workspace-navigation.mjs';
+import {field} from './web-people-hosted-journey.mjs';
+import {click,input,choose} from './web-workflow-extensions-hosted-journey.mjs';
+const ORIGIN='https://scvojtvgnkmbupvyslmb.supabase.co';
+export async function rebuildResponse(page,action){const waiting=page.waitForResponse(r=>r.request().method()==='POST'&&new URL(r.url()).origin===ORIGIN&&new URL(r.url()).pathname==='/rest/v1/rpc/v1_stock_reconciliation'&&JSON.parse(r.request().postData()||'{}').p_action==='rebuild');waiting.catch(()=>{});await action();return waiting;}
+export async function runJourney(ctx){
+ const m=ctx.fixture.stockReconciliation;assert.ok(m);assert.equal(m.dealer_id,ctx.clients.get(10).me.id);assert.equal(m.counter_before,1);assert.equal(m.expected_consumed,0);
+ for(const k of['dealer_id','order_id','item_id','receipt_id'])assert.match(m[k],/^[1-9]\d*$/);
+ const admin=ctx.clients.get(0).sdk,review=await admin.reviewStock(m.dealer_id,{receipt_id:m.receipt_id},{limit:1});assert.equal(review.data.length,1);const before=review.data[0];assert.equal(before.id,m.receipt_id);assert.equal(before.order_id,m.order_id);assert.equal(before.safe_action,'rebuild_counter');assert.equal(before.counter,1);assert.equal(before.consumed,0);assert.equal(before.received,2);
+ await assert.rejects(ctx.clients.get(10).sdk.reviewStock(m.dealer_id,{receipt_id:m.receipt_id}),e=>e.kind==='forbidden');
+ const page=await ctx.pageFor(0);await navigateWorkspace(page,ctx.base,'/squad/administration/stock');await choose(ctx,page,'Dealer',m.dealer_id,{production:true});await input(page,'input[aria-label="Receipt number"]',m.receipt_id);await click(page,'Filter');await page.waitForFunction(id=>[...document.querySelectorAll('tbody tr')].some(r=>r.children[0]?.textContent==='#'+id&&r.textContent.includes('Review correction')),{},m.receipt_id);
+ await page.evaluate(id=>[...document.querySelectorAll('tbody tr')].find(r=>r.children[0]?.textContent==='#'+id).querySelector('button').click(),m.receipt_id);const reason=ctx.fixture.label+' verified counter repair';await field(page,'Reason',reason);
+ const response=await rebuildResponse(page,()=>click(page,'Rebuild counter','[role=dialog]')),done=await response.json();assert.ok(response.ok());assert.equal(done.state,'completed');await page.waitForFunction(()=>!document.querySelector('[role=dialog]'));
+ const after=(await admin.reviewStock(m.dealer_id,{receipt_id:m.receipt_id},{limit:1})).data[0];assert.equal(after.counter,0);assert.equal(after.consumed,0);assert.equal(after.received,2);assert.equal(after.order_id,before.order_id);assert.equal(after.size_id,before.size_id);assert.deepEqual(after.issues,[]);assert.equal(after.safe_action,null);
+ await page.waitForFunction(id=>[...document.querySelectorAll('tbody tr')].some(r=>r.children[0]?.textContent==='#'+id&&r.textContent.includes('No correction needed')),{},m.receipt_id);await click(page,'History');await page.waitForFunction((id,reason)=>[...document.querySelectorAll('tbody tr')].some(r=>r.children[0]?.textContent===id&&r.children[2]?.textContent==='1'&&r.children[3]?.textContent==='0'&&r.textContent.includes(reason)),{},m.receipt_id,reason);
+ const history=await admin.stockReconciliationHistory(m.dealer_id,m.receipt_id,{limit:1});assert.equal(history.data.length,1);assert.equal(history.data[0].reason,reason);assert.equal(history.data[0].before,1);assert.equal(history.data[0].after,0);
+ return{checks:['dealer_cannot_read_admin_stock_reconciliation','admin_browser_repairs_exact_evidence_version_counter_without_changing_receipt_or_consumption','admin_browser_sees_retained_exact_before_after_reason_history'],entities:{receiptId:m.receipt_id,orderId:m.order_id,itemId:m.item_id},scope:'One explicitly declared two-piece setup receipt with counter1 and zero usage. UI performs only version-bound1→0 repair. Setup orders are not claimed as browser workflows; no provider or worker execution.'};
+}

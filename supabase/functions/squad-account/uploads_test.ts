@@ -27,3 +27,11 @@ Deno.test('attached retry reaches idempotency result with original version',asyn
 Deno.test('arbitrary paths and unsupported input fields denied',async()=>{const {deps,u}=setup();await rejects(()=>finalizeRequest(deps,'Bearer caller',{upload_id:id,expected_version:'v',idempotency_key:key,path:'secret'}),'INVALID_REQUEST');u.path='pending/other';await rejects(()=>finalizeRequest(deps,'Bearer caller',{upload_id:id,expected_version:'v',idempotency_key:key}),'MEDIA_UNAVAILABLE');});
 Deno.test('verify-only stages the attested file without attaching or changing the master',async()=>{const {deps,calls}=setup();const r=await finalizeRequest(deps,'Bearer caller',{upload_id:id,expected_version:'v',idempotency_key:key},false);assert(r.state==='verified');assert(calls.join(',')==='account_upload_get,copy,account_upload_verified');});
 Deno.test('verified verify-only retry does no storage work and never reattaches',async()=>{const {deps,u,calls}=setup();u.state='verified';const r=await finalizeRequest(deps,'Bearer caller',{upload_id:id,expected_version:'v',idempotency_key:key},false);assert(r.state==='verified');assert(calls.join(',')==='account_upload_get');});
+
+Deno.test('SVG Figma mask type is constrained to mask elements and literal paint modes',async()=>{
+ for(const mode of ['luminance','alpha'])validateSvg(bytes('<svg xmlns="http://www.w3.org/2000/svg"><mask id="m" style="mask-type:'+mode+'"><path fill="white" d="M0 0H10V10Z"/></mask><g mask="url(#m)"/></svg>'));
+ for(const style of ['mask-type:url(https://outside.invalid/x)','mask-type:var(--x)','mask-type:alpha !important','mask-type:luminance;behavior:url(#x)'])await rejects(()=>validateSvg(bytes('<svg xmlns="http://www.w3.org/2000/svg"><mask style="'+style+'"/></svg>')));
+ await rejects(()=>validateSvg(bytes('<svg xmlns="http://www.w3.org/2000/svg"><path style="mask-type:luminance"/></svg>')));
+});
+
+Deno.test('opaque design attachments retain bytes and hash without interpretation',async()=>{const b=new Uint8Array([0,255,80,75,3,4,10]);const r=await verifyMedia(stream(b),b.length,'application/octet-stream');assert(r.content_type==='application/octet-stream'&&r.bytes===b.length&&r.sha256.length===64);await rejects(()=>verifyMedia(stream(b),b.length+1,'application/octet-stream'));await rejects(()=>verifyMedia(stream(b),b.length,'application/x-unknown'));});

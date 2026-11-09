@@ -1,0 +1,966 @@
+{
+  "format": "squad-prepared-web-check-map/v1",
+  "purpose": "Cumulative precise adapter-check to original workflow map. Parent merges actual successful run results; source existence/local tests are not hosted acceptance.",
+  "planning_sha256": "4b3d95e1dcab314788145b4b3b1d417e69bf4a1026052bab547c883de4903633",
+  "modules": {
+    "people": {
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [],
+      "order_constraint": null
+    },
+    "people-status": {
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "export": "runStatusJourney",
+      "requires": [],
+      "order_constraint": "Before account closure; after modules relying on old Customer session"
+    },
+    "relationships": {
+      "adapter": "tools/squad/web-relationships-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [],
+      "order_constraint": null
+    },
+    "operations-read": {
+      "adapter": "tools/squad/web-operations-read-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [
+        "collaboration"
+      ],
+      "order_constraint": null
+    },
+    "operations": {
+      "adapter": "tools/squad/web-operations-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [
+        "commerce"
+      ],
+      "order_constraint": null
+    },
+    "reporting": {
+      "adapter": "tools/squad/web-reporting-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [
+        "commerce",
+        "operations"
+      ],
+      "order_constraint": null
+    },
+    "workflow-extensions": {
+      "adapter": "tools/squad/web-workflow-extensions-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [
+        "people",
+        "relationships"
+      ],
+      "order_constraint": "After People/relationships; before fixture cleanup"
+    },
+    "stock-reconciliation": {
+      "adapter": "tools/squad/web-stock-reconciliation-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [
+        "dedicated web_stock_fixture marker"
+      ],
+      "order_constraint": "Dedicated default-off wrapper only; original preparation transaction"
+    },
+    "factory-management": {
+      "adapter": "tools/squad/web-factory-people-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [],
+      "order_constraint": null
+    },
+    "collaboration": {
+      "adapter": "tools/squad/web-collaboration-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [],
+      "order_constraint": null
+    },
+    "catalogue-media": {
+      "adapter": "tools/squad/web-catalogue-media-hosted-journey.mjs",
+      "export": "runJourney",
+      "requires": [
+        "separate reviewed catalogue-media capability and cleanup"
+      ],
+      "order_constraint": "Dedicated parent lifecycle only; not generic business module"
+    }
+  },
+  "local_evidence": {
+    "people_and_relationships": "docs/squad-one-web/evidence/people-acceptance-preparation.json",
+    "operations_read": {
+      "browser_test": "tools/squad/web-operations-read-browser.mjs",
+      "browser_checks_passed": 7,
+      "cleanup_test": "tools/squad/test_web_operations_read_cleanup.py",
+      "cleanup_tests_passed": 2,
+      "isolated_database": "squad_test_web_operations",
+      "database_scope": "Existing Ops/notification contracts. Separate synthetic DB prefix124 plus129/133/135/136/139; not claimed as contiguous full139 release proof.",
+      "review": "Commerce independent read completed; corrected rendered row/detail wait races."
+    },
+    "workflow_extensions": {
+      "browser_test": "tools/squad/web-workflow-extensions-browser.mjs",
+      "browser_checks_passed": 5,
+      "cleanup_test": "tools/squad/test_web_workflow_extensions_cleanup.py",
+      "cleanup_tests_passed": 1,
+      "database_scope": "Full139 isolated synthetic transaction; original exact cleanup, no exception.",
+      "review": "Commerce independent read passed; history rows bound to actual authorized oracle."
+    },
+    "stock_reconciliation": {
+      "cleanup_test": "tools/squad/test_web_stock_fixture.py",
+      "cleanup_tests_passed": 4,
+      "database_scope": "Full139; setup marker, omitted journal refusal, interrupted mismatch cleanup, repair retry/history cleanup.",
+      "browser_test": "tools/squad/web-operations-browser.mjs",
+      "browser_scope": "Existing exact evidence-version/reason repair component check within23; new hosted adapter unexecuted.",
+      "review": "Commerce independent security/provenance read passed; four local cleanup tests passed. No hosted execution."
+    }
+  },
+  "uncovered": [
+    "Notification fanout, recipient/delivery output and device registration",
+    "Notification destination UI is locally rendered, not hosted delivered notification proof",
+    "Global integration settings, provider toggles, automatic drains and scheduler maintenance",
+    "All actor variants beyond each check explicit roles/scope",
+    "Native-only retry/notification workers are explicitly ownership-gated; do not toggle cutover or claim hosted successful execution from local controls."
+  ],
+  "rows": [
+    {
+      "module": "people",
+      "export": "runJourney",
+      "check": "fm_real_browser_tailor_subtailor_create_edit_exact_manager_parent_and_no_login_controls",
+      "workflow_ids": [
+        "PEOPLE.04",
+        "PEOPLE.01"
+      ],
+      "roles": [
+        4
+      ],
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "scope": "Own FM creates and edits Tailor and SubTailor; exact manager/parent; no managed-subject login.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139",
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "people",
+      "export": "runJourney",
+      "check": "admin_real_browser_team_sc_business_profile_create_edit_no_invites_or_workers",
+      "workflow_ids": [
+        "PEOPLE.02"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "scope": "Two isolated business profiles; queued account intents unexecuted.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139",
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "people",
+      "export": "runJourney",
+      "check": "admin_real_browser_team_notes_only_grant_preserves_parent_child_constraints",
+      "workflow_ids": [
+        "JOB.01",
+        "AUTH.04"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "scope": "Notes only on the newly created Team; not every feature combination.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139",
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "people",
+      "export": "runJourney",
+      "check": "sc_cannot_read_foreign_managed_workforce",
+      "workflow_ids": [
+        "PEOPLE.01"
+      ],
+      "roles": [
+        1
+      ],
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "scope": "SC exact foreign workforce denial.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139",
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "people-status",
+      "export": "runStatusJourney",
+      "check": "sc_real_browser_disables_only_own_customer_through_account_edge",
+      "workflow_ids": [
+        "AUTH.05"
+      ],
+      "roles": [
+        1
+      ],
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "scope": "Synchronous source status/session fence; provider reconciliation paused.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139"
+      ]
+    },
+    {
+      "module": "people-status",
+      "export": "runStatusJourney",
+      "check": "disabled_customer_existing_session_and_deep_link_denied",
+      "workflow_ids": [
+        "AUTH.01",
+        "AUTH.05"
+      ],
+      "roles": [
+        3
+      ],
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "scope": "Existing session and profile deep link rejected after disable.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139"
+      ]
+    },
+    {
+      "module": "people-status",
+      "export": "runStatusJourney",
+      "check": "reenable_keeps_old_session_revoked_and_fresh_real_login_restores_same_identity",
+      "workflow_ids": [
+        "AUTH.01",
+        "AUTH.05"
+      ],
+      "roles": [
+        1,
+        3
+      ],
+      "adapter": "tools/squad/web-people-hosted-journey.mjs",
+      "scope": "Re-enable does not revive old token; fresh password login same Auth identity.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139"
+      ]
+    },
+    {
+      "module": "relationships",
+      "export": "runJourney",
+      "check": "admin_isolated_dealer_brand_price_visibility_and_future_approval_settings_persist",
+      "workflow_ids": [
+        "LINK.01",
+        "LINK.03",
+        "LINK.06"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-relationships-hosted-journey.mjs",
+      "scope": "Review and brand/price/visibility/future flag on isolated Dealer; not automatic onboarding or zone routing.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139",
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "relationships",
+      "export": "runJourney",
+      "check": "sc_customer_price_visibility_and_admin_indirect_dealer_link_persist",
+      "workflow_ids": [
+        "LINK.01",
+        "LINK.02",
+        "LINK.06"
+      ],
+      "roles": [
+        0,
+        1
+      ],
+      "adapter": "tools/squad/web-relationships-hosted-journey.mjs",
+      "scope": "Review/commercial controls on isolated Customer; direct-to-indirect link preserves coordinator.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139",
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "relationships",
+      "export": "runJourney",
+      "check": "coordinator_reassignment_removes_old_sc_access_and_restore_recovers_exact_customer",
+      "workflow_ids": [
+        "LINK.02",
+        "PEOPLE.01"
+      ],
+      "roles": [
+        0,
+        1
+      ],
+      "adapter": "tools/squad/web-relationships-hosted-journey.mjs",
+      "scope": "Transfer isolated Customer to alternate fixture SC, deny former SC, restore; no existing order moved.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "people139",
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "operations-read",
+      "export": "runJourney",
+      "check": "team_own_job_and_admin_read_allowed_foreign_job_and_nonadmin_audit_denied",
+      "workflow_ids": [
+        "OPS.02"
+      ],
+      "roles": [
+        0,
+        1,
+        12
+      ],
+      "adapter": "tools/squad/web-operations-read-hosted-journey.mjs",
+      "scope": "Only earlier collaboration task job; unrelated SC denied; own Team reads allowed.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "operations-read",
+      "export": "runJourney",
+      "check": "exact_task_audit_cursor_paginates_without_duplicates_and_rejects_filter_swap",
+      "workflow_ids": [
+        "OPS.02"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-operations-read-hosted-journey.mjs",
+      "scope": "Actual SDK limit1 audit cursor; filter-swapped cursor denied.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "operations-read",
+      "export": "runJourney",
+      "check": "admin_rendered_audit_filters_show_only_journaled_task_history",
+      "workflow_ids": [
+        "OPS.02"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-operations-read-hosted-journey.mjs",
+      "scope": "Real UI exact task filter; no unscoped audit export.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "operations-read",
+      "export": "runJourney",
+      "check": "admin_rendered_queued_job_detail_is_bounded_and_has_no_retry_action",
+      "workflow_ids": [
+        "OPS.02"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-operations-read-hosted-journey.mjs",
+      "scope": "Queued job read only; no retry/claim/provider execution.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "operations-read",
+      "export": "runJourney",
+      "check": "sc_administration_jobs_deep_link_remains_denied",
+      "workflow_ids": [
+        "OPS.02",
+        "APP.01"
+      ],
+      "roles": [
+        1
+      ],
+      "adapter": "tools/squad/web-operations-read-hosted-journey.mjs",
+      "scope": "UI workspace role guard remains distinct from own SDK job read permission.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "operations-read",
+      "export": "runJourney",
+      "check": "customer_and_team_render_empty_recipient_scoped_inboxes_with_workers_paused",
+      "workflow_ids": [
+        "NOTIFY.01"
+      ],
+      "roles": [
+        3,
+        12
+      ],
+      "adapter": "tools/squad/web-operations-read-hosted-journey.mjs",
+      "scope": "Empty inbox only; delivery, device registration and destinations not hosted accepted.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "operations",
+      "export": "runJourney",
+      "check": "real_browser_pc_factory_fm_cutter_checklist_cm_partial_cut_and_history",
+      "workflow_ids": [
+        "PLAN.01",
+        "PLAN.02",
+        "PLAN.03",
+        "PLAN.04",
+        "CUT.01",
+        "CUT.02",
+        "CUT.03"
+      ],
+      "roles": [
+        2,
+        4,
+        9
+      ],
+      "adapter": "tools/squad/web-operations-hosted-journey.mjs",
+      "scope": "Owned custom order factory path; two cutting events.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "operations",
+      "export": "runJourney",
+      "check": "real_browser_fm_tailor_subtailor_allocation_inspector_coupled_completion_pickup_and_current_item_tabs",
+      "workflow_ids": [
+        "SEW.01",
+        "SEW.02",
+        "SEW.03"
+      ],
+      "roles": [
+        4,
+        8
+      ],
+      "adapter": "tools/squad/web-operations-hosted-journey.mjs",
+      "scope": "Own factory assignments and source-coupled inspection/pickup; managed Tailor/SubTailor current tabs.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "operations",
+      "export": "runJourney",
+      "check": "real_browser_di_destination_partial_dispatch_and_completed_order",
+      "workflow_ids": [
+        "DISPATCH.01",
+        "DISPATCH.02",
+        "DISPATCH.03",
+        "DISPATCH.04"
+      ],
+      "roles": [
+        7
+      ],
+      "adapter": "tools/squad/web-operations-hosted-journey.mjs",
+      "scope": "Two partial dispatches with exact terminal completion.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "operations",
+      "export": "runJourney",
+      "check": "real_browser_pc_worker_cost_and_allocation_jw_due_commitment_and_six_stages",
+      "workflow_ids": [
+        "JOB.02",
+        "JOB.03",
+        "JOB.04",
+        "JOB.05"
+      ],
+      "roles": [
+        2,
+        11
+      ],
+      "adapter": "tools/squad/web-operations-hosted-journey.mjs",
+      "scope": "Owned direct worker order, cost, first due reason and six stages.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "operations",
+      "export": "runJourney",
+      "check": "real_browser_dealer_receipt_partial_fifo_dispatch_edited_procurement_requote_linked_purchase_and_exact_remaining_stock",
+      "workflow_ids": [
+        "STOCK.01",
+        "STOCK.02",
+        "STOCK.03",
+        "BACK.01",
+        "BACK.02",
+        "DISPATCH.02"
+      ],
+      "roles": [
+        1,
+        2,
+        10,
+        11
+      ],
+      "adapter": "tools/squad/web-operations-hosted-journey.mjs",
+      "scope": "Custom Dealer supply/demand only; edited shortage quote, receipt, partial FIFO dispatch and exact balance; no RMP stock claim.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "reporting",
+      "export": "runJourney",
+      "check": "admin_real_browser_report_date_validation_exact_order_filter_end_page_and_fixture_only_csv",
+      "workflow_ids": [
+        "METRIC.04"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-reporting-hosted-journey.mjs",
+      "scope": "Exact owned order filter/date validation/end-page and fixture-only CSV.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "reporting",
+      "export": "runJourney",
+      "check": "real_rpc_customer_scoped_report_cursor_has_multiple_pages_without_duplicates",
+      "workflow_ids": [
+        "METRIC.04"
+      ],
+      "roles": [
+        3
+      ],
+      "adapter": "tools/squad/web-reporting-hosted-journey.mjs",
+      "scope": "SDK multi-page limit1 cursor, not UI multi-page claim.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "reporting",
+      "export": "runJourney",
+      "check": "factory_manager_real_browser_period_work_metrics_and_tailor_subtailor_leaderboard",
+      "workflow_ids": [
+        "METRIC.02",
+        "METRIC.03"
+      ],
+      "roles": [
+        4
+      ],
+      "adapter": "tools/squad/web-reporting-hosted-journey.mjs",
+      "scope": "Fixture production counts with explicit period; managed Tailor/SubTailor ranking.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "reporting",
+      "export": "runJourney",
+      "check": "factory_manager_real_browser_weekly_earnings_and_queued_weekly_pdf_detail_history",
+      "workflow_ids": [
+        "SEW.04",
+        "DOC.04"
+      ],
+      "roles": [
+        4
+      ],
+      "adapter": "tools/squad/web-reporting-hosted-journey.mjs",
+      "scope": "Queued request/detail/history only; output acceptance handled by separate exact worker harness.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "reporting",
+      "export": "runJourney",
+      "check": "dispatch_real_browser_exact_recorded_delivery_challan_queued_detail_history",
+      "workflow_ids": [
+        "DOC.03"
+      ],
+      "roles": [
+        7
+      ],
+      "adapter": "tools/squad/web-reporting-hosted-journey.mjs",
+      "scope": "Exact delivery request queued; no generic worker.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "reporting",
+      "export": "runJourney",
+      "check": "customer_real_browser_fixture_class_catalogue_queued_detail_history_foreign_actor_denial",
+      "workflow_ids": [
+        "DOC.01",
+        "DOC.02"
+      ],
+      "roles": [
+        3,
+        1
+      ],
+      "adapter": "tools/squad/web-reporting-hosted-journey.mjs",
+      "scope": "Fixture class and actor-specific queued catalogue; no full output/download claim.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "connected141"
+      ]
+    },
+    {
+      "module": "workflow-extensions",
+      "export": "runJourney",
+      "check": "customer_browser_coordinator_request_admin_rejection_preserves_original_routing",
+      "workflow_ids": [
+        "LINK.04",
+        "LINK.05"
+      ],
+      "roles": [
+        3,
+        0
+      ],
+      "adapter": "tools/squad/web-workflow-extensions-hosted-journey.mjs",
+      "scope": "Customer requests alternate SC; Admin rejects exact request, preserving current routing.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "workflow-extensions",
+      "export": "runJourney",
+      "check": "admin_browser_bulk_reassigns_two_isolated_customers_old_sc_denied_then_restored",
+      "workflow_ids": [
+        "LINK.05",
+        "LINK.02"
+      ],
+      "roles": [
+        0,
+        1
+      ],
+      "adapter": "tools/squad/web-workflow-extensions-hosted-journey.mjs",
+      "scope": "Two isolated no-order Customers transfer and restore together; former SC denied.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "workflow-extensions",
+      "export": "runJourney",
+      "check": "fm_browser_unfinished_archive_denied_then_completed_subject_archive_retains_inspection_history",
+      "workflow_ids": [
+        "PEOPLE.04",
+        "PEOPLE.05",
+        "SEW.03",
+        "SEW.04"
+      ],
+      "roles": [
+        4,
+        8
+      ],
+      "adapter": "tools/squad/web-workflow-extensions-hosted-journey.mjs",
+      "scope": "One four-piece order proves unfinished archive denial, completed child/parent archive, exact retained event history.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "workflow-extensions",
+      "export": "runJourney",
+      "check": "admin_browser_assigns_order_linked_task_team_scoped_search_completes_and_creator_context_retains_order",
+      "workflow_ids": [
+        "TASK.01",
+        "TASK.02",
+        "TASK.03"
+      ],
+      "roles": [
+        0,
+        12
+      ],
+      "adapter": "tools/squad/web-workflow-extensions-hosted-journey.mjs",
+      "scope": "Actual order/assignee pickers, to-me and by-me scope, completion; temporary notes grant restored.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "workflow_extensions141"
+      ]
+    },
+    {
+      "module": "stock-reconciliation",
+      "export": "runJourney",
+      "check": "dealer_cannot_read_admin_stock_reconciliation",
+      "workflow_ids": [
+        "STOCK.04"
+      ],
+      "roles": [
+        10
+      ],
+      "adapter": "tools/squad/web-stock-reconciliation-hosted-journey.mjs",
+      "scope": "Dealer denied privileged stock reconciliation.",
+      "acceptance_state": "prepared_check_not_acceptance",
+      "hosted_evidence": []
+    },
+    {
+      "module": "stock-reconciliation",
+      "export": "runJourney",
+      "check": "admin_browser_repairs_exact_evidence_version_counter_without_changing_receipt_or_consumption",
+      "workflow_ids": [
+        "STOCK.04"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-stock-reconciliation-hosted-journey.mjs",
+      "scope": "One declared setup receipt repairs counter1\u21920 with exact evidence fingerprint; receipt and usage stay intact.",
+      "acceptance_state": "prepared_check_not_acceptance",
+      "hosted_evidence": []
+    },
+    {
+      "module": "stock-reconciliation",
+      "export": "runJourney",
+      "check": "admin_browser_sees_retained_exact_before_after_reason_history",
+      "workflow_ids": [
+        "STOCK.04",
+        "OPS.02"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-stock-reconciliation-hosted-journey.mjs",
+      "scope": "Actual retained correction history shows exact receipt, before, after and reason.",
+      "acceptance_state": "prepared_check_not_acceptance",
+      "hosted_evidence": []
+    },
+    {
+      "module": "factory-management",
+      "export": "runJourney",
+      "check": "pc_real_browser_factory_create_edit_exact_version_and_bounded_directory_read",
+      "workflow_ids": [
+        "PEOPLE.03"
+      ],
+      "roles": [
+        2
+      ],
+      "adapter": "tools/squad/web-factory-people-hosted-journey.mjs",
+      "scope": "One new factory, one new Factory Manager and one Inspector represent the shared factory-team save branch. Six browser commands; queued account intents unexecuted. No Auth provisioning, invitation, email, production assignment or all-team-role Cartesian coverage claimed.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "factory-management",
+      "export": "runJourney",
+      "check": "pc_real_browser_factory_manager_create_edit_preserves_owned_factory",
+      "workflow_ids": [
+        "PEOPLE.03",
+        "PEOPLE.02"
+      ],
+      "roles": [
+        2
+      ],
+      "adapter": "tools/squad/web-factory-people-hosted-journey.mjs",
+      "scope": "One new factory, one new Factory Manager and one Inspector represent the shared factory-team save branch. Six browser commands; queued account intents unexecuted. No Auth provisioning, invitation, email, production assignment or all-team-role Cartesian coverage claimed.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "factory-management",
+      "export": "runJourney",
+      "check": "pc_real_browser_inspector_create_edit_preserves_exact_manager_and_sc_denial",
+      "workflow_ids": [
+        "PEOPLE.03",
+        "PEOPLE.02"
+      ],
+      "roles": [
+        1,
+        2
+      ],
+      "adapter": "tools/squad/web-factory-people-hosted-journey.mjs",
+      "scope": "One new factory, one new Factory Manager and one Inspector represent the shared factory-team save branch. Six browser commands; queued account intents unexecuted. No Auth provisioning, invitation, email, production assignment or all-team-role Cartesian coverage claimed.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "collaboration",
+      "export": "runJourney",
+      "check": "team_real_browser_personal_task_create_edit_complete_reopen_archive",
+      "workflow_ids": [
+        "TASK.01",
+        "TASK.02",
+        "TASK.03"
+      ],
+      "roles": [
+        12
+      ],
+      "adapter": "tools/squad/web-collaboration-hosted-journey.mjs",
+      "scope": "Exact-owned staging fixture UI lifecycle commands with authenticated SDK read oracles; no provider, email, closure or production actions.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "collaboration",
+      "export": "runJourney",
+      "check": "admin_real_browser_assigns_exact_team_goal_subject_completes_and_reopens",
+      "workflow_ids": [
+        "GOAL.01",
+        "GOAL.02",
+        "GOAL.03"
+      ],
+      "roles": [
+        0,
+        12
+      ],
+      "adapter": "tools/squad/web-collaboration-hosted-journey.mjs",
+      "scope": "Exact-owned staging fixture UI lifecycle commands with authenticated SDK read oracles; no provider, email, closure or production actions.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "collaboration",
+      "export": "runJourney",
+      "check": "admin_real_browser_two_responsibilities_atomic_same_subject_distinct_types",
+      "workflow_ids": [
+        "GOAL.02"
+      ],
+      "roles": [
+        0
+      ],
+      "adapter": "tools/squad/web-collaboration-hosted-journey.mjs",
+      "scope": "Exact-owned staging fixture UI lifecycle commands with authenticated SDK read oracles; no provider, email, closure or production actions.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "collaboration",
+      "export": "runJourney",
+      "check": "admin_real_browser_target_create_edit_progress_archive_sc_read_only_projection",
+      "workflow_ids": [
+        "TARGET.01",
+        "TARGET.02"
+      ],
+      "roles": [
+        0,
+        1
+      ],
+      "adapter": "tools/squad/web-collaboration-hosted-journey.mjs",
+      "scope": "Exact-owned staging fixture UI lifecycle commands with authenticated SDK read oracles; no provider, email, closure or production actions.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "collaboration",
+      "export": "runJourney",
+      "check": "admin_real_browser_two_targets_atomic_next_day_default_pending_achieved_server_filters",
+      "workflow_ids": [
+        "TARGET.01",
+        "TARGET.02"
+      ],
+      "roles": [
+        0,
+        1
+      ],
+      "adapter": "tools/squad/web-collaboration-hosted-journey.mjs",
+      "scope": "Exact-owned staging fixture UI lifecycle commands with authenticated SDK read oracles; no provider, email, closure or production actions.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "factory_collaboration_operators140"
+      ]
+    },
+    {
+      "module": "catalogue-media",
+      "export": "runJourney",
+      "check": "actual_ui_owned_design_png_append_preview_exact_download_guidelines_create_edit_and_detach",
+      "workflow_ids": [
+        "CONFIG.02",
+        "MEDIA.01",
+        "MEDIA.02",
+        "MEDIA.03"
+      ],
+      "roles": [
+        3
+      ],
+      "adapter": "tools/squad/web-catalogue-media-hosted-journey.mjs",
+      "scope": "Customer visible reusable-design save followed by owned PNG reference append, decoded preview, exact-byte actual download, guidelines create/edit and detach. No generated-preview capture/replace claim.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "catalogue_media140"
+      ]
+    },
+    {
+      "module": "catalogue-media",
+      "export": "runJourney",
+      "check": "actual_ui_owned_unlinked_branding_opaque_upload_download_only_exact_bytes_and_detach",
+      "workflow_ids": [
+        "CONFIG.03",
+        "MEDIA.01",
+        "MEDIA.02",
+        "MEDIA.03"
+      ],
+      "roles": [
+        3
+      ],
+      "adapter": "tools/squad/web-catalogue-media-hosted-journey.mjs",
+      "scope": "Customer creates an unlinked branding placement, uploads inert .cdr as opaque attachment, downloads exact bytes through actual control with no inline preview/Open action, then detaches. No external provider or production claim.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "catalogue_media140"
+      ]
+    },
+    {
+      "module": "workflow-extensions",
+      "export": "runJourney",
+      "check": "sc_browser_renames_owned_history_preset_fresh_search_reopens_same_configuration_and_order_identity",
+      "workflow_ids": [
+        "CONFIG.04"
+      ],
+      "roles": [
+        1
+      ],
+      "adapter": "tools/squad/web-workflow-extensions-hosted-journey.mjs",
+      "scope": "Rename owned saved preset, fresh exact search/reopen preserves configuration and order identity.",
+      "acceptance_state": "hosted_exact_check_accepted_workflow_partial",
+      "hosted_evidence": [
+        "workflow_extensions141"
+      ]
+    }
+  ]
+}

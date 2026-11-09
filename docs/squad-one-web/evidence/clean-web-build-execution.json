@@ -1,0 +1,52 @@
+{
+  "format": "squad-clean-web-build/v1",
+  "status": "incremental_built_startup_verified",
+  "workspace": "/tmp/squad-clean-web-cjtmqrp8",
+  "node": "v26.13.0",
+  "npm": "11.6.2",
+  "source_files": 598,
+  "source_manifest_sha256": "0160f5bc7f475cf3250bd90c90683b0a7ca40250433a4d980b627834c13af615",
+  "lock_sha256": "46e3fc749e8fdd0e07255a6b396c8b5dde327ee96d7d7d5fec17fdf570fc003b",
+  "app_root_sha256": "022e13c66a1276bbe47fabdf57f890254dfabd3ae53f0c48fc2d51beb139cc13",
+  "environment_names": [
+    "VITE_APP_ENV",
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY"
+  ],
+  "copied_env_files": false,
+  "dependency_install_reused_from": "clean-web-initial-execution.json",
+  "source_changes": [
+    "apps/admin/src/squad/features/catalogue/CataloguePage.jsx",
+    "apps/admin/src/squad/features/catalogue/ProductShareDialog.jsx"
+  ],
+  "previous_artifact": "/tmp/squad-clean-web-cjtmqrp8/build-control/pre-focus-artifact",
+  "commands": [
+    {
+      "phase": "focus_return_build",
+      "exit_code": 0,
+      "seconds": 8.61,
+      "log": "/tmp/squad-clean-web-cjtmqrp8/build-control/build-focus-refresh.log"
+    }
+  ],
+  "source_unchanged": true,
+  "entry_path": "/assets/index-C1WMMJOg.js",
+  "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+  "dist": "/tmp/squad-clean-web-cjtmqrp8/apps/admin/dist",
+  "dist_files": 123,
+  "dist_manifest_sha256": "d6dc59a725bd7141f3f1065f1d48aa31540a8f74b4d089f45cd1980b6428862d",
+  "warnings": [
+    "Existing legacy Tracker App chunk exceeds1200kB warning threshold; no compilation error."
+  ],
+  "preview": {
+    "base": "http://localhost:5186",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "exact_served_bytes_verified": true
+  },
+  "anonymous_startup": {
+    "ready": true,
+    "errors": [],
+    "externalRequestsBlocked": 0,
+    "scope": "Anonymous startup only; external traffic blocked; no credentials or hosted calls"
+  }
+}

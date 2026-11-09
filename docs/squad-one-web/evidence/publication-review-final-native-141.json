@@ -1,0 +1,57 @@
+{
+  "format": "squad-publication-review/v1",
+  "scope": "Final native Safari, exact-owned media cleanup and frozen refresh reference metadata; no Git or hosted mutation.",
+  "review_findings": [
+    "Only disposable fixture IDs/names, aggregate timings and cleanup counts, public branch/commit/baseline hashes, local reference paths and file hashes are retained.",
+    "No credentials, signed grants, real customer contacts, private mail contents, image/PDF bytes or hosted raw records are included.",
+    "Private raw originals and screenshots remain excluded by the release selector.",
+    "Owned media public derivative differs from retained private original in exactly the three declared screenshot path fields; assertion and cleanup values are identical.",
+    "Native functional observation retains its original focus finding; separate account-free native focus receipt closes that finding without claiming a hosted replay or deployment."
+  ],
+  "approved_exact_files": [
+    {
+      "path": "docs/squad-one-web/evidence/frozen-refresh-reference-141.json",
+      "sha256": "a361faf4ae40d9cb47704242bcfdce1820d50e5d63e82006d2157222aaa95f40",
+      "bytes": 1269,
+      "publication": "approved_metadata_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/native-safari-owned-media-b6e764b1.json",
+      "sha256": "3092be95f7620a5cd5b2df44278c9426455ebff588ef7fece1408e9215b8f2f0",
+      "bytes": 2468,
+      "publication": "approved_metadata_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/native-safari-product-share-focus.json",
+      "sha256": "fcf2fbe13cf37772bc5028573c9ce293f43398efb5c40a3526fdfafac941693f",
+      "bytes": 1817,
+      "publication": "approved_metadata_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-141-publication-normalization.json",
+      "sha256": "12cabb0601672769b24528488aefbfed20d50466cb0940a8212b477d165dfae1",
+      "bytes": 1053,
+      "publication": "approved_metadata_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-141.json",
+      "sha256": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+      "bytes": 22464,
+      "publication": "approved_metadata_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-acceptance.json",
+      "sha256": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487",
+      "bytes": 22464,
+      "publication": "approved_metadata_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/owned-content-media-b6e7-visual-review.json",
+      "sha256": "6923554f78d0a0c2705e633a0e1be212d92e1459872f9ef4a262fddbe924b22e",
+      "bytes": 1762,
+      "publication": "approved_metadata_only"
+    }
+  ],
+  "self_review_required": "This receipt cannot approve its own hash. The root integrator must explicitly review this file before final pathspec generation.",
+  "remaining_scope": "Final focus source, clean build and mutable execution ledger/docs await producer freeze and separate exact-hash review."
+}

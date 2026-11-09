@@ -1,0 +1,73 @@
+{
+  "format": "squad-active-read-snapshot/v1",
+  "run_id": "cb66a688-367b-4a11-8ad3-6c57aa5f11c1",
+  "environment": "staging",
+  "recorded_at": "2026-11-09T03:51:53.138739+00:00",
+  "context": "Single parent-authorized snapshot during active document-chain pass7; no diagnostic fixture or writes",
+  "read_only": true,
+  "groups": [
+    {
+      "backend_type": "client backend",
+      "state": "active",
+      "wait_event_type": null,
+      "wait_event": null,
+      "classified_contract": "v1_order_get",
+      "connections": 1,
+      "max_active_query_ms": 1591.26,
+      "blocking_edges": 0,
+      "blocked_connections": 0
+    },
+    {
+      "backend_type": "client backend",
+      "state": "idle",
+      "wait_event_type": "Client",
+      "wait_event": "ClientRead",
+      "classified_contract": "other_statement",
+      "connections": 23,
+      "max_active_query_ms": null,
+      "blocking_edges": 0,
+      "blocked_connections": 0
+    },
+    {
+      "backend_type": "pg_cron launcher",
+      "state": null,
+      "wait_event_type": "Extension",
+      "wait_event": "Extension",
+      "classified_contract": "other_statement",
+      "connections": 1,
+      "max_active_query_ms": null,
+      "blocking_edges": 0,
+      "blocked_connections": 0
+    },
+    {
+      "backend_type": "pg_net 0.20.3 worker",
+      "state": "idle",
+      "wait_event_type": "Extension",
+      "wait_event": "Extension",
+      "classified_contract": "other_statement",
+      "connections": 1,
+      "max_active_query_ms": null,
+      "blocking_edges": 0,
+      "blocked_connections": 0
+    },
+    {
+      "backend_type": "walsender",
+      "state": "active",
+      "wait_event_type": null,
+      "wait_event": null,
+      "classified_contract": "other_statement",
+      "connections": 1,
+      "max_active_query_ms": 9101299.7,
+      "blocking_edges": 0,
+      "blocked_connections": 0
+    }
+  ],
+  "interpretation": "Contract names are fixed substring classifications of current/last query, not full SQL or exact nested-function attribution. Active query age is reported only for active backends; idle query text is the previous statement. One instant cannot establish the cause of a prior or later timeout. The long active walsender age is a replication connection lifetime, not a long application query; use max_active_client_query_ms for application sampling.",
+  "totals": {
+    "connections": 27,
+    "blocked_connections": 0,
+    "blocking_edges": 0,
+    "max_active_query_ms": 9101299.7,
+    "max_active_client_query_ms": 1591.26
+  }
+}

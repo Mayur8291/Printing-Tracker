@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {createSquadClient} from '../../packages/shared/squad.js';
+const calls=[];
+const sdk=createSquadClient({schema(name){assert.equal(name,'canto_api');return{rpc:async(name,args)=>{calls.push({name,args});return{data:{ok:true},error:null};}};}});
+await sdk.milestones('101',{limit:25});
+assert.deepEqual(calls.pop(),{name:'v1_milestones_list',args:{p_subject_id:'101',p_cursor:null,p_limit:25}});
+await sdk.milestones('101',{cursor:'cursor',limit:25},'achieved');
+assert.deepEqual(calls.pop(),{name:'v1_milestones_list',args:{p_subject_id:'101',p_cursor:'cursor',p_limit:25,p_state:'achieved'}});
+const rows=[{name:'First',start:'2027-01-01',end:'2027-01-31',amount:'500.25'}];
+await sdk.createMilestones('101',rows,'same-key');
+assert.deepEqual(calls.pop(),{name:'v1_milestones_create',args:{p_subject_id:'101',p_targets:rows,p_idempotency_key:'same-key'}});
+console.log('Target SDK:3 offline contract checks passed');

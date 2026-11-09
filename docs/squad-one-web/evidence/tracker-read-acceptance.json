@@ -1,0 +1,160 @@
+{
+  "scope": "Real staging staff gateway and bounded reads; automatic writes blocked; realtime and CRUD not exercised",
+  "checks": [
+    "admin:actual_identity_and_profile_verified",
+    "admin:legacy_gateway_without_squad_chunk",
+    "admin:read_screen_printing_orders",
+    "admin:read_screen_customers",
+    "admin:read_screen_reports",
+    "admin:read_screen_masters",
+    "admin:read_screen_data_refresh",
+    "admin:360px_no_overflow",
+    "admin:automatic_writes_blocked",
+    "admin:zero_unexpected_transport_or_browser_errors",
+    "viewer:actual_identity_and_profile_verified",
+    "viewer:legacy_gateway_without_squad_chunk",
+    "viewer:read_screen_printing_orders",
+    "viewer:360px_no_overflow",
+    "viewer:automatic_writes_blocked",
+    "viewer:zero_unexpected_transport_or_browser_errors"
+  ],
+  "actors": [
+    {
+      "role": "admin",
+      "checks": [
+        "actual_identity_and_profile_verified",
+        "legacy_gateway_without_squad_chunk",
+        "read_screen_printing_orders",
+        "read_screen_customers",
+        "read_screen_reports",
+        "read_screen_masters",
+        "read_screen_data_refresh",
+        "360px_no_overflow",
+        "automatic_writes_blocked",
+        "zero_unexpected_transport_or_browser_errors"
+      ],
+      "successfulReads": 40,
+      "blockedAutomaticWrites": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/set_my_dashboard_presence"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/promote_stale_new_orders_to_pending"
+        }
+      ]
+    },
+    {
+      "role": "viewer",
+      "checks": [
+        "actual_identity_and_profile_verified",
+        "legacy_gateway_without_squad_chunk",
+        "read_screen_printing_orders",
+        "360px_no_overflow",
+        "automatic_writes_blocked",
+        "zero_unexpected_transport_or_browser_errors"
+      ],
+      "successfulReads": 33,
+      "blockedAutomaticWrites": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/set_my_dashboard_presence"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/promote_stale_new_orders_to_pending"
+        }
+      ]
+    }
+  ],
+  "frontend": "http://127.0.0.1:5185/",
+  "environment": "staging",
+  "entryAssets": [
+    {
+      "path": "/assets/index-CmIDpT67.js",
+      "sha256": "10743fcda1843e308268964ea1470c716312a0b107455be4d29cd6293d4228ac"
+    }
+  ],
+  "complete": true,
+  "cleanup": {
+    "removed_owned_auth": 2,
+    "removed_owned_channel_memberships": 2,
+    "unrelated_auth_profiles_preserved_during_cleanup": true,
+    "business_revision_unchanged": true,
+    "no_source_identity_or_write_lease": true
+  },
+  "fixture_scope": "tracker-read-staff/v1",
+  "source_write_lease": false,
+  "frontend_build": {
+    "path": "/assets/index-CmIDpT67.js",
+    "sha256": "10743fcda1843e308268964ea1470c716312a0b107455be4d29cd6293d4228ac",
+    "matches_admin_dist": true,
+    "startup": {
+      "ready": true,
+      "errors": [],
+      "externalRequestsBlocked": 0,
+      "scope": "Anonymous startup only; external traffic blocked; no credentials or hosted calls"
+    }
+  },
+  "run_id": "3b2c506a-2143-4a12-982b-215dccfcfffe",
+  "run_binding": {
+    "method": "Post-run local evidence reconciliation; original wrapper omitted run_id. Coordinating executor identified this exact serialized successful run; matching cleanup receipt and complete eight-screen set were independently checked.",
+    "original_report_sha256": "b8e3612480b71c44dec17e7a17964039a825c2c7ce872dc05829d58b52737794",
+    "cleanup_receipt": {
+      "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/cleanup-receipt.json",
+      "sha256": "6db1cc9e7d916b6d4544534ed9861c9a0516b3f1397f53e7f86fcb2b1aae13f6"
+    },
+    "checks": [
+      "Receipt run ID equals private directory run ID",
+      "Receipt cleanup exactly equals report cleanup",
+      "Complete Admin10/Viewer6 report and eight expected screenshots",
+      "No failure artifact in this run and no remaining Tracker checkpoint",
+      "Public report written after cleanup receipt"
+    ],
+    "screenshots": [
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-printing-orders.png",
+        "sha256": "44f8ed9f98b3acebcf515696184b25dbec18bbb6c22debacf538fc6b7ee89d45"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-customers.png",
+        "sha256": "d406d1aa495abef7f484c7aed446bebf583a179abb1f2624f91837fad9d4a2b5"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-reports.png",
+        "sha256": "a19db87f60c6889544cd97dde986e478aec871085036d1fcd5feac0cd4fe9160"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-masters.png",
+        "sha256": "214bbe59c1b878d29ecfc10fbcbb4a6ec4cf7e893f4465c250c830f799b01f78"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-data-refresh.png",
+        "sha256": "c85166f56d378ead157d0ea6903ab1b9c08afca787d32450b4119cefb99c4fa2"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/admin-360.png",
+        "sha256": "4737f22678787df0a06c20ff512b82e724e8f326086815bf62a11b1bb05b7499"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/viewer-printing-orders.png",
+        "sha256": "f74f9b9a76f94a28ca4dad0b9950cd0f9a5216e36663ea3ff36e051795b44074"
+      },
+      {
+        "path": "tools/squad/private/tracker-read-3b2c506a-2143-4a12-982b-215dccfcfffe/viewer-360.png",
+        "sha256": "cfcfbb1d0f29d5e8c50f27ebc716b347eeb6f75a5915e46a8687238cf7a6e451"
+      }
+    ]
+  },
+  "independent_visual_review": {
+    "reviewer": "web_commerce_implementation",
+    "reviewed_at": "2026-11-09T03:43:14.411212+00:00",
+    "screens": 8,
+    "scope": "Actual Admin five desktop read screens plus mobile Data Refresh, Viewer desktop/mobile Printing Orders. Loaded role-specific views inspected; no runtime error or page-width overflow. Long tables/tabs retain horizontal scrolling. No business values copied into public review.",
+    "limitations": [
+      "Read-only smoke; no Masters CRUD, data refresh execution, realtime or production deployment.",
+      "This bundle precedes the separately reviewed AppRoot coalescing change; final frozen/deployed affected-path verification remains required."
+    ]
+  }
+}

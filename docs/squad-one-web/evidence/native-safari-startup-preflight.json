@@ -1,0 +1,20 @@
+{
+  "format": "squad-native-safari-startup/v1",
+  "observed_at": "2026-11-09T04:30:36.815658+00:00",
+  "method": "Native Safari via cua accessibility state",
+  "url": "http://127.0.0.1:5186/squad/home",
+  "served_build_entry": "d89fa29a6b7150d06d49eeead69dd11a826712b45d7d5ed649564619a6e47085",
+  "visible": [
+    "Scott Dashboard",
+    "Email",
+    "Password",
+    "Sign in",
+    "Forgot password?",
+    "Create a customer account",
+    "Confirm your account",
+    "Accept an invitation"
+  ],
+  "owned_tab_closed": true,
+  "authenticated_flow_tested": false,
+  "limitation": "Anonymous native startup only. Does not satisfy native Safari login/date/download/keyboard release gate."
+}

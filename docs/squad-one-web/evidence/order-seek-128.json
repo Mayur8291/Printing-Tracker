@@ -1,0 +1,27 @@
+{
+  "local_only": true,
+  "synthetic_rows": 10000,
+  "scope": "Customer103",
+  "deep_cursor_id": 8007200,
+  "results": [
+    {
+      "sort": "due",
+      "index": "squad_orders_due_seek",
+      "index_condition": "((due_on IS NOT NULL) AND (ROW(due_on, id) > ROW('2027-01-06 00:00:00'::timestamp without time zone, 8007200)))",
+      "rows": 31,
+      "rows_removed": 0,
+      "execution_ms": 12.842,
+      "shared_hit_blocks": 1065
+    },
+    {
+      "sort": "created",
+      "index": "squad_orders_created_seek",
+      "index_condition": "(ROW(created_at, id) < ROW('2026-12-06 00:00:00'::timestamp without time zone, 8007200))",
+      "rows": 31,
+      "rows_removed": 0,
+      "execution_ms": 0.562,
+      "shared_hit_blocks": 53
+    }
+  ],
+  "changes": "rolled_back"
+}

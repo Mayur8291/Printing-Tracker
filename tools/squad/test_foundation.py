@@ -2,6 +2,7 @@
 from sqlstate_assertions import assert_app_conflict
 import unittest,uuid,json
 from local_db import connect
+from release_mirror import security_check
 from fixtures import seed,uid,sid,session,rpc
 from psycopg.types.json import Jsonb
 import psycopg
@@ -93,10 +94,7 @@ class Foundation(unittest.TestCase):
         self.allow_writes();self.c.execute('UPDATE sa_domain.runtime_state SET generation=1');self.actor()
         with assert_app_conflict(self):rpc(self.c,'v1_profile_save',(Jsonb({'name':'Changed'}),'0:0',uuid.uuid4()))
     def test_definer_owners_and_public_grants(self):
-        unsafe=self.c.execute("""SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-          JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='sa_domain'
-          AND ((p.prosecdef AND (r.rolsuper OR r.rolbypassrls) AND p.oid NOT IN('sa_domain.auth_context()'::regprocedure,'sa_domain.revoke_account_sessions(bigint)'::regprocedure)) OR (has_function_privilege('anon',p.oid,'EXECUTE') AND p.oid<>'sa_domain.v1_app_bootstrap(text,text)'::regprocedure))""").fetchall()
-        self.assertEqual(unsafe,[])
+        security_check(self.c)
     def test_auth_bridge_cannot_be_called_by_client(self):
         self.actor()
         with self.assertRaises(psycopg.errors.InsufficientPrivilege):self.c.execute('SELECT * FROM sa_domain.auth_context()')

@@ -19,13 +19,17 @@ from psycopg.types.json import Jsonb
 import test_hosted_personas as identities
 from business_fixture_commercial import plan_fixture,prepare_fixture
 from business_cleanup_documents import cleanup_documents
+from business_nested_milestones import owned_nested_milestones
+from canonical_fixture_location import canonical_locations,unused_location,assert_unused_location
+from business_cleanup_accounts import owned_closure_auth_revisions,independent_staff_changes
 
 ROOT=identities.ROOT
 PRIVATE=ROOT/'tools/squad/private'
 CHECKPOINT=PRIVATE/'business-checkpoint.json'
 SCHEMA='sa_snapshot_20261019'
 UUID_FIELDS=('test_actor_ids','test_write_expires_at','allow_test_writes')
-KIND_TABLE={'person':'sa_users','factory':'sa_factories','preset':'sa_products','product':'sa_products','order':'sa_orders','item':'sa_items','quantity':'sa_quantities','rating':'sa_ratings','task':'sa_tasks','responsibility':'sa_responsibilities','milestone':'sa_milestones'}
+KIND_TABLE={'person':'sa_users','factory':'sa_factories','preset':'sa_products','product':'sa_products','order':'sa_orders','item':'sa_items','quantity':'sa_quantities','rating':'sa_ratings','task':'sa_tasks','responsibility':'sa_responsibilities','milestone':'sa_milestones',
+ 'setting_cities':'sa_cities','setting_zones':'sa_zones','setting_criteria':'sa_criteria'}
 
 
 def serial(value):
@@ -50,6 +54,9 @@ def validate(state):
  assert type(state['data_base']) is int and 1901000000<=state['data_base']<1902000000 and state['data_base']%10000==0
  assert state['journal']==str(PRIVATE/f'business-{run}.jsonl')
  assert len(state['source_before'])<=300 and all(k.startswith('sa_') and k.replace('_','').isalnum() for k in state['source_before'])
+ if 'web_address_location' in state:
+  location=state['web_address_location'];assert set(location)=={'state','city'} and (location['state'],location['city']) in canonical_locations()
+  assert state['fixture'].get('web_address_location')==location
  expected=plan_fixture(state)
  assert state['fixture']['ids']==expected['ids'] and state['fixture']['customConfig']==expected['customConfig']
  assert state['fixture']['commercialExtras']==expected['commercialExtras'],'Extra journey fixture changed'
@@ -104,6 +111,8 @@ def plan(c):
   'audit_start':c.execute('SELECT coalesce(max(id),0) FROM sa_domain.audit').fetchone()[0],
   'public_structure':identities.public_structure(c),'staff_auth':identities.staff_auth(c)}
  state['fixture']=plan_fixture(state)
+ state['web_address_location']=unused_location(c)
+ state['fixture']['web_address_location']=state['web_address_location']
  for entry in state['fixture']['fixture_tables']:
   table=entry['table'].split('.')[1]
   assert not c.execute(sql.SQL('SELECT 1 FROM {}.{} WHERE id=ANY(%s::bigint[]) LIMIT 1').format(sql.Identifier(SCHEMA),sql.Identifier(table)),(entry['ids'],)).fetchone(),'Planned source IDs collide'
@@ -112,6 +121,7 @@ def plan(c):
 
 def prepare(c,state):
  """Caller owns a transaction and journals updated state before its commit."""
+ if "web_address_location" in state:assert_unused_location(c,state["web_address_location"])
  validate(state);assert c.info.transaction_status.name=='INTRANS'
  credentials=identities.create(c,state['identity']);base=state['base'];objects=state['identity']['objects']
  # Remove the earlier read-only harness's placeholder order graph. This run
@@ -121,6 +131,7 @@ def prepare(c,state):
  for offset in range(15):c.execute('UPDATE sa_snapshot_20261019.sa_users SET name=%s WHERE id=%s',(state['label']+f' role{offset}',base+offset))
  c.execute('UPDATE sa_snapshot_20261019.sa_users SET is_direct_deal=true WHERE id=%s',(base+3,))
  state['fixture']=prepare_fixture(c,state)
+ if 'web_address_location' in state:state['fixture']['web_address_location']=state['web_address_location']
  now=datetime.datetime.now(datetime.timezone.utc)
  state['fixture'].update(actors={str(n):str(base+n) for n in range(13)},dueAt=(now+datetime.timedelta(days=14)).isoformat(),completionBy=(now+datetime.timedelta(days=13)).isoformat())
  roots={'sa_users':list(range(base,base+15)),'sa_factories':objects['factories']}
@@ -191,7 +202,7 @@ def delete_graph(c,graph,keys):
    c.execute(sql.SQL('DELETE FROM {}.{} WHERE id=ANY(%s::bigint[])').format(sql.Identifier(SCHEMA),sql.Identifier(table)),(list(graph[table]),));pending.remove(table)
 
 
-def cleanup(c,state,journal_entries=None,document_cleanup=None,weekly_mail_cleanup=None):
+def cleanup(c,state,journal_entries=None,document_cleanup=None,weekly_mail_cleanup=None,media_cleanup=None):
  """Exact-owned cleanup, or atomic refusal. Never discards foreign writes."""
  validate(state);entries=journal(state) if journal_entries is None else journal_entries;identity=state['identity']
  auths=[uuid.UUID(a['auth_id']) for a in identity['actors']]
@@ -216,7 +227,9 @@ def cleanup(c,state,journal_entries=None,document_cleanup=None,weekly_mail_clean
    assert not c.execute("SELECT 1 FROM sa_identity.sa_auth_identities WHERE auth_user_id=ANY(%s::uuid[]) AND enrollment_state<>'blocked'",(auths,)).fetchone(),'Fixture identity reservation reactivated'
    assert not c.execute("SELECT 1 FROM sa_domain.outbox WHERE actor_id=ANY(%s::uuid[]) AND status IN('pending','leased')",(auths,)).fetchone(),'Fixture job reactivated'
    assert not c.execute('SELECT 1 FROM sa_domain.documents WHERE actor_id=ANY(%s::uuid[])',(auths,)).fetchone(),'Fixture document reappeared'
-   assert identities.public_structure(c)==state['public_structure'] and identities.staff_auth(c)==state['staff_auth'],'Unrelated public/staff data changed'
+   assert identities.public_structure(c)==state['public_structure'],'Unrelated public structure changed'
+   if old_cleanup[0].get('staff_auth_preserved_during_cleanup') is not True:
+    assert identities.staff_auth(c)==state['staff_auth'],'Unrelated staff data changed'
    return old_cleanup[0]
   assert environment[4]==identity['synced_revision'],'Source watermark changed'
   raw_rows=c.execute('SELECT actor_id,command_key,operation,kind,entity_id,changes,xmin::text FROM sa_domain.audit WHERE id>%s ORDER BY id',(state['audit_start'],)).fetchall()
@@ -225,10 +238,15 @@ def cleanup(c,state,journal_entries=None,document_cleanup=None,weekly_mail_clean
   # Backorder acceptance internally places its purchase with a generated key;
   # its exact key is retained by the journaled parent command's immutable audit.
   nested={uuid.UUID(changes['placement_command_key']):actor for actor,key,operation,_,_,changes in rows if actor in auths and key in keys and operation=='backorder.placed' and changes.get('placement_command_key')}
-  assert all(actor in auths and (key in keys or operation=='orders.placed' and nested.get(key)==actor) for actor,key,operation,_,_,_ in rows),'Foreign or unjournaled business edits detected'
-  delta=environment[3]-identity['edit_revision'];assert delta==len(rows),'Business revision differs from owned audited commands'
+  target_children=owned_nested_milestones(raw_rows,auths,keys)
+  assert all(actor in auths and (key in keys or operation=='orders.placed' and nested.get(key)==actor or (actor,key,operation,kind,entity) in target_children) for actor,key,operation,kind,entity,_ in rows),'Foreign or unjournaled business edits detected'
   for entry in entries:
    if entry.get('kind')=='command':assert uuid.UUID(entry['value']['key'])==uuid.uuid5(uuid.UUID(state['run_id']),entry['value']['label']),'Journal command key changed'
+  auth_revisions=owned_closure_auth_revisions(c,state,raw_rows)
+  delta=environment[3]-identity['edit_revision'];assert delta==len(rows)+auth_revisions,'Business revision differs from owned audited commands and proven Auth changes'
+  staff_at_cleanup=identities.staff_auth(c)
+  independent_staff_count=independent_staff_changes(c,state['staff_auth'],staff_at_cleanup,auths,
+    set(state.get('setup_xids',[]))|{int(row[-1]) for row in raw_rows})
   # The default rehearsal executes no workers. A separate, reviewed document
   # output harness can clean exact audit-bound document jobs and return only
   # those IDs. No journal entry alone is authority to exempt a job.
@@ -263,6 +281,7 @@ def cleanup(c,state,journal_entries=None,document_cleanup=None,weekly_mail_clean
   entity_entries=[{'kind':'entity','value':{'kind':kind,'id':str(entity_id)}} for _,_,_,kind,entity_id,_ in rows if kind in KIND_TABLE]
   graph,fks=source_graph(c,state,entity_entries,set(state.get('setup_xids',[]))|{int(row[-1]) for row in raw_rows})
   if removed_documents is None:removed_documents=cleanup_documents(c,state,rows,auths,{int(row[-1]) for row in raw_rows})
+  media_proof=media_cleanup(c,state,entries) if media_cleanup is not None else None
   c.execute("UPDATE sa_domain.outbox SET status='dead',last_error_code='REHEARSAL_CLEANUP',completed_at=now(),lease_token=NULL,lease_until=NULL WHERE actor_id=ANY(%s::uuid[]) AND status='pending'",(auths,))
   c.execute("UPDATE sa_domain.account_requests SET state='failed',error_code='REHEARSAL_CLEANUP',updated_at=now() WHERE actor_id=ANY(%s::uuid[])",(auths,))
   delete_graph(c,graph,fks)
@@ -272,24 +291,50 @@ def cleanup(c,state,journal_entries=None,document_cleanup=None,weekly_mail_clean
   c.execute('UPDATE sa_sync.environment_state SET synced_revision=synced_revision+%s WHERE singleton',(delta,))
   cleanup_identity=dict(identity,edit_revision=environment[3],synced_revision=environment[4]+delta)
   identities.cleanup(c,cleanup_identity)
-  result={'run_id':state['run_id'],'owned_commands':delta,'removed_source_rows':sum(map(len,graph.values())),'removed_documents':removed_documents,'removed_queued_documents':removed_documents-processed_documents,'removed_processed_documents':processed_documents,'tables':{k:len(v) for k,v in graph.items()},'edit_revision_before':identity['edit_revision'],'edit_revision_after':environment[3],'synced_revision_after':environment[4]+delta,'audit_and_commands_retained':True,'jobs_terminalized':True,'source_content_restored':True}
+  result={'run_id':state['run_id'],'owned_commands':len(rows),'owned_auth_revisions':auth_revisions,'removed_source_rows':sum(map(len,graph.values())),'removed_documents':removed_documents,'removed_queued_documents':removed_documents-processed_documents,'removed_processed_documents':processed_documents,'tables':{k:len(v) for k,v in graph.items()},'edit_revision_before':identity['edit_revision'],'edit_revision_after':environment[3],'synced_revision_after':environment[4]+delta,'audit_and_commands_retained':True,'jobs_terminalized':True,'source_content_restored':True}
+  result.update(staff_auth_preserved_during_cleanup=True,staff_auth_unchanged_since_fixture=independent_staff_count==0,independently_changed_staff_accounts=independent_staff_count)
+  if media_proof is not None:result['media']=media_proof
   c.execute("INSERT INTO sa_domain.audit(actor_id,legacy_user_id,operation,kind,entity_id,command_key,changes) VALUES(%s,%s,'rehearsal.cleanup','rehearsal',%s,%s,%s)",(auths[0],identity['base'],state['data_base'],uuid.UUID(state['run_id']),Jsonb(result)))
-  assert identities.public_structure(c)==state['public_structure'] and identities.staff_auth(c)==state['staff_auth'],'Unrelated public/staff data changed'
+  assert identities.public_structure(c)==state['public_structure'],'Unrelated public structure changed'
+  # Lock only at the final check, so normal Tracker session refreshes are not
+  # blocked by the potentially long source digest. Any preceding concurrent
+  # change fails the full checksum comparison and rolls our cleanup back.
+  c.execute("SELECT id FROM auth.users WHERE role IS DISTINCT FROM 'sa_app' ORDER BY id FOR SHARE").fetchall()
+  assert identities.staff_auth(c)==staff_at_cleanup,'Staff Auth data changed during cleanup; refusing commit'
   return result
 
 
-def run(execute=False,recover=False):
+def run(execute=False,recover=False,web=False,media_mode=False):
+ if media_mode:
+  assert web,'Media acceptance requires browser'
+  import web_media_recovery as media_recovery
+  from management import api
+  os.environ['SQUAD_WEB_JOURNEYS']='media'
+ def clean(c,state,service_key=None):
+  if not media_mode:return cleanup(c,state)
+  prior=c.execute("SELECT 1 FROM sa_domain.audit WHERE operation='rehearsal.cleanup' AND command_key=%s",(uuid.UUID(state['run_id']),)).fetchone()
+  if not prior:media_recovery.cleanup_storage(c,state,journal(state),service_key,save,identities.URL)
+  else:assert state['web_media']['storage_deleted'] and media_recovery.snapshot(c)==state['web_media']['before']
+  return cleanup(c,state,media_cleanup=media_recovery.cleanup_database)
  if not recover:assert not CHECKPOINT.exists(),'Recover existing exact-owned checkpoint first'
  with identities.connect('staging') as c:
   assert c.execute('SELECT pg_try_advisory_lock(20261107,1)').fetchone()[0],'Refresh/release is active'
   shared=False
   try:
    if recover:
-    state=validate(json.loads(CHECKPOINT.read_text()));result=cleanup(c,state);set_crons(c,state,False);CHECKPOINT.unlink();print(json.dumps(result));return
+    state=validate(json.loads(CHECKPOINT.read_text()))
+    assert not state.get('web_stock_reconciliation'),'Use the dedicated stock reconciliation recovery harness'
+    assert not state.get('web_catalogue_media'),'Use the dedicated catalogue media recovery harness'
+    assert bool(state.get('web_media'))==media_mode,'Use the media harness for this checkpoint'
+    service_key=next(x['api_key'] for x in api('staging','/api-keys') if x['name']=='service_role') if media_mode else None
+    result=clean(c,state,service_key);set_crons(c,state,False);CHECKPOINT.unlink();print(json.dumps(result));return
    state=plan(c)
+   if media_mode:media_recovery.plan(c,state,PRIVATE)
    if not execute:
     print(json.dumps({'mode':'read-only preflight','environment':'staging','personas':11,'cutover':False,'scoped_rehearsal':True,'source_tables':len(state['source_before']),'cron_jobs':state['crons'],'provider_messages':0}));return
+   service_key=next(x['api_key'] for x in api('staging','/api-keys') if x['name']=='service_role') if media_mode else None
    save(state)
+   if media_mode:media_recovery.write_files(state)
    try:
     set_crons(c,state,True)
     with c.transaction():credentials=prepare(c,state);save(state)
@@ -299,18 +344,30 @@ def run(execute=False,recover=False):
     # lock; refresh/deployment remains excluded for the entire HTTP sequence.
     c.execute('SELECT pg_advisory_lock_shared(20261107,1)');shared=True;c.execute('SELECT pg_advisory_unlock(20261107,1)')
     payload={'url':identities.URL,'anon':identities.keys('staging'),'actors':credentials,'run_id':state['run_id'],'journal':state['journal'],'fixture':state['fixture']}
-    process=subprocess.run(['node','tools/squad/test_business_journeys_hosted_sdk.mjs'],input=json.dumps(payload),text=True,capture_output=True,cwd=ROOT,timeout=600)
+    if media_mode:payload['web_media']={key:state['web_media'][key] for key in ['files','target','actor_id']}
+    runner='tools/squad/web-business-hosted.mjs' if web else 'tools/squad/test_business_journeys_hosted_sdk.mjs'
+    process=subprocess.run(['node',runner],input=json.dumps(payload),text=True,capture_output=True,cwd=ROOT,timeout=750 if web else 600)
     for actor in credentials:actor['password']=''
-    if process.returncode:raise RuntimeError('Business SDK rehearsal failed: '+process.stderr[-2200:])
+    if process.returncode:raise RuntimeError('Business rehearsal failed: '+process.stderr[-2200:])
     report=json.loads(process.stdout)
+    # Keep successful browser assertions recoverable if strict cleanup refuses
+    # to commit. This file is private and is not acceptance evidence by itself.
+    private_report=PRIVATE/f'business-{state["run_id"]}-browser-report.json'
+    with open(private_report,'w') as output:
+     os.chmod(private_report,0o600);json.dump(report,output,indent=2);output.flush();os.fsync(output.fileno())
    finally:
     if shared:
      # Upgrade without dropping the shared refresh fence. No SDK request is
      # running now; a bounded lock timeout keeps unexpected clients visible.
      c.execute("SET lock_timeout='15s'");c.execute('SELECT pg_advisory_lock(20261107,1)');c.execute('SELECT pg_advisory_unlock_shared(20261107,1)');shared=False
-    result=cleanup(c,state);set_crons(c,state,False);CHECKPOINT.unlink()
+    result=clean(c,state,service_key);set_crons(c,state,False);CHECKPOINT.unlink()
+    if web:
+     proof={'run_id':state['run_id'],'measured_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'cleanup':result,'cutover_unchanged':True,'cron_restored':True,'public_structure_and_staff_auth_preserved':True}
+     (ROOT/'docs/squad-one-web/evidence/last-business-cleanup.json').write_text(json.dumps(proof,indent=2)+'\n')
    report.update(cleanup=result,measured_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),cutover_unchanged=True,cron_restored=True,provider_requests=0,emails_sent=0,migration_prefix=c.execute("SELECT max(version) FROM supabase_migrations.schema_migrations WHERE name LIKE 'squad_%'").fetchone()[0])
-   (ROOT/'docs/squad-one-audit/implementation-evidence/staging-business-journeys.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
+   destination=ROOT/('docs/squad-one-web/evidence/media-acceptance.json' if media_mode else 'docs/squad-one-web/evidence/business-acceptance.json' if web else 'docs/squad-one-audit/implementation-evidence/staging-business-journeys.json')
+   destination.parent.mkdir(parents=True,exist_ok=True)
+   destination.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
   finally:
    if shared:c.execute('SELECT pg_advisory_unlock_shared(20261107,1)')
    c.execute('SELECT pg_advisory_unlock(20261107,1)')

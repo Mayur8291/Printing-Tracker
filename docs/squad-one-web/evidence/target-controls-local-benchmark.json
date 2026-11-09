@@ -1,0 +1,20 @@
+{
+  "kind": "local_synthetic_sql_benchmark",
+  "environment": "isolated_localhost_squad_test_web_attachments",
+  "migration": "20261108195130_squad_target_controls.sql",
+  "sha256": "f4f487816084c8f3583567629b2277cf0d5717590c1709d895c6c64cc612faab",
+  "synthetic_orders": 200000,
+  "synthetic_targets": 1000,
+  "actor": "Sales Coordinator scoped to own orders",
+  "limit": 25,
+  "sparse_achieved_targets": 10,
+  "measurements_ms": {
+    "all": 179.8,
+    "pending": 259.1,
+    "achieved": 247.1,
+    "current_empty": 2.1
+  },
+  "transaction_rolled_back": true,
+  "hosted_performance_claimed": false,
+  "measured_at": "2026-11-08T19:57:54.752766+00:00"
+}

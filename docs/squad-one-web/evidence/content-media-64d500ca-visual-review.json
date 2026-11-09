@@ -1,0 +1,27 @@
+{
+  "run_id": "64d500ca-28ce-4caa-a4fb-e2fca6f0f0e9",
+  "scope": "Actual Customer desktop product-share missing-source state; no successful image download or mobile/promotion screenshot evidence.",
+  "screenshots_private": true,
+  "artifacts": [
+    {
+      "basename": "product-missing-mobile.png",
+      "sha256": "fef78f053346c206a118b65d5f94c315e7c364e141dc25e45b3e6ed8ef60eb8f",
+      "width": 1440,
+      "height": 1000,
+      "filename_mobile_suffix_is_inaccurate": true,
+      "observed": [
+        "Centered Share product images dialog remains inside desktop viewport",
+        "0 images ready and explicit per-product missing-environment explanation",
+        "No empty download or external source fallback exposed",
+        "Readable labels, selection summary, limits, Close and Prepare again controls without visible clipping"
+      ]
+    }
+  ],
+  "visual_blockers": [],
+  "not_observed": [
+    "360px rendering in this artifact",
+    "Promotion share screenshot",
+    "Successful product ZIP or promotion attachment download",
+    "Native sharing or clipboard contents"
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "format": "squad-local-worker-scope-index/v1",
+  "environment": "synthetic_localhost",
+  "samples": [
+    {
+      "candidate_full_index": false,
+      "plan_cache_mode": "force_custom_plan",
+      "scope_rows": 7,
+      "historical_row_retained": true,
+      "plan": {
+        "Planning Time": 0.373,
+        "Execution Time": 8.245,
+        "Plan": {
+          "Node Type": "Seq Scan",
+          "Relation Name": "sa_orders",
+          "Alias": "sa_orders",
+          "Actual Startup Time": 0.003,
+          "Actual Total Time": 8.241,
+          "Actual Rows": 7,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 2648,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    },
+    {
+      "candidate_full_index": false,
+      "plan_cache_mode": "force_generic_plan",
+      "scope_rows": 7,
+      "historical_row_retained": true,
+      "plan": {
+        "Planning Time": 0.074,
+        "Execution Time": 7.266,
+        "Plan": {
+          "Node Type": "Seq Scan",
+          "Relation Name": "sa_orders",
+          "Alias": "sa_orders",
+          "Actual Startup Time": 0.003,
+          "Actual Total Time": 7.262,
+          "Actual Rows": 7,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 2648,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        }
+      }
+    },
+    {
+      "candidate_full_index": true,
+      "plan_cache_mode": "force_custom_plan",
+      "scope_rows": 7,
+      "historical_row_retained": true,
+      "plan": {
+        "Planning Time": 0.319,
+        "Execution Time": 0.026,
+        "Plan": {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "sa_orders",
+          "Alias": "sa_orders",
+          "Actual Startup Time": 0.02,
+          "Actual Total Time": 0.022,
+          "Actual Rows": 7,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 5,
+          "Shared Read Blocks": 2,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Bitmap Index Scan",
+              "Parent Relationship": "Outer",
+              "Index Name": "squad_orders_worker_scope",
+              "Actual Startup Time": 0.017,
+              "Actual Total Time": 0.017,
+              "Actual Rows": 7,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 3,
+              "Shared Read Blocks": 2,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "candidate_full_index": true,
+      "plan_cache_mode": "force_generic_plan",
+      "scope_rows": 7,
+      "historical_row_retained": true,
+      "plan": {
+        "Planning Time": 0.026,
+        "Execution Time": 0.006,
+        "Plan": {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "sa_orders",
+          "Alias": "sa_orders",
+          "Actual Startup Time": 0.002,
+          "Actual Total Time": 0.003,
+          "Actual Rows": 7,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 4,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Bitmap Index Scan",
+              "Parent Relationship": "Outer",
+              "Index Name": "squad_orders_worker_scope",
+              "Actual Startup Time": 0.001,
+              "Actual Total Time": 0.001,
+              "Actual Rows": 7,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 2,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "volume_orders": 45000,
+  "historical_visibility_preserved": true,
+  "migration": "supabase/migrations/20261109043010_squad_worker_scope_index.sql",
+  "migration_sha256": "8f4c269b2cd5cafb37846d8327c2978f654bfad1bcb40f4e9a21696c2715ae9f",
+  "index_valid_unfiltered_exact_columns": true,
+  "security_metadata_unchanged": true,
+  "foreign_worker_orders_denied": true,
+  "rollback_verified": true
+}

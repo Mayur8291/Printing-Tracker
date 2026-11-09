@@ -1,0 +1,600 @@
+{
+  "scope": "Production artifact; anonymous local Chrome lab, not deployed/field performance acceptance",
+  "build": {
+    "entry": "/assets/index-CmIDpT67.js",
+    "initialJS": [
+      {
+        "file": "assets/index-CmIDpT67.js",
+        "bytes": 581101,
+        "gzip": 175426,
+        "sha256": "10743fcda1843e308268964ea1470c716312a0b107455be4d29cd6293d4228ac",
+        "imports": [],
+        "dynamic": [
+          "./SquadApp-BZ8dWewu.js",
+          "./App-Du04m7EG.js"
+        ]
+      }
+    ],
+    "styles": [
+      {
+        "file": "/assets/index-HXfcmYwE.css",
+        "bytes": 1094463,
+        "gzip": 146126
+      }
+    ],
+    "initialGzip": 321552,
+    "lazyFeatures": [
+      {
+        "name": "SquadApp",
+        "entry": "SquadApp-BZ8dWewu.js",
+        "incrementalModules": [
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/sidebar-zpuhsrsK.js"
+        ],
+        "incrementalGzip": 42371
+      },
+      {
+        "name": "CataloguePage",
+        "entry": "CataloguePage-BziGs6Fo.js",
+        "incrementalModules": [
+          "assets/CataloguePage-BziGs6Fo.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/camera-CVUoIwPX.js",
+          "assets/share-2-CjVhTiG5.js",
+          "assets/PaymentInstructions-CC5677jK.js",
+          "assets/search-BhSpQJoz.js",
+          "assets/check-CAQGrmSu.js"
+        ],
+        "incrementalGzip": 73941
+      },
+      {
+        "name": "OrdersPage",
+        "entry": "OrdersPage-CQhTDg09.js",
+        "incrementalModules": [
+          "assets/OrdersPage-CQhTDg09.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/RatingsPanel-D4kVjbKe.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/PaymentInstructions-CC5677jK.js",
+          "assets/search-BhSpQJoz.js"
+        ],
+        "incrementalGzip": 57151
+      },
+      {
+        "name": "PeoplePage",
+        "entry": "PeoplePage-DHmCeFJx.js",
+        "incrementalModules": [
+          "assets/PeoplePage-DHmCeFJx.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/TailorWorkPanel-DbEmdYrX.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/search-BhSpQJoz.js"
+        ],
+        "incrementalGzip": 55218
+      },
+      {
+        "name": "ProductionPage",
+        "entry": "ProductionPage-BLs-ENfq.js",
+        "incrementalModules": [
+          "assets/ProductionPage-BLs-ENfq.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/TailorWorkPanel-DbEmdYrX.js",
+          "assets/search-BhSpQJoz.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/RatingsPanel-D4kVjbKe.js",
+          "assets/PersonPicker-CcvKmJ4l.js",
+          "assets/StockPage-NFRgMEVV.js"
+        ],
+        "incrementalGzip": 61752
+      },
+      {
+        "name": "StockPage",
+        "entry": "StockPage-NFRgMEVV.js",
+        "incrementalModules": [
+          "assets/StockPage-NFRgMEVV.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/sidebar-zpuhsrsK.js"
+        ],
+        "incrementalGzip": 28395
+      },
+      {
+        "name": "JobWorkPage",
+        "entry": "JobWorkPage-BKABvC0-.js",
+        "incrementalModules": [
+          "assets/JobWorkPage-BKABvC0-.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/RatingsPanel-D4kVjbKe.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/check-CAQGrmSu.js"
+        ],
+        "incrementalGzip": 52078
+      },
+      {
+        "name": "WorkPage",
+        "entry": "WorkPage-RilQXO5u.js",
+        "incrementalModules": [
+          "assets/WorkPage-RilQXO5u.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/PersonPicker-CcvKmJ4l.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/personContext-DEHgaUWR.js",
+          "assets/check-CAQGrmSu.js",
+          "assets/pencil-BhwSyabe.js",
+          "assets/archive-CQQA7E3c.js"
+        ],
+        "incrementalGzip": 52906
+      },
+      {
+        "name": "TargetsPage",
+        "entry": "TargetsPage-DAxqQfQG.js",
+        "incrementalModules": [
+          "assets/TargetsPage-DAxqQfQG.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/PersonPicker-CcvKmJ4l.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/personContext-DEHgaUWR.js",
+          "assets/pencil-BhwSyabe.js",
+          "assets/archive-CQQA7E3c.js"
+        ],
+        "incrementalGzip": 50118
+      },
+      {
+        "name": "ReportsPage",
+        "entry": "ReportsPage-Z04BbOtI.js",
+        "incrementalModules": [
+          "assets/ReportsPage-Z04BbOtI.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/reportModel-DFZ-n_4B.js",
+          "assets/PersonPicker-CcvKmJ4l.js",
+          "assets/SquadApp-BZ8dWewu.js"
+        ],
+        "incrementalGzip": 56065
+      },
+      {
+        "name": "DocumentsPage",
+        "entry": "DocumentsPage-DRpEeEtN.js",
+        "incrementalModules": [
+          "assets/DocumentsPage-DRpEeEtN.js",
+          "assets/reportModel-DFZ-n_4B.js",
+          "assets/share-2-CjVhTiG5.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/OperationsUI-BJqe14-D.js",
+          "assets/PersonPicker-CcvKmJ4l.js"
+        ],
+        "incrementalGzip": 56239
+      },
+      {
+        "name": "PromotionsPage",
+        "entry": "PromotionsPage-DZpha9FW.js",
+        "incrementalModules": [
+          "assets/PromotionsPage-DZpha9FW.js",
+          "assets/SquadApp-BZ8dWewu.js",
+          "assets/sidebar-zpuhsrsK.js",
+          "assets/share-2-CjVhTiG5.js"
+        ],
+        "incrementalGzip": 45816
+      },
+      {
+        "name": "AdministrationPage",
+        "entry": "AdministrationPage-QbhmIFlk.js",
+        "incrementalModules": [
+          "assets/AdministrationPage-QbhmIFlk.js"
+        ],
+        "incrementalGzip": 1002
+      }
+    ]
+  },
+  "samples": [
+    {
+      "width": 360,
+      "iteration": 1,
+      "usefulRenderUpperBoundMs": 4006,
+      "vitals": {
+        "TTFB": {
+          "value": 4,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "FCP": {
+          "value": 2028,
+          "rating": "needs-improvement",
+          "navigationType": "navigate"
+        },
+        "CLS": {
+          "value": 0,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "LCP": {
+          "value": 2060,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "INP": {
+          "value": 16,
+          "rating": "good",
+          "navigationType": "navigate"
+        }
+      },
+      "resources": [
+        {
+          "path": "/assets/index-CmIDpT67.js",
+          "transferSize": 175726,
+          "encodedBodySize": 175426,
+          "duration": 1780.0999999642372
+        },
+        {
+          "path": "/assets/index-HXfcmYwE.css",
+          "transferSize": 146426,
+          "encodedBodySize": 146126,
+          "duration": 1629.8999999761581
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 927.5
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 931.7000000476837
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 926.9000000357628
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "width": 360,
+      "iteration": 2,
+      "usefulRenderUpperBoundMs": 4007,
+      "vitals": {
+        "TTFB": {
+          "value": 2.899999976158142,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "FCP": {
+          "value": 2036,
+          "rating": "needs-improvement",
+          "navigationType": "navigate"
+        },
+        "CLS": {
+          "value": 0,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "LCP": {
+          "value": 2060,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "INP": {
+          "value": 8,
+          "rating": "good",
+          "navigationType": "navigate"
+        }
+      },
+      "resources": [
+        {
+          "path": "/assets/index-CmIDpT67.js",
+          "transferSize": 175726,
+          "encodedBodySize": 175426,
+          "duration": 1785.5
+        },
+        {
+          "path": "/assets/index-HXfcmYwE.css",
+          "transferSize": 146426,
+          "encodedBodySize": 146126,
+          "duration": 1635.300000011921
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 884.5999999642372
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 919.6999999880791
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 916.6999999880791
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "width": 360,
+      "iteration": 3,
+      "usefulRenderUpperBoundMs": 4001,
+      "vitals": {
+        "TTFB": {
+          "value": 1.5,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "FCP": {
+          "value": 2024,
+          "rating": "needs-improvement",
+          "navigationType": "navigate"
+        },
+        "CLS": {
+          "value": 0,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "LCP": {
+          "value": 2052,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "INP": {
+          "value": 16,
+          "rating": "good",
+          "navigationType": "navigate"
+        }
+      },
+      "resources": [
+        {
+          "path": "/assets/index-CmIDpT67.js",
+          "transferSize": 175726,
+          "encodedBodySize": 175426,
+          "duration": 1779.300000011921
+        },
+        {
+          "path": "/assets/index-HXfcmYwE.css",
+          "transferSize": 146426,
+          "encodedBodySize": 146126,
+          "duration": 1631.5999999642372
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 893.8999999761581
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 923.8999999761581
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 916.6999999880791
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "width": 1366,
+      "iteration": 1,
+      "usefulRenderUpperBoundMs": 4009,
+      "vitals": {
+        "TTFB": {
+          "value": 3.400000035762787,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "FCP": {
+          "value": 2032,
+          "rating": "needs-improvement",
+          "navigationType": "navigate"
+        },
+        "LCP": {
+          "value": 2032,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "CLS": {
+          "value": 0,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "INP": {
+          "value": 16,
+          "rating": "good",
+          "navigationType": "navigate"
+        }
+      },
+      "resources": [
+        {
+          "path": "/assets/index-HXfcmYwE.css",
+          "transferSize": 146426,
+          "encodedBodySize": 146126,
+          "duration": 1629.199999988079
+        },
+        {
+          "path": "/assets/index-CmIDpT67.js",
+          "transferSize": 175726,
+          "encodedBodySize": 175426,
+          "duration": 1779.6000000238419
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 908.0999999642372
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 928.1999999880791
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 923.8999999761581
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "width": 1366,
+      "iteration": 2,
+      "usefulRenderUpperBoundMs": 4009,
+      "vitals": {
+        "TTFB": {
+          "value": 3.399999976158142,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "FCP": {
+          "value": 2036,
+          "rating": "needs-improvement",
+          "navigationType": "navigate"
+        },
+        "CLS": {
+          "value": 0,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "LCP": {
+          "value": 2076,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "INP": {
+          "value": 32,
+          "rating": "good",
+          "navigationType": "navigate"
+        }
+      },
+      "resources": [
+        {
+          "path": "/assets/index-CmIDpT67.js",
+          "transferSize": 175726,
+          "encodedBodySize": 175426,
+          "duration": 1787.199999988079
+        },
+        {
+          "path": "/assets/index-HXfcmYwE.css",
+          "transferSize": 146426,
+          "encodedBodySize": 146126,
+          "duration": 1636.300000011921
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 905.1999999880791
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 924.5
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 920.1000000238419
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "width": 1366,
+      "iteration": 3,
+      "usefulRenderUpperBoundMs": 4010,
+      "vitals": {
+        "TTFB": {
+          "value": 4.600000023841858,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "FCP": {
+          "value": 2036,
+          "rating": "needs-improvement",
+          "navigationType": "navigate"
+        },
+        "CLS": {
+          "value": 0,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "LCP": {
+          "value": 2080,
+          "rating": "good",
+          "navigationType": "navigate"
+        },
+        "INP": {
+          "value": 16,
+          "rating": "good",
+          "navigationType": "navigate"
+        }
+      },
+      "resources": [
+        {
+          "path": "/assets/index-CmIDpT67.js",
+          "transferSize": 175726,
+          "encodedBodySize": 175426,
+          "duration": 1787.300000011921
+        },
+        {
+          "path": "/assets/index-HXfcmYwE.css",
+          "transferSize": 146426,
+          "encodedBodySize": 146126,
+          "duration": 1637.0999999642372
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 883.9000000357628
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 919.5
+        },
+        {
+          "path": "/brand-logo.png",
+          "transferSize": 53998,
+          "encodedBodySize": 53698,
+          "duration": 911.6999999880791
+        }
+      ],
+      "overflow": false
+    }
+  ],
+  "externalRequests": [],
+  "errors": [],
+  "labProfile": {
+    "browser": "Chrome/156.0.8078.80",
+    "cpuSlowdown": 4,
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "uploadBytesPerSecond": 93750,
+    "cache": "disabled; new isolated context each sample",
+    "webVitals": "6.2.3",
+    "fieldPercentiles": false
+  }
+}

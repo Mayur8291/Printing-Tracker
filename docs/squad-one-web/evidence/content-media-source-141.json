@@ -1,0 +1,713 @@
+{
+  "api_timings": {
+    "measurement": "Browser request event through complete response-body receipt; network, gateway, server and harness interception included. Not render time or isolated SQL time.",
+    "cache_state": "mixed cold/warm; cache, connection and function warmth were not controlled",
+    "percentile_method": "nearest rank within each role/contract/status/outcome group",
+    "sample_policy": "First 5000 eligible settled requests; at most 128 tracked concurrently",
+    "observed_requests": 23,
+    "captured_samples": 23,
+    "dropped_samples": 0,
+    "dropped_in_flight": 0,
+    "in_flight": 0,
+    "unfinished_requests": 3,
+    "partial": true,
+    "contracts": [
+      {
+        "role": 3,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 3,
+        "latency_samples": 3,
+        "p50_ms": 384.69,
+        "p95_ms": 765,
+        "max_ms": 765
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 168.94,
+        "p95_ms": 242.58,
+        "max_ms": 242.58
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_catalog_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 180.88,
+        "p95_ms": 211.63,
+        "max_ms": 211.63
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 1053.09,
+        "p95_ms": 1053.09,
+        "max_ms": 1053.09
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 4,
+        "latency_samples": 4,
+        "p50_ms": 164.43,
+        "p95_ms": 203.03,
+        "max_ms": 203.03
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 1120.06,
+        "p95_ms": 1120.06,
+        "max_ms": 1120.06
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 193.77,
+        "p95_ms": 193.77,
+        "max_ms": 193.77
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": null,
+        "outcome": "unfinished",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_promotions_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 2,
+        "latency_samples": 2,
+        "p50_ms": 161.82,
+        "p95_ms": 196.56,
+        "max_ms": 196.56
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_rmp_search",
+        "status": null,
+        "outcome": "cancelled",
+        "count": 1,
+        "latency_samples": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_rmp_search",
+        "status": 200,
+        "outcome": "completed_success",
+        "count": 1,
+        "latency_samples": 1,
+        "p50_ms": 292.82,
+        "p95_ms": 292.82,
+        "max_ms": 292.82
+      }
+    ],
+    "peak_tracked_in_flight": 6,
+    "timeline": [
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 242.58,
+        "sequence": 1,
+        "start_ms": 10255.58,
+        "end_ms": 10498.16,
+        "tracked_in_flight_at_start": 1,
+        "tracked_in_flight_after_end": 0
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 203.03,
+        "sequence": 2,
+        "start_ms": 10263.06,
+        "end_ms": 10466.09,
+        "tracked_in_flight_at_start": 2,
+        "tracked_in_flight_after_end": 1
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": null,
+        "outcome": "unfinished",
+        "duration_ms": null,
+        "sequence": 3,
+        "start_ms": 10693.86,
+        "end_ms": null,
+        "observed_until_ms": 31692.06,
+        "tracked_in_flight_at_start": 1,
+        "tracked_in_flight_after_end": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": null,
+        "outcome": "unfinished",
+        "duration_ms": null,
+        "sequence": 4,
+        "start_ms": 10695.05,
+        "end_ms": null,
+        "observed_until_ms": 31692.06,
+        "tracked_in_flight_at_start": 2,
+        "tracked_in_flight_after_end": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": null,
+        "outcome": "unfinished",
+        "duration_ms": null,
+        "sequence": 5,
+        "start_ms": 10696.91,
+        "end_ms": null,
+        "observed_until_ms": 31692.06,
+        "tracked_in_flight_at_start": 3,
+        "tracked_in_flight_after_end": null
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 165.07,
+        "sequence": 6,
+        "start_ms": 10989.9,
+        "end_ms": 11154.97,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 4
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 168.94,
+        "sequence": 7,
+        "start_ms": 10990.1,
+        "end_ms": 11159.04,
+        "tracked_in_flight_at_start": 5,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_person_get",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 193.77,
+        "sequence": 8,
+        "start_ms": 11184.01,
+        "end_ms": 11377.77,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 5
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_dashboard",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 1053.09,
+        "sequence": 9,
+        "start_ms": 11184.22,
+        "end_ms": 12237.32,
+        "tracked_in_flight_at_start": 5,
+        "tracked_in_flight_after_end": 4
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_orders_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 1120.06,
+        "sequence": 10,
+        "start_ms": 11184.41,
+        "end_ms": 12304.47,
+        "tracked_in_flight_at_start": 6,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 164.43,
+        "sequence": 11,
+        "start_ms": 19419.74,
+        "end_ms": 19584.17,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 4
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 167.07,
+        "sequence": 12,
+        "start_ms": 19420.08,
+        "end_ms": 19587.15,
+        "tracked_in_flight_at_start": 5,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_rmp_search",
+        "status": null,
+        "outcome": "cancelled",
+        "duration_ms": null,
+        "sequence": 13,
+        "start_ms": 19667.49,
+        "end_ms": 19725.85,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 5
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_catalog_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 180.88,
+        "sequence": 14,
+        "start_ms": 19674.38,
+        "end_ms": 19855.27,
+        "tracked_in_flight_at_start": 5,
+        "tracked_in_flight_after_end": 5
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_catalog_options",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 211.63,
+        "sequence": 15,
+        "start_ms": 19678.21,
+        "end_ms": 19889.84,
+        "tracked_in_flight_at_start": 6,
+        "tracked_in_flight_after_end": 4
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_rmp_search",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 292.82,
+        "sequence": 16,
+        "start_ms": 19726.12,
+        "end_ms": 20018.95,
+        "tracked_in_flight_at_start": 6,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 319.96,
+        "sequence": 17,
+        "start_ms": 20076.47,
+        "end_ms": 20396.43,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 384.69,
+        "sequence": 18,
+        "start_ms": 25155.16,
+        "end_ms": 25539.85,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_me",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 161.52,
+        "sequence": 19,
+        "start_ms": 26182.1,
+        "end_ms": 26343.62,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 4
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_app_bootstrap",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 172.84,
+        "sequence": 20,
+        "start_ms": 26182.38,
+        "end_ms": 26355.22,
+        "tracked_in_flight_at_start": 5,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_promotions_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 196.56,
+        "sequence": 21,
+        "start_ms": 26430.72,
+        "end_ms": 26627.28,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 3
+      },
+      {
+        "role": 3,
+        "contract": "/rest/v1/rpc/v1_promotions_list",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 161.82,
+        "sequence": 22,
+        "start_ms": 26436.27,
+        "end_ms": 26598.09,
+        "tracked_in_flight_at_start": 5,
+        "tracked_in_flight_after_end": 4
+      },
+      {
+        "role": 3,
+        "contract": "/functions/v1/squad-account/media/grants",
+        "status": 200,
+        "outcome": "completed_success",
+        "duration_ms": 765,
+        "sequence": 23,
+        "start_ms": 26641.8,
+        "end_ms": 27406.8,
+        "tracked_in_flight_at_start": 4,
+        "tracked_in_flight_after_end": 3
+      }
+    ],
+    "timeline_measurement": "Offsets are relative to this browser observer, not wall-clock time. In-flight counts cover only tracked allowlisted browser requests, not active SQL connections or concurrent database queries. Cancelled/failed end offsets record browser termination; unfinished requests have no observed end. Timeline uses the existing sample cap."
+  },
+  "environment": "staging",
+  "run_id": "64d500ca-28ce-4caa-a4fb-e2fca6f0f0e9",
+  "journeys": {
+    "content-media": {
+      "checks": [
+        "missing_product_explicitly_excluded_without_empty_download",
+        "external_promotion_actual_share_click_exact_clipboard_fallback_boundary",
+        "no_application_mutation_or_cross_environment_transport"
+      ],
+      "coverage": {
+        "productZip": "No ready raster <=10MB in the first40 accessible ready-made products",
+        "productMissing": true,
+        "promotionDownload": "No ready attachment <=10MB in the first24 accessible promotions",
+        "promotionMissing": "No missing attachment in the first24 accessible promotions",
+        "externalPromotion": {
+          "clicked": true,
+          "exactAuthorizedUrl": true,
+          "applicationClipboardBoundary": true,
+          "osClipboardWritten": false,
+          "nativeShareSent": false
+        }
+      },
+      "screenshotsPrivate": true,
+      "scope": "Bounded existing-source media through actual Customer UI; no upload, grant mutation, provider, external share or generated PDF",
+      "productsObserved": [
+        {
+          "id": "3412",
+          "status": "missing"
+        },
+        {
+          "id": "3413",
+          "status": "missing"
+        },
+        {
+          "id": "3414",
+          "status": "missing"
+        },
+        {
+          "id": "3415",
+          "status": "missing"
+        },
+        {
+          "id": "3416",
+          "status": "missing"
+        },
+        {
+          "id": "3483",
+          "status": "missing"
+        },
+        {
+          "id": "3485",
+          "status": "missing"
+        },
+        {
+          "id": "1901470104",
+          "status": "empty"
+        },
+        {
+          "id": "2674",
+          "status": "missing"
+        },
+        {
+          "id": "2680",
+          "status": "missing"
+        },
+        {
+          "id": "2700",
+          "status": "missing"
+        },
+        {
+          "id": "2701",
+          "status": "missing"
+        },
+        {
+          "id": "2707",
+          "status": "missing"
+        },
+        {
+          "id": "2711",
+          "status": "missing"
+        },
+        {
+          "id": "2737",
+          "status": "missing"
+        },
+        {
+          "id": "2743",
+          "status": "missing"
+        },
+        {
+          "id": "2747",
+          "status": "missing"
+        },
+        {
+          "id": "2765",
+          "status": "missing"
+        },
+        {
+          "id": "2774",
+          "status": "missing"
+        },
+        {
+          "id": "2779",
+          "status": "missing"
+        },
+        {
+          "id": "2781",
+          "status": "missing"
+        },
+        {
+          "id": "2787",
+          "status": "missing"
+        },
+        {
+          "id": "2792",
+          "status": "missing"
+        },
+        {
+          "id": "2793",
+          "status": "missing"
+        },
+        {
+          "id": "2800",
+          "status": "missing"
+        },
+        {
+          "id": "2813",
+          "status": "missing"
+        },
+        {
+          "id": "2827",
+          "status": "missing"
+        },
+        {
+          "id": "2839",
+          "status": "missing"
+        },
+        {
+          "id": "2840",
+          "status": "missing"
+        },
+        {
+          "id": "2844",
+          "status": "missing"
+        },
+        {
+          "id": "2849",
+          "status": "missing"
+        },
+        {
+          "id": "2852",
+          "status": "missing"
+        },
+        {
+          "id": "2860",
+          "status": "missing"
+        },
+        {
+          "id": "2861",
+          "status": "missing"
+        },
+        {
+          "id": "2883",
+          "status": "missing"
+        },
+        {
+          "id": "2884",
+          "status": "missing"
+        },
+        {
+          "id": "2885",
+          "status": "missing"
+        },
+        {
+          "id": "2915",
+          "status": "missing"
+        },
+        {
+          "id": "2939",
+          "status": "missing"
+        },
+        {
+          "id": "2947",
+          "status": "missing"
+        }
+      ],
+      "missingProductScreenshot": "tools/squad/private/web-content-media-64d500ca-28ce-4caa-a4fb-e2fca6f0f0e9/product-missing-mobile.png",
+      "promotionsObserved": [],
+      "completeRequiredMedia": false
+    }
+  },
+  "auth_personas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "browser_personas": [
+    3
+  ],
+  "browser_errors": 0,
+  "network_violations": 0,
+  "scope": "Real browser commands on disposable staged personas; workers paused; no provider, email, cutover or document rendering acceptance",
+  "cleanup": {
+    "run_id": "64d500ca-28ce-4caa-a4fb-e2fca6f0f0e9",
+    "owned_commands": 0,
+    "owned_auth_revisions": 0,
+    "removed_source_rows": 53,
+    "removed_documents": 0,
+    "removed_queued_documents": 0,
+    "removed_processed_documents": 0,
+    "tables": {
+      "sa_users": 17,
+      "sa_factories": 2,
+      "sa_addresses": 3,
+      "sa_sizes": 1,
+      "sa_size_types": 1,
+      "sa_sc_sizes": 1,
+      "sa_base_product_types": 1,
+      "sa_base_products": 1,
+      "sa_categories": 1,
+      "sa_fabrics": 1,
+      "sa_colors": 1,
+      "sa_parts": 1,
+      "sa_add_ons": 1,
+      "sa_criteria": 1,
+      "sa_base_product_categories": 1,
+      "sa_base_product_fabrics": 1,
+      "sa_fabric_colors": 1,
+      "sa_base_product_parts": 1,
+      "sa_part_colors": 1,
+      "sa_add_on_parts": 1,
+      "sa_add_on_base_products": 1,
+      "sa_add_on_colors": 1,
+      "sa_base_size_types": 1,
+      "sa_authorized_brands": 1,
+      "sa_rmp_brands": 1,
+      "sa_rmp_categories": 1,
+      "sa_rmp_colors": 1,
+      "sa_rmp_classes": 1,
+      "sa_rmp_sizes": 1,
+      "sa_rmp_skus": 1,
+      "sa_rmp_price_types": 1,
+      "sa_rmp_prices": 1,
+      "sa_rmp_sku_prices": 1,
+      "sa_rmp_category_brands": 1
+    },
+    "edit_revision_before": 1539,
+    "edit_revision_after": 1539,
+    "synced_revision_after": 1539,
+    "audit_and_commands_retained": true,
+    "jobs_terminalized": true,
+    "source_content_restored": true,
+    "staff_auth_preserved_during_cleanup": true,
+    "staff_auth_unchanged_since_fixture": true,
+    "independently_changed_staff_accounts": 0
+  },
+  "measured_at": "2026-11-09T05:08:43.320055+00:00",
+  "cutover_unchanged": true,
+  "cron_restored": true,
+  "provider_requests": 0,
+  "emails_sent": 0,
+  "migration_prefix": "20261109043010"
+}

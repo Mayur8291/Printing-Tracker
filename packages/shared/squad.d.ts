@@ -39,9 +39,13 @@ export interface AddressSaved extends SavedEntity {
   commercial_rules:{zone_id:EntityId|null;price_type_id:EntityId|null;candidate_dealer_ids:EntityId[];dealer_link_mode:'additive_legacy';basis:'registered_dealer'|'primary_city'};
 }
 export interface PersonDetail extends Person {
+  can_manage:boolean;can_edit_photo:boolean;
+  brand_ids?:EntityId[];
   designation:string|null;manager_id?:EntityId|null;parent_tailor_id?:EntityId|null;features?:FeatureGrant[];
   addresses?:Address[];gst_no?:string|null;coordinator_id?:EntityId|null;zone_id?:EntityId|null;price_type_id?:EntityId|null;
   direct_deal?:boolean;auto_approve_customers?:boolean;stock_visibility_percentage?:number;registered_by?:number;dealer_ids?:EntityId[];
+  linked_dealers?:Array<{id:EntityId;name:string|null;phone:string|null}>;
+  coordinator_contact?:{id:EntityId;name:string|null;phone:string|null}|null;
   email_confirmed?:boolean;invitation_required?:boolean;archive_dependencies?:string[];account_request?:null|{id:string;state:'queued'|'processing'|'ready'|'blocked'|'failed'|'discarded';error_code:string|null};
 }
 export interface PeopleFilters {
@@ -54,9 +58,11 @@ export interface CoordinatorRequest extends SavedEntity {customer_id:EntityId;re
 export interface CoordinatorRequestDetail extends CoordinatorRequest {customer_version:Version;created_at:string;reason:string|null;decision_reason:string|null}
 export interface CommercialRules {price_type_id?:EntityId|null;stock_visibility_percentage?:number;brand_ids?:EntityId[]}
 export interface OrderFilters {
+  sort?:'id_desc'|'created_desc'|'due_asc';
   state?: 'pending'|'completed'|'cancelled'|'overdue'|'critical';
   type?: 0|1|2; prime?: boolean; criteria?: 0|1; assigned?: boolean;
-  customer_id?: EntityId; created_from?: string; created_before?: string;
+  assignment_kind?: 'factory'|'job_worker'|'unassigned'|'ambiguous';
+  customer_id?: EntityId;manager_id?:EntityId;coordinator_id?:EntityId;worker_id?:EntityId; created_from?: string; created_before?: string;
   due_before?: string; search?: string; worker_status?: 0|1;
 }
 export interface OrderSummary {
@@ -70,17 +76,22 @@ export interface OrderSummary {
   total_amount?: string; sub_total_amount?: string; branding_amount?: string;
   cgst_amount?: string; sgst_amount?: string; igst_amount?: string;
   payment_status?: number; paid_amount?: string|null;
-  factory_manager_id?: EntityId|null; worker_id?: EntityId|null;
+  factory_manager_id?: EntityId|null; worker_id?: EntityId|null; worker_due_change_allowed?:boolean;
 }
 export interface OrderItem {
   id: EntityId; order_id:EntityId; type: number; product_id: EntityId|null; rmp_class_id: EntityId|null;
-  rmp_brand_id: EntityId|null; total_quantity: number; sample_order: boolean|null;
-  worker_stage: number|null; cut: number; sewn: number; dispatched: number; version: Version;
+  rmp_brand_id: EntityId|null; size_type:string|null; total_quantity: number; sample_order: boolean|null;
+  worker_stage_changed_at: string|null; worker_stage: number|null; cut: number; sewn: number; dispatched: number; version: Version;
   quantities: ItemSize[]; quantities_next_cursor:string|null;
   assigned:number;comment:string|null;comment_truncated:boolean|null;provider_status:string;
   progress:{cutting:number;sample_cutting:number;sample_cut:number;tailor:number;inspection:number;dispatch:number;jobsheet_assigned:boolean;jobsheet_due_at:string|null;jobsheet_completed_at:string|null};
   fabric_consumption?:{per_piece:string;total:string;basis:'stored_order_item'};
   unit_amount?: string; total_amount?: string; worker_unit_cost?: string|null; worker_total_cost?: string|null;
+}
+export interface WorkerCommitment {worker_id:EntityId;due_at:string|null;original_due_at:string|null;baseline_basis:'assignment'|'first_observed_change'|'not_recorded_in_source';reason:string|null;reason_truncated:boolean|null;changed_at:string|null;reason_basis:'recorded_change'|'legacy_current_value'|'not_recorded'}
+export interface OrderSections {
+ backorders:{id:EntityId;direction:'purchase'|'demand'|'ambiguous';status:number;type:number;total_quantity:number;due_at:string|null;created_at:string;version:Version};
+ worker_history:{id:EntityId;occurred_at:string;before:string|null;after:string|null;original_due_at:string|null;baseline_basis:string|null;reason:string|null;reason_truncated:boolean|null};
 }
 export interface ItemSize {id:EntityId;size_id:EntityId;size_name:string|null;quantity:number;cut:number;assigned:number;completed:number;dispatched:number}
 export interface ItemSections {
@@ -109,7 +120,7 @@ export interface Dashboard {
 }
 export interface Task extends SavedEntity {
   note:string; state:0|1|2; deadline:string; creator_id:EntityId; order_id:EntityId|null;
-  assignee_ids:EntityId[]; updated_at:string;
+  assignee_ids:EntityId[]; assignees?:Array<{id:EntityId;name:string|null}>; updated_at:string;
 }
 export interface TaskInput { id?:EntityId; note:string; deadline:string; orderId?:EntityId|null; assigneeIds:EntityId[] }
 export interface Responsibility extends SavedEntity { subject_id:EntityId;kind:0|1|2;note:string;completed:boolean }
@@ -129,6 +140,7 @@ export interface ProfileFields {
   first_name?: string|null; last_name?: string|null;
 }
 export interface Me {
+  write_state?: {mode:'mirror'|'test'|'native'|'refresh';allowed:boolean;expires_at:string|null;generation:string};
   id: EntityId; auth_id: string; role: Persona; name: string|null; email: string;
   phone: string|null; company_name: string|null; first_name: string|null; last_name: string|null;
   approved: boolean|null; onboarded: boolean; version: Version;
@@ -154,8 +166,9 @@ export interface ReadyMadeVariant {
   id:EntityId;name:string;size_id:EntityId;size_name:string;size_position:number|null;brand_id:EntityId;category_id:EntityId;price:Price|null;
   availability:{status:'ready'|'partial'|'stale'|'not_loaded';one_day:number|null;three_day:number|null;as_of:string|null};
 }
-export type ConfiguratorKind='categories'|'fabrics'|'fabric_colors'|'parts'|'part_colors'|'addons'|'addon_colors'|'size_types'|'assets';
+export type ConfiguratorKind='categories'|'fabrics'|'fabric_colors'|'parts'|'part_colors'|'addons'|'addon_colors'|'size_types'|'sizes'|'assets';
 export interface Preset extends SavedEntity {name:string;style_number:string;base_product_id:EntityId;fabric_id:EntityId;category_id:EntityId;branding_enabled:boolean;comment?:string;configuration?:Configuration}
+export interface ProductImage extends SavedEntity {comment:string|null;comment_truncated:boolean;image:MediaReference}
 export interface Configuration {
   base_product_id:EntityId;fabric_id:EntityId;fabric_color_id:EntityId;category_id:EntityId;
   parts?:Array<{part_id:EntityId;color_id:EntityId;addons?:Array<{addon_id:EntityId;color_id?:EntityId|null}>}>;
@@ -190,6 +203,7 @@ export interface WorkAllocationInput extends WorkQuantityInput {tailor_id:Entity
 export interface WorkInspectionInput {item_tailor_quantity_id:EntityId;quantity:number}
 export interface WorkProgress {required:number;cut:number;assigned:number;sewn:number;dispatched:number;order_completed:boolean}
 export interface WorkRecorded extends WorkItemSaved {history_id:EntityId;progress:WorkProgress}
+/** received counts newly inserted receipt records, not pieces. */
 export interface StockReceipt {received:number;dealer_id?:EntityId;state?:'ready'|'awaiting_completion'}
 export type StockEvidenceVersion = `${number}:${string}`;
 export interface StockReconciliationRow {id:EntityId;dealer_id:EntityId;order_id:EntityId|null;item_id:EntityId|null;size_id:EntityId|null;kind:'rmp'|'custom'|'invalid';received:number|null;source_quantity:number|null;consumed:number;counter:number|null;usage_count:number;issues:string[];status:'ready'|'needs_reconciliation';available:number|null;group_needs_reconciliation:boolean;safe_action:'rebuild_counter'|null;version:StockEvidenceVersion}
@@ -203,13 +217,14 @@ export interface DealerStockBalance {
  id:EntityId;key:string;kind:'rmp'|'custom';size_id:EntityId;product_id:EntityId|null;
  rmp_class_id:EntityId|null;rmp_brand_id:EntityId|null;rmp_category_id:EntityId|null;
  status:'ready'|'needs_reconciliation';available:number|null;
+ size_name:string|null;product_name:string|null;brand_name:string|null;
  /** Only dealers receive physical ledger totals. Customers receive the configured display percentage. */
  received?:number;consumed?:number;receipt_count?:number;
 }
 export interface BackorderPreview {
  preview_id:string;version:Version;expires_at:string;eligible_order_ids:EntityId[];
  excluded:Array<{order_id:EntityId;reason:'closed'|'already_linked'|'assigned_to_production'|'pending_change'}>;
- requirements:Array<{key:string;kind:'custom'|'rmp';size_id:EntityId;product_id:EntityId|null;class_id:EntityId|null;brand_id:EntityId|null;category_id:EntityId|null;required:number;available:number|null;shortage:number|null;received:number;consumed:number;needs_reconciliation:boolean}>;
+ requirements:Array<{key:string;kind:'custom'|'rmp';size_id:EntityId;product_id:EntityId|null;class_id:EntityId|null;brand_id:EntityId|null;category_id:EntityId|null;required:number;available:number|null;shortage:number|null;purchase_quantity?:number;received:number;consumed:number;needs_reconciliation:boolean}>;
  lines:QuoteLineInput[];status:'ready'|'no_shortage'|'needs_reconciliation';stock_reservation:'none';quote:Quote|null;
 }
 export type DispatchMode='not_defined'|'customer'|'ho'|'makali_factory';
@@ -225,6 +240,7 @@ export interface WorkHistoryRow {id:EntityId;history_id:EntityId;quantity_id:Ent
 export interface WorkSize {id:EntityId;size_id:EntityId|null;size_name:string|null;quantity:number;cut:number;assigned:number;inspected:number;picked:number;dispatched:number;remaining:number}
 export interface WorkDetail extends SavedEntity {order_id:EntityId;product_id:EntityId|null;sample:boolean|null;planned_quantity:number;quantities:Page<WorkSize>;history:Page<WorkHistoryRow>}
 export interface WorkQueueItem extends SavedEntity {order_id:EntityId;product_id:EntityId|null;cutter_id:EntityId|null;sample:boolean|null;cut:number;assigned:number;inspected:number;dispatched:number;due_at:string|null;prime:boolean;held:boolean}
+export interface OperationalItemRow {id:EntityId;order_id:EntityId;product_name:string|null;quantity:number;tailor_id:EntityId|null;assigned:number;inspected:number;completed:boolean;needs_reconciliation:boolean;due_at:string|null;created_at:string|null;version:Version}
 export interface JobsheetRow {id:EntityId;item_id:EntityId;quantity_id:EntityId;item_tailor_id:EntityId;tailor_id:EntityId;assignment_id:EntityId;assigned:number;inspected:number;picked:number;occurred_at:string}
 export interface TailorWorkRow {id:EntityId;item_id:EntityId;tailor_id:EntityId;item_tailor_quantity_id:EntityId;quantity_id:EntityId;assigned?:number;remaining_before?:number;inspected:number;picked:number;occurred_at:string|null}
 export interface WorkDetailPages {quantityCursor?:string;historyCursor?:string;limit?:number}
@@ -294,6 +310,8 @@ export interface BackgroundJob {
 export interface JobAttempt {attempt:number;started_at:string;finished_at:string|null;state:'leased'|'done'|'failed'|'expired';error_code:string|null;}
 export interface AuditEntry {id:EntityId;actor_id:string;legacy_user_id:EntityId|null;operation:string;kind:string;entity_id:EntityId|null;generation:string;created_at:string;}
 export function createSquadClient(supabase: RpcTransport): Readonly<{
+  /** Per-query cancellation. This client rejects mutation methods before transport. */
+  withSignal(signal:AbortSignal):ReturnType<typeof createSquadClient>;
   bootstrap(platform:AppPlatform,version?:string|null):Promise<AppBootstrap>;
   saveCapabilities(id:EntityId,features:FeatureGrant[],reason:string,command:Command):Promise<SavedEntity & {features:FeatureGrant[];capabilities:Record<string,boolean>}>;
   promotions(filters?:{mode?:'assets';category?:string;upload_date?:string},page?:PageRequest):Promise<Page<Promotion>>;
@@ -348,9 +366,13 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   requestDocument<K extends DocumentKind>(kind:K,request:DocumentRequestByKind[K],idempotencyKey:string):Promise<{id:string;kind:K;state:'queued';generation:string}>;
   documents(filters?:{kind?:DocumentKind;state?:DocumentState;legacy?:boolean},page?:PageRequest):Promise<Page<GeneratedDocument>>;
   document(id:string):Promise<GeneratedDocument>;
+  reserveDocumentAttachment(file:{filename:string;bytes:number;content_type:'application/pdf'|'image/png'|'image/jpeg'|'text/plain'},idempotencyKey:string):Promise<{upload_id:string;state:string;expected_version:string;upload_url?:string;expires_at?:string;bytes:string;content_type:string}>;
+  finalizeDocumentAttachment(uploadId:string,command:Command):Promise<MediaReference & {status:'ready'}>;
   downloadDocument(id:string):Promise<{id:string;url:string;expires_in:120;generation:string;bytes:string;sha256:string}>;
   deliveryFailures(page?:PageRequest):Promise<Page<BackgroundJob>>;
   me(): Promise<Me>;
+  /** Customer self-only; requires a recent actual password sign-in session. */
+  closeAccount(confirmation:'DELETE MY ACCOUNT',command:Command):Promise<SavedEntity & {state:'closed';sessions_revoked:true;account_reconciliation:'queued'}>;
   reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
   verifyMediaUpload(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached'}>;
   setAccountStatus(id:EntityId,action:'enable'|'disable'|'archive',reason:string,command:Command):Promise<{id:EntityId;version:string;state:'enabled'|'disabled'|'archived';account_reconciliation:'queued'}>;
@@ -380,12 +402,13 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   relationshipOptions(kind:'coordinators'|'dealers'|'cities'|'zones'|'price_types'|'brands',context?:{customerId?:EntityId;search?:string},page?:PageRequest):Promise<Page<{id:EntityId;name:string;parent_id:EntityId|null}>>;
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
   order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;dispatch_destination:DispatchDestination;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
+  orderSection<S extends keyof OrderSections>(id:EntityId,section:S,page?:PageRequest):Promise<Page<OrderSections[S]> & {section:S;order_id:EntityId;version:Version;commitment?:WorkerCommitment|null}>;
   ratings(kind:FeedbackEntity,id:EntityId,filters?:{fromId?:EntityId;toId?:EntityId;includeArchived?:boolean},page?:PageRequest):Promise<Page<Rating> & {summary:RatingSummary}>;
   saveRating(id:EntityId|null,kind:FeedbackEntity,entityId:EntityId,toId:EntityId|null,fields:RatingFields,command:Command|CreateCommand):Promise<Rating & {summary:RatingSummary}>;
   archiveRating(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {archived:true;summary:RatingSummary}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
   dealerStock(filters?:DealerStockFilters,context?:{dealerId?:EntityId;customerId?:EntityId},page?:PageRequest):Promise<Page<DealerStockBalance> & {context:{dealer_id:EntityId;customer_id:EntityId;physical:boolean;visibility_percentage:number}}>;
-  previewBackorder(orderIds:EntityId[],addressId:EntityId):Promise<BackorderPreview>;
+  previewBackorder(orderIds:EntityId[],addressId:EntityId,quantities?:Array<{key:string;size_id:EntityId;quantity:number}>):Promise<BackorderPreview>;
   placeBackorder(previewId:string,dueAt:string,command:Command):Promise<OrderPlacement & {preview_id:string;linked_order_versions:Record<EntityId,Version>;stock_reservation:'none'}>;
   saveDispatchDestination(id:EntityId,destination:DispatchMode,reason:string,command:Command):Promise<SavedEntity & {destination:DispatchDestination}>;
   deliveries(filters?:{from?:string;before?:string;order_id?:EntityId;customer_id?:EntityId},page?:PageRequest):Promise<Page<Delivery>>;
@@ -396,16 +419,22 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   tailorEarnings(tailorId:EntityId,period?:{weekStart?:string;includeTeam?:boolean},page?:PageRequest):Promise<TailorEarnings>;
   catalogue(kind?:'types'|'categories'|'products',filters?:CatalogueFilters,page?:PageRequest):Promise<Page<CatalogueOption>>;
   baseProduct(id:EntityId):Promise<CatalogueOption>;
-  catalogueOptions(kind?:'brands'|'categories'|'sizes'|'price_type',customerId?:EntityId|null,page?:PageRequest):Promise<Page<CatalogueOption> & {context:CommercialContext}>;
+  catalogueOptions(kind?:'brands'|'categories'|'sizes'|'price_type'|'main_categories',customerId?:EntityId|null,page?:PageRequest):Promise<Page<CatalogueOption> & {context:CommercialContext}>;
   readyMade(filters?:ReadyMadeFilters,customerId?:EntityId|null,page?:PageRequest):Promise<Page<ReadyMadeClass> & {context:CommercialContext}>;
   readyMadeDetail(id:EntityId,customerId?:EntityId|null):Promise<ReadyMadeClass & {context:CommercialContext}>;
   readyMadeVariants(classId:EntityId,customerId?:EntityId|null,filters?:ReadyMadeFilters,page?:PageRequest):Promise<Page<ReadyMadeVariant> & {context:CommercialContext}>;
-  configuratorOptions(baseId:EntityId,kind:ConfiguratorKind,selection?:{parentId?:EntityId;partId?:EntityId},page?:PageRequest):Promise<Page<CatalogueOption>>;
+  configuratorOptions(baseId:EntityId,kind:'sizes',selection?:{parentId?:EntityId;partId?:EntityId},page?:PageRequest):Promise<Page<{id:EntityId|null;sc_size_id:EntityId;name:string;position:number|null;available:boolean}>>;
+  configuratorOptions(baseId:EntityId,kind:Exclude<ConfiguratorKind,'sizes'>,selection?:{parentId?:EntityId;partId?:EntityId},page?:PageRequest):Promise<Page<CatalogueOption>>;
   validateQuantities(quantities:SizeQuantity[],sample?:SizeQuantity|null):Promise<NormalizedQuantities>;
+  calculateQuote(request:{lines:QuoteLineInput[]}):Promise<QuoteCalculation & {purpose:'configuration_display_only'}>;
+  resolveConfigurationSize(baseId:EntityId,scSizeId:EntityId,idempotencyKey:string):Promise<{id:EntityId;sc_size_id:EntityId;name:string}>;
   quote(request:QuoteRequest):Promise<Quote>;
   catalogueQuote(request:Omit<QuoteRequest,'address_id'>,markup?:Markup):Promise<QuoteCalculation & {markup:Markup;purpose:'catalogue_display_only'}>;
   configureProduct(configuration:Configuration,name:string,comment:string,idempotencyKey:string):Promise<SavedEntity & {style_number:string;fingerprint:string;reused:boolean}>;
   presets(filters?:{id?:EntityId;base_product_id?:EntityId;style_number?:string;search?:string},page?:PageRequest):Promise<Page<Preset>>;
+  /** The version is shared with product media mutations; can_edit requires exact ownership. */
+  productImages(productId:EntityId,page?:PageRequest):Promise<Page<ProductImage> & {product_id:EntityId;version:Version;can_edit:boolean}>;
+  saveProductImageComment(imageId:EntityId,comment:string,command:Command):Promise<ProductImage & {product_id:EntityId}>;
   renamePreset(id:EntityId,name:string,command:Command):Promise<SavedEntity>;
   saveColor(targetKind:'fabric'|'part'|'addon',targetId:EntityId,name:string,hex:string,idempotencyKey:string):Promise<SavedEntity & {name:string;hex:string;reused:boolean}>;
   overrideQuote(quoteId:string,line:number,unitPrice:string,reason:string,command:Command):Promise<Quote>;
@@ -435,17 +464,20 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   cuttingQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem>>;
   dispatchQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem & Partial<DealerAvailability>>>;
   jobsheets(filters?:{itemId?:EntityId;tailorId?:EntityId},page?:PageRequest):Promise<Page<JobsheetRow>>;
+  operationalItems(filters?:{tailorId?:EntityId;completed?:boolean|null;itemId?:EntityId;orderId?:EntityId},page?:PageRequest):Promise<Page<OperationalItemRow>&{status_basis:"item_inspection"|"selected_tailor_assignment"}>;
   tailorWork(filters?:{itemId?:EntityId;tailorId?:EntityId;history?:boolean},page?:PageRequest):Promise<Page<TailorWorkRow>>;
   productionProgress(orderId:EntityId):Promise<ProductionProgress>;
-  tasks(filters?: {state?:0|1|2;orderId?:EntityId},page?:PageRequest):Promise<Page<Task>>;
+  tasks(filters?: {state?:0|1|2;orderId?:EntityId;query?:string|null;assignment?:'all'|'by_me'|'to_me'},page?:PageRequest):Promise<Page<Task>>;
   task(id:EntityId):Promise<Task>;
-  taskAssignees(page?:PageRequest):Promise<Page<{id:EntityId;name:string;role:number}>>;
+  taskAssignees(page?:PageRequest,filters?:{query?:string|null;role?:number|null}):Promise<Page<{id:EntityId;name:string;role:number}>>;
   saveTask(task:TaskInput,command:Command|CreateCommand):Promise<SavedEntity>;
   transitionTask(id:EntityId,state:0|1|2,command:Command):Promise<SavedEntity & {state:0|1|2}>;
+  responsibility(id:EntityId):Promise<Responsibility>;
   responsibilities(filters?:{subjectId?:EntityId;kind?:0|1|2;completed?:boolean},page?:PageRequest):Promise<Page<Responsibility>>;
   saveResponsibilities(items:ResponsibilityInput[],idempotencyKey:string):Promise<{items:Array<SavedEntity & {subject_id:EntityId}>}>;
   transitionResponsibility(id:EntityId,state:'pending'|'completed'|'archived',reason:string|null,command:Command):Promise<SavedEntity & {state:string}>;
-  milestones(subjectId?:EntityId,page?:PageRequest):Promise<Page<Milestone>>;
+  milestones(subjectId?:EntityId,page?:PageRequest,state?:"all"|"pending"|"achieved"|"current"):Promise<Page<Milestone>>;
+  createMilestones(subjectId:EntityId,targets:Array<{name:string;start:string;end:string;amount:string}>,idempotencyKey:string):Promise<{data:SavedEntity[];created:number}>;
   milestoneProgress(id:EntityId):Promise<MilestoneProgress>;
   saveMilestone(target:MilestoneInput,command:Command|CreateCommand):Promise<SavedEntity>;
   archiveMilestone(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {archived:true}>;

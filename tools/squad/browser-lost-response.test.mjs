@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import puppeteer from 'puppeteer';
+import {loseNextRpcResponse} from './browser-lost-response.mjs';
+test('response loss happens after actual HTTP mutation; unchanged retry is observed and no other request is lost',async()=>{
+ const seen=[],key='11111111-1111-4111-8111-111111111111';let changes=0;
+ const server=createServer(async(req,res)=>{if(req.method==='POST'){let body='';for await(const chunk of req)body+=chunk;const payload=JSON.parse(body);seen.push(payload);if(seen.filter(p=>p.p_idempotency_key===payload.p_idempotency_key).length===1)changes++;res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify({changes}));}else{res.writeHead(200,{'content-type':'text/html'});res.end('<button id="save">Save</button><div id="result"></div><script>document.querySelector("#save").onclick=async()=>{try{const r=await fetch("/rest/v1/rpc/v1_test_save",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({p_idempotency_key:"'+key+'",p_id:"7"})});document.querySelector("#result").textContent=JSON.stringify(await r.json());}catch(e){document.querySelector("#result").textContent="uncertain";}}</script>');}});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const browser=await puppeteer.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});let fault;
+ try{const page=await browser.newPage();await page.setRequestInterception(true);page.on('request',request=>void request.continue());await page.goto(`http://127.0.0.1:${server.address().port}`);fault=await loseNextRpcResponse(page,'v1_test_save',{origin:`http://127.0.0.1:${server.address().port}`});await page.click('#save');const lost=await fault.lost;assert.equal(changes,1);assert.equal(lost.payload.p_id,'7');await page.waitForFunction(()=>document.querySelector('#result').textContent==='uncertain');await fault.dispose();fault=null;await page.click('#save');await page.waitForFunction(()=>document.querySelector('#result').textContent==='{"changes":1}');assert.equal(seen.length,2);assert.deepEqual(seen[0],seen[1]);assert.equal(changes,1);}finally{await fault?.dispose();await browser.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});

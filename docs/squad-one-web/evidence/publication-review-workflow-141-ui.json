@@ -1,0 +1,80 @@
+{
+  "format": "squad-publication-delta-review/v1",
+  "reviewed_at": "2026-11-09T05:42:30.448320+00:00",
+  "scope": "Final workflow reconciliation and deployed smoke preparation; public metadata only. Previous reviews remain historical exact hashes.",
+  "approved_exact_files": [
+    {
+      "path": "docs/squad-one-web/README.md",
+      "sha256": "2671e1db4cfa6f3d4f6affb4ea4fe55a764dc3d5e58f779fcce84f7e63ff68a0",
+      "bytes": 2508,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.json",
+      "sha256": "61064aa1538129f59eb8ff9dab612d9f207d7901be7c2585deed385c0d3bafad",
+      "bytes": 547118,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.csv",
+      "sha256": "110c99ed87028c45531ce2359e78b563042f075f2d0d2211b021736b08c44bb8",
+      "bytes": 254514,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/implementation-progress.json",
+      "sha256": "770b458de01bf970291e6b57777858b287d842a01eab79fb214efd29628ec663",
+      "bytes": 33281,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-exit-criteria.json",
+      "sha256": "8f0f44905389824c809ca7944feac24fa661767ed00f1a9bb18b6c99c9a46358",
+      "bytes": 35431,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/prepared-acceptance-check-map.json",
+      "sha256": "b81fb1424b9a533f43de9a5c817f10962d4f34745b4445203d80788ddca32d05",
+      "bytes": 33106,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-gates.md",
+      "sha256": "227d729d5888970aa72cf6222dd412115055663227bd52188767f84c4190a397",
+      "bytes": 14348,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/business-acceptance.json",
+      "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417",
+      "bytes": 194919,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/workflow-extensions-141.json",
+      "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417",
+      "bytes": 194919,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/workflow-extensions-141-reconciliation.json",
+      "sha256": "a02fcf3297a95d2809d73031b51f1a54482bd7cbf4054f06b621f7963766c73b",
+      "bytes": 2825,
+      "publication": "approved_exact_hash_only"
+    },
+    {
+      "path": "docs/squad-one-web/evidence/deployed-read-smoke-preparation.json",
+      "sha256": "82bdf384642f1a19573fbf6443f238c7668a2bcc3f10cc85352195734ac462c6",
+      "bytes": 3629,
+      "publication": "approved_exact_hash_only"
+    }
+  ],
+  "inspection": "No absolute home paths, contact addresses, credentials, signed URLs, raw page text or embedded file bytes. Business entity IDs identify exact disposable fixture roots; timing/status/cleanup values retained. No private screenshots exist for this run; none published.",
+  "private_exclusions": [
+    "tools/squad/private/**",
+    "raw browser reports/logs",
+    "all screenshots and downloaded files"
+  ],
+  "limitations": "Acceptance metadata only; preparation receipt is not a deployed acceptance result. Any later change requires a new hash review."
+}

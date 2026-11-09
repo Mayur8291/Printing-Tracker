@@ -1,0 +1,52 @@
+{
+  "format": "tracker-read-harness-review/v1",
+  "recorded_at": "2026-11-09T03:35:56.895291+00:00",
+  "status": "local_passed_hosted_pending",
+  "reviewer": "web_commerce_implementation",
+  "checks": [
+    "Anonymous served-build and login startup occur before DB keys/account creation; fixed same-origin GET/HEAD network boundary.",
+    "Receipt file and directory fsync complete before checkpoint removal; failed persistence preserves checkpoint.",
+    "Initial stored tab now uses source printing ID; visible enabled navigation wait handles delayed Tracker profile loading.",
+    "Original exception is sanitized and saved with fixed subphase/selector presence metadata; no response bodies or credentials."
+  ],
+  "local_tests": {
+    "wrapper": 14,
+    "diagnostic_sanitizer": 3,
+    "actual_built_tracker": 6,
+    "actual_built_scope": "Admin and Viewer synthetic intercepted Auth/profile reads, delayed full-profile response, real current bundle and real Printing Orders navigation. No hosted transport."
+  },
+  "visual_review": {
+    "screenshots": [
+      "/tmp/squad-tracker-entry-admin.png",
+      "/tmp/squad-tracker-entry-viewer.png"
+    ],
+    "result": "Printing Orders table, controls and role-specific navigation render cleanly at1440x1000; no page error or visible layout blocker."
+  },
+  "limits": [
+    "The original failed hosted run55170daa lacked original-cause evidence. Invalid initial tab and readiness were concrete harness defects, but cannot be claimed as the sole historical cause.",
+    "No Tracker hosted acceptance, populated production data, realtime or CRUD claim.",
+    "AppRoot change pending separately; final frozen build must rerun appropriate startup boundary."
+  ],
+  "files": [
+    {
+      "path": "tools/squad/web-tracker-read-hosted.mjs",
+      "sha256": "e11126779ee4ac0cbb8f065486e40bc9dcff267a181497fd6d241cc76d6e729b"
+    },
+    {
+      "path": "tools/squad/web-tracker-entry-browser.mjs",
+      "sha256": "f94ccc20e18f18c5c50c7cd221b31b44131f63ad4c42549a266f9b175b6aed49"
+    },
+    {
+      "path": "tools/squad/web-tracker-startup-preflight.mjs",
+      "sha256": "2bceb1dc34729b9c128eccdec0a6075109ab59adaedcd08e9852c0bcd9a64f51"
+    },
+    {
+      "path": "tools/squad/test_web_tracker_read_hosted.py",
+      "sha256": "bce2f0f3d5c0cc66cd458d118321d45138809b233699d15a9c9a56eff25b3515"
+    },
+    {
+      "path": "tools/squad/browser-error-diagnostic.mjs",
+      "sha256": "916376e27f1fa4c731b258907049f8ffd6b7c9acffd4363a5d7af0d7ac34d443"
+    }
+  ]
+}

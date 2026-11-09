@@ -12,6 +12,13 @@ LABELS={'delivery_challan':('workforce.challan',7),'tailor_weekly':('workforce.w
 
 def bindings(c,state):
     """Derive all authority from fixed command keys and immutable server audits."""
+    if state.get('web_catalogue_terms'):
+        assert state.get('web_output_rehearsal') is not True,'Mixed output modes are forbidden'
+        from web_catalogue_terms_recovery import output_bindings
+        return output_bindings(c,state)
+    if state.get('web_output_rehearsal') is True:
+        from web_document_output_binding import bindings as web_bindings
+        return web_bindings(c,state)
     result=[];actors={a['role']:a for a in state['identity']['actors']}
     for kind,(label,role) in LABELS.items():
         key=uuid.uuid5(uuid.UUID(state['run_id']),label);actor=actors[role]
@@ -66,7 +73,8 @@ def provenance(c,docs):
 def validate(c,state):
     proof=state.get('document_outputs')
     if not proof:return []
-    assert proof['format']=='squad-document-outputs/v1' and len(proof['documents'])==2
+    expected_count=1 if state.get('web_catalogue_terms') else 2
+    assert proof['format']=='squad-document-outputs/v1' and len(proof['documents'])==expected_count
     assert bindings(c,state)==proof['documents'],'Output checkpoint differs from immutable request ownership'
     provenance(c,proof['documents'])
     return proof['documents']

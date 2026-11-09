@@ -1,0 +1,124 @@
+{
+  "format": "squad-clean-web-build-recipe/v1",
+  "status": "prepared_not_executed",
+  "recorded_at": "2026-11-09T03:33:26.748875+00:00",
+  "execution_owner": "Parent after UI AppRoot changes are frozen",
+  "purpose": "Reproduce the admin staging bundle using a fresh npm ci without tracked node_modules, private data, or copied environment files. This does not deploy or prove production Vercel configuration.",
+  "runtime": {
+    "node": "/Users/kundan9595gmail.com/.npm/_npx/bac97da9607b7ef2/node_modules/node/bin/node",
+    "node_version_verified": "v26.13.0",
+    "npm_cli": "/Users/kundan9595gmail.com/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js",
+    "npm_version_verified": "11.6.2",
+    "requirement": "Prepend the Node26 executable directory to child PATH, and invoke npm-cli with this exact Node26 binary. Shell default Node24 is not sufficient."
+  },
+  "workspace": "Create a new tempfile.mkdtemp(prefix=\"squad-clean-web-\",dir=\"/tmp\") directory; no reuse or copy of existing dist/dependencies.",
+  "copy_exact_files": [
+    "package.json",
+    "package-lock.json",
+    "apps/admin/package.json",
+    "apps/admin/index.html",
+    "apps/admin/vite.config.js",
+    "apps/admin/tailwind.config.js",
+    "apps/admin/postcss.config.js",
+    "apps/admin/jsconfig.json",
+    "apps/mobile/package.json",
+    "packages/shared/package.json"
+  ],
+  "copy_source_trees": [
+    "apps/admin/src",
+    "apps/admin/public",
+    "packages/shared"
+  ],
+  "exclude_everywhere": [
+    "node_modules",
+    "private",
+    ".git",
+    ".env",
+    ".env.*",
+    "dist",
+    "build",
+    "coverage",
+    ".DS_Store",
+    "__tests__",
+    "*.test.*",
+    "*.spec.*",
+    "*.map"
+  ],
+  "copy_rules": [
+    "Use explicit roots only; never copy the whole repository, apps/mobile source, docs, tools, server, outputs, tmp or Supabase data.",
+    "Reject symlinks and any path escaping a permitted source root. Current three source trees have no symlinks.",
+    "Keep all three workspace package manifests because root lockfile v3 includes admin, mobile and shared. Removing the mobile manifest would change npm ci workspace resolution even though mobile is not compiled.",
+    "Keep source JSON imports such as country.json and squad-notification-rules.json; they are application constants, not database exports.",
+    "Hash the selected source/config/lock manifest before copy and after build; refuse a reproducibility claim if any source changed during the build."
+  ],
+  "environment": {
+    "read_source": ".env.staging",
+    "parse": "Read only allowlisted KEY=VALUE lines using a literal parser; do not source/eval the file, expand variables or copy it. Reject duplicate keys or multiline/unclosed quoted values. Never log values.",
+    "allowlist": [
+      "VITE_APP_ENV",
+      "VITE_SUPABASE_URL",
+      "VITE_SUPABASE_ANON_KEY"
+    ],
+    "validation": [
+      "VITE_APP_ENV must equal staging.",
+      "VITE_SUPABASE_URL must equal https://scvojtvgnkmbupvyslmb.supabase.co.",
+      "Legacy JWT anon key must decode to role=anon and ref=scvojtvgnkmbupvyslmb; reject service_role or secret key. This is accidental-secret prevention, not JWT verification.",
+      "Pass these three public values only to the build subprocess environment. Do not persist .env in the temporary tree.",
+      "Use a minimal child environment without inherited provider tokens, SUPABASE keys, npm auth/config, NODE_OPTIONS, or arbitrary VITE_* values. Preserve HOME unchanged. Pass npm explicit --userconfig and --globalconfig paths to two empty files in a task-specific temporary config directory plus --cache in that directory; never read personal .npmrc."
+    ],
+    "install_environment": "PATH (Node26 first), unchanged HOME, task-specific TMPDIR, CI=true and ordinary locale only; no VITE values required for npm ci. Never repurpose HOME, home or CODEX_HOME."
+  },
+  "commands": [
+    {
+      "cwd": "temporary root",
+      "argv": [
+        "/Users/kundan9595gmail.com/.npm/_npx/bac97da9607b7ef2/node_modules/node/bin/node",
+        "/Users/kundan9595gmail.com/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js",
+        "ci",
+        "--no-audit",
+        "--no-fund",
+        "--userconfig",
+        "<task-config>/user.npmrc",
+        "--globalconfig",
+        "<task-config>/global.npmrc",
+        "--cache",
+        "<task-config>/npm-cache"
+      ],
+      "scope": "Fresh dependency installation from unchanged lock. Do not use npm install, omit workspaces or --ignore-scripts; those would test a different dependency install."
+    },
+    {
+      "cwd": "temporary root",
+      "argv": [
+        "/Users/kundan9595gmail.com/.npm/_npx/bac97da9607b7ef2/node_modules/node/bin/node",
+        "/Users/kundan9595gmail.com/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js",
+        "--userconfig",
+        "<task-config>/user.npmrc",
+        "--globalconfig",
+        "<task-config>/global.npmrc",
+        "--cache",
+        "<task-config>/npm-cache",
+        "run",
+        "build",
+        "--workspace",
+        "@canto/admin",
+        "--",
+        "--mode",
+        "staging"
+      ],
+      "scope": "Production-optimized Vite bundle with explicit staging mode, environment values supplied in memory only."
+    }
+  ],
+  "verification": [
+    "Record Node/npm versions, lock/source manifest SHA, exit statuses and bounded build log; do not print environment values.",
+    "Record generated index module path/SHA and final dist tree file hashes. Confirm source manifest remains unchanged.",
+    "Serve only this temporary dist at a separate localhost port. Run anonymous startup preflight with all remote traffic blocked and GET/HEAD only; verify login form and no pageerror.",
+    "Compare representative Squad deep links and lazy chunk loading using existing read-only checks once parent authorizes them; clean compile alone is not browser/hosted acceptance.",
+    "Do not replace active preview or apps/admin/dist during another acceptance run.",
+    "Retain only sanitized build evidence in repository; generated source copy/node_modules/dist stay in the disposable /tmp tree."
+  ],
+  "not_included": [
+    "No Git staging, commit, push or Vercel deployment.",
+    "No source data, private fixtures, credentials or copied .env files.",
+    "No claim that staging public environment is production deployment configuration."
+  ]
+}

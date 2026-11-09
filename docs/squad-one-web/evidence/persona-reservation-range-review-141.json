@@ -1,0 +1,48 @@
+{
+  "format": "squad-persona-range-review/v1",
+  "measured_at": "2026-11-09T05:15:14.771739+00:00",
+  "environment": "staging",
+  "reason": "Original finite 50-block allocation exhausted; Firefox preflight stopped before checkpoint or mutations.",
+  "old_range": [
+    1900000000,
+    1900010000
+  ],
+  "new_range": [
+    1900000000,
+    1900012000
+  ],
+  "additional_blocks": 10,
+  "block_size": 200,
+  "existing_reservations": 536,
+  "blocked": 536,
+  "nonblocked": 0,
+  "live_source_users": 0,
+  "live_auth_users": 0,
+  "highest_reserved_id": 1900009812,
+  "extension_collision_counts": {
+    "legacy_identity_keys": 0,
+    "sa_auth_identities": 0,
+    "sa_users": 0,
+    "sa_factories": 0,
+    "sa_addresses": 0,
+    "sa_orders": 0,
+    "sa_items": 0,
+    "sa_quantities": 0,
+    "sa_sizes": 0,
+    "sa_user_dealers": 0
+  },
+  "source_business_namespace_start": 1901000000,
+  "retained_tombstones": true,
+  "reservation_deletion_or_reuse": false,
+  "grant_or_role_change": false,
+  "local_checks": {
+    "accepted_old_and_new_blocks": 4,
+    "rejected_out_of_bounds": 3
+  },
+  "planner_sha256": "0328560a48ffe0733d8732e55626ec99ad2fcfc46cb7c960c01fbcf9273c2209",
+  "independent_review": {
+    "reviewer": "web_ui_implementation",
+    "result": "GO",
+    "scope": "Only finite range/comment changed; namespace, non-reuse, collisions, privileges and cleanup checked."
+  }
+}
