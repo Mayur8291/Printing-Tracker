@@ -74,6 +74,42 @@
     ],
     [
       "sa_domain",
+      "account_rehearsal_auth_pending",
+      "account_rehearsal_pending_writer",
+      "{sa_account_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_receipts",
+      "account_rehearsal_receipt_read",
+      "{sa_account_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_revocations",
+      "account_rehearsal_revocation_read",
+      "{sa_account_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "account_rehearsals",
+      "account_rehearsal_read",
+      "{sa_account_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
       "account_requests",
       "account_requests_writer",
       "{sa_account_writer}",
@@ -479,6 +515,15 @@
     ],
     [
       "sa_domain",
+      "audit",
+      "squad_worker_context_audit",
+      "{sa_guard}",
+      "SELECT",
+      "((kind = 'order'::text) AND (operation = ANY (ARRAY['order.worker_assigned'::text, 'order.worker_due_changed'::text])) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)) AND (( SELECT (sa_domain.actor()).role_id AS role_id) = ANY (ARRAY[0, 2, 11])) AND sa_domain.can_order(entity_id))",
+      null
+    ],
+    [
+      "sa_domain",
       "backorder_previews",
       "squad_backorder_preview_owner",
       "{sa_executor}",
@@ -821,6 +866,42 @@
     ],
     [
       "sa_domain",
+      "document_attachments",
+      "attachment_executor",
+      "{sa_executor}",
+      "ALL",
+      "((actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)))",
+      "((actor_id = ( SELECT sa_domain.request_uid() AS request_uid)) AND (generation = ( SELECT runtime_state.generation\n   FROM sa_domain.runtime_state)))"
+    ],
+    [
+      "sa_domain",
+      "document_attachments",
+      "attachment_guard",
+      "{sa_guard}",
+      "SELECT",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))",
+      null
+    ],
+    [
+      "sa_domain",
+      "document_attachments",
+      "attachment_writer",
+      "{sa_media_writer}",
+      "ALL",
+      "true",
+      "true"
+    ],
+    [
+      "sa_domain",
+      "document_attachments",
+      "document_attachment_exact_rehearsal",
+      "{sa_worker}",
+      "SELECT",
+      "(EXISTS ( SELECT 1\n   FROM (sa_domain.document_rehearsals c\n     JOIN sa_domain.documents d ON ((d.id = c.document_id)))\n  WHERE ((c.actor_id = document_attachments.actor_id) AND (c.generation = document_attachments.generation) AND (c.expires_at > clock_timestamp()) AND (d.actor_id = c.actor_id) AND (d.generation = c.generation) AND (d.kind = 'catalogue'::text) AND (((d.request -> 'terms_reference'::text) ->> 'resource'::text) = 'document_attachments'::text) AND (((d.request -> 'terms_reference'::text) ->> 'record_id'::text) = (document_attachments.id)::text) AND (((d.request -> 'terms_reference'::text) ->> 'field'::text) = 'terms'::text))))",
+      null
+    ],
+    [
+      "sa_domain",
       "document_cleanup",
       "document_cleanup_worker",
       "{sa_worker}",
@@ -844,6 +925,24 @@
       "{sa_worker}",
       "SELECT",
       "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "documents",
+      "attachment_cleanup_document",
+      "{sa_media_writer}",
+      "SELECT",
+      "true",
+      null
+    ],
+    [
+      "sa_domain",
+      "documents",
+      "attachment_guard_document",
+      "{sa_guard}",
+      "SELECT",
+      "(actor_id = ( SELECT sa_domain.request_uid() AS request_uid))",
       null
     ],
     [
@@ -4296,6 +4395,15 @@
     [
       "sa_snapshot_20261019",
       "sa_product_images",
+      "squad_product_image_comment_owner",
+      "{sa_executor}",
+      "UPDATE",
+      "(product_id IN ( SELECT sa_products.id\n   FROM sa_snapshot_20261019.sa_products\n  WHERE (sa_products.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))",
+      "(product_id IN ( SELECT sa_products.id\n   FROM sa_snapshot_20261019.sa_products\n  WHERE (sa_products.created_by_id = ( SELECT (sa_domain.actor()).user_id AS user_id))))"
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_product_images",
       "squad_work_images",
       "{sa_executor}",
       "SELECT",
@@ -5330,6 +5438,15 @@
     ],
     [
       "sa_snapshot_20261019",
+      "sa_sc_sizes",
+      "squad_catalog_read",
+      "{sa_executor}",
+      "SELECT",
+      "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
+      null
+    ],
+    [
+      "sa_snapshot_20261019",
       "sa_settings",
       "squad_provider_setting",
       "{sa_executor}",
@@ -5417,6 +5534,15 @@
       "SELECT",
       "( SELECT sa_domain.catalog_enabled() AS catalog_enabled)",
       null
+    ],
+    [
+      "sa_snapshot_20261019",
+      "sa_sizes",
+      "squad_configuration_sizes_insert",
+      "{sa_executor}",
+      "INSERT",
+      null,
+      "( SELECT ((sa_domain.effective_capabilities(a.role_id, a.features) ->> 'configure'::text))::boolean AS bool\n   FROM sa_domain.actor() a(auth_id, user_id, role_id, factory_id, features))"
     ],
     [
       "sa_snapshot_20261019",
@@ -7144,6 +7270,11 @@
     ],
     [
       "sa_product_images",
+      "comment",
+      "{sa_executor=w/postgres}"
+    ],
+    [
+      "sa_product_images",
       "created_at",
       "{sa_media_writer=a/postgres}"
     ],
@@ -7165,7 +7296,7 @@
     [
       "sa_product_images",
       "updated_at",
-      "{sa_media_writer=arw/postgres,sa_guard=r/postgres}"
+      "{sa_media_writer=arw/postgres,sa_guard=r/postgres,sa_executor=w/postgres}"
     ],
     [
       "sa_product_part_add_ons",
@@ -7981,6 +8112,18 @@
   [
     [
       "canto_api",
+      "account_document_attachment_reserve",
+      "p_file jsonb, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "988423a6649ea29e8b5ad9ac48a814b0"
+    ],
+    [
+      "canto_api",
       "account_document_grant",
       "p_id uuid",
       "postgres",
@@ -8242,6 +8385,18 @@
       ],
       "{postgres=X/postgres,service_role=X/postgres}",
       "38db3e5be185fe6e0425dc6bb5f484f0"
+    ],
+    [
+      "canto_api",
+      "squad_account_rehearsal_claim",
+      "p_id uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,service_role=X/postgres}",
+      "aaf4b2b7f5535aca905a89afeb765f17"
     ],
     [
       "canto_api",
@@ -8569,6 +8724,18 @@
     ],
     [
       "canto_api",
+      "v1_account_close",
+      "p_expected_version text, p_idempotency_key uuid, p_confirmation text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "c2cf9b0297259d5c3aaab58fa27e28f0"
+    ],
+    [
+      "canto_api",
       "v1_address_archive",
       "p_id bigint, p_user_id bigint, p_expected_version text, p_idempotency_key uuid",
       "postgres",
@@ -8677,6 +8844,18 @@
     ],
     [
       "canto_api",
+      "v1_backorder_preview",
+      "p_order_ids bigint[], p_address_id bigint, p_quantities jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "5e2aa8f8f391f4ae5ba5ea125ac09440"
+    ],
+    [
+      "canto_api",
       "v1_banners_list",
       "p_cursor text, p_limit integer",
       "postgres",
@@ -8758,6 +8937,30 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "420bcc4527af5c941d20ae96c5a1cb64"
+    ],
+    [
+      "canto_api",
+      "v1_configuration_quote",
+      "p_request jsonb",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "db6ff8d26d30dd6c83b4a4c02f25b477"
+    ],
+    [
+      "canto_api",
+      "v1_configuration_size_resolve",
+      "p_base_id bigint, p_sc_size_id bigint, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "d15d0d20b9d43e9d359eab17c9fbd775"
     ],
     [
       "canto_api",
@@ -9046,6 +9249,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "5e39df6a39f7f3424319179988f5b3c7"
+    ],
+    [
+      "canto_api",
+      "v1_document_attachment_attach",
+      "p_upload_id uuid, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "4f7dcf74fc5c607cd9e4a1397a52bc6c"
     ],
     [
       "canto_api",
@@ -9397,6 +9612,18 @@
     ],
     [
       "canto_api",
+      "v1_milestones_create",
+      "p_subject_id bigint, p_targets jsonb, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "342762fd3b79b53a465ff3dac0950ac8"
+    ],
+    [
+      "canto_api",
       "v1_milestones_list",
       "p_subject_id bigint, p_cursor text, p_limit integer",
       "postgres",
@@ -9409,6 +9636,18 @@
     ],
     [
       "canto_api",
+      "v1_milestones_list",
+      "p_subject_id bigint, p_cursor text, p_limit integer, p_state text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "85bb381dace41e77917e5d0ee7fce157"
+    ],
+    [
+      "canto_api",
       "v1_notifications_list",
       "p_id bigint, p_cursor text, p_limit integer, p_generation bigint",
       "postgres",
@@ -9418,6 +9657,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "ff5a5bccfd22e7f094ef61616f3bd9ef"
+    ],
+    [
+      "canto_api",
+      "v1_operational_items",
+      "p_tailor_id bigint, p_completed boolean, p_item_id bigint, p_order_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "b12579f701dfb188cb449a274f87d874"
     ],
     [
       "canto_api",
@@ -9502,6 +9753,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "05ef6aa2617dd3e893a04b1a382a05d8"
+    ],
+    [
+      "canto_api",
+      "v1_order_get",
+      "p_id bigint, p_item_cursor text, p_item_limit integer, p_section text",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "710873241cae16b0dd50fa65cfb5052f"
     ],
     [
       "canto_api",
@@ -9661,6 +9924,30 @@
     ],
     [
       "canto_api",
+      "v1_product_image_comment",
+      "p_image_id bigint, p_comment text, p_expected_version text, p_idempotency_key uuid",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "28c0b784f79b3f9eacfbda053af76131"
+    ],
+    [
+      "canto_api",
+      "v1_product_images",
+      "p_product_id bigint, p_cursor text, p_limit integer",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "86768d25c5e06758499200a4dd24fd3c"
+    ],
+    [
+      "canto_api",
       "v1_production_progress",
       "p_order_id bigint",
       "postgres",
@@ -9778,6 +10065,18 @@
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
       "00c072d7f557a6e9cf5a16c90e607665"
+    ],
+    [
+      "canto_api",
+      "v1_responsibility_get",
+      "p_id bigint",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_app=X/postgres}",
+      "4a421caff3e5618305cef8e555291d43"
     ],
     [
       "canto_api",
@@ -9962,14 +10261,14 @@
     [
       "canto_api",
       "v1_task_assignees",
-      "p_cursor text, p_limit integer",
+      "p_cursor text, p_limit integer, p_query text, p_role integer",
       "postgres",
       false,
       [
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
-      "12e0a8228dfab3ebdb24f05a345fe80c"
+      "e05953481cdee7a429eb3e99f46d69c8"
     ],
     [
       "canto_api",
@@ -10010,14 +10309,14 @@
     [
       "canto_api",
       "v1_tasks_list",
-      "p_state integer, p_order_id bigint, p_cursor text, p_limit integer",
+      "p_state integer, p_order_id bigint, p_cursor text, p_limit integer, p_query text, p_assignment text",
       "postgres",
       false,
       [
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_app=X/postgres}",
-      "df038b67bc122c42ae89f67935eed4c5"
+      "d32521f500cde94341d9b55e707b2ea3"
     ],
     [
       "canto_api",
@@ -10137,7 +10436,19 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer}",
-      "f91e38bc92f40cf92aee5edc69feadcd"
+      "a6ba6d75a08094850590d6ba778b6f85"
+    ],
+    [
+      "sa_domain",
+      "account_document_attachment_reserve",
+      "p_file jsonb, p_idempotency_key uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer}",
+      "407a775d07a49cd668a1b1eee09000c5"
     ],
     [
       "sa_domain",
@@ -10161,7 +10472,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,sa_app=X/sa_account_writer,authenticated=X/sa_account_writer}",
-      "a9f176dd329b093e0ac9d7332a728a86"
+      "c3f4ba05a862bc50b49afc5561923c7d"
     ],
     [
       "sa_domain",
@@ -10197,7 +10508,223 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard,sa_executor=X/sa_guard}",
-      "2ecbcff5ab18e8d3a0e249c7b1a33090"
+      "60d3de275d1bbe72867652863751ff9e"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_auth_allowed",
+      "p_auth uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_executor=X/sa_account_writer}",
+      "66fd18e495efbd42d5ffee6fe775f494"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_auth_receipt",
+      "",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "ee7eacaf174d153911d572e57972a9f6"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_core_flow_finish",
+      "p_id uuid, p_lease_token uuid, p_error text",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "42fe72a0b7f4182407dba30c04a7c942"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_core_flow_prepare",
+      "p_id uuid, p_purpose text, p_email text, p_code_hash text, p_password_fingerprint text, p_provider_available boolean",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "2cf71b631ad0569f35e47aa00ec323ed"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_core_flow_request",
+      "p_id uuid, p_purpose text, p_email text, p_payload jsonb, p_input_fingerprint text, p_code_hash text, p_code_cipher text, p_provider_available boolean, p_invitation_grant uuid",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "61e31908e11fe6c02ac301ac16d39e52"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_core_mail_finish",
+      "p_id uuid, p_lease_token uuid, p_sent boolean, p_error text",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "8c217b28e0ca12c83ca5a9dc20f28a66"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_core_mail_prepare",
+      "p_id uuid, p_lease_token uuid",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "97f3faaf28d00b65d6495ded010accd9"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_fence",
+      "p_id uuid, p_purpose text, p_email text, p_payload jsonb, p_grant uuid",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "0434c8e2b816bfe0eaf8c5a80a11124a"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_invitation_fence",
+      "p_id bigint",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "a595b09aef4d7b11f6ebfe9f0a96efb5"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_job_flow",
+      "p_id uuid",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "e9125208e4bccae66d1999e84cae45b8"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_mail_fence",
+      "p_id uuid",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "6afd7a076a3c27ccccc5d9da0fc4711f"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_pending_cleanup",
+      "",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "73801de5cf807e19ad7837057f1b6239"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_publish_auth",
+      "p_flow uuid, p_auth uuid",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "bad34df18d0443ee9a1f02da232f65da"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_record",
+      "p_id uuid, p_phase text, p_before bigint",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "b6efe61ef960d4c23344981d5253bdc2"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_register",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "e39e365728054f24117c94861a527d44"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_scope",
+      "p_id uuid",
+      "sa_account_writer",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "0c8ad05240f4eb81f3d6ef484a60067d"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_seed",
+      "",
+      "postgres",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres}",
+      "38b405257ea140fac85c12b0c693c7f4"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_snapshot",
+      "p_id uuid",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "a8b1a9e519d6f3baaf5fa4468e60d444"
     ],
     [
       "sa_domain",
@@ -10269,7 +10796,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,service_role=X/sa_media_writer}",
-      "1648a5376c2b8786d909430a502fe226"
+      "74dad5bb805bf89acdd8004aefa748df"
     ],
     [
       "sa_domain",
@@ -10281,7 +10808,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard,sa_app=X/sa_guard,authenticated=X/sa_guard}",
-      "c0182b34d44767c39f617044131bef67"
+      "162293b2f57236229991ecee6cec0804"
     ],
     [
       "sa_domain",
@@ -10293,7 +10820,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer,authenticated=X/sa_media_writer}",
-      "174a7590c1fc0c91ff8ab9e8eb61b8e5"
+      "d22331dececa48f4375b86e747d7c1a1"
     ],
     [
       "sa_domain",
@@ -10317,7 +10844,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,authenticated=X/sa_account_writer,sa_app=X/sa_account_writer,sa_dashboard=X/sa_account_writer,sa_executor=X/sa_account_writer}",
-      "af3a198f11e6f9af67c8ff51c500f5bf"
+      "ac8ac6fac7d59997696ff18ccb55f649"
     ],
     [
       "sa_domain",
@@ -10352,7 +10879,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_account_writer=X/sa_guard}",
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_account_writer=X/sa_guard,sa_media_writer=X/sa_guard}",
       "572aa667d8e97ee448f1a4d4cdfe51ca"
     ],
     [
@@ -10847,7 +11374,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor}",
-      "5305f3a770dd7ae0a0abec59add22de6"
+      "d09b717c21b3f76e083a96f3bb84c81e"
     ],
     [
       "sa_domain",
@@ -10860,6 +11387,18 @@
       ],
       "{sa_executor=X/sa_executor}",
       "b8637945ee27f447f5544823dca5a3e6"
+    ],
+    [
+      "sa_domain",
+      "backorder_purchase_calculation",
+      "p_order_ids bigint[], p_quantities jsonb",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "ed9b6fd9d08b9954f161a75d7bc5a643"
     ],
     [
       "sa_domain",
@@ -11159,7 +11698,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
       "0a88064244efe5ce4c746f5ea4ad4339"
     ],
     [
@@ -11759,6 +12298,18 @@
     ],
     [
       "sa_domain",
+      "document_attachment_target",
+      "p_id bigint, p_pending boolean",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard,sa_executor=X/sa_guard}",
+      "6abd7f97d54f134c14e31d76c951f1c9"
+    ],
+    [
+      "sa_domain",
       "document_capture",
       "p_id uuid",
       "sa_executor",
@@ -11767,7 +12318,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_worker=X/sa_executor}",
-      "2d7e4b324de5fb6b96562d7bcbcb267e"
+      "dc7ae29b781ef547a29c97b27a5bc8ea"
     ],
     [
       "sa_domain",
@@ -11923,7 +12474,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "23c8b141a804c6e17ebe88490cf3ceda"
+      "3dd33f782731a9e71d3ebf0014c18e22"
     ],
     [
       "sa_domain",
@@ -11935,7 +12486,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres}",
-      "edb7f14481c82e406a2269434fc6aced"
+      "9674fbbf714b21e3112f9a60dbb4d273"
     ],
     [
       "sa_domain",
@@ -11947,7 +12498,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker}",
-      "4b2206a5581518eff8855ebbfe2242a3"
+      "1db71cef2a841144ff5e070cd3e713f8"
     ],
     [
       "sa_domain",
@@ -11959,7 +12510,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres}",
-      "7445257f3e2eb2ec352772673599674c"
+      "cdb134855214ba1e51fe3ed773823261"
     ],
     [
       "sa_domain",
@@ -12116,7 +12667,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_media_writer=X/postgres}",
       "c7dcc495a6d3e166cc386c007d6491f0"
     ],
     [
@@ -12127,7 +12678,7 @@
       false,
       null,
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "9dcd597c76247c4d4913cb2f7e32587f"
+      "50d9118140b37360706a7a483d2924fa"
     ],
     [
       "sa_domain",
@@ -12247,7 +12798,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "e62a9990c2666ee18beae9c4f375bcf4"
+      "b5bf75820fed7f49e3feb1e2263dd6da"
     ],
     [
       "sa_domain",
@@ -12271,7 +12822,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "5086c02b7dceb3e252966f59bb6e6b1f"
+      "a5d47975cf561725f44a0742062342d2"
     ],
     [
       "sa_domain",
@@ -12283,7 +12834,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres,sa_media_writer=X/postgres,sa_account_writer=X/postgres,sa_integrator=X/postgres,sa_guard=X/postgres}",
-      "6a377224efdaf218466de2ff213bc4ee"
+      "472bc33a127bffdeca529be601947689"
     ],
     [
       "sa_domain",
@@ -12296,6 +12847,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres,sa_worker=X/postgres}",
       "0730d411872622009dbcfa7dc76c255e"
+    ],
+    [
+      "sa_domain",
+      "jobsheet_page_ids",
+      "p_item_id bigint, p_tailor_id bigint, p_after bigint, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "02fbfc43c73f7aaa462b1ac4db9c21ed"
     ],
     [
       "sa_domain",
@@ -12439,7 +13002,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
-      "d2a76d0a364a32456de9690a60bd5f14"
+      "eea5de20eec7b36e64ecc59d9745f95e"
     ],
     [
       "sa_domain",
@@ -12451,7 +13014,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
-      "42639ccaf58ca0386277a3020104f570"
+      "acc38eac0defc511ceb193e95c274bee"
     ],
     [
       "sa_domain",
@@ -12475,7 +13038,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard,sa_media_writer=X/sa_guard}",
-      "0a8d879708b262146028fbb2137a480c"
+      "bd3d2417fe7443f9ea67d973d7587d0f"
     ],
     [
       "sa_domain",
@@ -12623,6 +13186,18 @@
     ],
     [
       "sa_domain",
+      "operational_item_rows",
+      "p_tailor_id bigint, p_completed boolean, p_item_id bigint, p_order_id bigint, p_after bigint, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "26d8f327bdc2290a07ba7f71efdf0e37"
+    ],
+    [
+      "sa_domain",
       "ops_context",
       "",
       "sa_guard",
@@ -12739,7 +13314,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "ccde5706e331ecdae8fc0138b94cd1f0"
+      "6eaed2da2bafd7549166d3897c562ad3"
     ],
     [
       "sa_domain",
@@ -12836,6 +13411,18 @@
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
       "ab3c4ed03e893290fb0f80ed85476803"
+    ],
+    [
+      "sa_domain",
+      "person_relationship_labels",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "c1e08e69ae92f4382c884a98460a1efb"
     ],
     [
       "sa_domain",
@@ -13231,7 +13818,7 @@
       [
         "search_path=pg_catalog"
       ],
-      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres}",
+      "{postgres=X/postgres,sa_guard=X/postgres,sa_executor=X/postgres,sa_account_writer=X/postgres}",
       "691e14581a77f979c266ecece6ab76b7"
     ],
     [
@@ -13245,6 +13832,18 @@
       ],
       "{postgres=X/postgres,sa_account_writer=X/postgres}",
       "2b44460a598b77ab4b5906645d123434"
+    ],
+    [
+      "sa_domain",
+      "revoke_closed_self_sessions",
+      "p_command_key uuid",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "d38bc00043624e2709947c2ae8fe8568"
     ],
     [
       "sa_domain",
@@ -13392,6 +13991,18 @@
     ],
     [
       "sa_domain",
+      "self_closure_password_proof",
+      "",
+      "postgres",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{postgres=X/postgres,sa_account_writer=X/postgres}",
+      "bf03d6ba3b6aad0fc61000bb8d6adf77"
+    ],
+    [
+      "sa_domain",
       "selling_price_visible",
       "p_role integer",
       "sa_guard",
@@ -13508,7 +14119,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "aba87ad5fc5021a90ee076349e20813a"
+      "83fbf74e6edb0799bb6365437089a9d2"
     ],
     [
       "sa_domain",
@@ -13520,7 +14131,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "24491aef7c6121144dfe80bc0172c835"
+      "daff44d366a0559b5836a90b367f8d6f"
     ],
     [
       "sa_domain",
@@ -13532,7 +14143,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "6342ce7c4faa3251fe3cc1c42b925cac"
+      "d205dc4a2e79dc9c66159db58684a681"
     ],
     [
       "sa_domain",
@@ -13544,7 +14155,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "74884f4408d3e1f594c0060e1028c808"
+      "11fcf899da986875f3745d9682f0a6fa"
     ],
     [
       "sa_domain",
@@ -13556,7 +14167,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
-      "91dba467a549de88875b31536a7093b0"
+      "408aa959494b1194edce733ac7d7c610"
     ],
     [
       "sa_domain",
@@ -13569,6 +14180,18 @@
       ],
       "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
       "68e32502e744b9065d7c845d41148fc1"
+    ],
+    [
+      "sa_domain",
+      "squad_account_rehearsal_claim",
+      "p_id uuid",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,service_role=X/sa_account_writer}",
+      "c96434e621a19d60ffc8e19e3b77a74b"
     ],
     [
       "sa_domain",
@@ -13820,7 +14443,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "384a9ac0eb8dfe42caf076801b5b21ff"
+      "bf875bd1ed28005ef0d657a57a01e022"
     ],
     [
       "sa_domain",
@@ -13916,7 +14539,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_worker=X/sa_worker,service_role=X/sa_worker}",
-      "7a233f536737f9adc5b065371a25d5e1"
+      "50270c08c2cccaa235566a26dd09813b"
     ],
     [
       "sa_domain",
@@ -14065,6 +14688,18 @@
     ],
     [
       "sa_domain",
+      "task_members",
+      "p_ids bigint[], p_query text",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "a13acd697775e5141260eb75d3f930c2"
+    ],
+    [
+      "sa_domain",
       "task_page",
       "p_id bigint, p_state integer, p_order_id bigint, p_cursor text, p_limit integer",
       "postgres",
@@ -14073,7 +14708,19 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "27e01cfaacfc7a72afeea3e8ed1466d3"
+      "d3d0e4a4cc8e5245903b2db4d1e90330"
+    ],
+    [
+      "sa_domain",
+      "task_page_filtered",
+      "p_id bigint, p_state integer, p_order_id bigint, p_cursor text, p_limit integer, p_query text, p_assignment text",
+      "sa_executor",
+      false,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor}",
+      "ec6d9d31e96a806756f1b6608e3c9515"
     ],
     [
       "sa_domain",
@@ -14197,6 +14844,18 @@
     ],
     [
       "sa_domain",
+      "v1_account_close",
+      "p_expected_version text, p_idempotency_key uuid, p_confirmation text",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer,sa_app=X/sa_account_writer}",
+      "c917fe768247f6516423ecf3065067df"
+    ],
+    [
+      "sa_domain",
       "v1_address_archive",
       "p_id bigint, p_user_id bigint, p_expected_version text, p_idempotency_key uuid",
       "sa_executor",
@@ -14289,7 +14948,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "d01031029b8a4bf1ea553e1568809f5f"
+      "a9055498942d5e7ca6865df4547929c6"
     ],
     [
       "sa_domain",
@@ -14302,6 +14961,18 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "7d5eab0b086b3230da860a182585359e"
+    ],
+    [
+      "sa_domain",
+      "v1_backorder_preview",
+      "p_order_ids bigint[], p_address_id bigint, p_quantities jsonb",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "0e87ca56b1e18267557f339548898af7"
     ],
     [
       "sa_domain",
@@ -14350,7 +15021,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "96dd8450c95c81bb5d4b32736f8e0f82"
+      "41296967d2223f77ce102d3c0c38f242"
     ],
     [
       "sa_domain",
@@ -14392,6 +15063,31 @@
     ],
     [
       "sa_domain",
+      "v1_configuration_quote",
+      "p_request jsonb",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "51585f13e8e65b9cfe59a76a62cd62b3"
+    ],
+    [
+      "sa_domain",
+      "v1_configuration_size_resolve",
+      "p_base_id bigint, p_sc_size_id bigint, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "f45ee418b2b45cff8500b41e90d1bd7e"
+    ],
+    [
+      "sa_domain",
       "v1_configurator_options",
       "p_base_id bigint, p_kind text, p_parent_id bigint, p_part_id bigint, p_cursor text, p_limit integer",
       "sa_executor",
@@ -14400,7 +15096,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "7e8041eb206c0827392a8cb8fea0dbb6"
+      "aa99bc8e896c130440e5a19cab9b9ac3"
     ],
     [
       "sa_domain",
@@ -14582,7 +15278,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "6ea4e91292841c65ad22de2065507c28"
+      "d9ae9398129d0e998265388222836c33"
     ],
     [
       "sa_domain",
@@ -14683,6 +15379,18 @@
     ],
     [
       "sa_domain",
+      "v1_document_attachment_attach",
+      "p_upload_id uuid, p_idempotency_key uuid",
+      "sa_media_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_media_writer=X/sa_media_writer,sa_app=X/sa_media_writer}",
+      "d190ea04f23162b20728b42632110ccc"
+    ],
+    [
+      "sa_domain",
       "v1_document_get",
       "p_id text",
       "sa_executor",
@@ -14703,7 +15411,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "7458015fc7c17b0bb73aaa83d558e452"
+      "609ef88dbb58105016ca7d48092efb02"
     ],
     [
       "sa_domain",
@@ -14937,7 +15645,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "4bcd60e8b415ead4a80a89607cb5a548"
+      "8c1c2600938400e24ebbf667a4edb481"
     ],
     [
       "sa_domain",
@@ -14974,7 +15682,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_guard=X/sa_executor,sa_app=X/sa_executor}",
-      "b9dcf27c0bdde26f0c35a9b93b536b04"
+      "9333a36a68bde8ecd40531527f856539"
     ],
     [
       "sa_domain",
@@ -15041,6 +15749,18 @@
     ],
     [
       "sa_domain",
+      "v1_milestones_create",
+      "p_subject_id bigint, p_targets jsonb, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "0d388e649ac07e538320a59bcd4309fd"
+    ],
+    [
+      "sa_domain",
       "v1_milestones_list",
       "p_subject_id bigint, p_cursor text, p_limit integer",
       "sa_executor",
@@ -15054,6 +15774,18 @@
     ],
     [
       "sa_domain",
+      "v1_milestones_list",
+      "p_subject_id bigint, p_cursor text, p_limit integer, p_state text",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "f6bfdd685b744b491ce5d95409794786"
+    ],
+    [
+      "sa_domain",
       "v1_notifications_list",
       "p_id bigint, p_cursor text, p_limit integer, p_generation bigint",
       "sa_executor",
@@ -15063,6 +15795,19 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "ae3266a4df0b9235fc4bfa6f33bb547b"
+    ],
+    [
+      "sa_domain",
+      "v1_operational_items",
+      "p_tailor_id bigint, p_completed boolean, p_item_id bigint, p_order_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "f52dc5fd345ba8223056e90bb945c63f"
     ],
     [
       "sa_domain",
@@ -15157,6 +15902,19 @@
     ],
     [
       "sa_domain",
+      "v1_order_get",
+      "p_id bigint, p_item_cursor text, p_item_limit integer, p_section text",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "59d201786cbf627647994d0cd8666ccf"
+    ],
+    [
+      "sa_domain",
       "v1_order_item_get",
       "p_id bigint, p_section text, p_cursor text, p_limit integer",
       "sa_executor",
@@ -15166,7 +15924,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "14c845161fa76ec17fc8e29db6b51b59"
+      "9f14800515f4578ff9835582eaf89f7a"
     ],
     [
       "sa_domain",
@@ -15205,7 +15963,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "8d340e94fe9f44a3dec79056b1a30065"
+      "b76952181b886c9fe4f4c69be1dd3e56"
     ],
     [
       "sa_domain",
@@ -15214,11 +15972,10 @@
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog",
-        "TimeZone=UTC"
+        "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "d1ad1c56379ed19c3798d96516964067"
+      "37c9ea12f0a82e90faf55559eb150ce4"
     ],
     [
       "sa_domain",
@@ -15266,7 +16023,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "2c32766c59f574147c81b89281d0dcbb"
+      "47df08490b2415436b36049afae03ddb"
     ],
     [
       "sa_domain",
@@ -15317,6 +16074,30 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "d31f5575e3dfe9aef35869ba649c5431"
+    ],
+    [
+      "sa_domain",
+      "v1_product_image_comment",
+      "p_image_id bigint, p_comment text, p_expected_version text, p_idempotency_key uuid",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "d5bef610e5ac30428612b85741c75b5b"
+    ],
+    [
+      "sa_domain",
+      "v1_product_images",
+      "p_product_id bigint, p_cursor text, p_limit integer",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "3911ab20757ac34aa233ec60c6d70807"
     ],
     [
       "sa_domain",
@@ -15442,6 +16223,18 @@
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
       "12780995a92841c081d6a9ebc997b81d"
+    ],
+    [
+      "sa_domain",
+      "v1_responsibility_get",
+      "p_id bigint",
+      "sa_executor",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
+      "30e3561eb7657a5fe3358f08682fd461"
     ],
     [
       "sa_domain",
@@ -15629,15 +16422,14 @@
     [
       "sa_domain",
       "v1_task_assignees",
-      "p_cursor text, p_limit integer",
+      "p_cursor text, p_limit integer, p_query text, p_role integer",
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog",
-        "TimeZone=UTC"
+        "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "fe5ee7c3b908fbb6ab5a79243ee39067"
+      "210ee16dbd218fdecd19c05ced1ca396"
     ],
     [
       "sa_domain",
@@ -15681,15 +16473,14 @@
     [
       "sa_domain",
       "v1_tasks_list",
-      "p_state integer, p_order_id bigint, p_cursor text, p_limit integer",
+      "p_state integer, p_order_id bigint, p_cursor text, p_limit integer, p_query text, p_assignment text",
       "sa_executor",
       true,
       [
-        "search_path=pg_catalog",
-        "TimeZone=UTC"
+        "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "ee0a78a36c1ce10bd43858fe6661b271"
+      "42c8455a1e67d699f6cb9580eac0f69a"
     ],
     [
       "sa_domain",
@@ -15701,7 +16492,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "e8d7c2d75596372d6356d71ba2c5f26d"
+      "4d81fa11bd65ec1cd70ddff8fe6364ba"
     ],
     [
       "sa_domain",
@@ -15725,7 +16516,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "c9a5bc71591f24513f2a33ac3969566c"
+      "173ee341ed22e429bf87eebb6d2e92a3"
     ],
     [
       "sa_domain",
@@ -15775,7 +16566,7 @@
         "TimeZone=UTC"
       ],
       "{sa_executor=X/sa_executor,sa_app=X/sa_executor}",
-      "b4cf64e2ced9e553a093b636ec84817f"
+      "99405ee22437d71a5a55d9d6935f0288"
     ],
     [
       "sa_domain",
@@ -15824,7 +16615,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "aa00e01a86838159357206c0f9837dd0"
+      "1dee80c828d90f45be72f62b974ebd73"
     ],
     [
       "sa_domain",
@@ -15860,7 +16651,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_account_writer=X/postgres}",
-      "d60c5c13fd2fdb63645f75a9b4ceb828"
+      "386d8ddb224a540e0b3153f43cc274a2"
     ],
     [
       "sa_domain",
@@ -16620,7 +17411,31 @@
         "TimeZone=UTC"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "6b2086e639914434b1a1f2fca7111e2e"
+      "47a1de6645847c62e8a76076c33527c0"
+    ],
+    [
+      "sa_domain",
+      "work_item_product",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "0948dbe7795f543b1bda25b959276929"
+    ],
+    [
+      "sa_domain",
+      "work_item_row",
+      "p_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "f0e8a47103fd3f5b6d38551a8452438c"
     ],
     [
       "sa_domain",
@@ -16704,7 +17519,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_guard=X/sa_guard}",
-      "c6ddb2b099549e74be8ce2f6da8fd008"
+      "11f86a67aecf99924547035391a319c0"
     ],
     [
       "sa_domain",
@@ -16766,6 +17581,19 @@
       ],
       "{sa_guard=X/sa_guard,sa_executor=X/sa_guard,sa_worker=X/sa_guard,sa_media_writer=X/sa_guard,sa_account_writer=X/sa_guard,sa_dashboard=X/sa_guard}",
       "8946ae35c7caf955a78b35bad2bedf5b"
+    ],
+    [
+      "sa_domain",
+      "worker_order_context",
+      "p_id bigint, p_after bigint, p_limit integer",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog",
+        "TimeZone=UTC"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "5d74cbce08def4c7dff052d4766f75a0"
     ],
     [
       "sa_domain",
@@ -16892,6 +17720,54 @@
       false,
       false,
       "{postgres=rwU/postgres,sa_account_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_auth_pending",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=ard/postgres}"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_auth_pending_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_account_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_receipts",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_receipts_id_seq",
+      "S",
+      false,
+      false,
+      null
+    ],
+    [
+      "sa_domain",
+      "account_rehearsal_revocations",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "account_rehearsals",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_account_writer=r/postgres}"
     ],
     [
       "sa_domain",
@@ -17183,6 +18059,22 @@
     ],
     [
       "sa_domain",
+      "document_attachments",
+      "r",
+      true,
+      true,
+      "{postgres=arwdDxtm/postgres,sa_media_writer=arw/postgres,sa_guard=r/postgres,sa_executor=r/postgres,sa_worker=r/postgres}"
+    ],
+    [
+      "sa_domain",
+      "document_attachments_id_seq",
+      "S",
+      false,
+      false,
+      "{postgres=rwU/postgres,sa_media_writer=U/postgres}"
+    ],
+    [
+      "sa_domain",
       "document_cleanup",
       "r",
       true,
@@ -17211,7 +18103,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_worker=arw/postgres,sa_guard=r/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_executor=arw/postgres,sa_worker=arw/postgres,sa_guard=r/postgres,sa_media_writer=r/postgres}"
     ],
     [
       "sa_domain",
@@ -17267,7 +18159,7 @@
       "r",
       true,
       true,
-      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres,sa_executor=r/postgres,sa_account_writer=rw/postgres}"
+      "{postgres=arwdDxtm/postgres,sa_worker=arw/postgres,sa_executor=r/postgres,sa_account_writer=arw/postgres}"
     ],
     [
       "sa_domain",
@@ -17918,7 +18810,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_account_writer=X/sa_account_writer}",
-      "f91e38bc92f40cf92aee5edc69feadcd"
+      "a6ba6d75a08094850590d6ba778b6f85"
     ],
     [
       "squad_account_marker_capture",
@@ -17949,6 +18841,20 @@
       "d8dc8f338711c4b77c855795e6fd24ae"
     ],
     [
+      "squad_account_rehearsal_auth_receipt",
+      "O",
+      "CREATE TRIGGER squad_account_rehearsal_auth_receipt AFTER INSERT OR UPDATE OF encrypted_password, email, banned_until, raw_app_meta_data, role ON auth.users FOR EACH ROW EXECUTE FUNCTION sa_domain.account_rehearsal_auth_receipt()",
+      "sa_domain",
+      "account_rehearsal_auth_receipt",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "ee7eacaf174d153911d572e57972a9f6"
+    ],
+    [
       "squad_auth_write_fence",
       "O",
       "CREATE TRIGGER squad_auth_write_fence BEFORE UPDATE OF encrypted_password, email, banned_until ON auth.users FOR EACH ROW EXECUTE FUNCTION sa_domain.auth_write_fence()",
@@ -17960,7 +18866,7 @@
         "search_path=pg_catalog"
       ],
       "{sa_executor=X/sa_executor}",
-      "5305f3a770dd7ae0a0abec59add22de6"
+      "d09b717c21b3f76e083a96f3bb84c81e"
     ],
     [
       "squad_capture_airtable_report",
@@ -18059,6 +18965,20 @@
       ],
       "{sa_worker=X/sa_worker}",
       "d8344b3fd9004996595de21595464744"
+    ],
+    [
+      "zz_squad_account_rehearsal_pending_cleanup",
+      "O",
+      "CREATE CONSTRAINT TRIGGER zz_squad_account_rehearsal_pending_cleanup AFTER INSERT OR UPDATE OF encrypted_password, email, banned_until, raw_app_meta_data, role ON auth.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION sa_domain.account_rehearsal_pending_cleanup()",
+      "sa_domain",
+      "account_rehearsal_pending_cleanup",
+      "sa_account_writer",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_account_writer=X/sa_account_writer}",
+      "73801de5cf807e19ad7837057f1b6239"
     ]
   ]
 ]
