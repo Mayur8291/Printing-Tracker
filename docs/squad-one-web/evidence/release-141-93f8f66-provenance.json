@@ -1,0 +1,36 @@
+{
+  "format": "squad-vercel-github-provenance/v1",
+  "measured_at": "2026-11-09T06:21:44.841770+00:00",
+  "receipt": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "https://scottdashboard.vercel.app",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+    "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+  },
+  "github_deployment_id": 7648361852,
+  "github_environment": "Production",
+  "github_deployment_state": "success",
+  "immutable_url": "https://scottdashboard-kr098hn36-mayur8291s-projects.vercel.app",
+  "status_target": "https://vercel.com/mayur8291s-projects/scott_dashboard/Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh",
+  "deployment_created_at": "2026-11-09T06:20:29Z",
+  "deployment_status_created_at": "2026-11-09T06:20:30Z",
+  "commit_status_created_at": "2026-11-09T06:20:29Z",
+  "alias_matches_immutable_entry": null,
+  "immutable_content_verified": false,
+  "immutable_observation": {
+    "verified": false,
+    "status": 302,
+    "redirect_origin": "https://vercel.com",
+    "reason": "Protected immutable deployment URL; public live bytes bound through exact GitHub Production deployment and contemporaneous Vercel commit status. No API-level alias attestation; live-to-commit mapping is GitHub-integration correlation rather than cryptographic artifact binding."
+  },
+  "deep_links": [
+    "/squad/orders",
+    "/squad/catalogue",
+    "/account/recovery"
+  ],
+  "deployment_id_method": "Vercel official wait-for-deployment-action: GitHub Vercel commit status target final segment with dpl_ prefix",
+  "method_reference": "https://github.com/vercel/wait-for-deployment-action/blob/main/README.md",
+  "scope": "GitHub integration provenance and exact served entry bytes/deep-link HTML only; authenticated persona tests and runtime environment check separate."
+}

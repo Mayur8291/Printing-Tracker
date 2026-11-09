@@ -1,0 +1,13 @@
+{
+  "format": "squad-preview-build-observation/v1",
+  "commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+  "github_deployment_id": 7648324848,
+  "deployment_id": "dpl_5qKJymy667X3Ja2FmF6fFmSmHBXm",
+  "url": "https://scottdashboard-8vz6dtjhb-mayur8291s-projects.vercel.app",
+  "build_state": "success",
+  "measured_at": "2026-11-09T06:19:05.020070+00:00",
+  "anonymous_status": 302,
+  "redirect_origin": "vercel.com",
+  "anonymous_app_verified": false,
+  "reason": "Vercel sign-in protected Preview; no protection changed or bypassed."
+}

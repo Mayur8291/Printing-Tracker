@@ -1,0 +1,393 @@
+{
+  "format": "squad-deployed-persona-consolidated/v1",
+  "passed": true,
+  "release": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "https://scottdashboard.vercel.app",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+    "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+  },
+  "environment": "staging",
+  "selection_method": "Disjoint complete roles from two runs of the same exact frontend and positive read-only policy; not one all-persona run.",
+  "personas": 11,
+  "routes": 102,
+  "keyboard_checks": 34,
+  "actors": [
+    {
+      "role": 0,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/production",
+        "/squad/job-work",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/targets",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/administration",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit",
+        "dialog_tab_trap_escape_focus_return"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 18,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 1,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/targets",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 14,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 2,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/production",
+        "/squad/job-work",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 15,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 3,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 9,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 4,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/production",
+        "/squad/tasks",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 11,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 7,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/people",
+        "/squad/production",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 9,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 8,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/people",
+        "/squad/production",
+        "/squad/reports",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 8,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 9,
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "routes": [
+        "/squad/home",
+        "/squad/production",
+        "/squad/reports",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 7,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 10,
+      "run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634",
+      "routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/stock",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 11,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 11,
+      "run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634",
+      "routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/job-work",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 13,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    },
+    {
+      "role": 12,
+      "run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634",
+      "routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "route_issues": 0,
+      "fatal_errors": 0,
+      "native_errors": 0,
+      "retained_caught_lock_diagnostics": 10,
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    }
+  ],
+  "original_run": {
+    "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+    "overall_result": "failed_retained",
+    "selected_roles": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      7,
+      8,
+      9
+    ],
+    "selected_routes": 74,
+    "selected_keyboard_checks": 25,
+    "excluded_failed_roles": [
+      10,
+      11,
+      12
+    ],
+    "failures": [
+      {
+        "role": 10,
+        "engine": "firefox",
+        "error": "TimeoutError"
+      },
+      {
+        "role": 11,
+        "engine": "firefox",
+        "error": "TimeoutError"
+      },
+      {
+        "role": 12,
+        "engine": "firefox",
+        "error": "TimeoutError"
+      }
+    ]
+  },
+  "followup_run": {
+    "run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634",
+    "selected_roles": [
+      10,
+      11,
+      12
+    ],
+    "selected_routes": 28,
+    "selected_keyboard_checks": 9,
+    "original_subset_all_personas_passed": false
+  },
+  "cleanup": {
+    "original": {
+      "run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "owned_commands": 0,
+      "owned_auth_revisions": 0,
+      "removed_source_rows": 53,
+      "removed_documents": 0,
+      "edit_revision_before": 1612,
+      "edit_revision_after": 1612,
+      "synced_revision_after": 1612,
+      "audit_and_commands_retained": true,
+      "source_content_restored": true,
+      "staff_auth_preserved_during_cleanup": true
+    },
+    "followup": {
+      "run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634",
+      "owned_commands": 0,
+      "owned_auth_revisions": 0,
+      "removed_source_rows": 53,
+      "removed_documents": 0,
+      "edit_revision_before": 1612,
+      "edit_revision_after": 1612,
+      "synced_revision_after": 1612,
+      "audit_and_commands_retained": true,
+      "source_content_restored": true,
+      "staff_auth_preserved_during_cleanup": true
+    },
+    "both_verified": true,
+    "original_cron_checkpoint_basis": "The exact reviewed --recover protocol emits recovered:true only after cleanup, Cron restoration and checkpoint unlink; acceptance_not_inferred remains true in that original recovery receipt."
+  },
+  "application_mutations": 0,
+  "provider_requests": 0,
+  "emails_sent": 0,
+  "scope": "Live frontend with controlled staging identities: actual login, authorized navigation/read,360px keyboard/profile controls and Admin unsaved city dialog. No workflow mutation replay, real production-user UAT, native production cutover or full role/workflow permutation claim.",
+  "gate_mapping": {
+    "EXIT-08": "Final deployed persona read smoke portion satisfied; existing Tracker/backend/provenance/handoff receipts remain separate required bindings.",
+    "EXIT-07": "Current live Firefox core/read scope verified; existing WebKit/native/local/security/performance proofs remain separately scoped."
+  },
+  "readonly_policy_sha256": "b3bf66df8ba00bbfc639795f1d3b08740743b3bd423931dc641fe1f1865282e5",
+  "input_sha256": {
+    "original_report": "b33e709a895f0762161bf89b8cf97419ca0a4ccfa8d64062bd2bdbff3d7860f0",
+    "original_recovery": "905adb2818ad05d52eb932eb841e122ef0e3f862dd7813db7165fd012b926f17",
+    "followup_report": "3de6e9fca1fdd7d7b221e5ca92b536e0e223e42732a921d93f2ea89bcef7b486",
+    "followup_receipt": "3545649404d02a81e3a418e03cadef16c80dfb0e5efe5b84494f1b34e5cf04fd",
+    "release": "c52f405f58290a8d7a7a584094d31f2d056c80831a4b30e15acba424578097db"
+  }
+}

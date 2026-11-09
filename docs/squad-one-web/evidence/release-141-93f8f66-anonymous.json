@@ -1,0 +1,139 @@
+{
+  "format": "squad-anonymous-deployed-smoke/v1",
+  "release": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "https://scottdashboard.vercel.app",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+    "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+  },
+  "receipt_sha256": "c52f405f58290a8d7a7a584094d31f2d056c80831a4b30e15acba424578097db",
+  "expected_default": "staging",
+  "cases": [
+    {
+      "override": null,
+      "route": "/",
+      "blocked_requests": [],
+      "console_errors": [],
+      "console_warnings": [
+        {
+          "sha256": "7c247915a6102bc050349adcfad2bb0e2ba2a7f711b03f33080b19d0c24fa03b"
+        }
+      ],
+      "page_errors": [],
+      "asset_failures": [],
+      "html_sha256": "5d3be6a6468e756e16a5a4bb489b54390e316d894f902de83b28498133e63a56",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "rendered": "anonymous_login",
+      "environment_observed": [
+        "staging"
+      ],
+      "passed": true
+    },
+    {
+      "override": null,
+      "route": "/squad/orders",
+      "blocked_requests": [],
+      "console_errors": [],
+      "console_warnings": [
+        {
+          "sha256": "7c247915a6102bc050349adcfad2bb0e2ba2a7f711b03f33080b19d0c24fa03b"
+        }
+      ],
+      "page_errors": [],
+      "asset_failures": [],
+      "html_sha256": "5d3be6a6468e756e16a5a4bb489b54390e316d894f902de83b28498133e63a56",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "rendered": "anonymous_login",
+      "environment_observed": [
+        "staging"
+      ],
+      "passed": true
+    },
+    {
+      "override": null,
+      "route": "/account/recovery",
+      "blocked_requests": [],
+      "console_errors": [],
+      "console_warnings": [
+        {
+          "sha256": "7c247915a6102bc050349adcfad2bb0e2ba2a7f711b03f33080b19d0c24fa03b"
+        }
+      ],
+      "page_errors": [],
+      "asset_failures": [],
+      "html_sha256": "5d3be6a6468e756e16a5a4bb489b54390e316d894f902de83b28498133e63a56",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "rendered": "recovery_request_form_without_submission",
+      "environment_observed": [
+        "staging"
+      ],
+      "passed": true
+    },
+    {
+      "override": "staging",
+      "route": "/",
+      "blocked_requests": [],
+      "console_errors": [],
+      "console_warnings": [
+        {
+          "sha256": "7c247915a6102bc050349adcfad2bb0e2ba2a7f711b03f33080b19d0c24fa03b"
+        }
+      ],
+      "page_errors": [],
+      "asset_failures": [],
+      "html_sha256": "5d3be6a6468e756e16a5a4bb489b54390e316d894f902de83b28498133e63a56",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "rendered": "anonymous_login",
+      "environment_observed": [
+        "staging"
+      ],
+      "passed": true
+    },
+    {
+      "override": "staging",
+      "route": "/squad/orders",
+      "blocked_requests": [],
+      "console_errors": [],
+      "console_warnings": [
+        {
+          "sha256": "7c247915a6102bc050349adcfad2bb0e2ba2a7f711b03f33080b19d0c24fa03b"
+        }
+      ],
+      "page_errors": [],
+      "asset_failures": [],
+      "html_sha256": "5d3be6a6468e756e16a5a4bb489b54390e316d894f902de83b28498133e63a56",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "rendered": "anonymous_login",
+      "environment_observed": [
+        "staging"
+      ],
+      "passed": true
+    },
+    {
+      "override": "staging",
+      "route": "/account/recovery",
+      "blocked_requests": [],
+      "console_errors": [],
+      "console_warnings": [
+        {
+          "sha256": "7c247915a6102bc050349adcfad2bb0e2ba2a7f711b03f33080b19d0c24fa03b"
+        }
+      ],
+      "page_errors": [],
+      "asset_failures": [],
+      "html_sha256": "5d3be6a6468e756e16a5a4bb489b54390e316d894f902de83b28498133e63a56",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "rendered": "recovery_request_form_without_submission",
+      "environment_observed": [
+        "staging"
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "scope": "Anonymous rendered UI only. All non-static transport is intercepted and denied; no credentials, form submissions, API or hosted mutation. Environment is observed from actual Auth-client storage reads, not inferred from build text. This does not prove authenticated API behavior or all lazy-chunk provenance.",
+  "browser_closed": true,
+  "completed_at": "2026-11-09T06:22:16.620Z"
+}

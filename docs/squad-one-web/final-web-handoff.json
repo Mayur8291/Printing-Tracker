@@ -1,0 +1,776 @@
+{
+  "format": "squad-web-release-handoff/v1",
+  "state": "fixed_internal_web_release_criteria_satisfied",
+  "accepted_percent": 100,
+  "release": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "https://scottdashboard.vercel.app",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+    "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+  },
+  "deployment_lane": "Vercel Production",
+  "actual_default_supabase_environment": "staging",
+  "ownership": "Existing mirror ownership retained. Normal Squad business writes remain mirror-gated; the isolated rehearsals did not activate general production native writes.",
+  "production_backend": {
+    "migrations": 141,
+    "application_artifacts_equal": true,
+    "strict_platform_equal": false,
+    "only_reported_platform_difference": "pg_net staging0.20.3 versus production0.20.0",
+    "refresh_reference": "codex/backend-parity-20261109-141",
+    "refresh_commit": "14e178d108220418e7a6bc1da14971f9bfa0cba3",
+    "fresh_data_refresh_executed": false,
+    "evidence": [
+      {
+        "path": "evidence/application-parity-141.json",
+        "sha256": "4b54da010954c4b95f6b24370e3d30cab3defaebe1e23d80a616131ff5a23f19"
+      },
+      {
+        "path": "evidence/production-release-141.json",
+        "sha256": "2e18aa69466d07a2e88b0be234f27d075766ceb0822a62475f69f04fca17f8dd"
+      },
+      {
+        "path": "evidence/production-edge-release-141.json",
+        "sha256": "bb06bfdc3612d96e6e531dab3dceb08c4dc8ad4b3a4808ab54dc4355ed371f3b"
+      },
+      {
+        "path": "evidence/frozen-refresh-reference-141.json",
+        "sha256": "a361faf4ae40d9cb47704242bcfdce1820d50e5d63e82006d2157222aaa95f40"
+      }
+    ]
+  },
+  "workflow_coverage": {
+    "rows": 115,
+    "hosted_browser_partial_rows": 100,
+    "all_persona_permutations_accepted": false,
+    "ledger": "release-execution-ledger.json",
+    "ledger_csv": "release-execution-ledger.csv",
+    "scope": "The fixed release criteria aggregate local, scoped hosted command, read/navigation and source review evidence. A deployed read check is not a replay of every workflow mutation.",
+    "finite_internal_release_rows_satisfied": 113,
+    "released_artifact_bound_rows": 115,
+    "deployed_shared_screen_read_rows": 99,
+    "whole_deployed_workflow_replays_claimed": 0
+  },
+  "actors": [
+    {
+      "actor": "Admin",
+      "role_id": 0,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Customer/staff/grants, responsibilities/targets, moderation, report controls, reasoned exception completion, stock repair and operator read states passed scoped staging journeys.",
+      "evidence": [
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        },
+        {
+          "path": "evidence/factory-collaboration-operations-read-140.json",
+          "sha256": "49c79e927b73f6d57e2941d24b652df0f050847c390b9829c7617b23b595f023"
+        },
+        {
+          "path": "evidence/commercial-capabilities-139.json",
+          "sha256": "30fce2d77b294faa619b8fa92c26974ceb32b175276b277674022ea317d3e7fa"
+        },
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/stock-reconciliation-141.json",
+          "sha256": "e3a8a3f6bf52ef027a20abddd4c37e31d974f9ab6cf616cc3443f4b2245dd1b7"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/production",
+        "/squad/job-work",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/targets",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/administration",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit",
+        "dialog_tab_trap_escape_focus_return"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Sales Coordinator",
+      "role_id": 1,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Customer routing; custom/RMP/mixed configuration, quotes, price override, deposit, amendment, cancellation and feedback; preset rename/reopen and ownership denials.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/commercial-capabilities-139.json",
+          "sha256": "30fce2d77b294faa619b8fa92c26974ceb32b175276b277674022ea317d3e7fa"
+        },
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/targets",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Production Coordinator",
+      "role_id": 2,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Factory and staff management; factory/worker assignment, criteria/cost, progress and assigned-factory feedback; payment information withheld.",
+      "evidence": [
+        {
+          "path": "evidence/factory-collaboration-operations-read-140.json",
+          "sha256": "49c79e927b73f6d57e2941d24b652df0f050847c390b9829c7617b23b595f023"
+        },
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/production",
+        "/squad/job-work",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Customer",
+      "role_id": 3,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Existing session/own scope; registration, confirmation, recovery/invitation and closure branches; custom/RMP ordering, coordinator request, catalogue/reference/branding/profile media and exact downloads.",
+      "evidence": [
+        {
+          "path": "evidence/guest-139-partial.json",
+          "sha256": "a7ee17dcc1201d5eaedfd778044c9674f575fa4c6d5392945f5b810833c40dd5"
+        },
+        {
+          "path": "evidence/guest-recovery-invite-139.json",
+          "sha256": "9dcac72c98826a6991ff8eabea1e60080265bbf8816a6bed60a171f88ac18c8a"
+        },
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        },
+        {
+          "path": "evidence/catalogue-media-140.json",
+          "sha256": "cc27d375e9cd06f5766d1538223911c9e2b508f13f98b012f11c4d32c42a281c"
+        },
+        {
+          "path": "evidence/owned-content-media-141.json",
+          "sha256": "e6df2f3aa145273c2bce0065b38c28a682f000488e5d6165537ab221ad755487"
+        },
+        {
+          "path": "evidence/collaboration-administration-closure-121.json",
+          "sha256": "fbb63df1975075619ef473eaee65bfc0046a373b8ea880cf10fec516c67d1800"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Factory Manager",
+      "role_id": 4,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Cutter and tailor/subtailor allocation, criteria, inspection/pickup rollups, workforce create/edit/archive with retained history, work/earnings/leaderboard and weekly PDF.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        },
+        {
+          "path": "evidence/document-output-141.json",
+          "sha256": "9db7538fb1f930c046122b6290df7e1c56abab48ec14acf08832326d909e65e0"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/production",
+        "/squad/tasks",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Cutting Master",
+      "role_id": 9,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Assigned sizes/sample, partial cutting, completion/history and scoped operational projection within the connected chain.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/production",
+        "/squad/reports",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Inspector",
+      "role_id": 8,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Current-item queue, coupled completion/pickup, attribution and inspection history retained after workforce archive.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/people",
+        "/squad/production",
+        "/squad/reports",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Dispatch Incharge",
+      "role_id": 7,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Destination/partial dispatch, remaining/completed quantities and exact delivery-challan generation/download.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/document-output-141.json",
+          "sha256": "9db7538fb1f930c046122b6290df7e1c56abab48ec14acf08832326d909e65e0"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/people",
+        "/squad/production",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "d78820f5-28a4-42b5-81ec-9a647970d99b"
+    },
+    {
+      "actor": "Dealer",
+      "role_id": 10,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Own RMP/mixed purchases, demand/receipt, FIFO partial dispatch, procurement re-quote/backorder linkage and residual stock; denied Admin reconciliation authority.",
+      "evidence": [
+        {
+          "path": "evidence/commercial-capabilities-139.json",
+          "sha256": "30fce2d77b294faa619b8fa92c26974ceb32b175276b277674022ea317d3e7fa"
+        },
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/stock-reconciliation-141.json",
+          "sha256": "e3a8a3f6bf52ef027a20abddd4c37e31d974f9ab6cf616cc3443f4b2245dd1b7"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/people",
+        "/squad/stock",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634"
+    },
+    {
+      "actor": "Job Worker",
+      "role_id": 11,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Assigned work, due commitment/reason and six stages; independent browse/configure/PDF/promotions grants, no-grants and live revocation states.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/commercial-capabilities-139.json",
+          "sha256": "30fce2d77b294faa619b8fa92c26974ceb32b175276b277674022ea317d3e7fa"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/orders",
+        "/squad/job-work",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/reports",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634"
+    },
+    {
+      "actor": "Assistant Worker / Team",
+      "role_id": 12,
+      "login_model": "supabase_auth_plus_server_business_role",
+      "accepted_staging_scope": "Personal and order-linked tasks, assigned responsibilities, independent product/PDF/promotion grants and revocation; no invented order-placement rights.",
+      "evidence": [
+        {
+          "path": "evidence/factory-collaboration-operations-read-140.json",
+          "sha256": "49c79e927b73f6d57e2941d24b652df0f050847c390b9829c7617b23b595f023"
+        },
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        },
+        {
+          "path": "evidence/commercial-capabilities-139.json",
+          "sha256": "30fce2d77b294faa619b8fa92c26974ceb32b175276b277674022ea317d3e7fa"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+        }
+      ],
+      "deployed_read_outcome": "passed_actual_login_and_authorized_read_navigation",
+      "all_role_workflow_permutations_claimed": false,
+      "deployed_routes": [
+        "/squad/home",
+        "/squad/catalogue",
+        "/squad/tasks",
+        "/squad/goals",
+        "/squad/documents",
+        "/squad/promotions",
+        "/squad/notifications",
+        "/squad/profile"
+      ],
+      "deployed_core_checks": [
+        "skip_link_keyboard_focus",
+        "mobile_keyboard_menu_navigation",
+        "profile_control_edit_without_submit"
+      ],
+      "deployed_run_id": "fa120b8e-afd0-4c40-aee2-6872f2e81634"
+    },
+    {
+      "actor": "Tailor subject",
+      "role_id": 5,
+      "login_model": "managed_subject_no_standalone_login",
+      "accepted_staging_scope": "Managed allocation/completion/pickup, work/earnings/leaderboard attribution and historical visibility through authorized operator sessions. No standalone login.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        }
+      ],
+      "deployed_read_outcome": "not_applicable_managed_subject",
+      "all_role_workflow_permutations_claimed": false
+    },
+    {
+      "actor": "SubTailor subject",
+      "role_id": 6,
+      "login_model": "managed_subject_no_standalone_login",
+      "accepted_staging_scope": "Parent/team relationship, allocation/completion and retained attribution through managed create/edit/archive and report flows. No standalone login.",
+      "evidence": [
+        {
+          "path": "evidence/connected-commerce-operations-reporting-141.json",
+          "sha256": "fa72a8f51db5f11a05fc29ed760367b5fe32a4c495b5d835c3730c9ac549daed"
+        },
+        {
+          "path": "evidence/workflow-extensions-141.json",
+          "sha256": "385daa8d5b14bbdb45668dc34c8ffe5dbc7ada482d8f407cf948078e74ab6417"
+        }
+      ],
+      "deployed_read_outcome": "not_applicable_managed_subject",
+      "all_role_workflow_permutations_claimed": false
+    },
+    {
+      "actor": "Tracker staff/admin",
+      "role_id": null,
+      "login_model": "separate_tracker_staff_membership",
+      "accepted_staging_scope": "Existing separate staff gateway: live Admin10/Viewer6 read checks passed. Prior one-Color create/edit/archive and mirror transfer controls accepted separately; live smoke did not execute CRUD, refresh or realtime.",
+      "evidence": [
+        {
+          "path": "evidence/release-141-93f8f66-tracker.json",
+          "sha256": "60365c243020f264a578901c668678348147e87195bf5d5f35bf5f4fae543543"
+        },
+        {
+          "path": "evidence/tracker-colors-acceptance.json",
+          "sha256": "26a659c3d2cacf03fb19638593ab7835b9b73256793a83518448af9d260c562c"
+        },
+        {
+          "path": "evidence/transfer-ownership-local-review.json",
+          "sha256": "45431d342b3bb9fdb339450edbde0937a9daef28ed47656841049a14f0553411"
+        }
+      ],
+      "deployed_read_outcome": "passed_16_checks_admin_and_viewer",
+      "all_role_workflow_permutations_claimed": false
+    }
+  ],
+  "live_receipts": {
+    "frontend": {
+      "path": "evidence/release-141-93f8f66-frontend.json",
+      "sha256": "c52f405f58290a8d7a7a584094d31f2d056c80831a4b30e15acba424578097db"
+    },
+    "provenance": {
+      "path": "evidence/release-141-93f8f66-provenance.json",
+      "sha256": "a38422b170b390bf29a99ff2da941c573e47fcbec0053ee56ff44569613a5896"
+    },
+    "rollback": {
+      "path": "evidence/release-141-93f8f66-rollback.json",
+      "sha256": "3278bcaba8be786532692f17fd228e14035f9f0e2353917cd789c3cac3d627fb"
+    },
+    "preview-protected": {
+      "path": "evidence/release-141-93f8f66-preview-protected.json",
+      "sha256": "6683ac3e02b4d78c13833a104b6bca2a78caaf725987707e4779dc7a71ec5f7c"
+    },
+    "anonymous": {
+      "path": "evidence/release-141-93f8f66-anonymous.json",
+      "sha256": "859a9088dc7a9731d8b20d710b21919acfd72a0c3b6ab1399506a53d4e20ed93"
+    },
+    "static-code": {
+      "path": "evidence/release-141-93f8f66-static-code.json",
+      "sha256": "1a4938fac6ac844d22f159597855423927db663e276f1a8c8cc2b3e77657205a"
+    },
+    "static-verification": {
+      "path": "evidence/release-141-93f8f66-static-verification.json",
+      "sha256": "d7af6e1f98b053bb1000e83296a0c6e13b903fb60baf7306efec4f254a15fe97"
+    },
+    "tracker": {
+      "path": "evidence/release-141-93f8f66-tracker.json",
+      "sha256": "60365c243020f264a578901c668678348147e87195bf5d5f35bf5f4fae543543"
+    },
+    "tracker-review": {
+      "path": "evidence/release-141-93f8f66-tracker-review.json",
+      "sha256": "58e74fff7495118cc644d412939a86f2b212d4f89e54757e54fa1d2364553a75"
+    },
+    "summary": {
+      "path": "evidence/release-141-93f8f66-summary.json",
+      "sha256": "cd3b5fa8b34f4d7d68504488522af56bd3ba760687bcac2ce194126e38cb13e8"
+    },
+    "personas": {
+      "path": "evidence/release-141-93f8f66-personas.json",
+      "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+    },
+    "staging_incident": {
+      "path": "evidence/staging-recovery-141.json",
+      "sha256": "8d777a8e525461e7b9ebc219130dd96ad7ee31c9b5be1c08c265c34ba1b99544"
+    },
+    "original_personas_recovery": {
+      "path": "evidence/release-141-93f8f66-original-personas-recovery.json",
+      "sha256": "905adb2818ad05d52eb932eb841e122ef0e3f862dd7813db7165fd012b926f17"
+    }
+  },
+  "verified_live": {
+    "anonymous_cases": 6,
+    "generated_js_css_assets": 46,
+    "generated_js_css_bytes": 6475418,
+    "tracker_checks": 16,
+    "tracker_roles": 2,
+    "tracker_successful_reads": 65,
+    "personas": 11,
+    "persona_routes": 102,
+    "persona_keyboard_checks": 34,
+    "disjoint_runs": [
+      "d78820f5-28a4-42b5-81ec-9a647970d99b",
+      "fa120b8e-afd0-4c40-aee2-6872f2e81634"
+    ],
+    "original_failed_run_retained": true
+  },
+  "browser_quality": {
+    "firefox": {
+      "path": "evidence/firefox-141.json",
+      "sha256": "c7102dab7390c48326310c91ffd138392e9c1e8b95d31843b521974d503c09a5"
+    },
+    "webkit": {
+      "path": "evidence/webkit-141.json",
+      "sha256": "86f5a0841f30b14312201305d91c764bca7f1a0ce5a45eb615e270a2006b3146"
+    },
+    "native_safari": {
+      "path": "evidence/native-safari-owned-media-b6e764b1.json",
+      "sha256": "3092be95f7620a5cd5b2df44278c9426455ebff588ef7fece1408e9215b8f2f0"
+    },
+    "native_safari_focus": {
+      "path": "evidence/native-safari-product-share-focus.json",
+      "sha256": "fcf2fbe13cf37772bc5028573c9ce293f43398efb5c40a3526fdfafac941693f"
+    },
+    "scope": "Firefox/WebKit real11-persona read matrices and native Safari Customer login/reload/date/download/logout; the final focus-only correction separately passed native actual React. Not WCAG certification or native mobile acceptance."
+  },
+  "performance": {
+    "api_sample": {
+      "path": "evidence/read-performance-141.json",
+      "sha256": "63cb2c742a33bf8bcbd1bf4d353bbcd3af70c242e086e3693111284c62427cfd"
+    },
+    "scope": "24 bounded staging API observations, five repeated samples per contract, observed repeated p95 about171\u2013190ms. Warmth uncontrolled; not deployed field p75, concurrency or enterprise SLA.",
+    "rendering_lab": {
+      "path": "evidence/production-rendering-lab.json",
+      "sha256": "003c020bf9e22d9c67fd984263a5dd8e556d4db816a62ac7b89aea2b49160090"
+    }
+  },
+  "cleanup": {
+    "live_tracker": "Two owned Auth identities/two channel memberships removed; unrelated profiles and business revision preserved. No source identity or write lease.",
+    "persona": "Both original and follow-up exact cleanups verified: 53 owned source rows each, zero commands/Auth revisions, source/staff preserved, schedules restored and checkpoints removed. Original aborted recovery was not treated as success.",
+    "prior_hosted": "Exact per-run receipts preserve source/staff/schedules and retained audit history; no broad truncate or revision rewind."
+  },
+  "external_gates": [
+    {
+      "id": "EXTERNAL-UNIWARE",
+      "workflows": [
+        "INTEGRATE.01",
+        "INTEGRATE.02",
+        "INTEGRATE.03",
+        "INTEGRATE.04"
+      ],
+      "state": "user_deferred",
+      "gate": "Actual controlled Uniware inventory/customer/order/amend/cancel/reconciliation against existing setup; queued/error UI can be accepted separately."
+    },
+    {
+      "id": "EXTERNAL-WEEKLY-MAIL",
+      "workflows": [
+        "DOC.04",
+        "OPS.03"
+      ],
+      "state": "passed_scoped_actual_cron_and_inbox",
+      "gate": "Actual exact-owned temporary Cron and five intended inbox attachments passed with exact recipient/document/PDF binding and cleanup. This provider gate is satisfied; separate browser document chains, permanent production scheduling and deployed acceptance are not inferred.",
+      "evidence": "evidence/weekly-mail-140-accepted.json"
+    },
+    {
+      "id": "EXTERNAL-SOURCE-MEDIA",
+      "workflows": [
+        "MEDIA.04",
+        "CONFIG.03",
+        "PROMO.02"
+      ],
+      "state": "environment_separate_missing_source_report",
+      "gate": "Genuinely absent staging source files remain explicit; do not recover from production without revised user direction."
+    },
+    {
+      "id": "EXTERNAL-OWNERSHIP",
+      "workflows": [
+        "REFRESH.03",
+        "INTEGRATE.06",
+        "MASTER.02"
+      ],
+      "state": "not_part_of_frontend_release",
+      "gate": "Fresh source/Auth/media reconciliation, source freeze and guarded native production ownership transition remain separately authorized. Current TransfersPanel requires canWrite && writeState.mode=native; transfer SQL requires environment cutover with no active refresh. No exact import rehearsal route exists. Real hosted CSV upload/validate/apply remains pending this ownership gate; mirror disabled controls and existing local/historical backend proof are separate evidence."
+    },
+    {
+      "id": "EXTERNAL-NATIVE-OPERATORS",
+      "workflows": [
+        "NOTIFY.02",
+        "NOTIFY.03",
+        "OPS.01",
+        "OPS.02"
+      ],
+      "state": "native_ownership_required",
+      "gate": "worker_write_fence requires cutover; no narrow notification/retry rehearsal exists. Keep mirror negative/local UI controls and historical hosted backend execution separate from new hosted UI requeue/delivery. No provider or generic drain for frontend proof."
+    }
+  ],
+  "release_limits": [
+    "Production Supabase data/Auth real-user UAT and native ownership release remain separate from deployed staging smoke.",
+    "Uniware actual controlled integration remains user-deferred; Airtable excluded.",
+    "Missing staging source media is reported; no cross-environment recovery.",
+    "Native worker retry/fanout/import requires separately authorized ownership; mirrored disabled states do not prove those commands ran.",
+    "Application141 parity is verified; managed pg_net patch maintenance remains separate.",
+    "Protected immutable Vercel URL prevented direct artifact fetch: source/deployment correlation uses GitHub integration; all46 publicly served generated JS/CSS bytes independently match the accepted local build.",
+    "Local/screenshots/receipt scope is explicit; no complete115xpersona permutation, OS native share, mobile push or userUAT completion claim."
+  ],
+  "rollback": {
+    "path": "evidence/release-141-93f8f66-rollback.json",
+    "sha256": "3278bcaba8be786532692f17fd228e14035f9f0e2353917cd789c3cac3d627fb"
+  },
+  "final_docs_commit_policy": "Docs-only feature-branch commit; tested live source remains93f8f66a48885edcd6150853189fe4c7529639fa.",
+  "completed_at": "2026-11-09T07:13:00.775732+00:00",
+  "incident": {
+    "evidence": {
+      "path": "evidence/staging-recovery-141.json",
+      "sha256": "8d777a8e525461e7b9ebc219130dd96ad7ee31c9b5be1c08c265c34ba1b99544"
+    },
+    "scope": "First live run completed 8 roles / 74 routes; final 3 roles timed out while staging services became unhealthy. One staging restart was sent, no resize or purchase. Exact original recovery then same-build 3-role follow-up and cleanup succeeded. Post-test Auth/REST/database healthy at 2026-11-09T07:08:07Z. Root cause not isolated; Nano capacity follow-up remains separate.",
+    "application_source_changed_to_resolve_incident": false,
+    "failed_evidence_retained": true
+  },
+  "completion_definition": "The fixed internal implementation/release milestone plan is complete. This is not a claim that every 115-by-persona variation ran through a browser, that human UAT finished, or that real native production writes/providers were activated."
+}

@@ -1,0 +1,47 @@
+{
+  "format": "squad-firefox-diagnostic-preparation/v1",
+  "prepared_at": "2026-11-09T06:41:29.492848+00:00",
+  "status": "local_preparation_only_not_executed_hosted",
+  "original_failed_run": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+  "roles": [
+    10,
+    11,
+    12
+  ],
+  "fixture_personas": 11,
+  "all_personas_passed": false,
+  "application_changes": false,
+  "hosted_mutations": false,
+  "purpose": "Distinguish Auth response/header/body delays from native lock waiting without changing lock behavior or original acceptance timeouts.",
+  "observations": [
+    "Fixed Auth and SDK RPC endpoint categories; no headers, bodies, tokens or query values.",
+    "Relative request/header/body completion/failure timings, unfinished requests and bounded native lock callback events.",
+    "Original failed run retained; follow-up has separate receipt and cannot overwrite full-persona acceptance.",
+    "Full original fixture cleanup and immutable ownership checks retained."
+  ],
+  "tests": [
+    {
+      "command": "PYTHONPATH=tools/squad tools/canto-sync/.venv/bin/python -m unittest tools/squad/test_web_cross_browser_harness.py",
+      "passed": 30
+    },
+    {
+      "command": "node tools/squad/browser-auth-diagnostic.test.mjs",
+      "passed_groups": 2,
+      "scope": "Actual local Firefox native lock return/null/error/abort behavior, genuine unhandled rejection, header/body/unfinished timing and privacy."
+    }
+  ],
+  "independent_review": {
+    "agent": "web_ui_implementation",
+    "result": "GO",
+    "rerun": "29 lifecycle cases and both local Firefox groups before final additional false-acceptance receipt guard; final 30-case suite passed after that guard."
+  },
+  "execution_gate": "Do not execute while original staging cleanup checkpoint is retained or project Auth remains unhealthy; root owns platform recovery and next-run authorization.",
+  "command_after_root_clearance": "PYTHONPATH=tools/squad tools/canto-sync/.venv/bin/python tools/squad/test_web_cross_browser_hosted.py --execute --engine firefox --diagnostic-failed-roles --base https://scottdashboard.vercel.app --release-manifest /tmp/squad-live-release141.json",
+  "files": {
+    "tools/squad/browser-auth-diagnostic.mjs": "a67cab650ac0027cd85e346e2b57bdfc918f3dcb88f544852ea4934961233c48",
+    "tools/squad/browser-auth-diagnostic.test.mjs": "6a9546ada89bad09153e426f2238863b9f698326579b2dd4bc6ca3c43533a722",
+    "tools/squad/test_web_cross_browser_hosted.py": "718ea6df118bc47e999b038a0259836be2bf7f6d04201537ac4b8f14e8cbeb1e",
+    "tools/squad/web-cross-browser-hosted.mjs": "0892c47de4a9e64e2403cd85ec2dc8a7f639d6a7f419a44cca60a5949f1305d8",
+    "tools/squad/test_web_cross_browser_harness.py": "09b885d15bdd3c4f4b67dd3296e2d62472baffafba9a8ef3923067e33032793e"
+  }
+}

@@ -78,9 +78,9 @@ def source_state(c):
  for table,has_id in tables:
   maxid=sql.SQL('max(id)') if has_id else sql.SQL('NULL::bigint')
   sums=[sql.SQL("coalesce(sum(('x'||substr(h,{},16))::bit(64)::bigint::numeric),0)::text").format(sql.Literal(n)) for n in (1,17,33,49)]
-  # Explicit materialization prevents PostgreSQL from inlining the expensive
-  # row serialization/SHA256 expression into each of the four digest sums.
-  queries.append(sql.SQL("(WITH row_hashes AS MATERIALIZED (SELECT {},encode(sha256(convert_to(to_jsonb(t)::text,'UTF8')),'hex') h FROM {}.{} t) SELECT {},count(*),{},{} FROM row_hashes)").format(sql.SQL('id') if has_id else sql.SQL('NULL::bigint id'),sql.Identifier(SCHEMA),sql.Identifier(table),sql.Literal(table),maxid,sql.SQL(',').join(sums)))
+  # OFFSET 0 keeps the row hash projection from being inlined into four sums,
+  # while streaming rows instead of retaining a per-table materialized spool.
+  queries.append(sql.SQL("(SELECT {},count(*),{},{} FROM (SELECT {},encode(sha256(convert_to(to_jsonb(t)::text,'UTF8')),'hex') h FROM {}.{} t OFFSET 0) row_hashes)").format(sql.Literal(table),maxid,sql.SQL(',').join(sums),sql.SQL('id') if has_id else sql.SQL('NULL::bigint id'),sql.Identifier(SCHEMA),sql.Identifier(table)))
  return {row[0]:{'count':row[1],'max_id':row[2],'digest':list(row[3:])} for row in c.execute(sql.SQL(' UNION ALL ').join(queries)).fetchall()}
 
 

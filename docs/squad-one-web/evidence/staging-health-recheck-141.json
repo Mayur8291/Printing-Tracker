@@ -1,0 +1,30 @@
+{
+  "observed_at": "2026-11-09T06:49:38.622578+00:00",
+  "services": [
+    {
+      "name": "auth",
+      "healthy": true,
+      "status": "ACTIVE_HEALTHY",
+      "info": {
+        "name": "GoTrue",
+        "version": "v2.197.0",
+        "description": "GoTrue is a user registration and authentication API"
+      }
+    },
+    {
+      "name": "rest",
+      "healthy": true,
+      "status": "ACTIVE_HEALTHY",
+      "info": {
+        "db_schema": "public,graphql_public,canto_api"
+      }
+    },
+    {
+      "name": "db",
+      "healthy": true,
+      "status": "ACTIVE_HEALTHY"
+    }
+  ],
+  "restart_performed": false,
+  "reason": "Pre-restart guard detected some service recovery and stopped before POST"
+}

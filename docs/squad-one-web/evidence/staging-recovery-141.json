@@ -1,0 +1,136 @@
+{
+  "format": "squad-staging-service-recovery/v1",
+  "environment": "staging",
+  "project_ref": "scvojtvgnkmbupvyslmb",
+  "test_run": "d78820f5-28a4-42b5-81ec-9a647970d99b",
+  "started_at": "2026-11-09T06:55:36.116499+00:00",
+  "pre_health": [
+    {
+      "name": "auth",
+      "healthy": false,
+      "status": "UNHEALTHY",
+      "error": "Service health check failed"
+    },
+    {
+      "name": "rest",
+      "healthy": false,
+      "status": "UNHEALTHY",
+      "info": {
+        "db_schema": "public,graphql_public,canto_api"
+      },
+      "error": "Service health check failed"
+    },
+    {
+      "name": "db",
+      "healthy": false,
+      "status": "UNHEALTHY",
+      "error": "Service health check failed"
+    }
+  ],
+  "action": "Single POST /restart; no retry, resize, schema change or data refresh",
+  "production_touched": false,
+  "status": "restart_request_accepted",
+  "http_status": 200,
+  "returned_empty_object": true,
+  "recorded_at": "2026-11-09T06:55:36.402989+00:00",
+  "post_restart_health": [
+    {
+      "at": "2026-11-09T06:56:32.497689+00:00",
+      "services": [
+        {
+          "name": "auth",
+          "healthy": false,
+          "status": "UNHEALTHY",
+          "error": "Service health check failed"
+        },
+        {
+          "name": "rest",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY",
+          "info": {
+            "db_schema": "public,graphql_public,canto_api"
+          }
+        },
+        {
+          "name": "db",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY"
+        }
+      ]
+    },
+    {
+      "at": "2026-11-09T07:01:52.612089+00:00",
+      "services": [
+        {
+          "name": "auth",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY",
+          "info": {
+            "name": "GoTrue",
+            "version": "v2.197.0",
+            "description": "GoTrue is a user registration and authentication API"
+          }
+        },
+        {
+          "name": "rest",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY",
+          "info": {
+            "db_schema": "public,graphql_public,canto_api"
+          }
+        },
+        {
+          "name": "db",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY"
+        }
+      ]
+    },
+    {
+      "at": "2026-11-09T07:08:07.056923+00:00",
+      "services": [
+        {
+          "name": "auth",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY",
+          "info": {
+            "name": "GoTrue",
+            "version": "v2.197.0",
+            "description": "GoTrue is a user registration and authentication API"
+          }
+        },
+        {
+          "name": "rest",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY",
+          "info": {
+            "db_schema": "public,graphql_public,canto_api"
+          }
+        },
+        {
+          "name": "db",
+          "healthy": true,
+          "status": "ACTIVE_HEALTHY"
+        }
+      ],
+      "phase": "After both exact cleanups and successful fixed-three persona follow-up"
+    }
+  ],
+  "prior_recovery_attempt": {
+    "command": "test_web_cross_browser_hosted.py --recover",
+    "exit_code": 143,
+    "result": "Interrupted after service health regressed; no cleanup success receipt",
+    "checkpoint_retained": true,
+    "graceful_interrupt_attempted": true,
+    "new_fixture_created": false,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "final_services_healthy": true,
+  "cleanup_checkpoint_removed": true,
+  "cleanup_receipts": {
+    "docs/squad-one-web/evidence/release-141-93f8f66-original-personas-recovery.json": "905adb2818ad05d52eb932eb841e122ef0e3f862dd7813db7165fd012b926f17",
+    "docs/squad-one-web/evidence/firefox-roles-10-11-12-diagnostic.json": "3545649404d02a81e3a418e03cadef16c80dfb0e5efe5b84494f1b34e5cf04fd"
+  },
+  "resolution_scope": "Single staging restart followed by successful original cleanup and final three-persona run with cleanup. Exact root cause not isolated; Nano capacity warnings remain an operational follow-up, not a proven application defect.",
+  "compute_resize_performed": false
+}

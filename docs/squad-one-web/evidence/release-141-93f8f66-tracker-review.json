@@ -1,0 +1,34 @@
+{
+  "format": "squad-release-tracker-publication-review/v1",
+  "reviewed_at": "2026-11-09T06:25:12.988090+00:00",
+  "run_id": "2fe31551-53d0-4275-9771-a542c3471ee8",
+  "passed": true,
+  "accepted_checks": 16,
+  "roles": [
+    "admin",
+    "viewer"
+  ],
+  "successful_read_responses": 65,
+  "release": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "https://scottdashboard.vercel.app",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+    "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+  },
+  "evidence": {
+    "path": "docs/squad-one-web/evidence/release-141-93f8f66-tracker.json",
+    "sha256": "60365c243020f264a578901c668678348147e87195bf5d5f35bf5f4fae543543"
+  },
+  "automatic_writes": "Observed presence/stale-order POST attempts blocked by the reviewed read-only harness; their execution is not claimed.",
+  "cleanup": {
+    "removed_owned_auth": 2,
+    "removed_owned_channel_memberships": 2,
+    "unrelated_auth_profiles_preserved_during_cleanup": true,
+    "business_revision_unchanged": true,
+    "no_source_identity_or_write_lease": true
+  },
+  "privacy_review": "No screenshot values or paths, credentials, private home paths, user IDs, emails, signed URLs or response bodies are present. Release metadata and API operation names are public-safe.",
+  "limits": "Real staging staff authentication and existing Tracker read screens on the deployed public frontend. Realtime, CRUD, production-user login and source refresh are not exercised by this smoke."
+}

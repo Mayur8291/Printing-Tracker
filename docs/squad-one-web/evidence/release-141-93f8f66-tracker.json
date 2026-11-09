@@ -1,0 +1,109 @@
+{
+  "scope": "Real staging staff gateway and bounded reads; automatic writes blocked; realtime and CRUD not exercised",
+  "checks": [
+    "admin:actual_identity_and_profile_verified",
+    "admin:legacy_gateway_without_squad_chunk",
+    "admin:read_screen_printing_orders",
+    "admin:read_screen_customers",
+    "admin:read_screen_reports",
+    "admin:read_screen_masters",
+    "admin:read_screen_data_refresh",
+    "admin:360px_no_overflow",
+    "admin:automatic_writes_blocked",
+    "admin:zero_unexpected_transport_or_browser_errors",
+    "viewer:actual_identity_and_profile_verified",
+    "viewer:legacy_gateway_without_squad_chunk",
+    "viewer:read_screen_printing_orders",
+    "viewer:360px_no_overflow",
+    "viewer:automatic_writes_blocked",
+    "viewer:zero_unexpected_transport_or_browser_errors"
+  ],
+  "actors": [
+    {
+      "role": "admin",
+      "checks": [
+        "actual_identity_and_profile_verified",
+        "legacy_gateway_without_squad_chunk",
+        "read_screen_printing_orders",
+        "read_screen_customers",
+        "read_screen_reports",
+        "read_screen_masters",
+        "read_screen_data_refresh",
+        "360px_no_overflow",
+        "automatic_writes_blocked",
+        "zero_unexpected_transport_or_browser_errors"
+      ],
+      "successfulReads": 36,
+      "blockedAutomaticWrites": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/set_my_dashboard_presence"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/promote_stale_new_orders_to_pending"
+        }
+      ]
+    },
+    {
+      "role": "viewer",
+      "checks": [
+        "actual_identity_and_profile_verified",
+        "legacy_gateway_without_squad_chunk",
+        "read_screen_printing_orders",
+        "360px_no_overflow",
+        "automatic_writes_blocked",
+        "zero_unexpected_transport_or_browser_errors"
+      ],
+      "successfulReads": 29,
+      "blockedAutomaticWrites": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/set_my_dashboard_presence"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/promote_stale_new_orders_to_pending"
+        }
+      ]
+    }
+  ],
+  "frontend": "https://scottdashboard.vercel.app/",
+  "environment": "staging",
+  "entryAssets": [
+    {
+      "path": "/assets/index-C1WMMJOg.js",
+      "sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db"
+    }
+  ],
+  "complete": true,
+  "run_id": "2fe31551-53d0-4275-9771-a542c3471ee8",
+  "cleanup": {
+    "removed_owned_auth": 2,
+    "removed_owned_channel_memberships": 2,
+    "unrelated_auth_profiles_preserved_during_cleanup": true,
+    "business_revision_unchanged": true,
+    "no_source_identity_or_write_lease": true
+  },
+  "fixture_scope": "tracker-read-staff/v1",
+  "source_write_lease": false,
+  "frontend_build": {
+    "path": "/assets/index-C1WMMJOg.js",
+    "sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "matches_reviewed_release": true,
+    "release": {
+      "format": "squad-reviewed-deployed-frontend/v1",
+      "base": "https://scottdashboard.vercel.app",
+      "entry_path": "/assets/index-C1WMMJOg.js",
+      "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+      "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+      "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+    },
+    "startup": {
+      "ready": true,
+      "errors": [],
+      "externalRequestsBlocked": 0,
+      "scope": "Anonymous startup only; external traffic blocked; no credentials or hosted calls"
+    }
+  }
+}

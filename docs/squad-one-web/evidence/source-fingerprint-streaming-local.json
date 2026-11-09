@@ -1,0 +1,75 @@
+{
+  "format": "squad-source-fingerprint-local/v1",
+  "local_postgres_version": "17.11 (Homebrew)",
+  "tables": 86,
+  "rows": 20085,
+  "work_mem": "64kB",
+  "parallel_workers": 0,
+  "jit": false,
+  "exact_original_result_equal": true,
+  "samples": [
+    {
+      "variant": "materialized",
+      "execution_ms": 77.769,
+      "temp_written_blocks": 202,
+      "temp_read_blocks": 0,
+      "node_types": [
+        "Aggregate",
+        "Append",
+        "CTE Scan",
+        "Seq Scan"
+      ]
+    },
+    {
+      "variant": "offset_zero_streaming",
+      "execution_ms": 44.377,
+      "temp_written_blocks": 0,
+      "temp_read_blocks": 0,
+      "node_types": [
+        "Aggregate",
+        "Append",
+        "Seq Scan"
+      ]
+    }
+  ],
+  "scope": "Local synthetic SQL only; not an attribution of hosted platform failure or a hosted throughput benchmark. No hosted query performed. The harness uses the equivalent inline streaming SQL; the candidate builder is not a runtime dependency.",
+  "documents": [
+    "https://www.postgresql.org/docs/17/queries-with.html",
+    "https://www.postgresql.org/docs/17/transaction-iso.html"
+  ],
+  "focused_tests": {
+    "passed": 54,
+    "command": "PYTHONPATH=tools/squad SQUAD_TEST_DATABASE=squad_test_web tools/canto-sync/.venv/bin/python -m unittest tools/squad/test_source_fingerprint_streaming.py tools/squad/test_business_harness.py tools/squad/test_web_cross_browser_harness.py",
+    "groups": {
+      "fingerprint_equivalence_plan_snapshot": 4,
+      "business_ownership_cleanup_recovery": 20,
+      "cross_browser_lifecycle": 30
+    },
+    "elapsed_seconds": 14.263,
+    "final_fingerprint_rerun": {
+      "passed": 4,
+      "elapsed_seconds": 0.529
+    },
+    "cases": [
+      "Frozen pre-change materialized implementation plus independent Python signed SHA arithmetic; empty/null/duplicates/no numeric ID; change and restore; reversed table order.",
+      "Instrumented immutable function:1 hash evaluation per row for old/new;4 without OFFSET0 as sensitivity control.",
+      "86-table UNION plan: identical results; temporary writes removed.",
+      "Concurrent committed writes while first UNION branch blocks: both later table branches retain original statement snapshot."
+    ]
+  },
+  "files": {
+    "tools/squad/profile_source_fingerprint_streaming.py": "b81229fc17b2e1de04503d7299ad15e38ddd8cbf01f94d25ce54f0a781adab36",
+    "tools/squad/test_source_fingerprint_streaming.py": "d0a3cb982e8d65c3822fe749593b020fc26ede0a71d86cf06d9aa581ce062247",
+    "tools/squad/test_hosted_business_journeys.py": "c3626a0e56cf76c37300550148426f4e4454d5b16cadbaf4c30a4f5e2da57806"
+  },
+  "integration_diff_sha256": "07613dc1e644f33c5de6a3c7ff55cad9c27e44a4942f883a090c1d8e0de6fdab",
+  "integration_scope": "Only source_state row-hash CTE replaced by OFFSET0 projection; inventory, role, aggregate, transaction, timeout and single UNION execution remain unchanged.",
+  "independent_reviews": [
+    "web_commerce_implementation: candidate GO",
+    "web_ui_implementation: candidate GO and4 tests independently passed"
+  ],
+  "limits": [
+    "All source rows still scanned and hashed; this does not establish adequate hosted compute or explain prior Auth failures.",
+    "OFFSET0 executor behavior verified on local PostgreSQL17.11; no hosted plan or fingerprint executed by this agent."
+  ]
+}

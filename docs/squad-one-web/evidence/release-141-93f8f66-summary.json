@@ -1,0 +1,62 @@
+{
+  "format": "squad-public-release-smoke-summary/v1",
+  "reviewed_at": "2026-11-09T06:23:44.295496+00:00",
+  "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+  "base": "https://scottdashboard.vercel.app",
+  "entry_path": "/assets/index-C1WMMJOg.js",
+  "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+  "deployment_lane": "Vercel Production",
+  "actual_default_supabase_environment": "staging",
+  "explicit_staging_override_verified": true,
+  "environment_evidence": "Each fresh anonymous browser context observed the actual Auth-client project storage-key access; no token or storage value was recorded. Vercel deployment lane does not select the Supabase environment.",
+  "anonymous_cases_passed": 6,
+  "routes": [
+    "/",
+    "/squad/orders",
+    "/account/recovery"
+  ],
+  "unexpected_api_or_legacy_requests": 0,
+  "console_errors": 0,
+  "page_errors": 0,
+  "asset_failures": 0,
+  "console_warnings": {
+    "count": 6,
+    "unique_message_hashes": [
+      "7c247915a6102bc050349adcfad2bb0e2ba2a7f711b03f33080b19d0c24fa03b"
+    ],
+    "classification": "Retained as hashes; not silently classified as console-clean. No runtime failure accompanied them."
+  },
+  "entry_matches_accepted_local_build": true,
+  "public_entry_changed_from_rollback_reference": true,
+  "immutable_deployment_content_verified": false,
+  "live_commit_provenance": "Successful exact-commit GitHub Production deployment and contemporaneous Vercel commit status correlate the public alias to this source revision. Protected immutable endpoint bytes and API-level alias attestation were unavailable, so cryptographic alias-to-commit binding is not claimed.",
+  "preview_app_acceptance": false,
+  "preview_reason": "Successful preview build redirected anonymous access to Vercel authentication; protection unchanged.",
+  "authenticated_release_acceptance": "Separate parent-owned Tracker and Squad smoke tests remain pending at this snapshot.",
+  "all_generated_assets_verified": "Separate parent-owned generated JS/CSS comparison pending at this snapshot.",
+  "rollback_scope": "Reviewed previous frontend revision only; use a normal Git revert or authorized deployment promotion. No reversal of additive backend migrations or source refresh.",
+  "receipts": {
+    "frontend": {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-frontend.json",
+      "sha256": "c52f405f58290a8d7a7a584094d31f2d056c80831a4b30e15acba424578097db"
+    },
+    "provenance": {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-provenance.json",
+      "sha256": "a38422b170b390bf29a99ff2da941c573e47fcbec0053ee56ff44569613a5896"
+    },
+    "rollback": {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-rollback.json",
+      "sha256": "3278bcaba8be786532692f17fd228e14035f9f0e2353917cd789c3cac3d627fb"
+    },
+    "preview-protected": {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-preview-protected.json",
+      "sha256": "6683ac3e02b4d78c13833a104b6bca2a78caaf725987707e4779dc7a71ec5f7c"
+    },
+    "anonymous": {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-anonymous.json",
+      "sha256": "859a9088dc7a9731d8b20d710b21919acfd72a0c3b6ab1399506a53d4e20ed93"
+    }
+  },
+  "private_runner_sha256": "b9456089c7ae688943064b81dcce1fae2cc273c1915b36f79d8630f82b1f09ed",
+  "privacy": "Public evidence contains only release metadata, public origins/routes, hashes, counts and explicit limits; no credentials, signed URLs, private home paths or user records."
+}

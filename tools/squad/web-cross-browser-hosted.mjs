@@ -9,9 +9,11 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {navigationFor} from '../../apps/admin/src/squad/navigation/registry.js';
 import {inspect,violations} from './web-navigation-hosted-journey.mjs';
 import {transportAllowed,STAGING_ORIGIN} from './web-cross-browser-policy.mjs';
+import {observeAuthDiagnostic} from './browser-auth-diagnostic.mjs';
 import {observeBrowserErrors} from './browser-error-observer.mjs';
 
 const ROLES=[0,1,2,3,4,7,8,9,10,11,12];
+const DIAGNOSTIC={format:'squad-firefox-failed-personas-diagnostic/v1',roles:[10,11,12],original_failed_run:'d78820f5-28a4-42b5-81ec-9a647970d99b'};
 export function validateFrontendBinding(frontend,base,release=null) {
  const u=new URL(base);assert.ok(!u.username&&!u.password&&!u.search&&!u.hash&&u.pathname==='/');
  assert.equal(base,u.origin,'Use a canonical origin without a trailing path');
@@ -35,12 +37,13 @@ export function stagingFrontendInit(){
 
 export async function runCrossBrowser(config,{playwright,engines=['firefox','webkit'],base='http://localhost:5183'}={}) {
  assert.equal(config.url,STAGING_ORIGIN);assert.match(config.run_id,/^[0-9a-f-]{36}$/);
- assert.deepEqual([...config.actors.map(a=>a.role)].sort((a,b)=>a-b),ROLES);
+ if(config.diagnostic){assert.deepEqual(config.diagnostic,DIAGNOSTIC);assert.deepEqual(engines,['firefox']);}
+ assert.deepEqual([...config.actors.map(a=>a.role)].sort((a,b)=>a-b),config.diagnostic?DIAGNOSTIC.roles:ROLES);
  validateFrontendBinding(config.frontend,base,config.release);
  assert.ok(engines.length&&engines.every(e=>['firefox','webkit'].includes(e)));
  const directory=path.resolve('tools/squad/private',`web-cross-browser-${config.run_id}`);
  fs.mkdirSync(directory,{recursive:true,mode:0o700});fs.chmodSync(directory,0o700);
- const report={scope:'Real staging login, read-only navigation, 360px, keyboard and unsaved core forms. WebKit engine, not native Safari.',engines:[],failures:[],screenshotsPrivate:true,...(config.release?{release:config.release}:{}),...(config.frontend?{frontend:config.frontend}:{})};
+ const report={scope:'Real staging login, read-only navigation, 360px, keyboard and unsaved core forms. WebKit engine, not native Safari.',engines:[],failures:[],screenshotsPrivate:true,...(config.diagnostic?{diagnostic:DIAGNOSTIC,allPersonasPassed:false}:{}),...(config.release?{release:config.release}:{}),...(config.frontend?{frontend:config.frontend}:{})};
  const save=()=>fs.writeFileSync(path.join(directory,'report.json'),JSON.stringify(report,null,2),{mode:0o600});
  for(const name of engines){
   const browser=await playwright[name].launch({headless:true});
@@ -50,6 +53,7 @@ export async function runCrossBrowser(config,{playwright,engines=['firefox','web
    const row={role:actor.role,routes:[],checks:[],errors:[]};result.roles.push(row);
    await context.addInitScript(stagingFrontendInit);
    const errorObserver=await observeBrowserErrors(page,{engine:name,sensitive:[actor.email,actor.password]});
+   const authDiagnostic=config.diagnostic?await observeAuthDiagnostic(page,{role:actor.role}):null;
    await context.route('**/*',async route=>{const request=route.request();
     if(!transportAllowed({url:request.url(),method:request.method(),body:request.postData()},base)){
      const parsed=new URL(request.url());result.networkViolations.push({role:actor.role,method:request.method(),origin:parsed.origin,path:parsed.pathname});await route.abort();
@@ -102,13 +106,13 @@ export async function runCrossBrowser(config,{playwright,engines=['firefox','web
     Object.assign(row,await errorObserver.finish(row.routes.every(route=>route.issues.length===0)));
     assert.deepEqual(row.errors,[]);
    }catch(error){if(!row.pageErrors){Object.assign(row,await errorObserver.finish(false).catch(()=>({errors:[{source:'observer',name:'Error',message:'Native browser error collection failed'}]})));}report.failures.push({engine:name,role:actor.role,error:error.name,message:String(error.message).slice(0,240),screenshot:await capture('failure').catch(()=>null)});}
-   finally{await context.close();save();}
+   finally{if(authDiagnostic)row.auth_diagnostic=await authDiagnostic.finish();await context.close();save();}
    console.error(`${name}: read-only persona ${actor.role} completed`);
   }}finally{await browser.close();}
   if(result.networkViolations.length)report.failures.push({engine:name,issues:['blocked_disallowed_transport'],count:result.networkViolations.length});
  }
  report.finished_at=new Date().toISOString();save();
- return {...(config.release?{release:config.release}:{}),...(config.frontend?{frontend:config.frontend}:{}),passed:report.failures.length===0,report:path.join(directory,'report.json'),engines:report.engines.map(e=>({name:e.name,version:e.version,roles:e.roles.length,routes:e.roles.reduce((n,r)=>n+r.routes.length,0)})),failureGroups:report.failures.length};
+ return {...(config.diagnostic?{diagnostic:DIAGNOSTIC,allPersonasPassed:false}:{}),...(config.release?{release:config.release}:{}),...(config.frontend?{frontend:config.frontend}:{}),passed:report.failures.length===0,report:path.join(directory,'report.json'),engines:report.engines.map(e=>({name:e.name,version:e.version,roles:e.roles.length,routes:e.roles.reduce((n,r)=>n+r.routes.length,0)})),failureGroups:report.failures.length};
 }
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){

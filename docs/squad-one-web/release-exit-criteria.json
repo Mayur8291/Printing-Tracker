@@ -413,7 +413,7 @@
     {
       "id": "EXIT-07",
       "title": "Whole-client quality and browser release gate",
-      "state": "scoped_browser_quality_passed_final_frozen_release_binding_pending",
+      "state": "passed_fixed_internal_release_scope",
       "workflows": [
         "AUTH.01",
         "AUTH.02",
@@ -656,14 +656,21 @@
           "evidence": "evidence/native-safari-product-share-focus.json",
           "sha256": "fcf2fbe13cf37772bc5028573c9ce293f43398efb5c40a3526fdfafac941693f",
           "scope": "Actual native Safari local account-free React dialog: pointer/keyboard Escape and Close restore the connected opener with visible focus ring. No hosted/API/download replay."
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f",
+          "scope": "Final live frontend, controlled staging identities; disjoint complete 8+3 role cohorts,102 read routes and 34 keyboard/core checks. Both cleanup receipts verified; original failures retained. Not a mutation replay or full workflow permutation proof.",
+          "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+          "frontend": "https://scottdashboard.vercel.app"
         }
       ],
-      "acceptance_note": "Firefox and WebKit real11-persona matrices plus native Safari core controls and focused native dialog correction accepted at their exact artifact scope. Current final build source binding and deployed release remain separately recorded; no WCAG/load SLA inference."
+      "acceptance_note": "Fixed internal gate passed with exact 93f8f66 deployed assets, same-build scoped 8+3 persona reads and both cleanups, existing Tracker/backend/quality evidence and final handoff. Failed first run remains preserved. External ownership/Uniware/platform/data/human UAT are not inferred complete; not every workflow mutation was replayed live."
     },
     {
       "id": "EXIT-08",
       "title": "Parity, deployment, Tracker regression and handoff",
-      "state": "release_pending",
+      "state": "passed_fixed_internal_release_scope",
       "workflows": [
         "AUTH.01",
         "AUTH.02",
@@ -803,8 +810,26 @@
           "both_environments_verified": true,
           "other_secret_digests_preserved": true,
           "refresh_dispatched": false
+        },
+        {
+          "path": "evidence/release-141-93f8f66-personas.json",
+          "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f",
+          "scope": "Final live frontend, controlled staging identities; disjoint complete 8+3 role cohorts,102 read routes and 34 keyboard/core checks. Both cleanup receipts verified; original failures retained. Not a mutation replay or full workflow permutation proof.",
+          "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+          "frontend": "https://scottdashboard.vercel.app"
+        },
+        {
+          "path": "evidence/release-141-93f8f66-tracker.json",
+          "sha256": "60365c243020f264a578901c668678348147e87195bf5d5f35bf5f4fae543543",
+          "scope": "Final live Tracker Admin/Viewer 16 read checks, exact 2 Auth / 2 membership cleanup; automatic writes blocked; no live CRUD/refresh/realtime proof."
+        },
+        {
+          "path": "evidence/staging-recovery-141.json",
+          "sha256": "8d777a8e525461e7b9ebc219130dd96ad7ee31c9b5be1c08c265c34ba1b99544",
+          "scope": "One restart after unhealthy staging services; exact original/follow-up recovery and all three service health checks passed. Root cause not isolated; capacity is separate follow-up."
         }
-      ]
+      ],
+      "acceptance_note": "Fixed internal gate passed with exact 93f8f66 deployed assets, same-build scoped 8+3 persona reads and both cleanups, existing Tracker/backend/quality evidence and final handoff. Failed first run remains preserved. External ownership/Uniware/platform/data/human UAT are not inferred complete; not every workflow mutation was replayed live."
     }
   ],
   "external_gates": [

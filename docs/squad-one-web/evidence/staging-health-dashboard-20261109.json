@@ -1,0 +1,53 @@
+{
+  "format": "squad-staging-dashboard-observation/v1",
+  "observed_at": "2026-11-09T06:42:18Z",
+  "environment": "staging",
+  "project_ref": "scvojtvgnkmbupvyslmb",
+  "method": "Read-only Supabase dashboard in authorized Chrome session using computer UI; no configuration mutation.",
+  "pages": [
+    "https://supabase.com/dashboard/project/scvojtvgnkmbupvyslmb",
+    "https://supabase.com/dashboard/project/scvojtvgnkmbupvyslmb/observability/database"
+  ],
+  "project_overview": {
+    "status": "Unhealthy",
+    "compute": "Nano",
+    "latest_displayed_summary": {
+      "cpu_percent": 25,
+      "disk_percent": 14,
+      "ram_percent": 67,
+      "connections": 28,
+      "connection_limit": 60
+    }
+  },
+  "warnings": {
+    "disk_io_budget": "Your project is about to deplete its Disk IO Budget",
+    "exhausted_throughput_baseline_mb_per_second": 5,
+    "memory_commitment_severity": "SEVERE",
+    "memory_commitment_gb": 1.65
+  },
+  "database_observability": {
+    "selected_period": "Last 60 minutes",
+    "displayed_window_ist": "2026-11-09 11:11 through 12:11",
+    "memory_usage_mb": 398.06,
+    "memory_chart_last_label_ist": "12:04",
+    "cpu_usage_percent": 11.33,
+    "cpu_chart_last_label_ist": "11:58",
+    "failed_panels": [
+      "Network throughput",
+      "Disk Input/Output operations per second (IOPS)",
+      "Disk throughput",
+      "Database Connections",
+      "Dedicated Pooler Client Connections",
+      "Shared Pooler (Supavisor) client connections",
+      "Disk Usage"
+    ],
+    "provisioned_disk_gb": 8
+  },
+  "limits": [
+    "Metrics are partially unavailable and may lag; overview and chart figures represent different displayed samples.",
+    "Displayed Database Size0GB was not accepted as a valid size measurement while metric requests fail.",
+    "Resource warnings support investigation of capacity pressure; they do not alone prove a single cause or that a restart/resize is required.",
+    "No reboot, resize, configuration change, browser login credential entry or business mutation performed."
+  ],
+  "privacy": "Only project resource metrics and public dashboard paths; no account names, screenshots, user data, credentials or tokens."
+}

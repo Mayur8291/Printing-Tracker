@@ -1,0 +1,8 @@
+{
+  "format": "squad-reviewed-deployed-frontend/v1",
+  "base": "https://scottdashboard.vercel.app",
+  "entry_path": "/assets/index-C1WMMJOg.js",
+  "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+  "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+  "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+}

@@ -1,0 +1,57 @@
+{
+  "format": "squad-final-web-reconciliation/v1",
+  "measured_at": "2026-11-09T07:13:00.775732+00:00",
+  "accepted_percent": 100,
+  "remaining_internal_percent": 0,
+  "release": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "https://scottdashboard.vercel.app",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+    "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+  },
+  "persona_evidence": {
+    "path": "evidence/release-141-93f8f66-personas.json",
+    "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+  },
+  "incident_evidence": {
+    "path": "evidence/staging-recovery-141.json",
+    "sha256": "8d777a8e525461e7b9ebc219130dd96ad7ee31c9b5be1c08c265c34ba1b99544"
+  },
+  "milestone_weights_unchanged": true,
+  "last_awarded_milestone": "whole_application_release",
+  "last_awarded_weight": 4,
+  "row_counts": {
+    "workflow_rows": 115,
+    "hosted_browser_partial_rows": 100,
+    "hosted_backend_scoped_rows": 83,
+    "prepared_check_rows": 52,
+    "not_applicable": 2,
+    "current_local_sql_tests": 2529,
+    "current_deployed_accepted_rows": 0,
+    "counts_are_not_completion_percentage": true,
+    "finite_internal_release_rows_satisfied": 113,
+    "released_artifact_bound_rows": 115,
+    "deployed_shared_screen_read_rows": 99,
+    "whole_deployed_workflow_replays_claimed": 0,
+    "completion_basis": "Fixed weighted milestone gates; row partial/read counts are not percentage completion."
+  },
+  "actors": 14,
+  "no_application_changes": true,
+  "all_workflow_role_permutations_claimed": false,
+  "production_write_cutover_claimed": false,
+  "human_uat_complete_claimed": false,
+  "docs_files": [
+    "final-web-handoff.md",
+    "final-web-handoff.json",
+    "release-execution-ledger.json",
+    "release-execution-ledger.csv",
+    "persona-web-coverage.csv",
+    "workflow-web-coverage.csv",
+    "implementation-progress.json",
+    "release-exit-criteria.json",
+    "release-execution-gates.md",
+    "README.md"
+  ]
+}

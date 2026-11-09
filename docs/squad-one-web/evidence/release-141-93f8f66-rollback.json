@@ -1,0 +1,13 @@
+{
+  "format": "squad-live-rollback-reference/v1",
+  "measured_at": "2026-11-09T06:13:16.619995+00:00",
+  "base": "https://scottdashboard.vercel.app",
+  "entry_path": "/assets/index-Dvz8lOpT.js",
+  "entry_sha256": "12ee7bab7279d067e0ab9a6a66e29795cd52b54d179c7a17bf2e1aef4b7b7966",
+  "git_commit": "34f207383d8be4e8b4110e80d8b4ddfc6de3788a",
+  "github_deployment_id": 7639459441,
+  "deployment_id": "dpl_F4VMg1n1ynwymVLbvukeXFgp6rvW",
+  "immutable_url": "https://scottdashboard-j1bf5rh6x-mayur8291s-projects.vercel.app",
+  "provenance": "Prior GitHub Production deployment successful at this commit; actual live bytes captured before release.",
+  "rollback": "Restore this reviewed frontend revision via a new normal Git revert commit or Vercel deployment promotion if access available; do not reverse compatible additive backend migrations or refresh data."
+}

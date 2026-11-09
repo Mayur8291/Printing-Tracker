@@ -1,7 +1,7 @@
 {
-  "measurement": "Weighted completed acceptance milestones; partial evidence is displayed separately and does not inflate accepted weight. Built scope, local proof, hosted backend and browser outcomes remain distinct.",
-  "accepted_percent": 96,
-  "remaining_percent": 4,
+  "measurement": "100% of the approved fixed internal web implementation/release milestones; external gates and scoped-evidence limits are not represented as completed human UAT or all workflow/role permutations.",
+  "accepted_percent": 100,
+  "remaining_percent": 0,
   "milestones": [
     {
       "id": "persona_entry",
@@ -255,7 +255,7 @@
     {
       "id": "whole_application_release",
       "weight_percent": 4,
-      "status": "partial_evidence",
+      "status": "passed",
       "evidence": [
         "evidence/backend-regression-139.json",
         "evidence/accessibility-local.json",
@@ -266,7 +266,11 @@
         "evidence/tracker-colors-acceptance.json",
         "evidence/tracker-colors-776b6d12-visual-review.json",
         "evidence/staging-release-141.json",
-        "evidence/read-performance-141.json"
+        "evidence/read-performance-141.json",
+        "evidence/release-141-93f8f66-personas.json",
+        "evidence/release-141-93f8f66-tracker.json",
+        "evidence/release-141-93f8f66-static-verification.json",
+        "evidence/staging-recovery-141.json"
       ],
       "partial_evidence": [
         "Full139 local2529 tests pass",
@@ -280,11 +284,9 @@
         "Production now matches staging at141 migrations and all four checked Edge artifacts. Guarded apply protected86source tables/public structure and restored exact schedules. Endpoint and refresh catalog checks pass. Strict platform parity remains false only for pre-existing pg_net0.20.0/0.20.3; managed upgrade is separate. This does not imply deployed frontend or native Safari acceptance.",
         "Native Safari staged Customer login/reload/normal exact-byte media download/Home valid and reversed date/reset/logout passed; separately reproduced dialog focus-return bug corrected and verified through pointer, keyboard and Close in actual native Safari local React fixture. Final deployed release still pending."
       ],
-      "remaining_exit_groups": [
-        "EXIT-07",
-        "EXIT-08"
-      ],
-      "accepted_weight_percent": 0
+      "remaining_exit_groups": [],
+      "accepted_weight_percent": 4,
+      "acceptance_basis": "Unchanged finite EXIT-07/08 requirements satisfied: exact live artifact/backend bindings, scoped browser/security/performance evidence, live Tracker and 11 persona reads, exact cleanup, rollback and 115-row / 14-actor handoff. External ownership/provider/data/platform/human UAT remain explicit; not full permutation or production-write acceptance."
     }
   ],
   "external_dependencies": [
@@ -584,7 +586,9 @@
       "migration_verification_evidence": "evidence/production-release-preflight-141.json",
       "migration_verified_at": "2026-11-09T04:48:11.798964+00:00",
       "pending_reviewed_migrations": 28,
-      "verification_scope": "Applied migration prefix113 names and bodies verified read-only against141 manifest; full production parity, ownership/environment and release verification remain pending."
+      "verification_scope": "Applied migration prefix113 names and bodies verified read-only against141 manifest; full production parity, ownership/environment and release verification remain pending.",
+      "historical_baseline_only": true,
+      "superseded_by": "evidence/production-release-141.json and evidence/production-edge-release-141.json"
     },
     "backend_application_parity141": {
       "evidence": "evidence/application-parity-141.json",
@@ -643,8 +647,102 @@
       "only_two_focus_source_changes": true,
       "anonymous_startup_verified": true,
       "deployed_acceptance": false
+    },
+    "live_release93f8f66": {
+      "release": {
+        "format": "squad-reviewed-deployed-frontend/v1",
+        "base": "https://scottdashboard.vercel.app",
+        "entry_path": "/assets/index-C1WMMJOg.js",
+        "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+        "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+        "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+      },
+      "receipts": {
+        "frontend": {
+          "path": "evidence/release-141-93f8f66-frontend.json",
+          "sha256": "c52f405f58290a8d7a7a584094d31f2d056c80831a4b30e15acba424578097db"
+        },
+        "provenance": {
+          "path": "evidence/release-141-93f8f66-provenance.json",
+          "sha256": "a38422b170b390bf29a99ff2da941c573e47fcbec0053ee56ff44569613a5896"
+        },
+        "rollback": {
+          "path": "evidence/release-141-93f8f66-rollback.json",
+          "sha256": "3278bcaba8be786532692f17fd228e14035f9f0e2353917cd789c3cac3d627fb"
+        },
+        "preview-protected": {
+          "path": "evidence/release-141-93f8f66-preview-protected.json",
+          "sha256": "6683ac3e02b4d78c13833a104b6bca2a78caaf725987707e4779dc7a71ec5f7c"
+        },
+        "anonymous": {
+          "path": "evidence/release-141-93f8f66-anonymous.json",
+          "sha256": "859a9088dc7a9731d8b20d710b21919acfd72a0c3b6ab1399506a53d4e20ed93"
+        },
+        "static-code": {
+          "path": "evidence/release-141-93f8f66-static-code.json",
+          "sha256": "1a4938fac6ac844d22f159597855423927db663e276f1a8c8cc2b3e77657205a"
+        },
+        "static-verification": {
+          "path": "evidence/release-141-93f8f66-static-verification.json",
+          "sha256": "d7af6e1f98b053bb1000e83296a0c6e13b903fb60baf7306efec4f254a15fe97"
+        },
+        "tracker": {
+          "path": "evidence/release-141-93f8f66-tracker.json",
+          "sha256": "60365c243020f264a578901c668678348147e87195bf5d5f35bf5f4fae543543"
+        },
+        "tracker-review": {
+          "path": "evidence/release-141-93f8f66-tracker-review.json",
+          "sha256": "58e74fff7495118cc644d412939a86f2b212d4f89e54757e54fa1d2364553a75"
+        },
+        "summary": {
+          "path": "evidence/release-141-93f8f66-summary.json",
+          "sha256": "cd3b5fa8b34f4d7d68504488522af56bd3ba760687bcac2ce194126e38cb13e8"
+        }
+      },
+      "anonymous_passed": 6,
+      "all46_generated_code_assets_match": true,
+      "tracker_checks_passed": 16,
+      "persona_read_cleanup_pending": false,
+      "ownership_changed": false,
+      "persona_read_evidence": {
+        "path": "evidence/release-141-93f8f66-personas.json",
+        "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f"
+      },
+      "persona_routes": 102,
+      "persona_keyboard_checks": 34,
+      "staging_incident_recovery": {
+        "path": "evidence/staging-recovery-141.json",
+        "sha256": "8d777a8e525461e7b9ebc219130dd96ad7ee31c9b5be1c08c265c34ba1b99544"
+      },
+      "source_frozen": true
+    },
+    "final_handoff": {
+      "path": "final-web-handoff.json",
+      "actor_journeys": 14,
+      "login_personas": 11,
+      "managed_subjects": 2,
+      "tracker_staff_lane": 1,
+      "actual_runtime_default": "staging",
+      "business_ownership": "mirror",
+      "human_uat_claimed_complete": false
     }
   },
   "finite_exit_criteria": "release-exit-criteria.json",
-  "execution_ledger": "release-execution-ledger.json"
+  "execution_ledger": "release-execution-ledger.json",
+  "execution_ledger_summary": {
+    "workflow_rows": 115,
+    "hosted_browser_partial_rows": 100,
+    "hosted_backend_scoped_rows": 83,
+    "prepared_check_rows": 52,
+    "not_applicable": 2,
+    "current_local_sql_tests": 2529,
+    "current_deployed_accepted_rows": 0,
+    "counts_are_not_completion_percentage": true,
+    "finite_internal_release_rows_satisfied": 113,
+    "released_artifact_bound_rows": 115,
+    "deployed_shared_screen_read_rows": 99,
+    "whole_deployed_workflow_replays_claimed": 0,
+    "completion_basis": "Fixed weighted milestone gates; row partial/read counts are not percentage completion."
+  },
+  "historical_evidence_note": "Milestone partial_evidence entries and historical baseline verification objects retain their original checkpoint wording. Current status is given by accepted_percent, milestone status/acceptance_basis and current live/backend receipts; older pending notes are not current blockers."
 }

@@ -1,0 +1,252 @@
+{
+  "format": "squad-final-followup-publication-review/v1",
+  "reviewed_parent_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+  "scope": "Final release evidence, handoff and test-only diagnostics/integrity tooling; no application, backend, package or deployment change.",
+  "approved_exact_files": [
+    {
+      "path": "docs/squad-one-audit/BACKEND_PARITY.md",
+      "sha256": "1bcb462d8c35ac03763c91aeada23345d6d185d60511fc33681fd6a1891427c9",
+      "bytes": 12902
+    },
+    {
+      "path": "docs/squad-one-web/README.md",
+      "sha256": "e8be76ca62f7973adec0c9f7bec74c77fe160275bdf06df474290e462750f8c2",
+      "bytes": 2547
+    },
+    {
+      "path": "docs/squad-one-web/evidence/final-web-release-reconciliation.json",
+      "sha256": "0f8563f5c83c98698033a475a8d75abad5c4a69917b4b620d7b1a1e770dc7c9d",
+      "bytes": 2129
+    },
+    {
+      "path": "docs/squad-one-web/evidence/firefox-failed-personas-diagnostic-preparation.json",
+      "sha256": "d6a20b1dba05105b2337ee06ff7201e55e7774d86b20bde09f18d5c1a3ec8934",
+      "bytes": 2759
+    },
+    {
+      "path": "docs/squad-one-web/evidence/firefox-roles-10-11-12-diagnostic.json",
+      "sha256": "3545649404d02a81e3a418e03cadef16c80dfb0e5efe5b84494f1b34e5cf04fd",
+      "bytes": 2927
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-anonymous.json",
+      "sha256": "859a9088dc7a9731d8b20d710b21919acfd72a0c3b6ab1399506a53d4e20ed93",
+      "bytes": 4746
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-frontend.json",
+      "sha256": "c52f405f58290a8d7a7a584094d31f2d056c80831a4b30e15acba424578097db",
+      "bytes": 347
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-original-personas-recovery.json",
+      "sha256": "905adb2818ad05d52eb932eb841e122ef0e3f862dd7813db7165fd012b926f17",
+      "bytes": 1644
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-personas.json",
+      "sha256": "ab921754220ad34ebac633bec409d2e393ec9cc0ef744447f3f0fba65184941f",
+      "bytes": 12053
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-preview-protected.json",
+      "sha256": "6683ac3e02b4d78c13833a104b6bca2a78caaf725987707e4779dc7a71ec5f7c",
+      "bytes": 540
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-provenance.json",
+      "sha256": "a38422b170b390bf29a99ff2da941c573e47fcbec0053ee56ff44569613a5896",
+      "bytes": 1937
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-rollback.json",
+      "sha256": "3278bcaba8be786532692f17fd228e14035f9f0e2353917cd789c3cac3d627fb",
+      "bytes": 860
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-static-code.json",
+      "sha256": "1a4938fac6ac844d22f159597855423927db663e276f1a8c8cc2b3e77657205a",
+      "bytes": 8610
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-static-verification.json",
+      "sha256": "d7af6e1f98b053bb1000e83296a0c6e13b903fb60baf7306efec4f254a15fe97",
+      "bytes": 1425
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-summary.json",
+      "sha256": "cd3b5fa8b34f4d7d68504488522af56bd3ba760687bcac2ce194126e38cb13e8",
+      "bytes": 3528
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-tracker-review.json",
+      "sha256": "58e74fff7495118cc644d412939a86f2b212d4f89e54757e54fa1d2364553a75",
+      "bytes": 1641
+    },
+    {
+      "path": "docs/squad-one-web/evidence/release-141-93f8f66-tracker.json",
+      "sha256": "60365c243020f264a578901c668678348147e87195bf5d5f35bf5f4fae543543",
+      "bytes": 3594
+    },
+    {
+      "path": "docs/squad-one-web/evidence/source-fingerprint-streaming-local.json",
+      "sha256": "ba1b8885ff4804d9745334fdcd7cf066b04db9928ebf85049fe35d3e30d4b831",
+      "bytes": 3329
+    },
+    {
+      "path": "docs/squad-one-web/evidence/staging-health-dashboard-20261109.json",
+      "sha256": "d54b7899771af5449c3b59d0432bcc584186c42fb3f19c4cbcb7d6377857724c",
+      "bytes": 2182
+    },
+    {
+      "path": "docs/squad-one-web/evidence/staging-health-recheck-141.json",
+      "sha256": "d559da08cc8373503a47e654045c7144311190b075d2a2bfea73a5531cbe7daf",
+      "bytes": 705
+    },
+    {
+      "path": "docs/squad-one-web/evidence/staging-recovery-141.json",
+      "sha256": "8d777a8e525461e7b9ebc219130dd96ad7ee31c9b5be1c08c265c34ba1b99544",
+      "bytes": 4133
+    },
+    {
+      "path": "docs/squad-one-web/evidence/tracker-read-140.json",
+      "sha256": "adb6b7c4eb234693cc43628ab9d767172d4891acbb96a4b797f1c67dc68b5ace",
+      "bytes": 6549
+    },
+    {
+      "path": "docs/squad-one-web/evidence/tracker-read-acceptance.json",
+      "sha256": "60365c243020f264a578901c668678348147e87195bf5d5f35bf5f4fae543543",
+      "bytes": 3594
+    },
+    {
+      "path": "docs/squad-one-web/final-web-handoff.json",
+      "sha256": "e2a39139cca460cecd38b3d7fbb534f99effc71a85a45b4ed909d616a65808bd",
+      "bytes": 33283
+    },
+    {
+      "path": "docs/squad-one-web/final-web-handoff.md",
+      "sha256": "dd0e3851b9d3257620a48c3ab543948f2c4ce002e5027f7121f9a53e9c69c4cf",
+      "bytes": 6632
+    },
+    {
+      "path": "docs/squad-one-web/implementation-progress.json",
+      "sha256": "24fa05facfd50c47e36f98021f001d61651ce4cdd5d405add9b7fd25a15e49be",
+      "bytes": 43194
+    },
+    {
+      "path": "docs/squad-one-web/persona-web-coverage.csv",
+      "sha256": "feb73efcc05a36a81d6cffcc1f24e91a7330bd559f841da94660d267767680e8",
+      "bytes": 6438
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-gates.md",
+      "sha256": "0e3045372ac56536e48909c1132386d2b999a4fc963b54b03a0a3cab9c3501e9",
+      "bytes": 18216
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.csv",
+      "sha256": "68a5c34a8347e751ce0e0db7d485a0c46bae8479e6fe54c5ac2904c4bbe813d6",
+      "bytes": 382180
+    },
+    {
+      "path": "docs/squad-one-web/release-execution-ledger.json",
+      "sha256": "878b41d612e268952143a01022fceda9ffd0ee76fc90276e8fd7135f7971783a",
+      "bytes": 732172
+    },
+    {
+      "path": "docs/squad-one-web/release-exit-criteria.json",
+      "sha256": "cb6700b69d1df12c55718e17e58345b89956e2a34338e68aea87969fd46f73c3",
+      "bytes": 39909
+    },
+    {
+      "path": "docs/squad-one-web/workflow-web-coverage.csv",
+      "sha256": "a7d7b63c6ad8498df14e3f00500f067af0c19c8e5991bd2a25e77706729d2a1a",
+      "bytes": 125154
+    },
+    {
+      "path": "tools/squad/browser-auth-diagnostic.mjs",
+      "sha256": "a67cab650ac0027cd85e346e2b57bdfc918f3dcb88f544852ea4934961233c48",
+      "bytes": 5499
+    },
+    {
+      "path": "tools/squad/browser-auth-diagnostic.test.mjs",
+      "sha256": "6a9546ada89bad09153e426f2238863b9f698326579b2dd4bc6ca3c43533a722",
+      "bytes": 4586
+    },
+    {
+      "path": "tools/squad/profile_source_fingerprint_streaming.py",
+      "sha256": "b81229fc17b2e1de04503d7299ad15e38ddd8cbf01f94d25ce54f0a781adab36",
+      "bytes": 1924
+    },
+    {
+      "path": "tools/squad/test_deployed_persona_consolidation.py",
+      "sha256": "ba085d8f369ff102bbe4f304e9a89bccf59685391afb7a963938e0dcd635c1be",
+      "bytes": 5612
+    },
+    {
+      "path": "tools/squad/test_hosted_business_journeys.py",
+      "sha256": "c3626a0e56cf76c37300550148426f4e4454d5b16cadbaf4c30a4f5e2da57806",
+      "bytes": 30393
+    },
+    {
+      "path": "tools/squad/test_source_fingerprint_streaming.py",
+      "sha256": "d0a3cb982e8d65c3822fe749593b020fc26ede0a71d86cf06d9aa581ce062247",
+      "bytes": 11745
+    },
+    {
+      "path": "tools/squad/test_web_cross_browser_harness.py",
+      "sha256": "09b885d15bdd3c4f4b67dd3296e2d62472baffafba9a8ef3923067e33032793e",
+      "bytes": 22411
+    },
+    {
+      "path": "tools/squad/test_web_cross_browser_hosted.py",
+      "sha256": "718ea6df118bc47e999b038a0259836be2bf7f6d04201537ac4b8f14e8cbeb1e",
+      "bytes": 15301
+    },
+    {
+      "path": "tools/squad/verify_deployed_persona_consolidation.py",
+      "sha256": "195cceb0d2be74c5e965145d0070ede985d84db0b5c039c2e5d51ebd0756bb42",
+      "bytes": 11318
+    },
+    {
+      "path": "tools/squad/web-cross-browser-hosted.mjs",
+      "sha256": "0892c47de4a9e64e2403cd85ec2dc8a7f639d6a7f419a44cca60a5949f1305d8",
+      "bytes": 11914
+    }
+  ],
+  "checks": {
+    "reviewed_files": 42,
+    "direct_public_path_hash_references_verified": 149,
+    "privacy_pattern_findings": 0,
+    "secret_marker_findings": 0,
+    "historical_tracker_archive_exact_to_parent": true,
+    "workflow_rows": 115,
+    "retained_rows": 113,
+    "actors": 14,
+    "hosted_browser_partial_rows": 100,
+    "deployed_personas": 11,
+    "deployed_routes": 102,
+    "deployed_core_checks": 34,
+    "whole_deployed_workflow_replays_claimed": 0,
+    "remaining_internal_gate_ids": 0,
+    "index_empty_at_review": true,
+    "excluded_paths": 1195
+  },
+  "independent_review": [
+    "Final finite eight-group release criteria are satisfied by their recorded scoped evidence; completion is not inferred from row counts or every possible role/workflow permutation.",
+    "Same-build persona consolidation retains the failed original cohort and the disjoint successful eight-plus-three role selection, with both exact cleanup receipts.",
+    "Firefox diagnostics retain only bounded numeric timing and fixed contract/role classifications; no token, request body, signed URL, customer record or raw browser output is included.",
+    "The source-integrity streaming change preserves the original digest/count/max arithmetic and one-statement snapshot; reviewed local equivalence, single-hash and cleanup/lifecycle regressions are recorded separately.",
+    "The consolidation verifier binds exact release, policy, roles, route/core-check counts and cleanup authority; subset success alone cannot assert full acceptance.",
+    "Historical pending/failure evidence remains unchanged. The legacy Tracker receipt is archived byte-for-byte from the parent revision; current evidence points to immutable release receipts.",
+    "Actual customer screenshots, raw logs, private artifacts, credentials, dependencies, generated build output and temporary files remain excluded."
+  ],
+  "limits": [
+    "Vercel Production deployment retains the verified staging default; mirror ownership and external activation gates remain.",
+    "User-deferred Uniware/provider rehearsal and its separate checkpoint are not removed or represented as complete.",
+    "Human production UAT, full role permutation replay, load SLA, WCAG certification and production write cutover are not claimed.",
+    "The managed pg_net patch difference and unisolated staging service incident remain explicit; one restart is recorded without resize or purchase.",
+    "Final documentation/test-tooling commit is feature-branch-only and does not redeploy or modify the tested live source.",
+    "Bounded pattern scanning supplements content review and is not a universal secret/PII certification. This receipt does not approve its own bytes."
+  ]
+}

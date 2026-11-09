@@ -75,11 +75,39 @@ class CrossBrowserHarness(unittest.TestCase):
         self.events.append('browser');self.payloads.append(copy.deepcopy(payload));engine=payload['browser_engines'][0]
         self.assertEqual(command,['node','tools/squad/web-cross-browser-hosted.mjs']);self.assertEqual(timeout,720)
         self.assertNotIn('rmpClassId',payload['fixture']['ids']);self.assertIn('rmpClassId',payload['fixture']['commercialExtras'])
-        roles=[{**({'entry_sha256':payload['frontend']['entry_sha256']} if 'frontend' in payload else {}),'role':r,'routes':[{'route':'/squad/home','issues':[]}],'errors':[],
-                'checks':['skip_link_keyboard_focus','mobile_keyboard_menu_navigation','profile_control_edit_without_submit']+(['dialog_tab_trap_escape_focus_return'] if r==0 else [])} for r in business.identities.ROLES]
+        selected_roles=payload.get('diagnostic',{}).get('roles',business.identities.ROLES)
+        diagnostic_fields={'diagnostic':payload['diagnostic'],'allPersonasPassed':False} if payload.get('diagnostic') else {}
+        roles=[{**({'auth_diagnostic':{'format':'squad-auth-lock-diagnostic/v1','role':r,'locks':[],'requests':[]}} if payload.get('diagnostic') else {}),**({'entry_sha256':payload['frontend']['entry_sha256']} if 'frontend' in payload else {}),'role':r,'routes':[{'route':'/squad/home','issues':[]}],'errors':[],
+                'checks':['skip_link_keyboard_focus','mobile_keyboard_menu_navigation','profile_control_edit_without_submit']+(['dialog_tab_trap_escape_focus_return'] if r==0 else [])} for r in selected_roles]
         destination=business.PRIVATE/f'web-cross-browser-{payload["run_id"]}'/'report.json';destination.parent.mkdir()
-        destination.write_text(json.dumps({**({'frontend':payload['frontend']} if 'frontend' in payload else {}),'failures':[],'engines':[{'name':engine,'version':'test-engine','roles':roles,'networkViolations':[]}]}))
-        return {**({'frontend':payload['frontend']} if 'frontend' in payload else {}),'passed':True,'failureGroups':0,'report':str(destination),'engines':[{'name':engine,'version':'test-engine','roles':11,'routes':11}]}
+        destination.write_text(json.dumps({**diagnostic_fields,**({'frontend':payload['frontend']} if 'frontend' in payload else {}),'failures':[],'engines':[{'name':engine,'version':'test-engine','roles':roles,'networkViolations':[]}]}))
+        return {**diagnostic_fields,**({'frontend':payload['frontend']} if 'frontend' in payload else {}),'passed':True,'failureGroups':0,'report':str(destination),'engines':[{'name':engine,'version':'test-engine','roles':len(selected_roles),'routes':len(selected_roles)}]}
+    def test_fixed_diagnostic_only_exercises_three_but_cleans_full_fixture(self):
+        original=self.folder/'original-eleven-role-failure.json';original.write_text('{"failed":true}')
+        runner.run(execute=True,diagnostic_failed_roles=True)
+        self.assertEqual([a['role'] for a in self.payloads[0]['actors']],[10,11,12])
+        self.assertEqual(len(self.credentials),11);self.assertTrue(all(not a['password'] for a in self.credentials))
+        self.clean.assert_called_once();self.assertFalse(business.CHECKPOINT.exists())
+        report=json.loads((runner.EVIDENCE/'firefox-roles-10-11-12-diagnostic.json').read_text())
+        self.assertEqual(report['personas'],3);self.assertFalse(report['all_personas_passed'])
+        self.assertEqual(report['diagnostic'],runner.DIAGNOSTIC)
+        self.assertFalse((runner.EVIDENCE/'firefox-acceptance.json').exists())
+        self.assertEqual(original.read_text(),'{"failed":true}')
+    def test_diagnostic_cannot_claim_all_personas_passed(self):
+        state=self.marked();state['web_cross_browser']['engine']='firefox';state['web_cross_browser']['diagnostic']=runner.DIAGNOSTIC
+        self.do_prepare(self.connection,state)
+        result=self.browser(['node','tools/squad/web-cross-browser-hosted.mjs'],runner.payload_for(state,self.credentials,'anon'),None,None,720,None)
+        result['allPersonasPassed']=True
+        with self.assertRaisesRegex(AssertionError,'Subset cannot claim'):runner.bind_result(state,result)
+    def test_diagnostic_wrong_scope_or_engine_refuses(self):
+        self.marked()['web_cross_browser']['diagnostic']={**runner.DIAGNOSTIC,'roles':[10,11]}
+        with self.assertRaises(AssertionError):runner.validate(self.state)
+        with self.assertRaises(AssertionError):runner.run(execute=True,engine='webkit',diagnostic_failed_roles=True)
+        self.prepare.assert_not_called()
+    def test_fixed_diagnostic_recovery_retains_marker_and_cleans_all(self):
+        state=self.marked();state['web_cross_browser']['engine']='firefox';state['web_cross_browser']['diagnostic']=runner.DIAGNOSTIC
+        business.save(state);runner.run(recover=True)
+        self.clean.assert_called_once();self.child.assert_not_called();self.assertFalse(business.CHECKPOINT.exists())
     def test_deployed_receipt_survives_payload_result_cleanup_and_evidence(self):
         from test_deployed_frontend_manifest import RELEASE,BASE
         release_file=self.folder/'release.json';release_file.write_text(json.dumps(RELEASE))

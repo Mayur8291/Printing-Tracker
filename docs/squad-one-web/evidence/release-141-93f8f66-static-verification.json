@@ -1,0 +1,29 @@
+{
+  "format": "squad-release-static-verification-supplement/v1",
+  "reviewed_at": "2026-11-09T06:24:17.877672+00:00",
+  "release": {
+    "format": "squad-reviewed-deployed-frontend/v1",
+    "base": "https://scottdashboard.vercel.app",
+    "entry_path": "/assets/index-C1WMMJOg.js",
+    "entry_sha256": "19968c448f6a0b207eb4ee83566e2d5886ac5c97e0f637230e6dcc4587a504db",
+    "git_commit": "93f8f66a48885edcd6150853189fe4c7529639fa",
+    "deployment_id": "dpl_Fqy14pKC3xbP2Bm5wL9S1Bd3ojDh"
+  },
+  "passed": true,
+  "generated_js_css_files": 46,
+  "bytes_verified": 6475418,
+  "file_inventory_matches_accepted_local_manifest": true,
+  "all_listed_live_asset_hashes_match_accepted_local_build": true,
+  "includes_lazy_loaded_code": true,
+  "receipt": {
+    "path": "docs/squad-one-web/evidence/release-141-93f8f66-static-code.json",
+    "sha256": "1a4938fac6ac844d22f159597855423927db663e276f1a8c8cc2b3e77657205a"
+  },
+  "updates_snapshot_field": {
+    "path": "docs/squad-one-web/evidence/release-141-93f8f66-summary.json",
+    "field": "all_generated_assets_verified",
+    "now": "passed"
+  },
+  "provenance_limit": "This strengthens public live bytes\u2192accepted local build binding for every generated JS/CSS asset. It does not turn the protected immutable Vercel URL or API-level alias attribution into verified evidence.",
+  "authenticated_smoke": "Separate parent-owned runs pending at this review; no pass inferred."
+}
