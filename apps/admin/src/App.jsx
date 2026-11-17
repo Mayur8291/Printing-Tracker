@@ -21,6 +21,11 @@ import ProductionTrackerPanel, {
   TRACKER_LIST_ACTIVE,
   TRACKER_LIST_COMPLETE
 } from "./ProductionTrackerPanel";
+import ProductionTrackerSummary from "./ProductionTrackerSummary";
+import {
+  filterTrackerJobsBySearch,
+  productionTrackerMetrics
+} from "./productionTrackerMetrics";
 import TeamChatPanel from "./TeamChatPanel";
 import { usePublishDashboardPresence } from "./dashboardPresence";
 import ContactBookPanel from "./ContactBookPanel";
@@ -834,6 +839,8 @@ function App() {
   const [productionSubTab, setProductionSubTab] = useState(PRODUCTION_SUBTAB);
   const [productionListTab, setProductionListTab] = useState(TRACKER_LIST_ACTIVE);
   const [samplingListTab, setSamplingListTab] = useState(TRACKER_LIST_ACTIVE);
+  const [productionSearchQuery, setProductionSearchQuery] = useState("");
+  const [samplingSearchQuery, setSamplingSearchQuery] = useState("");
   const dashboardTabRef = useRef(readStoredDashboardTab());
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
@@ -2692,6 +2699,7 @@ function App() {
       is_production_order: !isSampleJobSheet,
       status: isSampleJobSheet ? "pattern_making" : "quotation_approval",
       customer_name: formSnapshot.customer_name.trim(),
+      customer_po_number: String(formSnapshot.customer_po_number ?? "").trim() || null,
       sales_incharge_name: formSnapshot.sales_incharge_name,
       coordinator_name: formSnapshot.sales_incharge_name,
       owner_name: "",
@@ -2760,6 +2768,7 @@ function App() {
       : createPendingProductionOrder({
           orderId: payload.order_id,
           customerName: payload.customer_name,
+          customerPoNumber: payload.customer_po_number,
           productName: payload.product_name,
           coordinatorName: payload.coordinator_name,
           dueDate: payload.due_date,
@@ -2847,7 +2856,9 @@ function App() {
       }
 
       if (insertError) {
-        if (insertError.message?.includes("orders_order_kind_check")) {
+        if (insertError.message?.includes("orders_customer_po_number_uidx")) {
+          alert("That customer PO number is already used on another job. Enter a different PO.");
+        } else if (insertError.message?.includes("orders_order_kind_check")) {
           alert(
             isSampleJobSheet
               ? "Sample job sheet order type is not enabled on the database. Apply migration 20260831060510_add_order_kind_sample_job_sheet.sql on staging."
@@ -4561,10 +4572,18 @@ function App() {
 
   const productionTrackerOrdersWithPending = useMemo(
     () =>
-      productionListTab === TRACKER_LIST_COMPLETE
-        ? productionTrackerOrders
-        : mergePendingOrders(pendingOrders, productionTrackerOrders, "production_tracker"),
-    [pendingOrders, productionTrackerOrders, productionListTab]
+      filterTrackerJobsBySearch(
+        productionListTab === TRACKER_LIST_COMPLETE
+          ? productionTrackerOrders
+          : mergePendingOrders(pendingOrders, productionTrackerOrders, "production_tracker"),
+        productionSearchQuery
+      ),
+    [pendingOrders, productionTrackerOrders, productionListTab, productionSearchQuery]
+  );
+
+  const productionTrackerSummary = useMemo(
+    () => productionTrackerMetrics(ordersInDateRangeAll, todayLocalISODate()),
+    [ordersInDateRangeAll]
   );
 
   const sampleJobSheetOrders = useMemo(
@@ -4575,10 +4594,13 @@ function App() {
 
   const sampleJobSheetOrdersWithPending = useMemo(
     () =>
-      samplingListTab === TRACKER_LIST_COMPLETE
-        ? sampleJobSheetOrders
-        : mergePendingOrders(pendingOrders, sampleJobSheetOrders, "sampling_tracker"),
-    [pendingOrders, sampleJobSheetOrders, samplingListTab]
+      filterTrackerJobsBySearch(
+        samplingListTab === TRACKER_LIST_COMPLETE
+          ? sampleJobSheetOrders
+          : mergePendingOrders(pendingOrders, sampleJobSheetOrders, "sampling_tracker"),
+        samplingSearchQuery
+      ),
+    [pendingOrders, sampleJobSheetOrders, samplingListTab, samplingSearchQuery]
   );
 
   const billingOrders = useMemo(
@@ -6274,6 +6296,10 @@ function App() {
                   }
                   orders={sampleJobSheetOrdersWithPending}
                   loadingOrders={loadingOrders}
+                  showSearch
+                  searchQuery={samplingSearchQuery}
+                  onSearchQueryChange={setSamplingSearchQuery}
+                  searchPlaceholder="Sample ID, customer, product…"
                   dateFrom={dateFrom}
                   dateTo={dateTo}
                   onDateFromChange={setDateFrom}
@@ -6324,9 +6350,14 @@ function App() {
                 />
               }
             >
+              <ProductionTrackerSummary metrics={productionTrackerSummary} />
               <LinkedOrdersTabPanel
                 tabTitle="Production Tracker"
-                paginationKey={`production-tracker-${productionListTab}`}
+                paginationKey={`production-tracker-${productionListTab}-${productionSearchQuery.trim()}`}
+                showSearch
+                searchQuery={productionSearchQuery}
+                onSearchQueryChange={setProductionSearchQuery}
+                searchPlaceholder="Job ID, customer, product, PO…"
                 summaryLabel={
                   productionListTab === TRACKER_LIST_COMPLETE
                     ? "Complete production jobs"

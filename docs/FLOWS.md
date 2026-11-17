@@ -1,5 +1,16 @@
 # Flows
 
+## Production tracker counts and customer PO
+
+1. **Trigger:** Sidebar **Production tracker**.
+2. **Entry:** `ProductionTrackerSummary` reads the orders already loaded for the date range. The list below is the same production job sheets, filtered by the search box.
+3. **Counts:** Total, new (`quotation_approval`), in production (inward through QC), sourcing, packaging, ready, completed (`is_complete`), and delayed (due date before today and not complete). Pending samples are open `sample_job_sheet` rows. Cancelled rows are left out. There is no separate printing count. Printing stays on Printing orders.
+4. **Search:** Job ID, customer, product, brand, and customer PO. Sampling search uses the same fields for sample ID, customer, and product. Header search also matches the PO.
+5. **Create:** Create Job sheet. Customer PO number is optional. Save writes `orders.customer_po_number`. A duplicate PO is rejected by `orders_customer_po_number_uidx`.
+6. **Database:** `orders` only. No new jobs table.
+7. **Failure:** Duplicate PO shows an alert and the job is not saved. A blank PO is stored as null.
+8. **Exit:** The new job appears on All orders with the PO under the customer name. Opening it uses the existing view-order screen.
+
 ## Asset Management (IT register)
 
 1. **Trigger:** sidebar Tools → **Asset Management** (`dashboardTab === "asset_management"`).

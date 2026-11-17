@@ -28,6 +28,8 @@ export function orderMatchesGlobalQuery(order, query) {
     order.customer_name,
     order.coordinator_name,
     order.product_name,
+    order.customer_po_number,
+    order.brand,
     order.owner_name,
     order.status,
     STAGE_LABEL[order.status],

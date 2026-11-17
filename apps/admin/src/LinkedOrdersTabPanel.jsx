@@ -54,7 +54,11 @@ export default function LinkedOrdersTabPanel({
   dateColumnLabel = "Delivery date",
   getDateValue,
   viewOrderLabel = "View order",
-  toolbarActions = null
+  toolbarActions = null,
+  showSearch = false,
+  searchQuery = "",
+  onSearchQueryChange,
+  searchPlaceholder = "Job ID, customer, product, PO…"
 }) {
   const safeOrders = Array.isArray(orders) ? orders : [];
   const totalQty = safeOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
@@ -72,7 +76,7 @@ export default function LinkedOrdersTabPanel({
     pageSize,
     setPageSize,
     totalPages
-  } = usePagination(safeOrders, storageKey, `${dateFrom}|${dateTo}`);
+  } = usePagination(safeOrders, storageKey, `${dateFrom}|${dateTo}|${searchQuery}`);
 
   const colSpan = (extraColumn ? 9 : 8) - (showQty ? 0 : 1);
   const dateFn = getDateValue || ((order) => formatDeliveryDate(order.due_date));
@@ -101,6 +105,10 @@ export default function LinkedOrdersTabPanel({
         clearDatesLabel="Clear"
         pageSize={pageSize}
         onPageSizeChange={setPageSize}
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        searchPlaceholder={searchPlaceholder}
         extraActions={pinCreateEnd ? null : createJobSheetButton}
         endActions={
           toolbarActions || pinCreateEnd ? (
@@ -165,8 +173,15 @@ export default function LinkedOrdersTabPanel({
                           <OrderIdBadges orderId={order.order_id} />
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-[12rem] truncate">
-                        {order.customer_name?.trim() ? order.customer_name : "—"}
+                      <TableCell className="max-w-[12rem]">
+                        <div className="truncate">
+                          {order.customer_name?.trim() ? order.customer_name : "—"}
+                        </div>
+                        {order.customer_po_number?.trim() ? (
+                          <div className="truncate text-xs text-muted-foreground">
+                            PO {order.customer_po_number.trim()}
+                          </div>
+                        ) : null}
                       </TableCell>
                       <TableCell className="max-w-[12rem] truncate">
                         {order.product_name?.trim() ? order.product_name : "—"}

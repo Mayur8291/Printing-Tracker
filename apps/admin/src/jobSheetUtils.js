@@ -232,6 +232,8 @@ export function emptyJobSheetForm() {
 
     customer_name: "",
 
+    customer_po_number: "",
+
     gender: "",
 
     product_type: "",
@@ -385,6 +387,8 @@ export function jobSheetFormFromOrder(order, { nextOrderId, orderDate }) {
       String(order?.sales_incharge_name ?? order?.coordinator_name ?? "").trim() || "",
 
     customer_name: String(order?.customer_name ?? "").trim(),
+
+    customer_po_number: String(order?.customer_po_number ?? "").trim(),
 
     gender: String(order?.gender ?? inferred.gender ?? "").trim(),
 

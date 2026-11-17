@@ -31,6 +31,7 @@ export function createPendingPrintingOrder({
 export function createPendingProductionOrder({
   orderId,
   customerName,
+  customerPoNumber,
   productName,
   coordinatorName,
   dueDate,
@@ -44,6 +45,7 @@ export function createPendingProductionOrder({
     targetTab: "production_tracker",
     order_id: orderId || null,
     customer_name: customerName || "—",
+    customer_po_number: customerPoNumber || null,
     product_name: productName || "—",
     coordinator_name: coordinatorName || "—",
     due_date: dueDate || null,

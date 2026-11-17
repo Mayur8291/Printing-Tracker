@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-17 — Production tracker stays on the existing job sheet
+
+**Context:** A full manufacturing suite was requested, including a Next.js app and new tables for jobs, samples, procurement, billing, and dispatch. This dashboard already stores a production job as an `orders` row with `order_kind = job_sheet`, and a sample as `sample_job_sheet`. Printing, inventory, billing, and dispatch already use those rows.
+
+**Decision:** Phase 1 adds counts, search, and `orders.customer_po_number` on that job sheet. Later phases extend the same order and its activity log. Do not create a parallel `jobs` table or a separate Next.js app.
+
+**Tradeoffs:** Department names in the new spec do not all match the live stage list. The cards use the live stages. Printing as its own production stage is not counted, because that work stays on the Printing orders tab.
+
 ## 2026-11-17 — Match the shared staging branch before editing
 
 **Context:** More than one person pushes to `develop`. A checkout left on an older commit edits stale code and can miss work already on staging.

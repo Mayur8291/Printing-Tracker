@@ -1,5 +1,21 @@
 # Flowcharts
 
+## Production tracker Phase 1
+
+```mermaid
+flowchart TD
+  Tab[Production tracker] --> Orders[Loaded orders in the date range]
+  Orders --> Cards[Counts from job_sheet and sample_job_sheet]
+  Orders --> Search[Search job ID, customer, product, PO]
+  Search --> List[Production job list]
+  List --> Open[Existing view order]
+  Create[Create Job sheet] --> PO{Customer PO blank?}
+  PO -->|yes| Save[Insert orders row]
+  PO -->|no| Unique{PO already used?}
+  Unique -->|yes| Alert[Alert and do not save]
+  Unique -->|no| Save
+```
+
 ## Print cost calculator
 
 ```mermaid

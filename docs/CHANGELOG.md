@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-17 — Production tracker Phase 1 counts and customer PO
+
+- **Change:** Production tracker shows live counts for the jobs already stored on `orders`: total, new, in production, pending samples, sourcing, packaging, ready, completed, and delayed. The production and sampling lists search job ID, customer, product, and customer PO. A job sheet can store a customer PO number, and a second job cannot reuse it. The rest of the manufacturing spec stays on the existing job-sheet order. It is not a second app or a second jobs table.
+- **Files:** `apps/admin/src/ProductionTrackerSummary.jsx`, `apps/admin/src/productionTrackerMetrics.js`, `apps/admin/src/App.jsx`, `apps/admin/src/CreateJobSheetForm.jsx`, `apps/admin/src/LinkedOrdersTabPanel.jsx`, `apps/admin/src/globalSearchUtils.js`, `supabase/migrations/20261117101239_customer_po_on_orders.sql`.
+- **Migration:** Applied on staging `scvojtvgnkmbupvyslmb` only.
+- **Documentation updated:** CHANGELOG.md, DECISIONS.md, DATABASE.md, FLOWS.md, FLOWCHARTS.md, ARCHITECTURE.md.
+
 ## 2026-11-17 — Local dashboard 404 after the app moved
 
 - **Bug fix:** `http://localhost:5173/` was a blank 404 because the old Vite process was still serving the repo root after `index.html` moved to `apps/admin`. Installing the workspace packages and starting `npm run dev` again serves the sign-in page. The session sync rule now says to reinstall and restart when a pull moves the app.

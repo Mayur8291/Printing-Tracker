@@ -1048,6 +1048,8 @@ Singleton (`id = 1`). Admin tweaks Sampling Due In fallback.
 
 Job sheets: `order_kind = job_sheet`, `is_production_order = true`. Listed in **Production tracker** only (`filterProductionTrackerOrders`). Printing tab uses `filterPrintingTabOrders` to exclude `job_sheet` and `sample_job_sheet`.
 
+`orders.customer_po_number` is the customer's own PO on a job sheet. Empty for other order kinds. Unique index `orders_customer_po_number_uidx` on the trimmed lowercase value when it is not blank. Migration `20261117101239_customer_po_on_orders.sql`, applied on staging only. Rollback: drop the index, then drop the column. Existing job sheets keep a null PO.
+
 ### Printing `sent_to_dispatch` auto-complete
 
 | Column / object | Purpose |

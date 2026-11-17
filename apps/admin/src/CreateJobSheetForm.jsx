@@ -141,6 +141,15 @@ export default function CreateJobSheetForm({
         />
       </div>
       <div className="order-form-cell">
+        <Label htmlFor="job-sheet-customer-po">Customer PO number</Label>
+        <Input
+          id="job-sheet-customer-po"
+          value={form.customer_po_number ?? ""}
+          onChange={(e) => setField({ customer_po_number: e.target.value })}
+          placeholder="Optional"
+        />
+      </div>
+      <div className="order-form-cell">
         <Label htmlFor="job-sheet-gender">Gender</Label>
         <Select
           value={form.gender || undefined}
