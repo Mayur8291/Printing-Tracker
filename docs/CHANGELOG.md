@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-17 — Production tracker module sidebar
+
+- **Change:** Production tracker opens with its own module list: Dashboard, Jobsheets, Sample Cards, Production, Procurement, Billing & Invoices, Dispatch & Logistics, Follow-ups, Reports & Analytics, and Settings. Each item opens a screen that already saves data. Procurement, billing, and dispatch stay hidden unless that person can open those tabs. Reports stay admin-only. Settings shows the sample-card timing and lets an admin change it.
+- **Files:** `apps/admin/src/ProductionTrackerPanel.jsx`, `apps/admin/src/ProductionTrackerSettings.jsx`, `apps/admin/src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, ARCHITECTURE.md.
+
 ## 2026-11-17 — Production tracker Phase 1 counts and customer PO
 
 - **Change:** Production tracker shows live counts for the jobs already stored on `orders`: total, new, in production, pending samples, sourcing, packaging, ready, completed, and delayed. The production and sampling lists search job ID, customer, product, and customer PO. A job sheet can store a customer PO number, and a second job cannot reuse it. The rest of the manufacturing spec stays on the existing job-sheet order. It is not a second app or a second jobs table.

@@ -16,11 +16,16 @@ import { SampleJobSheetDueInCell } from "./SampleJobSheetDueIn";
 import { SampleJobSheetSlaProvider } from "./SampleJobSheetSlaContext";
 import SampleJobSheetSlaSettingsControl from "./SampleJobSheetSlaSettingsDialog";
 import ProductionTrackerPanel, {
-  PRODUCTION_SUBTAB,
+  PRODUCTION_TRACKER_MODULES,
   SAMPLING_SUBTAB,
   TRACKER_LIST_ACTIVE,
-  TRACKER_LIST_COMPLETE
+  TRACKER_LIST_COMPLETE,
+  TRACKER_MODULE_DASHBOARD,
+  TRACKER_MODULE_JOBSHEETS,
+  TRACKER_MODULE_PRODUCTION,
+  TRACKER_MODULE_SAMPLES
 } from "./ProductionTrackerPanel";
+import ProductionTrackerSettings from "./ProductionTrackerSettings";
 import ProductionTrackerSummary from "./ProductionTrackerSummary";
 import {
   filterTrackerJobsBySearch,
@@ -836,7 +841,7 @@ function App() {
   const [pendingInwardEntryId, setPendingInwardEntryId] = useState(null);
   const [printingDeptSubview, setPrintingDeptSubview] = useState("queue");
   const [dashboardTab, setDashboardTab] = useState(readStoredDashboardTab);
-  const [productionSubTab, setProductionSubTab] = useState(PRODUCTION_SUBTAB);
+  const [trackerModule, setTrackerModule] = useState(TRACKER_MODULE_DASHBOARD);
   const [productionListTab, setProductionListTab] = useState(TRACKER_LIST_ACTIVE);
   const [samplingListTab, setSamplingListTab] = useState(TRACKER_LIST_ACTIVE);
   const [productionSearchQuery, setProductionSearchQuery] = useState("");
@@ -2511,7 +2516,7 @@ function App() {
 
   async function openCreateProductionJobSheet(sourceOrder = null) {
     setCreateFormMode("job_sheet");
-    setProductionSubTab(PRODUCTION_SUBTAB);
+    setTrackerModule(TRACKER_MODULE_JOBSHEETS);
     setOrderForm(emptyOrder);
     setOrderIdDraft("");
     setDesignFiles([]);
@@ -2543,7 +2548,7 @@ function App() {
 
   async function openCreateSampleJobSheet() {
     setCreateFormMode("sample_job_sheet");
-    setProductionSubTab(SAMPLING_SUBTAB);
+    setTrackerModule(TRACKER_MODULE_SAMPLES);
     setOrderForm(emptyOrder);
     setOrderIdDraft("");
     setDesignFiles([]);
@@ -2785,7 +2790,7 @@ function App() {
       setShowCreateForm(false);
       setCreateFormMode("printing");
       setDashboardTab("production_tracker");
-      setProductionSubTab(isSampleJobSheet ? SAMPLING_SUBTAB : PRODUCTION_SUBTAB);
+      setTrackerModule(isSampleJobSheet ? TRACKER_MODULE_SAMPLES : TRACKER_MODULE_JOBSHEETS);
       if (!isSampleJobSheet) setOrdersTab("active");
     }
 
@@ -4856,9 +4861,11 @@ function App() {
       selectDashboardTab(item.tabId);
     }
     if (item.productionSubTab) {
-      setProductionSubTab(item.productionSubTab);
+      setTrackerModule(
+        item.productionSubTab === SAMPLING_SUBTAB ? TRACKER_MODULE_SAMPLES : TRACKER_MODULE_JOBSHEETS
+      );
     } else if (item.tabId === "production_tracker") {
-      setProductionSubTab(PRODUCTION_SUBTAB);
+      setTrackerModule(TRACKER_MODULE_JOBSHEETS);
     }
     if (item.trackerListTab === TRACKER_LIST_COMPLETE) {
       if (item.productionSubTab === SAMPLING_SUBTAB) {
@@ -5714,6 +5721,23 @@ function App() {
   const headerUserInitials = profileLoading
     ? "…"
     : userDisplayInitials(profile?.full_name, profile?.email);
+  const productionTrackerNav = PRODUCTION_TRACKER_MODULES.filter((item) => {
+    if (item.id === "procurement") {
+      return isAdmin || viewerCanAccessDashboardTab(currentUserPermissions, "purchase_order");
+    }
+    if (item.id === "billing") {
+      return isAdmin || viewerCanAccessDashboardTab(currentUserPermissions, "billing");
+    }
+    if (item.id === "dispatch") {
+      return isAdmin || viewerCanAccessDashboardTab(currentUserPermissions, "dispatch");
+    }
+    if (item.id === "reports") return isAdmin;
+    return true;
+  });
+  const activeTrackerModule = productionTrackerNav.some((item) => item.id === trackerModule)
+    ? trackerModule
+    : TRACKER_MODULE_DASHBOARD;
+  const trackerListIsSamples = activeTrackerModule === TRACKER_MODULE_SAMPLES;
 
   return (
     <Theme
@@ -6276,16 +6300,38 @@ function App() {
 
           {dashboardTab === "production_tracker" && (
             <ProductionTrackerPanel
-              subTab={productionSubTab}
-              onSubTabChange={setProductionSubTab}
-              listTab={
-                productionSubTab === SAMPLING_SUBTAB ? samplingListTab : productionListTab
+              module={activeTrackerModule}
+              onModuleChange={setTrackerModule}
+              modules={productionTrackerNav}
+              showListTabs={
+                activeTrackerModule === TRACKER_MODULE_JOBSHEETS ||
+                activeTrackerModule === TRACKER_MODULE_SAMPLES ||
+                activeTrackerModule === TRACKER_MODULE_PRODUCTION
               }
+              listTab={trackerListIsSamples ? samplingListTab : productionListTab}
               onListTabChange={(next) => {
-                if (productionSubTab === SAMPLING_SUBTAB) setSamplingListTab(next);
+                if (trackerListIsSamples) setSamplingListTab(next);
                 else setProductionListTab(next);
               }}
-              samplingContent={
+            >
+              {activeTrackerModule === TRACKER_MODULE_DASHBOARD ? (
+                <div className="space-y-4">
+                  <OrdersListFilters
+                    idPrefix="production-tracker-dashboard"
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    onDateFromChange={setDateFrom}
+                    onDateToChange={setDateTo}
+                    onClearDates={() => {
+                      setDateFrom("");
+                      setDateTo("");
+                    }}
+                    showPerPage={false}
+                  />
+                  <ProductionTrackerSummary metrics={productionTrackerSummary} />
+                </div>
+              ) : null}
+              {activeTrackerModule === TRACKER_MODULE_SAMPLES ? (
                 <LinkedOrdersTabPanel
                   tabTitle="Sampling Tracker"
                   paginationKey={`sampling-tracker-${samplingListTab}`}
@@ -6348,11 +6394,13 @@ function App() {
                   statusUpdates={statusUpdates}
                   onStatusChange={persistOrderStatus}
                 />
-              }
-            >
-              <ProductionTrackerSummary metrics={productionTrackerSummary} />
+              ) : null}
+              {activeTrackerModule === TRACKER_MODULE_JOBSHEETS ||
+              activeTrackerModule === TRACKER_MODULE_PRODUCTION ? (
               <LinkedOrdersTabPanel
-                tabTitle="Production Tracker"
+                tabTitle={
+                  activeTrackerModule === TRACKER_MODULE_PRODUCTION ? "Production" : "Jobsheets"
+                }
                 paginationKey={`production-tracker-${productionListTab}-${productionSearchQuery.trim()}`}
                 showSearch
                 searchQuery={productionSearchQuery}
@@ -6392,6 +6440,7 @@ function App() {
                 onViewOrder={openViewOrder}
                 renderStageIcon={renderStageIcon}
                 canCreateJobSheet={
+                  activeTrackerModule === TRACKER_MODULE_JOBSHEETS &&
                   productionListTab !== TRACKER_LIST_COMPLETE &&
                   (isAdmin || viewerCanCreateOrders)
                 }
@@ -6401,6 +6450,68 @@ function App() {
                 statusUpdates={statusUpdates}
                 onStatusChange={persistOrderStatus}
               />
+              ) : null}
+              {activeTrackerModule === "procurement" ? (
+                <PurchaseOrderPanel isAdmin={isAdmin} />
+              ) : null}
+              {activeTrackerModule === "billing" ? (
+                <BillingTabPanel
+                  orders={billingOrders}
+                  loadingOrders={loadingOrders}
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateFromChange={setDateFrom}
+                  onDateToChange={setDateTo}
+                  onClearDates={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  onViewOrder={openViewOrder}
+                  onInvoiceUpdated={() => fetchOrders({ silent: true })}
+                  renderStageIcon={renderStageIcon}
+                  canEdit={isAdmin || viewerCanEditDashboardTab(currentUserPermissions, "billing")}
+                />
+              ) : null}
+              {activeTrackerModule === "dispatch" ? (
+                <DispatchTabPanel
+                  orders={dispatchOrders}
+                  loadingOrders={loadingOrders}
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateFromChange={setDateFrom}
+                  onDateToChange={setDateTo}
+                  onClearDates={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  onViewOrder={openViewOrder}
+                  onVerificationUpdated={() => fetchOrders({ silent: true })}
+                  renderStageIcon={renderStageIcon}
+                  canEdit={isAdmin || viewerCanEditDashboardTab(currentUserPermissions, "dispatch")}
+                  isAdmin={isAdmin}
+                  sessionUserId={session?.user?.id}
+                  teamProfiles={teamProfiles}
+                  initialDispatchSubview={pendingDispatchSubview}
+                  pendingOutwardOcId={pendingOutwardOcId}
+                  pendingInwardEntryId={pendingInwardEntryId}
+                  onNavigateConsumed={clearGlobalSearchNavigation}
+                />
+              ) : null}
+              {activeTrackerModule === "followups" && session?.user ? (
+                <OpsBriefingPanel
+                  userId={session.user.id}
+                  onOpenGoalsTab={() => selectDashboardTab("goals")}
+                />
+              ) : null}
+              {activeTrackerModule === "reports" && isAdmin ? (
+                <div className="space-y-6">
+                  <CoordinatorReportPanel orders={orders} coordinators={coordinators} />
+                  <ProductRevenuePanel orders={orders} />
+                </div>
+              ) : null}
+              {activeTrackerModule === "settings" ? (
+                <ProductionTrackerSettings isAdmin={isAdmin} userId={session?.user?.id} />
+              ) : null}
             </ProductionTrackerPanel>
           )}
 

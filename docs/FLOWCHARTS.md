@@ -1,5 +1,22 @@
 # Flowcharts
 
+## Production tracker modules
+
+```mermaid
+flowchart TD
+  Open[Production tracker] --> Nav[Module list]
+  Nav --> Dash[Dashboard counts]
+  Nav --> Jobs[Jobsheets]
+  Nav --> Samples[Sample Cards]
+  Nav --> Floor[Production status list]
+  Nav --> Buy[Procurement]
+  Nav --> Bill[Billing and invoices]
+  Nav --> Ship[Dispatch and logistics]
+  Nav --> Follow[Follow-ups]
+  Nav --> Report[Reports]
+  Nav --> Settings[Sample card timing]
+```
+
 ## Production tracker Phase 1
 
 ```mermaid
