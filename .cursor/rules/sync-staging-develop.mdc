@@ -30,4 +30,7 @@ Tell the user who pushed what you did not have yet. If the log is empty, say `de
 - Staging may already list versions that are not files in git. Leave those. Do not repair or revert them.
 - Do not run `npx supabase db push`. Do not touch production `levwrmvqdntngeasrtnb` or `main`.
 
+- If those commits change `package.json` or `package-lock.json`, run `npm install` at the repo root before starting the app.
+- If a dev server was already running, stop it and start `npm run dev` again. Vite must be running with its working directory `apps/admin`. A server left on the repo root serves `/` as 404 because `index.html` now lives in `apps/admin`.
+
 Then do the user's task on that updated `develop`.

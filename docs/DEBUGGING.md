@@ -1,5 +1,14 @@
 # Debugging
 
+## Localhost:5173 is a blank 404
+
+| | |
+|--|--|
+| **Symptom** | The console says `Failed to load resource: the server responded with a status of 404 (Not Found)` at `(index):1`. The page stays blank. |
+| **Root cause** | The app moved to `apps/admin`. A Vite process that was already running from the repo root still owns port 5173, and that folder no longer has `index.html`. After a correct restart, a missing install also fails the page: `react-router-dom`, `@tanstack/react-query`, and `@canto/shared` are not in the old `node_modules`. |
+| **Fix** | Stop the old server. From the repo root run `npm install`, then `npm run dev`. The new Vite process must show its working directory as `apps/admin`. |
+| **Verify** | `curl -sI http://localhost:5173/` is `200` and the sign-in form is on the page. The console has no failed document request. |
+
 ## Quantity history does not name the sizes
 
 | | |

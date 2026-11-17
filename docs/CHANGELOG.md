@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-17 — Local dashboard 404 after the app moved
+
+- **Bug fix:** `http://localhost:5173/` was a blank 404 because the old Vite process was still serving the repo root after `index.html` moved to `apps/admin`. Installing the workspace packages and starting `npm run dev` again serves the sign-in page. The session sync rule now says to reinstall and restart when a pull moves the app.
+- **Files:** `.cursor/rules/sync-staging-develop.mdc`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-17 — Start each session on the shared staging branch
 
 - **Change:** Local `develop` was 64 commits behind `origin/develop` (kundan9595, through `93f8f66`). It is fast-forwarded to that commit. A session rule now checks other developers' commits and fast-forwards `develop` before the first edit. Staging already had their migration history, including versions that are not files in git. Those were left in place.
