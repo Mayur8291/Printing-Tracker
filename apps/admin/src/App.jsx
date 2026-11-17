@@ -209,6 +209,7 @@ import {
   isDispatchVerificationFailed,
   filterOrdersInDateRange,
   filterPrintingTabOrders,
+  isProductionTrackerOrder,
   filterProductionTrackerOrders,
   filterSampleJobSheetOrders,
   parsePaymentProofUrls,
@@ -4613,6 +4614,12 @@ function App() {
     [ordersInDateRangeAll]
   );
 
+  const productionBillingOrders = useMemo(
+    () =>
+      sortOrdersNewestFirst(ordersInDateRangeAll.filter((order) => isProductionTrackerOrder(order))),
+    [ordersInDateRangeAll]
+  );
+
   const dispatchOrders = useMemo(
     () => sortOrdersNewestFirst(filterDispatchOrders(ordersInDateRangeAll)),
     [ordersInDateRangeAll]
@@ -6456,7 +6463,9 @@ function App() {
               ) : null}
               {activeTrackerModule === "billing" ? (
                 <BillingTabPanel
-                  orders={billingOrders}
+                  orders={productionBillingOrders}
+                  listKey="production-tracker-billing"
+                  scopeLabel="Production orders"
                   loadingOrders={loadingOrders}
                   dateFrom={dateFrom}
                   dateTo={dateTo}

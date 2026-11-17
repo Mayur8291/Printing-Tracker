@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-17 — Production tracker billing lists production jobs only
+
+- **Bug fix:** Billing inside Production tracker was the full billing list, including printing and other orders. It now lists production job sheets only. The main Billing tab is unchanged.
+- **Files:** `apps/admin/src/App.jsx`, `apps/admin/src/BillingTabPanel.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-11-17 — Production tracker module sidebar
 
 - **Change:** Production tracker opens with its own module list: Dashboard, Jobsheets, Sample Cards, Production, Procurement, Billing & Invoices, Dispatch & Logistics, Follow-ups, Reports & Analytics, and Settings. Each item opens a screen that already saves data. Procurement, billing, and dispatch stay hidden unless that person can open those tabs. Reports stay admin-only. Settings shows the sample-card timing and lets an admin change it.

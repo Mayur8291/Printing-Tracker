@@ -1,5 +1,14 @@
 # Debugging
 
+## Production tracker billing shows every order
+
+| | |
+|--|--|
+| **Symptom** | Production tracker → Billing & Invoices lists printing orders and other jobs, not only production jobs. |
+| **Root cause** | That module was given `billingOrders`, which is every order in the date range. |
+| **Fix** | Pass `productionBillingOrders`: rows with `is_production_order` that are not sample job sheets. The main Billing tab still uses `billingOrders`. |
+| **Verify** | Open Production tracker → Billing & Invoices. The summary says Production orders. A printing order from the main Billing tab is absent. A production job sheet in the same date range is present. |
+
 ## Localhost:5173 is a blank 404
 
 | | |

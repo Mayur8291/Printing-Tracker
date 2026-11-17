@@ -106,7 +106,7 @@ export function filterPrintingTabOrders(orders) {
   return orders.filter((o) => !isJobSheetOrder(o) && !isSampleJobSheetOrder(o));
 }
 
-/** Billing tab lists all orders (date range still applied in App). */
+/** Main Billing tab lists every order. Production tracker billing uses production job sheets only. */
 export function filterBillingOrders(orders) {
   return orders;
 }

@@ -6,7 +6,7 @@
 2. **Entry:** A module list on the left: Dashboard, Jobsheets, Sample Cards, Production, Procurement, Billing & Invoices, Dispatch & Logistics, Follow-ups, Reports & Analytics, Settings.
 3. **Dashboard:** Date range and the live job counts.
 4. **Jobsheets:** Production job list, search, and Create Job sheet. **Production** is the same list with status updates and no create button. **Sample Cards** is the sample job sheet list.
-5. **Procurement, billing, dispatch:** The existing purchase-order, billing, and dispatch screens. A person who cannot open that main tab does not see the module.
+5. **Procurement, billing, dispatch:** Purchase orders, billing, and dispatch. Billing inside this tracker lists only production job sheets (`is_production_order`, not a sample card). The main Billing tab still lists every order. A person who cannot open that main tab does not see the module.
 6. **Follow-ups:** The home briefing, including creating a follow-up task. **Reports** is the admin printing report and product revenue. **Settings** is the sample-card SLA. Only an admin can save it.
 7. **Exit:** Choosing a job still opens the existing view-order screen. Header search for a job or sample opens Jobsheets or Sample Cards.
 

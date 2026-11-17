@@ -41,7 +41,9 @@ export default function BillingTabPanel({
   onViewOrder,
   onInvoiceUpdated,
   renderStageIcon,
-  canEdit = true
+  canEdit = true,
+  listKey = "billing",
+  scopeLabel = "All orders"
 }) {
   const fileInputRef = useRef(null);
   const pendingOrderIdRef = useRef(null);
@@ -61,10 +63,10 @@ export default function BillingTabPanel({
     pageSize,
     setPageSize,
     totalPages
-  } = usePagination(filteredOrders, "billing", paginationKey);
+  } = usePagination(filteredOrders, listKey, paginationKey);
 
   const totalQty = filteredOrders.reduce((sum, o) => sum + (Number(o.qty) || 0), 0);
-  const filterBits = ["Billing", "All orders"];
+  const filterBits = ["Billing", scopeLabel];
   if (dateFrom && dateTo) filterBits.push(`${dateFrom} → ${dateTo}`);
   else if (dateFrom) filterBits.push(`From ${dateFrom}`);
   else if (dateTo) filterBits.push(`To ${dateTo}`);
@@ -127,7 +129,7 @@ export default function BillingTabPanel({
         onChange={handleInvoiceFileChange}
       />
       <OrdersListFilters
-        idPrefix="billing"
+        idPrefix={listKey}
         dateFrom={dateFrom}
         dateTo={dateTo}
         onDateFromChange={onDateFromChange}
