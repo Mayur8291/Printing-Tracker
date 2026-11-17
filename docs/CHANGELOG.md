@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-17 — Start each session on the shared staging branch
+
+- **Change:** Local `develop` was 64 commits behind `origin/develop` (kundan9595, through `93f8f66`). It is fast-forwarded to that commit. A session rule now checks other developers' commits and fast-forwards `develop` before the first edit. Staging already had their migration history, including versions that are not files in git. Those were left in place.
+- **Files:** `.cursor/rules/sync-staging-develop.mdc`.
+- **Documentation updated:** CHANGELOG.md, DECISIONS.md, ENVIRONMENTS.md.
+
 ## 2026-11-05 — Quantity history names the sizes
 
 - **Change:** When an admin changes qty, Order history says how much it increased or decreased and which sizes moved (`M 30 → 32 (+2)`). Older history lines stay as they were.

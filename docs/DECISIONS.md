@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-17 — Match the shared staging branch before editing
+
+**Context:** More than one person pushes to `develop`. A checkout left on an older commit edits stale code and can miss work already on staging.
+
+**Decision:** At the start of a session, fetch `origin/develop`, report the commits this checkout does not have, and fast-forward. Do not discard real local edits. Do not reset a diverged branch. Do not replay staging migration versions that are already applied or that exist only on the database.
+
+**Tradeoffs:** The first action of a session is a fetch. A diverged local `develop` waits for a person to choose the next step.
+
 ## 2026-11-05 — Ops Platform sidebar removed
 
 **Context:** The sidebar group Ops Platform (Platform Masters, Stock Ledger, Procurement, Sales Orders, Billing & AR, Uniware Bridge) was not part of daily printing work.

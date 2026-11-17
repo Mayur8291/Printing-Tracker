@@ -13,6 +13,8 @@ Two isolated stacks so you can build and test without touching live data.
 
 ## Daily workflow
 
+Before the first edit in a session, fetch `origin` and fast-forward local `develop` to `origin/develop` so it matches what other developers already pushed. See `.cursor/rules/sync-staging-develop.mdc`.
+
 1. **Feature work:** branch from `develop`, open PR into `develop`.
 2. **Local run:** `npm run dev` (uses `.env.development` → staging Supabase).  
    **`npm run dev:staging`** needs a real **`.env.staging`** file (not `.env.development`). Without it, Vite falls back to **`.env` = production**.

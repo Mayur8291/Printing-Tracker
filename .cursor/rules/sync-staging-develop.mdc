@@ -1,0 +1,33 @@
+---
+description: At session start, match local develop to what other developers pushed on staging
+alwaysApply: true
+---
+
+# Match other developers on staging first
+
+Several people push to `develop`. That branch is the staging line. Before the first edit in a session, match it. Do this once per session, not again on later messages unless the user asks.
+
+## Check
+
+```bash
+git fetch origin
+git status -sb -- . ':(exclude)node_modules'
+git log --format='%h %an %s' HEAD..origin/develop
+```
+
+Tell the user who pushed what you did not have yet. If the log is empty, say `develop` already matches `origin/develop`.
+
+## Update the checkout
+
+- Stay on `develop`. Fast-forward with `git pull --ff-only origin develop`.
+- Local work that is only line endings may be restored when it blocks that pull. Real uncommitted edits stay. Do not stash, reset, or delete them.
+- If `develop` has diverged from `origin/develop`, stop. Do not `reset --hard`, rebase, or force-push.
+- Ignore dirt in `node_modules`, `.env*`, `supabase/.temp`, and the stray `node` log. Do not commit those.
+
+## Staging database
+
+- New files under `supabase/migrations/` that staging `scvojtvgnkmbupvyslmb` does not already have: name them. Apply them on staging only when the set is small and this task needs the database.
+- Staging may already list versions that are not files in git. Leave those. Do not repair or revert them.
+- Do not run `npx supabase db push`. Do not touch production `levwrmvqdntngeasrtnb` or `main`.
+
+Then do the user's task on that updated `develop`.
