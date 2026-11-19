@@ -2,9 +2,9 @@
 
 ## 2026-11-19 — Product status icons sit under the heading
 
-- **Bug fix:** The product-status mark sat on the left of the column while the heading spanned the full label, so the icons did not line up with **Product status**. The heading and the mark are now centered in that column on Printing orders and Print Queue.
+- **Bug fix:** The product-status mark sat on the left of the column while the heading spanned the full label. `text-center` did not apply because the order table sets `text-align: inherit` on every cell. The heading and the mark are now centered with a flex row on Printing orders and Print Queue.
 - **Files:** `apps/admin/src/App.jsx`, `apps/admin/src/PrintingDepartmentPanel.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
-- **Documentation updated:** CHANGELOG.md.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
 
 ## 2026-11-19 — Product issue alerts the job creator
 

@@ -103,21 +103,23 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
 
   return (
     <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="mx-auto size-8"
-            aria-label={title}
-            onClick={openDialog}
-          >
-            {icon}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{title}</TooltipContent>
-      </Tooltip>
+      <div className="flex w-full justify-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+              aria-label={title}
+              onClick={openDialog}
+            >
+              {icon}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{title}</TooltipContent>
+        </Tooltip>
+      </div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>

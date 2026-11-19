@@ -292,7 +292,11 @@ export default function PrintingDepartmentPanel({
 
                       <TableHead>Product name</TableHead>
 
-                      <TableHead className="w-[8.5rem] whitespace-nowrap text-center">Product status</TableHead>
+                      <TableHead className="w-[8.5rem] whitespace-nowrap">
+
+                        <span className="flex w-full justify-center">Product status</span>
+
+                      </TableHead>
 
                       <TableHead className="whitespace-nowrap">Order status</TableHead>
 
@@ -420,7 +424,7 @@ export default function PrintingDepartmentPanel({
 
                           </TableCell>
 
-                          <TableCell className="text-center">
+                          <TableCell>
 
                             <ProductReceiptControl
 

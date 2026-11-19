@@ -1,5 +1,14 @@
 # Debugging
 
+## Product status mark sits left of the heading
+
+| | |
+|--|--|
+| **Symptom** | On Printing orders, the exclamation or check sits at the left of the **Product status** column. The heading looks centered. |
+| **Root cause** | `table[data-orders-table] th, td` sets `text-align: inherit`, which beats a Tailwind `text-center` class. |
+| **Fix** | Center with `flex w-full justify-center` on the heading and on the mark. Do not rely on `text-center` in this table. |
+| **Verify** | The mark sits under the middle of **Product status** on every row, including a red issue row. |
+
 ## Product issue does not notify the person who created the job
 
 | | |
