@@ -197,8 +197,16 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                 ) : null}
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Saving…" : "Mark product received"}
+                  <Button
+                    type="submit"
+                    variant={mode === "issue" ? "destructive" : "default"}
+                    disabled={saving}
+                  >
+                    {saving
+                      ? "Saving…"
+                      : mode === "issue"
+                        ? "Mark product issue"
+                        : "Mark product received"}
                   </Button>
                 </DialogFooter>
               </>

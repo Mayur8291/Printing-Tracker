@@ -363,7 +363,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 1. **Trigger:** Printing orders list, or Print Queue, **Received** column. View order also shows the same state and the proof link.
 2. **Not received:** Amber exclamation. Tooltip: product not yet reached printing.
-3. **Mark received:** Dialog shows the job (customer, product, colors, quantity, sizes). The person chooses **Matches the job** or **Product has an issue**, then uploads a photo or PDF. An issue also needs a written reason. Save writes `product_received_at`, `product_received_by`, `product_received_proof_url`, and `product_received_issue` (null when it matches). The first save also sets `received_at_printing` if that time was empty.
+3. **Mark received:** Dialog shows the job (customer, product, colors, quantity, sizes). The person chooses **Matches the job** or **Product has an issue**, then uploads a photo or PDF. An issue also needs a written reason. The save button reads **Mark product received** or **Mark product issue** to match that choice. Save writes `product_received_at`, `product_received_by`, `product_received_proof_url`, and `product_received_issue` (null when it matches). The first save also sets `received_at_printing` if that time was empty.
 4. **Proof:** File goes to storage bucket `product-receipts`. A later save can keep the existing proof.
 5. **Attention:** A non-blank issue paints the row red (`bg-destructive/10`) on Printing orders and Print Queue. The tooltip shows the reason.
 6. **Who can save:** Admin, or a viewer who can edit status or the received-at-printing time. Cancelled rows and the Cancelled tab stay read-only. The database trigger rejects a viewer who has neither permission.

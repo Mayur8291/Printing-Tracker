@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-19 — Product issue uses its own save button
+
+- **Bug fix:** After choosing **Product has an issue**, the dialog still offered only **Mark product received**. The save button now reads **Mark product issue** and uses the destructive style.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
 ## 2026-11-19 — Printing orders record product receipt
 
 - **Feature:** Printing orders and Print Queue have a Received column. An exclamation mark means the product has not reached printing. Marking it received needs a proof file and a check against the job. If the product is wrong, the person writes the reason and that row turns red.
