@@ -109,7 +109,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
             type="button"
             variant="ghost"
             size="icon"
-            className="size-8"
+            className="mx-auto size-8"
             aria-label={title}
             onClick={openDialog}
           >

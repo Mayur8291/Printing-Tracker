@@ -6098,7 +6098,7 @@ function App() {
                               <TableHead>Order number</TableHead>
                               <TableHead>Customer</TableHead>
                               <TableHead>Product name</TableHead>
-                              <TableHead className="whitespace-nowrap">Product status</TableHead>
+                              <TableHead className="w-[8.5rem] whitespace-nowrap text-center">Product status</TableHead>
                               <TableHead className="whitespace-nowrap">Order status</TableHead>
                               {ordersTab === "on_hold" ? <TableHead>On hold reason</TableHead> : null}
                               <TableHead>Coordinator</TableHead>
@@ -6159,7 +6159,7 @@ function App() {
                                           ? order.product_name
                                           : "—"}
                                   </TableCell>
-                                  <TableCell>
+                                  <TableCell className="text-center">
                                     {order._isPending ? (
                                       "—"
                                     ) : (
