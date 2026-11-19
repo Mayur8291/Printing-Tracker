@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-19 — Production can load orders after product receipt
+
+- **Release:** Production `levwrmvqdntngeasrtnb` now has `orders.product_received_at`, `product_received_by`, `product_received_proof_url`, and `product_received_issue`, the `product-receipts` bucket, the viewer guard, and the creator alert. This was the one-time production database release for the printing product-status work. No other production migrations were applied. Git `main` was not changed.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-11-19 — Login uses production credentials
 
 - **Change:** Opening the dashboard signs in with production credentials. The admin staging switch is the only way onto staging, and that choice lasts for the current tab. Signing out, or opening the link in a new tab, returns to production. An old saved staging choice in this browser no longer decides the login.
@@ -28,7 +33,7 @@
 ## 2026-11-19 — Printing orders record product receipt
 
 - **Feature:** Printing orders and Print Queue have a Received column. An exclamation mark means the product has not reached printing. Marking it received needs a proof file and a check against the job. If the product is wrong, the person writes the reason and that row turns red.
-- **Database:** Staging `orders` columns `product_received_at`, `product_received_by`, `product_received_proof_url`, `product_received_issue`, bucket `product-receipts`, and history events `product_received` / `product_received_issue`. Production was not changed.
+- **Database:** `orders.product_received_at`, `product_received_by`, `product_received_proof_url`, `product_received_issue`, bucket `product-receipts`, and history events `product_received` / `product_received_issue`. Applied on staging, then on production on 2026-11-19.
 - **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/App.jsx`, `apps/admin/src/PrintingDepartmentPanel.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/orderQueryFields.js`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/orderHistoryUtils.js`, `apps/admin/src/components/orders/orderTableUtils.js`, `supabase/migrations/20261119083131_printing_product_receipt.sql`.
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
 

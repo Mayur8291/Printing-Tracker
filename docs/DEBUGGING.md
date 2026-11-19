@@ -31,10 +31,10 @@
 
 | | |
 |--|--|
-| **Symptom** | On a staging build, the header environment toggle set to Production shows an orders load error about `product_received_at` (or the other `product_received_*` columns). |
-| **Root cause** | The printing list selects those columns. They exist on staging `scvojtvgnkmbupvyslmb` only. Production `levwrmvqdntngeasrtnb` does not have them until a production database release. |
-| **Fix** | Stay on Staging in the header. Do not add the columns to production unless a production release was requested. |
-| **Verify** | Staging Printing orders loads, and each row has a Received icon. |
+| **Symptom** | Production printing orders say `column orders.product_received_at does not exist`. |
+| **Root cause** | The list selects the product-receipt columns. They were added on production `levwrmvqdntngeasrtnb` on 2026-11-19. A stale API schema cache can still report the old error for a short time after that. |
+| **Fix** | Refresh the page. If it remains, confirm the four `product_received_*` columns exist on production and send `NOTIFY pgrst, 'reload schema'`. |
+| **Verify** | Printing orders load and the count is not stuck at zero. |
 
 ## Product received save says the viewer cannot record it
 

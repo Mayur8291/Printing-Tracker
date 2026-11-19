@@ -376,7 +376,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Creator alert:** A new or changed issue inserts `order_status_notifications` for `orders.created_by`, with `new_status = product_issue` and the reason in `note`. The bell, toast, and notification list say **Product issue** and **Reason:**. A tone plays when status tones are on. The person who saved the issue is skipped. No `created_by` means no alert. Uploading a new proof without changing the reason does not send another alert.
 7. **Who can save:** Admin, or a viewer who can edit status or the received-at-printing time. Cancelled rows and the Cancelled tab stay read-only. The database trigger rejects a viewer who has neither permission.
 8. **History:** `product_received` or `product_received_issue` on `order_activity_log`. Clearing the receipt is allowed by the check only when all four fields go back to null together; the screen does not offer a clear button.
-9. **Failure:** Missing proof or a blank issue reason stays in the dialog. A duplicate customer is not involved. These columns exist on staging only, so the header Production toggle cannot load the orders list until a production database release.
+9. **Failure:** Missing proof or a blank issue reason stays in the dialog. A duplicate customer is not involved. These columns are on staging and, as of 2026-11-19, on production.
 
 ### Printing orders — list load and Jobs processed
 

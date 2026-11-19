@@ -670,7 +670,7 @@ Security-definer RPC for **Assign task → Link to goal**. Returns annual goals 
 
 **Trigger:** `orders_status_notify` on `orders.status` UPDATE — notifies coordinator (name match on `profiles.full_name`) and `created_by`, excluding the actor. On hold always notifies `created_by` (even if that person is the coordinator) and copies `on_hold_reason` into `note`. Migration `20261102082914_on_hold_creator_alert_and_util_dates.sql` on staging.
 
-A product issue uses the same table. `log_product_receipt` inserts one row for `orders.created_by` when `product_received_issue` is new or changed. `new_status` is `product_issue` (not an order status). `note` is the reason. The actor is skipped. Staging migration `20261119084948_product_issue_creator_alert.sql`. Production does not have this until a production release.
+A product issue uses the same table. `log_product_receipt` inserts one row for `orders.created_by` when `product_received_issue` is new or changed. `new_status` is `product_issue` (not an order status). `note` is the reason. The actor is skipped. Applied on staging and, on 2026-11-19, on production `levwrmvqdntngeasrtnb`.
 
 **Rollback:** drop `note`. Restore the previous `notify_order_status_change` body from `20260707130000_add_goal_task_and_order_status_notifications.sql`.
 
@@ -1167,7 +1167,7 @@ Append-only timeline for printing orders and production job sheets (same `orders
 
 **Printing event types:** `order_created`, `status_changed`, `marked_complete`, design review events, `remarks_updated`, `qty_updated`, `due_date_updated`, `coordinator_updated`, `printing_mtrs_updated`, `received_at_printing_updated`, `product_received`, `product_received_issue`.
 
-**Product receipt (staging, 2026-11-19):** `orders.product_received_at`, `product_received_by` (auth user), `product_received_proof_url`, `product_received_issue`. Check `orders_product_received_check`: all four null, or a time, a user, and a non-blank proof, with the issue null or non-blank. Proof files live in public bucket `product-receipts`. Viewers may change these columns only when they can edit status or `received_at_printing` (`enforce_order_update_scope`). History is a separate trigger `trg_log_product_receipt`, so `log_order_activity` is left as it is. Production does not have these columns.
+**Product receipt (staging and production, 2026-11-19):** `orders.product_received_at`, `product_received_by` (auth user), `product_received_proof_url`, `product_received_issue`. Check `orders_product_received_check`: all four null, or a time, a user, and a non-blank proof, with the issue null or non-blank. Proof files live in public bucket `product-receipts`. Viewers may change these columns only when they can edit status or `received_at_printing` (`enforce_order_update_scope`). History is a separate trigger `trg_log_product_receipt`, so `log_order_activity` is left as it is. Production received this once on 2026-11-19 so the orders list could load.
 
 **Job sheet event types (added 20260703190000):** `job_sheet_created`, `sales_incharge_updated`, `product_name_updated`, `colors_updated`, `size_type_updated`, `gender_updated`, `product_type_updated`, `rate_per_piece_updated`, `size_breakdown_updated`, `brand_updated`, `fabric_type_updated`, `gsm_updated`, `branding_updated`, `atta_updated`, `expected_handover_updated`, `job_sheet_payment_updated`, `job_sheet_advance_proof_uploaded`, `job_sheet_payment_proof_uploaded`, `job_sheet_delivery_updated`, `job_sheet_approval_updated`, `job_sheet_regular_stock_updated`.
 
