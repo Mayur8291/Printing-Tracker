@@ -322,6 +322,19 @@ flowchart TD
   Sizes --> Hist[Order history line]
 ```
 
+## Login environment
+
+```mermaid
+flowchart TD
+  Open[Open the link] --> Prod[Production credentials]
+  Prod --> Admin{Admin signed in?}
+  Admin -->|no| Stay[Stay on production]
+  Admin -->|switches to staging| Stage[Staging credentials in this tab]
+  Stage --> Refresh[Refresh keeps staging]
+  Stage --> Leave[Sign out or new tab]
+  Leave --> Prod
+```
+
 ## Printing orders — product received
 
 ```mermaid

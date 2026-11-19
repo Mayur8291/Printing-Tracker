@@ -16,10 +16,9 @@ import {
 } from "../runtimeEnv";
 
 /**
- * Admin-only header control: switch the Supabase backend (staging/production,
- * saved in this browser) and configure the Scott REST base URL used for the
- * webhook connectivity test. Switching reloads the app; sessions are kept
- * per environment, so first switch may ask to log in again.
+ * Admin-only header control. Opening the link always uses production login.
+ * Staging applies only after this switch is turned to Staging, and only in
+ * this tab. Switching reloads the app; the other project may ask for its own login.
  */
 export default function EnvironmentSwitcherPopover() {
   const runtime = getRuntimeEnv();
@@ -30,7 +29,7 @@ export default function EnvironmentSwitcherPopover() {
   const [testState, setTestState] = useState({ busy: false, ok: null, message: "" });
 
   const applyEnv = (target) => {
-    setEnvironmentOverride(target === runtime.buildEnv ? null : target);
+    setEnvironmentOverride(target);
     window.location.reload();
   };
 
@@ -92,7 +91,7 @@ export default function EnvironmentSwitcherPopover() {
             <div>
               <p className="text-sm font-medium">Backend environment</p>
               <p className="text-xs text-muted-foreground">
-                Saved in this browser · app reloads on switch
+                Opening this link uses production. Staging stays in this tab only.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -121,9 +120,9 @@ export default function EnvironmentSwitcherPopover() {
               </div>
             </div>
           ) : null}
-          {runtime.isOverride ? (
+          {!isProduction ? (
             <Badge variant="outline" className="font-normal text-muted-foreground">
-              Overriding build default ({runtime.buildEnv})
+              Staging credentials for this tab
             </Badge>
           ) : null}
           {isProduction ? (

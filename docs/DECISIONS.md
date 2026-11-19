@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-19 — Opening the link uses production login
+
+**Context:** The develop deploy and local app were built against staging, so the sign-in screen used staging accounts unless someone had saved a header override.
+
+**Decision:** A fresh open uses production credentials. Staging applies only after the admin header switch is set to Staging, and only for that tab. `.env.development` still names the staging project so the build is not hard-wired to production.
+
+**Tradeoffs:** Local `npm run dev` now talks to live production data until an admin switches that tab to staging. The console warns when that happens.
+
 ## 2026-11-17 — Production tracker stays on the existing job sheet
 
 **Context:** A full manufacturing suite was requested, including a Next.js app and new tables for jobs, samples, procurement, billing, and dispatch. This dashboard already stores a production job as an `orders` row with `order_kind = job_sheet`, and a sample as `sample_job_sheet`. Printing, inventory, billing, and dispatch already use those rows.

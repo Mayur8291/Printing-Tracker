@@ -16,7 +16,7 @@ Two isolated stacks so you can build and test without touching live data.
 Before the first edit in a session, fetch `origin` and fast-forward local `develop` to `origin/develop` so it matches what other developers already pushed. See `.cursor/rules/sync-staging-develop.mdc`.
 
 1. **Feature work:** branch from `develop`, open PR into `develop`.
-2. **Local run:** `npm run dev` (uses `.env.development` → staging Supabase).  
+2. **Local run:** `npm run dev` still reads `.env.development`, and that file stays on the staging project. The sign-in screen uses **production** credentials unless an admin has switched this tab to staging.  
    **`npm run dev:staging`** needs a real **`.env.staging`** file (not `.env.development`). Without it, Vite falls back to **`.env` = production**.
 3. **Shared preview:** push to `develop` → Netlify staging URL (after branch deploys + env vars).
 4. **Release:** Admin → **Test & deploy** → **Release staging → production** (automated), or merge `develop` → `main` manually. See [RELEASE_AUTOMATION.md](./RELEASE_AUTOMATION.md).

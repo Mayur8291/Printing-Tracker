@@ -5,7 +5,7 @@ if(fixture.url!=='https://scvojtvgnkmbupvyslmb.supabase.co')throw Error('Staging
 const browser=await puppeteer.launch({headless:true,executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
 try{
  const page=await browser.newPage();
- await page.evaluateOnNewDocument(()=>{localStorage.setItem('canto:admin-target:v1',JSON.stringify({source:'supabase',environment:'staging'}));localStorage.setItem('scott-dashboard-env-override','staging');});
+ await page.evaluateOnNewDocument(()=>{localStorage.setItem('canto:admin-target:v1',JSON.stringify({source:'supabase',environment:'staging'}));sessionStorage.setItem('scott-dashboard-env-session','staging');localStorage.setItem('scott-dashboard-env-override','staging');});
  await page.goto('http://127.0.0.1:5173');await page.waitForSelector('#login-email');
  await page.type('#login-email',fixture.email);await page.type('#login-password',fixture.password);await page.click('button[type=submit]');
  await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.innerText==='Masters'),{timeout:60000});

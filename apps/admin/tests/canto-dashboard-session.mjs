@@ -13,6 +13,7 @@ try {
   await page.setViewport({ width: 1440, height: 1000 });
   await page.evaluateOnNewDocument(state => {
     for (const [key, value] of Object.entries(state.local)) localStorage.setItem(key, value);
+    sessionStorage.setItem('scott-dashboard-env-session', 'staging');
     localStorage.setItem('scott-dashboard-env-override', 'staging');
     // Reproduce the screenshot and a stale independently selected refresh target.
     localStorage.setItem('canto:admin-target:v1', JSON.stringify({ source: 'supabase', environment: 'production' }));
@@ -57,6 +58,7 @@ try {
   const context = await browser.createBrowserContext();
   const productionPage = await context.newPage();
   await productionPage.evaluateOnNewDocument(() => {
+    sessionStorage.setItem('scott-dashboard-env-session', 'production');
     localStorage.setItem('scott-dashboard-env-override', 'production');
     localStorage.setItem('canto:admin-target:v1', JSON.stringify({ source: 'supabase', environment: 'staging' }));
   });

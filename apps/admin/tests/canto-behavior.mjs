@@ -3,7 +3,7 @@ const state=JSON.parse(fs.readFileSync('tools/canto-sync/private/browser-state.j
 state.local['canto:admin-target:v1']=JSON.stringify({source:'supabase',environment:'staging'});
 state.local['scott-dashboard-env-override']='staging';
 const b=await puppeteer.launch({headless:true,executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',protocolTimeout:900000});const p=await b.newPage();await p.setViewport({width:1440,height:1100});const errors=[];p.on('pageerror',e=>errors.push(e.message));
-await p.evaluateOnNewDocument(state=>{for(const[k,v]of Object.entries(state.local))localStorage.setItem(k,v);},state);await p.goto('http://127.0.0.1:5173');await new Promise(r=>setTimeout(r,2000));
+await p.evaluateOnNewDocument(state=>{for(const[k,v]of Object.entries(state.local))localStorage.setItem(k,v);sessionStorage.setItem('scott-dashboard-env-session','staging');},state);await p.goto('http://127.0.0.1:5173');await new Promise(r=>setTimeout(r,2000));
 const legacy=[];p.on('request',req=>{if(req.url().includes('functions/v1/scott-dashboard-masters'))legacy.push(req.method());});
 const results=await p.evaluate(async()=>{
  const{getMastersService}=await import('/src/scott/data/masterConfigs.js');const{cantoRpc,getCantoClient}=await import('/src/canto/target.js');

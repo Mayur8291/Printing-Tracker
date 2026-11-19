@@ -13,7 +13,7 @@ try {
  page.on('request',r=>{
   if (/64\.227\.186\.227|165\.22\.210\.53|leaderboard\.sagarfab\.com/.test(r.url())) {legacy.push(r.url());r.abort();} else r.continue();
  });
- await page.evaluateOnNewDocument(s=>{for(const[k,v]of Object.entries(s.local))localStorage.setItem(k,v);localStorage.setItem('canto:admin-target:v1',JSON.stringify({source:'supabase',environment:'staging'}));localStorage.setItem('scott-dashboard-env-override','staging');},state);
+ await page.evaluateOnNewDocument(s=>{for(const[k,v]of Object.entries(s.local))localStorage.setItem(k,v);localStorage.setItem('canto:admin-target:v1',JSON.stringify({source:'supabase',environment:'staging'}));sessionStorage.setItem('scott-dashboard-env-session','staging');localStorage.setItem('scott-dashboard-env-override','staging');},state);
  await page.goto('http://127.0.0.1:5173');
  await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.innerText==='Masters'),{timeout:60000});
  const results=await page.evaluate(async()=>{

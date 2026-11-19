@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, useLocation, useNavigate } from "react-router-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createSquadClient } from "@canto/shared/squad";
 import { supabase } from "../supabaseClient";
-import { getRuntimeEnv } from "../runtimeEnv";
+import { clearEnvironmentOverride, getRuntimeEnv } from "../runtimeEnv";
 import LoginPage from "../components/auth/LoginPage";
 import { Button } from "../components/ui/button";
 import { SquadContext } from "../squad/data/hooks";
@@ -147,8 +147,14 @@ function ApplicationBoundary() {
     return () => clearTimeout(expiry);
   }, [state.identity?.write_state?.expires_at, state.identity?.write_state?.mode, state.status, resolveSession]);
   const signOut = useCallback(async () => {
+    const returnToProduction = getRuntimeEnv().env === "staging";
+    clearEnvironmentOverride();
     queryClient.clear(); invalidateSessionCheck(); setState({ status: "loading" });
     const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (returnToProduction) {
+      window.location.assign("/");
+      return;
+    }
     if (error) setState({ status: "error", error });
     else { token.current = null; setState({ status: "anonymous" }); navigate("/", { replace: true }); }
   }, [navigate, invalidateSessionCheck]);

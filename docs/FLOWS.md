@@ -1,5 +1,12 @@
 # Flows
 
+## Login environment
+
+1. **Trigger:** Someone opens the dashboard link, or signs out.
+2. **Credentials:** The app uses the production Supabase URL and anon key (`levwrmvqdntngeasrtnb`). A staging choice saved in an older visit is ignored.
+3. **Admin switch:** After an admin signs in, the header switch can select Staging. The app reloads and that tab uses staging credentials. Production asks for confirmation before switching back.
+4. **End:** Closing the tab, opening the link in a new tab, or signing out returns the next login to production. A refresh in the same tab keeps the admin's staging choice.
+
 ## Production tracker modules
 
 1. **Trigger:** Sidebar **Production tracker**.

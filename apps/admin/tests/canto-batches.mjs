@@ -3,7 +3,7 @@ const state=JSON.parse(fs.readFileSync('tools/canto-sync/private/browser-state.j
 state.local['canto:admin-target:v1']=JSON.stringify({source:'supabase',environment:'staging'});state.local['scott-dashboard-env-override']='staging';
 const browser=await puppeteer.launch({headless:true,executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
 try{
- const page=await browser.newPage();await page.evaluateOnNewDocument(state=>{for(const[k,v]of Object.entries(state.local))localStorage.setItem(k,v);},state);await page.goto('http://127.0.0.1:5173');
+ const page=await browser.newPage();await page.evaluateOnNewDocument(state=>{for(const[k,v]of Object.entries(state.local))localStorage.setItem(k,v);sessionStorage.setItem('scott-dashboard-env-session','staging');},state);await page.goto('http://127.0.0.1:5173');
  const result=await page.evaluate(async()=>{
   const {getMastersService}=await import('/src/scott/data/masterConfigs.js');const {batchSave}=await import('/src/scott/bulk/bulkSaveService.js');
   const service=getMastersService('colors'),tag=crypto.randomUUID().slice(0,8);

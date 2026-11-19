@@ -19,6 +19,7 @@ try {
   else {if(r.url().includes(environment==='staging'?'levwrmvqdntngeasrtnb.supabase.co':'scvojtvgnkmbupvyslmb.supabase.co'))wrongProject.push(r.url());r.continue();}
  });
  await page.evaluateOnNewDocument(environment=>{
+  sessionStorage.setItem('scott-dashboard-env-session',environment);
   localStorage.setItem('scott-dashboard-env-override',environment);
   localStorage.setItem('canto:admin-target:v1',JSON.stringify({source:'supabase',environment}));
  },environment);

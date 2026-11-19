@@ -220,6 +220,7 @@ try {
         "sb-scvojtvgnkmbupvyslmb-auth-token",
         JSON.stringify(session),
       );
+      sessionStorage.setItem("scott-dashboard-env-session", "staging");
       localStorage.setItem("scott-dashboard-env-override", "staging");
       localStorage.setItem(
         "canto:admin-target:v1",

@@ -1,5 +1,14 @@
 # Debugging
 
+## Sign-in uses the wrong project's accounts
+
+| | |
+|--|--|
+| **Symptom** | A production email is rejected, or a staging email signs in when the link was just opened. |
+| **Root cause** | Opening the link uses production credentials. Staging accounts work only after an admin turns the header switch to Staging in that tab. An older browser-saved choice no longer keeps staging selected. |
+| **Fix** | Use the production account on a fresh open. To use staging, sign in as an admin on production, then switch that tab to Staging and sign in with the staging account. |
+| **Verify** | The header button says Production before the switch, and Staging only after the admin selects it. |
+
 ## Product status mark sits left of the heading
 
 | | |

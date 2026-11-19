@@ -11,7 +11,7 @@ export async function startupPreflight(base) {
  const browser=await puppeteer.launch({headless:true,executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  const errors=[];let externalRequestsBlocked=0;
  try {
-  const page=await browser.newPage();await page.evaluateOnNewDocument(()=>localStorage.setItem('scott-dashboard-env-override','staging'));
+  const page=await browser.newPage();await page.evaluateOnNewDocument(()=>sessionStorage.setItem('scott-dashboard-env-session','staging');localStorage.setItem('scott-dashboard-env-override','staging'));
   await page.setRequestInterception(true);page.on('request',r=>{if(new URL(r.url()).origin===origin&&['GET','HEAD'].includes(r.method()))void r.continue();else {externalRequestsBlocked++;void r.abort();}});
   let fail;const crashed=new Promise(resolve=>{fail=resolve;});
   page.on('pageerror',error=>{errors.push(browserErrorDiagnostic(error));fail(false);});

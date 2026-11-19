@@ -33,7 +33,7 @@ export function validateConfig(config, now = Date.now()) {
 // No socket is opened. This is only a subscription rendering double, not realtime acceptance.
 export function initialize({session}) {
   localStorage.setItem('sb-scvojtvgnkmbupvyslmb-auth-token',JSON.stringify(session));
-  localStorage.setItem('scott-dashboard-env-override','staging');
+  sessionStorage.setItem('scott-dashboard-env-session','staging');localStorage.setItem('scott-dashboard-env-override','staging');
   localStorage.setItem('canto:admin-target:v1',JSON.stringify({source:'supabase',environment:'production'}));
   sessionStorage.setItem('printing-tracker-dashboard-tab','printing');
   class LocalSocket extends EventTarget {

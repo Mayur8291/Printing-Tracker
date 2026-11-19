@@ -54,7 +54,7 @@
 
 ## Runtime environment toggle (admin header)
 
-- Admins can switch the browser between staging and production backends; choice lives in localStorage (`scott-dashboard-env-override`), not on the server.
+- Opening the link uses production credentials. An admin can switch that tab to staging (`scott-dashboard-env-session` in sessionStorage). The old localStorage choice is cleared and does not decide the next login. Signing out of staging reloads onto production.
 - Ships **anon keys only** for both projects (anon keys are public by design; RLS + JWT still gate all data).
 - Switching to production requires an inline confirmation ("live production data"); explicit override works in local dev too (console-warned). The dev hard block applies only when the **build default** (`.env` files) points at production without `VITE_ALLOW_PROD_IN_DEV=true`.
 

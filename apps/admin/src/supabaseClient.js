@@ -6,15 +6,15 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
   throw new Error("Missing Supabase env vars. Check .env configuration.");
 }
 
-// May differ from build env when an admin flipped the header Staging/Production toggle.
+// Production unless an admin has switched this tab to staging.
 const { url: supabaseUrl, anonKey: supabaseAnonKey } = getRuntimeEnv();
 
 export const activeSupabaseRef = getSupabaseProjectRef(supabaseUrl);
 
 const allowProdInDev = import.meta.env.VITE_ALLOW_PROD_IN_DEV === "true";
 
-// Guard the BUILD env only: .env.development must never default to production.
-// An explicit admin header toggle (runtime override) is allowed and warned in runtimeEnv.
+// Guard the BUILD env only: .env.development must never list the production ref.
+// Login still uses production credentials unless this tab was switched to staging.
 const buildSupabaseRef = getSupabaseProjectRef(import.meta.env.VITE_SUPABASE_URL);
 
 if (import.meta.env.DEV && buildSupabaseRef === PRODUCTION_SUPABASE_REF && !allowProdInDev) {

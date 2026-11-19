@@ -30,6 +30,8 @@ export function validateFrontendBinding(frontend,base,release=null) {
 
 export function stagingFrontendInit(){
  // Apply before any application module, including production-mode Vercel builds.
+ // The app reads the tab session key. The localStorage key is no longer the login default.
+ sessionStorage.setItem('scott-dashboard-env-session','staging');
  localStorage.setItem('scott-dashboard-env-override','staging');
 }
 

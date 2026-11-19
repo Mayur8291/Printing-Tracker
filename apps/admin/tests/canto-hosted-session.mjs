@@ -12,6 +12,7 @@ try {
   page.on('pageerror', e => errors.push(e.message));
   page.on('request', r => { if (r.url().includes('levwrmvqdntngeasrtnb.supabase.co')) wrongProject.push(r.url()); });
   await page.evaluateOnNewDocument(() => {
+    sessionStorage.setItem('scott-dashboard-env-session', 'staging');
     localStorage.setItem('scott-dashboard-env-override', 'staging');
     localStorage.setItem('canto:admin-target:v1', JSON.stringify({ source: 'supabase', environment: 'production' }));
     sessionStorage.setItem('canto:refresh-environment', 'production');

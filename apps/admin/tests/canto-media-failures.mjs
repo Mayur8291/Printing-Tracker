@@ -8,6 +8,7 @@ try {
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.evaluateOnNewDocument(state=>{
   for(const[k,v]of Object.entries(state.local))localStorage.setItem(k,v);
+  sessionStorage.setItem('scott-dashboard-env-session','staging');
   const original=window.fetch;
   window.fetch=async(...args)=>{
    const response=await original(...args);

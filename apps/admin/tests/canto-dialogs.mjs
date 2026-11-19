@@ -4,7 +4,7 @@ state.local['canto:admin-target:v1']=JSON.stringify({source:'supabase',environme
 state.local['scott-dashboard-env-override']='staging';
 const b=await puppeteer.launch({headless:true,executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',protocolTimeout:900000});const p=await b.newPage();await p.setViewport({width:1440,height:1100});const errors=[];p.on('pageerror',e=>errors.push(e.message));
 try{
-await p.evaluateOnNewDocument(state=>{for(const[k,v]of Object.entries(state.local))localStorage.setItem(k,v);},state);await p.goto('http://127.0.0.1:5173');await p.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.innerText==='Masters'),{timeout:60000});await p.evaluate(()=>[...document.querySelectorAll('button')].find(b=>b.innerText==='Masters').click());
+await p.evaluateOnNewDocument(state=>{for(const[k,v]of Object.entries(state.local))localStorage.setItem(k,v);sessionStorage.setItem('scott-dashboard-env-session','staging');},state);await p.goto('http://127.0.0.1:5173');await p.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.innerText==='Masters'),{timeout:60000});await p.evaluate(()=>[...document.querySelectorAll('button')].find(b=>b.innerText==='Masters').click());
 const labels=await p.evaluate(async()=>{const{MASTER_CONFIG_LIST}=await import('/src/scott/data/masterConfigs.js');return MASTER_CONFIG_LIST.map(c=>({key:c.key,label:c.label}));});
 const result=[];
 for(const config of labels){

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-19 — Login uses production credentials
+
+- **Change:** Opening the dashboard signs in with production credentials. The admin staging switch is the only way onto staging, and that choice lasts for the current tab. Signing out, or opening the link in a new tab, returns to production. An old saved staging choice in this browser no longer decides the login.
+- **Files:** `apps/admin/src/runtimeEnv.js`, `apps/admin/src/supabaseClient.js`, `apps/admin/src/components/EnvironmentSwitcherPopover.jsx`, `apps/admin/src/App.jsx`, `apps/admin/src/application/AppRoot.jsx`.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md, SECURITY.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-11-19 — Product status icons sit under the heading
 
 - **Bug fix:** The product-status mark sat on the left of the column while the heading spanned the full label. `text-center` did not apply because the order table sets `text-align: inherit` on every cell. The heading and the mark are now centered with a flex row on Printing orders and Print Queue.

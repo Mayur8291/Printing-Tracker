@@ -22,8 +22,9 @@ test('cloud requires explicit exact reviewed release and same entry receipt',()=
 test('explicit staging override runs before application modules without credentials or production access',async()=>{
  const {stagingFrontendInit}=await import('./web-cross-browser-hosted.mjs');
  const {runInNewContext}=await import('node:vm');const writes=[];
- runInNewContext(`(${stagingFrontendInit.toString()})()`,{localStorage:{setItem:(...args)=>writes.push(args)}});
- assert.deepEqual(writes,[['scott-dashboard-env-override','staging']]);
+ const store={setItem:(...args)=>writes.push(args)};
+ runInNewContext(`(${stagingFrontendInit.toString()})()`,{sessionStorage:store,localStorage:store});
+ assert.deepEqual(writes,[['scott-dashboard-env-session','staging'],['scott-dashboard-env-override','staging']]);
  const {transportAllowed}=await import('./web-cross-browser-policy.mjs');
  assert.equal(transportAllowed({url:cloud+'/assets/index-release.js',method:'GET'},cloud),true);
  assert.equal(transportAllowed({url:cloud+'/api/write',method:'POST',body:'{}'},cloud),false);

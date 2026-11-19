@@ -23,7 +23,7 @@ export default function DevEnvironmentIndicator({ className }) {
           />
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs text-xs">
-          Live production database — use <code>npm run dev</code> with staging keys
+          Production login. An admin can switch this tab to staging.
         </TooltipContent>
       </Tooltip>
     );
