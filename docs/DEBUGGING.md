@@ -1,5 +1,23 @@
 # Debugging
 
+## Printing orders list fails after switching the header to Production
+
+| | |
+|--|--|
+| **Symptom** | On a staging build, the header environment toggle set to Production shows an orders load error about `product_received_at` (or the other `product_received_*` columns). |
+| **Root cause** | The printing list selects those columns. They exist on staging `scvojtvgnkmbupvyslmb` only. Production `levwrmvqdntngeasrtnb` does not have them until a production database release. |
+| **Fix** | Stay on Staging in the header. Do not add the columns to production unless a production release was requested. |
+| **Verify** | Staging Printing orders loads, and each row has a Received icon. |
+
+## Product received save says the viewer cannot record it
+
+| | |
+|--|--|
+| **Symptom** | The receipt dialog shows `Viewer cannot record product receipt`. |
+| **Root cause** | That viewer cannot edit status and cannot edit received-at-printing. The update trigger blocks the four receipt columns unless one of those is allowed. |
+| **Fix** | An admin turns on status edit or received-at-printing for that person, or an admin marks the receipt. |
+| **Verify** | The same order saves, the icon becomes a check or a red exclamation, and order history has Product received or Product issue. |
+
 ## Production tracker billing shows every order
 
 | | |

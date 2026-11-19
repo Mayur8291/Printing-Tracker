@@ -322,6 +322,24 @@ flowchart TD
   Sizes --> Hist[Order history line]
 ```
 
+## Printing orders — product received
+
+```mermaid
+flowchart TD
+  Row[Printing order row] --> State{Product received?}
+  State -->|no| Warn[Amber exclamation]
+  State -->|yes and issue text| Red[Red row and reason]
+  State -->|yes and no issue| Ok[Green check]
+  Warn --> Dialog[Open check against the job]
+  Dialog --> Proof[Upload proof]
+  Proof --> Choice{Matches the job?}
+  Choice -->|yes| SaveOk[Save receipt with empty issue]
+  Choice -->|no| Reason[Require a reason]
+  Reason --> SaveIssue[Save receipt and paint the row red]
+  SaveOk --> Hist[Activity log product_received]
+  SaveIssue --> HistIssue[Activity log product_received_issue]
+```
+
 ## Printing orders list and Jobs processed
 
 ```mermaid

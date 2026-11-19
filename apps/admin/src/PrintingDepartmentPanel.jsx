@@ -26,6 +26,8 @@ import {
 
 import OrderIdBadges from "./components/orders/OrderIdBadges";
 
+import ProductReceiptControl from "./components/orders/ProductReceiptControl";
+
 import OrderStatusBadge from "./components/orders/OrderStatusBadge";
 
 import OrdersListSummary from "./components/orders/OrdersListSummary";
@@ -113,6 +115,8 @@ export default function PrintingDepartmentPanel({
   renderStageIcon,
 
   sessionUserId,
+
+  onReceiptSaved,
 
   canEdit = false,
 
@@ -288,6 +292,8 @@ export default function PrintingDepartmentPanel({
 
                       <TableHead>Product name</TableHead>
 
+                      <TableHead className="w-16">Received</TableHead>
+
                       <TableHead>Status</TableHead>
 
                       <TableHead>Delivery date</TableHead>
@@ -411,6 +417,22 @@ export default function PrintingDepartmentPanel({
                                   ? order.product_name
 
                                   : "—"}
+
+                          </TableCell>
+
+                          <TableCell>
+
+                            <ProductReceiptControl
+
+                              order={order}
+
+                              canEdit={canEdit && order.status !== "cancelled"}
+
+                              userId={sessionUserId}
+
+                              onSaved={onReceiptSaved}
+
+                            />
 
                           </TableCell>
 

@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
-import { isDispatchVerificationFailed } from "@/orderTabUtils";
+import { isDispatchVerificationFailed, productReceiptState } from "@/orderTabUtils";
 
 export function orderListRowClassName(order, { urgency } = {}) {
   return cn(
-    isDispatchVerificationFailed(order) && "bg-destructive/10 hover:bg-destructive/15",
+    (isDispatchVerificationFailed(order) || productReceiptState(order) === "issue") &&
+      "bg-destructive/10 hover:bg-destructive/15",
     urgency === "overdue" && "bg-destructive/5 hover:bg-destructive/10",
     urgency === "today" && "bg-orange-50 hover:bg-orange-100/80 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
     urgency === "tomorrow" && "bg-amber-50 hover:bg-amber-100/80 dark:bg-amber-950/20 dark:hover:bg-amber-950/30"

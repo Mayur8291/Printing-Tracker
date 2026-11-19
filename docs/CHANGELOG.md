@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-19 — Printing orders record product receipt
+
+- **Feature:** Printing orders and Print Queue have a Received column. An exclamation mark means the product has not reached printing. Marking it received needs a proof file and a check against the job. If the product is wrong, the person writes the reason and that row turns red.
+- **Database:** Staging `orders` columns `product_received_at`, `product_received_by`, `product_received_proof_url`, `product_received_issue`, bucket `product-receipts`, and history events `product_received` / `product_received_issue`. Production was not changed.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/App.jsx`, `apps/admin/src/PrintingDepartmentPanel.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/orderQueryFields.js`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/orderHistoryUtils.js`, `apps/admin/src/components/orders/orderTableUtils.js`, `supabase/migrations/20261119083131_printing_product_receipt.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-17 — Production tracker billing lists production jobs only
 
 - **Bug fix:** Billing inside Production tracker was the full billing list, including printing and other orders. It now lists production job sheets only. The main Billing tab is unchanged.

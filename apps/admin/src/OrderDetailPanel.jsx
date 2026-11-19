@@ -37,7 +37,8 @@ import {
   deliveryMethodLabel,
   parsePaymentProofUrls,
   paymentMethodLabel,
-  paymentMethodRequiresProof
+  paymentMethodRequiresProof,
+  productReceiptState
 } from "./orderTabUtils";
 import {
   jobSheetProductionStatusOptions,
@@ -1043,6 +1044,32 @@ export default function OrderDetailPanel({
                 formatReceivedAtDisplay(order.received_at_printing)
               )}
             </DetailField>
+            ) : null}
+            {!jobSheet && !sampleJobSheet ? (
+              <DetailField label="Product received">
+                {productReceiptState(order) === "missing" ? (
+                  "Not yet at printing"
+                ) : productReceiptState(order) === "issue" ? (
+                  <span className="text-destructive">
+                    Issue: {order.product_received_issue}
+                  </span>
+                ) : (
+                  "Checked and received"
+                )}
+                {order.product_received_proof_url ? (
+                  <>
+                    {" "}
+                    <a
+                      className="underline"
+                      href={order.product_received_proof_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Proof
+                    </a>
+                  </>
+                ) : null}
+              </DetailField>
             ) : null}
             <DetailField label="Printing metres">
               {canCurrentUserEdit("printing_mtrs") ? (

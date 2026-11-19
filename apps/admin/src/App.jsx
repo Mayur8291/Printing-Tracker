@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImagePreviewModal from "./components/ImagePreviewModal";
 import OrderHistoryModal from "./components/OrderHistoryModal";
+import ProductReceiptControl from "./components/orders/ProductReceiptControl";
 import { subscribePostgresChanges } from "./realtimeUtils";
 import {
   clearSidebarTabMarker,
@@ -5987,6 +5988,7 @@ function App() {
                   onViewOrder={openViewOrder}
                   renderStageIcon={renderStageIcon}
                   sessionUserId={session?.user?.id}
+                  onReceiptSaved={(patch) => patchOrderInClient(patch.id, patch)}
                   canEdit={canEditPrintQueue}
                   isAdmin={isAdmin}
                   teamProfiles={teamProfiles}
@@ -6096,6 +6098,7 @@ function App() {
                               <TableHead>Order number</TableHead>
                               <TableHead>Customer</TableHead>
                               <TableHead>Product name</TableHead>
+                              <TableHead className="w-16">Received</TableHead>
                               <TableHead>Status</TableHead>
                               {ordersTab === "on_hold" ? <TableHead>On hold reason</TableHead> : null}
                               <TableHead>Coordinator</TableHead>
@@ -6155,6 +6158,22 @@ function App() {
                                         : order.product_name?.trim()
                                           ? order.product_name
                                           : "—"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {order._isPending ? (
+                                      "—"
+                                    ) : (
+                                      <ProductReceiptControl
+                                        order={order}
+                                        canEdit={
+                                          canUseOrderControls &&
+                                          order.status !== "cancelled" &&
+                                          ordersTab !== "cancelled"
+                                        }
+                                        userId={session?.user?.id}
+                                        onSaved={(patch) => patchOrderInClient(patch.id, patch)}
+                                      />
+                                    )}
                                   </TableCell>
                                   <TableCell>
                                     <OrderListStatusCell

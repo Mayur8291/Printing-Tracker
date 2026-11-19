@@ -129,6 +129,13 @@ export const filterBillingOrdersBySearch = filterOrdersBySearch;
 export const DISPATCH_FAIL_STATUS = "dispatch_fail";
 export const DISPATCHED_STATUS = "dispatched";
 
+/** missing = not at printing yet, received = checked and matches, issue = received but wrong. */
+export function productReceiptState(order) {
+  if (!order?.product_received_at) return "missing";
+  if (String(order.product_received_issue ?? "").trim()) return "issue";
+  return "received";
+}
+
 export function isDispatchVerificationFailed(order) {
   if (!order) return false;
   return (
