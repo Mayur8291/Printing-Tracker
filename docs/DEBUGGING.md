@@ -1,5 +1,14 @@
 # Debugging
 
+## Product issue does not notify the person who created the job
+
+| | |
+|--|--|
+| **Symptom** | A printing order is marked with a product issue, but the creator sees no bell item and no toast. |
+| **Root cause** | The alert goes only to `orders.created_by`, and only when that person is not the one who saved the issue. An empty `created_by`, or saving your own job, sends nothing. A second save that keeps the same reason also sends nothing. |
+| **Fix** | Confirm `created_by` on that order. Have someone else mark the issue, or change the reason. The creator must be signed in on staging; the row is `order_status_notifications` with `new_status = product_issue`. |
+| **Verify** | The creator's bell says **Product issue** and the body includes the reason. |
+
 ## Printing orders list fails after switching the header to Production
 
 | | |

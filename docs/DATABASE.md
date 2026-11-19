@@ -670,6 +670,8 @@ Security-definer RPC for **Assign task → Link to goal**. Returns annual goals 
 
 **Trigger:** `orders_status_notify` on `orders.status` UPDATE — notifies coordinator (name match on `profiles.full_name`) and `created_by`, excluding the actor. On hold always notifies `created_by` (even if that person is the coordinator) and copies `on_hold_reason` into `note`. Migration `20261102082914_on_hold_creator_alert_and_util_dates.sql` on staging.
 
+A product issue uses the same table. `log_product_receipt` inserts one row for `orders.created_by` when `product_received_issue` is new or changed. `new_status` is `product_issue` (not an order status). `note` is the reason. The actor is skipped. Staging migration `20261119084948_product_issue_creator_alert.sql`. Production does not have this until a production release.
+
 **Rollback:** drop `note`. Restore the previous `notify_order_status_change` body from `20260707130000_add_goal_task_and_order_status_notifications.sql`.
 
 ## Team chat

@@ -7,6 +7,7 @@ function toastTitle(toast) {
   if (toast.kind === "printing_inventory") return "Printing inventory low stock";
   if (toast.kind === "goal_task") return "Task assigned to you";
   if (toast.kind === "order_status") {
+    if (toast.newStatus === "product_issue") return "Product issue";
     return toast.newStatus === "on_hold" ? "Order on hold" : "Order status updated";
   }
   return "New order assigned to you";
@@ -34,6 +35,9 @@ function toastBody(toast) {
   if (toast.kind === "order_status") {
     const ref = toast.orderDisplayId ? `Order ${toast.orderDisplayId}` : "Order";
     const reason = String(toast.holdReason ?? "").trim();
+    if (toast.newStatus === "product_issue") {
+      return reason ? `${ref} has a product issue. Reason: ${reason}` : `${ref} has a product issue`;
+    }
     if (toast.newStatus === "on_hold") {
       return reason ? `${ref} is on hold. Reason: ${reason}` : `${ref} is on hold`;
     }

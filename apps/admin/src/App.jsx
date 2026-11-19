@@ -6098,8 +6098,8 @@ function App() {
                               <TableHead>Order number</TableHead>
                               <TableHead>Customer</TableHead>
                               <TableHead>Product name</TableHead>
-                              <TableHead className="w-16">Received</TableHead>
-                              <TableHead>Status</TableHead>
+                              <TableHead className="whitespace-nowrap">Product status</TableHead>
+                              <TableHead className="whitespace-nowrap">Order status</TableHead>
                               {ordersTab === "on_hold" ? <TableHead>On hold reason</TableHead> : null}
                               <TableHead>Coordinator</TableHead>
                               <TableHead>Delivery date</TableHead>

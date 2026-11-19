@@ -361,14 +361,15 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 ### Printing orders — product received
 
-1. **Trigger:** Printing orders list, or Print Queue, **Received** column. View order also shows the same state and the proof link.
+1. **Trigger:** Printing orders list, or Print Queue, **Product status** column. View order also shows the same state and the proof link.
 2. **Not received:** Amber exclamation. Tooltip: product not yet reached printing.
 3. **Mark received:** Dialog shows the job (customer, product, colors, quantity, sizes). The person chooses **Matches the job** or **Product has an issue**, then uploads a photo or PDF. An issue also needs a written reason. The save button reads **Mark product received** or **Mark product issue** to match that choice. Save writes `product_received_at`, `product_received_by`, `product_received_proof_url`, and `product_received_issue` (null when it matches). The first save also sets `received_at_printing` if that time was empty.
 4. **Proof:** File goes to storage bucket `product-receipts`. A later save can keep the existing proof.
-5. **Attention:** A non-blank issue paints the row red (`bg-destructive/10`) on Printing orders and Print Queue. The tooltip shows the reason.
-6. **Who can save:** Admin, or a viewer who can edit status or the received-at-printing time. Cancelled rows and the Cancelled tab stay read-only. The database trigger rejects a viewer who has neither permission.
-7. **History:** `product_received` or `product_received_issue` on `order_activity_log`. Clearing the receipt is allowed by the check only when all four fields go back to null together; the screen does not offer a clear button.
-8. **Failure:** Missing proof or a blank issue reason stays in the dialog. A duplicate customer is not involved. These columns exist on staging only, so the header Production toggle cannot load the orders list until a production database release.
+5. **Attention:** A non-blank issue paints the row red (`bg-destructive/10`) on Printing orders and Print Queue. The tooltip shows the reason. The list headings are **Product status** and **Order status**.
+6. **Creator alert:** A new or changed issue inserts `order_status_notifications` for `orders.created_by`, with `new_status = product_issue` and the reason in `note`. The bell, toast, and notification list say **Product issue** and **Reason:**. A tone plays when status tones are on. The person who saved the issue is skipped. No `created_by` means no alert. Uploading a new proof without changing the reason does not send another alert.
+7. **Who can save:** Admin, or a viewer who can edit status or the received-at-printing time. Cancelled rows and the Cancelled tab stay read-only. The database trigger rejects a viewer who has neither permission.
+8. **History:** `product_received` or `product_received_issue` on `order_activity_log`. Clearing the receipt is allowed by the check only when all four fields go back to null together; the screen does not offer a clear button.
+9. **Failure:** Missing proof or a blank issue reason stays in the dialog. A duplicate customer is not involved. These columns exist on staging only, so the header Production toggle cannot load the orders list until a production database release.
 
 ### Printing orders — list load and Jobs processed
 

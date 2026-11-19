@@ -292,9 +292,9 @@ export default function PrintingDepartmentPanel({
 
                       <TableHead>Product name</TableHead>
 
-                      <TableHead className="w-16">Received</TableHead>
+                      <TableHead className="whitespace-nowrap">Product status</TableHead>
 
-                      <TableHead>Status</TableHead>
+                      <TableHead className="whitespace-nowrap">Order status</TableHead>
 
                       <TableHead>Delivery date</TableHead>
 

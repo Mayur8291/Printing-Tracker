@@ -1046,7 +1046,7 @@ export default function OrderDetailPanel({
             </DetailField>
             ) : null}
             {!jobSheet && !sampleJobSheet ? (
-              <DetailField label="Product received">
+              <DetailField label="Product status">
                 {productReceiptState(order) === "missing" ? (
                   "Not yet at printing"
                 ) : productReceiptState(order) === "issue" ? (
@@ -1140,7 +1140,7 @@ export default function OrderDetailPanel({
         ) : null}
 
         <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
-          <h4 className="text-sm font-semibold tracking-tight">Status &amp; remarks</h4>
+          <h4 className="text-sm font-semibold tracking-tight">Order status &amp; remarks</h4>
           <div className="flex flex-wrap items-center gap-2">
             <OrderStatusBadge
               status={sampleJobSheet ? sampleDisplayStatus : order.status}

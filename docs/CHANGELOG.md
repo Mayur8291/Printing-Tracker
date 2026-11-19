@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-19 — Product issue alerts the job creator
+
+- **Feature:** Saving a product issue writes a notification for `orders.created_by`. The bell and toast say **Product issue** and include the reason. The person who marked the issue is not notified about their own save. No creator on the job means no alert.
+- **Labels:** Printing orders and Print Queue use **Product status** and **Order status**. View order uses the same product-status label, and the status section is **Order status & remarks**.
+- **Files:** `apps/admin/src/App.jsx`, `apps/admin/src/PrintingDepartmentPanel.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/notificationsUtils.js`, `apps/admin/src/AssignmentToastStack.jsx`, `supabase/migrations/20261119084948_product_issue_creator_alert.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-19 — Product issue uses its own save button
 
 - **Bug fix:** After choosing **Product has an issue**, the dialog still offered only **Mark product received**. The save button now reads **Mark product issue** and uses the destructive style.

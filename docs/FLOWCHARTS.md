@@ -338,6 +338,7 @@ flowchart TD
   Reason --> SaveIssue[Save receipt and paint the row red]
   SaveOk --> Hist[Activity log product_received]
   SaveIssue --> HistIssue[Activity log product_received_issue]
+  HistIssue --> Alert[Notify orders.created_by unless they saved it]
 ```
 
 ## Printing orders list and Jobs processed

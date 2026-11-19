@@ -121,9 +121,9 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
+            <DialogTitle>Product status</DialogTitle>
             <DialogDescription>
-              Check the product against this job, then mark it received. Upload proof of what arrived.
+              {title}. Check the product against this job, then mark it received or record the issue. Upload proof of what arrived.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={save}>

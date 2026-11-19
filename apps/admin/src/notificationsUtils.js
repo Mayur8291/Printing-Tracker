@@ -238,6 +238,7 @@ export function notificationTitle(item) {
   if (item?.kind === "ops_briefing") return "Daily follow-up briefing";
   if (item?.kind === "goal_task") return "Task assigned to you";
   if (item?.kind === "order_status") {
+    if (item.new_status === "product_issue") return "Product issue";
     return item.new_status === "on_hold" ? "Order on hold" : "Order status updated";
   }
   return "Order assigned to you";
@@ -281,6 +282,9 @@ export function notificationBodyText(item) {
   if (item?.kind === "order_status") {
     const orderRef = item.order_display_id ? `Order ${item.order_display_id}` : "Order";
     const reason = String(item.note ?? "").trim();
+    if (item.new_status === "product_issue") {
+      return reason ? `${orderRef} has a product issue. Reason: ${reason}` : `${orderRef} has a product issue`;
+    }
     if (item.new_status === "on_hold") {
       return reason ? `${orderRef} is on hold. Reason: ${reason}` : `${orderRef} is on hold`;
     }
