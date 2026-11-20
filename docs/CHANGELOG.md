@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Netlify production matches the Vercel site
+
+- **Release:** `printingtracker.netlify.app` was still the 7 November `main` build (`b6411c1`). Vercel (`scottdashboard.vercel.app`) and the Netlify `develop` branch already served the same current bundle. `main` was fast-forwarded to that Vercel commit so the production Netlify site publishes the same app. No production database change.
+- **Documentation updated:** CHANGELOG.md, ENVIRONMENTS.md.
+
 ## 2026-11-20 — Netlify branch deploy can install again
 
 - **Bug fix:** `develop` deploys failed in `npm ci` because Puppeteer tried to download Chrome and the cached browser folder had no executable. Netlify now sets `PUPPETEER_SKIP_DOWNLOAD`. The ignore script also had Windows line endings, so bash on the build image could not parse it.

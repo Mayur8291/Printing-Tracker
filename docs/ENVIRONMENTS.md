@@ -118,8 +118,11 @@ Repo: [Mayur8291/Printing-Tracker](https://github.com/Mayur8291/Printing-Tracker
 
 ### URLs
 
-- **Production:** your existing Netlify URL (set after `netlify link` or in team dashboard).
-- **Staging:** `https://develop--<site-name>.netlify.app` (pattern for branch deploys) or custom subdomain if configured.
+- **Production:** `https://printingtracker.netlify.app` builds from `main`.
+- **Staging:** `https://develop--printingtracker.netlify.app` builds from `develop`.
+- **Vercel:** `https://scottdashboard.vercel.app` builds from `develop` and is the live dashboard.
+
+On 2026-11-20, production Netlify was still the 7 November `main` build while Vercel and the `develop` branch deploy already shared one bundle. `main` was fast-forwarded to that commit so both hosts serve the same app. Opening any of these links uses production login. An admin can switch one tab to staging.
 
 Do not change production env vars remotely without confirming values in the dashboard.
 
