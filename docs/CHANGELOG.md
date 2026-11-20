@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-20 — Netlify branch deploy can install again
+
+- **Bug fix:** `develop` deploys failed in `npm ci` because Puppeteer tried to download Chrome and the cached browser folder had no executable. Netlify now sets `PUPPETEER_SKIP_DOWNLOAD`. The ignore script also had Windows line endings, so bash on the build image could not parse it.
+- **Files:** `netlify.toml`, `scripts/netlify-ignore-build.sh`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-19 — Production can load orders after product receipt
 
 - **Release:** Production `levwrmvqdntngeasrtnb` now has `orders.product_received_at`, `product_received_by`, `product_received_proof_url`, and `product_received_issue`, the `product-receipts` bucket, the viewer guard, and the creator alert. This was the one-time production database release for the printing product-status work. No other production migrations were applied. Git `main` was not changed.

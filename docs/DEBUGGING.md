@@ -1,5 +1,14 @@
 # Debugging
 
+## Netlify develop deploy fails while installing packages
+
+| | |
+|--|--|
+| **Symptom** | Branch deploy of `develop` is Failed. The log says `Failed during stage 'building site': Build script returned non-zero exit code: 2` and `Failed to set up chrome`. |
+| **Root cause** | `npm ci` runs Puppeteer's install script. The Netlify cache has a Chrome folder whose executable is missing, so the download fails and the site never builds. The ignore script can also show `$'\r': command not found` when the file has Windows line endings. |
+| **Fix** | `netlify.toml` sets `PUPPETEER_SKIP_DOWNLOAD=true`. The dashboard build does not launch Chrome. Keep `scripts/netlify-ignore-build.sh` as Unix line endings. |
+| **Verify** | A new `develop` deploy reaches Published. The log does not contain `Failed to set up chrome`. |
+
 ## Sign-in uses the wrong project's accounts
 
 | | |
