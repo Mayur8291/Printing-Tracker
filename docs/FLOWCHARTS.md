@@ -349,8 +349,8 @@ flowchart TD
   Choice -->|yes| SaveOk[Save receipt with empty issue]
   Choice -->|no| Reason[Require a reason]
   Reason --> SaveIssue[Save receipt and paint the row red]
-  SaveOk --> Hist[Activity log product_received]
-  SaveIssue --> HistIssue[Activity log product_received_issue]
+  SaveOk --> Hist[Activity log product_received with proof link]
+  SaveIssue --> HistIssue[Activity log product_received_issue with reason and proof]
   HistIssue --> Alert[Notify orders.created_by unless they saved it]
 ```
 

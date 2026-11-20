@@ -59,6 +59,19 @@ export function historyActorLine(entry) {
   return `By ${label}`;
 }
 
+/** Proof link stored on a product-receipt history row. Only http(s) links are returned. */
+export function historyProofUrl(entry) {
+  const raw = entry?.meta?.proof_url;
+  if (typeof raw !== "string" || !raw.trim()) return "";
+  try {
+    const url = new URL(raw.trim());
+    if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
 export function getOrderHistoryEventLabel(eventType, order) {
   if (eventType === "order_created" && isJobSheetOrder(order)) {
     return "Job sheet created";

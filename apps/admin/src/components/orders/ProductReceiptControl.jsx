@@ -80,8 +80,16 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
         product_received_issue: issue || null,
         received_at_printing: order.received_at_printing || receivedAt
       };
-      const { error: updateError } = await supabase.from("orders").update(patch).eq("id", order.id);
+      const { data: saved, error: updateError } = await supabase
+        .from("orders")
+        .update(patch)
+        .eq("id", order.id)
+        .select("id")
+        .maybeSingle();
       if (updateError) throw new Error(updateError.message);
+      if (!saved?.id) {
+        throw new Error("Product status was not saved, so order history was not recorded.");
+      }
       onSaved?.({ id: order.id, ...patch });
       setOpen(false);
     } catch (err) {

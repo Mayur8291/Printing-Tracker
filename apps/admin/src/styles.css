@@ -8760,6 +8760,24 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   word-break: break-word;
 }
 
+.order-history-item--product_received {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.order-history-item--product_received_issue {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.order-history-proof {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
 .order-history-actor {
   margin: 6px 0 0;
   font-size: 11px;
@@ -13393,6 +13411,20 @@ html.theme-dark .order-history-item--design_changes_requested,
 html.theme-dark .order-history-item--design_changes_note_updated {
   background: #450a0a;
   border-color: #991b1b;
+}
+
+html.theme-dark .order-history-item--product_received {
+  border-color: #166534;
+  background: #052e16;
+}
+
+html.theme-dark .order-history-item--product_received_issue {
+  border-color: #991b1b;
+  background: #450a0a;
+}
+
+html.theme-dark .order-history-proof {
+  color: #93c5fd;
 }
 
 html.theme-dark .order-history-item--design_images_uploaded,

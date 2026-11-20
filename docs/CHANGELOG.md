@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-20 — Product receipt is recorded in order history
+
+- **Change:** Marking a product received, recording an issue, or clearing an issue writes an order-history row with the decision, the reason, and the proof link. Order history shows **View proof** for that row. A save that does not change the order reports an error instead of looking successful.
+- **Database:** `log_product_receipt` now stores `meta.proof_url`, `meta.issue`, and `meta.outcome`. Applied on staging `scvojtvgnkmbupvyslmb` and production `levwrmvqdntngeasrtnb`.
+- **Files:** `supabase/migrations/20261120100000_product_receipt_history_record.sql`, `apps/admin/src/components/OrderHistoryModal.jsx`, `apps/admin/src/orderHistoryUtils.js`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/styles.css`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-20 — Netlify production matches the Vercel site
 
 - **Release:** `printingtracker.netlify.app` was still the 7 November `main` build (`b6411c1`). Vercel (`scottdashboard.vercel.app`) and the Netlify `develop` branch already served the same current bundle. `main` was fast-forwarded to that Vercel commit so the production Netlify site publishes the same app. No production database change.

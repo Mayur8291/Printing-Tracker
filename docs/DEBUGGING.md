@@ -54,6 +54,16 @@
 | **Fix** | An admin turns on status edit or received-at-printing for that person, or an admin marks the receipt. |
 | **Verify** | The same order saves, the icon becomes a check or a red exclamation, and order history has Product received or Product issue. |
 
+## Product receipt is missing from order history
+
+| | |
+|--|--|
+| **Symptom** | Product status shows received or an issue, but Order history has no Product received or Product issue line, or the line has no proof. |
+| **Root cause** | History is written by `trg_log_product_receipt` only when the receipt time, person, issue, or proof actually changes. A repeated save of the same decision does not add another row. Rows saved before 2026-11-20 say "Proof saved" and have no `meta.proof_url`. |
+| **Fix** | Mark the product again with a new proof or a changed issue. Confirm `log_product_receipt` inserts `meta.proof_url`. The dialog must not say the status was saved when the update returns no row. |
+| **SQL check** | `select event_type, message, meta from order_activity_log where order_id = <id> and event_type in ('product_received','product_received_issue') order by created_at desc;` |
+| **Verify** | Order history shows Product received or Product issue, the reason when there is one, and **View proof**. |
+
 ## Production tracker billing shows every order
 
 | | |
