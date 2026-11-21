@@ -41,4 +41,4 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.CANTO_SUPABASE_ACCESS_TOKEN }}
           CACHE_ENVIRONMENT: ${{ matrix.environment }}
-        run: python tools/canto-sync/media_renditions.py --environment "$CACHE_ENVIRONMENT" --limit 100
+        run: python tools/canto-sync/media_renditions.py --environment "$CACHE_ENVIRONMENT" --limit 30
