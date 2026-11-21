@@ -8,14 +8,21 @@ from PIL import Image,ImageOps
 from management import query
 
 SIZES={'thumb':320,'card':768,'detail':1536}
-Image.MAX_IMAGE_PIXELS=12_000_000
+# JPEG headers may describe ordinary 24/48 MP camera photos. libjpeg's draft
+# decoder reduces them before allocating pixels; other formats retain the
+# smaller bound because their decoders cannot promise the same allocation.
+Image.MAX_IMAGE_PIXELS=48_000_000
 
 def render(data):
     if not 0<len(data)<=10*1024*1024:raise ValueError('Invalid raster size')
     with warnings.catch_warnings():
         warnings.simplefilter('error',Image.DecompressionBombWarning)
         with Image.open(io.BytesIO(data)) as original:
-            if original.format not in ('PNG','JPEG') or original.width>4096 or original.height>4096 or original.width*original.height>12_000_000:raise ValueError('Unsupported raster')
+            if original.format not in ('PNG','JPEG') or max(original.size)>16384 or original.width*original.height>48_000_000:raise ValueError('Unsupported raster')
+            if original.format=='JPEG' and (max(original.size)>4096 or original.width*original.height>12_000_000):
+                ratio=min(1,1536/max(original.size))
+                original.draft('RGB',(max(1,int(original.width*ratio)),max(1,int(original.height*ratio))))
+            if max(original.size)>4096 or original.width*original.height>12_000_000:raise ValueError('Unsupported decoded raster')
             image=ImageOps.exif_transpose(original)
             alpha='A' in image.getbands() or 'transparency' in image.info
             image=image.convert('RGBA' if alpha else 'RGB')
