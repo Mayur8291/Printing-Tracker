@@ -18,7 +18,7 @@ def render(data):
     with warnings.catch_warnings():
         warnings.simplefilter('error',Image.DecompressionBombWarning)
         with Image.open(io.BytesIO(data)) as original:
-            if original.format not in ('PNG','JPEG') or max(original.size)>16384 or original.width*original.height>48_000_000:raise ValueError('Unsupported raster')
+            if original.format not in ('PNG','JPEG','WEBP') or max(original.size)>16384 or original.width*original.height>48_000_000:raise ValueError('Unsupported raster')
             if original.format=='JPEG' and (max(original.size)>4096 or original.width*original.height>12_000_000):
                 ratio=min(1,1536/max(original.size))
                 original.draft('RGB',(max(1,int(original.width*ratio)),max(1,int(original.height*ratio))))

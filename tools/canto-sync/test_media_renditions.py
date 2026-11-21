@@ -23,6 +23,12 @@ class RenditionTests(unittest.TestCase):
             with Image.open(io.BytesIO(payload)) as image:
                 self.assertLessEqual(max(image.size),SIZES[variant])
                 self.assertEqual(mime,'image/jpeg')
+    def test_legacy_webp_with_jpeg_metadata_gets_safe_raster_derivatives(self):
+        variants=list(render(self.data((1440,1440),'RGB','WEBP')))
+        self.assertEqual(len(variants),3)
+        for variant,payload,mime in variants:
+            self.assertIn(mime,('image/jpeg','image/png'))
+            with Image.open(io.BytesIO(payload)) as image:self.assertLessEqual(max(image.size),SIZES[variant])
     def test_large_png_remains_bounded(self):
         with self.assertRaises(ValueError):list(render(self.data((4096,4096),'RGB','PNG')))
     def test_hostile_or_unsupported_inputs_rejected(self):
