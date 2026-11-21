@@ -1,0 +1,44 @@
+name: Scott media renditions
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [staging, production]
+        default: staging
+        required: true
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: read
+jobs:
+  render:
+    if: github.event_name == 'workflow_dispatch' || vars.SCOTT_CACHE_RENDITIONS_ENABLED == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [staging, production]
+    runs-on: ubuntu-24.04
+    environment: ${{ matrix.environment }}
+    concurrency:
+      group: scott-media-renditions-${{ matrix.environment }}
+      cancel-in-progress: false
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name != 'workflow_dispatch' || inputs.environment == matrix.environment
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        if: github.event_name != 'workflow_dispatch' || inputs.environment == matrix.environment
+        with:
+          python-version: '3.12'
+      - name: Install renderer
+        if: github.event_name != 'workflow_dispatch' || inputs.environment == matrix.environment
+        run: python -m pip install -r tools/canto-sync/requirements-media.txt
+      - name: Render pending immutable media
+        if: github.event_name != 'workflow_dispatch' || inputs.environment == matrix.environment
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.CANTO_SUPABASE_ACCESS_TOKEN }}
+          CACHE_ENVIRONMENT: ${{ matrix.environment }}
+        run: python tools/canto-sync/media_renditions.py --environment "$CACHE_ENVIRONMENT" --limit 100
