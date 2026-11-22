@@ -17,7 +17,7 @@ export default function StudioPreview(props){
  return String(baseId)==='216'?<MappedPreview key={scope} {...props} artworks={artworks} environment={environment} scope={scope}/>:<div data-studio-capture-blocked={props.brandings?.some(row=>row.design_id)?'artwork-preview-unavailable':undefined}><ConfiguratorPreview baseId={baseId} configuration={configuration} label={label}/></div>;
 }
 function MappedPreview({baseId,configuration,label='Your design',artworks,brandings=[],environment,scope,onPartSelect}){
- const client=useQueryClient(),[fallback,setFallback]=useState(false);
+ const client=useQueryClient(),lastDesign=useRef(null),[rendererError,setRendererError]=useState(false),[attempt,setAttempt]=useState(0);
  const artwork=useStudioArtwork(brandings,environment);
  const renderedArtwork=[...artworks,...(artwork.data??[])];
  const query=useSquadQuery(['studio-model',baseId,configuration],async({sdk,signal})=>{
@@ -28,39 +28,63 @@ function MappedPreview({baseId,configuration,label='Your design',artworks,brandi
   const catalogue={parts:await options('parts'),fabricColors:configuration.fabric_id?await options('fabric_colors',configuration.fabric_id):[],addonsByPart:{},partColorsByPart:{},addonColorsByAddon:{}};
   for(const part of configuration.parts??[]){signal.throwIfAborted();const [addons,colors]=await Promise.all([options('addons',part.part_id),options('part_colors',part.part_id)]);catalogue.addonsByPart[part.part_id]=addons;catalogue.partColorsByPart[part.part_id]=colors;for(const addon of part.addons??[])if(addons.find(row=>row.id===addon.addon_id)?.has_color)catalogue.addonColorsByAddon[`${part.part_id}:${addon.addon_id}`]=await options('addon_colors',addon.addon_id,part.part_id);}
   signal.throwIfAborted();const option=id=>id?{id:String(id)}:undefined;
-  return resolveStudioDesign({projectRef:new URL(getEnvironmentConfig(environment).url).hostname.split('.')[0],selection:{base:option(baseId),designCategory:option(configuration.category_id),fabric:option(configuration.fabric_id),color:option(configuration.fabric_color_id)},parts:configuration.parts??[],catalogue});
+  return resolveStudioDesign({projectRef:new URL(getEnvironmentConfig(environment).url).hostname.split('.')[0],selection:{base:option(baseId),designCategory:option(configuration.category_id),fabric:option(configuration.fabric_id),color:option(configuration.fabric_color_id)},parts:configuration.parts??[],catalogue,previewIncomplete:true});
  },{staleTime:300000,gcTime:1800000,refetchOnWindowFocus:false});
- const supported=query.data?.status==='supported';
- if(fallback||query.data?.status==='unsupported')return <div data-studio-capture-blocked={brandings.some(row=>row.design_id)?'artwork-preview-unavailable':undefined}><p className="px-5 py-3 text-xs text-muted-foreground">{fallback?'3D is unavailable in this browser. Your design is preserved.':query.data.reason}</p><ConfiguratorPreview baseId={baseId} configuration={configuration} label={label}/></div>;
- return <div><CanvasPreview onPartSelect={onPartSelect} design={supported?{...query.data.design,artworks:renderedArtwork}:{modelId:registry.modelId,visibleGroups:['Base','Body_Closed','SetInShoulderSeams'],materialColors:{BaseFabric:'#e3dfd8',Part_202_Fabric:'#e3dfd8'}}} pending={!supported||query.isFetching||artwork.pending||!!artwork.error} label={label} onFailure={()=>setFallback(true)}/>{artwork.error&&<p role="alert" className="p-4 text-xs">{artwork.error.message} Your artwork remains attached; a complete preview cannot be captured yet.</p>}{query.error&&<p role="alert" className="p-4 text-sm">{query.error.message} <button type="button" onClick={()=>query.refetch()}>Retry preview</button></p>}{supported&&query.data.nonVisualDetails.length>0&&<details className="px-5 py-3 text-xs text-muted-foreground"><summary>Details saved as specifications</summary><ul>{query.data.nonVisualDetails.map(text=><li key={text}>{text}</li>)}</ul></details>}</div>;
+ const resolved=query.data?.design,complete=query.data?.status==='supported';
+ // Keep one canvas and its camera alive while scoped catalogue reads or unfinished
+ // selections resolve. Never reinterpret a transient editing state as 2D fallback.
+ useEffect(()=>{if(resolved)lastDesign.current=resolved;},[resolved]);
+ const design=resolved??lastDesign.current??{modelId:registry.modelId,visibleGroups:['Base','Body_Closed','SetInShoulderSeams'],materialColors:{BaseFabric:'#e3dfd8',Part_202_Fabric:'#e3dfd8'}};
+ const pending=!complete||query.isFetching||!!query.error||artwork.pending||!!artwork.error||rendererError;
+ return <div data-preview-state={rendererError?'error':query.isFetching?'loading':query.data?.status??'loading'} data-studio-capture-blocked={pending?'preview-incomplete':undefined}>
+  <CanvasPreview key={attempt} onPartSelect={onPartSelect} design={{...design,artworks:renderedArtwork}} pending={pending} label={label} onFailure={()=>setRendererError(true)}/>
+  {rendererError&&<p role="alert" className="studio-preview-notice">3D could not load. Your selections are preserved. <button type="button" onClick={()=>{setRendererError(false);setAttempt(value=>value+1);}}>Retry 3D</button></p>}
+  {query.data?.status==='incomplete'&&<p role="status" className="studio-preview-notice">{query.data.pendingFields.join(' ')} Unchosen colours follow the fabric in this preview.</p>}
+  {query.data?.status==='unsupported'&&<p role="status" className="studio-preview-notice">Preview paused: {query.data.reason} Showing the last available 3D preview.</p>}
+  {artwork.error&&<p role="alert" className="p-4 text-xs">{artwork.error.message} Your artwork remains attached; a complete preview cannot be captured yet.</p>}
+  {query.error&&<p role="alert" className="p-4 text-sm">{query.error.message} <button type="button" onClick={()=>query.refetch()}>Retry preview</button></p>}
+  {query.data?.nonVisualDetails?.length>0&&<details className="px-5 py-3 text-xs text-muted-foreground"><summary>Details saved as specifications</summary><ul>{query.data.nonVisualDetails.map(text=><li key={text}>{text}</li>)}</ul></details>}
+ </div>;
 }
 function CanvasPreview({design,pending,label,onFailure,onPartSelect}){
- const root=useRef(null),host=useRef(null),canvas=useRef(null),runtime=useRef(null),revision=useRef(0),readyRevision=useRef(0),capture=useRef(null),latest=useRef(design),pendingRef=useRef(pending),[ready,setReady]=useState(false),[omitted,setOmitted]=useState([]);
+ const root=useRef(null),host=useRef(null),canvas=useRef(null),runtime=useRef(null),revision=useRef(0),readyRevision=useRef(0),capture=useRef(null),captureEpoch=useRef(0),latest=useRef(design),pendingRef=useRef(pending),[ready,setReady]=useState(false),[omitted,setOmitted]=useState([]);
  const partCallback=useRef(onPartSelect);partCallback.current=onPartSelect;
  latest.current=design;pendingRef.current=pending;
- const key=JSON.stringify(design);
+ const key=JSON.stringify(design),submittedKey=useRef(null),desiredKey=useRef(key),[acknowledgedKey,setAcknowledgedKey]=useState(null);
+ desiredKey.current=key;
+ const captureReady=acknowledgedKey===key&&!pending&&omitted.length===0;
+ function invalidateCapture(message){captureEpoch.current++;const ticket=capture.current;capture.current=null;ticket?.reject(Error(message));}
  useEffect(()=>{let alive=true;import('./studio-renderer.generated').then(({createStudioRenderer})=>{
   if(!alive)return;
   runtime.current=createStudioRenderer({canvas:canvas.current,container:host.current,registry,modelUrl,groupPartMap:{Base:'202',Body_Closed:'202',Body_Slit:'202',...Object.fromEntries(STUDIO_BINDINGS.map(row=>[row.modelGroup,row.part_id]))},onEvent:event=>{
    if(!alive)return;
    if(event.type==='part')partCallback.current?.(event.partId);
-   if(event.type==='ready'&&event.revision===revision.current){readyRevision.current=event.revision;setReady(true);setOmitted(event.omittedArtworkIds);}
-   if(event.type==='interaction'){capture.current?.reject(Error('The view changed during capture. Please try again.'));capture.current=null;}
-   if(event.type==='error'){capture.current?.reject(Error('The preview could not be captured.'));capture.current=null;onFailure();}
-   if(event.type==='recovering'){readyRevision.current=0;setReady(false);}
-   if(event.type==='capture'&&capture.current?.revision===event.revision&&capture.current.id===event.requestId){const ticket=capture.current;capture.current=null;if(event.revision!==revision.current||pendingRef.current){ticket.reject(Error('The design changed during capture.'));return;}fetch(event.dataUri).then(response=>response.blob()).then(blob=>{if(!alive||event.revision!==revision.current||pendingRef.current){ticket.reject(Error('The design changed during capture.'));return;}ticket.resolve(new File([blob],'design-mockup.png',{type:'image/png'}));},ticket.reject);}
+   if(event.type==='ready'&&event.revision===revision.current){readyRevision.current=event.revision;setAcknowledgedKey(submittedKey.current);setReady(true);setOmitted(event.omittedArtworkIds);}
+   if(event.type==='interaction')invalidateCapture('The view changed during capture. Please try again.');
+   if(event.type==='error'){invalidateCapture('The preview could not be captured.');setAcknowledgedKey(null);onFailure();}
+   if(event.type==='recovering'){invalidateCapture('The preview is recovering. Please try again.');readyRevision.current=0;setAcknowledgedKey(null);setReady(false);}
+   if(event.type==='capture'&&capture.current?.revision===event.revision&&capture.current.id===event.requestId){
+    const ticket=capture.current;if(ticket.converting)return;ticket.converting=true;
+    const isCurrent=()=>alive&&capture.current===ticket&&ticket.epoch===captureEpoch.current&&event.revision===revision.current&&submittedKey.current===desiredKey.current&&!pendingRef.current;
+    const fail=error=>{if(capture.current===ticket)capture.current=null;ticket.reject(error);};
+    if(!isCurrent()){fail(Error('The design changed during capture.'));return;}
+    fetch(event.dataUri).then(response=>response.blob()).then(blob=>{
+     if(!isCurrent()){fail(Error('The view or design changed during capture.'));return;}
+     capture.current=null;ticket.resolve(new File([blob],'design-mockup.png',{type:'image/png'}));
+    },fail);
+   }
   }});
-  if(latest.current)runtime.current.command({type:'design',revision:++revision.current,design:latest.current});
+  if(latest.current){submittedKey.current=JSON.stringify(latest.current);runtime.current.command({type:'design',revision:++revision.current,design:latest.current});}
  }).catch(()=>{if(alive)onFailure();});
- return()=>{alive=false;runtime.current?.dispose();runtime.current=null;capture.current?.reject(Error('The preview was closed.'));capture.current=null;};
+ return()=>{alive=false;invalidateCapture('The preview was closed.');runtime.current?.dispose();runtime.current=null;};
  },[]);
- useEffect(()=>{capture.current?.reject(Error('The design changed during capture.'));capture.current=null;readyRevision.current=0;if(runtime.current&&design)runtime.current.command({type:'design',revision:++revision.current,design});},[key]);
+ useEffect(()=>{invalidateCapture('The design changed during capture.');readyRevision.current=0;setAcknowledgedKey(null);if(runtime.current&&design){submittedKey.current=key;runtime.current.command({type:'design',revision:++revision.current,design});}},[key]);
  useEffect(()=>{const node=root.current;node.captureStudioPreview=()=>{
-  if(!runtime.current||pendingRef.current||readyRevision.current!==revision.current||!design||omitted.length)throw Error('Wait for the complete design preview before capturing it.');
+  if(!runtime.current||pendingRef.current||readyRevision.current!==revision.current||submittedKey.current!==desiredKey.current||!design||omitted.length)throw Error('Wait for the complete design preview before capturing it.');
   if(capture.current)throw Error('A preview capture is already in progress.');
-  return new Promise((resolve,reject)=>{const id=crypto.randomUUID(),timer=setTimeout(()=>{if(capture.current?.id===id){capture.current=null;reject(Error('The preview capture timed out.'));}},10000);capture.current={id,revision:revision.current,resolve:value=>{clearTimeout(timer);resolve(value);},reject:error=>{clearTimeout(timer);reject(error);}};runtime.current.command({type:'capture',revision:revision.current,requestId:id});});
+  return new Promise((resolve,reject)=>{const id=crypto.randomUUID(),timer=setTimeout(()=>{if(capture.current?.id===id){capture.current=null;reject(Error('The preview capture timed out.'));}},10000);capture.current={id,epoch:captureEpoch.current,converting:false,revision:revision.current,resolve:value=>{clearTimeout(timer);resolve(value);},reject:error=>{clearTimeout(timer);reject(error);}};runtime.current.command({type:'capture',revision:revision.current,requestId:id});});
  };return()=>{delete node.captureStudioPreview;};},[key,omitted]);
- return <section ref={root} className="squad-studio-preview" aria-label={label}><div ref={host} style={{height:'clamp(360px,58vh,680px)',position:'relative',background:'#faf9f6',borderRadius:20,overflow:'hidden'}}><canvas ref={canvas} aria-label={`${label}. Drag to rotate; use front and back buttons for preset views.`} role="img" style={{width:'100%',height:'100%',touchAction:'none'}}/>{!ready&&<div className="absolute inset-0 flex items-center justify-center bg-stone-100/90 animate-pulse" role="status">Preparing your garment…</div>}</div><div className="flex justify-center gap-2 py-4">{['front','back','reset'].map(view=><button type="button" key={view} className="rounded-full border bg-white px-4 py-2 text-xs capitalize" onClick={()=>runtime.current?.command({type:'view',view})}>{view}</button>)}</div><p className="text-center text-xs text-muted-foreground">Drag to rotate · Scroll or pinch to zoom</p>{omitted.length>0&&<p role="status" className="p-4 text-xs">Some artwork placements cannot be shown accurately in this preview. They remain in your design specifications.</p>}</section>;
+ return <section ref={root} className="squad-studio-preview" data-capture-ready={captureReady?'true':'false'} data-studio-capture-blocked={captureReady?undefined:'preview-incomplete'} aria-label={label}><div ref={host} className="studio-canvas-host"><canvas ref={canvas} aria-label={`${label}. Drag to rotate; use front and back buttons for preset views.`} role="img" style={{width:'100%',height:'100%',touchAction:'none'}}/>{!ready&&<div className="absolute inset-0 flex items-center justify-center bg-stone-100/90 animate-pulse" role="status">Preparing your garment…</div>}{ready&&acknowledgedKey!==key&&<p role="status" className="absolute bottom-3 inset-x-0 pointer-events-none text-center text-xs text-muted-foreground">Updating preview…</p>}</div><div className="studio-camera-toolbar">{['front','back','reset'].map(view=><button type="button" key={view} className="studio-camera-button" onClick={()=>runtime.current?.command({type:'view',view})}>{view}</button>)}</div><p className="text-center text-xs text-muted-foreground">Drag to rotate · Scroll or pinch to zoom</p>{omitted.length>0&&<p role="status" className="p-4 text-xs">Some artwork placements cannot be shown accurately in this preview. They remain in your design specifications.</p>}</section>;
 }
 
 function useStudioArtwork(brandings,environment){

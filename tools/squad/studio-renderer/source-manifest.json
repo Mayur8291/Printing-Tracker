@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "source": "Exact production mobile216 source and assets; independently deployable web bundle.",
+  "source": "Production mobile216 geometry and bindings, with explicit web draft-preview resolution; independently deployable web bundle.",
   "sha256": {
     "apps/admin/src/squad/features/studio/assets/garment.glb": "6a3fc578bd46fec5fd8ef5ba12f7ed039253721e26718937ee5ab5db7fd4bf28",
     "apps/admin/src/squad/features/studio/assets/registry.json": "b3d5c9f777bf65a422e86786addf6f0ada0b2189feec923228d22c3679a69607",
@@ -55,7 +55,7 @@
     "apps/admin/src/squad/features/studio/assets/thumbnails/addon-858.png": "84b49fbe00e0c9a164e7876ca7b815688320dd71b5da359e97078af8cba79894",
     "apps/admin/src/squad/features/studio/assets/thumbnails/addon-925.png": "d8eb98280e2a12187195c20331ef8f9fbf85c75454916804e4eb2c34b1d945af",
     "tools/squad/studio-renderer/artwork-source.ts": "0d4a92a8104cac54c2adaafe3586207eb564cbe8a36840dcd72fd8cfa3bc53d2",
-    "tools/squad/studio-renderer/catalogue-source.ts": "f0a6876e45195c744ea592c809417096b9d491a7bbfdc881dfa2b8ec7dbe972c",
+    "tools/squad/studio-renderer/catalogue-source.ts": "1f369bed1df338c2f6899a7fa548690baa065f2170bc5f38d6eb1376094e6771",
     "tools/squad/studio-renderer/renderer-source.mjs": "7a93d7925e81b8ae4eeb14045c7f344e1de273ad4d99bf953ff80ca65b6b76e1"
   }
 }
