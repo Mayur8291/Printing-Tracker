@@ -1,6 +1,9 @@
 /** Capture the already authorized, sanitized, decoded garment layers. Only the
  * preview's own blob images may be drawn; this never fetches a legacy URL. */
 export async function capturePreview(container,{filename='design-mockup.png',size=1024}={}) {
+  if(container?.matches?.('[data-studio-capture-blocked]')||container?.querySelector?.('[data-studio-capture-blocked]'))throw new Error('Artwork is not included in this preview. Upload a complete mockup instead.');
+  const studio=container?.querySelector?.('.squad-studio-preview');
+  if(studio){if(typeof studio.captureStudioPreview!=='function')throw new Error('Wait for the complete 3D preview before capturing it.');return studio.captureStudioPreview();}
   const preview=container?.matches?.('.squad-configurator-preview')?container:container?.querySelector('.squad-configurator-preview');
   const frame=preview?.querySelector('[role="img"]');
   if(!frame||frame.getAttribute('aria-busy')==='true'||preview.textContent.includes('This preview is incomplete'))throw new Error('Wait for the complete design preview before capturing it.');

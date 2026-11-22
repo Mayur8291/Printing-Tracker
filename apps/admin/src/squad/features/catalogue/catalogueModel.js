@@ -7,4 +7,11 @@ export function customLine(configuration,quantities,sample,brandings=[]){
 }
 export function readyMadeLine(quantities,brandings=[]){const skus=Object.entries(quantities).filter(([,v])=>v!==''&&Number(v)!==0).map(([sku_id,v])=>({sku_id,quantity:positiveQuantity(v)}));if(!skus.length)throw new Error('Enter a quantity for at least one available variant.');return {kind:'rmp',skus,...(brandings.length?{brandings}:{})};}
 export function cartQuantity(line){return (line.kind==='custom'?line.quantities:line.skus).reduce((sum,row)=>sum+row.quantity,0);}
-export function quoteRequest(cart,customerId,addressId){if(!cart.length)throw new Error('Add at least one product.');return {...(customerId?{customer_id:customerId}:{}),...(addressId?{address_id:addressId}:{}),lines:cart.map(row=>({...row.line,...(row.line.brandings?{brandings:row.line.brandings.map(branding=>Object.fromEntries(['type','side','width','height','unit','design_id','design_version'].filter(key=>branding[key]!==undefined).map(key=>[key,branding[key]])))}:{})}))};}
+export function quoteRequest(cart,customerId,addressId){
+ if(!cart.length)throw new Error('Add at least one product.');
+ return {...(customerId?{customer_id:customerId}:{}),...(addressId?{address_id:addressId}:{}),lines:cart.map(row=>{
+  const line={...row.line};if(line.preset_id)delete line.configuration;
+  if(line.brandings)line.brandings=line.brandings.map(branding=>Object.fromEntries(['type','side','width','height','unit','design_id','design_version'].filter(key=>branding[key]!==undefined).map(key=>[key,branding[key]])));
+  return line;
+ })};
+}
