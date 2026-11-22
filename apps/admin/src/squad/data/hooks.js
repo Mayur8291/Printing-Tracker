@@ -51,7 +51,9 @@ export function useSquadCommand() {
       try {
         const result = await execute(command);
         intent.current = null;
-        await client.invalidateQueries({ queryKey: ["squad", scope] });
+        if(options.invalidateKeys){
+          await Promise.all(options.invalidateKeys.map(key=>client.invalidateQueries({queryKey:["squad",scope,...key]})));
+        }else await client.invalidateQueries({ queryKey: ["squad", scope] });
         return result;
       } catch (cause) {
         setError(cause);

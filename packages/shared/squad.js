@@ -193,6 +193,9 @@ export function createSquadClient(supabase, options = {}) {
     calculateQuote: (request) => call("v1_configuration_quote", {p_request:request}),
     resolveConfigurationSize: (baseId,scSizeId,idempotencyKey) => call("v1_configuration_size_resolve", {p_base_id:baseId,p_sc_size_id:scSizeId,p_idempotency_key:idempotencyKey}),
     catalogueQuote: (request,markup = {kind:"percentage",value:"0"}) => call("v1_catalogue_quote", {p_request:request,p_markup:markup}),
+    createCustomProduct: (configuration,name,comment,idempotencyKey) => call("v1_custom_design_create", {
+      p_configuration:configuration,p_name:name,p_comment:comment??null,p_idempotency_key:idempotencyKey
+    }),
     configureProduct: (configuration,name,comment,idempotencyKey) => call("v1_product_configure", {
       p_configuration:configuration,p_name:name,p_comment:comment,p_idempotency_key:idempotencyKey
     }),

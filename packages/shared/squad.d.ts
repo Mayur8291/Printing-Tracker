@@ -430,6 +430,7 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   resolveConfigurationSize(baseId:EntityId,scSizeId:EntityId,idempotencyKey:string):Promise<{id:EntityId;sc_size_id:EntityId;name:string}>;
   quote(request:QuoteRequest):Promise<Quote>;
   catalogueQuote(request:Omit<QuoteRequest,'address_id'>,markup?:Markup):Promise<QuoteCalculation & {markup:Markup;purpose:'catalogue_display_only'}>;
+  createCustomProduct(configuration:Configuration,name:string,comment:string,idempotencyKey:string):Promise<SavedEntity & {style_number:string;fingerprint:string;reused:boolean}>;
   configureProduct(configuration:Configuration,name:string,comment:string,idempotencyKey:string):Promise<SavedEntity & {style_number:string;fingerprint:string;reused:boolean}>;
   presets(filters?:{id?:EntityId;base_product_id?:EntityId;style_number?:string;search?:string},page?:PageRequest):Promise<Page<Preset>>;
   /** The version is shared with product media mutations; can_edit requires exact ownership. */

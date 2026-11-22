@@ -1,0 +1,10 @@
+{
+  "name": "scott-studio-renderer-build",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.180.0"
+  }
+}

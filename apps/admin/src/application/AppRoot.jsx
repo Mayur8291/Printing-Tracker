@@ -1,3 +1,4 @@
+import {clearStudioPrivateStorage} from '../squad/features/studio/stagedReferences';
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrowserRouter, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -120,9 +121,10 @@ function ApplicationBoundary() {
     mounted.current = true; let timer;
     // Keep Auth callbacks synchronous: another Auth call inside the callback can deadlock its lock.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") { clearTimeout(timer); invalidateSessionCheck(); observedSession.current = null; observedUser.current = null; token.current = null; queryClient.clear(); setState({ status: "anonymous" }); return; }
+      if (event === "SIGNED_OUT") { void clearStudioPrivateStorage().catch(()=>{}); clearTimeout(timer); invalidateSessionCheck(); observedSession.current = null; observedUser.current = null; token.current = null; queryClient.clear(); setState({ status: "anonymous" }); return; }
       const key = session ? `${session.user.id}:${session.access_token}` : null;
       if (observedUser.current && session?.user.id !== observedUser.current) {
+        void clearStudioPrivateStorage().catch(()=>{});
         queryClient.clear(); setState({ status: "loading" });
       }
       observedUser.current = session?.user.id ?? null;
@@ -149,6 +151,7 @@ function ApplicationBoundary() {
   const signOut = useCallback(async () => {
     const returnToProduction = getRuntimeEnv().env === "staging";
     clearEnvironmentOverride();
+    await clearStudioPrivateStorage().catch(()=>{});
     queryClient.clear(); invalidateSessionCheck(); setState({ status: "loading" });
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (returnToProduction) {
