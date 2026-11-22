@@ -692,7 +692,7 @@ const BY_ADDON = new Map(STUDIO_BINDINGS.map(row=>[row.id,row]));
 const PARTS = new Set<string>(STUDIO_PART_IDS);
 const PART_MATERIAL_IDS = new Set(['202','192','217','214','198','213','336']);
 export type StudioMappedDesign = {modelId:typeof STUDIO_MODEL_ID;visibleGroups:string[];materialColors:Record<string,string>};
-export type StudioResolution = {status:'supported';design:StudioMappedDesign;nonVisualDetails:string[]}|{status:'unsupported';reason:string};
+export type StudioResolution = {status:'supported';design:StudioMappedDesign;nonVisualDetails:string[]}|{status:'incomplete';design:StudioMappedDesign;nonVisualDetails:string[];pendingFields:string[]}|{status:'unsupported';reason:string};
 export type StudioConfiguredPart = {part_id:string;color_id:string;addons:readonly {addon_id:string;color_id?:string|null}[]};
 export function isStudioBase(projectRef:string,baseId:string|undefined|null):boolean{return PROJECT_REFS.has(projectRef)&&baseId===STUDIO_BASE_ID}
 export function studioBinding(partId:string,addonId:string):StudioBinding|undefined{const row=BY_ADDON.get(addonId);return row?.part_id===partId?row:undefined}
@@ -704,9 +704,15 @@ function colorHex(rows:readonly CatalogueOption[]|undefined,id:string|undefined|
 function unique(rows:readonly CatalogueOption[]|undefined,id:string):CatalogueOption|null{const found=rows?.filter(row=>row.id===id)??[];return found.length===1?found[0]:null}
 function darker(hex:string,factor:number):string{return '#'+[1,3,5].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*factor).toString(16).padStart(2,'0')).join('')}
 const unavailable=(reason:string):StudioResolution=>({status:'unsupported',reason});
-/** No guessed IDs, label matching, fake defaults, writes, or configuration changes. */
-export function resolveStudioDesign(input:{projectRef:string;selection:Selection;parts:readonly StudioConfiguredPart[];catalogue:StudioCatalogueRows}):StudioResolution{
- const {projectRef,selection,parts,catalogue}=input;
+/** Strict by default. The editing preview can inherit unfinished colours visually, without writing defaults into the design. Unknown IDs and incompatible geometry always fail closed. */
+export function resolveStudioDesign(input:{projectRef:string;selection:Selection;parts:readonly StudioConfiguredPart[];catalogue:StudioCatalogueRows;previewIncomplete?:boolean}):StudioResolution{
+ const {projectRef,selection,parts,catalogue,previewIncomplete=false}=input;
+ const pendingFields:string[]=[];
+ if(previewIncomplete){
+  if(!selection.designCategory)pendingFields.push('Choose a category.');
+  if(!selection.fabric)pendingFields.push('Choose a fabric.');
+  if(!selection.color)pendingFields.push('Choose a fabric colour.');
+ }
  if(!isStudioBase(projectRef,selection.base?.id))return unavailable('This product uses the standard preview.');
  if(parts.length>50||parts.reduce((n,p)=>n+p.addons.length,0)>100)return unavailable('Too many selected details for the 3D preview.');
  if(selection.designCategory&&selection.designCategory.id!=='25')return unavailable('This category has no verified 3D mapping.');
@@ -714,7 +720,7 @@ export function resolveStudioDesign(input:{projectRef:string;selection:Selection
  const body=selection.color?colorHex(catalogue.fabricColors,selection.color.id):null;
  if(selection.color&&!selection.fabric)return unavailable('Choose a fabric before its colour.');
  if(selection.color&&!body)return unavailable('The selected fabric colour is unavailable.');
- if(parts.length&&!body)return unavailable('Choose a valid fabric colour before configuring parts.');
+ if(parts.length&&!body){if(!previewIncomplete)return unavailable('Choose a valid fabric colour before configuring parts.');if(!pendingFields.includes('Choose a fabric colour.'))pendingFields.push('Choose a fabric colour.');}
  const baseColor=body??'#e3dfd8';
  const colors:Record<string,string>={BaseFabric:baseColor,InteriorFabric216:darker(baseColor,.35),ThreadBody:darker(baseColor,.80)};
  for(const id of PART_MATERIAL_IDS)colors[`Part_${id}_Fabric`]=baseColor;
@@ -723,16 +729,23 @@ export function resolveStudioDesign(input:{projectRef:string;selection:Selection
   if(seenParts.has(part.part_id)||!PARTS.has(part.part_id)||!unique(catalogue.parts,part.part_id))return unavailable('A selected part is unavailable or has no verified 3D mapping.');
   seenParts.add(part.part_id);
   const partColor=colorHex(catalogue.partColorsByPart[part.part_id],part.color_id);
-  if(!partColor)return unavailable('A selected part colour is unavailable.');
-  if(PART_MATERIAL_IDS.has(part.part_id))colors[`Part_${part.part_id}_Fabric`]=partColor;
+  if(!partColor){
+   if(!previewIncomplete||part.color_id)return unavailable('A selected part colour is unavailable.');
+   pendingFields.push(`Choose a colour for ${unique(catalogue.parts,part.part_id)!.name}.`);
+  }
+  if(PART_MATERIAL_IDS.has(part.part_id))colors[`Part_${part.part_id}_Fabric`]=partColor??baseColor;
   const groups=new Map<string,StudioBinding[]>();const seenAddons=new Set<string>();
   for(const chosen of part.addons){
    const binding=studioBinding(part.part_id,chosen.addon_id),option=unique(catalogue.addonsByPart[part.part_id],chosen.addon_id);
    if(!binding||!option||seenAddons.has(chosen.addon_id))return unavailable('A selected detail has no verified 3D mapping.');
    seenAddons.add(chosen.addon_id);
-   if(option.has_color!==binding.has_color||option.selection_type!==binding.selection_type||(option.group??'')!==binding.group)return unavailable('A catalogue detail changed. Use the standard preview until its mapping is reviewed.');
+   if(option.has_color!==binding.has_color||option.selection_type!==binding.selection_type||(option.group??'')!==binding.group)return unavailable('A catalogue detail changed. Its 3D mapping needs review.');
    const peers=groups.get(binding.group)??[];peers.push(binding);groups.set(binding.group,peers);
-   if(binding.has_color){const addonColor=colorHex(catalogue.addonColorsByAddon[`${part.part_id}:${chosen.addon_id}`],chosen.color_id);if(!addonColor)return unavailable('A selected detail colour is unavailable.');if(binding.material&&binding.representation!=='metadata')colors[binding.material]=addonColor;}
+   if(binding.has_color){
+    const addonColor=colorHex(catalogue.addonColorsByAddon[`${part.part_id}:${chosen.addon_id}`],chosen.color_id);
+    if(!addonColor){if(!previewIncomplete||chosen.color_id)return unavailable('A selected detail colour is unavailable.');pendingFields.push(`Choose a colour for ${binding.name}.`);}
+    if(binding.material&&binding.representation!=='metadata')colors[binding.material]=addonColor??partColor??baseColor;
+   }
    else if(chosen.color_id!=null)return unavailable('A detail without colour has an unexpected colour selection.');
    selected.push(binding);visible.add(binding.modelGroup);
    if(binding.representation==='metadata')nonVisualDetails.push(`${binding.name}: saved with the design; its placement and appearance are not shown in this preview.`);
@@ -748,5 +761,6 @@ export function resolveStudioDesign(input:{projectRef:string;selection:Selection
  if(!raglan)visible.add('SetInShoulderSeams');
  if(selected.some(row=>row.id==='1300'||row.id==='1317')){visible.delete('Body_Closed');visible.add('Body_Slit');}
  const resolvedBody=colors.Part_202_Fabric;colors.ThreadBody=darker(resolvedBody,.8);colors.InteriorFabric216=darker(resolvedBody,.35);
- return {status:'supported',design:{modelId:STUDIO_MODEL_ID,visibleGroups:[...visible].sort(),materialColors:colors},nonVisualDetails};
+ const design={modelId:STUDIO_MODEL_ID,visibleGroups:[...visible].sort(),materialColors:colors};
+ return pendingFields.length?{status:'incomplete',design,nonVisualDetails,pendingFields}:{status:'supported',design,nonVisualDetails};
 }
