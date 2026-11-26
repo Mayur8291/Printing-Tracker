@@ -246,6 +246,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
   const [colorOk, setColorOk] = useState(false);
   const [productMismatch, setProductMismatch] = useState(false);
   const [noPicklist, setNoPicklist] = useState(false);
+  const [informedInventory, setInformedInventory] = useState(false);
   const [remark, setRemark] = useState("");
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -262,7 +263,8 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
     colorOk: noPicklist ? null : colorOk,
     productMismatch,
     noPicklist,
-    remark
+    remark,
+    informedInventory: review.outcome && review.outcome !== "match" ? informedInventory : false
   });
   const savedText =
     state === "missing"
@@ -274,6 +276,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
     setColorOk(order?.product_received_color_ok === true);
     setProductMismatch(order?.product_received_product_ok === false);
     setNoPicklist(order?.product_received_no_picklist === true);
+    setInformedInventory(order?.product_received_informed_inventory === true);
     setRemark(String(order?.product_received_issue ?? ""));
     setFile(null);
     setError("");
@@ -290,11 +293,15 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
     setShareNote("");
     try {
       const heading = receiptShareHeading(review);
+      const imageLines = [...shortageLines];
+      if (informedInventory && review.outcome && review.outcome !== "match") {
+        imageLines.push("Informed to inventory");
+      }
       const canvas = paintReceiptCard({
         orderNumber: order.order_id,
         customer: order.customer_name?.trim(),
         coordinator: coordinator?.trim(),
-        lines: shortageLines,
+        lines: imageLines,
         remark,
         title: heading.title
       });
@@ -362,6 +369,8 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
         product_received_color_ok: noPicklist ? null : colorOk,
         product_received_product_ok: productMismatch ? false : true,
         product_received_no_picklist: noPicklist,
+        product_received_informed_inventory:
+          review.outcome && review.outcome !== "match" ? informedInventory : false,
         product_received_issue: review.outcome === "match" ? null : note,
         received_at_printing: order.received_at_printing || receivedAt
       };
@@ -433,7 +442,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
           <DialogHeader>
             <DialogTitle>Product status</DialogTitle>
             <DialogDescription>
-              Enter each size. Short and extra sizes are flagged. Mark a color issue or a product mismatch when it applies. Use the no-picklist option when printing rejects the order. The remark stays your own note.
+              Enter each size. Short and extra sizes are flagged. Mark a color issue or a product mismatch when it applies. Use the no-picklist option when printing rejects the order. Before marking an issue, check Informed to inventory when that team was told. The remark stays your own note.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4 max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto" onSubmit={save}>
@@ -551,6 +560,16 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
                 ) : null}
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 {shareNote ? <p className="text-sm text-muted-foreground">{shareNote}</p> : null}
+                {review.outcome && review.outcome !== "match" ? (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`product-informed-${order.id}`}
+                      checked={informedInventory}
+                      onCheckedChange={(checked) => setInformedInventory(checked === true)}
+                    />
+                    <Label htmlFor={`product-informed-${order.id}`}>Informed to inventory</Label>
+                  </div>
+                ) : null}
                 <DialogFooter className="flex-row justify-end">
                   <Button
                     type="button"

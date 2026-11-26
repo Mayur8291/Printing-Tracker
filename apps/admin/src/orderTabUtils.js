@@ -194,7 +194,7 @@ export function productReceiptReview(order, receivedSizes, options = {}) {
   return { lines, outcome, anyShort, anyExtra, colorOk, productMismatch, noPicklist };
 }
 
-export function productReceiptHistoryText({ lines, colorOk, productMismatch, noPicklist, remark }) {
+export function productReceiptHistoryText({ lines, colorOk, productMismatch, noPicklist, remark, informedInventory }) {
   const rows = [];
   if (noPicklist) rows.push("No picklist — rejected by printing");
   for (const line of lines || []) {
@@ -212,6 +212,7 @@ export function productReceiptHistoryText({ lines, colorOk, productMismatch, noP
   if (productMismatch) rows.push("Product mismatch");
   const note = String(remark ?? "").trim();
   if (note) rows.push(`Remark: ${note}`);
+  if (informedInventory) rows.push("Informed to inventory");
   return rows.join("\n");
 }
 
@@ -227,7 +228,8 @@ export function productReceiptSummary(order) {
       colorOk: order.product_received_color_ok,
       productMismatch: order.product_received_product_ok === false,
       noPicklist: order.product_received_no_picklist === true,
-      remark: order.product_received_issue
+      remark: order.product_received_issue,
+      informedInventory: order.product_received_informed_inventory === true
     });
     if (text) return text;
   }

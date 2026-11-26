@@ -343,7 +343,7 @@ flowchart TD
   Sizes --> Color{Color matches?}
   Color --> Compare{Each size against the job}
   Compare -->|all equal and color checked| Green[Green]
-  Compare -->|any short, color issue, or product mismatch| Red[Red and remark]
+  Compare -->|any short, color issue, or product mismatch| Red[Red, remark, Informed to inventory if checked]
   Compare -->|any extra| Yellow[Yellow and remark]
   Compare -->|no picklist| Reject[Rejected by printing]
   Green --> Hist[Order history with sizes, color, remark, and time]

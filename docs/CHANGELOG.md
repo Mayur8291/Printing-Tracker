@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-26 — Informed to inventory on a product issue
+
+- **Change:** Before marking a product issue, the dialog has an Informed to inventory checkbox. When it is checked, order history and the share image include the line Informed to inventory.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/orderQueryFields.js`, `supabase/migrations/20261126201000_product_receipt_informed_inventory.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md.
+- **Migration:** Adds `orders.product_received_informed_inventory` and records the line in `log_product_receipt`. Applied on staging only. Production is unchanged.
+
 ## 2026-11-26 — Size lines say out of
 
 - **Change:** Product status, the share image, and saved history say `8 out of 12` instead of `8 of 12`.
