@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Product status shows a color box and the order number
+
+- **Change:** The product-status screen labels the first row Order number. Each order color is a filled box. The hex code is not shown.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
 ## 2026-11-26 — Phone page scrolls with the window
 
 - **Change:** Below 768px the window scrolls again. The title and order cards are no longer clipped to a blank screen. Home and Printing Orders move when dragged. The bottom bar stays fixed. Desktop still scrolls inside the page.

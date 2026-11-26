@@ -22,10 +22,35 @@ import {
   productReceiptState,
   productReceiptSummary
 } from "../../orderTabUtils";
+import { swatchBackgroundForColor } from "../../orderColorUtils";
 
-function jobColors(order) {
-  if (Array.isArray(order?.colors)) return order.colors.filter(Boolean).join(", ");
-  return String(order?.colors ?? "").trim();
+function colorList(order) {
+  if (Array.isArray(order?.colors)) {
+    return order.colors.map((color) => String(color ?? "").trim()).filter(Boolean);
+  }
+  const raw = String(order?.colors ?? "").trim();
+  if (!raw) return [];
+  return raw.split(/[,;/]+/).map((color) => color.trim()).filter(Boolean);
+}
+
+function ColorBoxes({ order }) {
+  const colors = colorList(order);
+  if (colors.length === 0) return "—";
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5" role="list" aria-label="Colors">
+      {colors.map((color, index) => (
+        <span
+          key={`${color}-${index}`}
+          role="listitem"
+          title={color}
+          className="inline-block size-6 shrink-0 rounded-md border border-white/70 shadow-sm ring-1 ring-black/25"
+          style={{ backgroundColor: swatchBackgroundForColor(color) }}
+        >
+          <span className="sr-only">{color}</span>
+        </span>
+      ))}
+    </span>
+  );
 }
 
 function savedSizes(order) {
@@ -210,14 +235,16 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
           </DialogHeader>
           <form className="space-y-4 max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto" onSubmit={save}>
             <dl className="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-1 text-sm">
-              <dt className="text-muted-foreground">Job</dt>
+              <dt className="text-muted-foreground">Order number</dt>
               <dd>{order.order_id || "—"}</dd>
               <dt className="text-muted-foreground">Customer</dt>
               <dd>{order.customer_name?.trim() || "—"}</dd>
               <dt className="text-muted-foreground">Product</dt>
               <dd>{order.product_name?.trim() || "—"}</dd>
               <dt className="text-muted-foreground">Colors</dt>
-              <dd>{jobColors(order) || "—"}</dd>
+              <dd>
+                <ColorBoxes order={order} />
+              </dd>
             </dl>
             {canEdit ? (
               <>
