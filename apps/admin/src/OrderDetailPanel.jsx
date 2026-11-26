@@ -38,7 +38,8 @@ import {
   parsePaymentProofUrls,
   paymentMethodLabel,
   paymentMethodRequiresProof,
-  productReceiptState
+  productReceiptState,
+  productReceiptSummary
 } from "./orderTabUtils";
 import {
   jobSheetProductionStatusOptions,
@@ -1049,12 +1050,22 @@ export default function OrderDetailPanel({
               <DetailField label="Product status">
                 {productReceiptState(order) === "missing" ? (
                   "Not yet at printing"
+                ) : productReceiptState(order) === "extra" ? (
+                  <span className="text-yellow-700 dark:text-yellow-400">
+                    {productReceiptSummary(order.qty, order.product_received_qty)}
+                  </span>
+                ) : productReceiptState(order) === "short" ? (
+                  <span className="text-destructive">
+                    {productReceiptSummary(order.qty, order.product_received_qty)}
+                  </span>
                 ) : productReceiptState(order) === "issue" ? (
                   <span className="text-destructive">
                     Issue: {order.product_received_issue}
                   </span>
                 ) : (
-                  "Checked and received"
+                  <span className="text-emerald-700 dark:text-emerald-400">
+                    {productReceiptSummary(order.qty, order.product_received_qty) || "Checked and received"}
+                  </span>
                 )}
                 {order.product_received_proof_url ? (
                   <>

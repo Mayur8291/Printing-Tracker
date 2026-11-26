@@ -8765,9 +8765,15 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   background: #f0fdf4;
 }
 
-.order-history-item--product_received_issue {
+.order-history-item--product_received_issue,
+.order-history-item--product_received_short {
   border-color: #fca5a5;
   background: #fef2f2;
+}
+
+.order-history-item--product_received_extra {
+  border-color: #facc15;
+  background: #fef9c3;
 }
 
 .order-history-proof {
@@ -13418,9 +13424,15 @@ html.theme-dark .order-history-item--product_received {
   background: #052e16;
 }
 
-html.theme-dark .order-history-item--product_received_issue {
+html.theme-dark .order-history-item--product_received_issue,
+html.theme-dark .order-history-item--product_received_short {
   border-color: #991b1b;
   background: #450a0a;
+}
+
+html.theme-dark .order-history-item--product_received_extra {
+  border-color: #a16207;
+  background: #422006;
 }
 
 html.theme-dark .order-history-proof {

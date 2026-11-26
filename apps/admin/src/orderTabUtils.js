@@ -129,11 +129,43 @@ export const filterBillingOrdersBySearch = filterOrdersBySearch;
 export const DISPATCH_FAIL_STATUS = "dispatch_fail";
 export const DISPATCHED_STATUS = "dispatched";
 
-/** missing = not at printing yet, received = checked and matches, issue = received but wrong. */
+/**
+ * match = received qty equals the job qty (green).
+ * short = received less (red). extra = received more (yellow).
+ * issue = an older receipt that has a reason and no quantity.
+ */
+export function productReceiptComparison(jobQty, receivedQty) {
+  if (receivedQty === null || receivedQty === undefined || receivedQty === "") return null;
+  const got = Number(receivedQty);
+  const job = Number(jobQty);
+  if (!Number.isFinite(got)) return null;
+  if (!Number.isFinite(job)) return got > 0 ? "extra" : "short";
+  if (got === job) return "match";
+  if (got > job) return "extra";
+  return "short";
+}
+
+export function productReceiptSummary(jobQty, receivedQty) {
+  const result = productReceiptComparison(jobQty, receivedQty);
+  if (!result) return "";
+  const got = Number(receivedQty);
+  const job = Number(jobQty);
+  if (!Number.isFinite(job)) {
+    return result === "extra"
+      ? `Received ${got}. The job quantity is not set.`
+      : `Received ${got}. Not matching the job.`;
+  }
+  if (result === "match") return `Received ${got} of ${job}. Matches the job.`;
+  if (result === "extra") return `Received ${got} of ${job}. Extra ${got - job}.`;
+  return `Received ${got} of ${job}. Short by ${job - got}. Not matching the job.`;
+}
+
 export function productReceiptState(order) {
   if (!order?.product_received_at) return "missing";
+  const compared = productReceiptComparison(order.qty, order.product_received_qty);
+  if (compared) return compared;
   if (String(order.product_received_issue ?? "").trim()) return "issue";
-  return "received";
+  return "match";
 }
 
 export function isDispatchVerificationFailed(order) {

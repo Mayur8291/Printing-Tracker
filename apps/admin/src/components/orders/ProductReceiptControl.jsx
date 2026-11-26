@@ -9,37 +9,57 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "../../supabaseClient";
 import { formatSizeBreakdownSummary } from "../../orderViewUtils";
-import { productReceiptState } from "../../orderTabUtils";
+import {
+  productReceiptComparison,
+  productReceiptState,
+  productReceiptSummary
+} from "../../orderTabUtils";
 
 function jobColors(order) {
   if (Array.isArray(order?.colors)) return order.colors.filter(Boolean).join(", ");
   return String(order?.colors ?? "").trim();
 }
 
+function parseReceivedQty(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return { error: "Enter the quantity received." };
+  if (!/^\d+$/.test(text)) return { error: "Enter a whole number of pieces." };
+  const qty = Number(text);
+  if (!Number.isSafeInteger(qty) || qty > 2147483647) {
+    return { error: "That quantity is too large." };
+  }
+  return { qty };
+}
+
 export default function ProductReceiptControl({ order, canEdit, userId, onSaved }) {
   const state = productReceiptState(order);
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("ok");
-  const [reason, setReason] = useState("");
+  const [receivedQty, setReceivedQty] = useState("");
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const title =
+  const typed = parseReceivedQty(receivedQty);
+  const preview = typed.qty === undefined ? null : productReceiptComparison(order.qty, typed.qty);
+  const previewText = preview ? productReceiptSummary(order.qty, typed.qty) : "";
+  const savedText =
     state === "missing"
       ? "Product not yet reached printing"
       : state === "issue"
         ? `Issue: ${String(order.product_received_issue).trim()}`
-        : "Product received";
+        : productReceiptSummary(order.qty, order.product_received_qty) || "Product received";
 
   function openDialog() {
-    setMode(state === "issue" ? "issue" : "ok");
-    setReason(String(order?.product_received_issue ?? ""));
+    setReceivedQty(
+      order?.product_received_qty === null || order?.product_received_qty === undefined
+        ? ""
+        : String(order.product_received_qty)
+    );
     setFile(null);
     setError("");
     setOpen(true);
@@ -48,9 +68,9 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
   async function save(event) {
     event.preventDefault();
     if (!canEdit || !order?.id || !userId) return;
-    const issue = mode === "issue" ? reason.trim() : "";
-    if (mode === "issue" && !issue) {
-      setError("Write what is wrong with the product.");
+    const parsed = parseReceivedQty(receivedQty);
+    if (parsed.error) {
+      setError(parsed.error);
       return;
     }
     if (!file && !order.product_received_proof_url) {
@@ -73,11 +93,13 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
         if (!proofUrl) throw new Error("Could not get the proof link.");
       }
       const receivedAt = order.product_received_at || new Date().toISOString();
+      const result = productReceiptComparison(order.qty, parsed.qty);
       const patch = {
         product_received_at: receivedAt,
         product_received_by: userId,
         product_received_proof_url: proofUrl,
-        product_received_issue: issue || null,
+        product_received_qty: parsed.qty,
+        product_received_issue: result === "match" ? null : productReceiptSummary(order.qty, parsed.qty),
         received_at_printing: order.received_at_printing || receivedAt
       };
       const { data: saved, error: updateError } = await supabase
@@ -100,14 +122,29 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
   }
 
   const icon =
-    state === "received" ? (
+    state === "match" ? (
       <CircleCheck className="size-4 text-emerald-600" aria-hidden />
     ) : (
       <CircleAlert
-        className={state === "issue" ? "size-4 text-destructive" : "size-4 text-amber-600"}
+        className={
+          state === "short" || state === "issue"
+            ? "size-4 text-destructive"
+            : state === "extra"
+              ? "size-4 text-yellow-500"
+              : "size-4 text-amber-600"
+        }
         aria-hidden
       />
     );
+
+  const previewClass =
+    preview === "match"
+      ? "text-emerald-700 dark:text-emerald-400"
+      : preview === "extra"
+        ? "text-yellow-700 dark:text-yellow-400"
+        : preview === "short"
+          ? "text-destructive"
+          : "text-muted-foreground";
 
   return (
     <>
@@ -119,13 +156,13 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
               variant="ghost"
               size="icon"
               className="shrink-0"
-              aria-label={title}
+              aria-label={savedText}
               onClick={openDialog}
             >
               {icon}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{title}</TooltipContent>
+          <TooltipContent>{savedText}</TooltipContent>
         </Tooltip>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -133,7 +170,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
           <DialogHeader>
             <DialogTitle>Product status</DialogTitle>
             <DialogDescription>
-              {title}. Check the product against this job, then mark it received or record the issue. Upload proof of what arrived.
+              Enter how many pieces arrived. Green matches the job quantity, red is short, and yellow is extra. The result is stamped in order history.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={save}>
@@ -146,7 +183,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
               <dd>{order.product_name?.trim() || "—"}</dd>
               <dt className="text-muted-foreground">Colors</dt>
               <dd>{jobColors(order) || "—"}</dd>
-              <dt className="text-muted-foreground">Quantity</dt>
+              <dt className="text-muted-foreground">Job quantity</dt>
               <dd>{order.qty ?? "—"}</dd>
               <dt className="text-muted-foreground">Sizes</dt>
               <dd>{formatSizeBreakdownSummary(order.size_breakdown)}</dd>
@@ -167,22 +204,22 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
             )}
             {canEdit ? (
               <>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant={mode === "ok" ? "secondary" : "outline"}
-                    onClick={() => setMode("ok")}
-                  >
-                    Matches the job
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={mode === "issue" ? "destructive" : "outline"}
-                    onClick={() => setMode("issue")}
-                  >
-                    Product has an issue
-                  </Button>
+                <div className="grid gap-1.5">
+                  <Label htmlFor={`product-received-qty-${order.id}`}>Quantity received</Label>
+                  <Input
+                    id={`product-received-qty-${order.id}`}
+                    type="number"
+                    min="0"
+                    step="1"
+                    inputMode="numeric"
+                    value={receivedQty}
+                    onChange={(e) => setReceivedQty(e.target.value)}
+                    required
+                  />
                 </div>
+                <p className={`text-sm font-medium ${previewClass}`}>
+                  {previewText || "Enter the quantity to compare it with the job."}
+                </p>
                 <div className="grid gap-1.5">
                   <Label htmlFor={`product-proof-${order.id}`}>Proof of the product</Label>
                   <input
@@ -193,36 +230,41 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                     onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   />
                 </div>
-                {mode === "issue" ? (
-                  <div className="grid gap-1.5">
-                    <Label htmlFor={`product-issue-${order.id}`}>What is wrong</Label>
-                    <Textarea
-                      id={`product-issue-${order.id}`}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      placeholder="Describe the issue"
-                      required
-                    />
-                  </div>
-                ) : null}
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter>
                   <Button
                     type="submit"
-                    variant={mode === "issue" ? "destructive" : "default"}
+                    variant={preview === "short" ? "destructive" : "default"}
+                    className={
+                      preview === "extra"
+                        ? "bg-yellow-400 text-yellow-950 hover:bg-yellow-500"
+                        : undefined
+                    }
                     disabled={saving}
                   >
                     {saving
                       ? "Saving…"
-                      : mode === "issue"
-                        ? "Mark product issue"
-                        : "Mark product received"}
+                      : preview === "short"
+                        ? "Mark short quantity"
+                        : preview === "extra"
+                          ? "Mark extra quantity"
+                          : "Mark product received"}
                   </Button>
                 </DialogFooter>
               </>
-            ) : state === "issue" ? (
-              <p className="text-sm text-destructive">{order.product_received_issue}</p>
-            ) : null}
+            ) : state === "missing" ? null : (
+              <p
+                className={
+                  state === "short" || state === "issue"
+                    ? "text-sm text-destructive"
+                    : state === "extra"
+                      ? "text-sm text-yellow-700 dark:text-yellow-400"
+                      : "text-sm text-emerald-700 dark:text-emerald-400"
+                }
+              >
+                {savedText}
+              </p>
+            )}
           </form>
         </DialogContent>
       </Dialog>

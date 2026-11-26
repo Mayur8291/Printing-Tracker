@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-26 — Product status compares the quantity received
+
+- **Change:** Printing product status asks for the quantity that arrived. The same count as the job is green. A smaller count is red and paints the row red. A larger count is yellow and paints the row yellow. Order history records the received quantity, the job quantity, the result, the proof, and the time of that entry.
+- **Database:** `orders.product_received_qty`. Applied on staging `scvojtvgnkmbupvyslmb` and production `levwrmvqdntngeasrtnb` so the orders list can still load.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/components/orders/orderTableUtils.js`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/orderHistoryUtils.js`, `apps/admin/src/orderQueryFields.js`, `apps/admin/src/styles.css`, `supabase/migrations/20261126100000_product_received_qty.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-20 — Product receipt is recorded in order history
 
 - **Change:** Marking a product received, recording an issue, or clearing an issue writes an order-history row with the decision, the reason, and the proof link. Order history shows **View proof** for that row. A save that does not change the order reports an error instead of looking successful.
