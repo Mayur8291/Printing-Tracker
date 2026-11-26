@@ -48,10 +48,17 @@ function sharePageHtml(dataUrl, filename) {
   <title>${filename.replace(/[<>&]/g, "")}</title>
 </head>
 <body style="margin:0;background:#111;color:#fff;font-family:sans-serif">
+  <header style="position:sticky;top:0;z-index:2;display:flex;align-items:center;height:52px;padding:0 8px;background:#fff;border-bottom:1px solid #e2e8f0">
+    <button id="back" type="button" style="min-height:44px;padding:0 12px;border:0;background:transparent;color:#0f172a;font-size:17px">← Back</button>
+  </header>
   <img alt="Shortage and extra" src=${src} style="display:block;width:100%;height:auto;background:#fff">
   <button id="share" type="button" style="position:fixed;left:16px;right:16px;bottom:24px;height:48px;border:0;border-radius:12px;background:#b91c1c;color:#fff;font-size:17px">Share</button>
   <p id="hint" style="position:fixed;left:16px;right:16px;bottom:80px;margin:0;text-align:center;font-size:14px"></p>
   <script>
+    document.getElementById("back").addEventListener("click", function () {
+      if (window.opener && !window.opener.closed) window.close();
+      history.back();
+    });
     document.getElementById("share").addEventListener("click", async function () {
       const hint = document.getElementById("hint");
       try {

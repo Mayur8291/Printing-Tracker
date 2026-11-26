@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Back from the shortage share page
+
+- **Change:** The shortage image page has a Back button. It closes that page and returns to the order.
+- **Files:** `apps/admin/src/dealerCardShare.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
 ## 2026-11-26 — Shortage share opens the phone share sheet
 
 - **Change:** Sharing a shortage image asks where to send it. Safari no longer opens the PNG as a downloaded file with Open in Preview. If the phone will not show the share sheet, the image opens in a new tab with a Share button.
