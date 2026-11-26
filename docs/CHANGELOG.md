@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-26 — Printing order change requests
+
+- **Change:** A printing order has **Request change**. The person edits qty, delivery date, product name, coordinator, order status, or remarks, and writes a note. The order does not change until someone accepts it. **Deny** needs a reason. Admin can always accept or deny. Admin turns on **Accept or deny order changes** for a specific user (a mini admin). That person cannot accept their own request. Order history records the request, the fields, the note, and the decision.
+- **Database:** `order_change_requests`, `profile_order_permissions.can_review_order_changes`, RPCs `submit_order_change_request` and `review_order_change_request`. Applied on staging and production so the live login can save the new admin switch and the request.
+- **Files:** `apps/admin/src/components/orders/OrderChangeRequestDialog.jsx`, `apps/admin/src/components/orders/OrderChangeRequestQueue.jsx`, `apps/admin/src/orderChangeRequestUtils.js`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderFieldPermissionFields.jsx`, `apps/admin/src/orderHistoryUtils.js`, `supabase/functions/admin-create-user/index.ts`, `supabase/migrations/20261126170000_order_change_requests.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, SECURITY.md.
+
 ## 2026-11-26 — Printing orders row opens order history
 
 - **Change:** Each printing-orders row has **View order history** under **View order**. It opens the same history as the button inside View order, including size, color, product mismatch, no-picklist, and remark lines. A row that is still saving does not show the link.

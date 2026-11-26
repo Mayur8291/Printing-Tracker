@@ -424,6 +424,19 @@ flowchart TD
   Save --> Alert[Bell and toast to job creator with reason]
 ```
 
+## Request a printing order change
+
+```mermaid
+flowchart TD
+  Row[Request change] --> Form[Changed fields plus note]
+  Form --> Hist1[History: Change requested]
+  Hist1 --> Wait[Pending request]
+  Wait --> Review{Admin or mini admin}
+  Review -->|Accept| Apply[Update the order]
+  Apply --> Hist2[History: Change accepted]
+  Review -->|Deny| Hist3[History: Change denied plus reason]
+```
+
 ## Open order history from a printing row
 
 ```mermaid

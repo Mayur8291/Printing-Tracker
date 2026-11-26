@@ -117,6 +117,8 @@ import SidebarTabPermissionFields from "./SidebarTabPermissionFields";
 import OrderFieldPermissionFields from "./OrderFieldPermissionFields";
 import OrderViewActionCell from "./components/orders/OrderViewActionCell";
 import CancelOrderDialog from "./components/orders/CancelOrderDialog";
+import OrderChangeRequestDialog from "./components/orders/OrderChangeRequestDialog";
+import OrderChangeRequestQueue from "./components/orders/OrderChangeRequestQueue";
 import HoldOrderDialog from "./components/orders/HoldOrderDialog";
 import {
   createPendingPrintingOrder,
@@ -587,7 +589,8 @@ const DEFAULT_NEW_USER_PERMISSIONS = {
   can_edit_approved_design_images: true,
   can_edit_received_at_printing: false,
   can_edit_payment_method: false,
-  can_create_orders: false
+  can_create_orders: false,
+  can_review_order_changes: false
 };
 
 function defaultNewUserPermissions() {
@@ -618,7 +621,8 @@ function hydrateDraftFromPermission(p) {
         can_edit_approved_design_images: p.can_edit_approved_design_images !== false,
         can_edit_received_at_printing: Boolean(p.can_edit_received_at_printing),
         can_edit_payment_method: Boolean(p.can_edit_payment_method),
-        can_create_orders: Boolean(p.can_create_orders)
+        can_create_orders: Boolean(p.can_create_orders),
+        can_review_order_changes: Boolean(p.can_review_order_changes)
       }
     : { ...DEFAULT_NEW_USER_PERMISSIONS };
   const sidebar_tabs = hydrateSidebarTabFlagsFromPermission(p, DASHBOARD_GRANTABLE_SIDEBAR);
@@ -643,6 +647,7 @@ function permissionRowFromDraft(draft) {
     can_edit_received_at_printing: Boolean(draft.can_edit_received_at_printing),
     can_edit_payment_method: Boolean(draft.can_edit_payment_method),
     can_create_orders: Boolean(draft.can_create_orders),
+    can_review_order_changes: Boolean(draft.can_review_order_changes),
     allowed_dashboard_tabs: allowedDashboardTabsFromFlags(sidebarTabs, DASHBOARD_GRANTABLE_SIDEBAR),
     editable_dashboard_tabs: editableDashboardTabsFromFlags(
       sidebarEditTabs,
@@ -911,6 +916,7 @@ function App() {
   const [orderHistoryError, setOrderHistoryError] = useState("");
   const [viewOrderTarget, setViewOrderTarget] = useState(null);
   const [cancelOrderTarget, setCancelOrderTarget] = useState(null);
+  const [changeRequestOrder, setChangeRequestOrder] = useState(null);
   const [cancelOrderSaving, setCancelOrderSaving] = useState(false);
   const [holdOrderTarget, setHoldOrderTarget] = useState(null);
   const [holdOrderSaving, setHoldOrderSaving] = useState(false);
@@ -6040,6 +6046,13 @@ function App() {
                   />
                   {session ? (
                     <div className="flex flex-wrap justify-end gap-2">
+                      <OrderChangeRequestQueue
+                        orders={orders}
+                        canReview={isAdmin || Boolean(currentUserPermissions.can_review_order_changes)}
+                        isAdmin={isAdmin}
+                        userId={session?.user?.id}
+                        onChanged={fetchOrders}
+                      />
                       <Button type="button" variant="outline" onClick={() => setShowMockupStudio(true)}>
                         Create Mockup
                       </Button>
@@ -6130,6 +6143,16 @@ function App() {
                                           onClick={() => openOrderHistory(order)}
                                         >
                                           View order history
+                                        </Button>
+                                      ) : null}
+                                      {!order._isPending && order.status !== "cancelled" ? (
+                                        <Button
+                                          type="button"
+                                          variant="link"
+                                          className="h-auto whitespace-nowrap px-0"
+                                          onClick={() => setChangeRequestOrder(order)}
+                                        >
+                                          Request change
                                         </Button>
                                       ) : null}
                                       {(ordersTab === "active" || ordersTab === "on_hold") &&
@@ -8615,6 +8638,15 @@ function App() {
           onRefresh={refreshOrderHistory}
         />
       ) : null}
+      <OrderChangeRequestDialog
+        order={changeRequestOrder}
+        open={Boolean(changeRequestOrder)}
+        canReview={isAdmin || Boolean(currentUserPermissions.can_review_order_changes)}
+        isAdmin={isAdmin}
+        userId={session?.user?.id}
+        onClose={() => setChangeRequestOrder(null)}
+        onChanged={fetchOrders}
+      />
       <CancelOrderDialog
         order={cancelOrderTarget}
         open={Boolean(cancelOrderTarget)}

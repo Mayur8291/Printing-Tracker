@@ -54,6 +54,16 @@
 | **Fix** | An admin turns on status edit or received-at-printing for that person, or an admin marks the receipt. |
 | **Verify** | The same order saves, the icon becomes a check or a red exclamation, and order history has Product received or Product issue. |
 
+## Order change request will not send or will not accept
+
+| | |
+|--|--|
+| **Symptom** | Send request says change at least one field, a change is already waiting, or qty/date is invalid. Accept says the order changed after the request, or you cannot accept or deny. |
+| **Root cause** | The request must differ from the current order and include a note. Only one pending request is allowed. Accept checks that qty, date, name, coordinator, status, and remarks still match the request. A viewer needs `can_review_order_changes`. A non-admin cannot review their own request. |
+| **Fix** | Edit a field and write the note. Deny the waiting request before sending another. If the order moved, deny and request again. Admin turns on **Accept or deny order changes** for that user. |
+| **SQL check** | `select status, summary, requested_by_label from order_change_requests where order_id = <id> order by requested_at desc;` |
+| **Verify** | Order history shows **Change requested** with one line per field and **Note:**. After accept, the order shows the new value and history shows **Change accepted**. |
+
 ## Product status save says malformed array literal
 
 | | |

@@ -395,6 +395,17 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Automatic history:** that same RPC sets `app.activity_by_system`. `log_order_activity` then stores actor **System**. The history line reads **Updated by system**. A manual status change still stores the signed-in name. Older rows written before this fix keep the name they already have.
 7. **Quantity history:** an admin qty save writes **Quantity increased by N** or **Quantity decreased by N**, then the old total and the new total. If sizes moved in the same save, the same line adds **Sizes:** with each size, old qty, new qty, and the change, for example `M 30 → 32 (+2)`. A size-only save uses that same size line. Older history rows stay as `Quantity updated: 62 → 64`.
 
+### Printing orders — request a change
+
+1. **Trigger:** Printing orders row → **Request change**. Hidden while the row is still saving, and hidden on a cancelled order.
+2. **Who can ask:** Any signed-in person who can open the printing list. They set a new qty, delivery date, product name, coordinator, order status, or remarks, and a note. At least one field must differ. On hold and cancel stay on their own reason dialogs.
+3. **Save:** `submit_order_change_request` stores one pending row in `order_change_requests` and writes order history: **Change requested**, one line per field (`Qty: 38 → 40`), then **Note:**. A second request is blocked while one is waiting.
+4. **Who can decide:** Admin always. A viewer only after admin turns on **Accept or deny order changes** in Edit user access. That person cannot accept or deny their own request.
+5. **Accept:** The order is updated only if those fields still match the values in the request. History gets **Change accepted** plus the same lines. The normal field history (qty, status, and so on) is also written.
+6. **Deny:** A review note is required. The order stays as it is. History gets **Change denied**, the requested lines, and the review note.
+7. **Queue:** Reviewers see **Change requests** above the printing list. Accept and deny are there too.
+8. **Failure:** A missing note, an unchanged form, a drifted order, or a missing review right stays in the dialog. The order is not half-updated.
+
 ### Printing orders — order history from the list
 
 1. **Trigger:** Printing orders row → **View order history**. Shown on All orders, On hold, Complete orders, and Cancelled orders. Hidden while that row is still saving.
