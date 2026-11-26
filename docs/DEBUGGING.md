@@ -1,5 +1,14 @@
 # Debugging
 
+## Order screen close button is above the phone status bar
+
+| | |
+|--|--|
+| **Symptom** | Opening an order on a phone shows the customer name, but the X is under the clock and cannot be tapped. |
+| **Root cause** | The order dialog is drawn on top of the page, starting at the top of the glass. The close control sat in the status-bar band. |
+| **Fix** | On a narrow screen the dialog starts below the status bar and ends above the home indicator. The X is a 44px button in that header. |
+| **Verify** | Open any printing order on a phone. The X is beside the customer name and closes the order. |
+
 ## Home screen cuts off the bottom of a printing card
 
 | | |

@@ -8687,7 +8687,8 @@ function App() {
           }}
         >
           <DialogContent
-            className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] max-md:inset-0 max-md:left-0 max-md:top-0 max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:w-screen max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none [&>button:last-child]:hidden"
+            data-mobile-fullscreen=""
+            className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] max-md:rounded-none [&>button:last-child]:hidden"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => {
               if (previewImages.length > 0) {

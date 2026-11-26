@@ -336,7 +336,7 @@ export default function OrderDetailPanel({
 
   return (
     <div className="flex min-h-0 flex-col bg-background text-foreground">
-      <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b bg-background px-6 py-5">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b bg-background px-4 py-3 md:px-6 md:py-5">
         <div className="min-w-0">
           <h3 className="truncate text-xl font-semibold tracking-tight">{order.customer_name}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -354,8 +354,8 @@ export default function OrderDetailPanel({
             )}
           </p>
         </div>
-        <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={onClose} aria-label="Close">
-          <X className="size-4" />
+        <Button type="button" variant="outline" size="icon" className="size-11 min-h-11 min-w-11 shrink-0" onClick={onClose} aria-label="Close">
+          <X className="!size-5" />
         </Button>
       </div>
 

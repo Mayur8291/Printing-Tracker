@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Order close button stays below the phone status bar
+
+- **Change:** On a phone, the order screen, create-order screen, and product-status screen start below the status bar. The X sits beside the customer name and closes the order.
+- **Files:** `apps/admin/src/index.css`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/components/orders/CreateOrderModal.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-26 — Phone home screen keeps the order list reachable
 
 - **Change:** A phone added to the home screen no longer draws the printing list under the status bar or under the bottom bar. The page height is the visible screen. Counts sit in one row, the title is one bar, and the order cards scroll clear of Home / Orders / Create / Inventory / More. Search, Archive, and Logout are in More.
