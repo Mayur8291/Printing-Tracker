@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-26 — Product receipt save no longer fails on Color matches
+
+- **Bug fix:** Marking product status failed with `malformed array literal: "Color matches"` whenever the color was confirmed, a color issue was recorded, a product mismatch was marked, or the order was rejected for no picklist.
+- **Database:** `log_product_receipt` now appends each history line with `array_append`. Replaced on staging `scvojtvgnkmbupvyslmb` and production `levwrmvqdntngeasrtnb`. No new columns.
+- **Files:** `supabase/migrations/20261126143000_product_receipt_history_array.sql`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-26 — Product receipt flags each problem in plain history
 
 - **Change:** Each size that is short or extra is flagged in the dialog and on its own order-history line. A color issue and a product mismatch are separate lines when they apply. The remark stays the note the person typed. Printing can mark **No picklist — rejected by printing** when an order arrives without a picklist.

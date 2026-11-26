@@ -54,6 +54,16 @@
 | **Fix** | An admin turns on status edit or received-at-printing for that person, or an admin marks the receipt. |
 | **Verify** | The same order saves, the icon becomes a check or a red exclamation, and order history has Product received or Product issue. |
 
+## Product status save says malformed array literal
+
+| | |
+|--|--|
+| **Symptom** | Mark not matching, Mark extra quantity, or Mark product received shows `malformed array literal: "Color matches"` (or the same error for `Color issue`, `Product mismatch`, or `No picklist`). The status does not save. |
+| **Root cause** | `log_product_receipt` built a text array with `lines || 'Color matches'`. Postgres reads that quoted sentence as an array literal, and a sentence is not `{...}` array syntax. The trigger raises, and the update rolls back. |
+| **Fix** | Append each line with `array_append`. Migration `20261126143000_product_receipt_history_array.sql` is applied on staging and production. |
+| **SQL check** | `select position('array_append' in pg_get_functiondef(p.oid)) > 0 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'log_product_receipt';` must be true. |
+| **Verify** | Save a receipt with **Color matches the job** checked. The dialog closes, the row color matches the sizes, and order history lists one fact per line. |
+
 ## Product receipt is missing from order history
 
 | | |
