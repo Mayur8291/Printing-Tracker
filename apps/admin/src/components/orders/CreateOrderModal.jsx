@@ -8,7 +8,7 @@ import {
 export default function CreateOrderModal({ open, onOpenChange, title, children }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] w-[min(1100px,98vw)] max-w-[1100px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[1100px]">
+      <DialogContent className="flex max-h-[92vh] w-[min(1100px,98vw)] max-w-[1100px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[1100px] max-md:inset-0 max-md:left-0 max-md:top-0 max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:w-screen max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none">
         <DialogHeader className="shrink-0 space-y-0 border-b px-6 py-4 pr-12 text-left">
           <DialogTitle className="text-xl">{title}</DialogTitle>
         </DialogHeader>

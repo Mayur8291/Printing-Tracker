@@ -8651,6 +8651,24 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   padding: 18px 20px;
 }
 
+@media (max-width: 767px) {
+  .order-history-modal {
+    width: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .order-history-event,
+  .order-history-time,
+  .order-history-message,
+  .order-history-actor,
+  .order-history-loading,
+  .order-history-empty {
+    font-size: 15px;
+  }
+}
+
 .order-history-head {
   display: flex;
   align-items: flex-start;

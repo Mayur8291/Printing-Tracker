@@ -395,6 +395,20 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Automatic history:** that same RPC sets `app.activity_by_system`. `log_order_activity` then stores actor **System**. The history line reads **Updated by system**. A manual status change still stores the signed-in name. Older rows written before this fix keep the name they already have.
 7. **Quantity history:** an admin qty save writes **Quantity increased by N** or **Quantity decreased by N**, then the old total and the new total. If sizes moved in the same save, the same line adds **Sizes:** with each size, old qty, new qty, and the change, for example `M 30 → 32 (+2)`. A size-only save uses that same size line. Older history rows stay as `Quantity updated: 62 → 64`.
 
+### Printing orders — phone layout
+
+1. **Trigger:** A signed-in person opens Printing Orders on a screen narrower than 768px.
+2. **What they see:** Scott logo, Printing Orders, the notification bell, and four counts from the loaded printing orders in the current date range: total, pending (`status = pending` and not complete), ready to dispatch (`ready` or `sent_to_dispatch`), and completed (`is_complete`).
+3. **List:** Each order is a card: order number, customer, product, product-status dot, order-status badge, coordinator, delivery date, quantity, and sizes when the order has them. The desktop table is not rendered at this width.
+4. **Search:** The same search as the desktop list. It matches order number, customer, and coordinator on the loaded rows.
+5. **Tabs:** All Orders, Complete, Cancelled, On Hold, Pending, and Print Queue when that person can open the print queue. Pending keeps the desktop tab on All Orders and only filters the cards to `status = pending`.
+6. **Filter sheet:** Date range, order status, product status, and coordinator. Date, search, and coordinator are the same state the desktop list uses, so widening the window keeps those filters.
+7. **Open a card:** The existing order screen, full screen on a phone. Edit, save, designs, mockups, billing, and remarks stay on that screen and follow the same field permissions.
+8. **Actions:** The three-dot menu opens a bottom sheet: view, edit, change status, request change, history, mockup/files, repeat, and cancel. Each item calls the existing handler. Hidden when that person cannot do it, or when the row is still saving.
+9. **Change status:** Bottom sheet. Pending, On Hold, In Production, Ready to Dispatch, Completed (admin only), Cancelled. Confirm update asks again, then saves. On hold and cancel open the existing reason dialogs. Other statuses use `persistOrderStatus`. An optional remark writes `orders.remarks` when that person may edit remarks. The card updates from the same order list refresh.
+10. **Bottom bar:** Home, Orders, Create, Inventory, More. Create opens the existing create-order form and is enabled only when that person may create printing orders. More lists the other tabs they can already open.
+11. **Desktop:** At 768px and wider the table, tabs, and toolbar are the ones that were already there. The bottom bar is hidden.
+
 ### Printing orders — request a change
 
 1. **Trigger:** Printing orders row → **Request change**. Hidden while the row is still saving, and hidden on a cancelled order.

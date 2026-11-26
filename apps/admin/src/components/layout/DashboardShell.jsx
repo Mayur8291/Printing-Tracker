@@ -71,7 +71,7 @@ export default function DashboardShell({
             "flex min-h-0 flex-1 flex-col",
             fullBleed
               ? "overflow-hidden"
-              : "overflow-y-auto overscroll-contain gap-4 p-4 md:gap-6 md:p-6"
+              : "overflow-y-auto overscroll-contain gap-4 p-4 pb-28 md:gap-6 md:p-6 md:pb-6"
           )}
         >
           {children}

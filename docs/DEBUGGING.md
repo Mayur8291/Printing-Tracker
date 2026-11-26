@@ -1,5 +1,23 @@
 # Debugging
 
+## Phone printing list still shows the desktop table
+
+| | |
+|--|--|
+| **Symptom** | Below 768px the printing page still shows the wide table, or the new cards appear beside the table. |
+| **Root cause** | The card list is `md:hidden` and the table wrapper is `hidden md:block`. A cached bundle, or a viewport at 768px or wider, still renders the table. |
+| **Fix** | Hard refresh. Check the width in device mode. Do not remove the desktop wrapper. |
+| **Verify** | At 390px only cards, the status tabs, and the bottom bar show. At 1024px the table and the old tabs show, and the bottom bar does not. |
+
+## Mobile status change does not stick
+
+| | |
+|--|--|
+| **Symptom** | Confirm update closes and the card keeps the old status, or On hold / Cancelled never asks for a reason. |
+| **Root cause** | On hold and cancel are not written from the status sheet. They open the existing reason dialogs. Other statuses use `persistOrderStatus`. Completed is admin-only. A failed update leaves the sheet on the choice list and shows the database error. |
+| **Fix** | Finish the reason dialog for hold and cancel. For the other statuses, confirm the person can edit status, then confirm again. |
+| **Verify** | After a successful update the card badge matches the database row. A second tap while Saving… does not send another update. |
+
 ## Netlify develop deploy fails while installing packages
 
 | | |

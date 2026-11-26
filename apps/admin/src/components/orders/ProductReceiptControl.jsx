@@ -201,7 +201,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
         </Tooltip>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+        <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto max-md:inset-0 max-md:left-0 max-md:top-0 max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:w-screen max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none">
           <DialogHeader>
             <DialogTitle>Product status</DialogTitle>
             <DialogDescription>

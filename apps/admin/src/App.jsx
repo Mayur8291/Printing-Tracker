@@ -119,6 +119,8 @@ import OrderViewActionCell from "./components/orders/OrderViewActionCell";
 import CancelOrderDialog from "./components/orders/CancelOrderDialog";
 import OrderChangeRequestDialog from "./components/orders/OrderChangeRequestDialog";
 import OrderChangeRequestQueue from "./components/orders/OrderChangeRequestQueue";
+import PrintingOrdersMobile from "./components/orders/PrintingOrdersMobile";
+import MobileAppNav from "./components/layout/MobileAppNav";
 import HoldOrderDialog from "./components/orders/HoldOrderDialog";
 import {
   createPendingPrintingOrder,
@@ -917,6 +919,7 @@ function App() {
   const [viewOrderTarget, setViewOrderTarget] = useState(null);
   const [cancelOrderTarget, setCancelOrderTarget] = useState(null);
   const [changeRequestOrder, setChangeRequestOrder] = useState(null);
+  const [mobileStatusOrder, setMobileStatusOrder] = useState(null);
   const [cancelOrderSaving, setCancelOrderSaving] = useState(false);
   const [holdOrderTarget, setHoldOrderTarget] = useState(null);
   const [holdOrderSaving, setHoldOrderSaving] = useState(false);
@@ -4076,12 +4079,14 @@ function App() {
     await openOrderHistory(orderHistoryTarget);
   }
 
-  async function handleMarkComplete(order) {
-    if (order.is_complete) return;
-    const ok = window.confirm(
-      `Mark this job as complete?\n${order.customer_name} · ${order.order_date} · Qty ${order.qty}`
-    );
-    if (!ok) return;
+  async function handleMarkComplete(order, options = {}) {
+    if (!isAdminUser || order.is_complete) return false;
+    if (!options.skipConfirm) {
+      const ok = window.confirm(
+        `Mark this job as complete?\n${order.customer_name} · ${order.order_date} · Qty ${order.qty}`
+      );
+      if (!ok) return false;
+    }
     const completeSample = isSampleJobSheetOrder(order);
     const payload = completeSample
       ? { is_complete: true, status: SAMPLE_JOB_SHEET_COMPLETE_STATUS }
@@ -4089,7 +4094,7 @@ function App() {
     const { error } = await supabase.from("orders").update(payload).eq("id", order.id);
     if (error) {
       alert(error.message);
-      return;
+      return false;
     }
     setOrders((prev) =>
       prev.map((o) => (o.id === order.id ? { ...o, ...payload } : o))
@@ -4099,6 +4104,7 @@ function App() {
     }
     if (viewOrderTarget?.id === order.id) closeViewOrder();
     fetchOrders();
+    return true;
   }
 
   function openPreview(urls, index) {
@@ -4562,6 +4568,10 @@ function App() {
     () => mergePendingOrders(pendingOrders, sortedFilteredOrders, "printing"),
     [pendingOrders, sortedFilteredOrders]
   );
+  const printingMobileStatsOrders = useMemo(
+    () => filterPrintingTabOrders(ordersInDateRange),
+    [ordersInDateRange]
+  );
 
   const printingPaginationKey = `${ordersTab}|${dateFrom}|${dateTo}|${orderSortCoordinator}|${ordersSearchTrimmed}|pending:${pendingOrders.filter((p) => p.targetTab === "printing").length}`;
   const {
@@ -4838,6 +4848,25 @@ function App() {
     label: section.label,
     items: section.ids.map((id) => visibleSidebarMainById.get(id)).filter(Boolean)
   })).filter((section) => section.items.length > 0);
+  const mobileMoreSections = [
+    ...visibleSidebarMainBySection
+      .map((section) => ({
+        label: section.label,
+        items: section.items.filter((item) => !["home", "printing", "inventory"].includes(item.id))
+      }))
+      .filter((section) => section.items.length > 0),
+    ...(visibleSidebarFooterWithChat.length
+      ? [{ label: "More", items: visibleSidebarFooterWithChat }]
+      : []),
+    ...(isAdmin ? [{ label: "Admin", items: [ADMIN_DASHBOARD_TAB] }] : [])
+  ];
+  function canOpenMobileTab(tabId) {
+    if (tabId === ADMIN_DASHBOARD_TAB.id) return isAdmin;
+    return (
+      visibleSidebarMain.some((item) => item.id === tabId) ||
+      visibleSidebarFooterWithChat.some((item) => item.id === tabId)
+    );
+  }
   const currentDashboardTabLabel =
     dashboardTab === ADMIN_DASHBOARD_TAB.id
       ? ADMIN_DASHBOARD_TAB.label
@@ -4923,12 +4952,12 @@ function App() {
   const canUseOrderControls = !profileLoading && !profileError && (isAdmin || isViewer);
 
   async function persistOrderStatus(order, newStatus) {
-    if (!canCurrentUserEdit("status") || !newStatus) return;
-    if (isSampleJobSheetOrder(order) && sampleJobSheetIsClosed(order)) return;
-    if (newStatus === order.status) return;
+    if (!canCurrentUserEdit("status") || !newStatus) return false;
+    if (isSampleJobSheetOrder(order) && sampleJobSheetIsClosed(order)) return false;
+    if (newStatus === order.status) return false;
     if (newStatus === "on_hold") {
       setHoldOrderTarget(order);
-      return;
+      return true;
     }
 
     const orderId = order.id;
@@ -4972,9 +5001,37 @@ function App() {
         )
       );
       alert(error.message);
-      return;
+      return false;
     }
     fetchOrders();
+    return true;
+  }
+
+  async function applyMobileOrderStatus(order, nextStatus, remarks) {
+    if (!order || !nextStatus) return false;
+    if (nextStatus === "cancelled") {
+      setCancelOrderTarget(order);
+      return true;
+    }
+    if (nextStatus === "completed") {
+      const completed = await handleMarkComplete(order, { skipConfirm: true });
+      if (!completed) return false;
+    } else if (nextStatus === "on_hold") {
+      return persistOrderStatus(order, "on_hold");
+    } else if (nextStatus !== (statusUpdates[order.id] ?? order.status)) {
+      const saved = await persistOrderStatus(order, nextStatus);
+      if (!saved) return false;
+    }
+    const note = String(remarks ?? "").trim();
+    if (!note || !canCurrentUserEdit("remarks") || note === String(order.remarks ?? "").trim()) return true;
+    const { error } = await supabase.from("orders").update({ remarks: note }).eq("id", order.id);
+    if (error) {
+      alert(error.message);
+      return false;
+    }
+    setOrders((prev) => prev.map((row) => (row.id === order.id ? { ...row, remarks: note } : row)));
+    fetchOrders();
+    return true;
   }
 
   function canCancelPrintingOrder(order) {
@@ -5921,8 +5978,57 @@ function App() {
           )}
 
           {dashboardTab === "printing" && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 space-y-4">
+              <PrintingOrdersMobile
+                statsOrders={printingMobileStatsOrders}
+                orders={printingOrdersSource}
+                loading={loadingOrders}
+                error={ordersLoadError}
+                ordersTab={ordersTab}
+                onOrdersTabChange={(value) => {
+                  setOrdersTab(value);
+                  if (value === "print_queue") setPrintingDeptSubview("queue");
+                }}
+                canAccessPrintQueue={canAccessPrintQueue}
+                searchQuery={ordersSearchQuery}
+                onSearchQueryChange={setOrdersSearchQuery}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onDateFromChange={setDateFrom}
+                onDateToChange={setDateTo}
+                onClearDates={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                coordinatorFilter={orderSortCoordinator}
+                onCoordinatorFilterChange={setOrderSortCoordinator}
+                coordinatorOptions={coordinatorFilterOptions}
+                statusUpdates={statusUpdates}
+                coordinatorUpdates={coordinatorUpdates}
+                notificationUserId={session?.user?.id}
+                onOpenNotifications={() => selectDashboardTab("notifications")}
+                onOpenOrder={openViewOrder}
+                onOpenHistory={openOrderHistory}
+                onRequestChange={setChangeRequestOrder}
+                onCancel={setCancelOrderTarget}
+                onRepeat={openRepeatOrderPicker}
+                canRepeat={isAdmin || viewerCanCreateOrders}
+                canEditStatus={canUseOrderControls && canCurrentUserEdit("status")}
+                canCancelOrder={canCancelPrintingOrder}
+                canEditRemarks={canCurrentUserEdit("remarks")}
+                isAdmin={isAdmin}
+                onApplyStatus={applyMobileOrderStatus}
+                statusOrder={mobileStatusOrder}
+                onStatusOrderChange={setMobileStatusOrder}
+                productReceipt={{
+                  canEdit: (order) =>
+                    canUseOrderControls && order.status !== "cancelled" && ordersTab !== "cancelled",
+                  userId: session?.user?.id,
+                  onSaved: (patch) => patchOrderInClient(patch.id, patch)
+                }}
+                showList={ordersTab !== "print_queue"}
+              />
+              <div className="hidden flex-wrap items-center justify-between gap-3 md:flex">
                 <Tabs
                   value={ordersTab}
                   onValueChange={(value) => {
@@ -5992,6 +6098,7 @@ function App() {
               </div>
 
               {ordersTab === "print_queue" ? (
+                <div className="min-w-0 max-md:overflow-x-auto">
                 <PrintingDepartmentPanel
                   orders={orders}
                   loadingOrders={loadingOrders}
@@ -6006,8 +6113,9 @@ function App() {
                   onSubviewChange={setPrintingDeptSubview}
                   embedded
                 />
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="hidden space-y-4 md:block">
                   <OrdersListFilters
                     idPrefix="printing-orders"
                     dateFrom={dateFrom}
@@ -7420,6 +7528,18 @@ function App() {
           )}
           </div>
       </DashboardShell>
+      <MobileAppNav
+        dashboardTab={dashboardTab}
+        onSelectTab={selectDashboardTab}
+        onCreate={() => {
+          selectDashboardTab("printing");
+          openCreateOrderForm();
+        }}
+        canCreate={isAdmin || viewerCanCreateOrders}
+        canOpen={canOpenMobileTab}
+        moreSections={mobileMoreSections}
+        soonTabIds={DASHBOARD_SIDEBAR_SOON_TAB_IDS}
+      />
 
       {repeatOrderPickerOpen && (isAdmin || viewerCanCreateOrders) && (
         <div
@@ -8532,7 +8652,7 @@ function App() {
       {activeViewOrder && (
         <Dialog
           open
-          modal={!orderHistoryTarget}
+          modal={!orderHistoryTarget && !mobileStatusOrder && !changeRequestOrder}
           onOpenChange={(open) => {
             if (!open) {
               closePreview();
@@ -8541,16 +8661,17 @@ function App() {
           }}
         >
           <DialogContent
-            className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] [&>button:last-child]:hidden"
+            className="flex max-h-[92vh] w-[min(820px,96vw)] max-w-[820px] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-lg sm:max-w-[820px] max-md:inset-0 max-md:left-0 max-md:top-0 max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:w-screen max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none [&>button:last-child]:hidden"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => {
               if (previewImages.length > 0) {
                 e.preventDefault();
                 closePreview();
               }
+              if (mobileStatusOrder || changeRequestOrder) e.preventDefault();
             }}
             onInteractOutside={(e) => {
-              if (previewImages.length > 0) e.preventDefault();
+              if (previewImages.length > 0 || mobileStatusOrder || changeRequestOrder) e.preventDefault();
             }}
           >
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -8608,6 +8729,17 @@ function App() {
               handleDeleteOrder={handleDeleteOrder}
               onCancelOrder={
                 canCancelPrintingOrder(activeViewOrder) ? () => setCancelOrderTarget(activeViewOrder) : null
+              }
+              onRequestChange={
+                activeViewOrder.status !== "cancelled" && !activeViewOrder._isPending
+                  ? () => setChangeRequestOrder(activeViewOrder)
+                  : null
+              }
+              onRepeatOrder={isAdmin || viewerCanCreateOrders ? openRepeatOrderPicker : null}
+              onChangeStatus={
+                canUseOrderControls && canCurrentUserEdit("status") && activeViewOrder.status !== "cancelled"
+                  ? () => setMobileStatusOrder(activeViewOrder)
+                  : null
               }
               openPreview={openPreview}
               renderStageIcon={renderStageIcon}

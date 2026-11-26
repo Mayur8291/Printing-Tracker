@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Mobile printing orders
+
+- **Change:** Screens below 768px get a printing-orders layout: Scott header, counts, order cards, search, status tabs, a filter sheet, and a fixed Home / Orders / Create / Inventory / More bar. A card opens the existing order screen. Status, remarks, cancel, hold, complete, change requests, history, and product status still save through the current order APIs. The desktop table is unchanged at 768px and wider.
+- **Files:** `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`, `apps/admin/src/components/layout/MobileAppNav.jsx`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/components/layout/DashboardShell.jsx`, `apps/admin/src/components/orders/CreateOrderModal.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/components/orders/OrderStatusBadge.jsx`, `apps/admin/src/styles.css`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
 ## 2026-11-26 — Change requests edit quantity by size
 
 - **Change:** A printing change request no longer asks for coordinator or order status. Quantity is edited size by size (`M: 8 → 12`). The new total is recorded when the sizes add up to a different quantity. An order with no sizes still uses one qty field.

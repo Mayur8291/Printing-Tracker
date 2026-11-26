@@ -424,6 +424,24 @@ flowchart TD
   Save --> Alert[Bell and toast to job creator with reason]
 ```
 
+## Printing orders on a phone
+
+```mermaid
+flowchart TD
+  Phone[Screen under 768px] --> Cards[Order cards from loaded orders]
+  Cards --> Search[Search number, customer, coordinator]
+  Cards --> Filters[Date, status, product status, coordinator]
+  Cards --> Open[Existing order screen]
+  Cards --> Menu[Action sheet]
+  Menu --> Status[Status sheet]
+  Status --> Confirm[Confirm update]
+  Confirm --> Hold[On hold reason dialog]
+  Confirm --> Cancel[Cancel reason dialog]
+  Confirm --> Save[persistOrderStatus or mark complete]
+  Save --> Refresh[Refresh the card]
+  Bar[Bottom bar] --> Tabs[Home, Orders, Create, Inventory, More]
+```
+
 ## Request a printing order change
 
 ```mermaid

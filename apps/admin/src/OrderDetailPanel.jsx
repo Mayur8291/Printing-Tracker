@@ -178,6 +178,9 @@ export default function OrderDetailPanel({
   handleMarkComplete,
   handleDeleteOrder,
   onCancelOrder,
+  onRequestChange,
+  onRepeatOrder,
+  onChangeStatus,
   openPreview,
   renderStageIcon,
   OrderColorsCell,
@@ -1204,7 +1207,7 @@ export default function OrderDetailPanel({
         </section>
       </div>
 
-      <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t bg-background px-6 py-4">
+      <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t bg-background px-6 py-4 max-md:[&_button]:min-h-11">
         <Button
           type="button"
           variant="outline"
@@ -1213,6 +1216,21 @@ export default function OrderDetailPanel({
         >
           {getOrderHistoryButtonLabel(order)}
         </Button>
+        {typeof onChangeStatus === "function" && order.status !== "cancelled" ? (
+          <Button type="button" variant="outline" className="md:hidden" onClick={() => onChangeStatus(order)}>
+            Change order status
+          </Button>
+        ) : null}
+        {typeof onRequestChange === "function" && order.status !== "cancelled" ? (
+          <Button type="button" variant="outline" className="md:hidden" onClick={() => onRequestChange(order)}>
+            Request change
+          </Button>
+        ) : null}
+        {typeof onRepeatOrder === "function" ? (
+          <Button type="button" variant="outline" className="md:hidden" onClick={onRepeatOrder}>
+            Repeat order
+          </Button>
+        ) : null}
         {profileLoading ? (
           <span className="text-sm text-muted-foreground">Loading…</span>
         ) : canUseOrderControls ? (

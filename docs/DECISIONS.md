@@ -2,6 +2,14 @@
 
 Older product history lives in [CHANGELOG.md](./CHANGELOG.md). New significant choices are recorded here.
 
+## 2026-11-26 — Phone printing orders reuse the desktop order screen
+
+**Context:** Printing orders needed a layout for screens under 768px: cards, filters, status changes, and a bottom bar. The desktop table, order screen, and save functions already work.
+
+**Decision:** Add a separate card layout and bottom bar below 768px. Keep the table at 768px and wider. Cards open the existing order screen and call the existing status, cancel, hold, complete, history, and change-request functions. No second order table and no mock orders.
+
+**Tradeoffs:** The order screen is full-screen on a phone instead of a new edit form. Pending is a card filter, not a new desktop tab. Completed from the phone is limited to admins, matching Mark as complete.
+
 ## 2026-11-19 — Opening the link uses production login
 
 **Context:** The develop deploy and local app were built against staging, so the sign-in screen used staging accounts unless someone had saved a header override.
