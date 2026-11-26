@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Shortage share image includes the order text
+
+- **Change:** The product-status share image is drawn with the order number, customer, coordinator, short and extra lines, and remark. It is no longer a photo of an off-screen card, which came out blank on the phone.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/dealerCardShare.js`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-26 — Share shortage and extra as an image
 
 - **Change:** Product status has a Share button beside save. It makes an image with the order number, customer, coordinator, short and extra lines, and the remark, then opens the phone share sheet so it can be sent on WhatsApp. The order is not saved by Share.

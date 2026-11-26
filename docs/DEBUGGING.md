@@ -4,9 +4,9 @@
 
 | | |
 |--|--|
-| **Symptom** | Share on product status does not open WhatsApp, or the image is missing the shortage lines. |
-| **Root cause** | The phone share sheet only opens when the browser can share a file. Otherwise the PNG downloads and WhatsApp Web opens. The image is built from the quantities and remark currently typed, not from a saved row. |
-| **Fix** | On a phone, pick WhatsApp in the share sheet. On a computer, attach the downloaded PNG. Fill the sizes and the remark before sharing if those lines should be on the image. |
+| **Symptom** | Share on product status opens a blank white image, or WhatsApp does not open. |
+| **Root cause** | The first image was a photo of a card parked off the screen. The phone saved the white background and skipped the text. The share sheet still only opens when the phone can share a file. |
+| **Fix** | The image is drawn with the order number, customer, coordinator, short and extra lines, and remark. On a phone, pick WhatsApp in the share sheet. On a computer, attach the downloaded PNG. |
 | **Verify** | Open product status, enter a short or extra size and a remark, tap Share. The image shows the order number, customer, coordinator, those lines, and the remark. |
 
 ## Phone screen goes blank, or Home and Orders do not scroll

@@ -1,5 +1,4 @@
-import { useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useMemo, useState } from "react";
 import { CircleAlert, CircleCheck, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,7 +23,7 @@ import {
   productReceiptSummary
 } from "../../orderTabUtils";
 import { swatchBackgroundForColor } from "../../orderColorUtils";
-import { shareElementImage } from "../../dealerCardShare";
+import { canvasToPngFile, sharePngFile } from "../../dealerCardShare";
 
 function colorList(order) {
   if (Array.isArray(order?.colors)) {
@@ -60,47 +59,131 @@ function shareFileName(order) {
   return `${base || "order"}-shortage.png`;
 }
 
-function ReceiptShareCard({ order, coordinatorName, lines, remark }) {
-  const row = { display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: "1px solid #e2e8f0" };
-  const label = { color: "#64748b", fontSize: 13 };
-  const value = { fontWeight: 700, fontSize: 15, textAlign: "right" };
-  return (
-    <div
-      style={{
-        width: 420,
-        boxSizing: "border-box",
-        background: "#ffffff",
-        color: "#0f172a",
-        fontFamily: "system-ui, sans-serif",
-        padding: 20
-      }}
-    >
-      <div style={{ background: "#b91c1c", color: "#ffffff", borderRadius: 12, padding: "14px 16px", marginBottom: 12 }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.08em" }}>PRINTING</div>
-        <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>Shortage and extra</div>
-      </div>
-      <div style={row}>
-        <span style={label}>Order number</span>
-        <span style={value}>{order.order_id || "—"}</span>
-      </div>
-      <div style={row}>
-        <span style={label}>Customer</span>
-        <span style={value}>{order.customer_name?.trim() || "—"}</span>
-      </div>
-      <div style={row}>
-        <span style={label}>Coordinator</span>
-        <span style={value}>{coordinatorName?.trim() || "—"}</span>
-      </div>
-      <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "#64748b" }}>Details</div>
-      <div style={{ marginTop: 6, fontSize: 15, lineHeight: 1.45, whiteSpace: "pre-line" }}>
-        {lines.length ? lines.join("\n") : "No shortage or extra."}
-      </div>
-      <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "#64748b" }}>Remarks</div>
-      <div style={{ marginTop: 6, fontSize: 15, lineHeight: 1.45, whiteSpace: "pre-line" }}>
-        {remark?.trim() || "—"}
-      </div>
-    </div>
+function wrapText(ctx, text, maxWidth) {
+  const blocks = String(text ?? "").split("\n");
+  const lines = [];
+  for (const block of blocks) {
+    const words = block.split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      lines.push("");
+      continue;
+    }
+    let current = "";
+    for (const word of words) {
+      const next = current ? `${current} ${word}` : word;
+      if (ctx.measureText(next).width > maxWidth && current) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = next;
+      }
+    }
+    if (current) lines.push(current);
+  }
+  return lines.length ? lines : [""];
+}
+
+function clipText(ctx, text, maxWidth) {
+  const value = String(text ?? "");
+  if (ctx.measureText(value).width <= maxWidth) return value;
+  let clipped = value;
+  while (clipped.length > 1 && ctx.measureText(`${clipped}…`).width > maxWidth) {
+    clipped = clipped.slice(0, -1);
+  }
+  return `${clipped}…`;
+}
+
+function paintReceiptCard({ orderNumber, customer, coordinator, lines, remark }) {
+  const width = 420;
+  const pad = 20;
+  const contentWidth = width - pad * 2;
+  const measure = document.createElement("canvas").getContext("2d");
+  measure.font = "15px sans-serif";
+  const detailLines = wrapText(
+    measure,
+    (lines.length ? lines : ["No shortage or extra."]).join("\n"),
+    contentWidth
   );
+  const remarkLines = wrapText(measure, remark?.trim() || "—", contentWidth);
+  const headerH = 72;
+  const lineH = 22;
+  const height =
+    pad +
+    headerH +
+    28 +
+    34 * 3 +
+    28 +
+    detailLines.length * lineH +
+    28 +
+    remarkLines.length * lineH +
+    pad;
+
+  const scale = 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = width * scale;
+  canvas.height = Math.ceil(height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = "#b91c1c";
+  ctx.fillRect(pad, pad, contentWidth, headerH);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "11px sans-serif";
+  ctx.fillText("PRINTING", pad + 16, pad + 26);
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText("Shortage and extra", pad + 16, pad + 50);
+
+  const rows = [
+    ["Order number", orderNumber || "—"],
+    ["Customer", customer || "—"],
+    ["Coordinator", coordinator || "—"]
+  ];
+  let y = pad + headerH + 36;
+  for (const [label, value] of rows) {
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#64748b";
+    ctx.font = "13px sans-serif";
+    ctx.fillText(label, pad, y);
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "bold 15px sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(clipText(ctx, value, contentWidth - 130), width - pad, y);
+    y += 10;
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.beginPath();
+    ctx.moveTo(pad, y);
+    ctx.lineTo(width - pad, y);
+    ctx.stroke();
+    y += 24;
+  }
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#64748b";
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillText("Details", pad, y);
+  y += 22;
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "15px sans-serif";
+  for (const line of detailLines) {
+    ctx.fillText(line, pad, y);
+    y += lineH;
+  }
+
+  y += 12;
+  ctx.fillStyle = "#64748b";
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillText("Remarks", pad, y);
+  y += 22;
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "15px sans-serif";
+  for (const line of remarkLines) {
+    ctx.fillText(line, pad, y);
+    y += lineH;
+  }
+
+  return canvas;
 }
 
 function ColorBoxes({ order }) {
@@ -156,7 +239,6 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
   const [sharing, setSharing] = useState(false);
   const [shareNote, setShareNote] = useState("");
   const [error, setError] = useState("");
-  const shareCardRef = useRef(null);
 
   const review = useMemo(
     () => productReceiptReview(order, sizes, { colorOk, productMismatch, noPicklist }),
@@ -190,12 +272,19 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
   const coordinator = coordinatorName || order?.coordinator_name;
 
   async function shareSnapshot() {
-    const element = shareCardRef.current;
-    if (!element || sharing) return;
+    if (sharing) return;
     setSharing(true);
     setShareNote("");
     try {
-      const result = await shareElementImage(element, shareFileName(order));
+      const canvas = paintReceiptCard({
+        orderNumber: order.order_id,
+        customer: order.customer_name?.trim(),
+        coordinator: coordinator?.trim(),
+        lines: shortageLines,
+        remark
+      });
+      const file = await canvasToPngFile(canvas, shareFileName(order));
+      const result = await sharePngFile(file);
       if (result.method === "download") {
         setShareNote("Image saved. Attach it in WhatsApp.");
       }
@@ -493,23 +582,6 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
           </form>
         </DialogContent>
       </Dialog>
-      {open
-        ? createPortal(
-            <div
-              ref={shareCardRef}
-              aria-hidden
-              style={{ position: "fixed", left: -2000, top: 0, width: 420 }}
-            >
-              <ReceiptShareCard
-                order={order}
-                coordinatorName={coordinator}
-                lines={shortageLines}
-                remark={remark}
-              />
-            </div>,
-            document.body
-          )
-        : null}
     </>
   );
 }
