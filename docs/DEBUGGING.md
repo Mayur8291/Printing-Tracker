@@ -1,5 +1,14 @@
 # Debugging
 
+## Printing order cards do not scroll
+
+| | |
+|--|--|
+| **Symptom** | On a phone the first order card is visible and the next card is under the bottom bar. Dragging the card does not move the list. |
+| **Root cause** | Each card was a button. Safari does not scroll a list when the drag starts on a button. The list area was also allowed to grow with the cards, so the page clipped them instead of scrolling. |
+| **Fix** | The card is a normal row. Only the three-dot menu and product status are buttons. The list pane has a fixed height and scrolls. |
+| **Verify** | On a phone, drag a printing order card. The next orders move up above the bottom bar. Tap the card to open it. Tap the three dots for actions. |
+
 ## Order screen does not scroll on a phone
 
 | | |

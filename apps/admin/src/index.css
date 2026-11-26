@@ -653,10 +653,11 @@ body,
   }
 
   [data-dashboard-scroll][data-scroll-mode="main"] {
+    flex: 1 1 auto;
+    height: 0;
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
   }
 }
 

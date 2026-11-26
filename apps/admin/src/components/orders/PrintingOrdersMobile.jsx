@@ -455,15 +455,16 @@ function MobileOrderCard({ order, statusUpdates, coordinatorName, onOpen, onMenu
   const sizes = formatSizeBreakdownSummary(order.size_breakdown);
   const pending = Boolean(order._isPending);
   return (
-    <article className="rounded-xl border bg-card p-3 shadow-sm">
+    <article
+      className="rounded-xl border bg-card p-3 shadow-sm"
+      onClick={pending ? undefined : onOpen}
+    >
       <div className="flex items-start gap-2">
-        <Button type="button" variant="ghost" className="!h-auto min-h-11 min-w-0 flex-1 !justify-start !whitespace-normal px-0 text-left hover:bg-transparent" onClick={onOpen}>
-          <span className="block">
-            <span className="block break-words text-base font-semibold text-foreground">{order.order_id || "—"}</span>
-            <span className="mt-1 block break-words text-base font-normal text-foreground">{order.customer_name?.trim() || "—"}</span>
-            <span className="mt-0.5 block break-words text-sm font-normal text-muted-foreground">{order.product_name?.trim() || "—"}</span>
-          </span>
-        </Button>
+        <div className="min-w-0 flex-1">
+          <p className="break-words text-base font-semibold text-foreground">{order.order_id || "—"}</p>
+          <p className="mt-1 break-words text-base text-foreground">{order.customer_name?.trim() || "—"}</p>
+          <p className="mt-0.5 break-words text-sm text-muted-foreground">{order.product_name?.trim() || "—"}</p>
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -471,12 +472,15 @@ function MobileOrderCard({ order, statusUpdates, coordinatorName, onOpen, onMenu
           className="size-11 min-h-11 min-w-11 shrink-0"
           aria-label={`Actions for ${order.order_id || "order"}`}
           disabled={pending}
-          onClick={onMenu}
+          onClick={(event) => {
+            event.stopPropagation();
+            onMenu();
+          }}
         >
           <MoreHorizontal className="size-5" />
         </Button>
       </div>
-      <Button type="button" variant="ghost" className="mt-2 !h-auto w-full !flex-col !items-stretch gap-2 !whitespace-normal px-0 text-left hover:bg-transparent" onClick={onOpen}>
+      <div className="mt-2 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
             <span className={`size-2.5 rounded-full ${product.dot}`} aria-hidden />
@@ -507,9 +511,12 @@ function MobileOrderCard({ order, statusUpdates, coordinatorName, onOpen, onMenu
             </div>
           ) : null}
         </dl>
-      </Button>
+      </div>
       {!pending && productReceipt ? (
-        <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3">
+        <div
+          className="mt-3 flex items-center justify-between gap-2 border-t pt-3"
+          onClick={(event) => event.stopPropagation()}
+        >
           <span className="text-sm text-muted-foreground">Product status</span>
           <ProductReceiptControl
             order={order}

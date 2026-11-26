@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Printing order list scrolls on a phone
+
+- **Change:** Dragging an order card moves the list. The card is no longer a button, so Safari passes the drag to the list. The list pane has its own height above the bottom bar.
+- **Files:** `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`, `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-26 — Phone order screen scrolls
 
 - **Change:** The order form on a phone scrolls between the customer header and the action buttons. Delivery date and the fields below it can be reached. The list behind it scrolls as well.
