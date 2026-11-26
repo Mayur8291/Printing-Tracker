@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { supabase } from "../../supabaseClient";
+import { PRODUCTION_SUPABASE_REF } from "../../deployEnvironmentUtils";
+import { activeSupabaseRef, supabase } from "../../supabaseClient";
 import {
   productReceiptHistoryText,
   productReceiptReview,
@@ -24,6 +25,8 @@ import {
 } from "../../orderTabUtils";
 import { swatchBackgroundForColor } from "../../orderColorUtils";
 import { presentPngShare } from "../../dealerCardShare";
+
+const canRecordInformedInventory = activeSupabaseRef !== PRODUCTION_SUPABASE_REF;
 
 function colorList(order) {
   if (Array.isArray(order?.colors)) {
@@ -369,11 +372,13 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
         product_received_color_ok: noPicklist ? null : colorOk,
         product_received_product_ok: productMismatch ? false : true,
         product_received_no_picklist: noPicklist,
-        product_received_informed_inventory:
-          review.outcome && review.outcome !== "match" ? informedInventory : false,
         product_received_issue: review.outcome === "match" ? null : note,
         received_at_printing: order.received_at_printing || receivedAt
       };
+      if (canRecordInformedInventory) {
+        patch.product_received_informed_inventory =
+          review.outcome && review.outcome !== "match" ? informedInventory : false;
+      }
       const { data: saved, error: updateError } = await supabase
         .from("orders")
         .update(patch)
@@ -560,7 +565,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
                 ) : null}
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 {shareNote ? <p className="text-sm text-muted-foreground">{shareNote}</p> : null}
-                {review.outcome && review.outcome !== "match" ? (
+                {canRecordInformedInventory && review.outcome && review.outcome !== "match" ? (
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id={`product-informed-${order.id}`}

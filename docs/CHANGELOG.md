@@ -5,7 +5,7 @@
 - **Change:** Before marking a product issue, the dialog has an Informed to inventory checkbox. When it is checked, order history and the share image include the line Informed to inventory.
 - **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/orderQueryFields.js`, `supabase/migrations/20261126201000_product_receipt_informed_inventory.sql`.
 - **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md.
-- **Migration:** Adds `orders.product_received_informed_inventory` and records the line in `log_product_receipt`. Applied on staging only. Production is unchanged.
+- **Migration:** Adds `orders.product_received_informed_inventory` and records the line in `log_product_receipt`. Applied on staging only. Production is unchanged. The checkbox and the column are omitted while the tab is on production, so the live order list still loads.
 
 ## 2026-11-26 — Size lines say out of
 
