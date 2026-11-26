@@ -428,8 +428,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  Phone[Screen under 768px] --> Pane[Pane under the title is the scroller]
-  Pane --> Cards[Order cards from loaded orders]
+  Phone[Screen under 768px] --> Window[Phone window scrolls]
+  Window --> Cards[Order cards from loaded orders]
   Cards --> Search[Search number, customer, coordinator]
   Cards --> Filters[Date, status, product status, coordinator]
   Cards --> Open[Existing order screen]

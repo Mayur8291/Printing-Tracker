@@ -1,13 +1,13 @@
 # Debugging
 
-## Home and Printing Orders do not scroll on a phone
+## Phone screen goes blank, or Home and Orders do not scroll
 
 | | |
 |--|--|
-| **Symptom** | On a phone, dragging Home does not move the page. Dragging Printing Orders does not move the cards. Content past the first screen stays under the bottom bar. |
-| **Root cause** | The phone locks the window (`overflow: hidden` on the page). Home and Printing Orders share the pane under the title. That pane was as tall as its content, so it had nothing to scroll, and the locked window clipped the rest. A drag on a button also does not scroll, which is why an order card that was a button stayed still. |
-| **Fix** | On a phone the title row and the pane are two rows. The pane is the height left under the title and scrolls. The page inside it keeps its real height. Order cards are rows, not buttons. |
-| **Verify** | On a phone, open Home and drag. The next section moves up above the bottom bar. Open Printing Orders and drag a card. The next order moves up. A tap still opens the order. |
+| **Symptom** | On a phone the page is white except the bottom bar. Before that, Home and Printing Orders would not move when dragged. |
+| **Root cause** | The window was locked (`overflow: hidden`) and the area under the title was forced to a percentage height. On the phone that height became zero, so the title and the orders were clipped. A nested scroll pane also never became shorter than its content, so a drag had nowhere to go. |
+| **Fix** | Below 768px the window itself scrolls. The title, Home, and Printing Orders keep their real height. The bottom bar stays fixed. Desktop still scrolls inside the page. |
+| **Verify** | Refresh the phone. The Printing Orders title and cards are on screen. Drag Home and drag an order card. The next section moves up above the bottom bar. |
 
 ## Order screen does not scroll on a phone
 

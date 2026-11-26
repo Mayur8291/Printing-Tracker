@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Phone page scrolls with the window
+
+- **Change:** Below 768px the window scrolls again. The title and order cards are no longer clipped to a blank screen. Home and Printing Orders move when dragged. The bottom bar stays fixed. Desktop still scrolls inside the page.
+- **Files:** `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
 ## 2026-11-26 — Phone Home and Printing Orders scroll
 
 - **Change:** On a phone, Home and Printing Orders scroll inside the area under the title. That area is the height left on the screen, so a drag moves the page. The window itself stays locked. Order cards stay rows, so the drag is not swallowed by a button.
