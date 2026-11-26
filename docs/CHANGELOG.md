@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Share shortage and extra as an image
+
+- **Change:** Product status has a Share button beside save. It makes an image with the order number, customer, coordinator, short and extra lines, and the remark, then opens the phone share sheet so it can be sent on WhatsApp. The order is not saved by Share.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/dealerCardShare.js`, `apps/admin/src/App.jsx`, `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
 ## 2026-11-26 — Product status shows a color box and the order number
 
 - **Change:** The product-status screen labels the first row Order number. Each order color is a filled box. The hex code is not shown.

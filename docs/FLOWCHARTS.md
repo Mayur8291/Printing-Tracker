@@ -350,6 +350,8 @@ flowchart TD
   Red --> Hist
   Yellow --> Hist
   Reject --> Hist
+  Sizes --> Share[Share image: order number, customer, coordinator, short and extra, remark]
+  Share --> WhatsApp[Phone share sheet, including WhatsApp]
 ```
 
 ## Printing orders list and Jobs processed

@@ -520,6 +520,7 @@ function MobileOrderCard({ order, statusUpdates, coordinatorName, onOpen, onMenu
           <span className="text-sm text-muted-foreground">Product status</span>
           <ProductReceiptControl
             order={order}
+            coordinatorName={coordinatorName}
             canEdit={productReceipt.canEdit(order)}
             userId={productReceipt.userId}
             onSaved={productReceipt.onSaved}

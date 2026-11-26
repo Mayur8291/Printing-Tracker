@@ -6320,6 +6320,7 @@ function App() {
                                     ) : (
                                       <ProductReceiptControl
                                         order={order}
+                                        coordinatorName={coordinatorUpdates?.[order.id] ?? order.coordinator_name}
                                         canEdit={
                                           canUseOrderControls &&
                                           order.status !== "cancelled" &&

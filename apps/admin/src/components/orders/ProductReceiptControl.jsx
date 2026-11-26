@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { CircleAlert, CircleCheck } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { CircleAlert, CircleCheck, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -23,6 +24,7 @@ import {
   productReceiptSummary
 } from "../../orderTabUtils";
 import { swatchBackgroundForColor } from "../../orderColorUtils";
+import { shareElementImage } from "../../dealerCardShare";
 
 function colorList(order) {
   if (Array.isArray(order?.colors)) {
@@ -31,6 +33,74 @@ function colorList(order) {
   const raw = String(order?.colors ?? "").trim();
   if (!raw) return [];
   return raw.split(/[,;/]+/).map((color) => color.trim()).filter(Boolean);
+}
+
+function varianceLines(review) {
+  const rows = [];
+  if (review.noPicklist) rows.push("No picklist — rejected by printing");
+  for (const line of review.lines || []) {
+    if (line.result === "short") {
+      rows.push(`${line.label}: received ${line.received} of ${line.job} — short ${line.job - line.received}`);
+    } else if (line.result === "extra") {
+      rows.push(`${line.label}: received ${line.received} of ${line.job} — extra ${line.received - line.job}`);
+    }
+  }
+  if (!review.noPicklist && review.outcome && review.colorOk === false) rows.push("Color issue");
+  if (review.productMismatch) rows.push("Product mismatch");
+  return rows;
+}
+
+function shareFileName(order) {
+  const base = String(order?.order_id || "order")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return `${base || "order"}-shortage.png`;
+}
+
+function ReceiptShareCard({ order, coordinatorName, lines, remark }) {
+  const row = { display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: "1px solid #e2e8f0" };
+  const label = { color: "#64748b", fontSize: 13 };
+  const value = { fontWeight: 700, fontSize: 15, textAlign: "right" };
+  return (
+    <div
+      style={{
+        width: 420,
+        boxSizing: "border-box",
+        background: "#ffffff",
+        color: "#0f172a",
+        fontFamily: "system-ui, sans-serif",
+        padding: 20
+      }}
+    >
+      <div style={{ background: "#b91c1c", color: "#ffffff", borderRadius: 12, padding: "14px 16px", marginBottom: 12 }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.08em" }}>PRINTING</div>
+        <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>Shortage and extra</div>
+      </div>
+      <div style={row}>
+        <span style={label}>Order number</span>
+        <span style={value}>{order.order_id || "—"}</span>
+      </div>
+      <div style={row}>
+        <span style={label}>Customer</span>
+        <span style={value}>{order.customer_name?.trim() || "—"}</span>
+      </div>
+      <div style={row}>
+        <span style={label}>Coordinator</span>
+        <span style={value}>{coordinatorName?.trim() || "—"}</span>
+      </div>
+      <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "#64748b" }}>Details</div>
+      <div style={{ marginTop: 6, fontSize: 15, lineHeight: 1.45, whiteSpace: "pre-line" }}>
+        {lines.length ? lines.join("\n") : "No shortage or extra."}
+      </div>
+      <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "#64748b" }}>Remarks</div>
+      <div style={{ marginTop: 6, fontSize: 15, lineHeight: 1.45, whiteSpace: "pre-line" }}>
+        {remark?.trim() || "—"}
+      </div>
+    </div>
+  );
 }
 
 function ColorBoxes({ order }) {
@@ -73,7 +143,7 @@ function savedSizes(order) {
   return next;
 }
 
-export default function ProductReceiptControl({ order, canEdit, userId, onSaved }) {
+export default function ProductReceiptControl({ order, canEdit, userId, onSaved, coordinatorName }) {
   const state = productReceiptState(order);
   const [open, setOpen] = useState(false);
   const [sizes, setSizes] = useState({});
@@ -83,7 +153,10 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
   const [remark, setRemark] = useState("");
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareNote, setShareNote] = useState("");
   const [error, setError] = useState("");
+  const shareCardRef = useRef(null);
 
   const review = useMemo(
     () => productReceiptReview(order, sizes, { colorOk, productMismatch, noPicklist }),
@@ -109,7 +182,30 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
     setRemark(String(order?.product_received_issue ?? ""));
     setFile(null);
     setError("");
+    setShareNote("");
     setOpen(true);
+  }
+
+  const shortageLines = varianceLines(review);
+  const coordinator = coordinatorName || order?.coordinator_name;
+
+  async function shareSnapshot() {
+    const element = shareCardRef.current;
+    if (!element || sharing) return;
+    setSharing(true);
+    setShareNote("");
+    try {
+      const result = await shareElementImage(element, shareFileName(order));
+      if (result.method === "download") {
+        setShareNote("Image saved. Attach it in WhatsApp.");
+      }
+    } catch (err) {
+      if (err?.name !== "AbortError") {
+        setShareNote(err instanceof Error ? err.message : "Could not share the image.");
+      }
+    } finally {
+      setSharing(false);
+    }
   }
 
   async function save(event) {
@@ -347,14 +443,25 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                   </a>
                 ) : null}
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
-                <DialogFooter>
+                {shareNote ? <p className="text-sm text-muted-foreground">{shareNote}</p> : null}
+                <DialogFooter className="flex-row justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11"
+                    disabled={sharing}
+                    onClick={() => void shareSnapshot()}
+                  >
+                    <Share2 />
+                    {sharing ? "Preparing…" : "Share"}
+                  </Button>
                   <Button
                     type="submit"
                     variant={review.outcome === "short" || review.outcome === "rejected" ? "destructive" : "default"}
                     className={
                       review.outcome === "extra"
-                        ? "bg-yellow-400 text-yellow-950 hover:bg-yellow-500"
-                        : undefined
+                        ? "min-h-11 bg-yellow-400 text-yellow-950 hover:bg-yellow-500"
+                        : "min-h-11"
                     }
                     disabled={saving}
                   >
@@ -386,6 +493,23 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
           </form>
         </DialogContent>
       </Dialog>
+      {open
+        ? createPortal(
+            <div
+              ref={shareCardRef}
+              aria-hidden
+              style={{ position: "fixed", left: -2000, top: 0, width: 420 }}
+            >
+              <ReceiptShareCard
+                order={order}
+                coordinatorName={coordinator}
+                lines={shortageLines}
+                remark={remark}
+              />
+            </div>,
+            document.body
+          )
+        : null}
     </>
   );
 }

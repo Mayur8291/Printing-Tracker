@@ -7,7 +7,7 @@ function slugifyFilename(name) {
     .slice(0, 48) || "dealer";
 }
 
-async function captureElementAsPngFile(element, filenameBase) {
+async function captureElementAsPngFile(element, filename) {
   if (!element) throw new Error("Card not found.");
   const { toPng } = await import("html-to-image");
   const dataUrl = await toPng(element, {
@@ -17,7 +17,7 @@ async function captureElementAsPngFile(element, filenameBase) {
   });
   const response = await fetch(dataUrl);
   const blob = await response.blob();
-  return new File([blob], `${slugifyFilename(filenameBase)}-dealer-card.png`, { type: "image/png" });
+  return new File([blob], filename, { type: "image/png" });
 }
 
 function downloadFile(file) {
@@ -29,9 +29,9 @@ function downloadFile(file) {
   URL.revokeObjectURL(url);
 }
 
-/** Share dealer card image — prefers native share (pick WhatsApp); image only, no caption. */
-export async function shareDealerCardViaWhatsApp(element, dealerLabel) {
-  const file = await captureElementAsPngFile(element, dealerLabel);
+/** Share a card image. On a phone the share sheet can send it straight to WhatsApp. */
+export async function shareElementImage(element, filename) {
+  const file = await captureElementAsPngFile(element, filename);
 
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({ files: [file] });
@@ -41,4 +41,9 @@ export async function shareDealerCardViaWhatsApp(element, dealerLabel) {
   downloadFile(file);
   window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
   return { method: "download" };
+}
+
+/** Share dealer card image — prefers native share (pick WhatsApp); image only, no caption. */
+export async function shareDealerCardViaWhatsApp(element, dealerLabel) {
+  return shareElementImage(element, `${slugifyFilename(dealerLabel)}-dealer-card.png`);
 }
