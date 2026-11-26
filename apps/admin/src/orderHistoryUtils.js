@@ -26,6 +26,7 @@ export const ORDER_HISTORY_EVENT_LABELS = {
   product_received_issue: "Product issue",
   product_received_short: "Short quantity",
   product_received_extra: "Extra quantity",
+  product_received_rejected: "No picklist",
   product_name_updated: "Product name",
   colors_updated: "Colors",
   size_type_updated: "Size type",

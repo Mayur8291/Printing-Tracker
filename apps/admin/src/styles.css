@@ -8758,6 +8758,7 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   line-height: 1.45;
   color: #1e293b;
   word-break: break-word;
+  white-space: pre-line;
 }
 
 .order-history-item--product_received {
@@ -8766,7 +8767,8 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
 }
 
 .order-history-item--product_received_issue,
-.order-history-item--product_received_short {
+.order-history-item--product_received_short,
+.order-history-item--product_received_rejected {
   border-color: #fca5a5;
   background: #fef2f2;
 }
@@ -13425,7 +13427,8 @@ html.theme-dark .order-history-item--product_received {
 }
 
 html.theme-dark .order-history-item--product_received_issue,
-html.theme-dark .order-history-item--product_received_short {
+html.theme-dark .order-history-item--product_received_short,
+html.theme-dark .order-history-item--product_received_rejected {
   border-color: #991b1b;
   background: #450a0a;
 }

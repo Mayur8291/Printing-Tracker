@@ -9,7 +9,10 @@ export function orderListRowClassName(order, { urgency } = {}) {
     urgency === "tomorrow" && "bg-amber-50 hover:bg-amber-100/80 dark:bg-amber-950/20 dark:hover:bg-amber-950/30",
     receipt === "extra" &&
       "bg-yellow-100 hover:bg-yellow-200/80 dark:bg-yellow-950/40 dark:hover:bg-yellow-950/55",
-    (isDispatchVerificationFailed(order) || receipt === "short" || receipt === "issue") &&
+    (isDispatchVerificationFailed(order) ||
+      receipt === "short" ||
+      receipt === "issue" ||
+      receipt === "rejected") &&
       "bg-destructive/10 hover:bg-destructive/15"
   );
 }

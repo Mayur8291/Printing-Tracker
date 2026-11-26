@@ -160,7 +160,10 @@ function wholeQty(value) {
   return qty;
 }
 
-export function productReceiptReview(order, receivedSizes, colorOk) {
+export function productReceiptReview(order, receivedSizes, options = {}) {
+  const colorOk = options === true || options.colorOk === true;
+  const productMismatch = options?.productMismatch === true;
+  const noPicklist = options?.noPicklist === true;
   const jobRows = productReceiptSizeRows(order);
   const rows = jobRows.length
     ? jobRows
@@ -176,66 +179,88 @@ export function productReceiptReview(order, receivedSizes, colorOk) {
     }
     return { ...row, job, received, result };
   });
-  const incomplete = lines.some((line) => line.received === null) || jobRows.length === 0 && !Number.isFinite(Number(order?.qty));
+  const incomplete =
+    lines.some((line) => line.received === null) ||
+    (jobRows.length === 0 && !Number.isFinite(Number(order?.qty)));
   const anyShort = lines.some((line) => line.result === "short");
   const anyExtra = lines.some((line) => line.result === "extra");
   let outcome = null;
-  if (!incomplete && lines.every((line) => line.result)) {
-    if (anyShort || colorOk !== true) outcome = "short";
+  if (noPicklist) outcome = "rejected";
+  else if (!incomplete && lines.every((line) => line.result)) {
+    if (anyShort || !colorOk || productMismatch) outcome = "short";
     else if (anyExtra) outcome = "extra";
     else outcome = "match";
   }
-  return { lines, outcome, anyShort, anyExtra, colorOk: colorOk === true };
+  return { lines, outcome, anyShort, anyExtra, colorOk, productMismatch, noPicklist };
 }
 
-export function productReceiptSummary(order, receivedSizes, colorOk) {
-  const sizes = receivedSizes ?? order?.product_received_sizes;
-  const color = colorOk === undefined ? order?.product_received_color_ok : colorOk;
-  if (!sizes || typeof sizes !== "object") {
-    const got = order?.product_received_qty;
-    const job = order?.qty;
-    if (got === null || got === undefined || got === "") return "";
-    const received = Number(got);
-    const expected = Number(job);
-    if (!Number.isFinite(received)) return "";
-    if (!Number.isFinite(expected)) return `Received ${received}.`;
-    if (received === expected) return `Received ${received} of ${expected}. Matches the job.`;
-    if (received > expected) return `Received ${received} of ${expected}. Extra ${received - expected}.`;
-    return `Received ${received} of ${expected}. Short by ${expected - received}. Not matching the job.`;
+export function productReceiptHistoryText({ lines, colorOk, productMismatch, noPicklist, remark }) {
+  const rows = [];
+  if (noPicklist) rows.push("No picklist — rejected by printing");
+  for (const line of lines || []) {
+    if (line.received === null || line.received === undefined) continue;
+    if (line.result === "short") {
+      rows.push(`${line.label}: ${line.received} of ${line.job} — short ${line.job - line.received}`);
+    } else if (line.result === "extra") {
+      rows.push(`${line.label}: ${line.received} of ${line.job} — extra ${line.received - line.job}`);
+    } else {
+      rows.push(`${line.label}: ${line.received} of ${line.job}`);
+    }
   }
-  const review = productReceiptReview(order, sizes, color === true);
-  const sizeText = review.lines
-    .filter((line) => line.received !== null)
-    .map((line) => {
-      if (line.result === "extra") return `${line.label} ${line.received} of ${line.job} (extra ${line.received - line.job})`;
-      if (line.result === "short") return `${line.label} ${line.received} of ${line.job} (short ${line.job - line.received})`;
-      return `${line.label} ${line.received} of ${line.job}`;
-    })
-    .join(", ");
-  const colorText = color === true ? "Color matches." : color === false ? "Color does not match." : "";
-  const remark = String(order?.product_received_issue ?? "").trim();
-  return [sizeText, colorText, remark ? `Remark: ${remark}` : ""].filter(Boolean).join(" ");
+  if (colorOk === false) rows.push("Color issue");
+  else if (colorOk === true) rows.push("Color matches");
+  if (productMismatch) rows.push("Product mismatch");
+  const note = String(remark ?? "").trim();
+  if (note) rows.push(`Remark: ${note}`);
+  return rows.join("\n");
+}
+
+export function productReceiptSummary(order) {
+  if (order?.product_received_sizes && typeof order.product_received_sizes === "object") {
+    const review = productReceiptReview(order, order.product_received_sizes, {
+      colorOk: order.product_received_color_ok === true,
+      productMismatch: order.product_received_product_ok === false,
+      noPicklist: order.product_received_no_picklist === true
+    });
+    const text = productReceiptHistoryText({
+      lines: review.lines,
+      colorOk: order.product_received_color_ok,
+      productMismatch: order.product_received_product_ok === false,
+      noPicklist: order.product_received_no_picklist === true,
+      remark: order.product_received_issue
+    });
+    if (text) return text;
+  }
+  const got = order?.product_received_qty;
+  const job = order?.qty;
+  if (got === null || got === undefined || got === "") return "";
+  const received = Number(got);
+  const expected = Number(job);
+  if (!Number.isFinite(received)) return "";
+  if (!Number.isFinite(expected)) return `Received ${received}`;
+  if (received === expected) return `Received ${received} of ${expected}`;
+  if (received > expected) return `Received ${received} of ${expected} — extra ${received - expected}`;
+  return `Received ${received} of ${expected} — short ${expected - received}`;
 }
 
 export function productReceiptState(order) {
   if (!order?.product_received_at) return "missing";
+  if (order.product_received_no_picklist === true) return "rejected";
   if (order.product_received_sizes && typeof order.product_received_sizes === "object") {
-    const color = order.product_received_color_ok;
-    const review = productReceiptReview(
-      order,
-      order.product_received_sizes,
-      color === false ? false : true
-    );
-    if (review.outcome) {
-      if (color !== true && color !== false) {
-        if (review.anyShort) return "short";
-        if (review.anyExtra) return "extra";
-        return "match";
-      }
-      return review.outcome;
-    }
+    const colorKnown =
+      order.product_received_color_ok === true || order.product_received_color_ok === false;
+    const review = productReceiptReview(order, order.product_received_sizes, {
+      colorOk: colorKnown ? order.product_received_color_ok === true : true,
+      productMismatch: order.product_received_product_ok === false,
+      noPicklist: false
+    });
+    if (review.outcome) return review.outcome;
   }
-  if (order.product_received_qty !== null && order.product_received_qty !== undefined && order.product_received_qty !== "") {
+  if (
+    order.product_received_qty !== null &&
+    order.product_received_qty !== undefined &&
+    order.product_received_qty !== ""
+  ) {
     const received = Number(order.product_received_qty);
     const job = Number(order.qty);
     if (Number.isFinite(received) && Number.isFinite(job)) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Product receipt flags each problem in plain history
+
+- **Change:** Each size that is short or extra is flagged in the dialog and on its own order-history line. A color issue and a product mismatch are separate lines when they apply. The remark stays the note the person typed. Printing can mark **No picklist — rejected by printing** when an order arrives without a picklist.
+- **Database:** `orders.product_received_product_ok` and `orders.product_received_no_picklist`. Applied on staging and production so the orders list can still load.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-26 — Product status is recorded size by size
 
 - **Change:** Product status asks for the quantity received on each size, not one total. A checkbox confirms the color matches the job. Every size matching and the color confirmed is green. A short size, or a color that is not confirmed, is red. Extra pieces on a size, with the color confirmed, is yellow. A remark is required unless it all matches. Order history stores each size, the color result, the remark, and the time.

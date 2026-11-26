@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "../../supabaseClient";
 import {
+  productReceiptHistoryText,
   productReceiptReview,
   productReceiptSizeRows,
   productReceiptState,
@@ -52,15 +53,24 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
   const [open, setOpen] = useState(false);
   const [sizes, setSizes] = useState({});
   const [colorOk, setColorOk] = useState(false);
+  const [productMismatch, setProductMismatch] = useState(false);
+  const [noPicklist, setNoPicklist] = useState(false);
   const [remark, setRemark] = useState("");
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const review = useMemo(
-    () => productReceiptReview(order, sizes, colorOk),
-    [order, sizes, colorOk]
+    () => productReceiptReview(order, sizes, { colorOk, productMismatch, noPicklist }),
+    [order, sizes, colorOk, productMismatch, noPicklist]
   );
+  const previewText = productReceiptHistoryText({
+    lines: noPicklist ? review.lines.filter((line) => line.received !== null) : review.lines,
+    colorOk: noPicklist ? null : colorOk,
+    productMismatch,
+    noPicklist,
+    remark
+  });
   const savedText =
     state === "missing"
       ? "Product not yet reached printing"
@@ -69,6 +79,8 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
   function openDialog() {
     setSizes(savedSizes(order));
     setColorOk(order?.product_received_color_ok === true);
+    setProductMismatch(order?.product_received_product_ok === false);
+    setNoPicklist(order?.product_received_no_picklist === true);
     setRemark(String(order?.product_received_issue ?? ""));
     setFile(null);
     setError("");
@@ -78,7 +90,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
   async function save(event) {
     event.preventDefault();
     if (!canEdit || !order?.id || !userId) return;
-    if (!review.outcome) {
+    if (!noPicklist && !review.outcome) {
       setError("Enter a whole number for every size.");
       return;
     }
@@ -87,7 +99,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
       setError("Write a remark for what does not match.");
       return;
     }
-    if (!file && !order.product_received_proof_url) {
+    if (!noPicklist && !file && !order.product_received_proof_url) {
       setError("Upload a photo or file of the product.");
       return;
     }
@@ -106,16 +118,22 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
         proofUrl = urlData?.publicUrl || null;
         if (!proofUrl) throw new Error("Could not get the proof link.");
       }
-      const receivedSizes = {};
-      for (const line of review.lines) receivedSizes[line.key] = line.received;
+      const counted = review.lines.filter((line) => line.received !== null);
+      const receivedSizes = counted.length
+        ? Object.fromEntries(counted.map((line) => [line.key, line.received]))
+        : null;
       const receivedAt = order.product_received_at || new Date().toISOString();
       const patch = {
         product_received_at: receivedAt,
         product_received_by: userId,
         product_received_proof_url: proofUrl,
         product_received_sizes: receivedSizes,
-        product_received_qty: review.lines.reduce((sum, line) => sum + line.received, 0),
-        product_received_color_ok: colorOk,
+        product_received_qty: counted.length
+          ? counted.reduce((sum, line) => sum + line.received, 0)
+          : null,
+        product_received_color_ok: noPicklist ? null : colorOk,
+        product_received_product_ok: productMismatch ? false : true,
+        product_received_no_picklist: noPicklist,
         product_received_issue: review.outcome === "match" ? null : note,
         received_at_printing: order.received_at_printing || receivedAt
       };
@@ -144,7 +162,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
     ) : (
       <CircleAlert
         className={
-          state === "short" || state === "issue"
+          state === "short" || state === "issue" || state === "rejected"
             ? "size-4 text-destructive"
             : state === "extra"
               ? "size-4 text-yellow-500"
@@ -159,7 +177,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
       ? "text-emerald-700 dark:text-emerald-400"
       : review.outcome === "extra"
         ? "text-yellow-700 dark:text-yellow-400"
-        : review.outcome === "short"
+        : review.outcome === "short" || review.outcome === "rejected"
           ? "text-destructive"
           : "text-muted-foreground";
 
@@ -187,7 +205,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
           <DialogHeader>
             <DialogTitle>Product status</DialogTitle>
             <DialogDescription>
-              Enter the quantity received for each size. Confirm the color. A size that is short, or a color that does not match, is red. Extra pieces are yellow. A remark is required unless every size and the color match.
+              Enter each size. Short and extra sizes are flagged. Mark a color issue or a product mismatch when it applies. Use the no-picklist option when printing rejects the order. The remark stays your own note.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={save}>
@@ -203,10 +221,21 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
             </dl>
             {canEdit ? (
               <>
-                <div className="grid grid-cols-[5rem_4rem_1fr] items-center gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`product-no-picklist-${order.id}`}
+                    checked={noPicklist}
+                    onCheckedChange={(checked) => setNoPicklist(checked === true)}
+                  />
+                  <Label htmlFor={`product-no-picklist-${order.id}`}>
+                    No picklist — rejected by printing
+                  </Label>
+                </div>
+                <div className="grid grid-cols-[4.5rem_3rem_1fr_4.5rem] items-center gap-2 text-sm">
                   <span className="text-muted-foreground">Size</span>
                   <span className="text-muted-foreground">Job</span>
                   <span className="text-muted-foreground">Received</span>
+                  <span className="text-muted-foreground">Flag</span>
                   {review.lines.map((line) => (
                     <div key={line.key} className="contents">
                       <span>{line.label}</span>
@@ -221,8 +250,21 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                         onChange={(e) =>
                           setSizes((prev) => ({ ...prev, [line.key]: e.target.value }))
                         }
-                        required
+                        required={!noPicklist}
                       />
+                      <span
+                        className={
+                          line.result === "short"
+                            ? "font-medium text-destructive"
+                            : line.result === "extra"
+                              ? "font-medium text-yellow-700 dark:text-yellow-400"
+                              : line.result === "match"
+                                ? "font-medium text-emerald-700 dark:text-emerald-400"
+                                : "text-muted-foreground"
+                        }
+                      >
+                        {line.result === "short" ? "Short" : line.result === "extra" ? "Extra" : line.result === "match" ? "OK" : "—"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -234,16 +276,16 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                   />
                   <Label htmlFor={`product-color-${order.id}`}>Color matches the job</Label>
                 </div>
-                <p className={`text-sm font-medium ${previewClass}`}>
-                  {review.outcome === "match"
-                    ? "Every size matches and the color is confirmed."
-                    : review.outcome === "extra"
-                      ? "Extra quantity on at least one size."
-                      : review.outcome === "short"
-                        ? colorOk
-                          ? "A size is short of the job."
-                          : "This does not match the job."
-                        : "Enter every size to compare it with the job."}
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`product-mismatch-${order.id}`}
+                    checked={productMismatch}
+                    onCheckedChange={(checked) => setProductMismatch(checked === true)}
+                  />
+                  <Label htmlFor={`product-mismatch-${order.id}`}>Product mismatch</Label>
+                </div>
+                <p className={`whitespace-pre-line text-sm font-medium ${previewClass}`}>
+                  {previewText || "Enter every size to compare it with the job."}
                 </p>
                 {review.outcome && review.outcome !== "match" ? (
                   <div className="grid gap-1.5">
@@ -281,7 +323,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                 <DialogFooter>
                   <Button
                     type="submit"
-                    variant={review.outcome === "short" ? "destructive" : "default"}
+                    variant={review.outcome === "short" || review.outcome === "rejected" ? "destructive" : "default"}
                     className={
                       review.outcome === "extra"
                         ? "bg-yellow-400 text-yellow-950 hover:bg-yellow-500"
@@ -291,7 +333,9 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                   >
                     {saving
                       ? "Saving…"
-                      : review.outcome === "short"
+                      : review.outcome === "rejected"
+                        ? "Reject — no picklist"
+                        : review.outcome === "short"
                         ? "Mark not matching"
                         : review.outcome === "extra"
                           ? "Mark extra quantity"
@@ -301,13 +345,13 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
               </>
             ) : (
               <p
-                className={
-                  state === "short" || state === "issue"
-                    ? "text-sm text-destructive"
+                className={`whitespace-pre-line text-sm ${
+                  state === "short" || state === "issue" || state === "rejected"
+                    ? "text-destructive"
                     : state === "extra"
-                      ? "text-sm text-yellow-700 dark:text-yellow-400"
-                      : "text-sm text-emerald-700 dark:text-emerald-400"
-                }
+                      ? "text-yellow-700 dark:text-yellow-400"
+                      : "text-emerald-700 dark:text-emerald-400"
+                }`}
               >
                 {savedText}
               </p>

@@ -1051,11 +1051,11 @@ export default function OrderDetailPanel({
                 {productReceiptState(order) === "missing" ? (
                   "Not yet at printing"
                 ) : productReceiptState(order) === "extra" ? (
-                  <span className="text-yellow-700 dark:text-yellow-400">
+                  <span className="whitespace-pre-line text-yellow-700 dark:text-yellow-400">
                     {productReceiptSummary(order)}
                   </span>
-                ) : productReceiptState(order) === "short" ? (
-                  <span className="text-destructive">
+                ) : productReceiptState(order) === "short" || productReceiptState(order) === "rejected" ? (
+                  <span className="whitespace-pre-line text-destructive">
                     {productReceiptSummary(order)}
                   </span>
                 ) : productReceiptState(order) === "issue" ? (
@@ -1063,7 +1063,7 @@ export default function OrderDetailPanel({
                     Issue: {order.product_received_issue}
                   </span>
                 ) : (
-                  <span className="text-emerald-700 dark:text-emerald-400">
+                  <span className="text-emerald-700 dark:text-emerald-400 whitespace-pre-line">
                     {productReceiptSummary(order) || "Checked and received"}
                   </span>
                 )}

@@ -343,11 +343,13 @@ flowchart TD
   Sizes --> Color{Color matches?}
   Color --> Compare{Each size against the job}
   Compare -->|all equal and color checked| Green[Green]
-  Compare -->|any short or color unchecked| Red[Red and remark]
-  Compare -->|any extra and color checked| Yellow[Yellow and remark]
+  Compare -->|any short, color issue, or product mismatch| Red[Red and remark]
+  Compare -->|any extra| Yellow[Yellow and remark]
+  Compare -->|no picklist| Reject[Rejected by printing]
   Green --> Hist[Order history with sizes, color, remark, and time]
   Red --> Hist
   Yellow --> Hist
+  Reject --> Hist
 ```
 
 ## Printing orders list and Jobs processed
