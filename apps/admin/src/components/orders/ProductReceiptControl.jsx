@@ -208,7 +208,7 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
               Enter each size. Short and extra sizes are flagged. Mark a color issue or a product mismatch when it applies. Use the no-picklist option when printing rejects the order. The remark stays your own note.
             </DialogDescription>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={save}>
+          <form className="space-y-4 max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto" onSubmit={save}>
             <dl className="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-1 text-sm">
               <dt className="text-muted-foreground">Job</dt>
               <dd>{order.order_id || "—"}</dd>

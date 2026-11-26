@@ -8701,8 +8701,7 @@ function App() {
               if (previewImages.length > 0 || mobileStatusOrder || changeRequestOrder) e.preventDefault();
             }}
           >
-            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="relative min-h-0 flex-1 overflow-y-auto max-md:flex max-md:h-full max-md:flex-col max-md:overflow-hidden">
             <OrderDetailPanel
               order={activeViewOrder}
               onClose={closeViewOrder}
@@ -8774,7 +8773,6 @@ function App() {
               onAddOwner={isAdmin ? addOwnerFromDropdown : undefined}
               onAddCoordinator={isAdmin ? addCoordinatorFromDropdown : undefined}
             />
-            </div>
             <ImagePreviewModal
               images={previewImages}
               index={previewIndex}

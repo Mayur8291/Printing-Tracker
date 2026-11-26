@@ -1,5 +1,14 @@
 # Debugging
 
+## Order screen does not scroll on a phone
+
+| | |
+|--|--|
+| **Symptom** | Opening an order shows the first fields and the action buttons. Delivery date and the fields below do not move when the page is dragged. |
+| **Root cause** | The order dialog had no fixed height, and a nested scroll area grew with the form. On a phone that area swallows the drag and the form stays still. The action row also sat on top of the next field. |
+| **Fix** | The dialog has the height of the visible screen. The form is the only scrolling region. The close button and the actions stay put. |
+| **Verify** | Open an order on a phone. Drag the form. Delivery date, sizes, remarks, and the rest move. The X and the action buttons stay on screen. |
+
 ## Order screen close button is above the phone status bar
 
 | | |

@@ -643,10 +643,20 @@ body,
     left: 0 !important;
     width: 100% !important;
     max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
     transform: none !important;
     border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  [data-dashboard-scroll][data-scroll-mode="main"] {
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 }
 
@@ -664,9 +674,11 @@ body,
   overflow: hidden;
 }
 
-[data-dashboard-scroll][data-scroll-mode="main"] {
+[data-dashboard-scroll][data-scroll-mode="main"],
+.order-detail-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 [data-dashboard-scroll][data-scroll-mode="panel"] {

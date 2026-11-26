@@ -335,8 +335,8 @@ export default function OrderDetailPanel({
   }
 
   return (
-    <div className="flex min-h-0 flex-col bg-background text-foreground">
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b bg-background px-4 py-3 md:px-6 md:py-5">
+    <div className="flex flex-col bg-background text-foreground max-md:h-full max-md:min-h-0 max-md:flex-1">
+      <div className="z-10 flex shrink-0 items-center justify-between gap-4 border-b bg-background px-4 py-3 md:px-6 md:py-5">
         <div className="min-w-0">
           <h3 className="truncate text-xl font-semibold tracking-tight">{order.customer_name}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -359,7 +359,7 @@ export default function OrderDetailPanel({
         </Button>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
+      <div className="order-detail-scroll space-y-6 px-6 py-5 max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto">
         <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
           <h4 className="text-sm font-semibold tracking-tight">Order details</h4>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1207,7 +1207,7 @@ export default function OrderDetailPanel({
         </section>
       </div>
 
-      <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t bg-background px-6 py-4 max-md:[&_button]:min-h-11">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t bg-background px-4 py-3 md:sticky md:bottom-0 md:px-6 md:py-4 max-md:[&_button]:min-h-11">
         <Button
           type="button"
           variant="outline"

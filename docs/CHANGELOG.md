@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Phone order screen scrolls
+
+- **Change:** The order form on a phone scrolls between the customer header and the action buttons. Delivery date and the fields below it can be reached. The list behind it scrolls as well.
+- **Files:** `apps/admin/src/index.css`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-26 — Order close button stays below the phone status bar
 
 - **Change:** On a phone, the order screen, create-order screen, and product-status screen start below the status bar. The X sits beside the customer name and closes the order.
