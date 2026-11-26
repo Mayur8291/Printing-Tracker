@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-26 — Size lines say out of
+
+- **Change:** Product status, the share image, and saved history say `8 out of 12` instead of `8 of 12`.
+- **Files:** `apps/admin/src/orderTabUtils.js`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `supabase/migrations/20261126193000_product_receipt_out_of.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+- **Migration:** `20261126193000` replaces `log_product_receipt` on staging. Staging recorded that apply as version `20261126131141` (`product_receipt_out_of`). Production is unchanged.
+
 ## 2026-11-26 — Share image title matches shortage or extra
 
 - **Change:** The product-status share image is titled Shortage when every variance is short, Extra when every variance is extra, and Shortage and extra only when both are present. The share sheet uses that same title.

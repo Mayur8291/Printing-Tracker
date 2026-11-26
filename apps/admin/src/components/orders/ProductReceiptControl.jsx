@@ -39,9 +39,9 @@ function varianceLines(review) {
   if (review.noPicklist) rows.push("No picklist — rejected by printing");
   for (const line of review.lines || []) {
     if (line.result === "short") {
-      rows.push(`${line.label}: received ${line.received} of ${line.job} — short ${line.job - line.received}`);
+      rows.push(`${line.label}: received ${line.received} out of ${line.job} — short ${line.job - line.received}`);
     } else if (line.result === "extra") {
-      rows.push(`${line.label}: received ${line.received} of ${line.job} — extra ${line.received - line.job}`);
+      rows.push(`${line.label}: received ${line.received} out of ${line.job} — extra ${line.received - line.job}`);
     }
   }
   if (!review.noPicklist && review.outcome && review.colorOk === false) rows.push("Color issue");

@@ -200,11 +200,11 @@ export function productReceiptHistoryText({ lines, colorOk, productMismatch, noP
   for (const line of lines || []) {
     if (line.received === null || line.received === undefined) continue;
     if (line.result === "short") {
-      rows.push(`${line.label}: ${line.received} of ${line.job} — short ${line.job - line.received}`);
+      rows.push(`${line.label}: ${line.received} out of ${line.job} — short ${line.job - line.received}`);
     } else if (line.result === "extra") {
-      rows.push(`${line.label}: ${line.received} of ${line.job} — extra ${line.received - line.job}`);
+      rows.push(`${line.label}: ${line.received} out of ${line.job} — extra ${line.received - line.job}`);
     } else {
-      rows.push(`${line.label}: ${line.received} of ${line.job}`);
+      rows.push(`${line.label}: ${line.received} out of ${line.job}`);
     }
   }
   if (colorOk === false) rows.push("Color issue");
@@ -238,9 +238,9 @@ export function productReceiptSummary(order) {
   const expected = Number(job);
   if (!Number.isFinite(received)) return "";
   if (!Number.isFinite(expected)) return `Received ${received}`;
-  if (received === expected) return `Received ${received} of ${expected}`;
-  if (received > expected) return `Received ${received} of ${expected} — extra ${received - expected}`;
-  return `Received ${received} of ${expected} — short ${expected - received}`;
+  if (received === expected) return `Received ${received} out of ${expected}`;
+  if (received > expected) return `Received ${received} out of ${expected} — extra ${received - expected}`;
+  return `Received ${received} out of ${expected} — short ${expected - received}`;
 }
 
 export function productReceiptState(order) {
