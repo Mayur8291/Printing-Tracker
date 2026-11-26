@@ -611,9 +611,29 @@ body,
   overflow: hidden;
 }
 
+:root {
+  --mobile-nav-offset: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
 .page.app-layout {
   height: 100dvh;
   max-height: 100dvh;
+}
+
+@media (max-width: 767px) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  .page.app-layout {
+    height: 100%;
+    max-height: 100%;
+    padding-top: env(safe-area-inset-top, 0px);
+    box-sizing: border-box;
+  }
 }
 
 .page.app-layout > .group\/sidebar-wrapper {

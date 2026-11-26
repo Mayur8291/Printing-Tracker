@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import NotificationBellButton from "../../NotificationBellButton";
 import { productReceiptState } from "../../orderTabUtils";
 import {
   formatDeliveryDate,
@@ -126,8 +125,6 @@ export default function PrintingOrdersMobile({
   coordinatorOptions,
   statusUpdates,
   coordinatorUpdates,
-  notificationUserId,
-  onOpenNotifications,
   onOpenOrder,
   onOpenHistory,
   onRequestChange,
@@ -198,23 +195,12 @@ export default function PrintingOrdersMobile({
   }
 
   return (
-    <div className="space-y-4 md:hidden">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <img src="/brand-logo.png" alt="Scott" className="size-11 shrink-0 object-contain" />
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground">Scott Dashboard</p>
-            <h2 className="truncate text-xl font-semibold tracking-tight text-foreground">Printing Orders</h2>
-          </div>
-        </div>
-        <NotificationBellButton userId={notificationUserId} onOpen={onOpenNotifications} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <StatCard label="Total Orders" value={stats.total} />
-        <StatCard label="Pending Orders" value={stats.pending} />
-        <StatCard label="Ready to Dispatch" value={stats.ready} />
-        <StatCard label="Completed Orders" value={stats.completed} />
+    <div className="space-y-3 md:hidden">
+      <div className="grid grid-cols-4 gap-1.5">
+        <StatCard label="Total" detail="Total Orders" value={stats.total} />
+        <StatCard label="Pending" detail="Pending Orders" value={stats.pending} />
+        <StatCard label="Ready" detail="Ready to Dispatch" value={stats.ready} />
+        <StatCard label="Complete" detail="Completed Orders" value={stats.completed} />
       </div>
 
       <div className="flex items-center gap-2">
@@ -454,11 +440,11 @@ export default function PrintingOrdersMobile({
   );
 }
 
-function StatCard({ label, value }) {
+function StatCard({ label, detail, value }) {
   return (
-    <div className="rounded-xl border bg-card px-3 py-3 shadow-sm">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+    <div className="min-w-0 rounded-xl border bg-card px-2 py-2 shadow-sm" title={detail}>
+      <p className="truncate text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold leading-tight tabular-nums text-foreground">{value}</p>
     </div>
   );
 }
@@ -469,7 +455,7 @@ function MobileOrderCard({ order, statusUpdates, coordinatorName, onOpen, onMenu
   const sizes = formatSizeBreakdownSummary(order.size_breakdown);
   const pending = Boolean(order._isPending);
   return (
-    <article className="rounded-xl border bg-card p-4 shadow-sm">
+    <article className="rounded-xl border bg-card p-3 shadow-sm">
       <div className="flex items-start gap-2">
         <Button type="button" variant="ghost" className="!h-auto min-h-11 min-w-0 flex-1 !justify-start !whitespace-normal px-0 text-left hover:bg-transparent" onClick={onOpen}>
           <span className="block">
@@ -490,7 +476,7 @@ function MobileOrderCard({ order, statusUpdates, coordinatorName, onOpen, onMenu
           <MoreHorizontal className="size-5" />
         </Button>
       </div>
-      <Button type="button" variant="ghost" className="mt-3 !h-auto w-full !flex-col !items-stretch gap-2 !whitespace-normal px-0 text-left hover:bg-transparent" onClick={onOpen}>
+      <Button type="button" variant="ghost" className="mt-2 !h-auto w-full !flex-col !items-stretch gap-2 !whitespace-normal px-0 text-left hover:bg-transparent" onClick={onOpen}>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
             <span className={`size-2.5 rounded-full ${product.dot}`} aria-hidden />

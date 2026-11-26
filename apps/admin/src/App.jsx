@@ -5823,7 +5823,7 @@ function App() {
     >
     <SampleJobSheetSlaProvider>
     <TooltipProvider delayDuration={200}>
-    <div className="page app-layout flex h-svh min-h-0 flex-col overflow-hidden bg-background">
+    <div className="page app-layout flex h-full min-h-0 max-h-full flex-col overflow-hidden bg-background">
       <DashboardShell
         topbarTitle={currentDashboardTabLabel}
         mainSections={visibleSidebarMainBySection}
@@ -5852,6 +5852,16 @@ function App() {
               onToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
             />
           </div>
+        }
+        mobileActions={
+          <>
+            {isAdmin ? <EnvironmentSwitcherPopover /> : null}
+            <NotificationBellButton
+              userId={session?.user?.id}
+              active={dashboardTab === NOTIFICATIONS_DASHBOARD_TAB.id}
+              onOpen={() => selectDashboardTab(NOTIFICATIONS_DASHBOARD_TAB.id)}
+            />
+          </>
         }
         topbarActions={
           <>
@@ -6005,8 +6015,6 @@ function App() {
                 coordinatorOptions={coordinatorFilterOptions}
                 statusUpdates={statusUpdates}
                 coordinatorUpdates={coordinatorUpdates}
-                notificationUserId={session?.user?.id}
-                onOpenNotifications={() => selectDashboardTab("notifications")}
                 onOpenOrder={openViewOrder}
                 onOpenHistory={openOrderHistory}
                 onRequestChange={setChangeRequestOrder}
@@ -7539,6 +7547,24 @@ function App() {
         canOpen={canOpenMobileTab}
         moreSections={mobileMoreSections}
         soonTabIds={DASHBOARD_SIDEBAR_SOON_TAB_IDS}
+        renderSearch={(closeMore) => (
+          <GlobalSearchBox
+            query={globalSearchQuery}
+            onQueryChange={setGlobalSearchQuery}
+            orders={orders}
+            outwardChallans={globalSearchOutwardChallans}
+            contacts={globalSearchContacts}
+            canAccessTab={canAccessDashboardTabForSearch}
+            onSelect={(item) => {
+              closeMore();
+              handleGlobalSearchSelect(item);
+            }}
+            loadingExtras={globalSearchExtrasLoading}
+            className="max-w-none"
+          />
+        )}
+        onArchive={isAdmin ? () => setShowArchiveModal(true) : null}
+        onLogout={handleSignOut}
       />
 
       {repeatOrderPickerOpen && (isAdmin || viewerCanCreateOrders) && (

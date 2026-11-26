@@ -16,7 +16,10 @@ export default function MobileAppNav({
   canCreate,
   canOpen,
   moreSections,
-  soonTabIds
+  soonTabIds,
+  renderSearch,
+  onArchive,
+  onLogout
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -32,7 +35,7 @@ export default function MobileAppNav({
         className="fixed inset-x-0 bottom-0 z-40 border-t bg-background pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] md:hidden"
         aria-label="Mobile"
       >
-        <div className="grid grid-cols-5 items-end px-1 pt-1">
+        <div className="grid h-16 grid-cols-5 items-center px-1">
           {PRIMARY.map((item) => (
             <NavButton
               key={item.id}
@@ -43,10 +46,10 @@ export default function MobileAppNav({
               onClick={() => openTab(item.id)}
             />
           ))}
-          <div className="flex justify-center pb-1">
+          <div className="flex justify-center">
             <Button
               type="button"
-              className="-mt-5 size-14 min-h-14 min-w-14 rounded-full bg-red-700 text-white shadow-md hover:bg-red-800"
+              className="size-12 min-h-12 min-w-12 rounded-full bg-red-700 text-white shadow-md hover:bg-red-800"
               aria-label="Create order"
               disabled={!canCreate}
               onClick={onCreate}
@@ -71,6 +74,19 @@ export default function MobileAppNav({
             <SheetDescription>Open another part of Scott Dashboard.</SheetDescription>
           </SheetHeader>
           <div className="mt-4 space-y-4">
+            {typeof renderSearch === "function" ? (
+              <div className="min-w-0">{renderSearch(() => setMoreOpen(false))}</div>
+            ) : null}
+            {typeof onArchive === "function" ? (
+              <Button type="button" variant="outline" className="min-h-11 h-11 w-full justify-start" onClick={() => { setMoreOpen(false); onArchive(); }}>
+                Archive
+              </Button>
+            ) : null}
+            {typeof onLogout === "function" ? (
+              <Button type="button" variant="outline" className="min-h-11 h-11 w-full justify-start" onClick={() => { setMoreOpen(false); onLogout(); }}>
+                Logout
+              </Button>
+            ) : null}
             {moreSections.map((section) => (
               <div key={section.label} className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">{section.label}</p>
@@ -107,7 +123,7 @@ function NavButton({ label, icon: Icon, active, disabled, onClick }) {
       type="button"
       variant="ghost"
       className={cn(
-        "h-14 min-h-14 w-full flex-col gap-1 px-1 text-xs font-medium",
+        "h-14 min-h-0 w-full flex-col gap-0.5 px-1 text-xs font-medium",
         active ? "text-red-700 hover:text-red-700" : "text-foreground",
         disabled && "opacity-40"
       )}

@@ -1,5 +1,14 @@
 # Debugging
 
+## Home screen cuts off the bottom of a printing card
+
+| | |
+|--|--|
+| **Symptom** | After Add to Home Screen, the order card sits under the bottom bar. The top of the page is tight against the clock. Scrolling does not bring the rest of the card into view. |
+| **Root cause** | The home-screen status bar was translucent, so the page started under the clock. The shell was `100svh` inside that inset, which pushed the lower half off the glass. The Create button also hung over the card. |
+| **Fix** | The page height is the visible screen, with the top safe area inside the box. The bottom bar stays in its own band. Card scroll padding matches that band. Counts are one row so the list can use the rest. |
+| **Verify** | On a phone home-screen icon, the first card’s quantity is above the bar. Scrolling reaches the last card. The clock does not cover the title. |
+
 ## Phone printing list still shows the desktop table
 
 | | |

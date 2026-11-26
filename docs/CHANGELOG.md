@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Phone home screen keeps the order list reachable
+
+- **Change:** A phone added to the home screen no longer draws the printing list under the status bar or under the bottom bar. The page height is the visible screen. Counts sit in one row, the title is one bar, and the order cards scroll clear of Home / Orders / Create / Inventory / More. Search, Archive, and Logout are in More.
+- **Files:** `apps/admin/index.html`, `apps/admin/src/index.css`, `apps/admin/src/components/layout/DashboardShell.jsx`, `apps/admin/src/components/layout/MobileAppNav.jsx`, `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`, `apps/admin/src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-11-26 — Mobile printing orders
 
 - **Change:** Screens below 768px get a printing-orders layout: Scott header, counts, order cards, search, status tabs, a filter sheet, and a fixed Home / Orders / Create / Inventory / More bar. A card opens the existing order screen. Status, remarks, cancel, hold, complete, change requests, history, and product status still save through the current order APIs. The desktop table is unchanged at 768px and wider.
