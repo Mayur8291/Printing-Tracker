@@ -129,11 +129,150 @@ export const filterBillingOrdersBySearch = filterOrdersBySearch;
 export const DISPATCH_FAIL_STATUS = "dispatch_fail";
 export const DISPATCHED_STATUS = "dispatched";
 
-/** missing = not at printing yet, received = checked and matches, issue = received but wrong. */
+/**
+ * match = every size matches the job and the color is confirmed (green).
+ * short = a size is short, or the color is not confirmed (red).
+ * extra = a size is over and nothing is short and the color matches (yellow).
+ * issue = an older receipt that has a reason and no size counts.
+ */
+export function productReceiptSizeRows(order) {
+  const breakdown = order?.size_breakdown;
+  if (!breakdown || typeof breakdown !== "object") return [];
+  const standard = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+  const rows = [];
+  for (const key of standard) {
+    const qty = Number(breakdown[key]);
+    if (Number.isFinite(qty) && qty > 0) rows.push({ key, label: key, qty });
+  }
+  for (const [key, val] of Object.entries(breakdown)) {
+    if (standard.includes(key)) continue;
+    const qty = Number(val);
+    if (Number.isFinite(qty) && qty > 0) rows.push({ key, label: key, qty });
+  }
+  return rows;
+}
+
+function wholeQty(value) {
+  const text = String(value ?? "").trim();
+  if (!/^\d+$/.test(text)) return null;
+  const qty = Number(text);
+  if (!Number.isSafeInteger(qty) || qty > 2147483647) return null;
+  return qty;
+}
+
+export function productReceiptReview(order, receivedSizes, options = {}) {
+  const colorOk = options === true || options.colorOk === true;
+  const productMismatch = options?.productMismatch === true;
+  const noPicklist = options?.noPicklist === true;
+  const jobRows = productReceiptSizeRows(order);
+  const rows = jobRows.length
+    ? jobRows
+    : [{ key: "Total", label: "Total", qty: Number(order?.qty) }];
+  const lines = rows.map((row) => {
+    const job = Number.isFinite(row.qty) ? row.qty : 0;
+    const received = wholeQty(receivedSizes?.[row.key]);
+    let result = null;
+    if (received !== null) {
+      if (received === job) result = "match";
+      else if (received > job) result = "extra";
+      else result = "short";
+    }
+    return { ...row, job, received, result };
+  });
+  const incomplete =
+    lines.some((line) => line.received === null) ||
+    (jobRows.length === 0 && !Number.isFinite(Number(order?.qty)));
+  const anyShort = lines.some((line) => line.result === "short");
+  const anyExtra = lines.some((line) => line.result === "extra");
+  let outcome = null;
+  if (noPicklist) outcome = "rejected";
+  else if (!incomplete && lines.every((line) => line.result)) {
+    if (anyShort || !colorOk || productMismatch) outcome = "short";
+    else if (anyExtra) outcome = "extra";
+    else outcome = "match";
+  }
+  return { lines, outcome, anyShort, anyExtra, colorOk, productMismatch, noPicklist };
+}
+
+export function productReceiptHistoryText({ lines, colorOk, productMismatch, noPicklist, remark, informedInventory }) {
+  const rows = [];
+  if (noPicklist) rows.push("No picklist — rejected by printing");
+  for (const line of lines || []) {
+    if (line.received === null || line.received === undefined) continue;
+    if (line.result === "short") {
+      rows.push(`${line.label}: ${line.received} out of ${line.job} — short ${line.job - line.received}`);
+    } else if (line.result === "extra") {
+      rows.push(`${line.label}: ${line.received} out of ${line.job} — extra ${line.received - line.job}`);
+    } else {
+      rows.push(`${line.label}: ${line.received} out of ${line.job}`);
+    }
+  }
+  if (colorOk === false) rows.push("Color issue");
+  else if (colorOk === true) rows.push("Color matches");
+  if (productMismatch) rows.push("Product mismatch");
+  const note = String(remark ?? "").trim();
+  if (note) rows.push(`Remark: ${note}`);
+  if (informedInventory) rows.push("Informed to inventory");
+  return rows.join("\n");
+}
+
+export function productReceiptSummary(order) {
+  if (order?.product_received_sizes && typeof order.product_received_sizes === "object") {
+    const review = productReceiptReview(order, order.product_received_sizes, {
+      colorOk: order.product_received_color_ok === true,
+      productMismatch: order.product_received_product_ok === false,
+      noPicklist: order.product_received_no_picklist === true
+    });
+    const text = productReceiptHistoryText({
+      lines: review.lines,
+      colorOk: order.product_received_color_ok,
+      productMismatch: order.product_received_product_ok === false,
+      noPicklist: order.product_received_no_picklist === true,
+      remark: order.product_received_issue,
+      informedInventory: order.product_received_informed_inventory === true
+    });
+    if (text) return text;
+  }
+  const got = order?.product_received_qty;
+  const job = order?.qty;
+  if (got === null || got === undefined || got === "") return "";
+  const received = Number(got);
+  const expected = Number(job);
+  if (!Number.isFinite(received)) return "";
+  if (!Number.isFinite(expected)) return `Received ${received}`;
+  if (received === expected) return `Received ${received} out of ${expected}`;
+  if (received > expected) return `Received ${received} out of ${expected} — extra ${received - expected}`;
+  return `Received ${received} out of ${expected} — short ${expected - received}`;
+}
+
 export function productReceiptState(order) {
   if (!order?.product_received_at) return "missing";
+  if (order.product_received_no_picklist === true) return "rejected";
+  if (order.product_received_sizes && typeof order.product_received_sizes === "object") {
+    const colorKnown =
+      order.product_received_color_ok === true || order.product_received_color_ok === false;
+    const review = productReceiptReview(order, order.product_received_sizes, {
+      colorOk: colorKnown ? order.product_received_color_ok === true : true,
+      productMismatch: order.product_received_product_ok === false,
+      noPicklist: false
+    });
+    if (review.outcome) return review.outcome;
+  }
+  if (
+    order.product_received_qty !== null &&
+    order.product_received_qty !== undefined &&
+    order.product_received_qty !== ""
+  ) {
+    const received = Number(order.product_received_qty);
+    const job = Number(order.qty);
+    if (Number.isFinite(received) && Number.isFinite(job)) {
+      if (received === job) return "match";
+      if (received > job) return "extra";
+      return "short";
+    }
+  }
   if (String(order.product_received_issue ?? "").trim()) return "issue";
-  return "received";
+  return "match";
 }
 
 export function isDispatchVerificationFailed(order) {

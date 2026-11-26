@@ -12,6 +12,7 @@ const STATUS_STYLES = {
   ironing: "border-transparent bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
   packing: "border-transparent bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300",
   pending: "border-transparent bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+  cancelled: "border-transparent bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200",
   on_hold: "border-red-500/60 bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-300",
   ready: "border-transparent bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
   sent_to_dispatch:

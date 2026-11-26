@@ -36,6 +36,22 @@ export default function OrderFieldPermissionFields({ permissionDraft, onPermissi
           Create new order
         </Label>
       </div>
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id={`${idPrefix}-can_review_order_changes`}
+          checked={Boolean(permissionDraft?.can_review_order_changes)}
+          onCheckedChange={(checked) => onPermissionChange("can_review_order_changes", Boolean(checked))}
+        />
+        <Label
+          htmlFor={`${idPrefix}-can_review_order_changes`}
+          className="cursor-pointer text-sm font-medium leading-snug"
+        >
+          Accept or deny order changes
+          <span className="mt-1 block text-xs font-normal text-muted-foreground">
+            Mini admin for printing order change requests. Admin can always accept or deny.
+          </span>
+        </Label>
+      </div>
     </div>
   );
 }

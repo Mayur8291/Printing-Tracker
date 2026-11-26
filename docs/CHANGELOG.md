@@ -1,5 +1,157 @@
 # Changelog
 
+## 2026-11-26 — Informed to inventory on a product issue
+
+- **Change:** Before marking a product issue, the dialog has an Informed to inventory checkbox. When it is checked, order history and the share image include the line Informed to inventory.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/orderQueryFields.js`, `supabase/migrations/20261126201000_product_receipt_informed_inventory.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md.
+- **Migration:** Adds `orders.product_received_informed_inventory` and records the line in `log_product_receipt`. Applied on staging only. Production is unchanged. The checkbox and the column are omitted while the tab is on production, so the live order list still loads.
+
+## 2026-11-26 — Size lines say out of
+
+- **Change:** Product status, the share image, and saved history say `8 out of 12` instead of `8 of 12`.
+- **Files:** `apps/admin/src/orderTabUtils.js`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `supabase/migrations/20261126193000_product_receipt_out_of.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+- **Migration:** `20261126193000` replaces `log_product_receipt` on staging. Staging recorded that apply as version `20261126131141` (`product_receipt_out_of`). Production is unchanged.
+
+## 2026-11-26 — Share image title matches shortage or extra
+
+- **Change:** The product-status share image is titled Shortage when every variance is short, Extra when every variance is extra, and Shortage and extra only when both are present. The share sheet uses that same title.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/dealerCardShare.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-11-26 — Back from the shortage share page
+
+- **Change:** The shortage image page has a Back button. It closes that page and returns to the order.
+- **Files:** `apps/admin/src/dealerCardShare.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-11-26 — Shortage share opens the phone share sheet
+
+- **Change:** Sharing a shortage image asks where to send it. Safari no longer opens the PNG as a downloaded file with Open in Preview. If the phone will not show the share sheet, the image opens in a new tab with a Share button.
+- **Files:** `apps/admin/src/dealerCardShare.js`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-11-26 — Shortage share image includes the order text
+
+- **Change:** The product-status share image is drawn with the order number, customer, coordinator, short and extra lines, and remark. It is no longer a photo of an off-screen card, which came out blank on the phone.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/dealerCardShare.js`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-11-26 — Share shortage and extra as an image
+
+- **Change:** Product status has a Share button beside save. It makes an image with the order number, customer, coordinator, short and extra lines, and the remark, then opens the phone share sheet so it can be sent on WhatsApp. The order is not saved by Share.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/dealerCardShare.js`, `apps/admin/src/App.jsx`, `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
+## 2026-11-26 — Product status shows a color box and the order number
+
+- **Change:** The product-status screen labels the first row Order number. Each order color is a filled box. The hex code is not shown.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md.
+
+## 2026-11-26 — Phone page scrolls with the window
+
+- **Change:** Below 768px the window scrolls again. The title and order cards are no longer clipped to a blank screen. Home and Printing Orders move when dragged. The bottom bar stays fixed. Desktop still scrolls inside the page.
+- **Files:** `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md, FLOWS.md.
+
+## 2026-11-26 — Phone Home and Printing Orders scroll
+
+- **Change:** On a phone, Home and Printing Orders scroll inside the area under the title. That area is the height left on the screen, so a drag moves the page. The window itself stays locked. Order cards stay rows, so the drag is not swallowed by a button.
+- **Files:** `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-11-26 — Printing order cards show again on a phone
+
+- **Change:** The phone order list is visible again under the counts. Search, status tabs, and cards stay in the layout and the list still scrolls. The list pane is no longer `height: 0`, which Safari had collapsed.
+- **Files:** `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-11-26 — Printing order list scrolls on a phone
+
+- **Change:** Dragging an order card moves the list. The card is no longer a button, so Safari passes the drag to the list. The list pane has its own height above the bottom bar.
+- **Files:** `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`, `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-11-26 — Phone order screen scrolls
+
+- **Change:** The order form on a phone scrolls between the customer header and the action buttons. Delivery date and the fields below it can be reached. The list behind it scrolls as well.
+- **Files:** `apps/admin/src/index.css`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-11-26 — Order close button stays below the phone status bar
+
+- **Change:** On a phone, the order screen, create-order screen, and product-status screen start below the status bar. The X sits beside the customer name and closes the order.
+- **Files:** `apps/admin/src/index.css`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/components/orders/CreateOrderModal.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
+## 2026-11-26 — Phone home screen keeps the order list reachable
+
+- **Change:** A phone added to the home screen no longer draws the printing list under the status bar or under the bottom bar. The page height is the visible screen. Counts sit in one row, the title is one bar, and the order cards scroll clear of Home / Orders / Create / Inventory / More. Search, Archive, and Logout are in More.
+- **Files:** `apps/admin/index.html`, `apps/admin/src/index.css`, `apps/admin/src/components/layout/DashboardShell.jsx`, `apps/admin/src/components/layout/MobileAppNav.jsx`, `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`, `apps/admin/src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
+## 2026-11-26 — Mobile printing orders
+
+- **Change:** Screens below 768px get a printing-orders layout: Scott header, counts, order cards, search, status tabs, a filter sheet, and a fixed Home / Orders / Create / Inventory / More bar. A card opens the existing order screen. Status, remarks, cancel, hold, complete, change requests, history, and product status still save through the current order APIs. The desktop table is unchanged at 768px and wider.
+- **Files:** `apps/admin/src/components/orders/PrintingOrdersMobile.jsx`, `apps/admin/src/components/layout/MobileAppNav.jsx`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/components/layout/DashboardShell.jsx`, `apps/admin/src/components/orders/CreateOrderModal.jsx`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/components/orders/OrderStatusBadge.jsx`, `apps/admin/src/styles.css`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md, DECISIONS.md.
+
+## 2026-11-26 — Change requests edit quantity by size
+
+- **Change:** A printing change request no longer asks for coordinator or order status. Quantity is edited size by size (`M: 8 → 12`). The new total is recorded when the sizes add up to a different quantity. An order with no sizes still uses one qty field.
+- **Database:** `submit_order_change_request` and `review_order_change_request` replaced on staging and production. Accept writes `size_breakdown` and `qty`.
+- **Files:** `apps/admin/src/orderChangeRequestUtils.js`, `apps/admin/src/components/orders/OrderChangeRequestDialog.jsx`, `supabase/migrations/20261126180000_order_change_request_sizes.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
+## 2026-11-26 — Printing order change requests
+
+- **Change:** A printing order has **Request change**. The person edits qty, delivery date, product name, coordinator, order status, or remarks, and writes a note. The order does not change until someone accepts it. **Deny** needs a reason. Admin can always accept or deny. Admin turns on **Accept or deny order changes** for a specific user (a mini admin). That person cannot accept their own request. Order history records the request, the fields, the note, and the decision.
+- **Database:** `order_change_requests`, `profile_order_permissions.can_review_order_changes`, RPCs `submit_order_change_request` and `review_order_change_request`. Applied on staging and production so the live login can save the new admin switch and the request.
+- **Files:** `apps/admin/src/components/orders/OrderChangeRequestDialog.jsx`, `apps/admin/src/components/orders/OrderChangeRequestQueue.jsx`, `apps/admin/src/orderChangeRequestUtils.js`, `apps/admin/src/App.jsx`, `apps/admin/src/OrderFieldPermissionFields.jsx`, `apps/admin/src/orderHistoryUtils.js`, `supabase/functions/admin-create-user/index.ts`, `supabase/migrations/20261126170000_order_change_requests.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md, SECURITY.md.
+
+## 2026-11-26 — Printing orders row opens order history
+
+- **Change:** Each printing-orders row has **View order history** under **View order**. It opens the same history as the button inside View order, including size, color, product mismatch, no-picklist, and remark lines. A row that is still saving does not show the link.
+- **Files:** `apps/admin/src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
+## 2026-11-26 — Product receipt save no longer fails on Color matches
+
+- **Bug fix:** Marking product status failed with `malformed array literal: "Color matches"` whenever the color was confirmed, a color issue was recorded, a product mismatch was marked, or the order was rejected for no picklist.
+- **Database:** `log_product_receipt` now appends each history line with `array_append`. Replaced on staging `scvojtvgnkmbupvyslmb` and production `levwrmvqdntngeasrtnb`. No new columns.
+- **Files:** `supabase/migrations/20261126143000_product_receipt_history_array.sql`.
+- **Documentation updated:** CHANGELOG.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-11-26 — Product receipt flags each problem in plain history
+
+- **Change:** Each size that is short or extra is flagged in the dialog and on its own order-history line. A color issue and a product mismatch are separate lines when they apply. The remark stays the note the person typed. Printing can mark **No picklist — rejected by printing** when an order arrives without a picklist.
+- **Database:** `orders.product_received_product_ok` and `orders.product_received_no_picklist`. Applied on staging and production so the orders list can still load.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-11-26 — Product status is recorded size by size
+
+- **Change:** Product status asks for the quantity received on each size, not one total. A checkbox confirms the color matches the job. Every size matching and the color confirmed is green. A short size, or a color that is not confirmed, is red. Extra pieces on a size, with the color confirmed, is yellow. A remark is required unless it all matches. Order history stores each size, the color result, the remark, and the time.
+- **Database:** `orders.product_received_sizes` and `orders.product_received_color_ok`. Applied on staging `scvojtvgnkmbupvyslmb` and production `levwrmvqdntngeasrtnb` so the orders list can still load.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/orderQueryFields.js`, `supabase/migrations/20261126082000_product_receipt_by_size.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-11-26 — Product status compares the quantity received
+
+- **Change:** Printing product status asks for the quantity that arrived. The same count as the job is green. A smaller count is red and paints the row red. A larger count is yellow and paints the row yellow. Order history records the received quantity, the job quantity, the result, the proof, and the time of that entry.
+- **Database:** `orders.product_received_qty`. Applied on staging `scvojtvgnkmbupvyslmb` and production `levwrmvqdntngeasrtnb` so the orders list can still load.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/orderTabUtils.js`, `apps/admin/src/components/orders/orderTableUtils.js`, `apps/admin/src/OrderDetailPanel.jsx`, `apps/admin/src/orderHistoryUtils.js`, `apps/admin/src/orderQueryFields.js`, `apps/admin/src/styles.css`, `supabase/migrations/20261126100000_product_received_qty.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
+## 2026-11-20 — Product receipt is recorded in order history
+
+- **Change:** Marking a product received, recording an issue, or clearing an issue writes an order-history row with the decision, the reason, and the proof link. Order history shows **View proof** for that row. A save that does not change the order reports an error instead of looking successful.
+- **Database:** `log_product_receipt` now stores `meta.proof_url`, `meta.issue`, and `meta.outcome`. Applied on staging `scvojtvgnkmbupvyslmb` and production `levwrmvqdntngeasrtnb`.
+- **Files:** `supabase/migrations/20261120100000_product_receipt_history_record.sql`, `apps/admin/src/components/OrderHistoryModal.jsx`, `apps/admin/src/orderHistoryUtils.js`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/styles.css`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DATABASE.md, DEBUGGING.md.
+
 ## 2026-11-20 — Netlify production matches the Vercel site
 
 - **Release:** `printingtracker.netlify.app` was still the 7 November `main` build (`b6411c1`). Vercel (`scottdashboard.vercel.app`) and the Netlify `develop` branch already served the same current bundle. `main` was fast-forwarded to that Vercel commit so the production Netlify site publishes the same app. No production database change.

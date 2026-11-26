@@ -38,7 +38,8 @@ import {
   parsePaymentProofUrls,
   paymentMethodLabel,
   paymentMethodRequiresProof,
-  productReceiptState
+  productReceiptState,
+  productReceiptSummary
 } from "./orderTabUtils";
 import {
   jobSheetProductionStatusOptions,
@@ -177,6 +178,9 @@ export default function OrderDetailPanel({
   handleMarkComplete,
   handleDeleteOrder,
   onCancelOrder,
+  onRequestChange,
+  onRepeatOrder,
+  onChangeStatus,
   openPreview,
   renderStageIcon,
   OrderColorsCell,
@@ -331,8 +335,8 @@ export default function OrderDetailPanel({
   }
 
   return (
-    <div className="flex min-h-0 flex-col bg-background text-foreground">
-      <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b bg-background px-6 py-5">
+    <div className="flex flex-col bg-background text-foreground max-md:h-full max-md:min-h-0 max-md:flex-1">
+      <div className="z-10 flex shrink-0 items-center justify-between gap-4 border-b bg-background px-4 py-3 md:px-6 md:py-5">
         <div className="min-w-0">
           <h3 className="truncate text-xl font-semibold tracking-tight">{order.customer_name}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -350,12 +354,12 @@ export default function OrderDetailPanel({
             )}
           </p>
         </div>
-        <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={onClose} aria-label="Close">
-          <X className="size-4" />
+        <Button type="button" variant="outline" size="icon" className="size-11 min-h-11 min-w-11 shrink-0" onClick={onClose} aria-label="Close">
+          <X className="!size-5" />
         </Button>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
+      <div className="order-detail-scroll space-y-6 px-6 py-5 max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto">
         <section className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
           <h4 className="text-sm font-semibold tracking-tight">Order details</h4>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1049,12 +1053,22 @@ export default function OrderDetailPanel({
               <DetailField label="Product status">
                 {productReceiptState(order) === "missing" ? (
                   "Not yet at printing"
+                ) : productReceiptState(order) === "extra" ? (
+                  <span className="whitespace-pre-line text-yellow-700 dark:text-yellow-400">
+                    {productReceiptSummary(order)}
+                  </span>
+                ) : productReceiptState(order) === "short" || productReceiptState(order) === "rejected" ? (
+                  <span className="whitespace-pre-line text-destructive">
+                    {productReceiptSummary(order)}
+                  </span>
                 ) : productReceiptState(order) === "issue" ? (
                   <span className="text-destructive">
                     Issue: {order.product_received_issue}
                   </span>
                 ) : (
-                  "Checked and received"
+                  <span className="text-emerald-700 dark:text-emerald-400 whitespace-pre-line">
+                    {productReceiptSummary(order) || "Checked and received"}
+                  </span>
                 )}
                 {order.product_received_proof_url ? (
                   <>
@@ -1193,7 +1207,7 @@ export default function OrderDetailPanel({
         </section>
       </div>
 
-      <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t bg-background px-6 py-4">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t bg-background px-4 py-3 md:sticky md:bottom-0 md:px-6 md:py-4 max-md:[&_button]:min-h-11">
         <Button
           type="button"
           variant="outline"
@@ -1202,6 +1216,21 @@ export default function OrderDetailPanel({
         >
           {getOrderHistoryButtonLabel(order)}
         </Button>
+        {typeof onChangeStatus === "function" && order.status !== "cancelled" ? (
+          <Button type="button" variant="outline" className="md:hidden" onClick={() => onChangeStatus(order)}>
+            Change order status
+          </Button>
+        ) : null}
+        {typeof onRequestChange === "function" && order.status !== "cancelled" ? (
+          <Button type="button" variant="outline" className="md:hidden" onClick={() => onRequestChange(order)}>
+            Request change
+          </Button>
+        ) : null}
+        {typeof onRepeatOrder === "function" ? (
+          <Button type="button" variant="outline" className="md:hidden" onClick={onRepeatOrder}>
+            Repeat order
+          </Button>
+        ) : null}
         {profileLoading ? (
           <span className="text-sm text-muted-foreground">Loading…</span>
         ) : canUseOrderControls ? (

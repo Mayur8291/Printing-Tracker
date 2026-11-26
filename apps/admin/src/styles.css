@@ -8651,6 +8651,24 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   padding: 18px 20px;
 }
 
+@media (max-width: 767px) {
+  .order-history-modal {
+    width: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .order-history-event,
+  .order-history-time,
+  .order-history-message,
+  .order-history-actor,
+  .order-history-loading,
+  .order-history-empty {
+    font-size: 15px;
+  }
+}
+
 .order-history-head {
   display: flex;
   align-items: flex-start;
@@ -8758,6 +8776,32 @@ html.theme-dark .post-design-changes-cancel:hover:not(:disabled) {
   line-height: 1.45;
   color: #1e293b;
   word-break: break-word;
+  white-space: pre-line;
+}
+
+.order-history-item--product_received {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.order-history-item--product_received_issue,
+.order-history-item--product_received_short,
+.order-history-item--product_received_rejected {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.order-history-item--product_received_extra {
+  border-color: #facc15;
+  background: #fef9c3;
+}
+
+.order-history-proof {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d4ed8;
 }
 
 .order-history-actor {
@@ -13393,6 +13437,27 @@ html.theme-dark .order-history-item--design_changes_requested,
 html.theme-dark .order-history-item--design_changes_note_updated {
   background: #450a0a;
   border-color: #991b1b;
+}
+
+html.theme-dark .order-history-item--product_received {
+  border-color: #166534;
+  background: #052e16;
+}
+
+html.theme-dark .order-history-item--product_received_issue,
+html.theme-dark .order-history-item--product_received_short,
+html.theme-dark .order-history-item--product_received_rejected {
+  border-color: #991b1b;
+  background: #450a0a;
+}
+
+html.theme-dark .order-history-item--product_received_extra {
+  border-color: #a16207;
+  background: #422006;
+}
+
+html.theme-dark .order-history-proof {
+  color: #93c5fd;
 }
 
 html.theme-dark .order-history-item--design_images_uploaded,

@@ -106,6 +106,7 @@ async function upsertProfileAndPermissions(
         can_edit_received_at_printing: Boolean(perm.can_edit_received_at_printing),
         can_edit_payment_method: Boolean(perm.can_edit_payment_method),
         can_create_orders: Boolean(perm.can_create_orders),
+        can_review_order_changes: Boolean(perm.can_review_order_changes),
         allowed_dashboard_tabs,
         editable_dashboard_tabs,
         updated_at: new Date().toISOString()

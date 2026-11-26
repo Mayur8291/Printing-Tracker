@@ -1,5 +1,68 @@
 # Debugging
 
+## Product status share image
+
+| | |
+|--|--|
+| **Symptom** | Share on product status opens a blank image, or Safari shows the PNG file with Open in Preview instead of asking where to send it. |
+| **Root cause** | A hidden card photographed as white. After that, the phone saved the PNG as a download, which Safari opens as a file. The share sheet is skipped when that download runs. |
+| **Fix** | The image is drawn with the order text. Share asks the phone where to send it. If the phone will not show that sheet, the image opens as a page in a new tab with a Share button. It is not saved as a download. |
+| **Verify** | Open product status, enter a short or extra size and a remark, tap Share. The image shows the order number, customer, coordinator, those lines, and the remark. A short-only order is titled Shortage. An extra-only order is titled Extra. Both words appear together only when both kinds of size are on the order. |
+
+## Phone screen goes blank, or Home and Orders do not scroll
+
+| | |
+|--|--|
+| **Symptom** | On a phone the page is white except the bottom bar. Before that, Home and Printing Orders would not move when dragged. |
+| **Root cause** | The window was locked (`overflow: hidden`) and the area under the title was forced to a percentage height. On the phone that height became zero, so the title and the orders were clipped. A nested scroll pane also never became shorter than its content, so a drag had nowhere to go. |
+| **Fix** | Below 768px the window itself scrolls. The title, Home, and Printing Orders keep their real height. The bottom bar stays fixed. Desktop still scrolls inside the page. |
+| **Verify** | Refresh the phone. The Printing Orders title and cards are on screen. Drag Home and drag an order card. The next section moves up above the bottom bar. |
+
+## Order screen does not scroll on a phone
+
+| | |
+|--|--|
+| **Symptom** | Opening an order shows the first fields and the action buttons. Delivery date and the fields below do not move when the page is dragged. |
+| **Root cause** | The order dialog had no fixed height, and a nested scroll area grew with the form. On a phone that area swallows the drag and the form stays still. The action row also sat on top of the next field. |
+| **Fix** | The dialog has the height of the visible screen. The form is the only scrolling region. The close button and the actions stay put. |
+| **Verify** | Open an order on a phone. Drag the form. Delivery date, sizes, remarks, and the rest move. The X and the action buttons stay on screen. |
+
+## Order screen close button is above the phone status bar
+
+| | |
+|--|--|
+| **Symptom** | Opening an order on a phone shows the customer name, but the X is under the clock and cannot be tapped. |
+| **Root cause** | The order dialog is drawn on top of the page, starting at the top of the glass. The close control sat in the status-bar band. |
+| **Fix** | On a narrow screen the dialog starts below the status bar and ends above the home indicator. The X is a 44px button in that header. |
+| **Verify** | Open any printing order on a phone. The X is beside the customer name and closes the order. |
+
+## Home screen cuts off the bottom of a printing card
+
+| | |
+|--|--|
+| **Symptom** | After Add to Home Screen, the order card sits under the bottom bar. The top of the page is tight against the clock. Scrolling does not bring the rest of the card into view. |
+| **Root cause** | The home-screen status bar was translucent, so the page started under the clock. The shell was `100svh` inside that inset, which pushed the lower half off the glass. The Create button also hung over the card. |
+| **Fix** | The page height is the visible screen, with the top safe area inside the box. The bottom bar stays in its own band. Card scroll padding matches that band. Counts are one row so the list can use the rest. |
+| **Verify** | On a phone home-screen icon, the first card’s quantity is above the bar. Scrolling reaches the last card. The clock does not cover the title. |
+
+## Phone printing list still shows the desktop table
+
+| | |
+|--|--|
+| **Symptom** | Below 768px the printing page still shows the wide table, or the new cards appear beside the table. |
+| **Root cause** | The card list is `md:hidden` and the table wrapper is `hidden md:block`. A cached bundle, or a viewport at 768px or wider, still renders the table. |
+| **Fix** | Hard refresh. Check the width in device mode. Do not remove the desktop wrapper. |
+| **Verify** | At 390px only cards, the status tabs, and the bottom bar show. At 1024px the table and the old tabs show, and the bottom bar does not. |
+
+## Mobile status change does not stick
+
+| | |
+|--|--|
+| **Symptom** | Confirm update closes and the card keeps the old status, or On hold / Cancelled never asks for a reason. |
+| **Root cause** | On hold and cancel are not written from the status sheet. They open the existing reason dialogs. Other statuses use `persistOrderStatus`. Completed is admin-only. A failed update leaves the sheet on the choice list and shows the database error. |
+| **Fix** | Finish the reason dialog for hold and cancel. For the other statuses, confirm the person can edit status, then confirm again. |
+| **Verify** | After a successful update the card badge matches the database row. A second tap while Saving… does not send another update. |
+
 ## Netlify develop deploy fails while installing packages
 
 | | |
@@ -53,6 +116,36 @@
 | **Root cause** | That viewer cannot edit status and cannot edit received-at-printing. The update trigger blocks the four receipt columns unless one of those is allowed. |
 | **Fix** | An admin turns on status edit or received-at-printing for that person, or an admin marks the receipt. |
 | **Verify** | The same order saves, the icon becomes a check or a red exclamation, and order history has Product received or Product issue. |
+
+## Order change request will not send or will not accept
+
+| | |
+|--|--|
+| **Symptom** | Send request says change at least one field, a change is already waiting, or qty/date is invalid. Accept says the order changed after the request, or you cannot accept or deny. |
+| **Root cause** | The request must differ from the current order and include a note. Only one pending request is allowed. Each size must be a whole number. Accept checks that the sizes, qty, date, name, and remarks still match the request. A viewer needs `can_review_order_changes`. A non-admin cannot review their own request. |
+| **Fix** | Edit a field and write the note. Deny the waiting request before sending another. If the order moved, deny and request again. Admin turns on **Accept or deny order changes** for that user. |
+| **SQL check** | `select status, summary, requested_by_label from order_change_requests where order_id = <id> order by requested_at desc;` |
+| **Verify** | Order history shows **Change requested** with one line per field and **Note:**. After accept, the order shows the new value and history shows **Change accepted**. |
+
+## Product status save says malformed array literal
+
+| | |
+|--|--|
+| **Symptom** | Mark not matching, Mark extra quantity, or Mark product received shows `malformed array literal: "Color matches"` (or the same error for `Color issue`, `Product mismatch`, or `No picklist`). The status does not save. |
+| **Root cause** | `log_product_receipt` built a text array with `lines || 'Color matches'`. Postgres reads that quoted sentence as an array literal, and a sentence is not `{...}` array syntax. The trigger raises, and the update rolls back. |
+| **Fix** | Append each line with `array_append`. Migration `20261126143000_product_receipt_history_array.sql` is applied on staging and production. |
+| **SQL check** | `select position('array_append' in pg_get_functiondef(p.oid)) > 0 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'log_product_receipt';` must be true. |
+| **Verify** | Save a receipt with **Color matches the job** checked. The dialog closes, the row color matches the sizes, and order history lists one fact per line. |
+
+## Product receipt is missing from order history
+
+| | |
+|--|--|
+| **Symptom** | Product status shows received or an issue, but Order history has no size lines, color result, or remark. |
+| **Root cause** | History is written only when the sizes, color, product flag, no-picklist flag, remark, or proof actually changes. A repeated save of the same marks does not add another row. |
+| **Fix** | Mark the product again with a new proof or a changed issue. Confirm `log_product_receipt` inserts `meta.proof_url`. The dialog must not say the status was saved when the update returns no row. |
+| **SQL check** | `select event_type, message, meta from order_activity_log where order_id = <id> and event_type in ('product_received','product_received_issue') order by created_at desc;` |
+| **Verify** | Order history shows Product received or Product issue, the reason when there is one, and **View proof**. |
 
 ## Production tracker billing shows every order
 

@@ -611,9 +611,51 @@ body,
   overflow: hidden;
 }
 
+:root {
+  --mobile-nav-offset: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
 .page.app-layout {
   height: 100dvh;
   max-height: 100dvh;
+}
+
+@media (max-width: 767px) {
+  html,
+  body,
+  #root {
+    height: auto;
+    min-height: 100%;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .page.app-layout {
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+    padding-top: env(safe-area-inset-top, 0px);
+    box-sizing: border-box;
+  }
+
+  /* Full-screen dialogs are portaled to the body, so the page safe area does not cover them. */
+  [data-mobile-fullscreen] {
+    top: env(safe-area-inset-top, 0px) !important;
+    right: 0 !important;
+    bottom: env(safe-area-inset-bottom, 0px) !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
 }
 
 .page.app-layout > .group\/sidebar-wrapper {
@@ -630,9 +672,53 @@ body,
   overflow: hidden;
 }
 
-[data-dashboard-scroll][data-scroll-mode="main"] {
+/* Phone: the window scrolls. A nested pane with a forced height was clipping
+   the title and the orders to a blank screen. Desktop stays locked above. */
+@media (max-width: 767px) {
+  .page.app-layout > .group\/sidebar-wrapper {
+    flex: none;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .page.app-layout > .group\/sidebar-wrapper > main {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  [data-dashboard-scroll][data-scroll-mode="main"] {
+    display: block;
+    flex: none;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    touch-action: auto;
+  }
+
+  [data-dashboard-scroll][data-scroll-mode="main"] > * {
+    display: block;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+[data-dashboard-scroll][data-scroll-mode="main"],
+.order-detail-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.order-detail-scroll {
+  touch-action: pan-y;
 }
 
 [data-dashboard-scroll][data-scroll-mode="panel"] {

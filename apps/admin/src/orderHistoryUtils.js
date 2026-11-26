@@ -24,6 +24,12 @@ export const ORDER_HISTORY_EVENT_LABELS = {
   received_at_printing_updated: "Received at printing",
   product_received: "Product received",
   product_received_issue: "Product issue",
+  product_received_short: "Short quantity",
+  product_received_extra: "Extra quantity",
+  product_received_rejected: "No picklist",
+  order_change_requested: "Change requested",
+  order_change_accepted: "Change accepted",
+  order_change_denied: "Change denied",
   product_name_updated: "Product name",
   colors_updated: "Colors",
   size_type_updated: "Size type",
@@ -57,6 +63,19 @@ export function historyActorLine(entry) {
   const label = String(entry?.actor_label ?? "").trim();
   if (!label || label.toLowerCase() === "system") return "Updated by system";
   return `By ${label}`;
+}
+
+/** Proof link stored on a product-receipt history row. Only http(s) links are returned. */
+export function historyProofUrl(entry) {
+  const raw = entry?.meta?.proof_url;
+  if (typeof raw !== "string" || !raw.trim()) return "";
+  try {
+    const url = new URL(raw.trim());
+    if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+    return url.href;
+  } catch {
+    return "";
+  }
 }
 
 export function getOrderHistoryEventLabel(eventType, order) {

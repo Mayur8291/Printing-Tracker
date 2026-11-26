@@ -52,6 +52,14 @@
 - Scott backend must verify signature before trusting payload
 - Connectivity test: admin edge function `admin-test-scott-webhook` (admin JWT) signs and sends a test event; the secret never reaches the browser — only the target base URL is sent from the client
 
+## Printing order change requests
+
+- Any signed-in user may call `submit_order_change_request` for a printing order. The row is pending until `review_order_change_request`.
+- Review is `jwt_user_is_admin()` or `profile_order_permissions.can_review_order_changes`. Only admin can grant that flag (permissions RLS is admin-only).
+- A non-admin reviewer cannot accept or deny a request they created.
+- Accept updates `orders` only inside the review function, with `app.order_change_apply`, and only when the live fields still match the requested `from` values. Direct client updates still go through `enforce_order_update_scope`.
+- `order_change_requests` SELECT is the requester, a reviewer, or admin. Insert and update have no client policy. History is the existing `order_activity_log` row.
+
 ## Runtime environment toggle (admin header)
 
 - Opening the link uses production credentials. An admin can switch that tab to staging (`scott-dashboard-env-session` in sessionStorage). The old localStorage choice is cleared and does not decide the next login. Signing out of staging reloads onto production.

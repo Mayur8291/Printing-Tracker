@@ -1,6 +1,11 @@
 import { createPortal } from "react-dom";
 import { formatReceivedAtDisplay } from "../orderViewUtils";
-import { getOrderHistoryEventLabel, getOrderHistoryTitle, historyActorLine } from "../orderHistoryUtils";
+import {
+  getOrderHistoryEventLabel,
+  getOrderHistoryTitle,
+  historyActorLine,
+  historyProofUrl
+} from "../orderHistoryUtils";
 
 /**
  * Order activity timeline. Portaled to document.body so it stacks above Radix View order Dialog (z-50).
@@ -53,7 +58,9 @@ export default function OrderHistoryModal({
           <p className="order-history-empty">No activity yet.</p>
         ) : (
           <ul className="order-history-timeline">
-            {entries.map((entry) => (
+            {entries.map((entry) => {
+              const proof = historyProofUrl(entry);
+              return (
               <li
                 key={entry.id}
                 className={`order-history-item order-history-item--${entry.event_type}`}
@@ -67,9 +74,20 @@ export default function OrderHistoryModal({
                   </time>
                 </div>
                 <p className="order-history-message">{entry.message}</p>
+                {proof ? (
+                  <a
+                    className="order-history-proof"
+                    href={proof}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View proof
+                  </a>
+                ) : null}
                 <p className="order-history-actor">{historyActorLine(entry)}</p>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </div>

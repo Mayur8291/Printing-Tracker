@@ -339,19 +339,19 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  Row[Printing order row] --> State{Product received?}
-  State -->|no| Warn[Amber exclamation]
-  State -->|yes and issue text| Red[Red row and reason]
-  State -->|yes and no issue| Ok[Green check]
-  Warn --> Dialog[Open check against the job]
-  Dialog --> Proof[Upload proof]
-  Proof --> Choice{Matches the job?}
-  Choice -->|yes| SaveOk[Save receipt with empty issue]
-  Choice -->|no| Reason[Require a reason]
-  Reason --> SaveIssue[Save receipt and paint the row red]
-  SaveOk --> Hist[Activity log product_received]
-  SaveIssue --> HistIssue[Activity log product_received_issue]
-  HistIssue --> Alert[Notify orders.created_by unless they saved it]
+  Row[Printing order row] --> Sizes[Enter quantity for each size]
+  Sizes --> Color{Color matches?}
+  Color --> Compare{Each size against the job}
+  Compare -->|all equal and color checked| Green[Green]
+  Compare -->|any short, color issue, or product mismatch| Red[Red, remark, Informed to inventory if checked]
+  Compare -->|any extra| Yellow[Yellow and remark]
+  Compare -->|no picklist| Reject[Rejected by printing]
+  Green --> Hist[Order history with sizes, color, remark, and time]
+  Red --> Hist
+  Yellow --> Hist
+  Reject --> Hist
+  Sizes --> Share[Share image titled Shortage, Extra, or both]
+  Share --> WhatsApp[Phone share sheet, including WhatsApp]
 ```
 
 ## Printing orders list and Jobs processed
@@ -424,6 +424,48 @@ flowchart TD
   Save --> Tab[On hold tab shows reason]
   Save --> Hist[History By person plus reason]
   Save --> Alert[Bell and toast to job creator with reason]
+```
+
+## Printing orders on a phone
+
+```mermaid
+flowchart TD
+  Phone[Screen under 768px] --> Window[Phone window scrolls]
+  Window --> Cards[Order cards from loaded orders]
+  Cards --> Search[Search number, customer, coordinator]
+  Cards --> Filters[Date, status, product status, coordinator]
+  Cards --> Open[Existing order screen]
+  Cards --> Menu[Action sheet]
+  Menu --> Status[Status sheet]
+  Status --> Confirm[Confirm update]
+  Confirm --> Hold[On hold reason dialog]
+  Confirm --> Cancel[Cancel reason dialog]
+  Confirm --> Save[persistOrderStatus or mark complete]
+  Save --> Refresh[Refresh the card]
+  Bar[Bottom bar] --> Tabs[Home, Orders, Create, Inventory, More]
+```
+
+## Request a printing order change
+
+```mermaid
+flowchart TD
+  Row[Request change] --> Form[Sizes, date, name, remarks, note]
+  Form --> Hist1[History: Change requested]
+  Hist1 --> Wait[Pending request]
+  Wait --> Review{Admin or mini admin}
+  Review -->|Accept| Apply[Update the order]
+  Apply --> Hist2[History: Change accepted]
+  Review -->|Deny| Hist3[History: Change denied plus reason]
+```
+
+## Open order history from a printing row
+
+```mermaid
+flowchart TD
+  Row[Printing orders row] --> Link[View order history]
+  Link --> Load[Load order_activity_log]
+  Load --> List[Newest lines: sizes, color, mismatch, remark]
+  List --> Close[Close history, stay on the list]
 ```
 
 ## Cancel a printing order

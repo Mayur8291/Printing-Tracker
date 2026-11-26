@@ -370,13 +370,14 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 
 1. **Trigger:** Printing orders list, or Print Queue, **Product status** column. View order also shows the same state and the proof link.
 2. **Not received:** Amber exclamation. Tooltip: product not yet reached printing.
-3. **Mark received:** Dialog shows the job (customer, product, colors, quantity, sizes). The person chooses **Matches the job** or **Product has an issue**, then uploads a photo or PDF. An issue also needs a written reason. The save button reads **Mark product received** or **Mark product issue** to match that choice. Save writes `product_received_at`, `product_received_by`, `product_received_proof_url`, and `product_received_issue` (null when it matches). The first save also sets `received_at_printing` if that time was empty.
-4. **Proof:** File goes to storage bucket `product-receipts`. A later save can keep the existing proof.
-5. **Attention:** A non-blank issue paints the row red (`bg-destructive/10`) on Printing orders and Print Queue. The tooltip shows the reason. The list headings are **Product status** and **Order status**.
-6. **Creator alert:** A new or changed issue inserts `order_status_notifications` for `orders.created_by`, with `new_status = product_issue` and the reason in `note`. The bell, toast, and notification list say **Product issue** and **Reason:**. A tone plays when status tones are on. The person who saved the issue is skipped. No `created_by` means no alert. Uploading a new proof without changing the reason does not send another alert.
-7. **Who can save:** Admin, or a viewer who can edit status or the received-at-printing time. Cancelled rows and the Cancelled tab stay read-only. The database trigger rejects a viewer who has neither permission.
-8. **History:** `product_received` or `product_received_issue` on `order_activity_log`. Clearing the receipt is allowed by the check only when all four fields go back to null together; the screen does not offer a clear button.
-9. **Failure:** Missing proof or a blank issue reason stays in the dialog. A duplicate customer is not involved. These columns are on staging and, as of 2026-11-19, on production.
+3. **Mark received:** Dialog lists the order number, customer, product, and a color box for each order color (the hex code is not shown). Then each size. A short size is flagged **Short**. An extra size is flagged **Extra**. **Color matches the job** is checked when the color is right; otherwise history says **Color issue**. **Product mismatch** is checked only when the product itself is wrong. **No picklist — rejected by printing** marks an order the printing team rejects because it arrived without a picklist. A remark is still required unless everything matches, and the remark is stored as the person wrote it. When the result is not a full match and this tab is on staging, **Informed to inventory** sits above the mark button. Checking it stores that fact. Leaving it unchecked stores nothing about inventory. The box is hidden while the tab is on production, because that database does not have the column yet.
+4. **Share:** **Share** sits beside the save button. It draws a PNG of the order number, customer, coordinator, the short and extra lines, and the remark. The red heading is **Shortage** when only short sizes are present, **Extra** when only extra sizes are present, and **Shortage and extra** when both are present. On a phone it opens the share sheet so the person can pick WhatsApp or another app. It does not download the file into Safari’s preview. If the phone will not show the sheet, the image opens in a new tab with a Share button and a Back button. Back closes that tab and returns to the order. Nothing is written to the order until the save button is used.
+5. **Proof:** File goes to storage bucket `product-receipts`. A later save can keep the existing proof.
+6. **Attention:** A short size or an unconfirmed color paints the row red. Extra pieces on a size, with the color confirmed, paints the row yellow. A full match leaves the row untinted and shows a green check. The list headings are **Product status** and **Order status**.
+7. **Creator alert:** A short size, an extra size, or an unconfirmed color inserts `order_status_notifications` for `orders.created_by`. `note` includes the size lines, the color result, and the remark. The person who saved it is skipped. Saving the same sizes, color, and remark again does not send another alert.
+8. **Who can save:** Admin, or a viewer who can edit status or the received-at-printing time. Cancelled rows and the Cancelled tab stay read-only. The database trigger rejects a viewer who has neither permission.
+9. **History:** The row is a short list, one fact per line: each size as `M: 8 out of 12 — short 4` or `— extra 1`, then `Color issue` or `Color matches`, then `Product mismatch` only when that box is checked, then `No picklist — rejected by printing` when that option is used, then `Remark:` with the typed note, then `Informed to inventory` only when that box was checked. The row time is the date and time stamp. The share image uses the same “out of” wording and the same inventory line.
+10. **Failure:** A blank size, a fractional size, a missing remark when something does not match, or a missing proof stays in the dialog. These columns are on staging and production.
 
 ### Printing orders — list load and Jobs processed
 
@@ -394,6 +395,39 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 5. **Failure:** Viewer cannot set `is_complete` from the app (trigger). Auto-complete uses a transaction GUC so the RPC write is allowed. Console `Auto status promote failed` if the RPC errors.
 6. **Automatic history:** that same RPC sets `app.activity_by_system`. `log_order_activity` then stores actor **System**. The history line reads **Updated by system**. A manual status change still stores the signed-in name. Older rows written before this fix keep the name they already have.
 7. **Quantity history:** an admin qty save writes **Quantity increased by N** or **Quantity decreased by N**, then the old total and the new total. If sizes moved in the same save, the same line adds **Sizes:** with each size, old qty, new qty, and the change, for example `M 30 → 32 (+2)`. A size-only save uses that same size line. Older history rows stay as `Quantity updated: 62 → 64`.
+
+### Printing orders — phone layout
+
+1. **Trigger:** A signed-in person opens Printing Orders on a screen narrower than 768px.
+2. **What they see:** One app bar (Scott logo, Printing Orders, the environment pill for an admin, and the notification bell) and four counts in a single row from the loaded printing orders in the current date range: total, pending (`status = pending` and not complete), ready to dispatch (`ready` or `sent_to_dispatch`), and completed (`is_complete`). Below 768px the phone window scrolls, so Home and this list move together. The bottom bar stays fixed. At 768px and wider the page scrolls inside the window.
+3. **List:** Each order is a card: order number, customer, product, product-status dot, order-status badge, coordinator, delivery date, quantity, and sizes when the order has them. The desktop table is not rendered at this width.
+4. **Search:** The same search as the desktop list. It matches order number, customer, and coordinator on the loaded rows.
+5. **Tabs:** All Orders, Complete, Cancelled, On Hold, Pending, and Print Queue when that person can open the print queue. Pending keeps the desktop tab on All Orders and only filters the cards to `status = pending`.
+6. **Filter sheet:** Date range, order status, product status, and coordinator. Date, search, and coordinator are the same state the desktop list uses, so widening the window keeps those filters.
+7. **Open a card:** The existing order screen, full screen on a phone. Edit, save, designs, mockups, billing, and remarks stay on that screen and follow the same field permissions.
+8. **Actions:** The three-dot menu opens a bottom sheet: view, edit, change status, request change, history, mockup/files, repeat, and cancel. Each item calls the existing handler. Hidden when that person cannot do it, or when the row is still saving.
+9. **Change status:** Bottom sheet. Pending, On Hold, In Production, Ready to Dispatch, Completed (admin only), Cancelled. Confirm update asks again, then saves. On hold and cancel open the existing reason dialogs. Other statuses use `persistOrderStatus`. An optional remark writes `orders.remarks` when that person may edit remarks. The card updates from the same order list refresh.
+10. **Bottom bar:** Home, Orders, Create, Inventory, More. Create opens the existing create-order form and is enabled only when that person may create printing orders. More lists the other tabs they can already open.
+11. **Desktop:** At 768px and wider the table, tabs, and toolbar are the ones that were already there. The bottom bar is hidden.
+
+### Printing orders — request a change
+
+1. **Trigger:** Printing orders row → **Request change**. Hidden while the row is still saving, and hidden on a cancelled order.
+2. **Who can ask:** Any signed-in person who can open the printing list. They edit each size (`M: 8 → 12`), and can also change delivery date, product name, or remarks, plus a note. The new total is shown and recorded when the sizes add up differently. An order with no sizes uses one qty field. Coordinator and order status are not on this form. At least one field must differ.
+3. **Save:** `submit_order_change_request` stores one pending row in `order_change_requests` and writes order history: **Change requested**, one line per field (`Qty: 38 → 40`), then **Note:**. A second request is blocked while one is waiting.
+4. **Who can decide:** Admin always. A viewer only after admin turns on **Accept or deny order changes** in Edit user access. That person cannot accept or deny their own request.
+5. **Accept:** The order is updated only if those fields still match the values in the request. History gets **Change accepted** plus the same lines. The normal field history (qty, status, and so on) is also written.
+6. **Deny:** A review note is required. The order stays as it is. History gets **Change denied**, the requested lines, and the review note.
+7. **Queue:** Reviewers see **Change requests** above the printing list. Accept and deny are there too.
+8. **Failure:** A missing note, an unchanged form, a drifted order, or a missing review right stays in the dialog. The order is not half-updated.
+
+### Printing orders — order history from the list
+
+1. **Trigger:** Printing orders row → **View order history**. Shown on All orders, On hold, Complete orders, and Cancelled orders. Hidden while that row is still saving.
+2. **Open:** Same `openOrderHistory` path as the **Order history** button inside View order. Loads `order_activity_log` for that order, newest first, and skips `mockups_uploaded`.
+3. **What it shows:** Status changes, quantity changes, and product receipt lines (each size, color, product mismatch, no picklist, remark) with the time and who recorded it.
+4. **Close:** Click the backdrop or the close control. The list stays on the same tab. Opening history does not open View order.
+5. **Failure:** A missing activity table or a read error stays in the history dialog. An order with no rows shows the empty history state.
 
 ### Printing orders — cancel
 
