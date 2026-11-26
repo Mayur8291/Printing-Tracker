@@ -130,40 +130,120 @@ export const DISPATCH_FAIL_STATUS = "dispatch_fail";
 export const DISPATCHED_STATUS = "dispatched";
 
 /**
- * match = received qty equals the job qty (green).
- * short = received less (red). extra = received more (yellow).
- * issue = an older receipt that has a reason and no quantity.
+ * match = every size matches the job and the color is confirmed (green).
+ * short = a size is short, or the color is not confirmed (red).
+ * extra = a size is over and nothing is short and the color matches (yellow).
+ * issue = an older receipt that has a reason and no size counts.
  */
-export function productReceiptComparison(jobQty, receivedQty) {
-  if (receivedQty === null || receivedQty === undefined || receivedQty === "") return null;
-  const got = Number(receivedQty);
-  const job = Number(jobQty);
-  if (!Number.isFinite(got)) return null;
-  if (!Number.isFinite(job)) return got > 0 ? "extra" : "short";
-  if (got === job) return "match";
-  if (got > job) return "extra";
-  return "short";
+export function productReceiptSizeRows(order) {
+  const breakdown = order?.size_breakdown;
+  if (!breakdown || typeof breakdown !== "object") return [];
+  const standard = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+  const rows = [];
+  for (const key of standard) {
+    const qty = Number(breakdown[key]);
+    if (Number.isFinite(qty) && qty > 0) rows.push({ key, label: key, qty });
+  }
+  for (const [key, val] of Object.entries(breakdown)) {
+    if (standard.includes(key)) continue;
+    const qty = Number(val);
+    if (Number.isFinite(qty) && qty > 0) rows.push({ key, label: key, qty });
+  }
+  return rows;
 }
 
-export function productReceiptSummary(jobQty, receivedQty) {
-  const result = productReceiptComparison(jobQty, receivedQty);
-  if (!result) return "";
-  const got = Number(receivedQty);
-  const job = Number(jobQty);
-  if (!Number.isFinite(job)) {
-    return result === "extra"
-      ? `Received ${got}. The job quantity is not set.`
-      : `Received ${got}. Not matching the job.`;
+function wholeQty(value) {
+  const text = String(value ?? "").trim();
+  if (!/^\d+$/.test(text)) return null;
+  const qty = Number(text);
+  if (!Number.isSafeInteger(qty) || qty > 2147483647) return null;
+  return qty;
+}
+
+export function productReceiptReview(order, receivedSizes, colorOk) {
+  const jobRows = productReceiptSizeRows(order);
+  const rows = jobRows.length
+    ? jobRows
+    : [{ key: "Total", label: "Total", qty: Number(order?.qty) }];
+  const lines = rows.map((row) => {
+    const job = Number.isFinite(row.qty) ? row.qty : 0;
+    const received = wholeQty(receivedSizes?.[row.key]);
+    let result = null;
+    if (received !== null) {
+      if (received === job) result = "match";
+      else if (received > job) result = "extra";
+      else result = "short";
+    }
+    return { ...row, job, received, result };
+  });
+  const incomplete = lines.some((line) => line.received === null) || jobRows.length === 0 && !Number.isFinite(Number(order?.qty));
+  const anyShort = lines.some((line) => line.result === "short");
+  const anyExtra = lines.some((line) => line.result === "extra");
+  let outcome = null;
+  if (!incomplete && lines.every((line) => line.result)) {
+    if (anyShort || colorOk !== true) outcome = "short";
+    else if (anyExtra) outcome = "extra";
+    else outcome = "match";
   }
-  if (result === "match") return `Received ${got} of ${job}. Matches the job.`;
-  if (result === "extra") return `Received ${got} of ${job}. Extra ${got - job}.`;
-  return `Received ${got} of ${job}. Short by ${job - got}. Not matching the job.`;
+  return { lines, outcome, anyShort, anyExtra, colorOk: colorOk === true };
+}
+
+export function productReceiptSummary(order, receivedSizes, colorOk) {
+  const sizes = receivedSizes ?? order?.product_received_sizes;
+  const color = colorOk === undefined ? order?.product_received_color_ok : colorOk;
+  if (!sizes || typeof sizes !== "object") {
+    const got = order?.product_received_qty;
+    const job = order?.qty;
+    if (got === null || got === undefined || got === "") return "";
+    const received = Number(got);
+    const expected = Number(job);
+    if (!Number.isFinite(received)) return "";
+    if (!Number.isFinite(expected)) return `Received ${received}.`;
+    if (received === expected) return `Received ${received} of ${expected}. Matches the job.`;
+    if (received > expected) return `Received ${received} of ${expected}. Extra ${received - expected}.`;
+    return `Received ${received} of ${expected}. Short by ${expected - received}. Not matching the job.`;
+  }
+  const review = productReceiptReview(order, sizes, color === true);
+  const sizeText = review.lines
+    .filter((line) => line.received !== null)
+    .map((line) => {
+      if (line.result === "extra") return `${line.label} ${line.received} of ${line.job} (extra ${line.received - line.job})`;
+      if (line.result === "short") return `${line.label} ${line.received} of ${line.job} (short ${line.job - line.received})`;
+      return `${line.label} ${line.received} of ${line.job}`;
+    })
+    .join(", ");
+  const colorText = color === true ? "Color matches." : color === false ? "Color does not match." : "";
+  const remark = String(order?.product_received_issue ?? "").trim();
+  return [sizeText, colorText, remark ? `Remark: ${remark}` : ""].filter(Boolean).join(" ");
 }
 
 export function productReceiptState(order) {
   if (!order?.product_received_at) return "missing";
-  const compared = productReceiptComparison(order.qty, order.product_received_qty);
-  if (compared) return compared;
+  if (order.product_received_sizes && typeof order.product_received_sizes === "object") {
+    const color = order.product_received_color_ok;
+    const review = productReceiptReview(
+      order,
+      order.product_received_sizes,
+      color === false ? false : true
+    );
+    if (review.outcome) {
+      if (color !== true && color !== false) {
+        if (review.anyShort) return "short";
+        if (review.anyExtra) return "extra";
+        return "match";
+      }
+      return review.outcome;
+    }
+  }
+  if (order.product_received_qty !== null && order.product_received_qty !== undefined && order.product_received_qty !== "") {
+    const received = Number(order.product_received_qty);
+    const job = Number(order.qty);
+    if (Number.isFinite(received) && Number.isFinite(job)) {
+      if (received === job) return "match";
+      if (received > job) return "extra";
+      return "short";
+    }
+  }
   if (String(order.product_received_issue ?? "").trim()) return "issue";
   return "match";
 }

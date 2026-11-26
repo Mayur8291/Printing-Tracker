@@ -339,14 +339,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  Row[Printing order row] --> State{Quantity received?}
-  State -->|none| Warn[Amber exclamation]
-  State -->|equal to job| Green[Green check]
-  State -->|less than job| Red[Red row]
-  State -->|more than job| Yellow[Yellow row]
-  Warn --> Dialog[Enter quantity received and upload proof]
-  Dialog --> Save[Save receipt]
-  Save --> Hist[Order history row with both quantities and the time]
+  Row[Printing order row] --> Sizes[Enter quantity for each size]
+  Sizes --> Color{Color matches?}
+  Color --> Compare{Each size against the job}
+  Compare -->|all equal and color checked| Green[Green]
+  Compare -->|any short or color unchecked| Red[Red and remark]
+  Compare -->|any extra and color checked| Yellow[Yellow and remark]
+  Green --> Hist[Order history with sizes, color, remark, and time]
+  Red --> Hist
+  Yellow --> Hist
 ```
 
 ## Printing orders list and Jobs processed

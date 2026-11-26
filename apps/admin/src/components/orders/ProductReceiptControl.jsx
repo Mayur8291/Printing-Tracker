@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "../../supabaseClient";
-import { formatSizeBreakdownSummary } from "../../orderViewUtils";
 import {
-  productReceiptComparison,
+  productReceiptReview,
+  productReceiptSizeRows,
   productReceiptState,
   productReceiptSummary
 } from "../../orderTabUtils";
@@ -25,41 +27,49 @@ function jobColors(order) {
   return String(order?.colors ?? "").trim();
 }
 
-function parseReceivedQty(value) {
-  const text = String(value ?? "").trim();
-  if (!text) return { error: "Enter the quantity received." };
-  if (!/^\d+$/.test(text)) return { error: "Enter a whole number of pieces." };
-  const qty = Number(text);
-  if (!Number.isSafeInteger(qty) || qty > 2147483647) {
-    return { error: "That quantity is too large." };
+function savedSizes(order) {
+  const rows = productReceiptSizeRows(order);
+  const source = order?.product_received_sizes;
+  const next = {};
+  if (rows.length === 0) {
+    next.Total =
+      source && source.Total !== undefined && source.Total !== null
+        ? String(source.Total)
+        : order?.product_received_qty === null || order?.product_received_qty === undefined
+          ? ""
+          : String(order.product_received_qty);
+    return next;
   }
-  return { qty };
+  for (const row of rows) {
+    const value = source?.[row.key];
+    next[row.key] = value === null || value === undefined ? "" : String(value);
+  }
+  return next;
 }
 
 export default function ProductReceiptControl({ order, canEdit, userId, onSaved }) {
   const state = productReceiptState(order);
   const [open, setOpen] = useState(false);
-  const [receivedQty, setReceivedQty] = useState("");
+  const [sizes, setSizes] = useState({});
+  const [colorOk, setColorOk] = useState(false);
+  const [remark, setRemark] = useState("");
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const typed = parseReceivedQty(receivedQty);
-  const preview = typed.qty === undefined ? null : productReceiptComparison(order.qty, typed.qty);
-  const previewText = preview ? productReceiptSummary(order.qty, typed.qty) : "";
+  const review = useMemo(
+    () => productReceiptReview(order, sizes, colorOk),
+    [order, sizes, colorOk]
+  );
   const savedText =
     state === "missing"
       ? "Product not yet reached printing"
-      : state === "issue"
-        ? `Issue: ${String(order.product_received_issue).trim()}`
-        : productReceiptSummary(order.qty, order.product_received_qty) || "Product received";
+      : productReceiptSummary(order) || "Product received";
 
   function openDialog() {
-    setReceivedQty(
-      order?.product_received_qty === null || order?.product_received_qty === undefined
-        ? ""
-        : String(order.product_received_qty)
-    );
+    setSizes(savedSizes(order));
+    setColorOk(order?.product_received_color_ok === true);
+    setRemark(String(order?.product_received_issue ?? ""));
     setFile(null);
     setError("");
     setOpen(true);
@@ -68,9 +78,13 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
   async function save(event) {
     event.preventDefault();
     if (!canEdit || !order?.id || !userId) return;
-    const parsed = parseReceivedQty(receivedQty);
-    if (parsed.error) {
-      setError(parsed.error);
+    if (!review.outcome) {
+      setError("Enter a whole number for every size.");
+      return;
+    }
+    const note = remark.trim();
+    if (review.outcome !== "match" && !note) {
+      setError("Write a remark for what does not match.");
       return;
     }
     if (!file && !order.product_received_proof_url) {
@@ -92,14 +106,17 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
         proofUrl = urlData?.publicUrl || null;
         if (!proofUrl) throw new Error("Could not get the proof link.");
       }
+      const receivedSizes = {};
+      for (const line of review.lines) receivedSizes[line.key] = line.received;
       const receivedAt = order.product_received_at || new Date().toISOString();
-      const result = productReceiptComparison(order.qty, parsed.qty);
       const patch = {
         product_received_at: receivedAt,
         product_received_by: userId,
         product_received_proof_url: proofUrl,
-        product_received_qty: parsed.qty,
-        product_received_issue: result === "match" ? null : productReceiptSummary(order.qty, parsed.qty),
+        product_received_sizes: receivedSizes,
+        product_received_qty: review.lines.reduce((sum, line) => sum + line.received, 0),
+        product_received_color_ok: colorOk,
+        product_received_issue: review.outcome === "match" ? null : note,
         received_at_printing: order.received_at_printing || receivedAt
       };
       const { data: saved, error: updateError } = await supabase
@@ -138,11 +155,11 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
     );
 
   const previewClass =
-    preview === "match"
+    review.outcome === "match"
       ? "text-emerald-700 dark:text-emerald-400"
-      : preview === "extra"
+      : review.outcome === "extra"
         ? "text-yellow-700 dark:text-yellow-400"
-        : preview === "short"
+        : review.outcome === "short"
           ? "text-destructive"
           : "text-muted-foreground";
 
@@ -166,11 +183,11 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
         </Tooltip>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Product status</DialogTitle>
             <DialogDescription>
-              Enter how many pieces arrived. Green matches the job quantity, red is short, and yellow is extra. The result is stamped in order history.
+              Enter the quantity received for each size. Confirm the color. A size that is short, or a color that does not match, is red. Extra pieces are yellow. A remark is required unless every size and the color match.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={save}>
@@ -183,43 +200,63 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
               <dd>{order.product_name?.trim() || "—"}</dd>
               <dt className="text-muted-foreground">Colors</dt>
               <dd>{jobColors(order) || "—"}</dd>
-              <dt className="text-muted-foreground">Job quantity</dt>
-              <dd>{order.qty ?? "—"}</dd>
-              <dt className="text-muted-foreground">Sizes</dt>
-              <dd>{formatSizeBreakdownSummary(order.size_breakdown)}</dd>
             </dl>
-            {order.product_received_proof_url ? (
-              <a
-                className="text-sm underline"
-                href={order.product_received_proof_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open current proof
-              </a>
-            ) : (
-              <p className="text-sm text-amber-700 dark:text-amber-400">
-                This product has not been marked received yet.
-              </p>
-            )}
             {canEdit ? (
               <>
-                <div className="grid gap-1.5">
-                  <Label htmlFor={`product-received-qty-${order.id}`}>Quantity received</Label>
-                  <Input
-                    id={`product-received-qty-${order.id}`}
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputMode="numeric"
-                    value={receivedQty}
-                    onChange={(e) => setReceivedQty(e.target.value)}
-                    required
+                <div className="grid grid-cols-[5rem_4rem_1fr] items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Size</span>
+                  <span className="text-muted-foreground">Job</span>
+                  <span className="text-muted-foreground">Received</span>
+                  {review.lines.map((line) => (
+                    <div key={line.key} className="contents">
+                      <span>{line.label}</span>
+                      <span>{line.job}</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputMode="numeric"
+                        aria-label={`${line.label} quantity received`}
+                        value={sizes[line.key] ?? ""}
+                        onChange={(e) =>
+                          setSizes((prev) => ({ ...prev, [line.key]: e.target.value }))
+                        }
+                        required
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`product-color-${order.id}`}
+                    checked={colorOk}
+                    onCheckedChange={(checked) => setColorOk(checked === true)}
                   />
+                  <Label htmlFor={`product-color-${order.id}`}>Color matches the job</Label>
                 </div>
                 <p className={`text-sm font-medium ${previewClass}`}>
-                  {previewText || "Enter the quantity to compare it with the job."}
+                  {review.outcome === "match"
+                    ? "Every size matches and the color is confirmed."
+                    : review.outcome === "extra"
+                      ? "Extra quantity on at least one size."
+                      : review.outcome === "short"
+                        ? colorOk
+                          ? "A size is short of the job."
+                          : "This does not match the job."
+                        : "Enter every size to compare it with the job."}
                 </p>
+                {review.outcome && review.outcome !== "match" ? (
+                  <div className="grid gap-1.5">
+                    <Label htmlFor={`product-remark-${order.id}`}>Remark</Label>
+                    <Textarea
+                      id={`product-remark-${order.id}`}
+                      value={remark}
+                      onChange={(e) => setRemark(e.target.value)}
+                      placeholder="What does not match"
+                      required
+                    />
+                  </div>
+                ) : null}
                 <div className="grid gap-1.5">
                   <Label htmlFor={`product-proof-${order.id}`}>Proof of the product</Label>
                   <input
@@ -230,13 +267,23 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                     onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   />
                 </div>
+                {order.product_received_proof_url ? (
+                  <a
+                    className="text-sm underline"
+                    href={order.product_received_proof_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open current proof
+                  </a>
+                ) : null}
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter>
                   <Button
                     type="submit"
-                    variant={preview === "short" ? "destructive" : "default"}
+                    variant={review.outcome === "short" ? "destructive" : "default"}
                     className={
-                      preview === "extra"
+                      review.outcome === "extra"
                         ? "bg-yellow-400 text-yellow-950 hover:bg-yellow-500"
                         : undefined
                     }
@@ -244,15 +291,15 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved 
                   >
                     {saving
                       ? "Saving…"
-                      : preview === "short"
-                        ? "Mark short quantity"
-                        : preview === "extra"
+                      : review.outcome === "short"
+                        ? "Mark not matching"
+                        : review.outcome === "extra"
                           ? "Mark extra quantity"
                           : "Mark product received"}
                   </Button>
                 </DialogFooter>
               </>
-            ) : state === "missing" ? null : (
+            ) : (
               <p
                 className={
                   state === "short" || state === "issue"

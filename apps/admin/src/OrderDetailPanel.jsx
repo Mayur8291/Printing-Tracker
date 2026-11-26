@@ -1052,11 +1052,11 @@ export default function OrderDetailPanel({
                   "Not yet at printing"
                 ) : productReceiptState(order) === "extra" ? (
                   <span className="text-yellow-700 dark:text-yellow-400">
-                    {productReceiptSummary(order.qty, order.product_received_qty)}
+                    {productReceiptSummary(order)}
                   </span>
                 ) : productReceiptState(order) === "short" ? (
                   <span className="text-destructive">
-                    {productReceiptSummary(order.qty, order.product_received_qty)}
+                    {productReceiptSummary(order)}
                   </span>
                 ) : productReceiptState(order) === "issue" ? (
                   <span className="text-destructive">
@@ -1064,7 +1064,7 @@ export default function OrderDetailPanel({
                   </span>
                 ) : (
                   <span className="text-emerald-700 dark:text-emerald-400">
-                    {productReceiptSummary(order.qty, order.product_received_qty) || "Checked and received"}
+                    {productReceiptSummary(order) || "Checked and received"}
                   </span>
                 )}
                 {order.product_received_proof_url ? (

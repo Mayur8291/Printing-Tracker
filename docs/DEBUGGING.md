@@ -58,8 +58,8 @@
 
 | | |
 |--|--|
-| **Symptom** | Product status shows received or an issue, but Order history has no Product received, Short quantity, or Extra quantity line, or the line has no proof or quantity. |
-| **Root cause** | History is written by `trg_log_product_receipt` only when the receipt time, person, issue, proof, or quantity actually changes. A repeated save of the same quantity and proof does not add another row. Rows saved before 2026-11-26 have no `product_received_qty`. |
+| **Symptom** | Product status shows received or an issue, but Order history has no size lines, color result, or remark. |
+| **Root cause** | History is written by `trg_log_product_receipt` only when the receipt time, person, remark, proof, quantity, sizes, or color flag actually changes. A repeated save of the same sizes and color does not add another row. Rows saved before 2026-11-26 have no `product_received_sizes`. |
 | **Fix** | Mark the product again with a new proof or a changed issue. Confirm `log_product_receipt` inserts `meta.proof_url`. The dialog must not say the status was saved when the update returns no row. |
 | **SQL check** | `select event_type, message, meta from order_activity_log where order_id = <id> and event_type in ('product_received','product_received_issue') order by created_at desc;` |
 | **Verify** | Order history shows Product received or Product issue, the reason when there is one, and **View proof**. |
