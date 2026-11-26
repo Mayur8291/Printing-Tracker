@@ -49,14 +49,27 @@ function varianceLines(review) {
   return rows;
 }
 
-function shareFileName(order) {
+function receiptShareHeading(review) {
+  let short = false;
+  let extra = false;
+  for (const line of review?.lines || []) {
+    if (line.result === "short") short = true;
+    else if (line.result === "extra") extra = true;
+  }
+  if (short && extra) return { title: "Shortage and extra", fileTag: "shortage-extra" };
+  if (extra) return { title: "Extra", fileTag: "extra" };
+  if (short) return { title: "Shortage", fileTag: "shortage" };
+  return { title: "Product received", fileTag: "receipt" };
+}
+
+function shareFileName(order, fileTag) {
   const base = String(order?.order_id || "order")
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
-  return `${base || "order"}-shortage.png`;
+  return `${base || "order"}-${fileTag || "receipt"}.png`;
 }
 
 function wrapText(ctx, text, maxWidth) {
@@ -93,7 +106,7 @@ function clipText(ctx, text, maxWidth) {
   return `${clipped}…`;
 }
 
-function paintReceiptCard({ orderNumber, customer, coordinator, lines, remark }) {
+function paintReceiptCard({ orderNumber, customer, coordinator, lines, remark, title }) {
   const width = 420;
   const pad = 20;
   const contentWidth = width - pad * 2;
@@ -133,7 +146,7 @@ function paintReceiptCard({ orderNumber, customer, coordinator, lines, remark })
   ctx.font = "11px sans-serif";
   ctx.fillText("PRINTING", pad + 16, pad + 26);
   ctx.font = "bold 18px sans-serif";
-  ctx.fillText("Shortage and extra", pad + 16, pad + 50);
+  ctx.fillText(clipText(ctx, title || "Product received", contentWidth - 32), pad + 16, pad + 50);
 
   const rows = [
     ["Order number", orderNumber || "—"],
@@ -276,14 +289,20 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
     setSharing(true);
     setShareNote("");
     try {
+      const heading = receiptShareHeading(review);
       const canvas = paintReceiptCard({
         orderNumber: order.order_id,
         customer: order.customer_name?.trim(),
         coordinator: coordinator?.trim(),
         lines: shortageLines,
-        remark
+        remark,
+        title: heading.title
       });
-      const result = await presentPngShare(canvas.toDataURL("image/png"), shareFileName(order));
+      const result = await presentPngShare(
+        canvas.toDataURL("image/png"),
+        shareFileName(order, heading.fileTag),
+        heading.title
+      );
       if (result.method === "tab") {
         setShareNote("Image opened in a new tab. Tap Share there.");
       }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Share image title matches shortage or extra
+
+- **Change:** The product-status share image is titled Shortage when every variance is short, Extra when every variance is extra, and Shortage and extra only when both are present. The share sheet uses that same title.
+- **Files:** `apps/admin/src/components/orders/ProductReceiptControl.jsx`, `apps/admin/src/dealerCardShare.js`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md, DEBUGGING.md.
+
 ## 2026-11-26 — Back from the shortage share page
 
 - **Change:** The shortage image page has a Back button. It closes that page and returns to the order.

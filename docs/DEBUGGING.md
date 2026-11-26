@@ -7,7 +7,7 @@
 | **Symptom** | Share on product status opens a blank image, or Safari shows the PNG file with Open in Preview instead of asking where to send it. |
 | **Root cause** | A hidden card photographed as white. After that, the phone saved the PNG as a download, which Safari opens as a file. The share sheet is skipped when that download runs. |
 | **Fix** | The image is drawn with the order text. Share asks the phone where to send it. If the phone will not show that sheet, the image opens as a page in a new tab with a Share button. It is not saved as a download. |
-| **Verify** | Open product status, enter a short or extra size and a remark, tap Share. The image shows the order number, customer, coordinator, those lines, and the remark. |
+| **Verify** | Open product status, enter a short or extra size and a remark, tap Share. The image shows the order number, customer, coordinator, those lines, and the remark. A short-only order is titled Shortage. An extra-only order is titled Extra. Both words appear together only when both kinds of size are on the order. |
 
 ## Phone screen goes blank, or Home and Orders do not scroll
 

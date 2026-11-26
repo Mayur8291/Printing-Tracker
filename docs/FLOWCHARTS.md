@@ -350,7 +350,7 @@ flowchart TD
   Red --> Hist
   Yellow --> Hist
   Reject --> Hist
-  Sizes --> Share[Share image: order number, customer, coordinator, short and extra, remark]
+  Sizes --> Share[Share image titled Shortage, Extra, or both]
   Share --> WhatsApp[Phone share sheet, including WhatsApp]
 ```
 
