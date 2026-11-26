@@ -424,6 +424,16 @@ flowchart TD
   Save --> Alert[Bell and toast to job creator with reason]
 ```
 
+## Open order history from a printing row
+
+```mermaid
+flowchart TD
+  Row[Printing orders row] --> Link[View order history]
+  Link --> Load[Load order_activity_log]
+  Load --> List[Newest lines: sizes, color, mismatch, remark]
+  List --> Close[Close history, stay on the list]
+```
+
 ## Cancel a printing order
 
 ```mermaid

@@ -395,6 +395,14 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 6. **Automatic history:** that same RPC sets `app.activity_by_system`. `log_order_activity` then stores actor **System**. The history line reads **Updated by system**. A manual status change still stores the signed-in name. Older rows written before this fix keep the name they already have.
 7. **Quantity history:** an admin qty save writes **Quantity increased by N** or **Quantity decreased by N**, then the old total and the new total. If sizes moved in the same save, the same line adds **Sizes:** with each size, old qty, new qty, and the change, for example `M 30 → 32 (+2)`. A size-only save uses that same size line. Older history rows stay as `Quantity updated: 62 → 64`.
 
+### Printing orders — order history from the list
+
+1. **Trigger:** Printing orders row → **View order history**. Shown on All orders, On hold, Complete orders, and Cancelled orders. Hidden while that row is still saving.
+2. **Open:** Same `openOrderHistory` path as the **Order history** button inside View order. Loads `order_activity_log` for that order, newest first, and skips `mockups_uploaded`.
+3. **What it shows:** Status changes, quantity changes, and product receipt lines (each size, color, product mismatch, no picklist, remark) with the time and who recorded it.
+4. **Close:** Click the backdrop or the close control. The list stays on the same tab. Opening history does not open View order.
+5. **Failure:** A missing activity table or a read error stays in the history dialog. An order with no rows shows the empty history state.
+
 ### Printing orders — cancel
 
 1. **Trigger:** Printing **All orders** row, **On hold** row, or View order footer → **Cancel order**. Same people who can edit status (admin, or viewer with `can_edit_status`). Hidden on job sheets, sample job sheets, complete jobs, and jobs already cancelled. A job on hold can be cancelled from the **On hold** tab.

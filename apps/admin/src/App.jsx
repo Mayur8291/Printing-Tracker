@@ -6098,7 +6098,7 @@ function App() {
                         <Table data-orders-table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-[7rem]" />
+                              <TableHead className="w-[10.5rem]" />
                               <TableHead>Order number</TableHead>
                               <TableHead>Customer</TableHead>
                               <TableHead>Product name</TableHead>
@@ -6122,6 +6122,16 @@ function App() {
                                   <TableCell>
                                     <div className="flex flex-col items-start gap-1">
                                       <OrderViewActionCell order={order} onViewOrder={openViewOrder} />
+                                      {!order._isPending ? (
+                                        <Button
+                                          type="button"
+                                          variant="link"
+                                          className="h-auto whitespace-nowrap px-0"
+                                          onClick={() => openOrderHistory(order)}
+                                        >
+                                          View order history
+                                        </Button>
+                                      ) : null}
                                       {(ordersTab === "active" || ordersTab === "on_hold") &&
                                       canCancelPrintingOrder(order) ? (
                                         <Button

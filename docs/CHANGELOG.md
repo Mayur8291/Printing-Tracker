@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Printing orders row opens order history
+
+- **Change:** Each printing-orders row has **View order history** under **View order**. It opens the same history as the button inside View order, including size, color, product mismatch, no-picklist, and remark lines. A row that is still saving does not show the link.
+- **Files:** `apps/admin/src/App.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, FLOWCHARTS.md.
+
 ## 2026-11-26 — Product receipt save no longer fails on Color matches
 
 - **Bug fix:** Marking product status failed with `malformed array literal: "Color matches"` whenever the color was confirmed, a color issue was recorded, a product mismatch was marked, or the order was rejected for no picklist.
