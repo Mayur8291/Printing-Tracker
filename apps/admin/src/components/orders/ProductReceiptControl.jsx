@@ -23,7 +23,7 @@ import {
   productReceiptSummary
 } from "../../orderTabUtils";
 import { swatchBackgroundForColor } from "../../orderColorUtils";
-import { canvasToPngFile, sharePngFile } from "../../dealerCardShare";
+import { presentPngShare } from "../../dealerCardShare";
 
 function colorList(order) {
   if (Array.isArray(order?.colors)) {
@@ -283,10 +283,9 @@ export default function ProductReceiptControl({ order, canEdit, userId, onSaved,
         lines: shortageLines,
         remark
       });
-      const file = await canvasToPngFile(canvas, shareFileName(order));
-      const result = await sharePngFile(file);
-      if (result.method === "download") {
-        setShareNote("Image saved. Attach it in WhatsApp.");
+      const result = await presentPngShare(canvas.toDataURL("image/png"), shareFileName(order));
+      if (result.method === "tab") {
+        setShareNote("Image opened in a new tab. Tap Share there.");
       }
     } catch (err) {
       if (err?.name !== "AbortError") {

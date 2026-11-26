@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Shortage share opens the phone share sheet
+
+- **Change:** Sharing a shortage image asks where to send it. Safari no longer opens the PNG as a downloaded file with Open in Preview. If the phone will not show the share sheet, the image opens in a new tab with a Share button.
+- **Files:** `apps/admin/src/dealerCardShare.js`, `apps/admin/src/components/orders/ProductReceiptControl.jsx`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DEBUGGING.md.
+
 ## 2026-11-26 — Shortage share image includes the order text
 
 - **Change:** The product-status share image is drawn with the order number, customer, coordinator, short and extra lines, and remark. It is no longer a photo of an off-screen card, which came out blank on the phone.

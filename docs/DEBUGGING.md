@@ -4,9 +4,9 @@
 
 | | |
 |--|--|
-| **Symptom** | Share on product status opens a blank white image, or WhatsApp does not open. |
-| **Root cause** | The first image was a photo of a card parked off the screen. The phone saved the white background and skipped the text. The share sheet still only opens when the phone can share a file. |
-| **Fix** | The image is drawn with the order number, customer, coordinator, short and extra lines, and remark. On a phone, pick WhatsApp in the share sheet. On a computer, attach the downloaded PNG. |
+| **Symptom** | Share on product status opens a blank image, or Safari shows the PNG file with Open in Preview instead of asking where to send it. |
+| **Root cause** | A hidden card photographed as white. After that, the phone saved the PNG as a download, which Safari opens as a file. The share sheet is skipped when that download runs. |
+| **Fix** | The image is drawn with the order text. Share asks the phone where to send it. If the phone will not show that sheet, the image opens as a page in a new tab with a Share button. It is not saved as a download. |
 | **Verify** | Open product status, enter a short or extra size and a remark, tap Share. The image shows the order number, customer, coordinator, those lines, and the remark. |
 
 ## Phone screen goes blank, or Home and Orders do not scroll
