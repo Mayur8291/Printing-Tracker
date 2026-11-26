@@ -398,7 +398,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Printing orders — request a change
 
 1. **Trigger:** Printing orders row → **Request change**. Hidden while the row is still saving, and hidden on a cancelled order.
-2. **Who can ask:** Any signed-in person who can open the printing list. They set a new qty, delivery date, product name, coordinator, order status, or remarks, and a note. At least one field must differ. On hold and cancel stay on their own reason dialogs.
+2. **Who can ask:** Any signed-in person who can open the printing list. They edit each size (`M: 8 → 12`), and can also change delivery date, product name, or remarks, plus a note. The new total is shown and recorded when the sizes add up differently. An order with no sizes uses one qty field. Coordinator and order status are not on this form. At least one field must differ.
 3. **Save:** `submit_order_change_request` stores one pending row in `order_change_requests` and writes order history: **Change requested**, one line per field (`Qty: 38 → 40`), then **Note:**. A second request is blocked while one is waiting.
 4. **Who can decide:** Admin always. A viewer only after admin turns on **Accept or deny order changes** in Edit user access. That person cannot accept or deny their own request.
 5. **Accept:** The order is updated only if those fields still match the values in the request. History gets **Change accepted** plus the same lines. The normal field history (qty, status, and so on) is also written.

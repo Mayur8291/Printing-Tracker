@@ -428,7 +428,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  Row[Request change] --> Form[Changed fields plus note]
+  Row[Request change] --> Form[Sizes, date, name, remarks, note]
   Form --> Hist1[History: Change requested]
   Hist1 --> Wait[Pending request]
   Wait --> Review{Admin or mini admin}

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-26 — Change requests edit quantity by size
+
+- **Change:** A printing change request no longer asks for coordinator or order status. Quantity is edited size by size (`M: 8 → 12`). The new total is recorded when the sizes add up to a different quantity. An order with no sizes still uses one qty field.
+- **Database:** `submit_order_change_request` and `review_order_change_request` replaced on staging and production. Accept writes `size_breakdown` and `qty`.
+- **Files:** `apps/admin/src/orderChangeRequestUtils.js`, `apps/admin/src/components/orders/OrderChangeRequestDialog.jsx`, `supabase/migrations/20261126180000_order_change_request_sizes.sql`.
+- **Documentation updated:** CHANGELOG.md, FLOWS.md, DATABASE.md.
+
 ## 2026-11-26 — Printing order change requests
 
 - **Change:** A printing order has **Request change**. The person edits qty, delivery date, product name, coordinator, order status, or remarks, and writes a note. The order does not change until someone accepts it. **Deny** needs a reason. Admin can always accept or deny. Admin turns on **Accept or deny order changes** for a specific user (a mini admin). That person cannot accept their own request. Order history records the request, the fields, the note, and the decision.

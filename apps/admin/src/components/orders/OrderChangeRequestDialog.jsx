@@ -10,13 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "../../supabaseClient";
 import {
@@ -24,9 +17,9 @@ import {
   orderChangeDraft,
   orderChangePayload,
   orderChangePreviewLines,
-  orderChangeStatusLabel,
-  orderChangeSummaryLines,
-  requestableStatusOptions
+  orderChangeSizeRows,
+  orderChangeSizeTotal,
+  orderChangeSummaryLines
 } from "../../orderChangeRequestUtils";
 
 export default function OrderChangeRequestDialog({
@@ -75,12 +68,18 @@ export default function OrderChangeRequestDialog({
   }, [open, order]);
 
   const preview = useMemo(() => (order ? orderChangePreviewLines(order, draft) : []), [order, draft]);
+  const sizeRows = order ? orderChangeSizeRows(order) : [];
+  const sizeTotal = order ? orderChangeSizeTotal(order, draft) : null;
   const ownRequest = Boolean(pending && userId && pending.requested_by === userId);
   const canDecide = Boolean(pending && canReview && (isAdmin || !ownRequest));
 
   async function submit(event) {
     event.preventDefault();
     if (!order?.id || saving) return;
+    if (orderChangeSizeRows(order).length > 0 && orderChangeSizeTotal(order, draft) === null) {
+      setError("Each size must be a whole number.");
+      return;
+    }
     const changes = orderChangePayload(order, draft);
     if (Object.keys(changes).length === 0) {
       setError("Change at least one field.");
@@ -168,26 +167,50 @@ export default function OrderChangeRequestDialog({
 
         {!loading && !pending && order ? (
           <form id="order-change-request-form" className="space-y-3" onSubmit={submit}>
+            {sizeRows.length > 0 ? (
+              <div className="space-y-2">
+                <Label>Sizes</Label>
+                {sizeRows.map((row) => (
+                  <div key={row.key} className="grid grid-cols-[4.5rem_4rem_1fr] items-center gap-2">
+                    <span className="text-sm">{row.label}</span>
+                    <span className="text-sm text-muted-foreground">{row.qty}</span>
+                    <Input
+                      id={`order-change-size-${row.key}`}
+                      type="number"
+                      min={0}
+                      step={1}
+                      aria-label={`New ${row.label}`}
+                      value={draft.sizes?.[row.key] ?? ""}
+                      onChange={(event) =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          sizes: { ...prev.sizes, [row.key]: event.target.value }
+                        }))
+                      }
+                    />
+                  </div>
+                ))}
+                <p className="text-xs text-muted-foreground">
+                  Now {order.qty ?? 0}. New total {sizeTotal ?? order.qty ?? 0}.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-1.5">
+                <Label htmlFor="order-change-qty">Qty</Label>
+                <Input
+                  id="order-change-qty"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={draft.qty ?? ""}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, qty: event.target.value }))}
+                />
+              </div>
+            )}
             {ORDER_CHANGE_FIELDS.map((field) => (
               <div key={field.key} className="grid gap-1.5">
                 <Label htmlFor={`order-change-${field.key}`}>{field.label}</Label>
-                {field.key === "status" ? (
-                  <Select
-                    value={draft.status || order.status || ""}
-                    onValueChange={(value) => setDraft((prev) => ({ ...prev, status: value }))}
-                  >
-                    <SelectTrigger id="order-change-status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {requestableStatusOptions(order.status).map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {orderChangeStatusLabel(status)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : field.key === "remarks" ? (
+                {field.key === "remarks" ? (
                   <Textarea
                     id="order-change-remarks"
                     rows={2}
@@ -197,9 +220,7 @@ export default function OrderChangeRequestDialog({
                 ) : (
                   <Input
                     id={`order-change-${field.key}`}
-                    type={field.key === "qty" ? "number" : field.key === "due_date" ? "date" : "text"}
-                    min={field.key === "qty" ? 0 : undefined}
-                    step={field.key === "qty" ? 1 : undefined}
+                    type={field.key === "due_date" ? "date" : "text"}
                     value={draft[field.key] ?? ""}
                     onChange={(event) =>
                       setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))
