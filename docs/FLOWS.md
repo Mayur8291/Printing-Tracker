@@ -398,7 +398,7 @@ See [DASHBOARD_ORDER_API.md](./DASHBOARD_ORDER_API.md).
 ### Printing orders — phone layout
 
 1. **Trigger:** A signed-in person opens Printing Orders on a screen narrower than 768px.
-2. **What they see:** One app bar (Scott logo, Printing Orders, the environment pill for an admin, and the notification bell) and four counts in a single row from the loaded printing orders in the current date range: total, pending (`status = pending` and not complete), ready to dispatch (`ready` or `sent_to_dispatch`), and completed (`is_complete`). The list scrolls above the bottom bar, including after the site is added to the phone home screen.
+2. **What they see:** One app bar (Scott logo, Printing Orders, the environment pill for an admin, and the notification bell) and four counts in a single row from the loaded printing orders in the current date range: total, pending (`status = pending` and not complete), ready to dispatch (`ready` or `sent_to_dispatch`), and completed (`is_complete`). Home and Printing Orders share the pane under that bar. On a phone the pane is the height left on the screen and is what scrolls, above the bottom bar, including after the site is added to the phone home screen.
 3. **List:** Each order is a card: order number, customer, product, product-status dot, order-status badge, coordinator, delivery date, quantity, and sizes when the order has them. The desktop table is not rendered at this width.
 4. **Search:** The same search as the desktop list. It matches order number, customer, and coordinator on the loaded rows.
 5. **Tabs:** All Orders, Complete, Cancelled, On Hold, Pending, and Print Queue when that person can open the print queue. Pending keeps the desktop tab on All Orders and only filters the cards to `status = pending`.

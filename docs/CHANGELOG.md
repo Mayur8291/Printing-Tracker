@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Phone Home and Printing Orders scroll
+
+- **Change:** On a phone, Home and Printing Orders scroll inside the area under the title. That area is the height left on the screen, so a drag moves the page. The window itself stays locked. Order cards stay rows, so the drag is not swallowed by a button.
+- **Files:** `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-26 — Printing order cards show again on a phone
 
 - **Change:** The phone order list is visible again under the counts. Search, status tabs, and cards stay in the layout and the list still scrolls. The list pane is no longer `height: 0`, which Safari had collapsed.

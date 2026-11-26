@@ -631,6 +631,8 @@ body,
   .page.app-layout {
     height: 100%;
     max-height: 100%;
+    min-height: 0 !important;
+    overflow: hidden;
     padding-top: env(safe-area-inset-top, 0px);
     box-sizing: border-box;
   }
@@ -652,26 +654,6 @@ body,
     overflow: hidden !important;
   }
 
-  /* A real scrollport. height: 0 collapses this flex column in Safari and the
-     order cards (and the search under the counts) disappear. */
-  [data-dashboard-scroll][data-scroll-mode="main"] {
-    display: block;
-    flex: 1 1 0%;
-    height: auto;
-    max-height: 100%;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  [data-dashboard-scroll][data-scroll-mode="main"] > * {
-    display: block;
-    flex: none;
-    height: auto;
-    min-height: min-content;
-    overflow: visible;
-  }
 }
 
 .page.app-layout > .group\/sidebar-wrapper {
@@ -688,10 +670,53 @@ body,
   overflow: hidden;
 }
 
+/* Phone: header stays put, the page under it is the only scroller.
+   Home and Printing Orders both use this pane. A content-sized pane is
+   clipped by the locked viewport, so a drag never moves. */
+@media (max-width: 767px) {
+  .page.app-layout > .group\/sidebar-wrapper {
+    flex: 1 1 0px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .page.app-layout > .group\/sidebar-wrapper > main {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  [data-dashboard-scroll][data-scroll-mode="main"] {
+    display: block;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    overflow-x: clip;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: auto;
+  }
+
+  [data-dashboard-scroll][data-scroll-mode="main"] > * {
+    display: block;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
 [data-dashboard-scroll][data-scroll-mode="main"],
 .order-detail-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.order-detail-scroll {
   touch-action: pan-y;
 }
 

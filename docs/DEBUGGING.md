@@ -1,13 +1,13 @@
 # Debugging
 
-## Printing order cards do not scroll
+## Home and Printing Orders do not scroll on a phone
 
 | | |
 |--|--|
-| **Symptom** | On a phone the first order card is visible and the next card is under the bottom bar. Dragging the card does not move the list. A follow-up build showed the counts and a blank page: search, tabs, and cards were gone. |
-| **Root cause** | Each card was a button. Safari does not scroll a list when the drag starts on a button. Setting the list pane to `height: 0` to force a scrollport then collapsed that flex column in Safari, so the cards were clipped away. |
-| **Fix** | The card is a normal row. Only the three-dot menu and product status are buttons. On a phone the list pane is a normal block with `flex: 1 1 0%` and `overflow-y: auto`. It is not `height: 0`. The page column inside it keeps its content height so the cards stay in the layout and the pane scrolls. |
-| **Verify** | On a phone, the search, tabs, and order cards sit under the counts. Drag a card. The next orders move up above the bottom bar. Tap the card to open it. Tap the three dots for actions. |
+| **Symptom** | On a phone, dragging Home does not move the page. Dragging Printing Orders does not move the cards. Content past the first screen stays under the bottom bar. |
+| **Root cause** | The phone locks the window (`overflow: hidden` on the page). Home and Printing Orders share the pane under the title. That pane was as tall as its content, so it had nothing to scroll, and the locked window clipped the rest. A drag on a button also does not scroll, which is why an order card that was a button stayed still. |
+| **Fix** | On a phone the title row and the pane are two rows. The pane is the height left under the title and scrolls. The page inside it keeps its real height. Order cards are rows, not buttons. |
+| **Verify** | On a phone, open Home and drag. The next section moves up above the bottom bar. Open Printing Orders and drag a card. The next order moves up. A tap still opens the order. |
 
 ## Order screen does not scroll on a phone
 
