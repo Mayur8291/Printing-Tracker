@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-26 — Printing order cards show again on a phone
+
+- **Change:** The phone order list is visible again under the counts. Search, status tabs, and cards stay in the layout and the list still scrolls. The list pane is no longer `height: 0`, which Safari had collapsed.
+- **Files:** `apps/admin/src/index.css`.
+- **Documentation updated:** CHANGELOG.md, DEBUGGING.md.
+
 ## 2026-11-26 — Printing order list scrolls on a phone
 
 - **Change:** Dragging an order card moves the list. The card is no longer a button, so Safari passes the drag to the list. The list pane has its own height above the bottom bar.

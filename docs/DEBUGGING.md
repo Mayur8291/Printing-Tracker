@@ -4,10 +4,10 @@
 
 | | |
 |--|--|
-| **Symptom** | On a phone the first order card is visible and the next card is under the bottom bar. Dragging the card does not move the list. |
-| **Root cause** | Each card was a button. Safari does not scroll a list when the drag starts on a button. The list area was also allowed to grow with the cards, so the page clipped them instead of scrolling. |
-| **Fix** | The card is a normal row. Only the three-dot menu and product status are buttons. The list pane has a fixed height and scrolls. |
-| **Verify** | On a phone, drag a printing order card. The next orders move up above the bottom bar. Tap the card to open it. Tap the three dots for actions. |
+| **Symptom** | On a phone the first order card is visible and the next card is under the bottom bar. Dragging the card does not move the list. A follow-up build showed the counts and a blank page: search, tabs, and cards were gone. |
+| **Root cause** | Each card was a button. Safari does not scroll a list when the drag starts on a button. Setting the list pane to `height: 0` to force a scrollport then collapsed that flex column in Safari, so the cards were clipped away. |
+| **Fix** | The card is a normal row. Only the three-dot menu and product status are buttons. On a phone the list pane is a normal block with `flex: 1 1 0%` and `overflow-y: auto`. It is not `height: 0`. The page column inside it keeps its content height so the cards stay in the layout and the pane scrolls. |
+| **Verify** | On a phone, the search, tabs, and order cards sit under the counts. Drag a card. The next orders move up above the bottom bar. Tap the card to open it. Tap the three dots for actions. |
 
 ## Order screen does not scroll on a phone
 
