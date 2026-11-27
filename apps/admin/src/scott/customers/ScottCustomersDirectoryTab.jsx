@@ -130,7 +130,7 @@ const QUICK_FILTER_CHIPS = Object.freeze([
   },
   {
     key: "customer_type",
-    label: "Type",
+    label: "Pricing tier",
     options: [
       { value: QUICK_FILTER_ALL_VALUE, label: "All" },
       { value: "retail", label: "Retail" },

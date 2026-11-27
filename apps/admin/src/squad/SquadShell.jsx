@@ -3,11 +3,18 @@ import { Home, LayoutGrid, LogOut, Moon, Sun, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import EnvironmentSwitcherPopover from "../components/EnvironmentSwitcherPopover";
 import "./squad.css";
 
 const initials = (value) => String(value || "S").trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
-const activeItem = (path, href) => path === href || (href && href !== "/squad/home" && path?.startsWith(`${href}/`));
+const activeItem = (location, href) => {
+  if (!href) return false;
+  const [path, search = ""] = String(location || "").split("?");
+  const [target, required = ""] = href.split("?");
+  const matchesPath = (target === "/squad/customers" && path.startsWith("/squad/distributors/")) || path === target || (target !== "/squad/home" && path.startsWith(`${target}/`));
+  const query = new URLSearchParams(search);
+  return matchesPath && [...new URLSearchParams(required)].every(([key, value]) => query.get(key) === value);
+};
 
 function Navigation({ identity, navItems, activePath, onNavigate, onSignOut }) {
   const { setOpenMobile } = useSidebar();
@@ -55,7 +62,7 @@ function Navigation({ identity, navItems, activePath, onNavigate, onSignOut }) {
   </Sidebar>;
 }
 
-export default function SquadShell({ identity, navItems = [], activePath = "/squad/home", onNavigate, onSignOut, environment, writeState, children }) {
+export default function SquadShell({ identity, navItems = [], activePath = "/squad/home", onNavigate, onSignOut, environment, writeState, bottomBar, rightMenu, children }) {
   const main = useRef(null);
   const previousPath = useRef(activePath);
   const [dark, setDark] = useState(() => {
@@ -69,7 +76,6 @@ export default function SquadShell({ identity, navItems = [], activePath = "/squ
     try { localStorage.setItem("printing-tracker-theme", dark ? "dark" : "light"); } catch { /* Appearance still works when storage is unavailable. */ }
   }, [dark]);
   const current = [...navItems].sort((a, b) => b.href?.length - a.href?.length).find((item) => activeItem(activePath, item.href));
-  const environmentLabel = typeof environment === "string" ? environment : environment?.label || environment?.name;
   const readOnly = writeState === "read_only" || writeState === "mirror" || writeState?.canWrite === false || writeState?.writable === false || writeState?.allowed === false;
   const writeLabel = typeof writeState === "object" ? writeState?.label : undefined;
   const testSession = writeState?.mode === "test" && writeState?.allowed === true;
@@ -94,14 +100,15 @@ export default function SquadShell({ identity, navItems = [], activePath = "/squ
       <Navigation {...{ identity, navItems, activePath, onNavigate, onSignOut }} />
       <SidebarInset className="min-h-0 min-w-0 overflow-hidden">
         <header className="squad-topbar">
-          <div className="flex min-w-0 items-center gap-3"><SidebarTrigger /><span className="h-5 w-px bg-border" aria-hidden="true" /><div className="min-w-0"><p className="squad-eyebrow">Squad One</p><p className="truncate text-sm font-semibold">{current?.label || "Workspace"}</p></div></div>
+          <div className="flex min-w-0 items-center gap-3"><span className={rightMenu ? "hidden md:inline-flex" : "inline-flex"}><SidebarTrigger /></span><span className="h-5 w-px bg-border" aria-hidden="true" /><div className="min-w-0"><p className="squad-eyebrow">Squad One</p><p className="truncate text-sm font-semibold">{current?.label || "Workspace"}</p></div></div>
           <div className="flex shrink-0 items-center gap-2">
-            {environmentLabel ? <span className="squad-environment"><span className={cn("size-1.5 rounded-full", environmentLabel.toLowerCase() === "production" ? "bg-amber-500" : "bg-emerald-500")} aria-hidden="true" />{environmentLabel}</span> : null}
+            {rightMenu}<EnvironmentSwitcherPopover showAdminTools={identity?.role === 0} />
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={dark ? "Use light appearance" : "Use dark appearance"}>{dark ? <Sun className="size-4" /> : <Moon className="size-4" />}</Button>
           </div>
         </header>
         {(readOnly || testSession) && <div className="squad-write-notice" role="status"><LockKeyhole className="size-3.5 shrink-0" aria-hidden="true" /><span>{notice}</span></div>}
         <main ref={main} id="squad-main" tabIndex={-1} className="squad-main"><div className="squad-content">{children}</div></main>
+        {bottomBar}
       </SidebarInset>
     </SidebarProvider>
   </div>;

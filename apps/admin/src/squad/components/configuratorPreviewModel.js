@@ -1,19 +1,6 @@
 // Geometry and layer order pinned to Flutter develop 5d55d946 custom_mockup.dart.
-export function previewGeometry(asset, mirror = false) {
-  const ratio=Number(asset.height_ratio),x=Number(mirror?asset.mirror_offset_x:asset.offset_x??0),y=Number(asset.offset_y??0);
-  if(!Number.isFinite(ratio)||ratio<=0||!Number.isFinite(x)||!Number.isFinite(y))throw new Error('Preview positioning is incomplete.');
-  return {left:`${x*100}%`,top:`${y*100}%`,height:`${100/ratio}%`,transform:mirror?'scaleX(-1)':undefined};
-}
-export function previewLayers(base,addons) {
-  const sorted=[...addons].sort((a,b)=>Number(a.layerSort??0)-Number(b.layerSort??0));
-  const regular=[...base.map(layer=>({...layer,mirror:false})),...sorted.map(layer=>({...layer,mirror:false}))];
-  return [...regular,...sorted.filter(layer=>layer.asset.mirror_offset_x!=null&&Number(layer.asset.mirror_offset_x)!==-1).map(layer=>({...layer,mirror:true}))];
-}
-export function previewColor(color) {
-  if(color==null||color==='')return null;
-  if(!/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color))throw new Error('The selected preview color is not supported.');
-  return color;
-}
+export {previewGeometry,previewLayers,previewColor} from '@canto/shared/configurator-preview';
+import {previewColor} from '@canto/shared/configurator-preview';
 const ELEMENTS=new Set('svg g defs path rect circle ellipse line polyline polygon text tspan title desc linearGradient radialGradient stop clipPath mask pattern'.split(' '));
 const ATTRIBUTES=new Set('id xmlns xmlns:xlink version viewBox width height x y x1 y1 x2 y2 cx cy r rx ry dx dy d points fill fill-rule fill-opacity stroke stroke-width stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset stroke-opacity opacity transform gradientTransform gradientUnits spreadMethod offset stop-color stop-opacity clip-path clip-rule mask maskUnits maskContentUnits patternUnits patternContentUnits patternTransform preserveAspectRatio font-family font-size font-weight font-style text-anchor dominant-baseline style'.split(' '));
 const STYLES=new Set('fill fill-rule fill-opacity stroke stroke-width stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset stroke-opacity opacity stop-color stop-opacity font-family font-size font-weight font-style text-anchor dominant-baseline'.split(' '));

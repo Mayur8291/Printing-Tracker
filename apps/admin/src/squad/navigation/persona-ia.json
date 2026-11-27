@@ -1,0 +1,162 @@
+{
+  "$comment": "Phase 0 spec. Source: Flutter 5d55d946 lib/ui/views/*_dashboard_view.dart + drawer/drawer_view.dart. Consumed by the Phase 2 PersonaShell; not yet imported by registry.js. Labels/order are exact Flutter strings. 'web' = existing component to wrap; 'NEW' = screen to build. 'flag' = shown only if identity.capabilities[flag] is true (Flutter features.toFeatureFlags()).",
+  "decisions": {
+    "D1": "Completed = status completed OR cancelled (Flutter); API also returns completed_excl_cancelled for an 'incl. n cancelled' hint",
+    "D2": "Web-only modules (Reports, Documents, Notifications, Administration) move to drawer 'More'",
+    "D3": "Production Coordinator gets Customers tab (backend read scope to be confirmed)",
+    "D4": "Desktop sidebar lists the same tabs in the same order, then drawer items; bottom bar on mobile/tablet",
+    "D5": "Each persona lands on its first tab"
+  },
+  "counters": {
+    "pending_criteria": {"label": "Pending Order Criteria", "drill": "pending-criteria"},
+    "pending": {"label": "Pending Orders", "drill": "state=pending"},
+    "critical": {"label": "Critical Pending Orders", "drill": "state=critical"},
+    "overdue": {"label": "Overdue Orders", "drill": "state=overdue"},
+    "completed": {"label": "Completed Orders", "drill": "state=completed"},
+    "total_value": {"label": "Total Order Value", "roles": [0, 1, 3, 10]},
+    "amount_earned": {"label": "Amount Earned", "roles": [11]},
+    "total_orders": {"label": "Total Order"}
+  },
+  "personas": {
+    "0": {
+      "name": "Admin", "landing": "customers",
+      "tabs": [
+        {"key": "customers", "label": "Customers", "icon": "customer_icon", "flutter": "AdminCustomerDealerView", "web": "CustomersPage", "status": "RESHAPE", "subTabs": ["Customers", "Distributor"], "counters": ["pending_criteria", "pending", "critical", "overdue", "completed", "total_value", "total_orders"], "fab": "Customers Verification"},
+        {"key": "sales-coordinators", "label": "Sales Co-ord.", "icon": "sc_icon", "flutter": "AdminSCView", "web": null, "status": "NEW", "counters": ["pending", "critical", "overdue", "completed", "total_value", "total_orders"], "fab": "Add SC", "detail": "CoordinatorDetail"},
+        {"key": "production-coordinators", "label": "Prod. Co-ord.", "icon": "pc_icon", "flutter": "AdminPCView", "web": null, "status": "NEW", "counters": ["pending", "critical", "overdue", "completed", "total_value", "total_orders"], "fab": "Add PC", "detail": "CoordinatorDetail"},
+        {"key": "products", "label": "Products", "icon": "product_icon", "flutter": "ProductCategoriesView", "web": "CataloguePage", "status": "RESHAPE", "subTabs": ["Custom", "Ready Made"]},
+        {"key": "todos", "label": "To Do's", "icon": "notes_icon", "flutter": "NotesView", "web": "WorkPage", "status": "RESHAPE", "subTabs": ["Pending", "Completed"], "chips": ["All", "Assign by me", "Assign to me"], "flag": "notes"}
+      ],
+      "drawer": [
+        {"label": "Personas", "flutter": "AdminPersonasView", "web": null, "status": "NEW", "chips": ["Team", "Job Worker"]},
+        {"label": "Tasks, Roles & Goals", "flutter": "SelectUserRole/ResponsibilitiesView", "web": "WorkPage(goals)", "status": "RESHAPE"},
+        {"label": "Sync Products", "flutter": "SyncView", "web": "Administration/Integrations", "status": "ENTRY"},
+        {"label": "Catalogues", "flutter": "CataloguesView", "web": "DocumentsPage", "status": "ENTRY"},
+        {"label": "Change SC", "flutter": "ChangeCustomersScView", "web": "CustomersPage(reassign)", "status": "RESHAPE"},
+        {"label": "Customers Request", "flutter": "CustomersScRequestView", "web": "CoordinatorRequests", "status": "ENTRY"},
+        {"label": "Force Complete Order", "flutter": "SearchOrderView", "web": "OrdersPage(forceCompleteOrder)", "status": "NEW"},
+        {"label": "Promotional Assets", "flutter": "PromotionalView", "web": "PromotionsPage", "status": "ENTRY"}
+      ]
+    },
+    "1": {
+      "name": "Sales Coordinator", "landing": "orders",
+      "tabs": [
+        {"key": "orders", "label": "Orders", "icon": "order_icon", "flutter": "CoordinatorOrdersView", "web": "OrdersPage", "status": "RESHAPE", "subTabs": ["Pending", "Completed"], "counters": ["pending_criteria", "pending", "critical", "overdue", "completed", "total_value", "total_orders"], "milestoneBar": true},
+        {"key": "customers", "label": "Customers", "icon": "customer_icon", "flutter": "CustomersView", "web": "CustomersPage", "status": "RESHAPE", "subTabs": ["Approved", "Requested"], "fab": "Train Customer"},
+        {"key": "distributors", "label": "Distributor", "icon": "dealers_icon", "flutter": "DealersView", "web": "CustomersPage(distributors)", "status": "PROMOTE", "subTabs": ["Approved", "Requested"]},
+        {"key": "products", "label": "Products", "icon": "product_icon", "flutter": "ProductCategoriesView", "web": "CataloguePage", "status": "RESHAPE"},
+        {"key": "todos", "label": "To Do's", "icon": "notes_icon", "flutter": "NotesView", "web": "WorkPage", "status": "RESHAPE", "flag": "notes"}
+      ],
+      "drawer": [
+        {"label": "Milestone", "flutter": "MilestoneDetailsView", "web": "TargetsPage", "status": "ENTRY", "subTabs": ["Ongoing", "Past"]},
+        {"label": "Tasks, Roles & Goals", "web": "WorkPage(goals)", "status": "RESHAPE"},
+        {"label": "Catalogues", "web": "DocumentsPage", "status": "ENTRY"},
+        {"label": "Promotional Assets", "web": "PromotionsPage", "status": "ENTRY"}
+      ]
+    },
+    "2": {
+      "name": "Production Coordinator", "landing": "orders",
+      "tabs": [
+        {"key": "orders", "label": "Orders", "icon": "order_icon", "flutter": "CoordinatorOrdersView", "web": "OrdersPage", "status": "RESHAPE", "subTabs": ["Pending", "Assigned"], "counters": ["pending_criteria", "pending", "critical", "overdue", "completed", "total_orders"], "titleHasCount": false},
+        {"key": "customers", "label": "Customers", "icon": "customer_icon", "flutter": "CustomersView", "web": "CustomersPage", "status": "NEW-for-role (D3)"},
+        {"key": "factories", "label": "Factory", "icon": "factory_icon", "flutter": "FactoriesView", "web": "PeoplePage(factories)", "status": "NEW", "detail": "FactoryDetail", "counters": ["pending", "critical", "overdue", "completed", "total_orders"]},
+        {"key": "sales-coordinators", "label": "Sales Co-ord.", "icon": "sc_icon", "flutter": "AdminSCView", "web": null, "status": "NEW", "fab": null},
+        {"key": "todos", "label": "To Do's", "icon": "notes_icon", "flutter": "NotesView", "web": "WorkPage", "status": "RESHAPE", "flag": "notes"}
+      ],
+      "drawer": [
+        {"label": "Tasks, Roles & Goals", "web": "WorkPage(goals)", "status": "RESHAPE"},
+        {"label": "Catalogues", "web": "DocumentsPage", "status": "ENTRY"}
+      ]
+    },
+    "3": {
+      "name": "Customer", "landing": "products",
+      "tabs": [
+        {"key": "products", "label": "Products", "icon": "product_icon", "flutter": "ProductCategoriesView", "web": "CataloguePage", "status": "RESHAPE"},
+        {"key": "orders", "label": "Orders", "icon": "order_icon", "flutter": "CoordinatorOrdersView", "web": "OrdersPage", "status": "RESHAPE", "subTabs": ["Pending", "Completed"], "counters": ["pending", "critical", "overdue", "completed", "total_value", "total_orders"]}
+      ],
+      "drawer": [
+        {"label": "Promotional Assets", "web": "PromotionsPage", "status": "ENTRY"},
+        {"label": "Catalogues", "web": "DocumentsPage", "status": "ENTRY"},
+        {"label": "Change SC", "web": "CoordinatorRequests(request)", "status": "ENTRY", "visibleIf": "customer has no linked dealer"},
+        {"label": "Delete Account", "web": "AccountClosure", "status": "DONE"}
+      ]
+    },
+    "4": {
+      "name": "Factory Manager", "landing": "orders",
+      "tabs": [
+        {"key": "orders", "label": "Orders", "icon": "order_icon", "flutter": "CoordinatorOrdersView", "web": "OrdersPage", "status": "RESHAPE", "counters": ["pending_criteria", "pending", "critical", "overdue", "completed", "total_orders"]},
+        {"key": "tailors", "label": "Tailors", "icon": "tailor_icon", "flutter": "TailorsView", "web": "PeoplePage(team)", "status": "NEW", "subTabs": ["Tailors", "Cutting Master"], "extras": ["Preview Leaderboard", "Download Weekly Report (tailor detail)"], "fab": "Add tailor / cutting master"},
+        {"key": "delivery", "label": "Delivery", "icon": "delivery_icon", "flutter": "DeliveryView", "web": "ProductionPage", "status": "NEW", "subTabs": ["Dispatch In Charge", "Inspector"]},
+        {"key": "todos", "label": "To Do's", "icon": "notes_icon", "flutter": "NotesView", "web": "WorkPage", "status": "RESHAPE", "flag": "notes"}
+      ],
+      "drawer": [{"label": "Tasks, Roles & Goals", "web": "WorkPage(goals)", "status": "RESHAPE"}]
+    },
+    "7": {
+      "name": "Dispatch Incharge", "landing": "orders",
+      "tabs": [
+        {"key": "orders", "label": "Orders", "icon": "order_icon", "flutter": "DispatchOrdersView", "web": "ProductionPage(dispatch)", "status": "NEW", "subTabs": ["Pending", "Completed"], "counters": ["pending_criteria", "pending", "critical", "overdue", "completed", "total_orders"], "statusSource": "dispatched_status"},
+        {"key": "tailors", "label": "Tailors", "icon": "tailor_icon", "flutter": "TailorsView", "web": "PeoplePage(team)", "status": "NEW"}
+      ],
+      "drawer": []
+    },
+    "8": {
+      "name": "Inspector", "landing": "jobsheets",
+      "tabs": [
+        {"key": "jobsheets", "label": "Job Sheets", "icon": "delivery_icon", "flutter": "InspectorJobSheetView", "web": "ProductionPage(inspection)", "status": "NEW", "subTabs": ["Pending", "Completed"]},
+        {"key": "tailors", "label": "Tailors", "icon": "tailor_icon", "flutter": "TailorsView", "web": "PeoplePage(team)", "status": "NEW"}
+      ],
+      "drawer": []
+    },
+    "9": {
+      "name": "Cutting Master", "landing": "orders",
+      "tabs": [
+        {"key": "orders", "label": "Orders", "icon": "order_icon", "flutter": "CuttingDashboardView", "web": "ProductionPage(cutting)", "status": "NEW", "subTabs": ["Pending", "Completed"], "counters": ["pending", "critical", "overdue", "completed", "total_orders"], "statusSource": "items.cutting_status", "singleScreen": true}
+      ],
+      "drawer": []
+    },
+    "10": {
+      "name": "Dealer", "landing": "placed-orders",
+      "tabs": [
+        {"key": "placed-orders", "label": "Placed Orders", "icon": "placed_orders_icon", "flutter": "CoordinatorOrdersView", "web": "OrdersPage(customers' orders)", "status": "NEW-split", "counters": ["pending", "critical", "overdue", "completed", "total_value", "total_orders"]},
+        {"key": "my-orders", "label": "My Orders", "icon": "order_icon", "flutter": "DealerOrdersView", "web": "OrdersPage(own)+StockPage(purchases)", "status": "NEW-split", "subTabs": ["Pending", "Completed"], "fab": "Bulk Order"},
+        {"key": "customers", "label": "Customers", "icon": "customer_icon", "flutter": "DealerCustomersView", "web": "CustomersPage", "status": "RESHAPE"},
+        {"key": "products", "label": "Products", "icon": "product_icon", "flutter": "ProductCategoriesView", "web": "CataloguePage", "status": "RESHAPE"}
+      ],
+      "drawer": [
+        {"label": "Promotional Assets", "web": "PromotionsPage", "status": "ENTRY"},
+        {"label": "Catalogues", "web": "DocumentsPage", "status": "ENTRY"}
+      ]
+    },
+    "11": {
+      "name": "Job Worker", "landing": "orders",
+      "tabs": [
+        {"key": "orders", "label": "Orders", "icon": "order_icon", "flutter": "CoordinatorOrdersView", "web": "JobWorkPage", "status": "RESHAPE", "counters": ["pending_criteria", "pending", "critical", "overdue", "completed", "total_value", "amount_earned", "total_orders"], "statusSource": "worker_status"},
+        {"key": "products", "label": "Products", "icon": "product_icon", "flutter": "ProductCategoriesView", "web": "CataloguePage", "status": "RESHAPE", "flag": "catalogue"},
+        {"key": "todos", "label": "To Do's", "icon": "notes_icon", "flutter": "NotesView", "web": "WorkPage", "status": "RESHAPE", "flag": "notes"}
+      ],
+      "drawer": [
+        {"label": "Your Efficiency", "kind": "gauge", "source": "orderStats.efficiency", "status": "NEW"},
+        {"label": "Promotional Assets", "web": "PromotionsPage", "status": "ENTRY", "flag": "promotions"},
+        {"label": "Catalogues", "web": "DocumentsPage", "status": "ENTRY", "flag": "documents"},
+        {"label": "Tasks, Roles & Goals", "web": "WorkPage(goals)", "status": "RESHAPE", "flag": "goals"}
+      ]
+    },
+    "12": {
+      "name": "Assistant Worker / Team", "landing": "first-granted-tab",
+      "tabs": [
+        {"key": "products", "label": "Products", "icon": "product_icon", "flutter": "ProductCategoriesView", "web": "CataloguePage", "status": "RESHAPE", "flag": "catalogue"},
+        {"key": "todos", "label": "To Do's", "icon": "notes_icon", "flutter": "NotesView", "web": "WorkPage", "status": "RESHAPE", "flag": "notes"}
+      ],
+      "drawer": [
+        {"label": "Promotional Assets", "web": "PromotionsPage", "status": "ENTRY", "flag": "promotions"},
+        {"label": "Catalogues", "web": "DocumentsPage", "status": "ENTRY", "flag": "documents"},
+        {"label": "Tasks, Roles & Goals", "web": "WorkPage(goals)", "status": "RESHAPE", "flag": "goals"}
+      ]
+    }
+  },
+  "commonDrawer": {
+    "top": ["Profile (roles allowedToHaveProfile)"],
+    "more": ["Reports", "Documents", "Notifications", "Administration (Admin only)"],
+    "bottom": ["Logout"]
+  }
+}

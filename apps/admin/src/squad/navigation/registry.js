@@ -22,7 +22,18 @@ export const MODULES = Object.freeze([
   { key: "home", label: "Overview", group: "Workspace", allowed: () => true },
   { key: "catalogue", label: "Products", group: "Commerce", allowed: capability("catalogue") },
   { key: "orders", label: "Orders", group: "Commerce", allowed: roles([0,1,2,3,4,10,11]) },
-  { key: "people", label: "People", group: "Workspace", allowed: roles([0,1,2,4,7,8,10]) },
+  { key: "customers", label: "Customers", group: "Commerce", allowed: roles([0,1,10]) },
+  { key: "filtered-orders", label: "Orders", hidden: true, allowed: roles([0,1,2,3,4,7,10,11]) },
+  { key: "coordinators", label: "Coordinators", hidden: true, allowed: roles([0,2]) },
+  { key: "change-sc", label: "Change SC", hidden: true, allowed: roles([0]) },
+  { key: "customer-requests", label: "Customers Request", hidden: true, allowed: roles([0]) },
+  { key: "tailors", label: "Tailors", hidden: true, allowed: roles([4,7,8]) },
+  { key: "delivery", label: "Delivery", hidden: true, allowed: roles([4]) },
+  { key: "personas", label: "Personas", hidden: true, allowed: roles([0]) },
+  { key: "force-complete", label: "Force complete order", hidden: true, allowed: roles([0]) },
+  { key: "distributors", label: "Distributors", hidden: true, allowed: roles([0,1]) },
+  { key: "team", label: "Team", group: "Workspace", allowed: roles([0,2,4,7,8]) },
+  { key: "people", label: "People", hidden: true, allowed: roles([0,1,2,4,7,8,10]) },
   { key: "production", label: "Production", group: "Operations", allowed: roles([0,2,4,7,8,9]) },
   { key: "job-work", label: "Job work", group: "Operations", allowed: roles([0,2,11]) },
   { key: "stock", label: "Stock & deliveries", group: "Operations", allowed: roles([10]) },
@@ -37,9 +48,9 @@ export const MODULES = Object.freeze([
   { key: "profile", label: "My account", group: "Account", allowed: () => true },
 ]);
 export function navigationFor(identity) {
-  return MODULES.filter((module) => module.allowed(identity)).map((module) => ({ ...module, href: `/squad/${module.key}` }));
+  return MODULES.filter((module) => !module.hidden && module.allowed(identity)).map((module) => ({ ...module, href: `/squad/${module.key}` }));
 }
 export function canVisit(identity, path) {
-  const key = path.replace(/^\/squad\/?/, "").split("/")[0] || "home";
+  const key = path.split("?")[0].replace(/^\/squad\/?/, "").split("/")[0] || "home";
   return MODULES.find((module) => module.key === key)?.allowed(identity) === true;
 }
