@@ -426,6 +426,7 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   configuratorOptions(baseId:EntityId,kind:'sizes',selection?:{parentId?:EntityId;partId?:EntityId},page?:PageRequest):Promise<Page<{id:EntityId|null;sc_size_id:EntityId;name:string;position:number|null;available:boolean}>>;
   configuratorOptions(baseId:EntityId,kind:Exclude<ConfiguratorKind,'sizes'>,selection?:{parentId?:EntityId;partId?:EntityId},page?:PageRequest):Promise<Page<CatalogueOption>>;
   validateQuantities(quantities:SizeQuantity[],sample?:SizeQuantity|null):Promise<NormalizedQuantities>;
+  previewCustomPrices(request:CustomPricePreviewRequest):Promise<CustomPricePreview>;
   calculateQuote(request:{lines:QuoteLineInput[]}):Promise<QuoteCalculation & {purpose:'configuration_display_only'}>;
   resolveConfigurationSize(baseId:EntityId,scSizeId:EntityId,idempotencyKey:string):Promise<{id:EntityId;sc_size_id:EntityId;name:string}>;
   quote(request:QuoteRequest):Promise<Quote>;
@@ -504,3 +505,8 @@ export interface ExportRequest {columns?:string[];include_inactive?:boolean;sear
 export type TransferState='queued'|'validating'|'invalid'|'validated'|'applying'|'exporting'|'completed'|'failed'|'cancelled'|'expired';
 export interface Transfer {id:string;direction:'import'|'export';kind:CsvImportKind|'export';resource:string|null;state:TransferState;job_id:string|null;version:Version;generation:string;total_rows:number;valid_rows:number;invalid_rows:number;applied_rows:number;error_code:string|null;created_at:string;completed_at:string|null;expires_at:string;download_ready:boolean;result:Record<string,unknown>}
 export interface TransferRow {row:number;state:'pending'|'valid'|'invalid'|'applied'|'failed';errors:unknown[];result_id:EntityId|null}
+
+export type CustomPriceScenario = {quantity:number;sample?:boolean} & ({configuration:Configuration;brandings?:BrandingInput[];preset_id?:never;preset_reuse_fingerprint?:never}|{preset_id:EntityId;preset_reuse_fingerprint?:string;configuration?:never;brandings?:never});
+export interface CustomPricePreviewRequest {customer_id?:EntityId;scenarios:CustomPriceScenario[];include_volume?:boolean}
+export interface CustomVolumePrice {quantity:number;unit_price:string;branding_unit_price:string;sample_rate_applied:boolean;rate_available:boolean;subtotal:string;branding_total:string;total:string}
+export interface CustomPricePreview {purpose:'custom_price_preview';currency:'INR';tax_included:false;context:QuoteCalculation['context'];pricing_version:string;scenarios:{index:number;selection:CustomPriceScenario;prices:CustomVolumePrice[];preset_version:string|null;preset_reuse_fingerprint:string|null}[]}

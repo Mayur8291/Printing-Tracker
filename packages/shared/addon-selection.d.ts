@@ -1,0 +1,10 @@
+import type { CatalogueOption, Configuration, createSquadClient } from './squad';
+type Addon = { addon_id: string; color_id?: string | null };
+type Part = { part_id: string; color_id: string; addons?: Addon[] };
+type OptionsClient = Pick<ReturnType<typeof createSquadClient>, 'configuratorOptions'>;
+export function sleeveKind(part: Pick<CatalogueOption, 'name'> | null | undefined): 'length' | 'type' | null;
+export function sleeveFilterCode(name?: string): 'FS' | 'HS' | '3/4' | '';
+export function sleeveChoiceVisible(choice: Pick<CatalogueOption, 'name'>, lengthChoice: Pick<CatalogueOption, 'name'> | null | undefined): boolean;
+export function selectAddon(existing: Addon[], choice: CatalogueOption, colorId: string | null, choices: CatalogueOption[]): Addon[];
+export function updateConfiguredPart<T extends { parts: Part[] }>(configuration: T, part: CatalogueOption, value: Part | null, parts: CatalogueOption[]): T;
+export function loadConfiguratorOptions(sdk: OptionsClient, baseId: string, kind: 'categories' | 'fabrics' | 'fabric_colors' | 'parts' | 'part_colors' | 'addons' | 'addon_colors' | 'size_types' | 'assets', filters?: { parentId?: string; partId?: string }): Promise<{ data: CatalogueOption[]; next_cursor: null }>;

@@ -10,7 +10,7 @@ export class SquadError extends Error {
 }
 
 // Positive list: binding a query signal must never make a command cancellable.
-const CANCELLABLE_READS=new Set(`v1_me v1_app_bootstrap v1_audit_list v1_base_product_get v1_banners_list v1_catalog_options v1_catalog_tree v1_configurator_options v1_coordinator_requests v1_cutting_detail v1_cutting_queue v1_dashboard v1_dealer_stock v1_deliveries_list v1_delivery_failures v1_dispatch_detail v1_dispatch_queue v1_document_get v1_documents_list v1_factories_list v1_factory_queue v1_import_status v1_integration_get v1_job_get v1_jobs_list v1_jobsheets_list v1_mail_settings_read v1_milestones_list v1_milestone_progress v1_notifications_list v1_operational_items v1_order_get v1_order_item_get v1_orders_list v1_people_list v1_person_get v1_presets_list v1_product_images v1_production_progress v1_promotions_list v1_ratings_list v1_relationship_options v1_responsibilities_list v1_responsibility_get v1_rmp_detail v1_rmp_search v1_rmp_variants v1_sales_coordinator_metrics v1_sales_report v1_settings_read v1_tailor_earnings v1_tailor_leaderboard v1_tailor_work v1_task_assignees v1_task_get v1_tasks_list v1_work_metrics v1_warehouse_schedule_status v1_weekly_tailor_schedule_status v1_airtable_reports_status`.split(' '));
+const CANCELLABLE_READS=new Set(`v1_configuration_quote v1_me v1_app_bootstrap v1_audit_list v1_base_product_get v1_banners_list v1_catalog_options v1_catalog_tree v1_configurator_options v1_coordinator_requests v1_cutting_detail v1_cutting_queue v1_dashboard v1_dealer_stock v1_deliveries_list v1_delivery_failures v1_dispatch_detail v1_dispatch_queue v1_document_get v1_documents_list v1_factories_list v1_factory_queue v1_import_status v1_integration_get v1_job_get v1_jobs_list v1_jobsheets_list v1_mail_settings_read v1_milestones_list v1_milestone_progress v1_notifications_list v1_operational_items v1_order_get v1_order_item_get v1_orders_list v1_people_list v1_person_get v1_presets_list v1_product_images v1_production_progress v1_promotions_list v1_ratings_list v1_relationship_options v1_responsibilities_list v1_responsibility_get v1_rmp_detail v1_rmp_search v1_rmp_variants v1_sales_coordinator_metrics v1_sales_report v1_settings_read v1_tailor_earnings v1_tailor_leaderboard v1_tailor_work v1_task_assignees v1_task_get v1_tasks_list v1_work_metrics v1_warehouse_schedule_status v1_weekly_tailor_schedule_status v1_airtable_reports_status`.split(' '));
 
 /** Keep a command's key and payload unchanged when retrying an uncertain response. */
 export function createSquadClient(supabase, options = {}) {
@@ -190,6 +190,7 @@ export function createSquadClient(supabase, options = {}) {
     }),
     validateQuantities: (quantities,sample = null) => call("v1_item_quantity_validate", {p_quantities:quantities,p_sample:sample}),
     quote: (request) => call("v1_quote", {p_request:request}),
+    previewCustomPrices: (request) => call("v1_configuration_quote", {p_request:request}),
     calculateQuote: (request) => call("v1_configuration_quote", {p_request:request}),
     resolveConfigurationSize: (baseId,scSizeId,idempotencyKey) => call("v1_configuration_size_resolve", {p_base_id:baseId,p_sc_size_id:scSizeId,p_idempotency_key:idempotencyKey}),
     catalogueQuote: (request,markup = {kind:"percentage",value:"0"}) => call("v1_catalogue_quote", {p_request:request,p_markup:markup}),

@@ -6,7 +6,17 @@
   "main": "index.js",
   "types": "index.d.ts",
   "exports": {
-    ".": { "types": "./index.d.ts", "default": "./index.js" },
-    "./squad": { "types": "./squad.d.ts", "default": "./squad.js" }
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./squad": {
+      "types": "./squad.d.ts",
+      "default": "./squad.js"
+    },
+    "./pricing": {
+      "types": "./pricing.d.ts",
+      "default": "./pricing.js"
+    }
   }
 }
