@@ -78,6 +78,8 @@ export interface OrderIntegration {
   provider:string|null;reason:string|null;external_code:string|null;provider_status:string|null;updated_at:string|null;
 }
 export interface OrderSummary {
+  customer_name?: string|null; customer_company_name?: string|null; customer_role?: number|null;
+  customer_dealer_id?: EntityId|null; dealer_name?: string|null; dealer_company_name?: string|null;
   id: EntityId; customer_id: EntityId; status: number; provider_status: string;
   created_at: string; created_on: string|null; due_on: string|null; delivered_on: string|null;
   type: 0|1|2; total_quantity: number; cut_quantity: number; sewn_quantity: number;

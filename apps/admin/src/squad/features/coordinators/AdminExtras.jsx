@@ -1,3 +1,4 @@
+import { ORDER_SEARCH_PLACEHOLDER } from "../orders/orderParties";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ResourceState } from "../../components";
@@ -31,7 +32,7 @@ export function ForceCompletePage({ onNavigate }) {
   const filters = { state: "pending", search: term };
   const list = useInfiniteSquadList(["force-complete", term], (sdk, cursor) => sdk.orders(filters, { cursor, limit: 30 }), { enabled: term.length > 0 });
   return <div className="space-y-4">
-    <SearchHeader title="Orders" placeholder="Search by Order No, Customer Name" onSearch={setTerm} />
+    <SearchHeader title="Orders" placeholder={ORDER_SEARCH_PLACEHOLDER} liveSearch onSearch={setTerm} />
     <p className="text-sm text-muted-foreground">Search an open order to forcefully close it. You will confirm with a reason on the order page.</p>
     {!term ? <ResourceState title="Search Order to forcefully close it." /> : list.isLoading ? <ResourceState status="loading" /> : list.error ? <ResourceState status="error" error={list.error} onRetry={list.refetch} /> : list.rows.length === 0 ? <ResourceState title="No Order Found." /> :
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{list.rows.map((o) => <OrderCard key={o.id} order={o} money={money} date={date} status={orderState(o)} onOpen={() => onNavigate(`/squad/orders/${o.id}`)} />)}</div>}

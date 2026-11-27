@@ -1,3 +1,4 @@
+import { ORDER_SEARCH_PLACEHOLDER } from "../orders/orderParties";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,7 @@ function CoordinatorDetail({ sdk, identity, environment, canWrite, onNavigate, k
     <PageHeader eyebrow={kind.title} title={name} description={[p?.email, p?.phone].filter(Boolean).join(" · ") || undefined}
       actions={<>{canAddCoordinator(identity, kind) && p && <Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>}<Button variant="outline" onClick={() => onNavigate(`/squad/people/${id}`)}>View Details</Button>{kind.slug === "sales" && identity.role === 0 && <Button variant="outline" onClick={() => onNavigate("/squad/targets")}>Target</Button>}</>} />
     <OrderCounters stats={stats.data} loading={stats.isLoading} criteria onSelect={(tile) => onNavigate(filteredOrdersHref(tile.drill, { subject, title: name }))} />
-    <SearchHeader title="Orders" count={stats.data?.total_orders} placeholder="Search Orders" onSearch={setTerm} onRefresh={() => { list.refetch(); stats.refetch(); }} refreshing={list.isFetching} />
+    <SearchHeader title="Orders" count={stats.data?.total_orders} placeholder={ORDER_SEARCH_PLACEHOLDER} liveSearch onSearch={setTerm} onRefresh={() => { list.refetch(); stats.refetch(); }} refreshing={list.isFetching} />
     <CountTabs tabs={tabs} value={tab} onChange={setTab} />
     <PullToRefresh onRefresh={() => list.refetch()}>
       {list.isLoading ? <ResourceState status="loading" /> : list.error ? <ResourceState status="error" error={list.error} onRetry={list.refetch} /> : list.rows.length === 0 ? <ResourceState title="No Order Found." /> :

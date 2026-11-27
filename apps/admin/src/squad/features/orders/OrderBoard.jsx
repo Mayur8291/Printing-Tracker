@@ -1,3 +1,4 @@
+import { ORDER_SEARCH_PLACEHOLDER } from "./orderParties";
 import { useState } from "react";
 import { ResourceState } from "../../components";
 import { OrderCounters, CountTabs, SearchHeader, OrderCard, Fab, LoadMore, PullToRefresh, useOrderStats, useInfiniteSquadList, filteredOrdersHref } from "../../components/parity";
@@ -15,7 +16,7 @@ export default function OrderBoard({ identity, search, onNavigate }) {
   const { title, tabs } = boardLabels(identity.role, stats.data);
   return <div className="space-y-4">
     <OrderCounters stats={stats.data} loading={stats.isLoading} criteria={boardCriteria(identity.role)} onSelect={!boardDrillable(identity.role) ? undefined : (tile) => onNavigate(filteredOrdersHref({ ...tile.drill, ...base }, { title: scope === "own" ? "My Orders" : "Orders" }))} />
-    <SearchHeader title={title} placeholder="Search Orders" onSearch={setTerm} onRefresh={() => { list.refetch(); stats.refetch(); }} refreshing={list.isFetching} />
+    <SearchHeader title={title} placeholder={ORDER_SEARCH_PLACEHOLDER} liveSearch onSearch={setTerm} onRefresh={() => { list.refetch(); stats.refetch(); }} refreshing={list.isFetching} />
     <CountTabs tabs={tabs} value={tab} onChange={setTab} />
     <PullToRefresh onRefresh={() => list.refetch()}>
       {list.isLoading ? <ResourceState status="loading" /> : list.error ? <ResourceState status="error" error={list.error} onRetry={list.refetch} /> : list.rows.length === 0 ? <ResourceState title="No Order Found." /> :

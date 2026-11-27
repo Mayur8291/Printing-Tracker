@@ -1,3 +1,4 @@
+import { ORDER_SEARCH_PLACEHOLDER } from "../orders/orderParties";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,7 @@ function FilteredOrders({ ctx, scope, onNavigate }) {
     <PageHeader title={ctx.title} description="Orders matching the selected counter. Tap an order to open it." />
     <OrderCounters stats={stats.data} loading={stats.isLoading} onSelect={(tile) => onNavigate(filteredOrdersHref({ ...tile.drill, ...fixed }, { subject: ctx.subject, title: ctx.title }), { replace: true })} />
     <div className="squad-chip-row" role="group" aria-label="Order status">{[["", "All"], ...STATE_CHIPS].map(([key, label]) => <button type="button" key={key || "all"} className={`squad-count-tab ${state === key ? "is-active" : ""}`} aria-pressed={state === key} onClick={() => setState(key)}>{label}</button>)}</div>
-    <SearchHeader title="Orders" count={state ? stats.data?.[state] : stats.data?.total_orders} placeholder="Search orders" onSearch={setTerm} onRefresh={() => { list.refetch(); stats.refetch(); }} refreshing={list.isFetching} />
+    <SearchHeader title="Orders" count={state ? stats.data?.[state] : stats.data?.total_orders} placeholder={ORDER_SEARCH_PLACEHOLDER} liveSearch onSearch={setTerm} onRefresh={() => { list.refetch(); stats.refetch(); }} refreshing={list.isFetching} />
     <form className="flex flex-wrap items-end gap-3" onSubmit={applyPeriod}>
       <Field label="Custom range from"><Input type="date" value={from} max={through || undefined} onChange={(e) => setFrom(e.target.value)} /></Field>
       <Field label="Through"><Input type="date" value={through} min={from || undefined} onChange={(e) => setThrough(e.target.value)} /></Field>
