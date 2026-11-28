@@ -1,3 +1,4 @@
+import { isStandalone } from "../pwa";
 import {clearStudioPrivateStorage} from '../squad/features/studio/stagedReferences';
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrowserRouter, Navigate, useLocation, useNavigate } from "react-router-dom";
@@ -13,6 +14,7 @@ import AccountFlow from "./AccountFlow";
 import WorkspaceErrorBoundary from "./WorkspaceErrorBoundary";
 
 const TrackerApp = lazy(() => import("../App"));
+const Sc1SignIn = lazy(() => import("./Sc1SignIn"));
 const SquadApp = lazy(() => import("../squad/SquadApp"));
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } } });
 const sdk = createSquadClient(supabase);
@@ -40,6 +42,8 @@ function SignIn() {
     } catch (cause) { setError(cause.message || "Sign-in could not be completed. Please try again."); }
     finally { setBusy(false); }
   }
+  if (isStandalone()) return <Suspense fallback={null}><Sc1SignIn email={email} password={password} busy={busy} error={error} onEmail={(e) => setEmail(e.target.value)} onPassword={(e) => setPassword(e.target.value)} onSubmit={submit}
+    onForgot={() => navigate("/account/recovery")} onRegister={() => navigate("/account/register")} onConfirm={() => navigate("/account/confirm")} onInvite={() => navigate("/account/invite")} /></Suspense>;
   return <div className="flex h-svh flex-col items-center overflow-y-auto bg-gradient-to-b from-muted/50 to-background px-4 py-8"><div className="my-auto w-full max-w-md [&>div]:min-h-0 [&>div]:bg-none [&>div]:p-0"><LoginPage email={email} password={password} showPassword={show} signingIn={busy} authError={error}
     onEmailChange={(e) => setEmail(e.target.value)} onPasswordChange={(e) => setPassword(e.target.value)}
     onTogglePassword={() => setShow((value) => !value)} onSubmit={submit} onForgotPassword={() => navigate("/account/recovery")} />
@@ -137,8 +141,8 @@ function ApplicationBoundary() {
     });
     void resolveSession();
     const foreground = () => { if (document.visibilityState === "visible") void resolveSession(); };
-    window.addEventListener("focus", foreground); document.addEventListener("visibilitychange", foreground);
-    return () => { mounted.current = false; invalidateSessionCheck(); clearTimeout(timer); subscription.unsubscribe(); window.removeEventListener("focus", foreground); document.removeEventListener("visibilitychange", foreground); };
+    window.addEventListener("focus", foreground); window.addEventListener("online", foreground); document.addEventListener("visibilitychange", foreground);
+    return () => { mounted.current = false; invalidateSessionCheck(); clearTimeout(timer); subscription.unsubscribe(); window.removeEventListener("focus", foreground); window.removeEventListener("online", foreground); document.removeEventListener("visibilitychange", foreground); };
   }, [resolveSession, invalidateSessionCheck]);
   useEffect(() => {
     const expires = state.identity?.write_state?.expires_at;
@@ -155,11 +159,11 @@ function ApplicationBoundary() {
     queryClient.clear(); invalidateSessionCheck(); setState({ status: "loading" });
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (returnToProduction) {
-      window.location.assign("/");
+      window.location.assign(isStandalone() ? "/squad/home" : "/");
       return;
     }
     if (error) setState({ status: "error", error });
-    else { token.current = null; setState({ status: "anonymous" }); navigate("/", { replace: true }); }
+    else { token.current = null; setState({ status: "anonymous" }); navigate(isStandalone() ? "/squad/home" : "/", { replace: true }); }
   }, [navigate, invalidateSessionCheck]);
   const value = useMemo(() => {
     if (state.status !== "squad") return null;
@@ -170,7 +174,7 @@ function ApplicationBoundary() {
       onAuthorizationError: () => resolveSession(true), refreshIdentity: () => resolveSession(true), onSignOut: signOut, supabase };
   }, [state, resolveSession, signOut]);
   if (state.status === "loading") return <SessionMessage title="Opening your workspace" message="Checking your session and access…" />;
-  if (state.status === "error") return <SessionMessage title="Your workspace is unavailable" message={state.error?.message || "Please sign in again or contact your administrator."} retry={resolveSession} signOut={signOut} />;
+  if (state.status === "error") return <SessionMessage title={navigator.onLine === false ? "You're offline" : "Your workspace is unavailable"} message={navigator.onLine === false ? "Check your connection. Your workspace reopens when you're back online." : state.error?.message || "Please sign in again or contact your administrator."} retry={resolveSession} signOut={signOut} />;
   if (state.status === "anonymous") {
     if (location.pathname === "/account/staff-recovery") return <Suspense fallback={<SessionMessage title="Opening account help" />}><TrackerApp /></Suspense>;
     if (location.pathname.startsWith("/account/")) return <AccountFlow sdk={sdk} kind={location.pathname.split("/")[2]} onBack={() => navigate("/")} />;

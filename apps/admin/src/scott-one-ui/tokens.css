@@ -1,0 +1,204 @@
+/* Generated from tokens.json. Run node scripts/generate.mjs; do not edit. */
+.sc1 {
+  --sc1-color-canvas: #F4F3EF;
+  --sc1-color-paper: #FFFEFB;
+  --sc1-color-white: #FFFFFF;
+  --sc1-color-ink: #181A1B;
+  --sc1-color-ink-core: #151A23;
+  --sc1-color-muted: #6F716D;
+  --sc1-color-muted-core: #59677A;
+  --sc1-color-line: #E1E0D9;
+  --sc1-color-line-core: #E8EAEE;
+  --sc1-color-soft: #ECEBE5;
+  --sc1-color-subtle: #F9FAFB;
+  --sc1-color-primary: #C8191F;
+  --sc1-color-brand: #E72023;
+  --sc1-color-tint: #FFF1F1;
+  --sc1-color-peach: #F7ADA0;
+  --sc1-color-success: #087A33;
+  --sc1-color-success-ink: #246547;
+  --sc1-color-success-fill: #ECF3ED;
+  --sc1-color-warning: #8A5A00;
+  --sc1-color-warning-fill: #FAF0DC;
+  --sc1-color-danger: #B42318;
+  --sc1-color-danger-fill: #FBEDEA;
+  --sc1-color-disabled: #C4C4C4;
+  --sc1-color-inverse-muted: #BDBFB9;
+  --sc1-color-inverse-line: #3C3F3D;
+  --sc1-color-control-border: #858780;
+  --sc1-color-skeleton: #EAECF0;
+  --sc1-space-1: 0.25rem;
+  --sc1-space-2: 0.5rem;
+  --sc1-space-3: 0.75rem;
+  --sc1-space-4: 1rem;
+  --sc1-space-5: 1.25rem;
+  --sc1-space-6: 1.5rem;
+  --sc1-space-8: 2rem;
+  --sc1-radius-small: 0.5rem;
+  --sc1-radius-inset: 0.75rem;
+  --sc1-radius-control: 0.875rem;
+  --sc1-radius-card: 1rem;
+  --sc1-radius-commerce: 1.375rem;
+  --sc1-radius-sheet: 1.75rem;
+  --sc1-radius-dock: 2.5rem;
+  --sc1-radius-pill: 3rem;
+  --sc1-radius-circle: 50%;
+  --sc1-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --sc1-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sc1-type-title-size: 1.5rem;
+  --sc1-type-title-leading: 1.875rem;
+  --sc1-type-title-weight: 600;
+  --sc1-type-title-tracking: -0.03125rem;
+  --sc1-type-section-size: 1.25rem;
+  --sc1-type-section-leading: 1.625rem;
+  --sc1-type-section-weight: 600;
+  --sc1-type-section-tracking: -0.021875rem;
+  --sc1-type-body-size: 0.9375rem;
+  --sc1-type-body-leading: 1.375rem;
+  --sc1-type-body-weight: 400;
+  --sc1-type-body-tracking: 0;
+  --sc1-type-label-size: 0.875rem;
+  --sc1-type-label-leading: 1.25rem;
+  --sc1-type-label-weight: 600;
+  --sc1-type-label-tracking: 0;
+  --sc1-type-caption-size: 0.75rem;
+  --sc1-type-caption-leading: 1.0625rem;
+  --sc1-type-caption-weight: 500;
+  --sc1-type-caption-tracking: 0;
+  --sc1-type-wordmark-size: 1.6875rem;
+  --sc1-type-wordmark-leading: 2.125rem;
+  --sc1-type-wordmark-weight: 700;
+  --sc1-type-wordmark-tracking: -0.05625rem;
+  --sc1-type-page-size: 1.75rem;
+  --sc1-type-page-leading: 2.125rem;
+  --sc1-type-page-weight: 700;
+  --sc1-type-page-tracking: -0.04375rem;
+  --sc1-type-order-size: 1.1875rem;
+  --sc1-type-order-leading: 1.5rem;
+  --sc1-type-order-weight: 700;
+  --sc1-type-order-tracking: -0.025rem;
+  --sc1-type-account-size: 1.5625rem;
+  --sc1-type-account-leading: 1.9375rem;
+  --sc1-type-account-weight: 700;
+  --sc1-type-account-tracking: -0.0375rem;
+  --sc1-type-auth-size: 1.75rem;
+  --sc1-type-auth-leading: 2.125rem;
+  --sc1-type-auth-weight: 800;
+  --sc1-type-auth-tracking: -0.05rem;
+  --sc1-type-amount-size: 1.375rem;
+  --sc1-type-amount-leading: 1.75rem;
+  --sc1-type-amount-weight: 700;
+  --sc1-type-amount-tracking: -0.03125rem;
+  --sc1-size-target: 2.75rem;
+  --sc1-size-button: 3rem;
+  --sc1-size-field: 3.25rem;
+  --sc1-size-search: 3.125rem;
+  --sc1-size-auth-field: 3.75rem;
+  --sc1-size-auth-button: 3.375rem;
+  --sc1-size-purchase-button: 3.25rem;
+  --sc1-size-dock-item: 4rem;
+  --sc1-size-icon: 1.5rem;
+  --sc1-motion-fast: 120ms;
+  --sc1-motion-entrance: 180ms;
+  --sc1-motion-shimmer: 1250ms;
+  --sc1-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --sc1-elevation-dock: 0 5px 16px rgba(23, 32, 47, 0.14);
+  --sc1-elevation-sheet: 0 16px 48px rgba(23, 32, 47, 0.18);
+  --sc1-layer-base: 0;
+  --sc1-layer-sticky: 10;
+  --sc1-layer-dock: 20;
+  --sc1-layer-overlay: 40;
+  --sc1-layout-gutter: 1.25rem;
+  --sc1-layout-orders-gutter: 1.125rem;
+  --sc1-layout-home-gutter: 0.75rem;
+  --sc1-layout-auth-gutter: 1.5rem;
+  --sc1-layout-auth-max: 27.5rem;
+  --sc1-layout-content-max: 80rem;
+  --sc1-layout-rail: 15rem;
+  --sc1-layout-grid-gap: 1.5rem;
+  --sc1-component-order-padding: 1rem;
+  --sc1-component-order-gap: 1rem;
+  --sc1-component-order-radius: 1.375rem;
+  --sc1-component-account-padding: 1.125rem;
+  --sc1-component-account-gap: 1rem;
+  --sc1-component-account-radius: 1.375rem;
+  --sc1-component-studio-padding: 1rem;
+  --sc1-component-studio-gap: 0.75rem;
+  --sc1-component-studio-radius: 0.875rem;
+  --sc1-component-sheet-padding: 1rem;
+  --sc1-component-sheet-radius: 1.75rem;
+  --sc1-component-sheet-scrim: rgba(16, 20, 24, 0.42);
+  --sc1-component-dock-fill: rgba(248, 249, 251, 0.76);
+  --sc1-component-dock-solid: #F4F4F6;
+  --sc1-component-dock-border: rgba(255, 255, 255, 0.85);
+  --sc1-component-dock-selected: rgba(255, 255, 255, 0.64);
+  --sc1-canvas: #F4F3EF;
+  --sc1-paper: #FFFEFB;
+  --sc1-ink: #181A1B;
+  --sc1-muted: #6F716D;
+  --sc1-line: #E1E0D9;
+  --sc1-soft: #ECEBE5;
+  --sc1-accent: #C8191F;
+  --sc1-text-secondary: #656963;
+}
+.sc1[data-sc1-skin="core"], .sc1 [data-sc1-skin="core"] {
+  --sc1-canvas: #F4F3EF;
+  --sc1-paper: #FFFFFF;
+  --sc1-ink: #151A23;
+  --sc1-muted: #59677A;
+  --sc1-line: #E8EAEE;
+  --sc1-soft: #F9FAFB;
+  --sc1-accent: #C8191F;
+  --sc1-text-secondary: #59677A;
+}
+.sc1[data-sc1-skin="commerce"], .sc1 [data-sc1-skin="commerce"] {
+  --sc1-canvas: #F4F3EF;
+  --sc1-paper: #FFFEFB;
+  --sc1-ink: #181A1B;
+  --sc1-muted: #6F716D;
+  --sc1-line: #E1E0D9;
+  --sc1-soft: #ECEBE5;
+  --sc1-accent: #C8191F;
+  --sc1-text-secondary: #656963;
+}
+.sc1[data-sc1-skin="account"], .sc1 [data-sc1-skin="account"] {
+  --sc1-canvas: #F4F3EF;
+  --sc1-paper: #FFFFFF;
+  --sc1-ink: #191C1B;
+  --sc1-muted: #6D716D;
+  --sc1-line: #E2E1DB;
+  --sc1-soft: #ECEBE5;
+  --sc1-accent: #C8191F;
+  --sc1-text-secondary: #656963;
+}
+.sc1[data-sc1-skin="auth"], .sc1 [data-sc1-skin="auth"] {
+  --sc1-canvas: #FFFFFF;
+  --sc1-paper: #FFFFFF;
+  --sc1-ink: #202124;
+  --sc1-muted: #687078;
+  --sc1-line: #E5E7EB;
+  --sc1-soft: #F7F8FA;
+  --sc1-accent: #C8191F;
+  --sc1-text-secondary: #687078;
+}
+.sc1[data-sc1-skin="studio"], .sc1 [data-sc1-skin="studio"] {
+  --sc1-canvas: #FFFFFF;
+  --sc1-paper: #FFFFFF;
+  --sc1-ink: #151A23;
+  --sc1-muted: #59677A;
+  --sc1-line: #E8EAEE;
+  --sc1-soft: #F7F6F4;
+  --sc1-accent: #C8191F;
+  --sc1-text-secondary: #59677A;
+}
+.sc1 .sc1-type-title { font-size: var(--sc1-type-title-size); line-height: var(--sc1-type-title-leading); font-weight: var(--sc1-type-title-weight); letter-spacing: var(--sc1-type-title-tracking); }
+.sc1 .sc1-type-section { font-size: var(--sc1-type-section-size); line-height: var(--sc1-type-section-leading); font-weight: var(--sc1-type-section-weight); letter-spacing: var(--sc1-type-section-tracking); }
+.sc1 .sc1-type-body { font-size: var(--sc1-type-body-size); line-height: var(--sc1-type-body-leading); font-weight: var(--sc1-type-body-weight); letter-spacing: var(--sc1-type-body-tracking); }
+.sc1 .sc1-type-label { font-size: var(--sc1-type-label-size); line-height: var(--sc1-type-label-leading); font-weight: var(--sc1-type-label-weight); letter-spacing: var(--sc1-type-label-tracking); }
+.sc1 .sc1-type-caption { font-size: var(--sc1-type-caption-size); line-height: var(--sc1-type-caption-leading); font-weight: var(--sc1-type-caption-weight); letter-spacing: var(--sc1-type-caption-tracking); }
+.sc1 .sc1-type-wordmark { font-size: var(--sc1-type-wordmark-size); line-height: var(--sc1-type-wordmark-leading); font-weight: var(--sc1-type-wordmark-weight); letter-spacing: var(--sc1-type-wordmark-tracking); }
+.sc1 .sc1-type-page { font-size: var(--sc1-type-page-size); line-height: var(--sc1-type-page-leading); font-weight: var(--sc1-type-page-weight); letter-spacing: var(--sc1-type-page-tracking); }
+.sc1 .sc1-type-order { font-size: var(--sc1-type-order-size); line-height: var(--sc1-type-order-leading); font-weight: var(--sc1-type-order-weight); letter-spacing: var(--sc1-type-order-tracking); }
+.sc1 .sc1-type-account { font-size: var(--sc1-type-account-size); line-height: var(--sc1-type-account-leading); font-weight: var(--sc1-type-account-weight); letter-spacing: var(--sc1-type-account-tracking); }
+.sc1 .sc1-type-auth { font-size: var(--sc1-type-auth-size); line-height: var(--sc1-type-auth-leading); font-weight: var(--sc1-type-auth-weight); letter-spacing: var(--sc1-type-auth-tracking); }
+.sc1 .sc1-type-amount { font-size: var(--sc1-type-amount-size); line-height: var(--sc1-type-amount-leading); font-weight: var(--sc1-type-amount-weight); letter-spacing: var(--sc1-type-amount-tracking); }

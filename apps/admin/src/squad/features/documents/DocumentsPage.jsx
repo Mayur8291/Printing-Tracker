@@ -29,6 +29,7 @@ export default function DocumentsPage(props) {
   return id === 'new' ? <DocumentRequest key={path[3] || 'new'} {...props} initialKind={path[3]} /> : id ? <DocumentDetail key={id} {...props} id={decodeURIComponent(id)} /> : <DocumentHistory {...props} />;
 }
 function DocumentHistory({
+  scott,
   sdk,
   identity,
   environment,
@@ -47,7 +48,7 @@ function DocumentHistory({
     cursor: page.cursor,
     limit: 25
   }));
-  return <div className="space-y-5"><PageHeader title="Documents" description="Generate, track and download documents created for your work.">{kinds.length > 0 && <Button onClick={() => onNavigate('/squad/documents/new')}><Plus />Create document</Button>}</PageHeader><Panel title="Document history" actions={<RefreshButton onClick={query.refresh} />}><div className="mb-5 grid gap-3 sm:grid-cols-3"><Field label="Document type"><Select value={kind} disabled={legacy} onChange={e => {
+  return <div className="space-y-5"><PageHeader title={scott ? "Catalogues" : "Documents"} description="Generate, track and download documents created for your work.">{kinds.length > 0 && <Button onClick={() => onNavigate('/squad/documents/new')}><Plus />Create document</Button>}</PageHeader><Panel title="Document history" actions={<RefreshButton onClick={query.refresh} />}><div className="mb-5 grid gap-3 sm:grid-cols-3"><Field label="Document type"><Select value={kind} disabled={legacy} onChange={e => {
             setKind(e.target.value);
             page.reset();
           }}><option value="">All types</option>{kinds.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></Field><Field label="Status"><Select value={state} onChange={e => {

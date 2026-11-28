@@ -37,6 +37,13 @@ export function useSquadCommand() {
   const [error, setError] = useState(null);
   async function run(execute, options = {}) {
     if (inFlight.current) return inFlight.current;
+    // Nothing is queued: a change made without a connection is refused before it is sent.
+    if (globalThis.navigator?.onLine === false) {
+      const offline = new Error("You're offline. Reconnect and try again.");
+      offline.kind = "unavailable";
+      setError(offline);
+      throw offline;
+    }
     if ((!canWrite || (writeState?.mode === "test" && !(Date.parse(writeState.expires_at) > Date.now()))) && options.allowReadOnly !== true) {
       const denied = new Error("This environment is read-only. Changes require an authorized testing session or native ownership.");
       denied.kind = "unavailable";

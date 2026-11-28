@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { Home, Package, ShoppingBag, Users, Factory, Scissors, Boxes, CheckSquare, Target, BarChart3, Files, Image, Bell, Settings, UserRound, Flag } from "lucide-react";
 import SquadShell from "./SquadShell";
+import { sc1Enabled, isTabRoot } from "./navigation/sc1";
 import { tabsFor, drawerFor, landingFor, activeTabKey } from "./navigation/personaNav";
 import { BottomBar, RightMenu, TabIcon } from "./navigation/PersonaChrome";
 import { useSquad } from "./data/hooks";
@@ -46,7 +47,7 @@ function personaNavEnabled(search) {
 }
 const iconFor = (name) => (props) => <TabIcon name={name} className={props.className} />;
 export default function SquadApp() {
-  const context = useSquad(); const location = useLocation(); const navigate = useNavigate();
+  const context = useSquad(); const location = useLocation(); const navigate = useNavigate(); const navigationType = useNavigationType();
   const module = location.pathname.split("/")[2] || "home";
   const persona0 = personaNavEnabled(location.search);
   const boardRole = [1, 2, 3, 4, 10, 11].includes(Number(context.identity.role));
@@ -61,9 +62,14 @@ export default function SquadApp() {
     : navigationFor(context.identity).map((item) => ({ ...item, icon: ICONS[item.key] }));
   const allowed = canVisit(context.identity, location.pathname);
   const personaProps = persona ? { bottomBar: <BottomBar tabs={tabs} activeKey={activeTabKey(tabs, location.pathname + location.search)} onNavigate={navigate} />, rightMenu: <RightMenu identity={context.identity} items={drawer} onNavigate={navigate} onSignOut={context.onSignOut} /> } : {};
-  return <SquadShell {...personaProps} identity={context.identity} navItems={items} activePath={location.pathname + location.search} onNavigate={navigate} onSignOut={context.onSignOut} environment={context.environment} writeState={context.writeState}>
+  const scott = persona && sc1Enabled(context.identity, { search: location.search, storage: globalThis.localStorage, setting: import.meta.env.VITE_SQUAD_SC1_PERSONAS });
+  const activeKey = activeTabKey(tabs, location.pathname + location.search);
+  // Back returns through history; a deep link with no history falls back to the owning tab.
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate(tabs.find((tab) => tab.key === activeKey)?.href ?? landing, { replace: true }));
+  const sc1 = scott ? { title: module === "filtered-orders" ? "Orders" : undefined, tabs, activeKey, menu: drawer.filter((item, index) => drawer.findIndex((other) => other.href === item.href) === index), navigationType, root: isTabRoot(tabs, location.pathname, location.search), onBack: goBack } : null;
+  return <SquadShell {...personaProps} sc1={sc1} identity={context.identity} navItems={items} activePath={location.pathname + location.search} onNavigate={navigate} onSignOut={context.onSignOut} environment={context.environment} writeState={context.writeState}>
     {!allowed ? <ResourceState status="denied" description="Your role does not have access to this workspace." /> : <Suspense fallback={<ResourceState status="loading" />}>
-      {Page && persona && module === "production" ? <QueueStats identity={context.identity}><Page key={location.pathname + location.search} {...context} path={location.pathname} search={location.search} onNavigate={navigate} /></QueueStats> : Page ? <Page key={module==="customers"?location.pathname:location.pathname + location.search} {...context} persona={persona} path={location.pathname} search={location.search} onNavigate={navigate} /> : <ResourceState title="Page not found" description="Choose a workspace from the navigation." />}
+      {Page && persona && module === "production" ? <QueueStats identity={context.identity}><Page key={location.pathname + location.search} {...context} scott={scott} path={location.pathname} search={location.search} onNavigate={navigate} /></QueueStats> : Page ? <Page key={module==="customers"?location.pathname:location.pathname + location.search} {...context} scott={scott} persona={persona} path={location.pathname} search={location.search} onNavigate={navigate} /> : <ResourceState title="Page not found" description="Choose a workspace from the navigation." />}
     </Suspense>}
   </SquadShell>;
 }

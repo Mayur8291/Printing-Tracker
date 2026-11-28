@@ -20,7 +20,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/squad/:path*", "destination": "/index.html" },
+    { "source": "/squad/:path*", "destination": "/squad.html" },
     { "source": "/account/:path*", "destination": "/index.html" }
   ],
   "framework": null,
