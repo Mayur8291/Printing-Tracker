@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowUpRight, ClipboardCheck, PackageCheck, Scissors, Factory } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ClipboardCheck, PackageCheck, Scissors, Factory, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,15 +11,42 @@ import PersonPicker from './PersonPicker';
 import WorkHistory from './WorkHistory';
 import ProductionProgress from './ProductionProgress';
 import { Deliveries } from '../stock/StockPage';
+import { Surface, Card, Badge, Icon } from '../../../scott-one-ui';
+import './production.css';
 const titles = {
   factory: ['Production', 'Follow work from allocation to dispatch.'],
   cutting: ['Cutting', 'Record sizes as work is completed.'],
   inspection: ['Inspection', 'Review assigned work and record inspected quantities.'],
   dispatch: ['Dispatch', 'Prepare and record partial deliveries.']
 };
+const pageClass = scott => scott ? 'space-y-4 sc1-prod' : 'space-y-5';
+/** Scott One title row with optional refresh and status chips. */
+function ScottHead({ title, caption, onRefresh, refreshing, chips, chip, onChip, chipLabel }) {
+  return <Surface skin="core" className="sc1-order-toolbar sc1-work-toolbar">
+    <div className="sc1-order-heading sc1-flush"><h1 className="sc1-type-page">{title}</h1>
+      {onRefresh && <button type="button" className="sc1-icon-button" aria-label="Refresh" disabled={refreshing} onClick={onRefresh}><RefreshCw className={refreshing ? 'size-5 animate-spin motion-reduce:animate-none' : 'size-5'} aria-hidden="true" /></button>}
+    </div>
+    {caption && <p className="sc1-caption">{caption}</p>}
+    {chips && <div className="sc1-chip-rail" role="group" aria-label={chipLabel}>{chips.map(([value, label]) => <button type="button" key={value} className="sc1-rail-chip" aria-pressed={chip === value} onClick={() => onChip(value)}>{label}</button>)}</div>}
+  </Surface>;
+}
+/** One tappable card per queue row; the whole card opens the record. */
+function ScottWorkCard({ title, caption, badges, lines, counts, onOpen }) {
+  return <Card as="article" className="sc1-order sc1-order-tap">
+    <div className="sc1-order-top">
+      <span className="sc1-order-symbol"><Icon name="orders" /></span>
+      <div className="sc1-grow">{caption && <p className="sc1-caption">{caption}</p>}
+        <h2 className="sc1-prod-card-title"><button type="button" className="sc1-order-open" onClick={onOpen}>{title}</button></h2></div>
+      <span className="sc1-order-chevron" aria-hidden="true"><Icon name="chevron-right" size={20} /></span>
+    </div>
+    {badges && <div className="sc1-prod-badges">{badges}</div>}
+    {lines}
+    <dl className="sc1-item-counts" data-columns={counts.length}>{counts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? '—'}</dd></div>)}</dl>
+  </Card>;
+}
 export default function ProductionPage(props) {
   const role = roleOf(props.identity);
-  if (String(props.path).includes('/deliveries') && [4, 7, 10].includes(role)) return <div className="space-y-5"><PageHeader title="Deliveries" description="Recorded dispatches and their original destinations."><Button variant="outline" onClick={() => props.onNavigate('/squad/production/dispatch')}>Dispatch queue</Button></PageHeader><Deliveries {...props} /></div>;
+  if (String(props.path).includes('/deliveries') && [4, 7, 10].includes(role)) return <div className={pageClass(props.scott)}>{props.scott ? <><ScottHead title="Deliveries" /><div className="sc1-order-actions"><Button variant="outline" onClick={() => props.onNavigate('/squad/production/dispatch')}>Dispatch queue</Button></div></> : <PageHeader title="Deliveries" description="Recorded dispatches and their original destinations."><Button variant="outline" onClick={() => props.onNavigate('/squad/production/dispatch')}>Dispatch queue</Button></PageHeader>}<Deliveries {...props} /></div>;
   if (role === 0) return <AdminProductionOverview {...props} />;
   const defaultMode = role === 9 ? 'cutting' : role === 8 ? 'inspection' : [7, 10].includes(role) ? 'dispatch' : 'factory';
   const parts = String(props.path || '').split('/');
@@ -34,7 +61,7 @@ export default function ProductionPage(props) {
     error: new Error('This workspace is not available for your role.'),
     refresh: () => props.onNavigate('/squad')
   }} />;
-  if (!id && mode === 'inspection') return <div className="space-y-5"><PageHeader title="Inspection" description="Review current assigned work and inspected quantities."/><OperationalItemsPanel {...props}/></div>;
+  if (!id && mode === 'inspection') return <div className={pageClass(props.scott)}>{props.scott ? null : <PageHeader title="Inspection" description="Review current assigned work and inspected quantities."/>}<OperationalItemsPanel {...props}/></div>;
   return id ? <ProductionDetail key={`${mode}:${id}`} {...props} mode={mode} id={id} /> : <ProductionQueue key={mode} {...props} mode={mode} />;
 }
 function ProductionQueue({
@@ -42,7 +69,8 @@ function ProductionQueue({
   identity,
   environment,
   onNavigate,
-  mode
+  mode,
+  scott = false
 }) {
   const page = useCursor();
   const [phase, setPhase] = useState(''),
@@ -106,6 +134,30 @@ function ProductionQueue({
     label: 'Status',
     render: r => <div className="flex gap-1">{r.held ? <Status tone="warning">On hold</Status> : <Status>{r.stock_status?.replaceAll('_', ' ') || 'In progress'}</Status>}{r.prime && <Status tone="warning">Priority</Status>}</div>
   }];
+  if (scott) {
+    const searchable = ['cutting', 'dispatch'].includes(mode);
+    const chips = mode === 'factory' ? [['', 'Active work'], ...['unassigned', 'criteria', 'cutting', 'sewing', 'dispatch', 'completed'].map(v => [v, v[0].toUpperCase() + v.slice(1)])] : [['false', 'Pending'], ['true', 'Completed']];
+    const canHistory = [4, 7, 10].includes(roleOf(identity));
+    return <div className={pageClass(scott)}>
+      <ScottHead title={title} onRefresh={query.refresh} refreshing={query.loading} chipLabel={mode === 'factory' ? 'Production phase' : 'Work status'} chips={chips} chip={mode === 'factory' ? phase : String(completed)} onChip={value => {
+        if (mode === 'factory') setPhase(value);else setCompleted(value === 'true');
+        page.reset();
+      }} />
+      {searchable && <form className="sc1-prod-search" onSubmit={e => {
+        e.preventDefault();
+        setOrderId(orderSearch.trim() || null);
+        page.reset();
+      }}><Input aria-label="Order number" inputMode="numeric" pattern="[1-9][0-9]*" placeholder="Order number" value={orderSearch} onChange={e => setOrderSearch(e.target.value)} /><Button variant="outline" type="submit">Find</Button>{orderId && <Button variant="ghost" type="button" onClick={() => {
+          setOrderSearch('');
+          setOrderId(null);
+          page.reset();
+        }}>Clear</Button>}</form>}
+      {(mode === 'factory' || canHistory) && <div className="sc1-order-actions">{mode === 'factory' && <Button variant="outline" onClick={() => onNavigate('/squad/orders')}>Order checklists</Button>}{canHistory && <Button variant="outline" onClick={() => onNavigate('/squad/production/deliveries')}>Delivery history</Button>}</div>}
+      <QueryState query={query} empty={!rows.length} />
+      {!query.loading && !query.error && rows.length > 0 && <Surface skin="core" className="sc1-order-list sc1-prod-list">{rows.map(r => <ScottWorkCard key={r.id} title={`Item #${r.id}`} caption={`Order #${r.order_id}${r.sample ? ' · Sample' : ''}`} onOpen={() => onNavigate(`/squad/production/${mode}/${r.id}`)} badges={<>{r.held ? <Badge tone="warning">On hold</Badge> : <Badge>{r.stock_status ? r.stock_status.charAt(0).toUpperCase() + r.stock_status.slice(1).replaceAll('_', ' ') : 'In progress'}</Badge>}{r.prime && <Badge tone="warning">Priority</Badge>}</>} lines={<p className="sc1-caption">Due <DateText value={r.due_at} /></p>} counts={[['Cut', r.cut], ['Inspected', r[mode === 'factory' ? 'sewn' : 'inspected']], ['Dispatched', r.dispatched]]} />)}</Surface>}
+      <Pagination loading={query.loading} cursor={query.data?.next_cursor} hasPrevious={page.hasPrevious} onPrevious={page.previous} onNext={() => page.next(query.data?.next_cursor)} />
+    </div>;
+  }
   return <div className="space-y-5"><PageHeader title={title} description={description}><RefreshButton onClick={query.refresh} disabled={query.loading} />{mode==='factory'&&<Button variant="outline" onClick={()=>onNavigate('/squad/orders')}>Order checklists</Button>}{[4, 7, 10].includes(roleOf(identity)) && <Button variant="outline" onClick={() => onNavigate('/squad/production/deliveries')}>Delivery history</Button>}</PageHeader><Panel title="Work queue" description="Only work available to your account appears here." actions={mode === 'factory' ? <Select aria-label="Production phase" value={phase} onChange={e => {
       setPhase(e.target.value);
       page.reset();
@@ -122,7 +174,8 @@ function ProductionDetail(props) {
     onNavigate,
     mode,
     id,
-    canWrite
+    canWrite,
+    scott = false
   } = props;
   const role = roleOf(identity),
     page = useCursor();
@@ -154,10 +207,12 @@ function ProductionDetail(props) {
       idempotencyKey: key
     }));
   };
-  return <div className="space-y-5"><Button variant="ghost" onClick={() => onNavigate(`/squad/production/${mode}`)}><ArrowLeft />Back to {titles[mode][0].toLowerCase()}</Button><PageHeader title={`Item #${id}`} description={detail ? `${detail.product?.name ? detail.product.name + ' · ' : ''}Order #${detail.order_id}${detail.sample || detail.sample_order ? ' · Sample' : ''}` : 'Work details'}><RefreshButton onClick={() => {
-        setValues({});
-        query.refresh();
-      }} disabled={query.loading || command.busy} /></PageHeader><QueryState query={query} />{detail && <>{[2, 4, 9].includes(role) && <ProductionProgress sdk={sdk} orderId={detail.order_id} />}<Panel title="Size breakdown" description="Record only the quantities completed in this update."><form onSubmit={submit} className="space-y-4">{mode === 'inspection' ? <DataTable rows={detail.quantities.data} columns={[{
+  const subtitle = detail ? `${detail.product?.name ? detail.product.name + ' · ' : ''}Order #${detail.order_id}${detail.sample || detail.sample_order ? ' · Sample' : ''}` : 'Work details';
+  const refresh = () => {
+    setValues({});
+    query.refresh();
+  };
+  return <div className={pageClass(scott)}><Button variant="ghost" className={scott ? 'sc1-desktop-only' : undefined} onClick={() => onNavigate(`/squad/production/${mode}`)}><ArrowLeft />Back to {titles[mode][0].toLowerCase()}</Button>{scott ? <ScottHead title={`Item #${id}`} caption={subtitle} onRefresh={refresh} refreshing={query.loading || command.busy} /> : <PageHeader title={`Item #${id}`} description={subtitle}><RefreshButton onClick={refresh} disabled={query.loading || command.busy} /></PageHeader>}<QueryState query={query} />{detail && <>{[2, 4, 9].includes(role) && <ProductionProgress sdk={sdk} orderId={detail.order_id} scott={scott} />}<Panel title="Size breakdown" description={scott ? allowed ? 'Enter only what was completed now.' : undefined : "Record only the quantities completed in this update."}><form onSubmit={submit} className="space-y-4">{mode === 'inspection' ? scott ? <ul className="sc1-item-list sc1-prod-sizes">{detail.quantities.data.map(r => <li key={r.id}><div className="sc1-prod-size-head"><strong>{r.size_name || `#${r.id}`}</strong></div><dl className="sc1-item-counts">{[['Planned', r.quantity], ['Assigned', r.assigned], ['Completed', r.completed], ['Dispatched', r.dispatched]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? '—'}</dd></div>)}</dl></li>)}</ul> : <DataTable rows={detail.quantities.data} columns={[{
             key: 'size_name',
             label: 'Size'
           }, {
@@ -172,13 +227,13 @@ function ProductionDetail(props) {
           }, {
             key: 'dispatched',
             label: 'Dispatched'
-          }]} /> : <QuantityEditor rows={detail.quantities.data} values={values} onChange={setValues} mode={mode === 'factory' ? 'assignment' : mode} disabled={!allowed || !canWrite || command.busy} />}<Pagination cursor={detail.quantities.next_cursor} hasPrevious={page.hasPrevious} onPrevious={() => {
+          }]} /> : <QuantityEditor scott={scott} readOnly={!allowed} rows={detail.quantities.data} values={values} onChange={setValues} mode={mode === 'factory' ? 'assignment' : mode} disabled={!allowed || !canWrite || command.busy} />}<Pagination cursor={detail.quantities.next_cursor} hasPrevious={page.hasPrevious} onPrevious={() => {
             setValues({});
             page.previous();
           }} onNext={() => {
             setValues({});
             page.next(detail.quantities.next_cursor);
-          }} /><CommandState command={command} />{allowed && <Field label="Work recorded at" hint="Leave empty to use the current time."><Input type="datetime-local" value={occurredAt} onChange={e => setOccurredAt(e.target.value)} disabled={!canWrite || command.busy} /></Field>}{allowed && <Button type="submit" disabled={!canWrite || command.busy || detail.stock_status === 'needs_reconciliation'}>{mode === 'cutting' ? <Scissors /> : <PackageCheck />}{command.busy ? 'Saving…' : mode === 'cutting' ? 'Record cutting' : 'Record dispatch'}</Button>}</form></Panel>{mode === 'factory' && <FactoryActions {...props} item={detail} />} {mode === 'inspection' && role === 8 && <Inspection {...props} item={detail} />} {mode === 'dispatch' && role === 7 && <DispatchDestination {...props} orderId={detail.order_id} />} {['factory', 'inspection'].includes(mode) && <Criteria {...props} />} {['factory', 'inspection'].includes(mode) && <WorkHistory sdk={sdk} itemId={id} />} {detail.history && <Panel title="Work history"><DataTable rows={detail.history.data} columns={[{
+          }} /><CommandState command={command} />{allowed && <Field label="Work recorded at" hint="Leave empty to use the current time."><Input type="datetime-local" value={occurredAt} onChange={e => setOccurredAt(e.target.value)} disabled={!canWrite || command.busy} /></Field>}{allowed && <Button type="submit" className={scott ? 'sc1-prod-submit' : undefined} disabled={!canWrite || command.busy || detail.stock_status === 'needs_reconciliation'}>{mode === 'cutting' ? <Scissors /> : <PackageCheck />}{command.busy ? 'Saving…' : mode === 'cutting' ? 'Record cutting' : 'Record dispatch'}</Button>}</form></Panel>{mode === 'factory' && <FactoryActions {...props} item={detail} />} {mode === 'inspection' && role === 8 && <Inspection {...props} item={detail} />} {mode === 'dispatch' && role === 7 && <DispatchDestination {...props} orderId={detail.order_id} />} {['factory', 'inspection'].includes(mode) && <Criteria {...props} />} {['factory', 'inspection'].includes(mode) && <WorkHistory sdk={sdk} itemId={id} scott={scott} />} {detail.history && <Panel title="Work history"><DataTable rows={detail.history.data} columns={[{
           key: 'occurred_at',
           label: 'Recorded',
           render: r => <DateText value={r.occurred_at} />
@@ -217,7 +272,8 @@ function FactoryActions({
   identity,
   canWrite,
   environment,
-  item
+  item,
+  scott = false
 }) {
   const role = roleOf(identity);
   const [kind, setKind] = useState('factory'),
@@ -257,18 +313,19 @@ function FactoryActions({
     });
   };
   const assignmentKind = role === 2 ? kind : kind === 'cutter' ? 'cutter' : 'tailor';
-  return <><Panel title={role === 2 ? 'Production assignment' : 'Assign work'} description={role === 2 ? 'Choose the factory or job worker responsible for this order.' : 'Assign a cutter or allocate cut quantities to a tailor.'}><form onSubmit={submit} className="space-y-4"><Field label="Assignment"><Select value={assignmentKind} onChange={e => {
+  return <><Panel title={role === 2 ? 'Production assignment' : 'Assign work'} description={scott ? undefined : role === 2 ? 'Choose the factory or job worker responsible for this order.' : 'Assign a cutter or allocate cut quantities to a tailor.'}><form onSubmit={submit} className="space-y-4"><Field label="Assignment"><Select value={assignmentKind} onChange={e => {
             setKind(e.target.value);
             setPerson('');
           }}>{role === 2 ? <><option value="factory">Factory</option><option value="worker">Job worker</option></> : <><option value="tailor">Tailor / subtailor</option><option value="cutter">Cutting master</option></>}</Select></Field>{assignmentKind === 'tailor' && <Field label="Workforce"><Select value={tailorRole} onChange={e => {
             setTailorRole(Number(e.target.value));
             setPerson('');
-          }}><option value="5">Tailor</option><option value="6">Subtailor</option></Select></Field>}<PersonPicker key={`${assignmentKind}:${tailorRole}`} sdk={sdk} role={assignmentKind === 'factory' ? 4 : assignmentKind === 'worker' ? 11 : assignmentKind === 'cutter' ? 9 : tailorRole} label={assignmentKind.replace('_', ' ')} value={person} onChange={setPerson} disabled={!canWrite || command.busy} />{assignmentKind === 'tailor' && <QuantityEditor rows={item.quantities.data} values={values} onChange={setValues} mode="assignment" disabled={!canWrite || command.busy} />} {['worker', 'tailor'].includes(assignmentKind) && <div className="grid gap-4 sm:grid-cols-2"><Field label="Due date"><Input type="datetime-local" value={due} onChange={e => setDue(e.target.value)} required /></Field>{assignmentKind === 'tailor' && <Field label="Completion target"><Input type="datetime-local" value={completion} onChange={e => setCompletion(e.target.value)} required /></Field>}</div>}{assignmentKind !== 'tailor' && <Field label="Reason"><Textarea value={reason} onChange={e => setReason(e.target.value)} required minLength={3} /></Field>}<CommandState command={command} /><Button disabled={!canWrite || command.busy || !person || order.loading || !!order.error} type="submit"><Factory />{command.busy ? 'Saving…' : 'Save assignment'}</Button><QueryState query={order} /></form></Panel>{order.data && <RatingsPanel sdk={sdk} identity={identity} environment={environment} canWrite={canWrite} entityKind="Item" entityId={item.id} completed={order.data.status === 1} orderType={order.data.type} />}</>;
+          }}><option value="5">Tailor</option><option value="6">Subtailor</option></Select></Field>}<PersonPicker key={`${assignmentKind}:${tailorRole}`} sdk={sdk} role={assignmentKind === 'factory' ? 4 : assignmentKind === 'worker' ? 11 : assignmentKind === 'cutter' ? 9 : tailorRole} label={assignmentKind.replace('_', ' ')} value={person} onChange={setPerson} disabled={!canWrite || command.busy} />{assignmentKind === 'tailor' && <QuantityEditor scott={scott} rows={item.quantities.data} values={values} onChange={setValues} mode="assignment" disabled={!canWrite || command.busy} />} {['worker', 'tailor'].includes(assignmentKind) && <div className="grid gap-4 sm:grid-cols-2"><Field label="Due date"><Input type="datetime-local" value={due} onChange={e => setDue(e.target.value)} required /></Field>{assignmentKind === 'tailor' && <Field label="Completion target"><Input type="datetime-local" value={completion} onChange={e => setCompletion(e.target.value)} required /></Field>}</div>}{assignmentKind !== 'tailor' && <Field label="Reason"><Textarea value={reason} onChange={e => setReason(e.target.value)} required minLength={3} /></Field>}<CommandState command={command} /><Button className={scott ? 'sc1-prod-submit' : undefined} disabled={!canWrite || command.busy || !person || order.loading || !!order.error} type="submit"><Factory />{command.busy ? 'Saving…' : 'Save assignment'}</Button><QueryState query={order} /></form></Panel>{order.data && <RatingsPanel sdk={sdk} identity={identity} environment={environment} canWrite={canWrite} entityKind="Item" entityId={item.id} completed={order.data.status === 1} orderType={order.data.type} scott={scott} />}</>;
 }
 function Inspection({
   sdk,
   item,
-  canWrite
+  canWrite,
+  scott = false
 }) {
   const page = useCursor();
   const query = useOperationQuery(['inspect-work', item.id, item.version, page.cursor], ({sdk}) => sdk.tailorWork({
@@ -286,13 +343,13 @@ function Inspection({
     ...r,
     id: r.item_tailor_quantity_id
   }));
-  return <Panel title="Record inspection" description="Record completed pieces picked from the tailor, matching the original workflow."><QueryState query={query} empty={!rows.length} />{rows.length > 0 && <form className="space-y-4" onSubmit={e => {
+  return <Panel title="Record inspection" description={scott ? 'Completed pieces picked from the tailor.' : "Record completed pieces picked from the tailor, matching the original workflow."}><QueryState query={query} empty={!rows.length} />{rows.length > 0 && <form className="space-y-4" onSubmit={e => {
       e.preventDefault();
       command.run(JSON.stringify([item.version, values, occurredAt]), key => sdk.inspectJobsheet(item.id, quantityRows(rows, values, 'inspection'), occurredAt ? isoDate(occurredAt) : null, {
         expectedVersion: item.version,
         idempotencyKey: key
       }));
-    }}><QuantityEditor rows={rows} values={values} onChange={setValues} mode="inspection" disabled={!canWrite || command.busy} /><Field label="Work recorded at" hint="Leave empty to use the current time."><Input type="datetime-local" value={occurredAt} onChange={e => setOccurredAt(e.target.value)} disabled={!canWrite || command.busy} /></Field><CommandState command={command} /><Button type="submit" disabled={!canWrite || command.busy}><ClipboardCheck />{command.busy ? 'Recording…' : 'Record inspection and pickup'}</Button></form>}<Pagination cursor={query.data?.next_cursor} hasPrevious={page.hasPrevious} onPrevious={() => {
+    }}><QuantityEditor scott={scott} rows={rows} values={values} onChange={setValues} mode="inspection" disabled={!canWrite || command.busy} /><Field label="Work recorded at" hint="Leave empty to use the current time."><Input type="datetime-local" value={occurredAt} onChange={e => setOccurredAt(e.target.value)} disabled={!canWrite || command.busy} /></Field><CommandState command={command} /><Button type="submit" className={scott ? 'sc1-prod-submit' : undefined} disabled={!canWrite || command.busy}><ClipboardCheck />{command.busy ? 'Recording…' : 'Record inspection and pickup'}</Button></form>}<Pagination cursor={query.data?.next_cursor} hasPrevious={page.hasPrevious} onPrevious={() => {
       setValues({});
       page.previous();
     }} onNext={() => {
@@ -304,7 +361,8 @@ function Criteria({
   sdk,
   identity,
   id,
-  canWrite
+  canWrite,
+  scott = false
 }) {
   const page = useCursor(),
     [checks, setChecks] = useState({});
@@ -329,10 +387,10 @@ function Criteria({
           idempotencyKey: key
         });
       });
-    }}>{query.data.records.data.map(row => <label key={row.id} className="flex items-center gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" checked={checks[row.id] ?? row.checked} disabled={!canWrite || ![2, 4].includes(role) || command.busy} onChange={e => setChecks(v => ({
+    }}>{query.data.records.data.map(row => <label key={row.id} className={scott ? 'sc1-prod-check' : "flex items-center gap-3 rounded-lg border p-3 text-sm"}><input type="checkbox" checked={checks[row.id] ?? row.checked} disabled={!canWrite || ![2, 4].includes(role) || command.busy} onChange={e => setChecks(v => ({
           ...v,
           [row.id]: e.target.checked
-        }))} />{row.name || `Check #${row.id}`}</label>)}<CommandState command={command} />{[2, 4].includes(role) && <Button type="submit" disabled={!canWrite || command.busy || !Object.keys(checks).length}>Save checklist</Button>}<Pagination cursor={query.data.records.next_cursor} hasPrevious={page.hasPrevious} onPrevious={() => {
+        }))} />{row.name || `Check #${row.id}`}</label>)}<CommandState command={command} />{[2, 4].includes(role) && <Button type="submit" variant={scott ? 'outline' : undefined} className={scott ? 'sc1-prod-submit' : undefined} disabled={!canWrite || command.busy || !Object.keys(checks).length}>Save checklist</Button>}<Pagination cursor={query.data.records.next_cursor} hasPrevious={page.hasPrevious} onPrevious={() => {
         setChecks({});
         page.previous();
       }} onNext={() => {
@@ -343,7 +401,8 @@ function Criteria({
 function DispatchDestination({
   sdk,
   orderId,
-  canWrite
+  canWrite,
+  scott = false
 }) {
   const query = useOperationQuery(['dispatch-destination', orderId], ({sdk}) => sdk.order(orderId, {
     limit: 1
@@ -360,13 +419,14 @@ function DispatchDestination({
           idempotencyKey: key
         });
       });
-    }}><p className="text-sm text-muted-foreground">Current destination: {query.data.dispatch_destination.mode.replaceAll('_', ' ')}</p>{query.data.dispatch_destination.address && <p className="text-sm">{Object.values(query.data.dispatch_destination.address).slice(1).filter(Boolean).join(', ')}</p>}<Field label="Deliver to"><Select value={mode} onChange={e => setMode(e.target.value)}><option value="">Choose destination</option><option value="customer">Customer order address</option><option value="ho">Head office</option><option value="makali_factory">Makali factory</option></Select></Field><Field label="Reason"><Textarea value={reason} onChange={e => setReason(e.target.value)} required minLength={3} /></Field><CommandState command={command} /><Button disabled={!canWrite || command.busy} type="submit">Save destination</Button></form>}</Panel>;
+    }}><p className="text-sm text-muted-foreground">Current destination: {query.data.dispatch_destination.mode.replaceAll('_', ' ')}</p>{query.data.dispatch_destination.address && <p className="text-sm">{Object.values(query.data.dispatch_destination.address).slice(1).filter(Boolean).join(', ')}</p>}<Field label="Deliver to"><Select value={mode} onChange={e => setMode(e.target.value)}><option value="">Choose destination</option><option value="customer">Customer order address</option><option value="ho">Head office</option><option value="makali_factory">Makali factory</option></Select></Field><Field label="Reason"><Textarea value={reason} onChange={e => setReason(e.target.value)} required minLength={3} /></Field><CommandState command={command} /><Button variant={scott ? 'outline' : undefined} className={scott ? 'sc1-prod-submit' : undefined} disabled={!canWrite || command.busy} type="submit">Save destination</Button></form>}</Panel>;
 }
 function AdminProductionOverview({
   sdk,
   identity,
   environment,
-  onNavigate
+  onNavigate,
+  scott = false
 }) {
   const page = useCursor();
   const [state, setState] = useState('pending');
@@ -378,6 +438,15 @@ function AdminProductionOverview({
     limit: 25
   }));
   const rows = query.data?.data || [];
+  if (scott) return <div className={pageClass(scott)}>
+    <ScottHead title="Production overview" chipLabel="Order status" chips={[['pending', 'Pending'], ['completed', 'Completed']]} chip={state} onChip={value => {
+      setState(value);
+      page.reset();
+    }} />
+    <QueryState query={query} empty={!rows.length} />
+    {rows.length > 0 && <Surface skin="core" className="sc1-order-list sc1-prod-list">{rows.map(r => <ScottWorkCard key={r.id} title={`Order #${r.id}`} onOpen={() => onNavigate(`/squad/orders/${r.id}`)} badges={r.worker_id ? <Badge tone="warning">Also assigned to job worker #{r.worker_id}</Badge> : null} lines={<p className="sc1-caption">Factory manager #{r.factory_manager_id} · Due <DateText value={r.due_on} /></p>} counts={[['Ordered', r.total_quantity], ['Cut', r.cut_quantity], ['Inspected', r.sewn_quantity], ['Dispatched', r.dispatched_quantity]]} />)}</Surface>}
+    <Pagination loading={query.loading} cursor={query.data?.next_cursor} hasPrevious={page.hasPrevious} onPrevious={page.previous} onNext={() => page.next(query.data?.next_cursor)} />
+  </div>;
   return <div className="space-y-5"><PageHeader title="Production overview" description="Review assigned factory orders and their recorded progress." /><Panel title="Factory orders" description="Allocation and work recording remain with their operational personas." actions={<Select aria-label="Order status" value={state} onChange={e => {
       setState(e.target.value);
       page.reset();

@@ -4,6 +4,8 @@ export interface LegacyImportHistory {id:EntityId;legacy:true;kind:'airtable'|'p
 export interface IntegrationProgress {id:string;job_id:string;provider:'dashboard'|'unicommerce';scope:'orders'|'inventory'|'all';generation:string;state:'queued'|'running'|'completed'|'failed'|'expired';enumeration_done:boolean;processed:number;total:number;pending:number;errors:number;changed:number;created_at:string;completed_at:string|null}
 export interface CutoverPreview {ready:boolean;version:string;checks:Record<string,boolean>;blockers:string[];facts:Record<string,unknown>;acceptance:Record<string,unknown>|null;as_of:string}
 export type Version = `${number}:${number}`;
+/** Media versions append a server-generated SHA-256 target fingerprint. */
+export type MediaVersion = `${number}:${number}:${string}`;
 export interface WarehouseSchedule {enabled:boolean;owner_user_id:EntityId|null;generation:string|null;current_generation:string;provider:'dashboard'|'unicommerce'|null;inventory_interval_seconds:120;orders_interval_seconds:300;next_inventory_at:string|null;next_orders_at:string|null;inventory_overdue_seconds:number;orders_overdue_seconds:number;error_code:string|null;version:Version;runs:Array<{id:string;scope:'inventory'|'orders';started_at:string;state:'queued'|'running'|'completed'|'failed'|'expired';processed:string;errors:string;completed_at:string|null}>}
 export interface WeeklyTailorSchedule {enabled:boolean;owner_user_id:EntityId|null;generation:string|null;current_generation:string;next_week_start:string|null;timezone:'Asia/Kolkata';schedule:'Saturday 00:01';error_code:string|null;version:Version;runs:Array<{id:string;generation:string;week_start:string;week_end:string;state:'running'|'queued';queued:number;created_at:string;completed_at:string|null}>}
 export type MailPurpose='price_alert'|'bulk_price_result'|'tailor_weekly';
@@ -14,7 +16,10 @@ export interface RegistrationProfile {first_name:string;last_name:string;company
 export interface AccountProof {requestId:string;email:string;code:string;password:string}
 export interface AccountProofRequest {request_id:string;accepted:true;expires_in:number}
 export interface AccountProofResult {completed:true;user_id:EntityId;email_confirmed:true;login_allowed:boolean;next:'sign_in'|'await_approval'}
+export interface EmailChangeRequestResult {state:'queued'|'unknown'}
+export interface EmailChangeCompletionResult {state:'committed'|'invalid'|'unknown'}
 export interface Command { expectedVersion: Version; idempotencyKey: string }
+export interface MediaCommand { expectedVersion: MediaVersion; idempotencyKey: string }
 export interface CreateCommand { expectedVersion?: null; idempotencyKey: string }
 export interface SavedEntity { id: EntityId; version: Version }
 export interface PageRequest { cursor?: string|null; limit?: number }
@@ -39,13 +44,15 @@ export interface AddressSaved extends SavedEntity {
   commercial_rules:{zone_id:EntityId|null;price_type_id:EntityId|null;candidate_dealer_ids:EntityId[];dealer_link_mode:'additive_legacy';basis:'registered_dealer'|'primary_city'};
 }
 export interface PersonDetail extends Person {
+  /** Scoped exact Distributor price-type classification; absent on older deployments. */
+  dealer_price_type?:boolean|null;
   can_manage:boolean;can_edit_photo:boolean;
   brand_ids?:EntityId[];
   designation:string|null;manager_id?:EntityId|null;parent_tailor_id?:EntityId|null;features?:FeatureGrant[];
   addresses?:Address[];gst_no?:string|null;coordinator_id?:EntityId|null;zone_id?:EntityId|null;price_type_id?:EntityId|null;
   direct_deal?:boolean;auto_approve_customers?:boolean;stock_visibility_percentage?:number;registered_by?:number;dealer_ids?:EntityId[];
   linked_dealers?:Array<{id:EntityId;name:string|null;phone:string|null}>;
-  coordinator_contact?:{id:EntityId;name:string|null;phone:string|null}|null;
+  coordinator_contact?:{id:EntityId;name:string|null;phone:string|null;profile_image?:MediaReference}|null;
   email_confirmed?:boolean;invitation_required?:boolean;archive_dependencies?:string[];account_request?:null|{id:string;state:'queued'|'processing'|'ready'|'blocked'|'failed'|'discarded';error_code:string|null};
 }
 export interface PeopleFilters {
@@ -54,6 +61,7 @@ export interface PeopleFilters {
   factory_id?:EntityId;manager_id?:EntityId;parent_tailor_id?:EntityId;
 }
 export interface Reassignment {people:Array<SavedEntity & {previous_coordinator_id:EntityId|null;coordinator_id:EntityId}>;updated_pending_orders:number;completed_history_preserved:true}
+export type PaymentInstructions = {project_ref:string;auth_id:string;actor_id:EntityId;generation:string;order_id:EntityId} & ({state:'unavailable'}|{state:'available';revision:string;release_sha256:string;account_name:string;bank_name:string;account_number:string;ifsc:string;qr:null|{content_type:'image/png';base64:string;sha256:string;width:number;height:number}});
 export interface CoordinatorRequest extends SavedEntity {customer_id:EntityId;requested_coordinator_id:EntityId;state:'pending'|'approved'|'rejected'}
 export interface CoordinatorRequestDetail extends CoordinatorRequest {customer_version:Version;created_at:string;reason:string|null;decision_reason:string|null}
 export interface CommercialRules {price_type_id?:EntityId|null;stock_visibility_percentage?:number;brand_ids?:EntityId[]}
@@ -65,7 +73,13 @@ export interface OrderFilters {
   customer_id?: EntityId;manager_id?:EntityId;coordinator_id?:EntityId;worker_id?:EntityId; created_from?: string; created_before?: string;
   due_before?: string; search?: string; worker_status?: 0|1;
 }
+export interface OrderIntegration {
+  state:'confirmed'|'legacy_linked'|'queued'|'submitting'|'pending_customer'|'rejected'|'needs_attention'|'blocked_configuration'|'reconciliation_required'|'force_completed_locally'|'not_required'|'not_tracked';
+  provider:string|null;reason:string|null;external_code:string|null;provider_status:string|null;updated_at:string|null;
+}
 export interface OrderSummary {
+  customer_name?: string|null; customer_company_name?: string|null; customer_role?: number|null;
+  customer_dealer_id?: EntityId|null; dealer_name?: string|null; dealer_company_name?: string|null;
   id: EntityId; customer_id: EntityId; status: number; provider_status: string;
   created_at: string; created_on: string|null; due_on: string|null; delivered_on: string|null;
   type: 0|1|2; total_quantity: number; cut_quantity: number; sewn_quantity: number;
@@ -138,16 +152,22 @@ export interface MilestoneProgress {
 export interface ProfileFields {
   name?: string; phone?: string|null; company_name?: string|null;
   first_name?: string|null; last_name?: string|null;
+  /** Customer self-profile only. New nonempty values are normalized to uppercase and must be 15 alphanumeric characters. */
+  gst_no?: string|null;
 }
 export interface Me {
+  profile_image?: MediaReference;
   write_state?: {mode:'mirror'|'test'|'native'|'refresh';allowed:boolean;expires_at:string|null;generation:string};
   id: EntityId; auth_id: string; role: Persona; name: string|null; email: string;
   phone: string|null; company_name: string|null; first_name: string|null; last_name: string|null;
+  gst_no?: string|null;
   approved: boolean|null; onboarded: boolean; version: Version;
   capabilities: Record<'notes'|'goals'|'catalogue'|'configure'|'documents'|'promotions'|'place_orders',boolean>;
 }
 export interface MediaMutation {resource:string;record_id:EntityId;field:string;status:'ready'|'empty';version:string;entity_version:string}
-export interface MediaReference { resource:string;record_id:EntityId;field:string;pointer?:string;status:'ready'|'pending'|'missing'|'external'|'empty' }
+export interface MediaReference { resource:string;record_id:EntityId;field:string;pointer?:string;variant?:'original'|'thumb'|'card'|'detail';status:'ready'|'pending'|'missing'|'external'|'empty' }
+/** Request inputs omit server-owned status and other descriptor fields. */
+export type MediaReferenceInput = Pick<MediaReference,'resource'|'record_id'|'field'|'pointer'|'variant'>;
 export interface CatalogueOption {
   id:EntityId;name:string;position?:number|null;image?:MediaReference;
   base_type_id?:EntityId|null;size_type_id?:EntityId|null;branding_sides?:string|null;
@@ -157,17 +177,30 @@ export interface CatalogueOption {
   asset?:MediaReference;offset_x?:string|null;offset_y?:string|null;mirror_offset_x?:string|null;height_ratio?:string|null;part_id?:EntityId|null;addon_id?:EntityId|null;
   selection_type?:0|1;group?:string;layer_sort?:number;main_category?:string;authorized_brand_id?:EntityId;
 }
+export interface CatalogueSearchOption extends CatalogueOption {destination:{category_id:EntityId;brand_id:EntityId}|null}
 export interface CommercialContext { customer_id:EntityId|null;price_type_id:EntityId|null;basis:'regular'|'zone'|'assigned';stock_visibility_percentage:number;generation:number }
 export interface CatalogueFilters {base_type_id?:EntityId;category_id?:EntityId;search?:string}
 export interface ReadyMadeFilters {brand_id?:EntityId;category_id?:EntityId;color_id?:EntityId;search?:string}
-export interface ReadyMadeClass {id:EntityId;name:string;color_id:EntityId;position:number|null;images:MediaReference[];video:MediaReference}
+/** Complete means all matching SKU rows are included, not that quantities are fresh. */
+export interface ReadyMadeShareStock {state:'complete'|'unavailable';generation:string;items:{sku_id:EntityId;size_id:EntityId;size_name:string|null;availability:ReadyMadeVariant['availability']}[]}
+export interface ReadyMadeShare {stock?:ReadyMadeShareStock;class_id:EntityId;class_name:string|null;brand_id:EntityId;brand_name:string|null;category_id:EntityId;category_name:string|null;color_id:EntityId;color_name:string|null;image:MediaReference|null}
+export type HomeProduct = ReadyMadeClass & {brand_id:EntityId;category_id:EntityId;brand_name:string;category_name:string};
+export type HomeCategory = {id:EntityId;name:string;total_count:number;products:HomeProduct[]};
+export type HomeBrand = {id:EntityId;name:string;image:MediaReference};
+export type HomePage = Page<HomeBrand | HomeCategory | HomeProduct> & {context:CommercialContext};
+export interface ReadyMadeClass {id:EntityId;name:string;color_id:EntityId;position:number|null;images:MediaReference[];video:MediaReference;min_price?:string|null;min_mrp?:string|null;color_name?:string|null;color_code?:string|null;availability?:ReadyMadeVariant['availability']}
 export interface Price {price_id:EntityId;unit_price:string;mrp:string|null;price_type_id:EntityId;fallback:boolean}
 export interface ReadyMadeVariant {
   id:EntityId;name:string;size_id:EntityId;size_name:string;size_position:number|null;brand_id:EntityId;category_id:EntityId;price:Price|null;
   availability:{status:'ready'|'partial'|'stale'|'not_loaded';one_day:number|null;three_day:number|null;as_of:string|null};
 }
 export type ConfiguratorKind='categories'|'fabrics'|'fabric_colors'|'parts'|'part_colors'|'addons'|'addon_colors'|'size_types'|'sizes'|'assets';
-export interface Preset extends SavedEntity {name:string;style_number:string;base_product_id:EntityId;fabric_id:EntityId;category_id:EntityId;branding_enabled:boolean;comment?:string;configuration?:Configuration}
+export interface SavedPresetBranding extends BrandingInput {
+  design_id:EntityId;design_version:Version;comment:string|null;print_area:string|null;
+  media:{image:{ref:MediaReference;sha256:string;version:string};mockup_image:{ref:MediaReference;sha256:string;version:string}|null;attachment:{ref:MediaReference;sha256:string;version:string}|null};
+}
+export type SavedPresetReuse={status:'complete';preset_id:EntityId;preset_version:Version;brandings:SavedPresetBranding[];fingerprint:string}|{status:'unavailable'};
+export interface Preset extends SavedEntity {can_delete?:boolean;name:string;style_number:string;base_product_id:EntityId;fabric_id:EntityId;category_id:EntityId;branding_enabled:boolean;comment?:string;configuration?:Configuration;reuse?:SavedPresetReuse}
 export interface ProductImage extends SavedEntity {comment:string|null;comment_truncated:boolean;image:MediaReference}
 export interface Configuration {
   base_product_id:EntityId;fabric_id:EntityId;fabric_color_id:EntityId;category_id:EntityId;
@@ -186,6 +219,11 @@ export interface OrderPlacement {
   quote_id:string;total_amount:string;paid_amount:string;
   orders:Array<SavedEntity & {items:Array<{line:number;item_id:EntityId}>;total_amount:string;paid_amount:string;rounding_adjustment:string;integration_status:'queued'}>;
 }
+/** Historical command provenance. A committed receipt does not describe provider completion. */
+export type OrderPlacementReceipt = { state:'unknown' } | {
+  state:'committed'; quote_id:string;
+  orders:Array<{ id:EntityId; items:Array<{ line:number; item_id:EntityId }> }>;
+};
 export interface WorkItemSaved extends SavedEntity {order_version:Version}
 export type WorkerStage=0|1|2|3|4|5;
 export type ProductionPhase='unassigned'|'criteria'|'cutting'|'sewing'|'dispatch'|'completed';
@@ -244,12 +282,12 @@ export interface OperationalItemRow {id:EntityId;order_id:EntityId;product_name:
 export interface JobsheetRow {id:EntityId;item_id:EntityId;quantity_id:EntityId;item_tailor_id:EntityId;tailor_id:EntityId;assignment_id:EntityId;assigned:number;inspected:number;picked:number;occurred_at:string}
 export interface TailorWorkRow {id:EntityId;item_id:EntityId;tailor_id:EntityId;item_tailor_quantity_id:EntityId;quantity_id:EntityId;assigned?:number;remaining_before?:number;inspected:number;picked:number;occurred_at:string|null}
 export interface WorkDetailPages {quantityCursor?:string;historyCursor?:string;limit?:number}
-export type QuoteLineInput = ({kind:'custom';quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]} & ({configuration:Configuration;preset_id?:never}|{preset_id:EntityId;configuration?:never}))
+export type QuoteLineInput = ({kind:'custom';quantities:SizeQuantity[];sample?:SizeQuantity|null;brandings?:BrandingInput[]} & ({configuration:Configuration;preset_id?:never;preset_reuse_fingerprint?:never}|{preset_id:EntityId;preset_reuse_fingerprint?:string;configuration?:never}))
   | {kind:'rmp';skus:Array<{sku_id:EntityId;quantity:number}>;brandings?:BrandingInput[]};
 export interface QuoteRequest {customer_id?:EntityId;address_id:EntityId;lines:QuoteLineInput[]}
 export interface QuoteVariant {calculated_unit_price?:string;unit_price:string;quantity:number;sample_rate_applied?:boolean;sku_id?:EntityId;size_id?:EntityId;class_id?:EntityId;brand_id?:EntityId;category_id?:EntityId;price?:Price;display_unit_price?:string}
 export interface QuoteLine {
-  line:number;kind:'custom'|'rmp';configuration:Configuration|null;quantities:NormalizedQuantities|null;
+  line:number;kind:'custom'|'rmp';preset_id?:EntityId;preset_reuse_fingerprint?:string;configuration:Configuration|null;quantities:NormalizedQuantities|null;
   variants:QuoteVariant[];branding:{unit_price:string;placements:Array<BrandingInput & {unit_price:string}>};
   quantity:number;subtotal:string;branding_total:string;cgst:string;sgst:string;igst:string;total:string;
   costs?:Record<string,string>;consumption?:string;
@@ -301,6 +339,9 @@ export interface IntegrationPreferences {version:Version;airtable_enabled:boolea
 export interface SettingsMaster extends SavedEntity {name:string;parent_id:EntityId|null;archived:boolean}
 export interface Promotion {id:EntityId;name:string|null;category:string|null;upload_date:string|null;file_size:string|null;thumbnail:MediaReference|null;content:null|{kind:'external';url:string;provider:'youtube'|'google_drive'|'vimeo'}|{kind:'file';media:MediaReference|null};updated_at:string}
 export interface Banner {id:EntityId;title:string|null;status:string|null;position:number|null;image:MediaReference|null;destination:{brand_id:EntityId|null;category_id:EntityId|null;class_id:EntityId|null};availability:{state:'not_loaded'}}
+export interface BannerDestination {categoryId:EntityId|null;brandId:EntityId|null;classId:EntityId|null}
+/** Returns validated exact decimal strings, or null when absent or invalid. */
+export function parseBannerDestination(destination:unknown):BannerDestination|null;
 export type JobState='pending'|'leased'|'done'|'dead';
 export interface BackgroundJob {
  id:string;event:string;kind:string;entity_id:EntityId;state:JobState;attempts:number;
@@ -327,6 +368,7 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   job(id:string):Promise<BackgroundJob & {recent_attempts:JobAttempt[]}>;
   retryJob(id:string,reason:string,command:Command):Promise<BackgroundJob>;
   audit(filters?:{kind?:string;entityId?:EntityId},page?:PageRequest):Promise<Page<AuditEntry>>;
+  discoverAccount(email:string):Promise<{next:'sign_in'|'register'}>;
   requestRegistration(email:string,profile:RegistrationProfile,requestId:string):Promise<AccountProofRequest>;
   completeRegistration(proof:AccountProof):Promise<AccountProofResult>;
   requestConfirmation(email:string,requestId:string):Promise<AccountProofRequest>;
@@ -335,6 +377,8 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   completeRecovery(proof:AccountProof):Promise<AccountProofResult>;
   invitePerson(id:EntityId,requestId:string):Promise<AccountProofRequest>;
   acceptInvitation(proof:AccountProof):Promise<AccountProofResult>;
+  requestEmailChange(flowId:string,destination:string,expectedVersion:Version):Promise<EmailChangeRequestResult>;
+  completeEmailChange(flowId:string,requestKey:string,code:string):Promise<EmailChangeCompletionResult>;
   saveDevice(installationId:string,platform:"android"|"ios"|"web",token:string,command:Command|CreateCommand):Promise<DeviceBinding>;
   removeDevice(id:string,command:Command):Promise<DeviceBinding>;
   notifications(id?:EntityId|null,page?:PageRequest):Promise<Page<InboxNotification> & {generation:string}>;
@@ -366,19 +410,27 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   requestDocument<K extends DocumentKind>(kind:K,request:DocumentRequestByKind[K],idempotencyKey:string):Promise<{id:string;kind:K;state:'queued';generation:string}>;
   documents(filters?:{kind?:DocumentKind;state?:DocumentState;legacy?:boolean},page?:PageRequest):Promise<Page<GeneratedDocument>>;
   document(id:string):Promise<GeneratedDocument>;
-  reserveDocumentAttachment(file:{filename:string;bytes:number;content_type:'application/pdf'|'image/png'|'image/jpeg'|'text/plain'},idempotencyKey:string):Promise<{upload_id:string;state:string;expected_version:string;upload_url?:string;expires_at?:string;bytes:string;content_type:string}>;
+  reserveDocumentAttachment(file:{filename:string;bytes:number;content_type:'application/pdf'|'image/png'|'image/jpeg'|'text/plain'|'application/msword'},idempotencyKey:string):Promise<{upload_id:string;state:string;expected_version:string;upload_url?:string;expires_at?:string;bytes:string;content_type:string}>;
+  verifyDocumentAttachment(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached';sha256:string;bytes:string;content_type:string}>;
+  /** Optional legacy-DOC capability; unavailable until the dedicated server route is enabled. */
+  verifyLegacyDocumentAttachment(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached';sha256:string;bytes:string;content_type:string}>;
   finalizeDocumentAttachment(uploadId:string,command:Command):Promise<MediaReference & {status:'ready'}>;
+  retryCatalogueEmail(id:string):Promise<{id:string;delivery_state:'pending'|'sent'}>;
   downloadDocument(id:string):Promise<{id:string;url:string;expires_in:120;generation:string;bytes:string;sha256:string}>;
   deliveryFailures(page?:PageRequest):Promise<Page<BackgroundJob>>;
   me(): Promise<Me>;
   /** Customer self-only; requires a recent actual password sign-in session. */
   closeAccount(confirmation:'DELETE MY ACCOUNT',command:Command):Promise<SavedEntity & {state:'closed';sessions_revoked:true;account_reconciliation:'queued'}>;
-  reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:Command):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
-  verifyMediaUpload(uploadId:string,command:Command):Promise<{upload_id:string;state:'verified'|'attached'}>;
+  reserveMediaUpload(target:{resource:string;record_id:EntityId|null;field:string},file:{filename:string;bytes:string;content_type:string},command:MediaCommand):Promise<{upload_id:string;state:string;upload_url?:string;expires_at?:string;bytes?:string;content_type?:string}>;
+  verifyMediaUpload(uploadId:string,command:MediaCommand):Promise<{upload_id:string;state:'verified'|'attached';sha256:string;bytes:string;content_type:string}>;
   setAccountStatus(id:EntityId,action:'enable'|'disable'|'archive',reason:string,command:Command):Promise<{id:EntityId;version:string;state:'enabled'|'disabled'|'archived';account_reconciliation:'queued'}>;
-  finalizeMediaUpload(uploadId:string,command:Command):Promise<MediaMutation>;
-  detachMedia(target:{resource:string;record_id:EntityId;field:string},reason:string,command:Command):Promise<MediaMutation>;
-  mediaGrants(references:Array<Pick<MediaReference,'resource'|'record_id'|'field'|'pointer'>>,options?:{download?:boolean}):Promise<{references:Array<Omit<MediaReference,'status'> & {status:MediaReference['status']|'unavailable'|'external_unavailable';url?:string;expires_in?:number;bytes?:string;content_type?:string;version?:string}>;generation:string;as_of:string}>;
+  finalizeMediaUpload(uploadId:string,command:MediaCommand):Promise<MediaMutation>;
+  detachMedia(target:{resource:string;record_id:EntityId;field:string},reason:string,command:MediaCommand):Promise<MediaMutation>;
+  subscribeMutations(listener:()=>void):()=>void;
+  validateCache(queries:readonly {name:string;args:Record<string,unknown>;hash:string}[]):Promise<{changed:boolean}[]>;
+  cacheRevision():Promise<{revision:string;generation:string;as_of:string;manifest?:boolean;renditions?:boolean;query_validation?:boolean;media_revision?:string}>;
+  mediaManifest(references:MediaReferenceInput[]):ReturnType<ReturnType<typeof createSquadClient>['mediaGrants']>;
+  mediaGrants(references:Array<Pick<MediaReference,'resource'|'record_id'|'field'|'pointer'|'variant'>>,options?:{download?:boolean}):Promise<{references:Array<Omit<MediaReference,'status'> & {status:MediaReference['status']|'unavailable'|'external_unavailable';url?:string;expires_in?:number;bytes?:string;content_type?:string;sha256?:string;version?:string;original_filename?:string|null}>;generation:string;as_of:string}>;
   saveProfile(fields: ProfileFields,command: Command): Promise<Me>;
   people(filters?:PeopleFilters,page?:PageRequest):Promise<Page<Person>>;
   person(id: EntityId): Promise<PersonDetail>;
@@ -390,26 +442,34 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   factories(search?:string,page?:PageRequest):Promise<Page<SavedEntity & {name:string}>>;
   saveFactory(id:EntityId|null,name:string,command:Command|CreateCommand):Promise<SavedEntity & {name:string}>;
   saveAddress(id:EntityId|null,userId:EntityId,fields:AddressFields,command:Command|CreateCommand):Promise<AddressSaved>;
+  createAddressGuarded(userId:EntityId,fields:AddressFields,command:{idempotencyKey:string;expectedPersonVersion:Version}):Promise<AddressSaved>;
+  addressSavedReceipt(userId:EntityId,fields:AddressFields,command:{idempotencyKey:string;expectedPersonVersion:Version}):Promise<{state:'unknown'}|{state:'committed';receipt:AddressSaved}>;
   archiveAddress(id:EntityId,userId:EntityId,command:Command):Promise<AddressSaved>;
   reviewCustomer(id:EntityId,fields:{approved?:boolean;onboarded?:boolean},reason:string,command:Command):Promise<SavedEntity & {approved:boolean|null;onboarded:boolean;account_reconciliation:'queued';commercial_rules:AddressSaved['commercial_rules']}>;
   saveCustomerLinks(id:EntityId,links:{coordinatorId:EntityId;dealerIds:EntityId[];direct:boolean},reason:string,command:Command):Promise<SavedEntity & {coordinator_id:EntityId;dealer_ids:EntityId[];direct:boolean;rerouted_pending_orders:number;integration:'queued'|'unchanged';commercial_rules:Omit<AddressSaved['commercial_rules'],'dealer_link_mode'> & {dealer_link_mode:'explicit'}}>;
   saveDealerRules(id:EntityId,fields:{auto_approve_customers?:boolean;zone_id?:EntityId|null},reason:string,command:Command):Promise<SavedEntity & {rules:{auto_approve_customers?:boolean;zone_id?:EntityId|null};applies_to:'future_onboarding'}>;
   saveCommercialRules(id:EntityId,fields:CommercialRules,reason:string,command:Command):Promise<SavedEntity & {rules:CommercialRules;pricing_applies_to:'future_quotes'}>;
   reassignCustomers(customers:Array<SavedEntity>,coordinatorId:EntityId,reason:string,idempotencyKey:string):Promise<Reassignment>;
+  dealerCustomerCount(search?:string):Promise<{actor_id:EntityId;auth_id:string;generation:string;search:string;count:string}>;
+  paymentInstructions(orderId:EntityId,generation:string):Promise<PaymentInstructions>;
   requestCoordinator(coordinatorId:EntityId,reason:string,idempotencyKey:string):Promise<CoordinatorRequest>;
+  coordinatorRequestReceipt(coordinatorId:EntityId,reason:string,idempotencyKey:string):Promise<{state:'unknown'}|{state:'committed';receipt:CoordinatorRequest}>;
   coordinatorRequests(filters?:{state?:'pending'|'approved'|'rejected'|'all';customerId?:EntityId},page?:PageRequest):Promise<Page<CoordinatorRequestDetail>>;
   decideCoordinatorRequest(id:EntityId,decision:'approved'|'rejected',reason:string,customerVersion:Version,command:Command):Promise<SavedEntity & {state:'approved'|'rejected';assignment:Reassignment|null}>;
   relationshipOptions(kind:'coordinators'|'dealers'|'cities'|'zones'|'price_types'|'brands',context?:{customerId?:EntityId;search?:string},page?:PageRequest):Promise<Page<{id:EntityId;name:string;parent_id:EntityId|null}>>;
   orders(filters?: OrderFilters,page?: PageRequest): Promise<Page<OrderSummary>>;
-  order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {comment:string|null;dispatch_destination:DispatchDestination;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
+  order(id: EntityId,items?: PageRequest): Promise<OrderSummary & {integration?:OrderIntegration|null;comment:string|null;dispatch_destination:DispatchDestination;items:Page<OrderItem>;pending_change:null|{id:string;kind:'cancel'|'delete'|'edit';state:'queued'|'running';created_at:string}}>;
   orderSection<S extends keyof OrderSections>(id:EntityId,section:S,page?:PageRequest):Promise<Page<OrderSections[S]> & {section:S;order_id:EntityId;version:Version;commitment?:WorkerCommitment|null}>;
   ratings(kind:FeedbackEntity,id:EntityId,filters?:{fromId?:EntityId;toId?:EntityId;includeArchived?:boolean},page?:PageRequest):Promise<Page<Rating> & {summary:RatingSummary}>;
   saveRating(id:EntityId|null,kind:FeedbackEntity,entityId:EntityId,toId:EntityId|null,fields:RatingFields,command:Command|CreateCommand):Promise<Rating & {summary:RatingSummary}>;
   archiveRating(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {archived:true;summary:RatingSummary}>;
   dashboard(filters?: OrderFilters): Promise<Dashboard>;
+  orderStats(filters?: OrderFilters, subject?: OrderStatsSubject | null): Promise<OrderStats>;
+  peopleOrderCounts(kind: OrderStatsSubjectKind, ids: EntityId[]): Promise<Record<string, {pending: number; completed: number}>>;
   dealerStock(filters?:DealerStockFilters,context?:{dealerId?:EntityId;customerId?:EntityId},page?:PageRequest):Promise<Page<DealerStockBalance> & {context:{dealer_id:EntityId;customer_id:EntityId;physical:boolean;visibility_percentage:number}}>;
   previewBackorder(orderIds:EntityId[],addressId:EntityId,quantities?:Array<{key:string;size_id:EntityId;quantity:number}>):Promise<BackorderPreview>;
   placeBackorder(previewId:string,dueAt:string,command:Command):Promise<OrderPlacement & {preview_id:string;linked_order_versions:Record<EntityId,Version>;stock_reservation:'none'}>;
+  backorderPlacementReceipt(previewId:string,quoteId:string,dueAt:string,command:Command):Promise<{state:'unknown'}|{state:'committed';receipt:OrderPlacement & {preview_id:string;linked_order_versions:Record<EntityId,Version>;stock_reservation:'none'}}>;
   saveDispatchDestination(id:EntityId,destination:DispatchMode,reason:string,command:Command):Promise<SavedEntity & {destination:DispatchDestination}>;
   deliveries(filters?:{from?:string;before?:string;order_id?:EntityId;customer_id?:EntityId},page?:PageRequest):Promise<Page<Delivery>>;
   salesReport<K extends SalesReportKind>(kind:K,period?:ReportPeriodRequest,filters?:SalesReportFilters,page?:PageRequest):Promise<SalesReport<K>>;
@@ -420,32 +480,43 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   catalogue(kind?:'types'|'categories'|'products',filters?:CatalogueFilters,page?:PageRequest):Promise<Page<CatalogueOption>>;
   baseProduct(id:EntityId):Promise<CatalogueOption>;
   catalogueOptions(kind?:'brands'|'categories'|'sizes'|'price_type'|'main_categories',customerId?:EntityId|null,page?:PageRequest):Promise<Page<CatalogueOption> & {context:CommercialContext}>;
+  searchCatalogueOptions(kind:'categories'|'brands',search:string,customerId?:EntityId|null,page?:PageRequest):Promise<Page<CatalogueSearchOption> & {context:CommercialContext}>;
+  homeCatalogue(brandId?:EntityId|null,categoryId?:EntityId|null,page?:PageRequest):Promise<HomePage>;
+  categoryBrands(categoryId:EntityId,customerId?:EntityId|null,page?:PageRequest):Promise<Page<CatalogueOption> & {context:CommercialContext}>;
   readyMade(filters?:ReadyMadeFilters,customerId?:EntityId|null,page?:PageRequest):Promise<Page<ReadyMadeClass> & {context:CommercialContext}>;
   readyMadeDetail(id:EntityId,customerId?:EntityId|null):Promise<ReadyMadeClass & {context:CommercialContext}>;
+  readyMadeShare(classId:EntityId,brandId:EntityId,categoryId:EntityId,customerId?:EntityId|null):Promise<ReadyMadeShare>;
   readyMadeVariants(classId:EntityId,customerId?:EntityId|null,filters?:ReadyMadeFilters,page?:PageRequest):Promise<Page<ReadyMadeVariant> & {context:CommercialContext}>;
   configuratorOptions(baseId:EntityId,kind:'sizes',selection?:{parentId?:EntityId;partId?:EntityId},page?:PageRequest):Promise<Page<{id:EntityId|null;sc_size_id:EntityId;name:string;position:number|null;available:boolean}>>;
   configuratorOptions(baseId:EntityId,kind:Exclude<ConfiguratorKind,'sizes'>,selection?:{parentId?:EntityId;partId?:EntityId},page?:PageRequest):Promise<Page<CatalogueOption>>;
   validateQuantities(quantities:SizeQuantity[],sample?:SizeQuantity|null):Promise<NormalizedQuantities>;
+  previewCustomPrices(request:CustomPricePreviewRequest):Promise<CustomPricePreview>;
   calculateQuote(request:{lines:QuoteLineInput[]}):Promise<QuoteCalculation & {purpose:'configuration_display_only'}>;
   resolveConfigurationSize(baseId:EntityId,scSizeId:EntityId,idempotencyKey:string):Promise<{id:EntityId;sc_size_id:EntityId;name:string}>;
   quote(request:QuoteRequest):Promise<Quote>;
   catalogueQuote(request:Omit<QuoteRequest,'address_id'>,markup?:Markup):Promise<QuoteCalculation & {markup:Markup;purpose:'catalogue_display_only'}>;
   createCustomProduct(configuration:Configuration,name:string,comment:string,idempotencyKey:string):Promise<SavedEntity & {style_number:string;fingerprint:string;reused:boolean}>;
   configureProduct(configuration:Configuration,name:string,comment:string,idempotencyKey:string):Promise<SavedEntity & {style_number:string;fingerprint:string;reused:boolean}>;
+  createCustomProduct(configuration:Configuration,name:string,comment:string,idempotencyKey:string):Promise<SavedEntity & {style_number:string;fingerprint:string;reused:boolean}>;
   presets(filters?:{id?:EntityId;base_product_id?:EntityId;style_number?:string;search?:string},page?:PageRequest):Promise<Page<Preset>>;
   /** The version is shared with product media mutations; can_edit requires exact ownership. */
   productImages(productId:EntityId,page?:PageRequest):Promise<Page<ProductImage> & {product_id:EntityId;version:Version;can_edit:boolean}>;
   saveProductImageComment(imageId:EntityId,comment:string,command:Command):Promise<ProductImage & {product_id:EntityId}>;
+  deletePresets(presets:Array<{id:EntityId;version:Version}>,idempotencyKey:string):Promise<{deleted:EntityId[]}>;
   renamePreset(id:EntityId,name:string,command:Command):Promise<SavedEntity>;
   saveColor(targetKind:'fabric'|'part'|'addon',targetId:EntityId,name:string,hex:string,idempotencyKey:string):Promise<SavedEntity & {name:string;hex:string;reused:boolean}>;
   overrideQuote(quoteId:string,line:number,unitPrice:string,reason:string,command:Command):Promise<Quote>;
   saveBranding(design:BrandingSaveInput,command:Command|CreateCommand):Promise<SavedEntity & {product_id:EntityId|null}>;
   placeOrder(quoteId:string,details:OrderPlacementDetails,command:Command):Promise<OrderPlacement>;
+  orderPlacementReceipt(idempotencyKey:string,quoteId:string):Promise<OrderPlacementReceipt>;
   editOrder(id:EntityId,quoteId:string,quoteVersion:Version,details:OrderPlacementDetails,reason:string,command:Command):Promise<OrderAmendment>;
   orderItem<S extends ItemSection='quantities'>(id:EntityId,section?:S,page?:PageRequest):Promise<OrderItemDetail<S>>;
+  dealerCustomerOrderItem<S extends ItemSection='quantities'>(customerId:EntityId,orderId:EntityId,itemId:EntityId,section?:S,page?:PageRequest):Promise<OrderItemDetail<S> & {context:{customer_id:EntityId;dealer_id:EntityId;order_id:EntityId}}>;
   saveOrderPriority(id:EntityId,prime:boolean,reason:string,command:Command):Promise<SavedEntity & {is_prime:boolean}>;
   saveOrderDue(id:EntityId,dueAt:string,reason:string,command:Command):Promise<SavedEntity & {due_at:string}>;
   recordOrderPayment(id:EntityId,status:'paid'|'unpaid'|'partial',paidAmount:string,reference:string,command:Command):Promise<SavedEntity & {payment_status:0|1|2;paid_amount:string}>;
+  dealerCancelEligibility(id:EntityId):Promise<SavedEntity & {eligible:boolean}>;
+  dealerFulfillmentCancel(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {state:'queued'|'cancelled';request_id:string|null}>;
   cancelOrder(id:EntityId,kind:'cancel'|'delete',reason:string,command:Command):Promise<SavedEntity & {state:'queued'|'cancelled'|'deleted';request_id:string|null}>;
   forceCompleteOrder(id:EntityId,reason:string,command:Command):Promise<SavedEntity & {status:1;force_completed:true}>;
   assignFactory(id:EntityId,managerId:EntityId|null,reason:string,command:Command):Promise<SavedEntity & {manager_id:EntityId|null;factory_id:EntityId|null}>;
@@ -463,6 +534,7 @@ export function createSquadClient(supabase: RpcTransport): Readonly<{
   cuttingDetail(id:EntityId,pages?:WorkDetailPages):Promise<WorkDetail>;
   dispatchDetail(id:EntityId,pages?:WorkDetailPages):Promise<WorkDetail & Partial<DealerAvailability>>;
   cuttingQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem>>;
+  dispatchQueueFiltered(filters?:{completed?:boolean;orderId?:EntityId;type?:'all'|'custom'|'ready_made';sort?:'created'|'due'},page?:PageRequest):Promise<Page<WorkQueueItem & Partial<DealerAvailability>>>;
   dispatchQueue(filters?:{completed?:boolean;orderId?:EntityId},page?:PageRequest):Promise<Page<WorkQueueItem & Partial<DealerAvailability>>>;
   jobsheets(filters?:{itemId?:EntityId;tailorId?:EntityId},page?:PageRequest):Promise<Page<JobsheetRow>>;
   operationalItems(filters?:{tailorId?:EntityId;completed?:boolean|null;itemId?:EntityId;orderId?:EntityId},page?:PageRequest):Promise<Page<OperationalItemRow>&{status_basis:"item_inspection"|"selected_tailor_assignment"}>;
@@ -492,11 +564,11 @@ export type DocumentState='queued'|'rendering'|'ready'|'failed'|'expired'|'legac
 export interface CatalogueDocumentRequest {
  selection?:{category_ids?:EntityId[];brand_ids?:EntityId[];class_ids?:EntityId[];exclude_category_ids?:EntityId[];exclude_brand_ids?:EntityId[];exclude_class_ids?:EntityId[];parent_category?:string};
  markup?:Markup;company_name?:string;company_desc?:string;display_stock?:boolean;bank_details?:boolean;full_name?:string;account_no?:string;ifsc?:string;
- display_address?:boolean;building_name?:string;area?:string;remarks?:string;terms?:string;terms_reference?:MediaReference;delivery?:'download'|'email';
+ display_address?:boolean;building_name?:string;area?:string;remarks?:string;terms?:string;terms_reference?:MediaReferenceInput;delivery?:'download'|'email';
 }
 export interface DocumentRequestByKind {catalogue:CatalogueDocumentRequest;delivery_challan:{item_id:EntityId;dispatch_id:EntityId;delivery?:'download'|'email'};tailor_weekly:{tailor_id:EntityId;week_start?:string;include_team?:boolean;delivery?:'download'|'email'}}
 export type DocumentRequest=DocumentRequestByKind[DocumentKind];
-export interface GeneratedDocument {id:string;kind:DocumentKind;state:DocumentState;job_id?:string;generation:string;created_at:string;captured_at?:string|null;completed_at?:string|null;expires_at?:string|null;pages?:number|null;bytes?:string|null;error_code?:string|null;snapshot_hash?:string|null;delivery?:'download'|'email';delivery_state?:'not_requested'|'pending'|'sent'|'failed';completed_parts?:number;total_parts?:number|null;media_reference?:MediaReference|null}
+export interface GeneratedDocument {id:string;kind:DocumentKind;state:DocumentState;job_id?:string;generation:string;created_at:string;captured_at?:string|null;completed_at?:string|null;expires_at?:string|null;pages?:number|null;bytes?:string|null;error_code?:string|null;snapshot_hash?:string|null;delivery?:'download'|'email';delivery_state?:'not_requested'|'pending'|'sent'|'failed';completed_parts?:number;total_parts?:number|null;product_count?:number|null;processed_products?:number|null;recipient_email?:string|null;media_reference?:MediaReference|null}
 
 export type CsvImportKind='masters'|'prices'|'zones';
 export type ImportRequest={action?:'validate';upload_id:string;options?:{mapping?:Record<string,string>;match_field?:string;replace_all?:boolean}}|{action:'apply'|'cancel';id:string;version:Version};
@@ -504,3 +576,20 @@ export interface ExportRequest {columns?:string[];include_inactive?:boolean;sear
 export type TransferState='queued'|'validating'|'invalid'|'validated'|'applying'|'exporting'|'completed'|'failed'|'cancelled'|'expired';
 export interface Transfer {id:string;direction:'import'|'export';kind:CsvImportKind|'export';resource:string|null;state:TransferState;job_id:string|null;version:Version;generation:string;total_rows:number;valid_rows:number;invalid_rows:number;applied_rows:number;error_code:string|null;created_at:string;completed_at:string|null;expires_at:string;download_ready:boolean;result:Record<string,unknown>}
 export interface TransferRow {row:number;state:'pending'|'valid'|'invalid'|'applied'|'failed';errors:unknown[];result_id:EntityId|null}
+
+export type OrderStatsSubjectKind = 'sales_coordinator' | 'production_coordinator' | 'factory' | 'customer' | 'job_worker';
+export interface OrderStatsSubject { kind: OrderStatsSubjectKind; id: EntityId }
+/** Flutter-parity counters. `completed` includes cancelled (legacy definition); see `completed_excl_cancelled`. */
+export interface OrderStats {
+  role: number; as_of: string; total_orders: number; pending: number; overdue: number; critical: number;
+  completed: number; completed_excl_cancelled: number; cancelled?: number; pending_criteria?: number;
+  /** Decimal string; present only for roles allowed to see order value (0,1,3,10). */
+  total_value?: string;
+  /** Job worker only. */
+  efficiency?: number; amount_earned?: string;
+}
+
+export type CustomPriceScenario = {quantity:number;sample?:boolean} & ({configuration:Configuration;brandings?:BrandingInput[];preset_id?:never;preset_reuse_fingerprint?:never}|{preset_id:EntityId;preset_reuse_fingerprint?:string;configuration?:never;brandings?:never});
+export interface CustomPricePreviewRequest {customer_id?:EntityId;scenarios:CustomPriceScenario[];include_volume?:boolean}
+export interface CustomVolumePrice {quantity:number;unit_price:string;branding_unit_price:string;sample_rate_applied:boolean;rate_available:boolean;subtotal:string;branding_total:string;total:string}
+export interface CustomPricePreview {purpose:'custom_price_preview';currency:'INR';tax_included:false;context:QuoteCalculation['context'];pricing_version:string;scenarios:{index:number;selection:CustomPriceScenario;prices:CustomVolumePrice[];preset_version:string|null;preset_reuse_fingerprint:string|null}[]}

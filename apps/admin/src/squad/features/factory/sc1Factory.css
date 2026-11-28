@@ -1,0 +1,6 @@
+/* Staff directories, queue counters and the job worker efficiency card. */
+html[data-squad-sc1] .squad-app .sc1-text-action.sc1-factory-queue { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; }
+html[data-squad-sc1] .squad-app .sc1-factory-more button { min-height: 2.75rem; }
+html[data-squad-sc1] .sc1-queue-stats { min-width: 0; }
+/* Only inside the Scott One account sheet. */
+html[data-squad-sc1] .sc1-sheet .sc1-efficiency { padding: 1.125rem; border: 1px solid var(--sc1-line); border-radius: 1.375rem; background: var(--sc1-paper); }

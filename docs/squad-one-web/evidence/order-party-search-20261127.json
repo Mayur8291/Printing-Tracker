@@ -1,0 +1,131 @@
+{
+  "staging-check": {
+    "environment": "staging",
+    "applied": false,
+    "actor_role": 0,
+    "named_orders_checked": 31,
+    "searches": [
+      {
+        "field": "id",
+        "results": 1
+      },
+      {
+        "field": "customer_name",
+        "results": 9
+      },
+      {
+        "field": "customer_company_name",
+        "results": 17
+      },
+      {
+        "field": "dealer_name",
+        "results": 30
+      }
+    ],
+    "private_helper_grants_verified": true,
+    "unknown_order_denied": true,
+    "changed_functions": [
+      "filtered_orders",
+      "order_party_labels",
+      "order_projection"
+    ]
+  },
+  "production-check": {
+    "environment": "production",
+    "applied": false,
+    "actor_role": 1,
+    "named_orders_checked": 31,
+    "searches": [
+      {
+        "field": "id",
+        "results": 1
+      },
+      {
+        "field": "customer_name",
+        "results": 30
+      },
+      {
+        "field": "customer_company_name",
+        "results": 1
+      },
+      {
+        "field": "dealer_name",
+        "results": 30
+      }
+    ],
+    "private_helper_grants_verified": true,
+    "unknown_order_denied": true,
+    "changed_functions": [
+      "filtered_orders",
+      "order_party_labels",
+      "order_projection"
+    ]
+  },
+  "staging-applied": {
+    "environment": "staging",
+    "applied": true,
+    "actor_role": 1,
+    "named_orders_checked": 30,
+    "searches": [
+      {
+        "field": "id",
+        "results": 1
+      },
+      {
+        "field": "customer_name",
+        "results": 1
+      },
+      {
+        "field": "customer_company_name",
+        "results": 30
+      }
+    ],
+    "private_helper_grants_verified": true,
+    "unknown_order_denied": true,
+    "changed_functions": [
+      "filtered_orders",
+      "order_party_labels",
+      "order_projection"
+    ]
+  },
+  "production-applied": {
+    "environment": "production",
+    "applied": true,
+    "actor_role": 1,
+    "named_orders_checked": 31,
+    "searches": [
+      {
+        "field": "id",
+        "results": 1
+      },
+      {
+        "field": "customer_name",
+        "results": 30
+      },
+      {
+        "field": "customer_company_name",
+        "results": 1
+      },
+      {
+        "field": "dealer_name",
+        "results": 30
+      }
+    ],
+    "private_helper_grants_verified": true,
+    "unknown_order_denied": true,
+    "changed_functions": [
+      "filtered_orders",
+      "order_party_labels",
+      "order_projection"
+    ]
+  },
+  "browser": {
+    "names_visible": true,
+    "linked_distributor_visible": true,
+    "debounced_name_search": true,
+    "search_includes_not_yet_loaded_order": true,
+    "clear_restores_list": true,
+    "customer_search": true,
+    "errors": []
+  }
+}

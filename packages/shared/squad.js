@@ -1,4 +1,14 @@
 /** Shared RPC transport for mobile and web. It never exposes a table interface. */
+/** Validate banner IDs as decimal strings without losing integer precision. */
+export function parseBannerDestination(destination) {
+  const result={categoryId:null,brandId:null,classId:null};let count=0;
+  for(const [source,target] of [['brand_id','brandId'],['category_id','categoryId'],['class_id','classId']]){
+    const value=destination?.[source];
+    if(value!=null){const id=String(value);if(!/^[1-9]\d*$/.test(id))return null;result[target]=id;count++;}
+  }
+  return count?result:null;
+}
+
 export class SquadError extends Error {
   constructor(error) {
     super(error.message || "The request could not be completed.");
@@ -10,38 +20,70 @@ export class SquadError extends Error {
 }
 
 // Positive list: binding a query signal must never make a command cancellable.
-const CANCELLABLE_READS=new Set(`v1_me v1_app_bootstrap v1_audit_list v1_base_product_get v1_banners_list v1_catalog_options v1_catalog_tree v1_configurator_options v1_coordinator_requests v1_cutting_detail v1_cutting_queue v1_dashboard v1_dealer_stock v1_deliveries_list v1_delivery_failures v1_dispatch_detail v1_dispatch_queue v1_document_get v1_documents_list v1_factories_list v1_factory_queue v1_import_status v1_integration_get v1_job_get v1_jobs_list v1_jobsheets_list v1_mail_settings_read v1_milestones_list v1_milestone_progress v1_notifications_list v1_operational_items v1_order_get v1_order_item_get v1_orders_list v1_people_list v1_person_get v1_presets_list v1_product_images v1_production_progress v1_promotions_list v1_ratings_list v1_relationship_options v1_responsibilities_list v1_responsibility_get v1_rmp_detail v1_rmp_search v1_rmp_variants v1_sales_coordinator_metrics v1_sales_report v1_settings_read v1_tailor_earnings v1_tailor_leaderboard v1_tailor_work v1_task_assignees v1_task_get v1_tasks_list v1_work_metrics v1_warehouse_schedule_status v1_weekly_tailor_schedule_status v1_airtable_reports_status`.split(' '));
+const CANCELLABLE_READS=new Set(`v1_cache_validate v1_cache_revision v1_home_catalog v1_me v1_app_bootstrap v1_audit_list v1_base_product_get v1_banners_list v1_catalog_options v1_catalog_search_options v1_category_brands v1_catalog_tree v1_configuration_quote v1_configurator_options v1_coordinator_requests v1_coordinator_request_receipt v1_cutting_detail v1_cutting_queue v1_dashboard v1_order_stats v1_people_order_counts v1_dealer_cancel_eligibility v1_dealer_customer_item_get v1_dealer_stock v1_deliveries_list v1_delivery_failures v1_dispatch_detail v1_dispatch_queue v1_dispatch_queue_filtered v1_document_get v1_documents_list v1_factories_list v1_factory_queue v1_import_status v1_integration_get v1_job_get v1_jobs_list v1_jobsheets_list v1_mail_settings_read v1_milestones_list v1_milestone_progress v1_notifications_list v1_operational_items v1_order_get v1_order_item_get v1_order_placement_receipt v1_orders_list v1_people_list v1_dealer_customer_count v1_person_get v1_payment_instructions v1_presets_list v1_product_images v1_production_progress v1_promotions_list v1_ratings_list v1_relationship_options v1_responsibilities_list v1_responsibility_get v1_rmp_detail v1_rmp_share v1_rmp_search v1_rmp_variants v1_sales_coordinator_metrics v1_sales_report v1_settings_read v1_tailor_earnings v1_tailor_leaderboard v1_tailor_work v1_task_assignees v1_task_get v1_tasks_list v1_work_metrics v1_warehouse_schedule_status v1_weekly_tailor_schedule_status v1_airtable_reports_status`.split(' '));
+// React Native's AbortController polyfill may not provide throwIfAborted or reason.
+function checkAborted(signal){
+  if(!signal?.aborted)return;
+  if(signal.reason!==undefined)throw signal.reason;
+  const error=new Error('The operation was aborted');error.name='AbortError';throw error;
+}
 
 /** Keep a command's key and payload unchanged when retrying an uncertain response. */
 export function createSquadClient(supabase, options = {}) {
   const readSignal=options.readSignal;
+  const mutations=options.mutations??new Set();
+  const features=options.features??{renditions:false,manifest:false};
+  const changed=()=>{for(const listener of mutations){try{listener()}catch{}}};
   if(readSignal!==undefined && !(readSignal instanceof AbortSignal))throw new TypeError('A query AbortSignal is required.');
   const api = supabase.schema("canto_api");
   async function call(name, args = {}) {
     if(readSignal){
       if(!CANCELLABLE_READS.has(name)&&!(name==='v1_stock_reconciliation'&&['review','history'].includes(args.p_action)))throw new TypeError('Commands cannot run through a signal-bound read client.');
-      readSignal.throwIfAborted();
+      checkAborted(readSignal);
     }
     const request=api.rpc(name,args);
     const { data, error } = await (readSignal?request.abortSignal(readSignal):request);
-    readSignal?.throwIfAborted();
+    checkAborted(readSignal);
     if (error) throw new SquadError(error);
+    if(!CANCELLABLE_READS.has(name))changed();
+    if(data&&typeof data==='object'&&['v1_home_catalog','v1_catalog_options','v1_category_brands','v1_rmp_search','v1_banners_list','v1_presets_list'].includes(name))Object.defineProperty(data,'__scottQuery',{value:{name,args},configurable:true});
     return data;
   }
   async function account(path, body) {
-    if(readSignal){if(path!=='media/grants')throw new TypeError('Commands cannot run through a signal-bound read client.');readSignal.throwIfAborted();}
+    if(readSignal){if(!['media/grants','media/manifest','documents/download'].includes(path))throw new TypeError('Commands cannot run through a signal-bound read client.');checkAborted(readSignal);}
     const {data,error}=await supabase.functions.invoke(`squad-account/${path}`,{body,...(readSignal?{signal:readSignal}:{})});
-    readSignal?.throwIfAborted();
+    checkAborted(readSignal);
     if(error){
       let code=error.code;
       try { code=(await error.context.clone().json()).error || code; } catch { /* Network errors have no HTTP body. */ }
       throw new SquadError({code:code||"TRANSPORT_ERROR",message:"The account request could not be completed."});
     }
+    if(!['media/grants','media/manifest','documents/download'].includes(path))changed();
     return data;
   }
+  async function mediaRead(path,references,settings={}) {
+    if(path==='media/manifest'&&!features.manifest)path='media/grants';
+    const input=references.map(({resource,record_id,field,pointer,variant})=>({resource,record_id,field,...(pointer!==undefined?{pointer}:{}),...(features.renditions&&variant&&!settings.download?{variant}:{})}));
+    let result;
+    try {result=await account(path,{references:input,...(path==='media/grants'?{download:settings.download??false}:{})});}
+    catch(error){
+      if(!['NOT_FOUND','INVALID_REQUEST','PGRST202'].includes(error.code))throw error;
+      features.manifest=false;features.renditions=false;
+      result=await account('media/grants',{references:input.map(({variant,...ref})=>ref),download:settings.download??false});
+    }
+    return {...result,references:result.references.map((ref,index)=>({...ref,...(references[index]?.variant?{variant:references[index].variant}:{})}))};
+  }
   return Object.freeze({
+    subscribeMutations: listener => {mutations.add(listener);return()=>mutations.delete(listener);},
     /** A new immutable client for this query only; the original remains unbound. */
-    withSignal: (signal) => {if(!(signal instanceof AbortSignal))throw new TypeError('A query AbortSignal is required.');return createSquadClient(supabase,{readSignal:signal});},
+    withSignal: (signal) => {if(!(signal instanceof AbortSignal))throw new TypeError('A query AbortSignal is required.');return createSquadClient(supabase,{readSignal:signal,mutations,features});},
+    discoverAccount: async (email) => {
+      const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),10000);
+      let response;try{response=await supabase.functions.invoke('squad-auth-discover',{body:{email},signal:abort.signal});}finally{clearTimeout(timer)}
+      const {data,error}=response;
+      if(error || !data || !['sign_in','register'].includes(data.next))throw new SquadError({code:'DISCOVERY_UNAVAILABLE',message:'Please try again.'});
+      return {next:data.next};
+    },
     requestRegistration: (email,profile,requestId) => account("register",{action:"request",request_id:requestId,email,profile}),
     completeRegistration: (proof) => account("register",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
     requestConfirmation: (email,requestId) => account("confirm",{action:"request",request_id:requestId,email}),
@@ -50,6 +92,8 @@ export function createSquadClient(supabase, options = {}) {
     completeRecovery: (proof) => account("recovery",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
     invitePerson: (id,requestId) => account("users/invite",{action:"request",request_id:requestId,user_id:id}),
     acceptInvitation: (proof) => account("users/invite",{action:"complete",request_id:proof.requestId,email:proof.email,code:proof.code,password:proof.password}),
+    requestEmailChange: (flowId,destination,expectedVersion) => account("email-change/request",{flow_id:flowId,destination,expected_version:expectedVersion}),
+    completeEmailChange: (flowId,requestKey,code) => account("email-change/complete",{flow_id:flowId,request_key:requestKey,code}),
     me: () => call("v1_me"),
     closeAccount: (confirmation,command) => call("v1_account_close",{p_confirmation:confirmation,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     saveDevice: (installationId,platform,token,command) => call("v1_device_save",{p_installation_id:installationId,p_platform:platform,p_token:token,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
@@ -93,7 +137,10 @@ export function createSquadClient(supabase, options = {}) {
     documents: (filters = {},page = {}) => call("v1_documents_list",{p_kind:filters.kind??null,p_state:filters.state??null,p_legacy:filters.legacy??false,p_cursor:page.cursor??null,p_limit:page.limit??30}),
     document: (id) => call("v1_document_get",{p_id:id}),
     reserveDocumentAttachment: (file,idempotencyKey) => account("documents/attachments",{file,idempotency_key:idempotencyKey}),
+    verifyDocumentAttachment: (uploadId,command) => account("media/verify",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
+    verifyLegacyDocumentAttachment: (uploadId,command) => account("documents/attachments/verify",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     finalizeDocumentAttachment: (uploadId,command) => account("documents/attachments/finalize",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
+    retryCatalogueEmail: (id) => call("v1_catalogue_email_retry",{p_id:id}),
     downloadDocument: (id) => account("documents/download",{id}),
     deliveryFailures: (page = {}) => call("v1_delivery_failures",{p_cursor:page.cursor??null,p_limit:page.limit??30}),
     reserveMediaUpload: (target,file,command) => account("media/uploads",{target,file,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
@@ -101,7 +148,10 @@ export function createSquadClient(supabase, options = {}) {
     setAccountStatus: (id,action,reason,command) => account("users/status",{user_id:id,action,reason,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     finalizeMediaUpload: (uploadId,command) => account("media/finalize",{upload_id:uploadId,expected_version:command.expectedVersion,idempotency_key:command.idempotencyKey}),
     detachMedia: (target,reason,command) => call("v1_media_detach",{p_target:target,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
-    mediaGrants: (references,options = {}) => account("media/grants", {references:references.map(({resource,record_id,field,pointer})=>({resource,record_id,field,...(pointer!==undefined?{pointer}:{})})),download:options.download??false}),
+    validateCache: queries => call('v1_cache_validate',{p_queries:queries}),
+    cacheRevision: async () => {const result=await call('v1_cache_revision');features.renditions=result.renditions===true;features.manifest=result.manifest===true;return result;},
+    mediaManifest: (references) => mediaRead('media/manifest',references),
+    mediaGrants: (references,options={}) => mediaRead('media/grants',references,options),
     jobs: (state = null,page = {}) => call("v1_jobs_list", {p_state:state,p_cursor:page.cursor??null,p_limit:page.limit??25}),
     job: (id) => call("v1_job_get", {p_id:id}),
     retryJob: (id,reason,command) => call("v1_job_retry", {p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
@@ -130,13 +180,18 @@ export function createSquadClient(supabase, options = {}) {
     factories: (search = "",page = {}) => call("v1_factories_list", {p_search:search,p_cursor:page.cursor??null,p_limit:page.limit??30}),
     saveFactory: (id,name,command) => call("v1_factory_save", {p_id:id,p_name:name,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
     saveAddress: (id,userId,fields,command) => call("v1_address_save", {p_id:id,p_user_id:userId,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
+    createAddressGuarded: (userId,fields,command) => call("v1_address_save", {p_id:null,p_user_id:userId,p_fields:fields,p_expected_version:null,p_idempotency_key:command.idempotencyKey,p_expected_person_version:command.expectedPersonVersion}),
+    addressSavedReceipt: (userId,fields,command) => call("v1_address_saved_receipt", {p_key:command.idempotencyKey,p_user_id:userId,p_fields:fields,p_expected_person_version:command.expectedPersonVersion}),
     archiveAddress: (id,userId,command) => call("v1_address_archive", {p_id:id,p_user_id:userId,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     reviewCustomer: (id,fields,reason,command) => call("v1_customer_review", {p_id:id,p_fields:fields,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     saveCustomerLinks: (id,links,reason,command) => call("v1_customer_links_save", {p_id:id,p_coordinator_id:links.coordinatorId,p_dealer_ids:links.dealerIds,p_direct:links.direct,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     saveDealerRules: (id,fields,reason,command) => call("v1_dealer_rules_save", {p_id:id,p_fields:fields,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     saveCommercialRules: (id,fields,reason,command) => call("v1_customer_commercial_rules_save", {p_id:id,p_fields:fields,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     reassignCustomers: (customers,coordinatorId,reason,idempotencyKey) => call("v1_customers_reassign", {p_customers:customers,p_coordinator_id:coordinatorId,p_reason:reason,p_idempotency_key:idempotencyKey}),
+    dealerCustomerCount: (search = "") => call("v1_dealer_customer_count", {p_search:search}),
+    paymentInstructions: (orderId,generation) => call("v1_payment_instructions", {p_order_id:orderId,p_expected_generation:generation}),
     requestCoordinator: (coordinatorId,reason,idempotencyKey) => call("v1_coordinator_change_request", {p_coordinator_id:coordinatorId,p_reason:reason,p_idempotency_key:idempotencyKey}),
+    coordinatorRequestReceipt: (coordinatorId,reason,idempotencyKey) => call("v1_coordinator_request_receipt", {p_key:idempotencyKey,p_coordinator_id:coordinatorId,p_reason:reason}),
     coordinatorRequests: (filters = {},page = {}) => call("v1_coordinator_requests", {p_state:filters.state??"pending",p_customer_id:filters.customerId??null,p_cursor:page.cursor??null,p_limit:page.limit??30}),
     decideCoordinatorRequest: (id,decision,reason,customerVersion,command) => call("v1_coordinator_change_decide", {p_id:id,p_decision:decision,p_reason:reason,p_customer_expected_version:customerVersion,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     relationshipOptions: (kind,context = {},page = {}) => call("v1_relationship_options", {p_kind:kind,p_customer_id:context.customerId??null,p_search:context.search??"",p_cursor:page.cursor??null,p_limit:page.limit??30}),
@@ -151,11 +206,14 @@ export function createSquadClient(supabase, options = {}) {
     saveRating: (id,kind,entityId,toId,fields,command) => call("v1_rating_save", {p_id:id,p_entity_kind:kind,p_entity_id:entityId,p_to_id:toId,p_fields:fields,p_expected_version:command.expectedVersion??null,p_idempotency_key:command.idempotencyKey}),
     archiveRating: (id,reason,command) => call("v1_rating_archive", {p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey}),
     dashboard: (filters = {}) => call("v1_dashboard", { p_filters: filters }),
+    orderStats: (filters = {}, subject = null) => call("v1_order_stats", { p_filters: filters, p_subject_kind: subject?.kind ?? null, p_subject_id: subject?.id ?? null }),
+    peopleOrderCounts: (kind, ids) => call("v1_people_order_counts", { p_kind: kind, p_ids: ids }),
     dealerStock: (filters = {}, context = {}, page = {}) => call("v1_dealer_stock", {
       p_dealer_id:context.dealerId??null,p_customer_id:context.customerId??null,
       p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
     previewBackorder: (orderIds,addressId,quantities) => call("v1_backorder_preview", {p_order_ids:orderIds,p_address_id:addressId,...(quantities===undefined?{}:{p_quantities:quantities})}),
+    backorderPlacementReceipt: (previewId,quoteId,dueAt,command) => call("v1_backorder_placement_receipt", {p_key:command.idempotencyKey,p_preview_id:previewId,p_quote_id:quoteId,p_due_at:dueAt,p_expected_version:command.expectedVersion}),
     placeBackorder: (previewId,dueAt,command) => call("v1_backorder_place", {
       p_preview_id:previewId,p_due_at:dueAt,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
@@ -177,10 +235,18 @@ export function createSquadClient(supabase, options = {}) {
     catalogueOptions: (kind = "brands", customerId = null, page = {}) => call("v1_catalog_options", {
       p_kind:kind,p_customer_id:customerId,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
+    searchCatalogueOptions: (kind, search, customerId = null, page = {}) => call("v1_catalog_search_options", {
+      p_kind:kind,p_search:search,p_customer_id:customerId,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
+    homeCatalogue: (brandId = null, categoryId = null, page = {}) => call("v1_home_catalog", {p_brand_id:brandId,p_category_id:categoryId,p_cursor:page.cursor??null,p_limit:page.limit??12}),
+    categoryBrands: (categoryId, customerId = null, page = {}) => call("v1_category_brands", {
+      p_category_id:categoryId,p_customer_id:customerId,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
     readyMade: (filters = {}, customerId = null, page = {}) => call("v1_rmp_search", {
       p_filters:filters,p_customer_id:customerId,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
     readyMadeDetail: (id,customerId = null) => call("v1_rmp_detail", {p_id:id,p_customer_id:customerId}),
+    readyMadeShare: (classId,brandId,categoryId,customerId = null) => call("v1_rmp_share", {p_class_id:classId,p_brand_id:brandId,p_category_id:categoryId,p_customer_id:customerId}),
     readyMadeVariants: (classId,customerId = null,filters = {},page = {}) => call("v1_rmp_variants", {
       p_class_id:classId,p_customer_id:customerId,p_filters:filters,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
@@ -190,6 +256,7 @@ export function createSquadClient(supabase, options = {}) {
     }),
     validateQuantities: (quantities,sample = null) => call("v1_item_quantity_validate", {p_quantities:quantities,p_sample:sample}),
     quote: (request) => call("v1_quote", {p_request:request}),
+    previewCustomPrices: (request) => call("v1_configuration_quote", {p_request:request}),
     calculateQuote: (request) => call("v1_configuration_quote", {p_request:request}),
     resolveConfigurationSize: (baseId,scSizeId,idempotencyKey) => call("v1_configuration_size_resolve", {p_base_id:baseId,p_sc_size_id:scSizeId,p_idempotency_key:idempotencyKey}),
     catalogueQuote: (request,markup = {kind:"percentage",value:"0"}) => call("v1_catalogue_quote", {p_request:request,p_markup:markup}),
@@ -204,6 +271,7 @@ export function createSquadClient(supabase, options = {}) {
     saveProductImageComment: (imageId,comment,command) => call("v1_product_image_comment", {
       p_image_id:imageId,p_comment:comment,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
+    deletePresets: (presets,idempotencyKey) => call("v1_presets_delete",{p_presets:presets,p_idempotency_key:idempotencyKey}),
     renamePreset: (id,name,command) => call("v1_preset_rename", {
       p_id:id,p_name:name,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
@@ -221,6 +289,9 @@ export function createSquadClient(supabase, options = {}) {
     orderItem: (id,section = "quantities",page = {}) => call("v1_order_item_get", {
       p_id:id,p_section:section,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
+    dealerCustomerOrderItem: (customerId,orderId,itemId,section = "quantities",page = {}) => call("v1_dealer_customer_item_get", {
+      p_customer_id:customerId,p_order_id:orderId,p_item_id:itemId,p_section:section,p_cursor:page.cursor??null,p_limit:page.limit??30
+    }),
     editOrder: (id,quoteId,quoteVersion,details,reason,command) => call("v1_order_edit", {
       p_id:id,p_quote_id:quoteId,p_quote_version:quoteVersion,p_details:details,p_reason:reason,
       p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
@@ -228,6 +299,9 @@ export function createSquadClient(supabase, options = {}) {
     placeOrder: (quoteId,details,command) => call("v1_order_place", {
       p_quote_id:quoteId,p_details:details,p_expected_version:command.expectedVersion,
       p_idempotency_key:command.idempotencyKey
+    }),
+    orderPlacementReceipt: (idempotencyKey,quoteId) => call("v1_order_placement_receipt", {
+      p_key:idempotencyKey,p_quote_id:quoteId
     }),
     saveOrderPriority: (id,prime,reason,command) => call("v1_order_priority_save", {
       p_id:id,p_prime:prime,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
@@ -237,6 +311,10 @@ export function createSquadClient(supabase, options = {}) {
     }),
     recordOrderPayment: (id,status,paidAmount,reference,command) => call("v1_order_payment_record", {
       p_id:id,p_status:status,p_paid_amount:paidAmount,p_reference:reference,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
+    }),
+    dealerCancelEligibility: (id) => call("v1_dealer_cancel_eligibility", {p_id:id}),
+    dealerFulfillmentCancel: (id,reason,command) => call("v1_dealer_fulfillment_cancel", {
+      p_id:id,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
     }),
     cancelOrder: (id,kind,reason,command) => call("v1_order_cancel", {
       p_id:id,p_kind:kind,p_reason:reason,p_expected_version:command.expectedVersion,p_idempotency_key:command.idempotencyKey
@@ -292,6 +370,7 @@ export function createSquadClient(supabase, options = {}) {
     dispatchQueue: (filters = {},page = {}) => call("v1_dispatch_queue", {
       p_completed:filters.completed??false,p_order_id:filters.orderId??null,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),
+    dispatchQueueFiltered: (filters = {},page = {}) => call("v1_dispatch_queue_filtered", {p_completed:filters.completed??false,p_order_id:filters.orderId??null,p_type:filters.type??"all",p_sort:filters.sort??"created",p_cursor:page.cursor??null,p_limit:page.limit??30}),
     jobsheets: (filters = {},page = {}) => call("v1_jobsheets_list", {
       p_item_id:filters.itemId??null,p_tailor_id:filters.tailorId??null,p_cursor:page.cursor??null,p_limit:page.limit??30
     }),

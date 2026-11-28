@@ -50,7 +50,7 @@ export default function ReportsPage(props) {
     error: new Error('This report is not available for your role.'),
     refresh: () => props.onNavigate('/squad/reports')
   }} />;
-  return <div className="space-y-5"><PageHeader title="Reports" description="Business performance and operational progress in your scope." /><div className="flex flex-wrap gap-2">{tabs.map(([key, label]) => <Button key={key} variant={key === tab ? 'default' : 'outline'} onClick={() => props.onNavigate(`/squad/reports/${key}`)}>{label}</Button>)}</div>{tab === 'sales' ? <SalesReport {...props} /> : tab === 'coordinator' ? <CoordinatorReport {...props} /> : tab === 'work' ? <WorkReport {...props} /> : tab === 'leaderboard' ? <Leaderboard {...props} /> : <Earnings {...props} />}</div>;
+  return <div className="space-y-5"><PageHeader title="Reports" description="Business performance and operational progress in your scope." /><div className={props.scott ? "sc1-report-tabs" : "flex flex-wrap gap-2"}>{tabs.map(([key, label]) => <Button key={key} variant={key === tab ? 'default' : 'outline'} onClick={() => props.onNavigate(`/squad/reports/${key}`)}>{label}</Button>)}</div>{tab === 'sales' ? <SalesReport {...props} /> : tab === 'coordinator' ? <CoordinatorReport {...props} /> : tab === 'work' ? <WorkReport {...props} /> : tab === 'leaderboard' ? <Leaderboard {...props} /> : <Earnings {...props} />}</div>;
 }
 function SalesReport({
   sdk,

@@ -1,0 +1,1637 @@
+{
+  "auditedOn": "2026-11-28",
+  "sourceRoot": "/Users/kundan9595gmail.com/Desktop/Development/SC1/Printing-Tracker/apps/mobile",
+  "sourceKind": "local working tree, includes uncommitted mobile work",
+  "method": "Static inventory of UI TSX, excluding test/spec/qa folders; detailed review coverage is in AUDIT.md. Hashes pin actual file contents, not a release claim.",
+  "moduleCounts": {
+    "app": 2,
+    "account": 9,
+    "account-closure": 1,
+    "addresses": 1,
+    "cart": 15,
+    "catalogue": 11,
+    "commerce": 5,
+    "configurator": 39,
+    "coordinator": 2,
+    "dealer-checkout": 1,
+    "delivery-history": 1,
+    "dispatch-history": 1,
+    "documents": 7,
+    "feedback": 7,
+    "fulfillment": 10,
+    "home": 3,
+    "launch": 1,
+    "linked-orders": 4,
+    "notifications": 2,
+    "order-item": 2,
+    "orders": 5,
+    "payment": 4,
+    "people": 9,
+    "policy": 1,
+    "preset": 2,
+    "product-share": 3,
+    "profile": 2,
+    "promotions": 1,
+    "recovery": 1,
+    "stock": 1,
+    "support": 3,
+    "updates": 2,
+    "workspace": 2,
+    "platform": 9,
+    "shell": 1,
+    "ui": 14
+  },
+  "commonLiteralColors": {
+    "#FFFFFF": 38,
+    "#F5F4F0": 9,
+    "#246547": 6,
+    "#37684A": 5,
+    "#F6F5F3": 5,
+    "#F4F3EF": 4,
+    "#ECEBE5": 4,
+    "#BDBFB9": 4,
+    "#F0D7CE": 4,
+    "#FAF9F7": 4,
+    "#14171C": 4,
+    "#F7ADA0": 4,
+    "#191C1B": 3,
+    "#FFFEFB": 3,
+    "#191919": 3,
+    "#F7F6F4": 3,
+    "#FAF9F6": 3,
+    "#ECF3ED": 3,
+    "#E72023": 2,
+    "#E7F2EB": 2,
+    "#FBEDEA": 2,
+    "#C8191F": 2,
+    "#A70D20": 2,
+    "#181A1B": 2,
+    "#E1E0D9": 2,
+    "#FFF0ED": 2,
+    "#202521": 2,
+    "#CE2429": 2,
+    "#EEEFE9": 2,
+    "#7B847B": 2
+  },
+  "files": [
+    {
+      "path": "src/app/_layout.tsx",
+      "sha256": "a5a0a02546056bf8699a7d25e69a5dae10bcc5261ad20f0819320caf91321485",
+      "exports": [
+        "RootLayout"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/app/index.tsx",
+      "sha256": "88c44587617967ed1f91b61a1891ba3bad939d573b2b2bca0e120a653286ec74",
+      "exports": [
+        "Index"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/account/AccountFeedback.tsx",
+      "sha256": "e5710f574bdd796e60025395ce1cf9d46d47062e63073ee05631365b90f59496",
+      "exports": [
+        "AccountFeedbackProvider"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/account/AccountMenuScreen.tsx",
+      "sha256": "aa46366573eaa3f8effc2cdc3fe157922e6b1460801c9383b8eeda4ec20685ac",
+      "exports": [
+        "AccountMenuScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/account/AccountProofScreen.tsx",
+      "sha256": "46e4be6b15609b0edfe866c7e22951604c2d258021b39364c3ae197dcb2c7668",
+      "exports": [
+        "AccountProofScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/account/AccountUI.tsx",
+      "sha256": "86c1c9241ddfecc94dd29b397b82544434ab953fd303e2adb3de07aebe72eb31",
+      "exports": [
+        "AccountPage",
+        "AccountHeader",
+        "AccountCard",
+        "AccountSection",
+        "AccountAvatar",
+        "AccountRow",
+        "AccountNotice",
+        "AccountSkeleton",
+        "StatusBadge",
+        "AccountEmpty"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/account/AuthMarquee.tsx",
+      "sha256": "c7ece9415f0691c3e9f805569545eb7b6e1795a77dc2862894f7d0723ce4a69b",
+      "exports": [
+        "AuthMarquee"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/account/AuthUI.tsx",
+      "sha256": "bb8cc34f6ed5dc7f6c15033932379134ea12825e6650b5f02d64eb57e8718bd1",
+      "exports": [
+        "AuthIcon",
+        "AuthEntrance",
+        "ApparelTiles",
+        "AuthFrame",
+        "AuthHeading",
+        "AuthField",
+        "AuthButton",
+        "AuthLink",
+        "AuthNotice"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/account/EmailChangeHost.tsx",
+      "sha256": "035dc3c3fb557a3b2905ea72dc86f07fd7e7c1c049e56b7f9d626fab151cfb26",
+      "exports": [
+        "EmailChangeHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/account/EmailChangeScreen.tsx",
+      "sha256": "dee394510d08b6b599300e1675da7320577468b50c40fb2aaa163cc7f9af73cd",
+      "exports": [
+        "EmailChangeScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/account/LoginScreen.tsx",
+      "sha256": "6af50cf98bc1a7b84ff2e8ac036439e0ec8c0e3f93fc0ba719e667aa2e03b9f8",
+      "exports": [
+        "LoginScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/account-closure/ClosureScreen.tsx",
+      "sha256": "a3d33caf91ea3b9802c07524ed8ca505f32e6f26f326ba30e53d22c596e4253d",
+      "exports": [
+        "ClosureScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/addresses/AddressScreen.tsx",
+      "sha256": "f7ba1c7fbc02431a660f31c7914899070caf08e3a6148faf20bde80b179ee019",
+      "exports": [
+        "AddressScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/cart/BulkQuantityScreen.tsx",
+      "sha256": "7eebff7b74da40efa52f1ee7bc56d773bbcb416567b73f770c3eb82858e1362f",
+      "exports": [
+        "BulkQuantityScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/BulkSizeCarousel.tsx",
+      "sha256": "c7a119a21e36b94fc05533c6de1de890ecf45fae8bf34f419d5f79d9e754d718",
+      "exports": [
+        "BulkSizeCarousel"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/CartCatalogueHost.tsx",
+      "sha256": "d3c8eb63858e1359889ce72347d46062d7ddf9c24969374938dd3e2eff9b575b",
+      "exports": [
+        "CartCatalogueHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/CartLoading.tsx",
+      "sha256": "e67d78bdd7d640465e551e55a5a6f0973b8aea6e958ff4259ceb8b0925fce933",
+      "exports": [
+        "CartLoading"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/CartPriceDetails.tsx",
+      "sha256": "864b6982f5d82532fabdd9955e8ee2d0b72032e41e6ff4f39321b7e1122de890",
+      "exports": [
+        "CartPriceDetails",
+        "OrderTotals",
+        "CartPriceSummary"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/cart/CartProductVisual.tsx",
+      "sha256": "3502cb76ab0ac866514a1da5653fc7b8f39aaa4d594c079fd7becde1c778b2d0",
+      "exports": [
+        "CartProductVisual"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/CheckoutScreen.tsx",
+      "sha256": "17ba46289e458638dfbc9ffcfafb114ef61f658c4becf077f4a6845b06ccb371",
+      "exports": [
+        "CheckoutScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/cart/DeliverySchedule.tsx",
+      "sha256": "73042dae344d562fcb89f466ca6621b01e2f28bf26e2c30561632a8fa45204f6",
+      "exports": [
+        "DeliverySchedule"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/FloatingCartCard.tsx",
+      "sha256": "3b55015a697ee6aca09f0857491ad0732685d533cf50a5ec210b3e8e7a1ed0db",
+      "exports": [
+        "FloatingCartCard"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/PlacementCheckoutHost.tsx",
+      "sha256": "d721507437e73e1062b2fefb99965ec215f77b6e0d3cc2835115be23ed4eeab9",
+      "exports": [
+        "PlacementCheckoutHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/PurchaseChrome.tsx",
+      "sha256": "2fc74c3b37dbdcea06bd13e5b651f519a6c8e34d841e9f2f8dbbcf17371e43b0",
+      "exports": [
+        "PurchaseProgress",
+        "PurchaseSection",
+        "PurchaseAction",
+        "PurchaseFooter",
+        "PurchaseNotice",
+        "PurchaseLink",
+        "SizeBreakdown",
+        "PurchaseProductHeading"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/cart/RmpBrandingContext.tsx",
+      "sha256": "97f081fc7249568f708faeb6a409589baff541030324fe05e310e1a374b7c8e7",
+      "exports": [
+        "RmpBrandingContext"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/RmpBrandingEditor.tsx",
+      "sha256": "0505e8cc06c9d3cc390bd7cbb80c05cbdace69e7deb6e32de14127a1f753e3a2",
+      "exports": [
+        "RmpBrandingEditor"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/cart/RmpCartScreen.tsx",
+      "sha256": "44dd68300b4b798d18d26e855f3d2c6e91371484a93e442794f60365bddf5ae9",
+      "exports": [
+        "RmpCartScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/cart/RmpQuantityScreen.tsx",
+      "sha256": "6f2791c37377adfd303c2a6ffc6db935fca8a9d6407d85573b619404079f60d8",
+      "exports": [
+        "RmpQuantityScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/catalogue/CatalogueBanners.tsx",
+      "sha256": "3ce82c34bb9a83c16dc04da38b992e4d6ad8e6ce7f2d2f6892159b9caa1198eb",
+      "exports": [
+        "CatalogueBanners"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/catalogue/CatalogueScreen.tsx",
+      "sha256": "ec59c67bd8078862969c6f2cff0d67f77babbdefdbee4a984d45db9afa44f730",
+      "exports": [
+        "CatalogueScreen",
+        "CategoryCard",
+        "ProductRow"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/catalogue/CategoryBrandsScreen.tsx",
+      "sha256": "e25f47cbb15adda8154b7e7a24ea2b09151368827fddb1fd6b6d32dedbdbc42b",
+      "exports": [
+        "CategoryBrandsScreen"
+      ],
+      "hasStyles": true,
+      "auditNote": "Re-read at final packaging after a concurrent local edit; category collection uses r12 cards, p6 and cover imagery."
+    },
+    {
+      "path": "src/features/catalogue/CustomDesignCard.tsx",
+      "sha256": "c8b876fbda46529cccce5a838bda68fa5ffc6918e00615f99ec6737b6a610268",
+      "exports": [
+        "CustomDesignCard"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/catalogue/GalleryViewport.tsx",
+      "sha256": "7b972ef391e6f22ee2ff4306f87ca9b9200c1949ef6d7f0ffbba07ed64463521",
+      "exports": [
+        "GalleryViewport"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/catalogue/GroupedSearchHost.tsx",
+      "sha256": "6bdcf3609d4d1368f57f6c514ba208cec9147a6c55290c414b3f40a12fee8c23",
+      "exports": [
+        "GroupedSearchHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/catalogue/GroupedSearchScreen.tsx",
+      "sha256": "d9b0a5e7fec58e03c66e32383486713bfeac13e57993ae61022c22f26f52f6a5",
+      "exports": [
+        "GroupedSearchScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/catalogue/ProductDetailSkeleton.tsx",
+      "sha256": "d97b8247ce953920b25345f40376266a6cca9d27e2c141dde13b799a953c6724",
+      "exports": [
+        "ProductDetailSkeleton"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/catalogue/ProductFacts.tsx",
+      "sha256": "b48e58e9646fb0f8e5e80efc9240638a9c00d09ceb1925cc5898788f4f7d6385",
+      "exports": [
+        "ProductFacts"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/catalogue/ProductSelectionContext.tsx",
+      "sha256": "f575af5d450d175d7245dbc0ff899e3cd56b89411bd3fec017cd8d663929cccc",
+      "exports": [
+        "ProductSelectionContext"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/catalogue/ReadyMadeDetail.tsx",
+      "sha256": "d983248d137e71d19ea471de30cb721ab7e9fe5655d75a0a1dc4464eb47b52f5",
+      "exports": [
+        "ReadyMadeDetail"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/commerce/CustomCartRecoveryHost.tsx",
+      "sha256": "f215fdc3167690bab31c80f70b41d5d9ebb55c9ed08b12515501a13aad71a95e",
+      "exports": [
+        "CustomCartRecoveryHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/commerce/CustomCartRecoveryScreen.tsx",
+      "sha256": "8b7f90672a8a5d9d39b4313f5592ee67eacd1e41e979be177dbf5ceeb019b7db",
+      "exports": [
+        "CustomCartRecoveryScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/commerce/MixedEstimatePanel.tsx",
+      "sha256": "05e08c9246b7392d9b260ca5d5d1b076bcf2d0b1f1c49747f4ae1ad00cca038d",
+      "exports": [
+        "MixedEstimatePanel"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/commerce/MixedPlacementRecoveryScreen.tsx",
+      "sha256": "223fa95d13acd478346f28d9894aea85c65ae471a346bbc4e163db24402f5622",
+      "exports": [
+        "MixedPlacementRecoveryScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/commerce/SavedQuantityPrice.tsx",
+      "sha256": "c3732d7c55193248b5fe931e55f4044ccc970dc8a21ff72144bd1b770c924856",
+      "exports": [
+        "SavedQuantityPrice"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/AddOnsPanel.tsx",
+      "sha256": "0af16688610204db353853fee5266e5119a5353561ae10f30a5f041e33859c28",
+      "exports": [
+        "AddOnsPanel"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/BaseProductPicker.tsx",
+      "sha256": "889ecdf7f81523b2685b96d6ad67e22ae8f9825424c4a92b76e347ff95b4fa6b",
+      "exports": [
+        "BaseProductPicker"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/BrandingAttachmentStatus.tsx",
+      "sha256": "38be3db5e24f6a7d69940a93ec175d58ab2f5b887e13fbd4a2970cc86b4b0970",
+      "exports": [
+        "BrandingAttachmentStatus"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/BrandingDraftScreen.tsx",
+      "sha256": "1f4ec45da81d2e2f232e776c7f45a5e24be34e5f036863267bb5c5e6f7c1d402",
+      "exports": [
+        "BrandingDraftScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/BrandingMediaScreen.tsx",
+      "sha256": "99a77583ae5452be905102320e51894ba5655a1c86367249f4b29ba0ab9d8687",
+      "exports": [
+        "BrandingMediaScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/BrandingPanel.tsx",
+      "sha256": "0d04bce36e52374c37483474bab34f9e04b193a7a4badf9daf702cbd659d9e22",
+      "exports": [
+        "BrandingPanel"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/BrandingSaveStatus.tsx",
+      "sha256": "a3b75cd36ddd3b0df669d4d34d9a2b705209607d367bdacf8fc3fd30344d81bb",
+      "exports": [
+        "BrandingSaveStatus"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ConfiguratorScreen.tsx",
+      "sha256": "f7590454ff53fb532684480bd579955039ddb1ac48112f752b624393f9682b43",
+      "exports": [
+        "ConfiguratorScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/CreateProductWorkspace.tsx",
+      "sha256": "3d9d3849dc1083a0203a6082483c389f3d11e7aef84c14524c0ea38e46932adf",
+      "exports": [
+        "CreateProductWorkspace"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/CustomDesignReviewScreen.tsx",
+      "sha256": "7b25e2be32e34bb8c0b16e16c4ed04bf2abd623289a5d88866a604d9e561b21b",
+      "exports": [
+        "EstimatePanel",
+        "CustomDesignReviewScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/CustomSizesScreen.tsx",
+      "sha256": "778b2d01068098b338b840875a39d9ef77cea95c951371afa714c7ec778880d0",
+      "exports": [
+        "CustomSizesScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/CustomizerPreloader.tsx",
+      "sha256": "9508b7098f349415e7cf79f374be8fd822cd4a58678957d5ec2f3dc3a3bf3a7d",
+      "exports": [
+        "CustomizerPreloader"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/DesignSaveRecoveryHost.tsx",
+      "sha256": "f67a959d82c91f00d45a1b8914b394c7cc49655ccc6f67bbccd5921a6fe3df3d",
+      "exports": [
+        "DesignSaveRecoveryHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/DesignUnitEstimate.tsx",
+      "sha256": "3233f0cd2982a948712ffa6a9e61c0cee9e42d384cc4736dd687ca41c6dc64bb",
+      "exports": [
+        "DesignUnitEstimate"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/DesignerReferencesScreen.tsx",
+      "sha256": "347376e7a7c440444698f87df424291eff5f12d06c974cba16f08e65f9a7f3cb",
+      "exports": [
+        "DesignerReferencesScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/FabricPanel.tsx",
+      "sha256": "9430a548aa183ef031f0f4c8cc95bf8f0016f6b59aa20f1a4904c95a351eaeae",
+      "exports": [
+        "FabricPanel"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/LiveDesignPreview.tsx",
+      "sha256": "3917fa64540da1a31631b903414b0ba59521e16bc50c2999953cbb97f60c510e",
+      "exports": [
+        "LiveDesignPreview"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/NativePreviewCanvas.tsx",
+      "sha256": "e92b9ec033d627c1093386ab9e4f5b369503b2a20290914966d4abd7ff58effe",
+      "exports": [
+        "NativePreviewCanvas"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/OptionArtwork.tsx",
+      "sha256": "f6d86a2334147c64437572c60f16f7b692bd4718d2c795e2a3ffe1201ed8b551",
+      "exports": [
+        "OptionArtwork"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ParityUI.tsx",
+      "sha256": "ec2a9dcd5251fa2d568367b371669ee6068bce36d193aa73a14cb69ccfac043c",
+      "exports": [
+        "DesignIcon",
+        "ToolFooter",
+        "OptionTile",
+        "ChoiceShimmer",
+        "ColorPicker"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/PartsScreen.tsx",
+      "sha256": "d76fdc23b98e0a78d2d7452f4d4a693b35c69c4e6b26876da5499aa64a02b53c",
+      "exports": [
+        "PartsScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/PresetSaveForm.tsx",
+      "sha256": "c197ec250dd1fa7068f4e7bcd689551f06303d878c9e688a9b4ad02186127518",
+      "exports": [
+        "PresetSaveForm"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/PresetSaveHost.tsx",
+      "sha256": "6b0fd2d3438be09c5d1142b8e371f5ada3958aeec0a7563db5b96fdef98bc09a",
+      "exports": [
+        "PresetSaveHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/PreviewMode.tsx",
+      "sha256": "e1555f8368994c9cb4b0bc92d78fbfdcac3579085986e5a9a072888c3a028a1c",
+      "exports": [
+        "PreviewModeContext",
+        "PreviewModeSwitch"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/PrivateSelectionImage.tsx",
+      "sha256": "c38d0f6cf55d7630eb9447175f0564352ee407ae1a649a495ef5fdc40ef78cd3",
+      "exports": [
+        "PrivateSelectionImage"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ProductDetailsScreen.tsx",
+      "sha256": "2a23b66496b70588aad92479e64f4536a7f4628ce1b55f41752c37c9461b9e63",
+      "exports": [
+        "ProductDetailsScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ReferenceBatchStatus.tsx",
+      "sha256": "b7cfbfb926afd4c3e0ff33abd03031e110d573bba7d36b8cc00aaa6eb156d624",
+      "exports": [
+        "ReferenceBatchStatus"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ReferenceCanvas.tsx",
+      "sha256": "5050bf805b420653d36f44400fe3be5eff76fdd35c5eebc9edb03a84a31cddff",
+      "exports": [
+        "ReferenceCanvas"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ReferenceCropScreen.tsx",
+      "sha256": "29559c0ba9a33dbb44790cf4575df0ce5730531076642f6e97b3bc56e95c4dc0",
+      "exports": [
+        "ReferenceCropScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ReferenceUploadStatus.tsx",
+      "sha256": "42653c4e50f04238b45fe10483603858d539c79b820363fd54cb0ec482cee525",
+      "exports": [
+        "ReferenceUploadStatus"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ReviewWithReferences.tsx",
+      "sha256": "e1c8575c872e3cab19eb370dc2fdf7f1346cb9c68c9db0be240df0635b6d65b5",
+      "exports": [
+        "ReviewWithReferences"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/SavedStudioPreview.tsx",
+      "sha256": "bd7fef20f894046361a94ad0cbc0b356cefead788458c21941448d1fdac4b07d",
+      "exports": [
+        "SavedStudioPreview"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/ScopedDesignPreview.tsx",
+      "sha256": "f7e2609431cad7732d64abfeab340ec34eacfedc3cf19ae2a88d8757b8562c53",
+      "exports": [
+        "ScopedDesignPreview"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/StudioArtworkContext.tsx",
+      "sha256": "07caf280e0ae02fe9f4a21989e8a75bdc6f0a91e3f2efb60ae44c0fc757b3f89",
+      "exports": [
+        "StudioArtworkProvider"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/StudioDesignPreview.tsx",
+      "sha256": "fd10022ff1cce4aa17c35dd9a6f537e5d7625bbe9ceeb43d3ff1129bee219c5c",
+      "exports": [
+        "StudioDesignPreview"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/StudioUI.tsx",
+      "sha256": "06942a3a54ef16d5fb3bec3ea9ff99775461e927387164f1c687e87c6ab86bc5",
+      "exports": [
+        "StudioTabs",
+        "StudioGroupTitle",
+        "StudioOptionCard",
+        "StudioColourRow",
+        "StudioFooter"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/configurator/VolumePricePreview.tsx",
+      "sha256": "ecd83e17b74473c5de576b9cbbaa60d78e9b06f476c25d6e23d01805b6d99f4f",
+      "exports": [
+        "VolumePricePreview"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/WorkspacePreview.tsx",
+      "sha256": "7c95271b190bc5331c0eabfb1f0140685a072e39cb43d63767c91b92e1443a7b",
+      "exports": [
+        "WorkspacePreview"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/configurator/studio3d/Studio3DPreview.tsx",
+      "sha256": "22f7cfffc799a632e5aaea85863047a234950fe952df1bb0ad995f8fc507d93b",
+      "exports": [
+        "Studio3DPreview"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/coordinator/CoordinatorReadScreen.tsx",
+      "sha256": "1cf109ce35e4a72cae7274a7558c42a889fef70e10079dea37d077fedf1e3e40",
+      "exports": [
+        "CoordinatorReadScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/coordinator/CoordinatorRequestPanel.tsx",
+      "sha256": "e2cdf119cf9fe204602454d0792c7bedece80fe7a5897d46ef3da10140f70f60",
+      "exports": [
+        "CoordinatorRequestPanel"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/dealer-checkout/DealerCheckoutReviewScreen.tsx",
+      "sha256": "a23404db192f0622d98fca38b73e93dafa71da6fb7dd0f070caec86cf5d3d62c",
+      "exports": [
+        "DealerCheckoutReviewScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/delivery-history/DeliveryHistoryScreen.tsx",
+      "sha256": "a00d4f8049d043a8140a78d62c70c620e85ab81b7514654834acc28e9bd49201",
+      "exports": [
+        "DeliveryHistoryScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/dispatch-history/DispatchHistoryScreen.tsx",
+      "sha256": "a1267dba1c044c11ad8f99b1d7df43b8ae87473eb429ec239a3e6992b91290e7",
+      "exports": [
+        "DispatchHistoryScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/documents/CatalogueDownloadEntry.tsx",
+      "sha256": "1389905bee778ea965a57bdc841a67d57f3d05c541b73a3e3dccdeeea7c7af55",
+      "exports": [
+        "CatalogueDownloadContext",
+        "CatalogueDownloadEntry"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/documents/CataloguePresentationScreen.tsx",
+      "sha256": "13b118ad2a2c29179dc07ee1807abb9e37589cf1ff52d98bf624245f4252ef2b",
+      "exports": [
+        "CataloguePresentationScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/documents/CatalogueProgressCard.tsx",
+      "sha256": "ae1eebaf9533015cef30713af26cd4b63a4c08978232907a58c1fa8d22027639",
+      "exports": [
+        "CatalogueProgressCard",
+        "CatalogueEmailStatus"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/documents/CatalogueScopeScreen.tsx",
+      "sha256": "d90f100b82857f4fd6af4af5d4be5b75197ca648f989048a8868e850dc210617",
+      "exports": [
+        "CatalogueScopeScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/documents/CatalogueTermsStatus.tsx",
+      "sha256": "a7bd3027db90ac4ae0e1cab118d4b3a6d8e8c9335db7c7e6ada256627469acb7",
+      "exports": [
+        "CatalogueTermsStatus"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/documents/CatalogueUI.tsx",
+      "sha256": "073aba0c2b5cdadef66626ebb915575dc05b4cc6705037152f0234bfae05ae64",
+      "exports": [
+        "CatalogueAction",
+        "CatalogueSwitch",
+        "CatalogueSegments",
+        "CatalogueDelivery"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/documents/DocumentsScreen.tsx",
+      "sha256": "42a0d12eb7966077970331ad92eeba1b7c7f382f2ee9163b5275ff5f49dfe87e",
+      "exports": [
+        "DocumentsScreen",
+        "DocumentStatusScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/feedback/CustomerFeedbackSummary.tsx",
+      "sha256": "1a1766e565c91be58a83fc129baebe357cbfba6d0c1ca9c7aa1bbf7f83ae78ea",
+      "exports": [
+        "CustomerFeedbackSummary",
+        "CustomerFeedbackSheet"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/feedback/FeedbackDraftScreen.tsx",
+      "sha256": "6004e0f6de32f5962d9a8361aedc760d730dd601fac15eb71dc75f3c03cf6265",
+      "exports": [
+        "FeedbackDraftScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/feedback/FeedbackEditor.tsx",
+      "sha256": "9a1067812a954de4adaecddf5182bbff3af04ad0c6af5461df72c0d622b9524c",
+      "exports": [
+        "FeedbackEditor"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/feedback/FeedbackHost.tsx",
+      "sha256": "c7a9851e2710b39de04dd5f3f3745e859ca1582d83e8c2b9182ad6c801cad626",
+      "exports": [
+        "FeedbackHost"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/feedback/FeedbackScreen.tsx",
+      "sha256": "d650f56c14fa2f1944381234b2df1a1ad934ee820a6d5ef36fe27d180b9c9288",
+      "exports": [
+        "FeedbackScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/feedback/FeedbackSheet.tsx",
+      "sha256": "dd31595316f772be315ddf0d55b0fc0256ac6474e0da0c0a4a41737707093c5b",
+      "exports": [
+        "FeedbackSheet"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/feedback/FeedbackStars.tsx",
+      "sha256": "c668e3dec72ea4e46f140e2f892ee499a69f4f31fededc5c19cee3e8bd9c9f95",
+      "exports": [
+        "FeedbackStars"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/fulfillment/ChallanHost.tsx",
+      "sha256": "eee993db1028267cd4d5744eed9e4c3cd5ae2e32bc997491e5e93a1654d1ae5b",
+      "exports": [
+        "ChallanHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/fulfillment/ChallanRecoveryHost.tsx",
+      "sha256": "85ad1d6625c6b7330f31829e99932396a52f0cc574698b65d8238bc378dd720b",
+      "exports": [
+        "ChallanRecoveryHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/fulfillment/DispatchCommandHost.tsx",
+      "sha256": "57a5ed170e406d9dc24689dd87ce2491b01536468245048b8af6ce53944d95ce",
+      "exports": [
+        "DispatchCommandHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/fulfillment/DispatchDraftScreen.tsx",
+      "sha256": "07e9ceb49d9584720e29fae6e0b68c57605bc9f2ebe2f27b40402fbe7c79a468",
+      "exports": [
+        "DispatchDraftScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/fulfillment/FulfillmentCustomerSummary.tsx",
+      "sha256": "8f566f6ae3dc4e537e52d8f8a86abde0c58d7df2b8cc4b8e6b5cb15cbcc8c572",
+      "exports": [
+        "FulfillmentCustomerSummary"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/fulfillment/FulfillmentScreen.tsx",
+      "sha256": "1b5e1fd52e0f6d6c3b5421d2f3ac94ba4992b1b9b14f715c9e07c198d3d72c76",
+      "exports": [
+        "FulfillmentScreen",
+        "FulfillmentDetailScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/fulfillment/LocalDispatchScreen.tsx",
+      "sha256": "2019acefb52e1758caa2892886828f55267b3cc07e9e01e67311e4be7458675c",
+      "exports": [
+        "LocalDispatchScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/fulfillment/cancellation/CancellationHost.tsx",
+      "sha256": "5187d4545505d1a244747b404a699f4221d202a3d99ebdc404e8877ee9940b90",
+      "exports": [
+        "CancellationHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/fulfillment/cancellation/CancellationReceiptNotice.tsx",
+      "sha256": "f565f65b4ff16b242eaae6b9677378d61586490bc765c620c5f1fbf30dd9d4b5",
+      "exports": [
+        "CancellationReceiptNotice"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/fulfillment/cancellation/CancellationReviewScreen.tsx",
+      "sha256": "ec7d4b70fe98cfdb4deb8cb643ccceaf719ad391b4fffc1ee46a7188566de452",
+      "exports": [
+        "CancellationReviewScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/home/BrandHomeScreen.tsx",
+      "sha256": "97cf3efc1d6a73ffe60502dedd124081529e6760c02223cc37b037acc4e21e89",
+      "exports": [
+        "BrandHomeScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/home/HomeDiscovery.tsx",
+      "sha256": "1ca866b8c4197fc4d82302fe9e2d796d556924773786da8ac280b110bf95306b",
+      "exports": [
+        "HomeDiscovery"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/home/HomeFade.tsx",
+      "sha256": "04d81bfcfcc335db81d06f1ff41ccc5e0308923ff90d095a8dbbe7da25700641",
+      "exports": [
+        "HomeFade"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/launch/ScottLaunchScreen.tsx",
+      "sha256": "806fc04b20f2fbb2e0bd441d5f9d904ea0b53793d2afea7bb53d4920d65ca229",
+      "exports": [
+        "SCOTT_LAUNCH_RED",
+        "ScottLaunchScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/linked-orders/BulkPreparationScreen.tsx",
+      "sha256": "b285c41e83df57e83c4cc3dfea817a96de530b3691d416fb009fd3006ffb3f18",
+      "exports": [
+        "BulkPreparationScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/linked-orders/BulkPurchaseHost.tsx",
+      "sha256": "d9091f6fb58f3d8072d428be9ddb1a1636f33b9227192f53d650e85d8294c3ac",
+      "exports": [
+        "BulkPurchaseHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/linked-orders/DealerCustomerItemHost.tsx",
+      "sha256": "a4b47b89b6b932c4b304179b0566047c844621087a2ed633d09a9688490ede28",
+      "exports": [
+        "DealerCustomerItemHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/linked-orders/LinkedOrdersScreen.tsx",
+      "sha256": "fd34aa92f9d7f2d73626d03c184f3f3143edde2750ab910aaaa02d1f442d560d",
+      "exports": [
+        "LinkedOrdersScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/notifications/FcmPermissionHost.tsx",
+      "sha256": "18e613bb0e6e89e9a155bc4ce4564bb84228bc96f0c4ec8ba62c9f56c1dcd20c",
+      "exports": [
+        "FcmPermissionHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/notifications/InboxScreen.tsx",
+      "sha256": "06858e8ff58d47f49134aa91fec3faec9cc91c0f12e34b89a7c69ecd7cdb1c25",
+      "exports": [
+        "InboxScreen",
+        "InboxDetailScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/order-item/OrderItemMediaHost.tsx",
+      "sha256": "26c552c53f2acb0a2dc5b3259fb98e56e16057891643494ddbb8a64c420f6a73",
+      "exports": [
+        "OrderItemMediaHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/order-item/OrderItemScreen.tsx",
+      "sha256": "c850c8b77ccf5a77fb152646ab52e4efeb82ad6f5bd059c48daf40b35de176fe",
+      "exports": [
+        "OrderItemScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/orders/OrderDetailScreen.tsx",
+      "sha256": "caaccc678cc570eb3f6ba11622dbf44920636c3130f6219712481830b63d30bd",
+      "exports": [
+        "OrderDetailScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/orders/OrderIntegrationNotice.tsx",
+      "sha256": "9234c45c02e1f29fb9e922a3281408587c46af4e0e1bf7a82ce2fad0017275ef",
+      "exports": [
+        "OrderIntegrationNotice"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/orders/OrderProductCard.tsx",
+      "sha256": "a5f4c45f0de3a321c4a590103b4ea1b9dd8f187949965d96b5047699f9d8931e",
+      "exports": [
+        "OrderProductCard"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/orders/OrderProgressCard.tsx",
+      "sha256": "8cb53cd419efb70a8413ed415d7e6263ea5fa77b1ca967757d07d990a6d18976",
+      "exports": [
+        "OrderProgressCard"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/orders/OrdersScreen.tsx",
+      "sha256": "93b7acc95b72df32ab1a96a5f9d12bad6fb94878bc805b6d8f42db92e3a57e7b",
+      "exports": [
+        "OrdersScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/payment/OrderPaymentAction.tsx",
+      "sha256": "a8c71f9d68e098cab3c138a46377ddbf8bb0f413313e4292da03711ffb65d0e1",
+      "exports": [
+        "OrderPaymentAction"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/payment/PaymentInstructionsHost.tsx",
+      "sha256": "16cba0bb4b28fd144052e4c565d4564cc8ebc441364f340545b500731bce6adb",
+      "exports": [
+        "PaymentInstructionsHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/payment/PaymentInstructionsScreen.tsx",
+      "sha256": "b1c739cce1cd9554554f2afbf6ed1da8cca0882920e04c3cda572f262b8ef17b",
+      "exports": [
+        "PaymentInstructionsScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/payment/PlacedOrderSummaryScreen.tsx",
+      "sha256": "fbde8df21312debb757b6cd83e5b006ebd141c5fb2d7039a54dd486d15c524e6",
+      "exports": [
+        "PlacedOrderSummaryScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/people/CustomerEditorScreen.tsx",
+      "sha256": "8d38d4405efc9d401cbc41452ab93a3c26f4bf27e238d7f6a790d8d722bde97c",
+      "exports": [
+        "CustomerEditorScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/people/CustomerReceiptNotice.tsx",
+      "sha256": "37d4653d03b96c06c89d6ab4105d58bb4797670b455f152c2e7671f70abbab9e",
+      "exports": [
+        "CustomerReceiptNotice"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/people/CustomersScreen.tsx",
+      "sha256": "0e989c7bcf63f6d1a1c88a99a723a30d563811dfadadf2f3b061f6823b0481c8",
+      "exports": [
+        "CustomersScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/people/DealerCustomerDetail.tsx",
+      "sha256": "561439fc0d52bbfde7cd450ceb35f5b2689920f10040c6bbcecbe15cbe5128dd",
+      "exports": [
+        "DealerCustomerDetail"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/people/ManagedCustomerAddressHost.tsx",
+      "sha256": "cce57c2797dd3898b5d04afc5999ffc5aed066ecc2a3aa49e5032c0a35ec23dc",
+      "exports": [
+        "ManagedCustomerAddressHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/people/StaffAddressFields.tsx",
+      "sha256": "164248c0553a550706e7122dafe820e924886e4162bb3a4c1210bd64dc2fff14",
+      "exports": [
+        "StaffAddressFields"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/people/StaffCustomersWorkspace.tsx",
+      "sha256": "9d8ca59976015f813f6f715fbe424ea6e29167236e21e24234b43a2dd4860fe0",
+      "exports": [
+        "StaffCustomersWorkspace"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/people/StaffRelationshipField.tsx",
+      "sha256": "99989fe5882a1f0e9c651489f2bc31b1e8989a737a063aac354b51d99fec16bd",
+      "exports": [
+        "StaffRelationshipField"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/people/customer-editor-host.tsx",
+      "sha256": "b5ee81f9d1dfb9f1a317e05b22210009c07facbd7ffb765e1b2117f630c80821",
+      "exports": [
+        "CustomerEditorHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/policy/StaffHandoffScreen.tsx",
+      "sha256": "d5b453dbb5b85278e7f2e1509c9dc5f529d9e8540348e6f61a6c094f8eed3770",
+      "exports": [
+        "StaffHandoffScreen"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/preset/PresetBatchCheckout.tsx",
+      "sha256": "d087c34c8abcef8b033b0ad3becbdb9489fb8a8e7e52fd950e013b41d9c56f18",
+      "exports": [
+        "PresetBatchCheckout"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/preset/PresetScreen.tsx",
+      "sha256": "5c357ba40641bdfd7ddb9d6fee234386cb29cfc12f6634093a203a4a366439bd",
+      "exports": [
+        "PresetScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/product-share/DirectProductShare.tsx",
+      "sha256": "2b8e07de942f2dd247b161e5336303b5dfcfc0b183194074cede85359386fb97",
+      "exports": [
+        "DirectProductShare"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/product-share/ProductShareAction.tsx",
+      "sha256": "abe3572f1736c554a26ffc6851dff77e4a2b2aca8740a9954062f3583af6196b",
+      "exports": [
+        "ProductShareAction"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/product-share/ProductShareReviewScreen.tsx",
+      "sha256": "435869f6927ce188d5fb84fddfcc5caeea8fa0623b0270efd2a32faac6702be7",
+      "exports": [
+        "ProductShareReviewScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/profile/ProfilePhotoScreen.tsx",
+      "sha256": "7326a273c6feba57a7166ab96f23c1dcb798a35e8071f52146493662f7ad9a95",
+      "exports": [
+        "ProfilePhotoScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/profile/ProfileScreen.tsx",
+      "sha256": "93c07f19e9790793f8f189b29b56a2a8166cb2081b74aedfff24d9d0af13d83f",
+      "exports": [
+        "ProfileScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/promotions/PromotionsScreen.tsx",
+      "sha256": "f77c88950019112069ad9daadc759a4eddac7fbc2aa42fd80b40e71ad4cd182d",
+      "exports": [
+        "PromotionsScreen",
+        "PromotionDetailScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/recovery/RecoveryWorkspace.tsx",
+      "sha256": "c5b911b19b641e75b4e4b2ad5c86e6fe6ded0b65e82bb549fb9aad6464a6cab4",
+      "exports": [
+        "RecoveryWorkspace"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/stock/DealerStockScreen.tsx",
+      "sha256": "b9aac70327f026c210da4f4d625dcf0fdab9fa24fb3b9af130364ae9e550e602",
+      "exports": [
+        "DealerStockScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/support/CoordinatorQuickContact.tsx",
+      "sha256": "86465190deb0413cdc9326bd17b061d5f63e60810a6dae2b6c7621dd68965d08",
+      "exports": [
+        "CoordinatorQuickContact"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/support/SupportHost.tsx",
+      "sha256": "1c34be40068ca72af820d2d82d319e4532df939beb0833285d64a62a94eed885",
+      "exports": [
+        "SupportHost"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/support/SupportScreen.tsx",
+      "sha256": "9c761a386dfaa61aba2749c710d233760cf97179805b6e4579397c5ef920e02b",
+      "exports": [
+        "SupportScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/updates/BuildInformationScreen.tsx",
+      "sha256": "202b4824ed5d9ee84da0f6301b6824bf0b80b9d305f38ff533ea62a4e4f26921",
+      "exports": [
+        "BuildInformationScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/updates/UpdateScreen.tsx",
+      "sha256": "20e30e7b27a3c44c4aa02a477b7d687071c421513e968ed43b9c769a79f2c4fb",
+      "exports": [
+        "UpdateScreen"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/features/workspace/CategoryNavigation.tsx",
+      "sha256": "3c08d60346bf79fcc4dc43e50f3d7327eccf57f4b622bfbb7a7c7352be354308",
+      "exports": [
+        "CategoryNavigation"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/features/workspace/Workspace.tsx",
+      "sha256": "9dff7d980a5fb444e97e711cbabebfefab87ca86656e3b0fc5d96f02fa946cfa",
+      "exports": [
+        "Workspace"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/platform/cache/CacheReconciler.tsx",
+      "sha256": "3cf85ae516f614cd0dfa1d0e4fb160bf796c623c3889c6c24ff664b4f9c0154e",
+      "exports": [
+        "CacheReconciler"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/platform/cache/ReadCacheContext.tsx",
+      "sha256": "8844c4015986b7476d3cbf10afae1f0dff563d6cdb9aab723a44dd9addca7517",
+      "exports": [
+        "ReadCacheProvider"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/platform/cache/RetainedWorkspace.tsx",
+      "sha256": "43f247c6bc5cae066ca73e91dd4c1e527cbc541bc462cbdcbe21c5d65b4645e3",
+      "exports": [
+        "RetainedWorkspace"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/platform/images/CachedImage.tsx",
+      "sha256": "2d81d8aacfd71da2e1b155c0937633ec3231ce46ad1e29479ce6eaee3d6318df",
+      "exports": [
+        "CachedImage"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/platform/images/ImageContext.tsx",
+      "sha256": "de51336c31bb05349409b2004b49f22666331f19bd8803263c33bad5d826f7f3",
+      "exports": [
+        "ScopedImagesProvider"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/platform/images/ProductImagePreview.tsx",
+      "sha256": "c2bb0e3334fb083948cf04be25528f43218a0de2d84143e92efe751b78f3d8ac",
+      "exports": [
+        "ProductImagePreview"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/platform/images/ScopedImage.tsx",
+      "sha256": "fb04352e9326241c08cfc39dbb95fb4b2832ffdbe89bd67c6702a40d8bb80ed3",
+      "exports": [
+        "IMAGE_LOADING_LIMIT_MS",
+        "ScopedImage"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/platform/network/ConnectivityNotice.tsx",
+      "sha256": "8ba00ddf606ad6911d2e749ac334d3b980b6b79552c538afffa41b28caef50f2",
+      "exports": [
+        "ConnectivityNotice"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/platform/updates/OtaUpdateNotice.tsx",
+      "sha256": "27eaa32f7b7cc06c471ec1511e5cad1aaa1eb9e60341f3519f471933ac32a8ae",
+      "exports": [
+        "OtaUpdateNotice"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/shell/PersonaShell.tsx",
+      "sha256": "2a8f22a0a222eb0bce9ec916bd8a96befc6416be58492a3a710bcb0f5ba715cc",
+      "exports": [
+        "CHROME_MAX_FONT_SCALE",
+        "PersonaShell"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/BackButton.tsx",
+      "sha256": "962b0a9d7d4b4ff1e4a142d5df0356f0d66131b3ea78f2671bc9075124352975",
+      "exports": [
+        "BackButton"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/EditorModal.tsx",
+      "sha256": "4664f2d69c3208d11253bb65e51bf470b95df973986f011fdb959734a3469a13",
+      "exports": [
+        "EditorModal"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/ui/GlassSurface.tsx",
+      "sha256": "6677b75c237733975b18fd42564e777fe872dc7ab231977ec73c670be9f1a9d5",
+      "exports": [
+        "GlassSurface"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/Icon.tsx",
+      "sha256": "700ab08b204724974ee0bd512954625dc018847de59c33d2df298691fd5f1074",
+      "exports": [
+        "Icon"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/ui/KeyboardScroll.tsx",
+      "sha256": "b7dcf8e998cf9f7c4e9a93901c648f2db053108bb9b3136ceda7d268f42c39b3",
+      "exports": [
+        "ScrollView",
+        "FlatList"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/ui/LoadingCards.tsx",
+      "sha256": "6a13a51042948ac9bec148e8223466a52f1c663f19775937d4da27bccc65e075",
+      "exports": [
+        "LoadingCards"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/LocationPicker.tsx",
+      "sha256": "b43c7342492fc2cd41a3247ebe4017b9b105357500a80974386559d6dc335854",
+      "exports": [
+        "LocationPicker"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/ModalScrollBoundary.tsx",
+      "sha256": "e934974ef468434d41a3672b13aba63a470d0327106736587726f4b6ac9643ee",
+      "exports": [
+        "ModalScrollBoundary"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/ui/Sheet.tsx",
+      "sha256": "4aa6a12d3244250df73280985ae8caaaa4eb73b34267e4acf0b733b31320d0b3",
+      "exports": [
+        "Sheet"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/SheetFooter.tsx",
+      "sha256": "0e9723b7f655ff537c00dc944254bb448ad1ba8348d5a00f46ce878fd74b8c4e",
+      "exports": [
+        "SheetFooterContext",
+        "SheetFooter"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/ui/SheetScrollContext.tsx",
+      "sha256": "cdcdc0952273a87b8588745fe352f7c6db2b7256bb015f2838ce3ba9b3edbf60",
+      "exports": [
+        "SheetScrollContext",
+        "SheetScrollProvider"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/ui/Shimmer.tsx",
+      "sha256": "04f0daefad075ad6d42fe7840517087d4e5bc930cffc80989d46f41cfca7bd01",
+      "exports": [
+        "Shimmer"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/ShoppingSheet.tsx",
+      "sha256": "d52f42f69347fa6a3363a164ac9b1296d6b4cfc39af6f03c60133745dd65ae40",
+      "exports": [
+        "ShoppingSheet"
+      ],
+      "hasStyles": false
+    },
+    {
+      "path": "src/ui/index.tsx",
+      "sha256": "5db05cf1689e0af8b71913c2184b980ff63089c3c3da86ff5ab2a95463f235f7",
+      "exports": [
+        "ScreenInsetsApplied",
+        "Screen",
+        "InsetFrame",
+        "Heading",
+        "Body",
+        "Button",
+        "Field",
+        "ResourceState"
+      ],
+      "hasStyles": true
+    },
+    {
+      "path": "src/ui/theme.ts",
+      "sha256": "71a654892149bd3c4fe8f41abe59539893292595b432122fab186ff39c77ffdf",
+      "exports": []
+    },
+    {
+      "path": "src/features/policy/persona.ts",
+      "sha256": "cd60a7ae80bfb1e535d76d5afaa6cc09fbcde8c51a9e13c222c266a83111dd42",
+      "exports": []
+    },
+    {
+      "path": "assets/brand/round_logo.svg",
+      "sha256": "2865cd7f751cb099b2034ffd738af0ee1b3c4772bdfe8f4c4b3565a16dc1f6fe",
+      "exports": []
+    },
+    {
+      "path": "assets/brand/PROVENANCE.md",
+      "sha256": "cdcc6b7a61086189c0a26d200cbe2c3656457cf6c02ac5b9dcbe88a2de029d22",
+      "exports": []
+    },
+    {
+      "path": "assets/brand/adaptive-monochrome-candidate.png",
+      "sha256": "f96fcc5f942756ee919b4d0b354af58fdf00118f492ccc62de5d69d6edf6eb96",
+      "exports": []
+    }
+  ]
+}

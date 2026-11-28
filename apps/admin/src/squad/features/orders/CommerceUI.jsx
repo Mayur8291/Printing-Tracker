@@ -13,9 +13,9 @@ export function SelectField({label, value, onChange, children, ...props}) {retur
 export function Panel({title, description, actions, children, className=''}) {return <section className={`overflow-hidden rounded-xl border bg-card shadow-sm ${className}`}>{(title || actions) && <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4"><div><h2 className="font-semibold">{title}</h2>{description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}</div>{actions}</div>}{children}</section>;}
 export function QueryState({query, empty, children, title='Nothing here yet', description='Records will appear here when they are available.'}) {
   if(query.isLoading)return <ResourceState status="loading"/>;
-  if(query.error)return <ResourceState status="error" description={query.error.message} onRetry={()=>query.refetch()}/>;
+  if(query.error&&(!query.data||['session','forbidden','not_found'].includes(query.error.kind)))return <ResourceState status="error" description={query.error.message} onRetry={()=>query.refetch()}/>;
   if(empty)return <ResourceState status="empty" title={title} description={description}/>;
-  return children;
+  return <>{query.error&&<div role="status" className="flex items-center justify-between gap-3 border-b bg-amber-50 p-3 text-sm text-amber-900"><span>Could not refresh. Showing previously loaded data.</span><Button variant="ghost" size="sm" onClick={()=>query.refetch()}>Retry</Button></div>}{children}</>;
 }
 export function Pager({next, stack, setStack, fetching, count}) {return <div className="flex items-center justify-between gap-3 border-t px-5 py-3 text-sm"><span className="text-muted-foreground">{count ?? 0} records · Page {stack.length}</span><div className="flex gap-2"><Button variant="outline" size="sm" disabled={stack.length===1 || fetching} onClick={()=>setStack(stack.slice(0,-1))}><ChevronLeft/>Previous</Button><Button variant="outline" size="sm" disabled={!next || fetching} onClick={()=>setStack([...stack,next])}>Next<ChevronRight/></Button></div></div>;}
 export function Status(props) {return <StatusBadge {...props}/>;}

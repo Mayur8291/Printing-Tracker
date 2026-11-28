@@ -12678,7 +12678,7 @@
       false,
       null,
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "50d9118140b37360706a7a483d2924fa"
+      "64aa127bd6c16cd28e691104ae89ec0d"
     ],
     [
       "sa_domain",
@@ -13270,6 +13270,18 @@
     ],
     [
       "sa_domain",
+      "order_party_labels",
+      "p_order_id bigint",
+      "sa_guard",
+      true,
+      [
+        "search_path=pg_catalog"
+      ],
+      "{sa_guard=X/sa_guard,sa_executor=X/sa_guard}",
+      "fe9009c01afc1e5dcdd5cf5c64cb8aa5"
+    ],
+    [
+      "sa_domain",
       "order_plan",
       "p_quote jsonb",
       "postgres",
@@ -13314,7 +13326,7 @@
         "search_path=pg_catalog"
       ],
       "{postgres=X/postgres,sa_executor=X/postgres}",
-      "6eaed2da2bafd7549166d3897c562ad3"
+      "88296de7e69d42976745d83ae7b48d37"
     ],
     [
       "sa_domain",

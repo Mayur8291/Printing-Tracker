@@ -1,4 +1,4 @@
-// Runtime environment selection (admin header toggle) + browser-saved integration settings.
+// Runtime environment selection (all-persona header toggle) + browser-saved integration settings.
 // Anon keys are public by design (already shipped in the JS bundle); the service role
 // key and webhook secret never leave Supabase Edge Function secrets.
 

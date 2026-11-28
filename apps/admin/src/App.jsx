@@ -5866,7 +5866,7 @@ function App() {
         topbarActions={
           <>
             <DevEnvironmentIndicator />
-            {isAdmin ? <EnvironmentSwitcherPopover /> : null}
+            <EnvironmentSwitcherPopover showAdminTools={isAdmin} />
             <GlobalSearchBox
               query={globalSearchQuery}
               onQueryChange={setGlobalSearchQuery}

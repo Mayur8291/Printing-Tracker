@@ -152,7 +152,8 @@ export function Deliveries({
   identity,
   environment,
   canWrite,
-  onNavigate
+  onNavigate,
+  scott
 }) {
   const page = useCursor();
   const [order, setOrder] = useState(''),
@@ -166,7 +167,7 @@ export function Deliveries({
   const command = useOperationCommand(canWrite, result => {
     if (result?.id) onNavigate(`/squad/documents/${result.id}`);
   });
-  return <Panel title="Delivery history" description="Recorded deliveries retain their original destination snapshot."><form className="mb-4 flex max-w-md gap-2" onSubmit={e => {
+  return <Panel title={scott ? undefined : "Delivery history"} description={scott ? undefined : "Recorded deliveries retain their original destination snapshot."} className={scott ? "sc1-flat-panel" : undefined}><form className="mb-4 flex max-w-md gap-2" onSubmit={e => {
       e.preventDefault();
       setFilter(order.trim());
       page.reset();

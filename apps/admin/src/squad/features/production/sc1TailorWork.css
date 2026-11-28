@@ -1,0 +1,11 @@
+/* A tailor's assigned work and the inspection queue. */
+html[data-squad-sc1] .sc1-tailor-work { display: flex; flex-direction: column; gap: .75rem; min-width: 0; }
+html[data-squad-sc1] .sc1-tailor-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+html[data-squad-sc1] .sc1-tailor-head h2 { margin: 0; font-size: 1.25rem; line-height: 1.625rem; font-weight: 600; }
+html[data-squad-sc1] .sc1-tailor-note { margin: 0; font-size: .75rem; color: hsl(var(--muted-foreground)); }
+html[data-squad-sc1] .sc1-tailor-find { display: flex; gap: .5rem; }
+html[data-squad-sc1] .sc1-tailor-find input { flex: 1; min-width: 0; }
+html[data-squad-sc1] .squad-app .sc1-tailor-work :is(.sc1-tailor-head, .sc1-tailor-find, .sc1-tailor-pager, [role="alert"]) button { min-width: 2.75rem; min-height: 2.75rem; }
+html[data-squad-sc1] .sc1-tailor-pager > div { flex-wrap: wrap; gap: .5rem; margin-top: 0; }
+
+html[data-squad-sc1] .sc1-tailor-title { margin: 0; font-size: 1.75rem; line-height: 2.125rem; font-weight: 700; letter-spacing: -.04375rem; }

@@ -6,7 +6,29 @@
   "main": "index.js",
   "types": "index.d.ts",
   "exports": {
-    ".": { "types": "./index.d.ts", "default": "./index.js" },
-    "./squad": { "types": "./squad.d.ts", "default": "./squad.js" }
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./squad": {
+      "types": "./squad.d.ts",
+      "default": "./squad.js"
+    },
+    "./location": {
+      "types": "./location.d.ts",
+      "default": "./location.js"
+    },
+    "./addon-selection": {
+      "types": "./addon-selection.d.ts",
+      "default": "./addon-selection.js"
+    },
+    "./configurator-preview": {
+      "types": "./configurator-preview.d.ts",
+      "default": "./configurator-preview.js"
+    },
+    "./pricing": {
+      "types": "./pricing.d.ts",
+      "default": "./pricing.js"
+    }
   }
 }

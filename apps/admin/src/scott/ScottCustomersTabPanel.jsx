@@ -38,13 +38,14 @@ export default function ScottCustomersTabPanel({ isAdmin = false, canEdit = fals
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Customer directory, types and performance.
+              Customer pricing directory and performance.
               {mayEdit ? null : " You have read-only access to this tab."}
             </p>
           </div>
-          <CantoTargetSwitcher />
+          <div className="flex flex-wrap items-center gap-3"><a className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-muted" href="/squad/customers">Manage customers and distributors</a><CantoTargetSwitcher /></div>
         </div>
 
+        <p className="mt-3 text-xs text-muted-foreground">Account approval, coordinator assignments and distributor accounts are managed in Squad One with your staff sign-in. Pricing tiers here do not define account roles.</p>
         <Tabs value={subTab} onValueChange={setSubTab} className="mt-4" aria-label="Scott customers views">
           <TabsList>
             {SUB_TABS.map((tab) => (

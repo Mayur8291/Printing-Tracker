@@ -16,11 +16,12 @@ import {
 } from "../runtimeEnv";
 
 /**
- * Admin-only header control. Opening the link always uses production login.
+ * All personas can choose their backend; integration tools remain admin-only.
+ * Opening the link uses production login.
  * Staging applies only after this switch is turned to Staging, and only in
  * this tab. Switching reloads the app; the other project may ask for its own login.
  */
-export default function EnvironmentSwitcherPopover() {
+export default function EnvironmentSwitcherPopover({ showAdminTools = false }) {
   const runtime = getRuntimeEnv();
   const isProduction = runtime.env === "production";
   const [scottUrl, setScottUrl] = useState(() => getScottRestBaseUrl());
@@ -132,7 +133,7 @@ export default function EnvironmentSwitcherPopover() {
           ) : null}
         </div>
 
-        <Separator />
+        {showAdminTools ? <><Separator />
 
         <div className="space-y-2">
           <Label htmlFor="scott-rest-base-url" className="text-sm font-medium">
@@ -172,7 +173,7 @@ export default function EnvironmentSwitcherPopover() {
               {testState.message}
             </p>
           ) : null}
-        </div>
+        </div></> : null}
       </PopoverContent>
     </Popover>
   );

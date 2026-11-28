@@ -1,0 +1,8 @@
+@import "../scott-one-ui/tokens.css";
+@import "../scott-one-ui/styles.css";
+
+.sc1.sc1-signin { height: 100dvh; overflow-y: auto; background: #fff; padding: calc(2rem + env(safe-area-inset-top, 0px)) 1.5rem calc(2rem + env(safe-area-inset-bottom, 0px)); }
+.sc1.sc1-signin form { display: flex; flex-direction: column; gap: 1rem; max-width: 27.5rem; min-height: 100%; margin: 0 auto; justify-content: center; }
+.sc1 .sc1-signin-mark { width: 4rem; height: 4rem; flex-shrink: 0; background: var(--sc1-color-primary); -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 6.8rem; mask-size: 6.8rem; }
+.sc1 .sc1-signin-links { display: flex; flex-direction: column; }
+.sc1.sc1-signin .sc1-signin-links .sc1-button { font-weight: 500; font-size: .875rem; }
