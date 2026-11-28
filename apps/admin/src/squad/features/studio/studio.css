@@ -10,3 +10,75 @@
 @media(prefers-reduced-motion:reduce){.product-studio *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .studio-visual-option:not(:has(img)){min-height:88px;justify-content:center;padding:24px 12px 18px}.studio-option-picture:not(:has(img)){display:none}
 .studio-preview-slot [data-preview-state]{display:flex;flex-direction:column;flex:1;min-height:0}
+
+/* Scott One studio: white canvas, underline stage tabs, r12 choices with a red selected border, pinned footer. */
+html[data-squad-sc1] .product-studio[data-sc1]{--studio-red:hsl(var(--primary));--studio-line:#e1e0d9;--studio-muted:#6f716d;color:hsl(var(--foreground));background:#fff;font-family:inherit}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-title{margin:0 0 .75rem;font-size:1.75rem;line-height:2.125rem;font-weight:700;letter-spacing:-.04375rem;overflow-wrap:anywhere}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-stages{gap:0;flex-wrap:nowrap;justify-content:space-between;border-bottom:1px solid var(--studio-line);margin-bottom:12px}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-stages button{flex:1;justify-content:center;min-width:0;min-height:44px;padding:8px 2px;border-radius:0;border-bottom:3px solid transparent;font-size:13px;background:transparent;box-shadow:none;color:var(--studio-muted)}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-stages [aria-current]{color:hsl(var(--foreground));font-weight:700;border-bottom-color:var(--studio-red)}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-stages span{display:none}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-option-card{border-radius:12px;border:2px solid var(--studio-line);box-shadow:none;font-size:13px}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-option-card[aria-pressed=true]{border-color:var(--studio-red)}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-option-card[data-pending=true]:not([aria-pressed=true]){border-color:var(--studio-red)}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-swatch[aria-pressed=true]{box-shadow:0 0 0 2px var(--studio-red)}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-price{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;font-size:12px;line-height:1.4}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-price-copy{display:flex;flex-direction:column;min-width:0;color:var(--studio-muted)}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-price-copy strong{color:hsl(var(--foreground));font-size:19px;font-variant-numeric:tabular-nums}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-price-copy small{font-size:11px;font-weight:500;color:var(--studio-muted)}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-price-more{flex:none;min-height:44px;color:var(--studio-red);font-weight:600;font-size:12px}
+html[data-squad-sc1] .product-studio[data-sc1] .studio-actions>button:not(.studio-price-more){width:100%;height:auto;min-height:52px;border-radius:16px;font-size:15px;font-weight:700;white-space:normal}
+
+html[data-squad-sc1] .product-studio[data-sc1] .studio-price input{min-height:44px;font-size:16px}
+
+@media(max-width:767px){
+ html[data-squad-sc1] .product-studio[data-sc1]{--studio-preview:clamp(20rem,44dvh,25rem);margin:0 -.75rem;padding:.25rem .75rem 0;border-radius:0;max-width:none;scroll-margin-top:0}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-workspace{display:flex;flex-direction:column;height:auto;min-height:0;max-height:none;overflow:visible;border:0;border-radius:0;box-shadow:none}
+ /* The shortcut row sits first and scrolls away; the garment and camera stay in view. */
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-garment{position:sticky;top:-3.25rem;z-index:4;height:var(--studio-preview);flex:none;margin:0 -.75rem;padding:0 .75rem;background:#fff;border-bottom:1px solid var(--studio-line)}
+ html[data-squad-sc1] .product-studio[data-sc1]:is([data-stage=Review],[data-stage=Sizes]) .studio-garment{position:static}
+ html[data-squad-sc1] .product-studio[data-sc1] :is(.studio-garment-heading,.studio-footnote,.studio-editor-heading .studio-eyebrow){display:none}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-shortcuts{order:-1;margin:0;height:3.25rem;align-items:center}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-shortcuts button{min-height:44px;font-size:12px;padding:0 14px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-slot{overflow-x:hidden;overflow-y:auto}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-slot>div>div{flex:1;min-height:0;display:flex;flex-direction:column}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-canvas-host{min-height:120px;margin:0}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-camera-toolbar{margin:2px auto 4px;box-shadow:none}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-camera-button{height:44px;min-width:56px;font-size:12px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-notice{max-height:4rem;overflow-y:auto}
+ /* Layered (non-3D) preview: keep the square frame inside the fixed preview height. */
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-slot .squad-configurator-preview{display:flex;flex:1;min-height:0;flex-direction:column;background:transparent}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-slot .squad-configurator-preview>div:first-child{display:none}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-slot .squad-configurator-preview>div:nth-child(2){flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px;container-type:size}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-slot .squad-configurator-preview>div:nth-child(2)>div{flex:none;width:min(100cqw,100cqh);height:min(100cqw,100cqh);border:0}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-preview-slot .squad-configurator-preview>div:last-child{flex:none;max-height:4.5rem;overflow-y:auto;padding:6px 8px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-editor{overflow:visible;border:0;background:#fff}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-editor-heading{justify-content:flex-end;padding:4px 0 0}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-editor-heading button{min-height:44px;font-size:12px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-editor-content{max-height:none;overflow:visible}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-editor-content .p-5{padding-left:0;padding-right:0}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-editor-content .px-5{padding-left:0;padding-right:0}
+ html[data-squad-sc1] .squad-app .product-studio[data-sc1] .studio-editor-content>div>section,html[data-squad-sc1] .squad-app .product-studio[data-sc1] .studio-editor-content>section{border:0;border-radius:0;background:transparent;box-shadow:none}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-part-tabs{top:calc(var(--studio-preview) - 3.25rem);margin:0 -.75rem;padding:0 .75rem}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-part-tabs button{min-height:44px;font-size:14px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-part-content{padding:16px 0}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-option-picture,html[data-squad-sc1] .product-studio[data-sc1] .studio-option-picture img{height:96px!important}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-option-picture:empty{height:0!important}
+ html[data-squad-sc1] .product-studio[data-sc1] :is(.studio-part-description,.studio-option-name,.studio-control-heading p,.studio-control-heading>span,.studio-group-heading h4,.studio-prerequisite,.studio-selection-note,.studio-part-error){font-size:13px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-option-note{font-size:11px;padding:0 6px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-swatch-list{gap:12px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-swatch{width:44px;height:44px}
+ html[data-squad-sc1] .product-studio[data-sc1] :is(.studio-palette-actions,.studio-inline-actions){flex-wrap:wrap}
+ html[data-squad-sc1] .product-studio[data-sc1] :is(.studio-palette-actions button,.studio-text-action,.studio-summary-row button){min-height:44px;min-width:44px;font-size:13px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-summary-row{align-items:center;font-size:14px}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-summary-row>div{min-width:0;overflow-wrap:anywhere}
+ html[data-squad-sc1] .product-studio[data-sc1] summary{min-height:44px;display:flex;align-items:center}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-actions{position:sticky;bottom:calc(var(--squad-dock-space) - .5rem);z-index:6;gap:8px;margin:0 -.25rem;padding:10px 12px 12px;border:1px solid var(--studio-line);border-radius:22px;background:#fff;box-shadow:0 8px 24px rgb(24 26 27 / .12)}
+ html[data-squad-sc1] .product-studio[data-sc1][data-stage=Review] .studio-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html[data-squad-sc1] .product-studio[data-sc1][data-stage=Review] .studio-actions>:not(button){grid-column:1/-1}
+}
+/* Short screens cannot afford a pinned preview. */
+@media(max-width:767px) and (max-height:740px){
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-garment{position:static}
+ html[data-squad-sc1] .product-studio[data-sc1] .studio-part-tabs{top:0}
+}

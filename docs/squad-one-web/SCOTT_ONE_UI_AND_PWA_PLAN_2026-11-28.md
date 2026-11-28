@@ -228,3 +228,7 @@ Deferred: page transitions, notification count, pull-to-refresh, tablet (768–1
 Checked on a local production build: worker active, files cached, update waits then switches, offline relaunch reaches the sign-in screen.
 **Differs from §3.4:** business data is not persisted on the device, so a cold offline launch cannot show earlier orders; it needs a decision plus session-handling changes.
 Not checked: install and launch on a real iPhone/Android, Lighthouse, a Vercel preview. Netlify config has no `/squad` rewrite (none existed before).
+
+**28 Nov — Remaining staff personas, checkout and product studio.** All staff roles (0, 1, 2, 4, 7, 8, 9, 11, 12) are on by default; 3 and 10 are never on. Admin/coordinator, production, factory, job work, checkout and configurator screens restyled behind `scott`.
+Verified with stubbed data in headless Chrome: 238 screen/width checks (390 and 360) with no errors, page overflow, clipped content, controls under 40px, generic headers or missing header/dock; account sheet opens for each role; checkout reaches the "Place order" form; production entry forms accept quantities; 34 Customer/Dealer screens show no visible difference from `8903beb5`.
+Not verified: real staging/production data, real sign-in, saving anything, physical devices, screen readers. Not restyled: Administration → Stock reconciliation, ratings panel, payment-instructions content, many add/edit form bodies (they use bottom sheets with the theme).

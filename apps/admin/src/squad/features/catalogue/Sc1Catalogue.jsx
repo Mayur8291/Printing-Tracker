@@ -8,7 +8,7 @@ import { money } from "../orders/orderModel";
 export function Sc1ProductToolbar({ search, onSearchChange, onSearch, filterCount = 0, filters, cartCount, checkout, onCheckout, sharing, onToggleShare }) {
   const [open, setOpen] = useState(false);
   return <Surface skin="core" className="sc1-order-toolbar">
-    <div className="sc1-order-heading"><h1 className="sc1-type-page">Products</h1>
+    <div className="sc1-order-heading"><h1 className="sc1-type-page">{checkout ? "Review" : "Products"}</h1>
       <div className="sc1-heading-actions">
         {onToggleShare && <button type="button" className="sc1-icon-button" aria-pressed={sharing} aria-label={sharing ? "Stop selecting for sharing" : "Select products to share"} onClick={onToggleShare}><Share2 className="size-5" aria-hidden="true" /></button>}
         <button type="button" className="sc1-text-action" disabled={!cartCount} onClick={onCheckout}>{checkout ? "Back to products" : `Selection (${cartCount})`}</button>

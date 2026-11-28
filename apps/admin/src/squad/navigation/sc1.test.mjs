@@ -4,9 +4,9 @@ import { sc1Enabled, isTabRoot } from "./sc1.js";
 
 const memory = () => { const data = {}; return { getItem: (k) => data[k] ?? null, setItem: (k, v) => { data[k] = v; } }; };
 
-test("only the Sales Coordinator is switched on by default", () => {
-  assert.equal(sc1Enabled({ role: 1 }), true);
-  for (const role of [0, 2, 3, 4, 7, 8, 9, 10, 11, 12]) assert.equal(sc1Enabled({ role }), false, `role ${role}`);
+test("every staff persona is switched on by default; customer and dealer are not", () => {
+  for (const role of [0, 1, 2, 4, 7, 8, 9, 11, 12]) assert.equal(sc1Enabled({ role }), true, `role ${role}`);
+  for (const role of [3, 10, 5, 6]) assert.equal(sc1Enabled({ role }), false, `role ${role}`);
 });
 
 test("customer and dealer cannot be forced on", () => {
@@ -15,6 +15,7 @@ test("customer and dealer cannot be forced on", () => {
 
 test("setting adds roles and the query override is remembered", () => {
   assert.equal(sc1Enabled({ role: 0 }, { setting: "1, 0" }), true);
+  assert.equal(sc1Enabled({ role: 2 }, { setting: "1, 0" }), false);
   const storage = memory();
   assert.equal(sc1Enabled({ role: 1 }, { search: "?sc1=0", storage }), false);
   assert.equal(sc1Enabled({ role: 1 }, { storage }), false);

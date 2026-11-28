@@ -9,6 +9,9 @@ import { promptInstall } from "../../pwa";
 // Native icon family where a glyph exists; other tabs fall back to the Flutter SVG mask.
 const TAB_GLYPH = { orders: "orders", customers: "customers", distributors: "bag", products: "categories", todos: "check" };
 
+// Two long Admin tab names do not fit five across; the full name stays available to screen readers.
+const SHORT_LABEL = { "sales-coordinators": "Sales", "production-coordinators": "Production" };
+
 const spa = (onNavigate, href) => (event) => {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
   event.preventDefault();
@@ -37,9 +40,9 @@ export function Sc1Dock({ tabs, activeKey, onNavigate }) {
   if (!tabs.length) return null;
   return <div className="sc1 sc1-app-dock">
     <nav className="sc1-dock" aria-label="Primary">
-      {tabs.map((tab) => <a key={tab.key} href={tab.href} aria-current={tab.key === activeKey ? "page" : undefined} onClick={spa(onNavigate, tab.href)}>
+      {tabs.map((tab) => <a key={tab.key} href={tab.href} aria-current={tab.key === activeKey ? "page" : undefined} aria-label={SHORT_LABEL[tab.key] ? tab.label : undefined} onClick={spa(onNavigate, tab.href)}>
         {TAB_GLYPH[tab.key] ? <Icon name={TAB_GLYPH[tab.key]} size={26} /> : <TabIcon name={tab.icon} className="size-6" />}
-        <span>{tab.label}</span>
+        <span>{SHORT_LABEL[tab.key] ?? tab.label}</span>
       </a>)}
     </nav>
   </div>;

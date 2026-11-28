@@ -66,10 +66,14 @@ export default function SquadApp() {
   const activeKey = activeTabKey(tabs, location.pathname + location.search);
   // Back returns through history; a deep link with no history falls back to the owning tab.
   const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate(tabs.find((tab) => tab.key === activeKey)?.href ?? landing, { replace: true }));
-  const sc1 = scott ? { title: module === "filtered-orders" ? "Orders" : undefined, tabs, activeKey, menu: drawer.filter((item, index) => drawer.findIndex((other) => other.href === item.href) === index), navigationType, root: isTabRoot(tabs, location.pathname, location.search), onBack: goBack } : null;
+  // Pushed pages are headed by what they show, not by whichever menu entry happens to point there.
+  const pathName = location.pathname.replace(/\/$/, "");
+  const TITLES = { "filtered-orders": "Orders", administration: "Administration", production: "Production", team: "Team", people: "Profile", "job-work": "Job work", distributors: "Distributor", customers: "Customer", orders: "Order", targets: "Milestone" };
+  const pageTitle = pathName === "/squad/coordinators/factory" ? "Factory" : pathName.startsWith("/squad/coordinators/") ? "Coordinator" : pathName === "/squad/distributors" ? "Distributors" : TITLES[module];
+  const sc1 = scott ? { title: pageTitle, tabs, activeKey, menu: drawer.filter((item, index) => drawer.findIndex((other) => other.href === item.href) === index), navigationType, root: isTabRoot(tabs, location.pathname, location.search), onBack: goBack } : null;
   return <SquadShell {...personaProps} sc1={sc1} identity={context.identity} navItems={items} activePath={location.pathname + location.search} onNavigate={navigate} onSignOut={context.onSignOut} environment={context.environment} writeState={context.writeState}>
     {!allowed ? <ResourceState status="denied" description="Your role does not have access to this workspace." /> : <Suspense fallback={<ResourceState status="loading" />}>
-      {Page && persona && module === "production" ? <QueueStats identity={context.identity}><Page key={location.pathname + location.search} {...context} scott={scott} path={location.pathname} search={location.search} onNavigate={navigate} /></QueueStats> : Page ? <Page key={module==="customers"?location.pathname:location.pathname + location.search} {...context} scott={scott} persona={persona} path={location.pathname} search={location.search} onNavigate={navigate} /> : <ResourceState title="Page not found" description="Choose a workspace from the navigation." />}
+      {Page && persona && module === "production" ? <QueueStats identity={context.identity} scott={scott} hideCounters={scott && location.pathname.replace(/\/$/, "") !== "/squad/production"}><Page key={location.pathname + location.search} {...context} scott={scott} path={location.pathname} search={location.search} onNavigate={navigate} /></QueueStats> : Page ? <Page key={module==="customers"?location.pathname:location.pathname + location.search} {...context} scott={scott} persona={persona} path={location.pathname} search={location.search} onNavigate={navigate} /> : <ResourceState title="Page not found" description="Choose a workspace from the navigation." />}
     </Suspense>}
   </SquadShell>;
 }

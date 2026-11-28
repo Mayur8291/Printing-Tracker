@@ -260,3 +260,18 @@ html[data-squad-sc1] .sc1-report-tabs button { flex: none; min-height: 2.75rem; 
 @media (min-width: 768px) { .sc1.sc1-pwa-banner { left: auto; width: 24rem; } }
 /* An open banner must not cover the add button. */
 html[data-squad-sc1] .squad-inset:has(.sc1-pwa-banner) .squad-fab { display: none; }
+
+/* Dialogs are portalled outside .squad-app: keep their controls touch sized. */
+@media (max-width: 767px) {
+  html[data-squad-sc1] [data-squad-dialog] :is(input:not([type="checkbox"], [type="radio"]), select, textarea) { min-height: 2.75rem; font-size: 1rem; }
+  html[data-squad-sc1] [data-squad-dialog] button:not([data-slot="dialog-close"]) { min-height: 2.75rem; }
+}
+
+/* Every control is thumb sized on phones. Excluded: checkboxes and switches, and controls whose
+   ::after already stretches the hit area over their card. */
+@media (max-width: 767px) {
+  html[data-squad-sc1] .squad-app :is(button, summary, select, a[data-slot="button"]):not([role="checkbox"], [role="switch"], .sc1-order-open, .sc1-task-check) { min-height: 2.75rem; }
+  html[data-squad-sc1] .squad-app summary { display: list-item; line-height: 2.75rem; }
+  /* Admin has long tab names: wrap onto two lines instead of cutting them off. */
+  .sc1-app-dock .sc1-dock a span:last-child { white-space: normal; text-overflow: clip; overflow: visible; text-align: center; line-height: .75rem; }
+}

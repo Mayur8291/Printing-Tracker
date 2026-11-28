@@ -131,8 +131,11 @@ export function QuantityEditor({
   values,
   onChange,
   mode,
-  disabled
+  disabled,
+  scott = false,
+  readOnly = false
 }) {
+  if (scott) return <ScottQuantityList rows={rows} values={values} onChange={onChange} mode={mode} disabled={disabled} readOnly={readOnly} />;
   return <DataTable rows={rows} columns={[{
     key: 'size',
     label: mode === 'inspection' ? 'Assignment' : 'Size',
@@ -153,6 +156,31 @@ export function QuantityEditor({
       [r.id]: e.target.value
     })} />
   }]} />;
+}
+/** Phone entry: one block per size with a thumb stepper. Same values, limits and disabled rules as the table. */
+function ScottQuantityList({ rows, values, onChange, mode, disabled, readOnly }) {
+  const entered = rows.reduce((sum, r) => sum + (Number(values[r.id]) > 0 ? Number(values[r.id]) : 0), 0);
+  return <div>
+    <ul className="sc1-item-list sc1-prod-sizes">{rows.map(r => {
+      const name = r.size_name || `#${r.id}`;
+      const available = remainingQuantity(r, mode);
+      const off = disabled || available === 0;
+      const current = Math.max(0, Math.trunc(Number(values[r.id]) || 0));
+      const set = value => onChange({ ...values, [r.id]: value });
+      return <li key={r.id}>
+        <div className="sc1-prod-size-head">
+          <strong>{mode === 'inspection' && !r.size_name ? `Assignment ${name}` : name}</strong>
+          <span>{mode === 'inspection' ? 'Assigned' : 'Planned'} {r.quantity ?? r.assigned ?? '—'} · <b>Available {available}</b></span>
+        </div>
+        {!readOnly && <div className="sc1-stepper">
+          <button type="button" aria-label={`Decrease quantity for ${name}`} disabled={off || current <= 0} onClick={() => set(current > 1 ? String(Math.min(current - 1, available)) : '')}>−</button>
+          <input aria-label={`Quantity for ${r.size_name || r.id}`} type="number" inputMode="numeric" pattern="[0-9]*" min="0" step="1" max={available} placeholder="0" value={values[r.id] ?? ''} disabled={off} onChange={e => set(e.target.value)} />
+          <button type="button" aria-label={`Increase quantity for ${name}`} disabled={off || current >= available} onClick={() => set(String(current + 1))}>+</button>
+        </div>}
+      </li>;
+    })}</ul>
+    {!readOnly && <p className="sc1-prod-total" aria-live="polite"><span>Pieces entered</span><strong>{entered}</strong></p>}
+  </div>;
 }
 export function RefreshButton({
   onClick,

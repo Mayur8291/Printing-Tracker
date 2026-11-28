@@ -2,11 +2,14 @@ import {useLayoutEffect,useRef} from 'react';
 import {ArrowRight,Check,ChevronRight,Plus,RotateCcw} from 'lucide-react';
 import './studio.css';
 const stages=['Fabric','Parts','Artwork','Review','Sizes'];
-export default function ProductStudioFrame({name,stage,setStage,preview,children,footer,onUndo,canUndo,onBodyColour}){
- const scroll=useRef(null),positions=useRef({}),previousStage=useRef(stage);
- useLayoutEffect(()=>{const element=scroll.current;if(element){positions.current[previousStage.current]=element.scrollTop;element.scrollTop=positions.current[stage]??0;}previousStage.current=stage;},[stage]);
- return <section data-testid="product-studio" className="product-studio" aria-label="Product studio">
-  <header className="studio-intro"><div><p className="studio-eyebrow">YOUR DESIGN, EVERY DETAIL</p><h2>Build it, part by part.</h2><p>The garment stays with you. Make every detail yours.</p></div><span className="studio-brand"><strong>Scott One</strong><span>/</span> Parts Studio</span></header>
+export default function ProductStudioFrame({name,stage,setStage,preview,children,footer,onUndo,canUndo,onBodyColour,scott}){
+ const studio=useRef(null),scroll=useRef(null),positions=useRef({}),previousStage=useRef(stage);
+ useLayoutEffect(()=>{const element=scroll.current;if(element){positions.current[previousStage.current]=element.scrollTop;element.scrollTop=positions.current[stage]??0;}
+  // Scott scrolls the whole page, so a new stage starts from the top of the studio.
+  if(scott&&previousStage.current!==stage){const main=studio.current?.closest('.squad-main');if(main&&studio.current.getBoundingClientRect().top<main.getBoundingClientRect().top)studio.current.scrollIntoView({block:'start'});}
+  previousStage.current=stage;},[stage]);
+ return <section ref={studio} data-testid="product-studio" data-sc1={scott?'':undefined} data-stage={stage} className="product-studio" aria-label="Product studio">
+  {scott?<h1 className="studio-title">{name||'New design'}</h1>:<header className="studio-intro"><div><p className="studio-eyebrow">YOUR DESIGN, EVERY DETAIL</p><h2>Build it, part by part.</h2><p>The garment stays with you. Make every detail yours.</p></div><span className="studio-brand"><strong>Scott One</strong><span>/</span> Parts Studio</span></header>}
   <nav className="studio-stages" aria-label="Design stages">{stages.map((label,index)=><button key={label} type="button" aria-current={stage===label?'step':undefined} onClick={()=>setStage(label)}><span>{index+1}</span>{label}</button>)}</nav>
   <div className="studio-workspace"><div className="studio-garment"><div className="studio-garment-heading"><div><span className="studio-eyebrow">THE STUDIO COLLECTION</span><h3>{name||'Your next favourite.'}</h3></div><span className="studio-preview-badge">DESIGN PREVIEW</span></div><div className="studio-preview-slot">{preview}</div><div className="studio-preview-shortcuts"><button type="button" onClick={onBodyColour??(()=>setStage('Fabric'))}><span className="studio-brand-dot"/>{onBodyColour?'Body colour':'Fabric colour'}<ChevronRight size={12}/></button><button type="button" onClick={()=>setStage('Artwork')}><Plus size={12}/>Add artwork</button></div></div><div className="studio-editor"><header className="studio-editor-heading"><span className="studio-eyebrow">{stage==='Review'?'YOUR DESIGN':'MAKE IT YOURS'}</span><button type="button" disabled={!canUndo} onClick={onUndo}><RotateCcw size={13}/> Undo</button></header><div ref={scroll} className="studio-editor-content">{children}</div><footer className="studio-actions">{footer}{stage!=='Review'&&stage!=='Sizes'&&<button className="studio-primary" type="button" onClick={()=>setStage(stages[stages.indexOf(stage)+1])}>{stage==='Artwork'?'Review design':`Done with ${stage.toLowerCase()}`}<ArrowRight size={16}/></button>}</footer></div></div><p className="studio-footnote">One garment. Every detail, yours.</p>
  </section>;

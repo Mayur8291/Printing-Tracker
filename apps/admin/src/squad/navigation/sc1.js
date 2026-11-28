@@ -1,6 +1,6 @@
 // Per-persona rollout of the Scott One look. Customer (3) and Dealer (10) have the native app and never opt in.
 const NEVER = [3, 10];
-export const SC1_DEFAULT_ROLES = "1";
+export const SC1_DEFAULT_ROLES = "0,1,2,4,7,8,9,11,12";
 
 export function sc1Roles(setting) {
   return String(setting ?? SC1_DEFAULT_ROLES).split(",").map((value) => value.trim()).filter(Boolean).map(Number);
